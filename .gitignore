@@ -1,0 +1,29 @@
+# Lencana — platform kredensial terverifikasi di BNB Chain.
+# Aturan utama: yang bisa diregenerasi JANGAN masuk; yang berisi kunci WAJIB keluar.
+
+# Artefak build Foundry
+out/
+cache/
+broadcast/
+verify/
+
+# Dependensi yang dipasang ulang
+node_modules/
+lib/forge-std/
+
+# Hasil build frontend — `npm run build` menghasilkannya kembali
+dist/
+
+# 🔴 Secret. `cache/` dan `broadcast/` di atas juga sudah mengecualikan berkas Foundry yang
+# menyimpan private key saat `--broadcast`, tapi pola di bawah ini jaring pengamannya.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+
+# Editor / OS
+.obsidian/
+.DS_Store
+Thumbs.db

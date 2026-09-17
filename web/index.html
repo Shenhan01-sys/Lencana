@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lencana — verifikasi kredensial</title>
+    <meta
+      name="description"
+      content="Periksa sertifikat belajar tanpa wallet, tanpa login, dan tanpa perlu mempercayai kami. Dibaca langsung dari BNB Smart Chain."
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Lencana <span class="sub">— verifikasi kredensial</span></h1>
+      <p class="lede">
+        Tempel sebuah hash kredensial, UID attestation, tokenId artefak, atau sebuah address.
+        Halaman ini tidak punya backend dan tidak perlu: setiap angka di bawah dibaca langsung
+        dari chain, dan kamu bisa mengulangnya sendiri dengan perintah yang kami tampilkan.
+      </p>
+    </header>
+
+    <div id="banner" class="banner hidden"></div>
+
+    <section class="ask">
+      <label for="input">Masukan</label>
+      <textarea id="input" rows="2" spellcheck="false" placeholder="0x… (credentialHash atau UID attestation), angka decimal (tokenId), atau 0x… (address)"></textarea>
+      <div class="actions">
+        <button id="go" class="primary">Periksa</button>
+        <button id="clear">Kosongkan</button>
+        <button id="share">Salin tautan</button>
+        <button id="fill-sample">Isi contoh bentuk</button>
+      </div>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+    </section>
+
+    <details id="config" class="config">
+      <summary>Konfigurasi pembacaan (RPC &amp; address kontrak)</summary>
+      <div class="grid">
+        <label>Preset chain
+          <select id="preset"></select>
+        </label>
+        <label>URL RPC
+          <input id="cfg-rpc" spellcheck="false" />
+        </label>
+        <label>CredentialResolver
+          <input id="cfg-resolver" spellcheck="false" placeholder="0x…" />
+        </label>
+        <label>SoulboundCert
+          <input id="cfg-cert" spellcheck="false" placeholder="0x…" />
+        </label>
+        <label>BAS core (milik BAS, bukan kami)
+          <input id="cfg-bas" spellcheck="false" placeholder="0x…" />
+        </label>
+        <label>chainId yang diharapkan
+          <input id="cfg-chain" inputmode="numeric" placeholder="97" />
+        </label>
+        <label>Nama tampilan
+          <input id="cfg-label" placeholder="BNB Smart Chain Testnet" />
+        </label>
+        <div class="actions">
+          <button id="apply">Terapkan &amp; periksa ulang</button>
+        </div>
+      </div>
+      <p class="note">
+        chainId dari RPC selalu dibandingkan dengan nilai yang kamu harapkan. Kalau tidak cocok,
+        halaman menolak menampilkan hasil — pembacaan dari chain lain bukan bukti apa pun.
+      </p>
+    </details>
+
+    <main id="out"></main>
+
+    <footer>
+      <p>
+        Kontrak: <code>CredentialResolver</code> (whitelist penerbit + rantai prasyarat) dan
+        <code>SoulboundCert</code> (artefak ERC-5192), di atas <strong>BAS</strong> — fork EAS 1.3.0
+        yang sudah ter-deploy di BNB Smart Chain. Kredensialnya sendiri adalah dokumen
+        <em>Open Badges 3.0 / W3C Verifiable Credential</em> yang ditandatangani penerbit; chain
+        hanya menyimpan registry penerbit, status yang tidak bisa disembunyikan, dan bukti waktu.
+      </p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

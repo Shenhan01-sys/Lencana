@@ -1,0 +1,65 @@
+/* Fungsional saja. Estetika sengaja tidak dikejar — yang penting setiap informasi
+   terlihat, terbaca, dan bisa disalin. */
+
+:root { color-scheme: light dark; --gap: 14px; }
+* { box-sizing: border-box; }
+body { font: 15px/1.5 system-ui, sans-serif; margin: 0 auto; padding: 20px; max-width: 1080px; }
+h1 { margin: 0 0 6px; font-size: 22px; }
+h1 .sub { font-size: 15px; font-weight: 400; opacity: .65; }
+h2 { margin: 0 0 8px; font-size: 16px; }
+h3 { margin: 14px 0 6px; font-size: 14px; }
+.lede { margin: 0 0 16px; max-width: 76ch; }
+code { font-family: ui-monospace, monospace; font-size: 12.5px; word-break: break-all; }
+code.addr { background: rgba(127,127,127,.14); padding: 1px 4px; border-radius: 3px; }
+code.short { font-size: 11.5px; word-break: break-all; }
+a { color: inherit; }
+
+.ask { margin: 16px 0; }
+.ask label { display: block; font-size: 13px; margin-bottom: 4px; }
+textarea { width: 100%; padding: 8px; border: 1px solid #8884; border-radius: 5px; background: transparent; color: inherit; resize: vertical; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+button { padding: 7px 12px; font: inherit; border: 1px solid #8884; border-radius: 5px; background: transparent; color: inherit; cursor: pointer; }
+button.primary { font-weight: 600; }
+button:disabled { opacity: .5; cursor: default; }
+.status { margin-top: 8px; font-size: 13px; min-height: 18px; opacity: .9; }
+
+.banner { padding: 10px 12px; border: 1px solid #b58900; border-radius: 6px; background: rgba(181,137,0,.1); margin-bottom: 12px; }
+.hidden { display: none; }
+
+.config { margin: 0 0 18px; padding: 8px 12px; border: 1px solid #8883; border-radius: 6px; }
+.config summary { cursor: pointer; font-weight: 600; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--gap); margin-top: 12px; }
+.grid label { display: block; font-size: 12.5px; }
+.grid input, .grid select { width: 100%; margin-top: 3px; padding: 6px; border: 1px solid #8884; border-radius: 4px; background: transparent; color: inherit; }
+
+.panel { margin: 0 0 var(--gap); padding: 12px; border: 1px solid #8883; border-radius: 6px; }
+.note { font-size: 12.5px; opacity: .85; margin: 6px 0 0; max-width: 92ch; }
+
+table.kv { width: 100%; border-collapse: collapse; }
+table.kv th { width: 240px; text-align: left; font-weight: 500; vertical-align: top; padding: 5px 10px 5px 0; }
+table.kv td { padding: 5px 0; vertical-align: top; }
+.hint { font-size: 12px; opacity: .72; margin-top: 2px; }
+.yes { color: #2e7d32; font-weight: 600; }
+.no { color: #a15; font-weight: 600; }
+.na { opacity: .55; font-style: italic; }
+
+.verdict { padding: 14px; border-radius: 6px; border: 1px solid #8883; margin-bottom: var(--gap); }
+.verdict-title { font-size: 26px; font-weight: 700; letter-spacing: .02em; }
+.verdict-sub { font-size: 13.5px; margin-bottom: 8px; opacity: .9; }
+.verdict.ok { border-color: #2e7d32; background: rgba(46,125,50,.09); }
+.verdict.bad { border-color: #a15; background: rgba(170,17,85,.09); }
+.verdict.warn { border-color: #b58900; background: rgba(181,137,0,.09); }
+.reasons, .limits { margin: 0; padding-left: 20px; }
+.reasons li, .limits li { margin: 3px 0; }
+.limits { font-size: 13.5px; }
+
+.st-active { color: #2e7d32; font-weight: 700; }
+.st-revoked, .st-expired { color: #a15; font-weight: 700; }
+.st-unknown { opacity: .6; font-weight: 700; }
+
+pre.cmd { padding: 10px; overflow-x: auto; background: rgba(127,127,127,.12); border-radius: 5px; font-size: 12px; white-space: pre-wrap; }
+
+table.log { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.log th, table.log td { padding: 4px 6px; border-bottom: 1px solid #8883; text-align: left; vertical-align: top; }
+.err-row { background: rgba(170,17,85,.09); }
+footer { margin: 22px 0 8px; font-size: 12.5px; opacity: .8; max-width: 92ch; }

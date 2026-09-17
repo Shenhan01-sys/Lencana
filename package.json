@@ -1,0 +1,19 @@
+{
+  "name": "bnb-credential-app",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Kredensial belajar terverifikasi di BNB Chain: Open Badges 3.0 / W3C VC ditambatkan ke BAS (fork EAS) di BSC testnet, dengan whitelist penerbit dan rantai prasyarat yang peka-pencabutan.",
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test --no-match-path \"*.fork.t.sol\" -vv",
+    "test:all": "forge test -vv",
+    "test:fork:testnet": "forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com -vv",
+    "test:fork:mainnet": "forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/ -vv",
+    "test:chains": "npm run test:fork:testnet && npm run test:fork:mainnet",
+    "probe:rpc": "python ../_research/find_bsc_testnet_rpc.py"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "5.1.0"
+  },
+  "comment": "OZ dipaku 5.1.0, bukan ^5.x: mulai ~5.4 OpenZeppelin memakai opcode `mcopy` di utils/Bytes.sol yang menuntut evm_version cancun, sementara build kita sengaja ditargetkan shanghai. forge-std TIDAK dipasang dari npm — paket npm-nya berhenti di 1.1.2 dan terlalu tua untuk makeAddr/bound/vm.sign; dipasang lewat `forge install foundry-rs/forge-std --no-git` ke lib/forge-std. Sumber BAS/EAS di lib/bas/src adalah salinan verbatim dari repo basdotio/bas-contract (commit branch main) supaya bisa diaudit, dengan EAS.sol/SchemaRegistry.sol dipindah ke luar jalur kompilasi karena dipaku `pragma solidity 0.8.19`."
+}

@@ -1,0 +1,24 @@
+{
+  "name": "credential-verifier-web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Halaman verifikasi kredensial tanpa wallet: membaca CredentialResolver + BAS + SoulboundCert langsung lewat eth_call. Estetika sengaja minimal — informasi lengkap dulu.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "probe": "tsx scripts/probe.ts"
+  },
+  "dependencies": {
+    "viem": "^2.56.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "tsx": "^4.23.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.6"
+  },
+  "comment": "Sengaja TANPA framework UI. Produknya adalah halaman yang membuktikan sesuatu tanpa mempercayai kami; menambah reaktivitas dan state-management akan memperbesar permukaan gagal tanpa menambah satu pun informasi. src/verify.ts juga bebas-DOM supaya bisa dijalankan dari Node (npm run probe) dan diuji terhadap fork sungguhan."
+}

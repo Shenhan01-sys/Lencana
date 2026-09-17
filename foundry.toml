@@ -1,0 +1,50 @@
+[profile.default]
+src = "contracts"
+out = "out"
+test = "test"
+script = "script"
+libs = ["node_modules", "lib"]
+solc_version = "0.8.26"
+# Kontrak kita sendiri tidak butuh opcode Cancun. Target lebih rendah = lebih banyak
+# chain tempat bytecode-nya jalan. FORK TEST tetap harus pakai profile.fork (lihat bawah).
+evm_version = "shanghai"
+optimizer = true
+optimizer_runs = 200
+verbosity = 2
+
+# Bas/EAS yang TER-DEPLOY di BSC dikompilasi dengan target lebih baru daripada shanghai.
+# Menjalankan fork pada shanghai membuat pemanggilan yang memindahkan data berukuran
+# variabel gagal dengan `EvmError: NotActivated` — pelajaran yang sudah pernah dibayar
+# mahal di _research/x402-bnb-poc. Jadi fork test selalu pakai Cancun.
+[profile.fork]
+src = "contracts"
+out = "out"
+test = "test"
+script = "script"
+libs = ["node_modules", "lib"]
+solc_version = "0.8.26"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+verbosity = 2
+
+[rpc_endpoints]
+# Dua endpoint `data-seed-prebsc-*-s1` yang lazim dikutip dokumentasi TERBUKTI REWEL dari
+# mesin ini: keduanya menjawab probe_bas_live.py lalu menolak koneksi beberapa menit
+# kemudian (os error 10060 / 10061), dan kegagalan itu menyamar sebagai "kontraknya bermasalah".
+# Diuji ulang 16 Sep 2026 oleh find_bsc_testnet_rpc.py: yang stabil adalah -s2/-s3 dan publicnode.
+# Skrip itu bisa dijalankan ulang kapan pun untuk memilih endpoint yang hidup sekarang.
+bscTestnet = "https://bsc-testnet.publicnode.com"
+bscTestnetB = "https://data-seed-prebsc-1-s2.binance.org:8545/"
+bscTestnetC = "https://data-seed-prebsc-1-s3.binance.org:8545/"
+bscTestnetD = "https://bsc-testnet.drpc.org"
+# `bsc-dataseed.binance.org` DITOLAK Foundry: `invalid peer certificate: certificate expired`.
+# Host yang sama pernah melayani kita beberapa menit sebelumnya lewat IP lain (DNS round-robin),
+# jadi gejala ini kelihatan "intermittent" dan mudah salah dibaca sebagai masalah kontrak.
+# `bsc-rpc.publicnode.com` menolak akses state historis (-32001 block not found).
+# Yang terbukti diterima Foundry untuk chain 56:
+bsc = "https://bsc-dataseed1.bnbchain.org/"
+bscB = "https://bsc-dataseed.binance.org/"
+
+[fuzz]
+runs = 256
