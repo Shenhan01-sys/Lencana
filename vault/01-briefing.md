@@ -1,121 +1,111 @@
-# 01 — Briefing produk
+# 01 — Product briefing
 
-## Satu paragraf
+## One paragraph
 
-**Lencana** adalah platform micro-course yang **penerbit sertifikatnya adalah agen AI**.
-Kredensial yang dihasilkan mengikuti standar **Open Badges 3.0 / W3C Verifiable Credentials 2.0**
-(bukan format kami sendiri), sementara **siapa yang berhak menerbitkan** dan **apakah sebuah
-sertifikat sudah dicabut** tercatat di BNB Chain. Hasilnya: seorang rekruter bisa memastikan
-satu sertifikat **cukup dengan browser** — tanpa wallet, tanpa akun, tanpa mempercayai server
-kami — dan penerbit **tidak bisa berpura-pura tidak pernah mencabut**.
+**Lencana** is a micro-course platform where **the issuer of the certificate is an AI agent**.
+The credential it produces follows the **Open Badges 3.0 / W3C Verifiable Credentials 2.0**
+standard, while **who is allowed to issue** and **whether a certificate has been revoked** are
+recorded on BNB Chain. The result: a recruiter can confirm a certificate **in a browser** — no
+wallet, no account, no trusting our server — and an issuer **cannot pretend it never revoked
+something**.
 
-Yang kita jual bukan "NFT sertifikat". Yang kita jual adalah **jalur penerbitan kredensial yang
-bisa diaudit publik**, dan **verifikasi oleh pihak ketiga** yang selama ini tidak punya jawaban
-bagaimana caranya.
+What we sell is not "an NFT certificate". It is **an issuance pipeline for credentials that the
+public can audit**, plus **third-party verification**, which is the part nobody had an answer for.
 
-## Kenapa bentuknya begini
+## Why it is shaped like this
 
-Kegagalan yang mau kita hapus konkret:
+The failure we remove is concrete:
 
-> Sertifikat PDF bisa dipalsukan dengan Photoshop. Sertifikat di basis data penerbit bisa
-> dipalsukan oleh penerbitnya sendiri, atau oleh admin yang kompromi. **NFT tidak menyelesaikan
-> keduanya** — ia hanya memindahkan pertanyaan menjadi: *siapa yang boleh mencetak, dan dari
-> mana pemeriksa tahu itu asli?*
+> A PDF certificate is forged with Photoshop. A certificate in the issuer's own database is forged
+> by the issuer, or by a compromised admin. **An NFT solves neither** — it only moves the question
+> to: *who may mint, and how does a verifier know it is real?*
 
-Jawaban lama ("karena blockchain, karena NFT") tidak bertahan diuji. Karena itu produk ini
-dirancang menjawab **empat pertanyaan mekanis**, bukan satu slogan:
+Answering "because blockchain" does not survive a follow-up question. So the product answers four
+mechanical questions instead. See [02-architecture.md](02-architecture.md).
 
-| # | pertanyaan | jawaban di produk |
+## The three people who use it
+
+| | who | relationship to crypto |
 |---|---|---|
-| a | Siapa yang berhak menerbitkan, dan bagaimana itu terikat on-chain? | Whitelist alamat di `CredentialResolver`. Alamat asing → transaksi **revert**, bukan pesan halus |
-| b | Apa yang mencegah sertifikat dijual atau dipindahtangankan? | NFT **soulbound** (ERC-5192): `transferFrom`, `safeTransferFrom`, `approve`, `setApprovalForAll`, dan **burn** semuanya ditolak |
-| c | Bagaimana orang memeriksa tanpa wallet dan tanpa crypto? | Halaman verifikasi statis, **satu `eth_call`** langsung ke chain. Tidak ada backend kami di jalur ini |
-| d | Apa yang terjadi kalau sertifikat dicabut — dan bisa tidak pencabutan itu disangkal? | `revoke()` di BAS. **Tidak ada fungsi `unrevoke`**; sekali tercabut, terbaca tercabut selamanya |
+| **Rina, 24** — learner | takes the course, submits work, receives a certificate | **none.** Never sees a seed phrase, never signs a transaction, never pays for the certificate |
+| **A training institution** — issuer and sponsor | writes the course, sets the pass standard, **pays** for on-chain issuance | holds one key, held by its agent |
+| **Bagas, HR** — verifier | receives hundreds of applicants, wants to know which are real | **none.** Opens a URL, pastes a code |
 
-## Tiga orang yang memakainya
+The hackathon track literally reads *"social, gaming and loyalty with **seamless UX**"*. Wallet-free
+onboarding is therefore the product, not a feature. The mechanism is boring and that is the point:
+**the issuer pays the gas**, so the learner never sends a transaction. We deliberately avoid
+ERC-4337 / paymasters, because their availability on BSC was never verified.
 
-| | siapa | hubungannya dengan crypto |
-|---|---|---|
-| **Rina, 24 th** — peserta | ikut kursus, mengerjakan tugas, dapat sertifikat | **nol.** Tidak pernah melihat seed phrase, tidak pernah menandatangani transaksi, tidak membayar untuk sertifikatnya |
-| **Lembaga pelatihan** — penerbit & sponsor | membuat kursus, menetapkan standar lulus, **menanggung biaya** penerbitan on-chain | punya satu kunci, yang dipegang oleh agennya |
-| **Bagas, HRD** — verifier | menerima ratusan pelamar, ingin tahu mana yang benar | **nol.** Buka URL, tempel kode |
+## The real flow, step by step
 
-Track lomba ini resminya berbunyi *"social, gaming and loyalty with **seamless UX**"*. Karena itu
-onboarding tanpa seed phrase bukan fitur tambahan — itu syarat produk. Kuncinya sederhana:
-**yang mengirim transaksi adalah penerbit, bukan peserta.** Kita sengaja tidak menyentuh
-ERC-4337/paymaster, karena ketersediaannya di BSC belum pernah kita verifikasi.
+**1. Sign in.** Email login. The backend creates an address for the learner; they never hold its
+key. They see a catalogue with **one real course we wrote ourselves** — not an empty marketplace,
+because a platform with no content cannot be demonstrated.
 
-## Alur sebenarnya, langkah per langkah
+**2. Learn.** Modules and quizzes. Our own content. (Storing material in IPFS/Greenfield is a later
+option, not a critical-path item.)
 
-**1. Masuk.** Login email. Backend membuatkan alamat untuk peserta; dia tidak pernah memegang
-kuncinya. Yang dia lihat: katalog berisi **satu kursus nyata yang kami buat sendiri** — bukan
-marketplace kosong, karena platform tanpa konten tidak bisa didemokan.
-
-**2. Belajar.** Modul + kuis. Materi disimpan biasa (objek statis di penyimpanan IPFS/Greenfield
-adalah opsi fase berikutnya, bukan jalur kritis).
-
-**3. Dinilai agen.** Tugas akhirnya **esai terbuka**, bukan pilihan ganda — dan itu pilihan
-sadar: pilihan ganda tidak membutuhkan AI, dan kalau agennya cuma menilai ABCD, tidak ada alasan
-kredibel mengapa ini juga proyek agen AI. Yang agen kerjakan dan **tinggalkan jejaknya**:
+**3. Assessed by the agent.** The final task is an **open essay**, not multiple choice — a deliberate
+choice. Multiple choice does not need an AI, and if the agent only grades ABCD there is no credible
+reason for this to be an agent track entry at all. What the agent does and **leaves a trace of**:
 
 ```
-masukan   : jawaban peserta + rubrik kursus (kriteria, bobot, ambang lulus)
-keluaran  : skor per kriteria + catatan tertulis + keputusan LULUS / BELUM
-tercatat  : hash(bukti penilaian) di-chain + tanda tangan agen atas kredensialnya
+input    : the learner's answer + the course rubric (criteria, weights, pass threshold)
+output   : a score per criterion, written feedback, PASS / NOT YET
+recorded : hash(evidence) on-chain + the agent's signature over the credential it produced
 ```
 
-**4. Terbit.** Tiga benda terjadi dari satu alur:
+**4. Issued.** Three objects come out of one flow:
 
-| benda | apa |
+| object | what it is |
 |---|---|
-| **kredensialnya** | dokumen `OpenBadgeCredential` (JSON-LD), ditandatangani kunci agen. **Off-chain**, dan portabel ke verifier mana pun yang memahami standarnya |
-| **yang naik ke chain** | `keccak256(dokumen)` → attestation di **BAS** lewat `CredentialResolver` kita |
-| **artefaknya** | NFT soulbound muncul di koleksi peserta. `mint()`-nya **menolak kalau kredensialnya tidak hidup** — ini yang membuat artefak kami bukan NFT tempelan |
+| **the credential** | an `OpenBadgeCredential` JSON-LD document, signed by the agent's key. **Off-chain**, portable to any verifier that understands the standard |
+| **what reaches the chain** | `keccak256(document)` → an attestation on **BAS**, through our `CredentialResolver` |
+| **the artifact** | a soulbound NFT appears in the learner's collection. `mint()` **refuses when the credential is not live** — this is what separates our artifact from a bolted-on NFT |
 
-**5. Dibagikan.** Peserta menyalin *kode pemeriksaan* (hash / UID / URL). Yang dia bagikan bukan
-filenya, tapi cara memeriksanya.
+**5. Shared.** The learner copies a *check code* (hash / UID / URL). They share a way to check, not
+a file.
 
-**6. Diperiksa.** Inilah puncak ceritanya. Rekruter membuka halaman, menempel kode, dan mendapat
-keputusan + seluruh bukti mentah + **perintah untuk mengulang pemeriksaan itu tanpa halaman kami**
-(`cast call …` / `curl` JSON-RPC). Menampilkan cara membantah kami sendiri itu disengaja: klaim
-"terverifikasi publik" tidak berarti apa-apa kalau satu-satunya cara memeriksanya adalah alat kami.
+**6. Verified.** This is the peak of the story. The recruiter opens the page, pastes the code, and
+gets a verdict, all the raw evidence, and — **commands to repeat the check without our page**
+(`cast call …` / a raw JSON-RPC `curl`). Showing how to contradict us is intentional: a claim of
+"publicly verifiable" means nothing if the only way to check it is our own tool.
 
-## Empat hal yang membuatnya bukan "NFT diploma 2021"
+## Four things that make it not a 2021 "NFT diploma"
 
-1. **Kredensialnya tidak bisa abadi.** EAS punya `expirationTime` native. Keputusan produk:
-   **mencabut izin menerbitkan seorang penerbit TIDAK membatalkan kredensial yang sudah
-   terbit** — keduanya sengaja dipisah, supaya mencabut satu penerbit nakal tidak ikut
-   memusnahkan hak peserta yang tidak bersalah.
-2. **Sertifikat lanjutan mati kalau dasarnya dicabut.** Ini **temuan**, bukan rencana awal:
-   EAS hanya mengecek prasyarat **ada**, bukan **masih hidup**. Lihat
-   [02-arsitektur.md](02-arsitektur.md) bagian "celah".
-3. **Verifikasi massal adalah mesin ekonomi, bukan tombol.** Rekruter (atau agen rekruter) bisa
-   membayar per-pengecekan lewat **x402** — dan jalur pembayaran agen di BNB Chain sudah kita
-   buktikan berjalan, termasuk penyelesaian tanpa gas untuk pembayar. Garisnya:
-   **kami menagih kenyamanan, tidak pernah kebenaran.** Halaman publik tetap gratis selamanya.
-4. **Dokumennya standar, bukan format kami.** Konsekuensinya besar dan bisa diuji: kredensial
-   kami harusnya terbuka di validator pihak ketiga. (Status pembuktiannya:
-   [03-bukti-dan-batas.md](03-bukti-dan-batas.md) — **belum** dijalankan.)
+1. **Certificates are not immortal.** EAS has a native `expirationTime`. Product decision: **removing
+   an issuer's permission does NOT cancel credentials already issued** — deliberately separated, so
+   revoking one bad issuer cannot wipe out the rights of learners who did nothing wrong.
+2. **A prerequisite that is revoked kills what was built on it.** This was a **finding**, not a plan:
+   EAS checks only that a prerequisite *exists*. See the "gap" section of
+   [02-architecture.md](02-architecture.md).
+3. **Bulk verification is an economy, not a button.** A recruiter — or a recruiting agent — can pay
+   per check over **x402**, and the agent-payment path on BNB Chain is already proven, including
+   settlement that costs the payer no gas. The line: **we charge for convenience, never for truth.**
+   The public page stays free forever.
+4. **The document is a standard, not our format.** Consequence: our credential should open in
+   somebody else's validator. Status of that proof: [03-evidence-and-limits.md](03-evidence-and-limits.md)
+   — **not run yet**.
 
-## Adegan demo yang dirancang sejak awal
+## The demo, as designed
 
-Lima menit, empat adegan. Setiap adegan ada karena menjawab salah satu dari empat pertanyaan.
+Five minutes, four scenes. Each scene exists because it answers one of the four questions.
 
-| # | adegan | yang dilihat penonton |
+| # | scene | what the audience sees |
 |---|---|---|
-| 1 | **Verifikasi tanpa wallet** | tempel kode → `DICABUT`; satu lagi → `KEDALUWARSA`. Tidak ada wallet dibuka sepanjang adegan |
-| 2 | **Penerbitan oleh agen** | esai → agen menilai → menandatangani → sertifikat terbit → muncul di perangkat peserta. **Lalu: cabut dasarnya, coba terbitkan yang lanjutan → REVERT, live** |
-| 3 | **Pemalsuan gagal** | transfer artefak → revert · ubah satu byte di dokumen → tanda tangan gagal · mint dari alamat tak berizin → revert |
-| 4 | **Ekonominya** | agen membayar penerbitan; rekruter membayar verifikasi; **kembali tunjukkan halaman publik tetap terbuka tanpa membayar** |
+| 1 | **Verification without a wallet** | paste a code → `REVOKED`; another → `EXPIRED`. No wallet is opened during the scene |
+| 2 | **Issued by the agent** | essay → agent scores it → signs → credential issued → appears on the learner's device. **Then: revoke the base, try to issue the advanced one → REVERT, live** |
+| 3 | **Forgery fails** | transfer the artifact → revert · change one byte of the document → signature fails · mint from an unapproved address → revert |
+| 4 | **The economy** | the agent pays for issuance; a recruiter pays for verification; **then show the public page still free, no payment** |
 
-## Batas yang ditulis di UI, bukan di footnote
+## Limits printed in the UI, not in a footnote
 
-Ini bukan formalitas hukum dan tidak bisa ditutup dengan tab. Produk ini **tidak** membuktikan:
+Not boilerplate, and not closable. This product does **not** prove:
 
-- bahwa **isi** klaimnya benar — verifikasi kredensial bukan berarti penilaianya benar;
-- bahwa **manusia** di balik alamat adalah orang yang belajar — yang terikat adalah alamat;
-- bahwa sertifikat tidak bisa di-screenshot — soulbound mengikat kepemilikan, bukan tampilan;
-- pengakuan hukum atau institusional apa pun.
+- that the **content** of a claim is true — verifying a credential is not evaluating the grading;
+- that the **human** behind an address is the person who studied — what binds is an address;
+- that a certificate cannot be screenshotted — soulbound binds ownership, not display;
+- legal or institutional recognition of any kind.
 
-Kenapa ini justru menguntungkan: juri yang mencoba mematahkan poin-poin itu akan menemukan
-kalau **kita sudah menulisnya sendiri** sebelum mereka bertanya.
+Writing the limits ourselves is what makes the other claims believable: a judge who tries to break
+point four finds we already wrote it down.

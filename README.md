@@ -1,212 +1,220 @@
 # Lencana
 
-**Sertifikat belajar yang bisa diperiksa siapa pun — tanpa wallet, tanpa login, dan tanpa
-memperhatikan kami.**
+**Learning credentials that anyone can verify — no wallet, no login, and without having to trust
+us.**
 
-Platform micro-course yang **penerbit sertifikatnya adalah agen AI**. Kredensialnya mengikuti
-standar **Open Badges 3.0 / W3C Verifiable Credentials 2.0**, sementara **siapa yang berhak
-menerbitkan** dan **apakah sebuah sertifikat sudah dicabut** tercatat di **BNB Smart Chain**.
-Seorang rekruter memastikan satu sertifikat cukup dengan membuka URL di browser.
+A micro-course platform where **the issuer of each credential is an AI agent**. Credentials follow
+the **Open Badges 3.0 / W3C Verifiable Credentials 2.0** standard, while **who is allowed to
+issue** and **whether a certificate has been revoked** are recorded on **BNB Smart Chain**. A
+recruiter verifies a certificate by opening a URL in a browser — that is the whole flow.
 
-Dibangun untuk **Indonesia Web3 Hackathon 2026** — track *Consumer Apps* (· *AI Agents*), di atas
-BNB Chain.
+Built for the **Indonesia Web3 Hackathon 2026** — *Consumer Apps* track (· *AI Agents*), on BNB
+Chain.
 
-> ⚠️ **Status: pra-rilis.** Belum ada kontrak yang disiarkan ke testnet publik, dan backend
-> penandatangan kredensial belum ada. Tabel "Sudah dibuktikan" di bawah membedakan dengan tegas
-> apa yang lolos uji dan apa yang baru sampai tahap "kompilasi lulus".
+> ⚠️ **Pre-release status.** No contract has been broadcast to a public testnet yet, and the
+> credential-signing backend does not exist yet. The table below draws a hard line between what is
+> proven and what merely compiles.
 
 ---
 
-## Kenapa ini ada
+## Why this exists
 
-Sertifikat PDF dipalsukan dengan Photoshop. Sertifikat di basis data penerbit dipalsukan **oleh
-penerbitnya sendiri** atau oleh admin yang kompromi. NFT tidak menyelesaikan keduanya — ia hanya
-memindahkan pertanyaan menjadi: *siapa yang boleh mencetak, dan dari mana pemeriksa tahu itu asli?*
+A PDF certificate is forged with Photoshop. A certificate in the issuer's database is forged
+**by the issuer itself**, or by a compromised admin. An NFT fixes neither — it only moves the
+question to: *who may mint this, and how does a checker know it is genuine?*
 
-Jawaban "karena blockchain" tidak bertahan diuji. Karena itu proyek ini menjawab **empat
-pertanyaan mekanis**, bukan satu slogan:
+"Because blockchain, because NFT" does not survive scrutiny. So this project answers **four
+mechanical questions** instead of one slogan:
 
-| # | pertanyaan | jawaban | di mana |
+| # | question | answer | where |
 |---|---|---|---|
-| a | Siapa yang berhak menerbitkan, dan bagaimana itu terikat on-chain? | Whitelist alamat; penerbit asing membuat transaksi **revert** | `contracts/CredentialResolver.sol` |
-| b | Apa yang mencegah sertifikat dijual atau dipindahtangankan? | NFT **soulbound** (ERC-5192): transfer, approval, **dan burn** semuanya ditolak | `contracts/SoulboundCert.sol` |
-| c | Bagaimana orang memeriksa tanpa wallet dan tanpa crypto? | Halaman statis, **satu `eth_call`** langsung ke chain — tanpa backend kami | `web/` |
-| d | Kalau sertifikat dicabut — dan bisa kah pencabutan itu disangkal? | `revoke()` di BAS; **tidak ada fungsi `unrevoke`** | primitif pihak ketiga + `CredentialResolver` |
+| a | Who may issue, and how is that bound on-chain? | Address whitelist; an unapproved issuer makes the transaction **revert** | `contracts/CredentialResolver.sol` |
+| b | What stops a holder selling or moving the certificate? | **Soulbound** NFT (ERC-5192): transfer, approval **and burn** are all rejected | `contracts/SoulboundCert.sol` |
+| c | How does someone verify without a wallet and without crypto? | Static page, **one `eth_call`** straight to the chain — our backend is not in this path | `web/` |
+| d | What happens when a credential is revoked — and can that revocation be denied? | `revoke()` on BAS; **there is no `unrevoke`** | third-party primitive + `CredentialResolver` |
 
-## Sudah dibuktikan
+## Proven
 
-Angka di bawah adalah hasil perintah yang dijalankan, bukan rencana.
+Every number below is the output of a command that was run, not a plan.
 
-| perintah | hasil |
+| command | result |
 |---|---|
-| `forge test --no-match-path "*.fork.t.sol"` | **19 lulus / 0 gagal** (offline) |
-| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | **47 lulus / 0 gagal** di **chain 97** |
-| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **47 lulus / 0 gagal** di **chain 56**, gas identik |
-| `forge script … --broadcast` di anvil fork 97 | deploy sukses · **0,0003828 BNB** (3.827.994 gas) |
-| `npm run probe` di `web/` | **19/19** pemeriksaan lulus terhadap chain nyata |
+| `forge test --no-match-path "*.fork.t.sol"` | **19 passed / 0 failed** (offline) |
+| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | **47 passed / 0 failed** on **chain 97** |
+| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **47 passed / 0 failed** on **chain 56**, identical gas figures |
+| `npm run probe` in `web/` | **19/19 passed** against a real chain |
+| `forge script … --broadcast` on an anvil fork of 97 | deploy succeeded · **0.0003828 BNB** (3,827,994 gas) |
+| repo contents read back from the GitHub API | **39 files**; no `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env` |
 
-Fork test memanggil **BAS (BNB Attestation Service, fork EAS 1.3.0) yang benar-benar
-ter-deploy** di chain — bukan tiruan yang kami deploy sendiri. Itu juga alamat yang bisa dibuka
-juri.
+The fork tests call **BAS (BNB Attestation Service, a fork of EAS 1.3.0) exactly as deployed on
+chain** — not a copy we deployed ourselves. Those are also the addresses a judge can open.
 
-**Yang belum dibuktikan, dan tidak boleh diklaim:** tidak ada kontrak yang live di testnet publik
-(semua keberhasilan di atas adalah *fork* — state nyata, tanpa transaksi nyata); belum diuji pada
-validator 1EdTech; jalur HTTP 402 untuk pembayaran belum pernah dijalankan; dan halaman verifikasi
-belum diuji pada jalur "sudah dicabut". Rinciannya:
-[`vault/03-bukti-dan-batas.md`](vault/03-bukti-dan-batas.md).
+**What is not proven, and must not be claimed:** no contract is live on a public testnet (every
+success above is a *fork* — real state, no real transaction); the page has never been run against a
+third-party validator; the HTTP 402 payment layer has never been executed; and the page's
+"revoked" path is still covered only by forge tests, not by the probe. Details:
+[`vault/03-evidence-and-limits.md`](vault/03-evidence-and-limits.md).
 
-## Cara kerja
+## How it works
 
 ```
-OpenBadgeCredential JSON (off-chain, ditandatangani kunci penerbit)
+OpenBadgeCredential JSON (off-chain, signed by the issuer's key)
         │ keccak256
         ▼
-   credentialHash ──► attest() ──►  BAS di BNB Chain  (milik pihak lain)
+   credentialHash ──► attest() ──►  BAS on BNB Chain  (owned by someone else)
                                         ▲
-             EAS memanggil onAttest()   │  whitelist penerbit
-             SEBELUM attestation terima │  + rantai prasyarat peka-pencabutan
-                                  CredentialResolver.sol  (milik kita)
+             EAS calls onAttest()        │  issuer whitelist
+             BEFORE the attestation      │  + revocation-aware prerequisite chain
+             is accepted                 │
+                                  CredentialResolver.sol  (ours)
                                         │
-                        statusOf() / holderOf()  ◄── SATU eth_call, tanpa wallet
+                        statusOf() / holderOf()  ◄── ONE eth_call, no wallet
                                         │
-                          SoulboundCert.sol ── mint() MENOLAK kalau kredensial mati
+                          SoulboundCert.sol ── mint() REFUSES a dead credential
 ```
 
-**Yang paling penting untuk dipahami:** kredensialnya adalah **dokumen JSON**, bukan NFT-nya.
-Yang dilakukan blockchain hanyalah tiga hal yang tidak bisa dilakukan JSON — registry penerbit
-yang tak bisa disensor, bit status yang tak bisa disembunyikan penerbitnya sendiri, dan bukti
-waktu. NFT soulbound adalah **artefak** yang dilihat dan dimiliki peserta, dan kontraknya
-menolak mencetak artefak untuk kredensial yang tidak hidup.
+**The one thing not to get backwards:** the credential is the **JSON document**, not the NFT. The
+chain does only three things JSON cannot — an issuer registry that cannot be censored, a status bit
+the issuer cannot hide, and a timestamp. The soulbound NFT is the **artifact** the learner sees and
+owns, and the contract refuses to mint an artifact for a credential that is not live.
 
-### 🔴 Celah nyata di EAS yang kami tutup
+### 🔴 A real gap in EAS that we close
 
-Ini bukan fitur yang kami tambahkan; ini **temuan** yang kemudian jadi pembeda teknis utama.
-EAS menguji prasyarat **hanya ada atau tidak**:
+This was a finding, not a plan — and it is now the main technical differentiator. EAS checks that a
+prerequisite **exists**, nothing more:
 
 ```solidity
 // EAS.sol, _attest()
 if (request.refUID != EMPTY_UID) {
     if (!isAttestationValid(request.refUID)) { revert NotFound(); }
 }
-// dan
+// and
 function isAttestationValid(bytes32 uid) public view returns (bool) { return _db[uid].uid != EMPTY_UID; }
 ```
 
-Jadi EAS **membiarkan** sertifikat lanjutan diterbitkan di atas prasyarat yang **sudah dicabut**,
-**sudah kedaluwarsa**, **milik orang lain**, atau **attestation pihak lain yang tidak ada
-hubungannya dengan kursus kami**. Keempatnya ditolak `CredentialResolver`, dan penolakannya
-dibuktikan lewat fork test di dua chain.
+So plain EAS **allows** an advanced certificate to be issued on top of a prerequisite that was
+**revoked**, that **expired**, that **belongs to someone else**, or that is simply some unrelated
+attestation on the chain. All four are rejected by `CredentialResolver`, and each rejection is
+**proved by a revert in fork tests on two chains**.
 
-Konsekuensinya kami terima apa adanya: *"pencabutan yang tak bisa disangkal"* adalah **perilaku
-bawaan EAS/BAS, bukan temuan kami**. Yang milik kami: whitelist penerbit, rantai prasyarat yang
-peka-pencabutan, dan verifikasi satu-panggilan tanpa wallet.
+We accept the consequence: *"non-repudiable revocation"* is **default EAS/BAS behaviour, not our
+discovery**. Ours are the issuer whitelist, the revocation-aware prerequisite chain, and the
+one-call wallet-free verification.
 
-## Menjalankan
+## Running it
 
-Prasyarat: **Foundry 1.5.1** (`forge`/`cast`/`anvil`), **Node 22**, Python 3.12 untuk skrip bukti.
+Requirements: **Foundry 1.5.1** (`forge`/`cast`/`anvil`), **Node 22**, Python 3.12 for the
+verification scripts.
 
 ```bash
 npm install                                  # OpenZeppelin 5.1.0
-forge install foundry-rs/forge-std --no-git  # flag --no-git wajib jika folder belum jadi repo git
+forge install foundry-rs/forge-std --no-git  # --no-git is required while the folder is not a git repo
 
-npm test                                     # 19 test, offline, ±25 ms
-npm run test:fork:testnet                    # 47 test di chain 97
-npm run test:fork:mainnet                    # 47 test di chain 56
+npm test                                     # 19 tests, offline, ~25 ms
+npm run test:fork:testnet                    # 47 tests on chain 97
+npm run test:fork:mainnet                    # 47 tests on chain 56
 ```
 
-> ⚠️ **`--evm-version cancun` itu wajib untuk fork test**, bukan hiasan. Tanpanya, pemanggilan
-> yang memindahkan data berukuran variabel gagal dengan `EvmError: NotActivated` yang **menyamar
-> sebagai "fungsi itu tidak ada"**. Build kontrak kami sendiri tetap bertarget `shanghai`.
+> ⚠️ **`--evm-version cancun` is mandatory for fork tests**, not decoration. Without it, calls that
+> move variable-sized data fail with `EvmError: NotActivated`, which **looks exactly like "that
+> function does not exist on the deployed contract"**. Our own build stays on `shanghai`.
 
-Uji tanpa dana dan tanpa deploy — fork chain 97 ke anvil lokal:
+Prove it without funds and without a real deploy — fork chain 97 into a local anvil:
 
 ```bash
 anvil --fork-url https://bsc-testnet.publicnode.com --port 8545 --chain-id 97 --silent
 
-set DEPLOYER_PRIVATE_KEY=<kunci uji anvil #0>
+set DEPLOYER_PRIVATE_KEY=<anvil test key #0>
 set ISSUER_ADDRESS=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
 forge script script/DeployCredentials.s.sol:DeployCredentials --rpc-url http://127.0.0.1:8545 --broadcast
 
-set ISSUER_PRIVATE_KEY=<kunci uji anvil #1>
-set RESOLVER_ADDRESS=<hasil di atas>
-set CERT_ADDRESS=<hasil di atas>
+set ISSUER_PRIVATE_KEY=<anvil test key #1>
+set RESOLVER_ADDRESS=<from above>
+set CERT_ADDRESS=<from above>
 forge script script/SeedDemo.s.sol:SeedDemo --rpc-url http://127.0.0.1:8545 --broadcast --slow
 ```
 
-**`--slow` pada `SeedDemo` itu wajib.** UID attestation EAS dihitung sebagian dari
-`block.timestamp`; `forge script` biasa menyiarkan **calldata hasil simulasi**, sehingga argumen
-yang bergantung UID jadi basi saat disiarkan di blok berbeda. Tanpa `--slow`: 3 transaksi gagal.
+**`--slow` on `SeedDemo` is required, not "slow by preference".** EAS computes an attestation UID
+partly from `block.timestamp`; a plain `forge script` broadcasts **the calldata produced during
+simulation**, so any UID-dependent argument goes stale once it lands in a different block. Without
+`--slow`: three transactions fail.
 
-### Halaman verifikasi
+### Verification page
 
 ```bash
 cd web && npm install
 npm run dev       # http://127.0.0.1:5173
-npm run build     # dist/ = halaman statis, bisa di-host di mana saja
-npm run probe     # uji lapisan datanya dari Node, tanpa browser
+npm run build     # dist/ = static page, hostable anywhere
+npm run probe     # test the data layer from Node, no browser
 ```
 
-Halaman ini **tidak punya backend, dan memang tidak perlu** — itulah produknya. RPC dan alamat
-kontrak disimpan di `localStorage` lewat panel *Konfigurasi pembacaan*, karena kontrak kami belum
-di-deploy saat halaman ini ditulis. Halaman **sengaja tidak memakai data contoh**: angka palsu yang
-terlihat meyakinkan lebih buruk daripada halaman yang kosong dan jujur.
+This page **has no backend, and deliberately does not need one** — that is the product. The RPC URL
+and contract addresses live in `localStorage` via the *verification configuration* panel, because
+our contracts were not deployed when the page was written. The page **deliberately uses no sample
+data**: a fake number that looks convincing is worse than an empty page that is honest.
 
-`npm run probe` menjalankan **berkas yang sama** dengan halaman (`web/src/verify.ts`) terhadap RPC
-yang sama. Jadi "halamannya membaca data dengan benar" bisa **diuji**, bukan dipercaya dari
-tampilannya — dan memang begitu cara probe ini menemukan dua bug yang tidak terlihat oleh
-`typescript` maupun `vite build` (lihat [`vault/04-referensi-teknis.md`](vault/04-referensi-teknis.md)).
+`npm run probe` runs **the same file** the page uses (`web/src/verify.ts`) against the same RPC. So
+"the page reads the right data" is **testable**, rather than inferred from how it renders — and that
+is exactly how the probe caught bugs invisible to `tsc` and `vite build`
+([`vault/04-technical-reference.md`](vault/04-technical-reference.md)).
 
-## Repo ini isinya apa
+## What is in this repo
 
 ```
 contracts/
-  CredentialResolver.sol     whitelist penerbit + rantai prasyarat + statusOf()/holderOf()
-  SoulboundCert.sol          ERC-721 + ERC-5192; mint menolak kredensial mati
+  CredentialResolver.sol     issuer whitelist + prerequisite chain + statusOf()/holderOf()
+  SoulboundCert.sol          ERC-721 + ERC-5192; mint refuses a dead credential; no transfer/burn
   interfaces/ICredentialRegistry.sol
-lib/bas/src/                 salinan verbatim antar muka BAS — diaudit, bukan dikarang
-test/                        19 offline · 19 fork resolver · 9 fork ujung-ke-ujung
+lib/bas/src/                 verbatim copy of the BAS interface — auditable, not invented
+test/                        19 offline · 19 resolver fork · 9 end-to-end fork
 script/                      DeployCredentials.s.sol · SeedDemo.s.sol
-web/                         halaman verifikasi (Vite + vanilla TS + viem, statis)
-vault/                       konteks proyek: kenapa bentuknya begini
+web/                         verification page (Vite + vanilla TS + viem, static)
+vault/                       project context: why it is shaped like this
 ```
 
-Kenapa `lib/bas/src/` ikut disimpan dan bukan dipasang: kami **tidak bisa mengompilasi**
-`EAS.sol`/`SchemaRegistry.sol` BAS di rig ini (terpaku `pragma solidity 0.8.19`, bertabrakan
-dengan OpenZeppelin `^0.8.20`). Kami tidak menaikkan pin pihak ketiga — kami keluarkan file itu
-dari jalur build dan **menguji perilakunya lewat fork**. Hasilnya justru lebih kuat: yang diuji
-adalah deployment yang akan dibuka juri.
+Why `lib/bas/src/` is committed rather than installed: we **cannot compile** `EAS.sol` /
+`SchemaRegistry.sol` from BAS in this rig (they are pinned to `pragma solidity 0.8.19`, which
+conflicts with OpenZeppelin's `^0.8.20`). We did not raise someone else's pin — we removed those
+files from the build path, use the interface, and **test behaviour through a fork**. The side
+effect is better evidence: what gets tested is the deployment a judge can open.
 
-## Batas yang kami tulis sendiri
+## Limits we state ourselves
 
-Ini bukan formalitas dan tidak disembunyikan di footnote. Sistem ini **tidak** membuktikan:
+This is not boilerplate and it is not hidden behind a tab. This system does **not** prove:
 
-- bahwa **isi** klaimnya benar — *"verifikasi kredensial tidak berarti evaluasi kebenaran klaim di
-  dalamnya"* (VC 2.0);
-- bahwa **manusia** di balik alamat adalah orang yang belajar — yang terikat adalah alamat;
-- bahwa sertifikat tidak bisa di-screenshot;
-- pengakuan **hukum atau institusional** apa pun. Kami tidak menulis "sah".
+- that the **content** of a claim is true — *"verification of a credential does not imply
+  evaluation of the truth of claims encoded in the credential"* (VC 2.0);
+- that the **human** behind an address is the person who studied — what is bound is an address;
+- that a certificate cannot be screenshotted;
+- any **legal or institutional** recognition. We do not write "legally valid".
 
-Kami juga tidak mengklaim: *"trustless"*, *"zkML-verified"*, *"TEE-verified"*, atau bahwa BAS
-adalah "program resmi BNB Chain" (klaim itu tidak ada di repo-nya). Kalau halaman ini bisa
-dibuka di validator pihak ketiga, itu akan kami tulis **setelah** membuktikannya — sekarang belum.
+We also do not claim: *"trustless"*, *"zkML-verified"*, *"TEE-verified"*, or that BAS is an
+"official BNB Chain programme" (no such claim exists in its repository). If this page turns out to
+work with third-party validators, we will say so **after** proving it — not before.
 
-Justru karena batasnya ditulis, klaim sisanya bisa dipercaya.
+Stating the limits is what makes the remaining claims worth anything.
 
-## Isi `vault/`
+## In `vault/`
 
-| berkas | tentang |
+| file | about |
 |---|---|
-| [README](vault/README.md) | indeks + cara membaca catatan ini |
-| [01-briefing](vault/01-briefing.md) | produknya apa, siapa yang memakai, alur dari nol sampai terbukti, adegan demo |
-| [02-arsitektur](vault/02-arsitektur.md) | empat lapis, kenapa BAS dan bukan karangan sendiri, celah EAS, peran agen, siapa menanggung biaya, keputusan + tanggal |
-| [03-bukti-dan-batas](vault/03-bukti-dan-batas.md) | apa yang sudah dibuktikan, apa yang belum, daftar klaim yang dilarang |
-| [04-referensi-teknis](vault/04-referensi-teknis.md) | fakta Open Badges 3.0 dari spesifikasi mentah + jebakan toolchain |
-| [05-status-dan-tugas](vault/05-status-dan-tugas.md) | posisi hari ini, halangan, urutan kerja sampai tenggat |
+| [README](vault/README.md) | index + how to read these notes |
+| [01-briefing](vault/01-briefing.md) | what the product is, who uses it, the flow from zero to verified, the demo scenes |
+| [02-architecture](vault/02-architecture.md) | four layers, why BAS instead of hand-rolled, the EAS gap, agent roles, who pays, decisions with dates |
+| [03-evidence-and-limits](vault/03-evidence-and-limits.md) | what is proven, what is not, and the claims we forbid ourselves |
+| [04-technical-reference](vault/04-technical-reference.md) | Open Badges 3.0 facts from the raw specification + toolchain traps |
+| [05-status-and-tasks](vault/05-status-and-tasks.md) | where it stands, blockers, order of work to the deadline |
 
-> Catatan ini **hanya** tentang Lencana. Tidak ada produk, track, atau rencana lain di dalamnya.
+> These notes are **only** about Lencana. No other product, track or plan appears in them.
 
-## Lisensi
+## Language policy
 
-MIT untuk kontrak dan kode (lihat header `SPDX-License-Identifier` di tiap berkas). Kecuali
-`lib/bas/src/` — salinan antar muka **BAS/EAS** yang kami simpan apa adanya supaya bisa diaudit;
-itu bukan karya kami.
+Documentation, captions and descriptions in this repository are **English**. The verification
+frontend is the agreed exception: it will ship an **Indonesian / English switch** — tracked as a
+task in [`vault/05-status-and-tasks.md`](vault/05-status-and-tasks.md), not built yet.
+
+## License
+
+MIT for the contracts and code (see the `SPDX-License-Identifier` header in each file) — **except**
+`lib/bas/src/`, a verbatim copy of the **BAS/EAS** interface kept for auditability. That part is not
+our work.

@@ -1,26 +1,31 @@
-# 📚 Briefing proyek — Lencana
+# 📚 Project briefing — Lencana
 
-Kumpulan catatan konteks: **kenapa** produk ini bentuknya begini, bukan apa isinya.
-Untuk menjalankan kodenya, cukup baca [`../README.md`](../README.md).
+Context notes: **why** the product is shaped like this, not what is in it. To run the code,
+[`../README.md`](../README.md) is enough.
 
-> **Lingkup yang disengaja.** Folder ini hanya membahas **Lencana** — platform e-course
-> dengan kredensial terverifikasi. Tidak ada produk, track, atau rencana lain di dalamnya.
+> **Deliberate scope.** These notes cover **Lencana only** — the e-course platform with verifiable
+> credentials. No other product, track or plan appears here.
 
-| Berkas | Isi | Baca kalau… |
+| File | Contents | Read it when… |
 |---|---|---|
-| [`01-briefing.md`](01-briefing.md) | Produknya apa, siapa yang memakai, alur dari nol sampai sertifikat terbukti, bentuk adegan demo | kamu ingin memahami produknya sebagai manusia, bukan sebagai insinyur |
-| [`02-arsitektur.md`](02-arsitektur.md) | Empat lapis, dua kontrak, kenapa BAS dipakai dan bukan dikarang, keputusan+tanggal, dan **satu keputusan yang masih terbuka** | kamu mau mengubah kontrak atau backend |
-| [`03-bukti-dan-batas.md`](03-bukti-dan-batas.md) | Tabel apa yang **sudah dibuktikan**, apa yang **belum**, dan daftar klaim yang **dilarang** kami tulis | kamu mau menulis copy UI, deskripsi repo, atau bahan presentasi |
-| [`04-referensi-teknis.md`](04-referensi-teknis.md) | Fakta Open Badges 3.0 / VC 2.0 dari spesifikasi mentah + jebakan toolchain yang sudah memakan waktu | kamu mau menyentuh penandatanganan kredensial atau rig Foundry |
-| [`05-status-dan-tugas.md`](05-status-dan-tugas.md) | Posisi hari ini, halangan, dan urutan kerja sampai tenggat | kamu melanjutkan pekerjaan ini |
+| [01-briefing.md](01-briefing.md) | what the product is, who uses it, the flow from zero to a verified certificate, the demo scenes | you want to understand the product as a person, not as an engineer |
+| [02-architecture.md](02-architecture.md) | the four layers, the two contracts, why BAS is reused rather than rewritten, decisions with dates, and **one decision still open** | you are about to change a contract or the backend |
+| [03-evidence-and-limits.md](03-evidence-and-limits.md) | what **is** proven, what is **not**, and the list of claims we forbid ourselves | you are writing UI copy, the repo description, or presentation material |
+| [04-technical-reference.md](04-technical-reference.md) | Open Badges 3.0 / VC 2.0 facts taken from the raw specification, plus the toolchain traps that already cost us time | you are touching credential signing or the Foundry rig |
+| [05-status-and-tasks.md](05-status-and-tasks.md) | where things stand, the blockers, and the order of work to the deadline | you are continuing this work |
 
-## Cara membaca semuanya dengan benar
+## How to read these notes correctly
 
-Dua kebiasaan yang membuat catatan ini bisa dipercaya:
+Two habits that keep them trustworthy:
 
-1. **Setiap angka berasal dari perintah yang dijalankan**, bukan dari ingatan. Kalau ada
-   tulisan "lulus", harus ada perintah yang menghasilkannya.
-2. **Yang gagal dicatat, bukan disembunyikan.** Beberapa keputusan di sini lahir dari
-   mengoreksi kesimpulan yang sebelumnya salah, dan koreksinya ditulis lengkap. Saat kamu
-   menemukan angka di catatan ini bertentangan dengan kenyataan, **percayai kenyataan** dan
-   perbarui catatan ini.
+1. **Every number came from a command that was run**, not from memory. Wherever you read "passed",
+   there is a command that produced it.
+2. **Failures are recorded, not hidden.** Several decisions here exist because a previous conclusion
+   was wrong and the correction was written down in full. If a figure in these notes ever
+   contradicts reality, **trust reality** and update the notes.
+
+## Language policy
+
+Everything in this folder is **English**. The one agreed exception is the verification frontend,
+which will carry an **Indonesian / English switch** (tracked in
+[05-status-and-tasks.md](05-status-and-tasks.md); not built yet).
