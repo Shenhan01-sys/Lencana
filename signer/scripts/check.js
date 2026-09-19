@@ -214,8 +214,58 @@ if (!rpc || !resolverAddress || watched.length === 0) {
     check(`kredensial ${label} -> bersih di kedua list`,
       bit(revList, u, REVOCATION) === 0 && bit(susList, u, SUSPENSION) === 0)
   }
-  check('[2] valid meski prasyaratnya dicabut -> dirinya sendiri tidak disuspensi/dicabut',
-    chainedUid && bit(revList, chainedUid, REVOCATION) === 0)
+  // Semua pemeriksaan per-adegan dijaga oleh kehadiran env-nya masing-masing. Menganggap sebuah
+  // hash selalu diawasi hanya karena tes lain mengisinya adalah cara mendapat "gagal" yang
+  // sebenarnya berarti "belum diuji".
+  if (chainedUid) {
+    check('[2] valid meski prasyaratnya dicabut -> dirinya sendiri tidak disuspensi/dicabut',
+      bit(revList, chainedUid, REVOCATION) === 0 && bit(susList, chainedUid, SUSPENSION) === 0)
+  } else {
+    skipped.push('DEMO_CHAINED_HASH tidak diisi — lewati pemeriksaan [2]')
+  }
+
+  // 5b. THE invariant. `statusListIndex` tertulis ke DALAM dokumen saat ia terbit; bitnya dibaca
+  //     ulang dari daftar yang kita hidangkan. Kalau dua-duanya tidak menunjuk hal yang sama,
+  //     seluruh mekanisme status list hanya menjadi hiasan yang lolos verifikasi tanda tangan —
+  //     dan itu kegagalan yang TIDAK terlihat di `verify()`. Pemeriksaannya persis invarian yang
+  //     membuat alokator harus pindah ke store (lihat src/store.js).
+  const { renderList } = await import('../src/lists.js')
+  const { listCredentials } = await import('../src/store.js')
+  const { createIssuerKey, issuerDocument } = await import('../src/issuer.js')
+  const { makeDocumentLoader } = await import('../src/sign.js')
+  const ephemeral = await createIssuerKey({ baseUrl: 'https://check.invalid', agentSlug: 'check' })
+  const ephDoc = issuerDocument(ephemeral)
+  const ephLoader = makeDocumentLoader({ [ephemeral.controller]: ephDoc })
+
+  const issued = await listCredentials()
+  if (issued.length === 0) {
+    skipped.push('store belum punya kredensial terbitan (jalankan scripts/issue.js untuk mengisinya)')
+  } else {
+    check('store melaporkan kredensial yang pernah diterbitkan', issued.length > 0, `${issued.length} butir`)
+    for (const rec of issued) {
+      const s = [...statuses.values()].find((x) => x.hash.toLowerCase() === rec.credentialHash.toLowerCase())
+      if (!s) { skipped.push(`${rec.course} tidak termasuk hash yang diawasi`); continue }
+      for (const entry of rec.document.credentialStatus) {
+        const purpose = entry.statusPurpose
+        const rendered = await renderList({
+          purpose, baseUrl: BASE, rpcUrl: rpc, resolverAddress, hashes: [rec.credentialHash],
+          key: ephemeral.key, controllerDocument: ephDoc, documentLoader: ephLoader,
+        })
+        const idx = Number(entry.statusListIndex)
+        const expected = purpose === REVOCATION ? s.revoked : (s.issuerDelisted && !s.revoked)
+        check(`[${rec.course}] ${purpose}: bit pada indeks milik dokumennya sendiri (${idx}) = ${expected ? 1 : 0}`,
+          decodeBit(rendered.encodedList, idx) === (expected ? 1 : 0),
+          `dapat ${decodeBit(rendered.encodedList, idx)}, chain bilang ${expected ? 1 : 0}`)
+        // Yang dibandingkan adalah KLAIM dokumen itu sendiri (URL absolut yang ia tulis saat terbit),
+        // bukan BASE_URL berkas check ini — kredensial yang diterbitkan server di host lain harus
+        // tetap lolos di sini.
+        const urlOk = /^https?:\/\/[^/]+\/credentials\/status\/[a-z]+$/.test(entry.statusListCredential ?? '')
+          && entry.statusListCredential.endsWith(`/${purpose}`)
+        check(`[${rec.course}] ${purpose}: dokumennya menunjuk URL daftar yang sah dan benar`,
+          urlOk, entry.statusListCredential)
+      }
+    }
+  }
 }
 
 console.log(`\n${failures === 0 ? 'CHECK HIJAU' : 'CHECK MERAH'} — ${ran} pemeriksaan, ${failures} gagal`)

@@ -65,6 +65,18 @@ export class IndexAllocator {
     return index
   }
 
+  /**
+   * Baca saja: `undefined` kalau belum pernah dialokasikan.
+   *
+   * Ini bedanya penting. Yang BOLEH mengalokasikan nomor bit hanyalah sisi penerbit, di momen
+   * kredensialnya terbit. Server penyaji hanya boleh MEMBACA alokasi — kalau ia ikut
+   * mengalokasikan, nomornya ikut urutan iterasi saat itu dan bisa berbeda dari yang sudah
+   * tertulis di dalam kredensial yang terbit lebih dulu. Kegagalannya sunyi dan salah alamat.
+   */
+  peek (purpose, uid) {
+    return this.state.byUid[`${purpose}:${uid}`]
+  }
+
   has (purpose, uid) {
     return this.state.byUid[`${purpose}:${uid}`] !== undefined
   }

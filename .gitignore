@@ -28,6 +28,12 @@ secrets.json
 .keys/
 signer/.keys/
 
+# State runtime signer: catatan alokasi nomor bit + registry kredensial yang sudah terbit.
+# Ini STATE, bukan source — dan nomor di dalamnya harus bertahan lintas proses, bukan
+# terbablas datang dari repo orang lain.
+.store/
+signer/.store/
+
 # Editor / OS
 .obsidian/
 .DS_Store

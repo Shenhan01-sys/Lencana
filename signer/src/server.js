@@ -21,10 +21,10 @@
  */
 import { createServer } from 'node:http'
 import { loadKey, issuerDocument } from './issuer.js'
-import { IndexAllocator, REVOCATION, SUSPENSION, encodeList, statusListCredential } from './statusList.js'
-import { readChainStatuses, revokedUids, suspendedUids } from './chainStatus.js'
+import { REVOCATION, SUSPENSION, renderList } from './lists.js'
 import { sha256Hex } from './credential.js'
-import { signDocument, makeDocumentLoader } from './sign.js'
+import { makeDocumentLoader } from './sign.js'
+import { knownHashes, getCredential } from './store.js'
 
 const PORT = Number(process.env.PORT ?? 8787)
 const HOST = process.env.HOST ?? '127.0.0.1'
@@ -39,26 +39,24 @@ const issuerDoc = issuerDocument({ controller, name, key })
 const loaderDocs = { [controller]: issuerDoc }
 const documentLoader = makeDocumentLoader(loaderDocs)
 
-/** Daftar untuk satu purpose, diturunkan dari chain saat itu juga. */
+/**
+ * Daftar untuk satu purpose. Isi logikanya ada di `lists.js` — dipakai juga oleh sisi penerbit,
+ * supaya hash yang kita anchor berasal dari aturan yang sama persis dengan daftar yang kita hidangkan.
+ *
+ * ⚠️ Alokator hanya DIBACA (`peek` di dalam renderList). Yang boleh mengalokasikan nomor bit adalah
+ * sisi penerbit, di momen kredensialnya terbit. Kalau server ikut mengalokasikan, nomornya
+ * mengikuti urutan iterasi saat itu dan `statusListIndex` di kredensial lama bisa menunjuk bit
+ * milik orang lain — kegagalan sunyi, dokumen tetap sah, cuma salah alamat.
+ */
 async function buildList (purpose) {
-  if (!RESOLVER || !RPC_URL || WATCHED.length === 0) {
-    throw new Error('RESOLVER_ADDRESS / RPC_URL / STATUS_HASHES belum diisi')
+  const hashes = WATCHED.length ? WATCHED : await knownHashes()
+  if (!RESOLVER || !RPC_URL || hashes.length === 0) {
+    throw new Error('RESOLVER_ADDRESS / RPC_URL belum diisi (dan store belum punya kredensial)')
   }
-  const statuses = await readChainStatuses({ rpcUrl: RPC_URL, resolverAddress: RESOLVER, hashes: WATCHED })
-  const allocator = new IndexAllocator()
-  const slots = new Map()
-  for (const uid of statuses.keys()) slots.set(uid, allocator.slot(purpose, uid))
-  const flagged = new Set(purpose === REVOCATION ? revokedUids(statuses) : suspendedUids(statuses))
-  const encodedList = encodeList({ slots, flagged })
-  const doc = statusListCredential({
-    baseUrl: BASE_URL, purpose, encodedList, issuerId: controller,
-    issuedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+  return renderList({
+    purpose, baseUrl: BASE_URL, rpcUrl: RPC_URL, resolverAddress: RESOLVER, hashes,
+    key, controllerDocument: issuerDoc, documentLoader,
   })
-  const signed = await signDocument(doc, { key, controllerDocument: issuerDoc, documentLoader })
-  loaderDocs[`${BASE_URL}/credentials/status/${purpose}`] = signed
-  // `slots` ikut dikembalikan: siapa pun yang membaca list kami harus bisa tahu bit mana milik
-  // kredensial mana TANPA menebak urutan alokasi kami.
-  return { signed, counted: flagged.size, of: statuses.size, slots }
 }
 
 function send (res, status, body, type = 'application/json') {
@@ -78,23 +76,32 @@ const server = createServer(async (req, res) => {
     if (path === `/issuers/${AGENT_SLUG}` || path === '/issuers') return send(res, 200, issuerDoc)
     if (path === `/credentials/status/${REVOCATION}`) return send(res, 200, (await buildList(REVOCATION)).signed)
     if (path === `/credentials/status/${SUSPENSION}`) return send(res, 200, (await buildList(SUSPENSION)).signed)
+    // kredensial yang sudah diterbitkan: `/credentials/<credentialHash>` — URL yang sama dengan
+    // `id` di dalam dokumen, jadi tautan yang dicetak di ijazah memang menunjuk ke sini
+    if (path.startsWith('/credentials/0x')) {
+      const found = await getCredential(path)
+      if (!found) return send(res, 404, { error: 'belum diterbitkan lewat backend ini', path })
+      return send(res, 200, found)
+    }
     if (path === '/healthz') {
       const r = await buildList(REVOCATION)
       const s = await buildList(SUSPENSION)
       return send(res, 200, {
         ok: true, baseUrl: BASE_URL, resolver: RESOLVER, rpc: RPC_URL,
-        watched: r.of,
-        // `slots` dilaporkan, bukan dibiarkan ditebak: pembaca list harus tahu bit mana milik
-        // kredensial mana tanpa perlu tahu urutan alokasi kami.
+        watched: r.watched,
+        // `unallocated` dilaporkan, bukan disembunyikan: kredensial yang ada di chain tapi belum
+        // punya slot TIDAK ikut menentukan bit — dan itu harus kelihatan, bukan jadi daftar yang
+        // tampak benar sambil diam-diam kurang.
         revocation: {
-          flagged: r.counted,
-          bitstringHash: sha256Hex(r.signed.credentialSubject.encodedList),
+          flagged: r.flagged, bitstringHash: r.hash, unallocated: r.unallocated.length,
           slots: Object.fromEntries(r.slots),
         },
         suspension: {
-          flagged: s.counted,
-          bitstringHash: sha256Hex(s.signed.credentialSubject.encodedList),
+          flagged: s.flagged, bitstringHash: s.hash, unallocated: s.unallocated.length,
           slots: Object.fromEntries(s.slots),
+        },
+        sha256OfEncodedList: {
+          revocation: sha256Hex(r.encodedList), suspension: sha256Hex(s.encodedList),
         },
       })
     }

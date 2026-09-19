@@ -11,15 +11,40 @@ This closes decision **D24.1 = A** (see `../vault/02-architecture.md`).
 
 | file | job |
 |---|---|
-| `src/context.js` | the JSON-LD context URIs, in one place, in the order that is signed |
-| `src/credential.js` | builds an `OpenBadgeCredential`; also `credentialHashOf()`, the TypeScript twin of `_vcHash()` in `CredentialResolver.sol` |
+| `src/context.js` | the JSON-LD context URIs in one place, because the `@context` order is itself signed |
+| `src/credential.js` | builds an `OpenBadgeCredential`; also `credentialHashOf()`, the JS twin of `_vcHash()` in `CredentialResolver.sol` |
 | `src/statusList.js` | Bitstring Status List: index allocation, bitstring encoding, the status list credential itself |
 | `src/chainStatus.js` | reads `statusOf()` from the deployed resolver and decides which bits are set |
+| `src/store.js` | the append-only allocation record + issued-credential registry on the issuer side |
+| `src/lists.js` | renders a status list — **shared by the server and the issuer**, so the hash we anchor comes from the same code that serves the list |
+| `src/anchor.js` | `timestamp()` of the bitstring hash on BAS, then reads it back |
 | `src/issuer.js` | the agent's Ed25519 document key and its issuer document |
 | `src/sign.js` | `DataIntegrityProof` + `eddsa-rdfc-2022` sign/verify, and the JSON-LD document loader |
-| `src/server.js` | serves `/issuers/:slug`, `/credentials/status/{revocation,suspension}`, `/healthz` |
-| `scripts/check.js` | 36 checks: document shape, signature, status list, and bits derived from chain |
-| `scripts/serve-probe.js` | 19 checks: the same, but everything fetched over HTTP |
+| `src/server.js` | serves `/issuers/:slug`, `/credentials/0x…`, `/credentials/status/{revocation,suspension}`, `/healthz` |
+| `scripts/issue.js` | **one command**: score → on-chain attestation (agent's own key) → signed document → status lists → bitstring hash anchored to BAS |
+| `scripts/check.js` | 41 checks: document shape, signature, status lists, chain-derived bits, and the index invariant |
+| `scripts/serve-probe.js` | 19 checks: the same over HTTP, against the running server |
+
+## Who owns the bit number
+
+**The issuer allocates the status-list index; the server only reads it.** That rule is the whole
+reason `store.js` exists. The index is written *into* the credential at the moment it is issued, and
+later read back out of it to find the bit. If the server allocated on its own, the number would
+follow whatever order that request happened to iterate in, and an older credential's
+`statusListIndex` could point at someone else's bit — a failure that is completely invisible to
+signature verification, because the document would still be perfectly valid.
+
+`check.js` proves the invariant instead of trusting it: for every credential in the store, the bit
+**at the index the document itself claims**, read from the rendered list, must equal what the chain
+says.
+
+## Two empty lists share a hash
+
+`sha256("")` of an all-zero bitstring is the same for `revocation` and `suspension`, so anchoring an
+empty list records one hash for both purposes — measured, not theorised. Consequence to keep honest:
+an anchor is only meaningful **once a bit is set**, and `getTimestamp()` cannot tell you *which*
+list a hash belonged to. If that ever matters, the fix is to include the purpose in the anchored
+digest, not to hope readers infer it.
 
 Two keys per agent, deliberately: the **EOA** is the on-chain `attester` (D30/D31), the **Ed25519
 Multikey** signs the document. Standard verifiers only ever see the second one; the two are linked
@@ -30,9 +55,10 @@ by the issuer document URL, which is legal because §8.5 of OB3.0 "only requires
 ```bash
 npm install
 node scripts/agent.js                 # creates .keys/agent-demo.json (testnet-only)
-node scripts/check.js                 # 36 checks, offline
+node scripts/check.js                 # 28 checks offline; 41 with a chain to read
 node src/server.js                    # http://127.0.0.1:8787
 node scripts/serve-probe.js           # 19 checks against the running server
+node scripts/issue.js --course web3-dasar-2026 --learner 0x… --score 87
 ```
 
 `check.js` section 5 and the server need a chain to read; set them the same way `web/`'s probe does:
@@ -40,7 +66,7 @@ node scripts/serve-probe.js           # 19 checks against the running server
 ```bash
 set RPC_URL=http://127.0.0.1:8545
 set RESOLVER_ADDRESS=0xE01a16E50FD9D8c0Ff4230874F8D8C086e811627
-set STATUS_HASHES=<comma-separated credential hashes>
+set STATUS_HASHES=<comma-separated credential hashes>   # optional: default is everything in the store
 ```
 
 Without them `check.js` still runs and says **which group it skipped** — a green number that hides
@@ -70,17 +96,23 @@ disagree.
 
 - **Not yet tested against `https://vc.1ed.tech`.** The document is built to the specification and
   to the terms that actually exist in the published contexts, but interoperability is only claimed
-  after it passes someone else's validator. That test is still open.
-- **The bitstring hash is not yet anchored to BAS.** `sha256Hex(encodedList)` is computed and
-  reported; calling `timestamp()` on BAS with it is the next step. Until then "we serve the list;
-  you can check the hash we published" is only half-defensible.
-- **The issue → anchor → sign pipeline is not wired end to end.** `check.js` proves each stage and
-  the chain-derived list proves the status path; the single command that takes an assessment result
-  and produces a signed, anchored, status-listed credential is still to come.
-- **`IndexAllocator` state lives on the issuer side.** The *slot* is ours; the *status* is read from
-  chain every request. Losing the allocator means old lists can't be re-derived, not that a
-  credential's status becomes wrong.
+  after it passes someone else's validator. That test is still open, and it is the single most
+  valuable thing left in this package.
+- **Everything measured here ran against a local anvil fork of chain 97**, including the one command
+  that attests, signs, renders and anchors (`timestamp()` recorded and read back on the fork).
+  Nothing in `signer/` has touched a public chain yet — no backend of ours has a public URL, which
+  is exactly what the third-party validator test will need.
+- **The anchor's precision is stated, not oversold.** `timestamp()` stores `uint64` per `bytes32`
+  and keeps no content, so it proves *"this bitstring hash existed at this time"*, not *"we always
+  serve this list"*. And two empty lists hash identically (see above), so a hash for an
+  all-zero list proves less than one that has a bit set.
+- **`IndexAllocator` state lives on the issuer side, deliberately.** The *slot* is ours; the *status*
+  is read from chain on every render. Losing the store means old lists cannot be re-derived, not
+  that a credential's status becomes wrong.
 - **Testnet-only keys.** `.keys/` is gitignored; a production key belongs in a KMS/HSM, not here.
+- **JSON-LD contexts are fetched over the network** by the default loader. Vendoring them into
+  `makeDocumentLoader` is the known fix if offline determinism ever matters (it also removes a
+  runtime dependency on w3.org being up during a demo).
 
 ## Three things measured while building this, so they are not rediscovered painfully
 

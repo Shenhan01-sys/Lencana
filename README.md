@@ -12,9 +12,11 @@ Built for the **Indonesia Web3 Hackathon 2026** — *Consumer Apps* track (· *A
 Chain.
 
 > ⚠️ **Pre-release status.** No contract has been broadcast to a public testnet yet. The
-> credential-signing backend now exists (`signer/`) and is measured, but it has **not** yet been
-> taken through a third-party validator, and the issue → anchor → sign path is not yet one command.
-> The table below draws a hard line between what is proven and what merely compiles.
+> credential-signing backend exists (`signer/`) and one command now runs score → attestation →
+> signed document → status lists → `timestamp()` anchor, green against a fork. What is still
+> unproven: a third-party validator has never seen our document, and no URL in any credential we
+> issue is publicly reachable yet. The table below draws a hard line between what is proven and
+> what merely compiles.
 
 ---
 
@@ -44,7 +46,8 @@ Every number below is the output of a command that was run, not a plan.
 | `forge test --evm-version cancun --fork-url <anvil fork of 97>` | **68 passed / 0 failed** on **chain 97** (19 Sep) |
 | `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **68 passed / 0 failed** on **chain 56** (19 Sep), identical gas figures |
 | `npm run probe` in `web/` | **41 checks / 0 failed** against a live anvil fork of chain 97 (19 Sep), exercising four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid but its prerequisite is revoked" |
-| `npm run check` in `signer/` | **36 checks / 0 failed** (19 Sep) — OpenBadgeCredential 3.0 built and signed with `DataIntegrityProof` + `eddsa-rdfc-2022`; tampering, a swapped verification method and an unlisted key all fail to verify; the served bitstring's bits are then read **from `statusOf()` on the deployed resolver**, not from our own state |
+| `npm run check` in `signer/` | **41 checks / 0 failed** (19 Sep) against a live anvil fork — OpenBadgeCredential 3.0 built and signed with `DataIntegrityProof` + `eddsa-rdfc-2022`; tampering, a swapped verification method and an unlisted key all fail to verify; served bits are read **from `statusOf()` on the deployed resolver**, and every credential's bit is checked **at the index the document itself claims** |
+| `node scripts/issue.js` in `signer/` | **one command, green on the fork** (19 Sep): score → attestation under the **agent's own key** → signed document → both status lists → bitstring hash anchored to BAS via `timestamp()` and **read back** (gas 45,869) |
 | `npm run probe:serve` in `signer/` | **19 checks / 0 failed** against the running server — same assertions, everything over HTTP, so the issuer document and the two status lists are verified the way a third-party tool would verify them |
 | `forge script … --broadcast` on an anvil fork of 97 | deploy succeeded · **0.0003828 BNB** (3,827,994 gas) |
 | repo contents read back from the GitHub API | **54 files**; no `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env`, `signer/.keys/` (re-measured 19 Sep, same command) |
