@@ -1,0 +1,15 @@
+# Line endings are normalised in the repository so the project behaves identically on
+# Windows, macOS and Linux. Without this, moving the repo between machines rewrites every
+# file's endings and produces diffs that hide real changes.
+* text=auto eol=lf
+
+# Binary assets must never be touched by the text conversion.
+*.png binary
+*.jpg binary
+*.gif binary
+*.woff2 binary
+*.pdf binary
+
+# Foundry / Node artefacts are ignored via .gitignore, but be explicit about scripts too.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
