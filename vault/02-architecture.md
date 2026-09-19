@@ -269,18 +269,23 @@ The agent signs an EIP-712 delegation off-chain — **free, and it needs no BNB 
 sends it and pays the gas, and `attestation.attester` stays the **agent's address**. Whitelist,
 delisting, prerequisite checks and revocation rights all keep attaching to the right party.
 
-Parameters verified from source, so the relayer never guesses:
+Parameters verified from source, so the relayer never guesses — and since 19 Sep **every one of them
+is also executed against the BAS deployment itself** by 8 fork tests
+(`test_fork_Delegasi_*` / `test_fork_BatchDelegasi_*`, chain 97 and 56):
 
 | item | value |
 |---|---|
-| EIP-712 domain | `EIP1271Verifier("EAS", "1.3.0")` → name `"EAS"`, version `"1.3.0"` |
-| `ATTEST_TYPEHASH` | `0xfeb2925a02bae3dae48d424a0437a2b6ac939aa9230ddc55a1a76f065d988076` |
+| EIP-712 domain | `EIP1271Verifier("EAS", "1.3.0")` → name `"EAS"`, version `"1.3.0"`; the tests read `getDomainSeparator()` from the contract instead of computing it, so a domain change fails a test rather than producing bad signatures in production |
+| `ATTEST_TYPEHASH` | `0xfeb2925a02bae3dae48d424a0437a2b6ac939aa9230ddc55a1a76f065d988076` — hard-coded in the test, deliberately, so a wrong transcription surfaces as `InvalidSignature` instead of a false pass |
 | hashed field order | attester, schema, recipient, expirationTime, revocable, refUID, **`keccak256(data.data)`**, value, nonce, deadline |
-| nonce | per attester, auto-incremented inside the hash, readable via `getNonce(address)` |
+| nonce | per attester, auto-incremented **inside** the hash (`_nonces[attester]++`), readable via `getNonce(address)`; a batch of 3 raises it by exactly 3 (tested) |
+| 🔑 interacts with our whitelist | ✅ `CredentialResolver.onAttest()` gates on `_issuer[attestation.attester]` — the **attester**, not `msg.sender`. Without this, D31 would be impossible: a relayer broadcasting on an agent's behalf would be rejected as an unknown issuer, and — worse — any relayer could impersonate any agent. Both directions are now tested: a valid signature from an unadmitted agent reverts `NotAnIssuer`, and a correctly-relayed credential records the agent as its issuer |
+| forged signature | ✅ rejected `InvalidSignature()` (tested) — a delegation is not a way to speak for an agent |
+| expiry | ✅ `deadline != NO_EXPIRATION_TIME && deadline < _time()` → `DeadlineExpired()` (tested). **`deadline = 0` means never expires** — use ~15 min |
+| agent's own escape hatch | ✅ `increaseNonce(newNonce)` — takes the new value, and invalidates every unused delegation below it (tested). It does **not** lock the agent out: a fresh signature at the new nonce still works |
 | contract wallets | ✅ `SignatureChecker.isValidSignatureNow` → **EIP-1271**, so an agent owned by a Safe works |
-| batching | ✅ `multiAttestByDelegation` — every lesson of a course in **one** transaction, signatures at increasing nonces |
-| kill switch | ✅ `increaseNonce()` — the owner can invalidate all outstanding delegations |
-| deadline | `deadline != NO_EXPIRATION_TIME && deadline < _time()` → `DeadlineExpired()`. **`deadline = 0` means never expires** — use ~15 min instead |
+| batching | ✅ `multiAttestByDelegation` — every lesson of a course in **one** transaction (tested) |
+| does it bypass our rules? | ✅ No: a delegated issuance chaining onto a **revoked** prerequisite still reverts `PrerequisiteRevoked` (tested). Delegation changes who pays, never what is allowed |
 
 **Economics — do not over-engineer.** BSC gas per attestation is **sub-cent** (deploying every
 contract we wrote costs 0.0003828 BNB). Recovery therefore needs no precision: a flat platform

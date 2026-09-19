@@ -8,15 +8,15 @@ written as "not tested" rather than skipped.
 | command | result | meaning |
 |---|---|---|
 | `forge test --no-match-path "*.fork.t.sol"` | **21 passed / 0 failed** (offline, ~21 ms) | the soulbound artifact mechanics are right: transfer, approve and burn all refused; `locked()` always true; the ERC-5192 interfaceId matches; a delisted issuer's artifact is refused and returns after relisting |
-| `forge test --evm-version cancun --fork-url <chain 97>` | **60 passed / 0 failed** | the whole on-chain layer works against **BAS as actually deployed on chain 97** |
-| `forge test --evm-version cancun --fork-url <chain 56>` | **60 passed / 0 failed**, **identical gas** | cross-check: the primitive is the same on mainnet; the result is not a state coincidence |
+| `forge test --evm-version cancun --fork-url <chain 97>` | **68 passed / 0 failed** | the whole on-chain layer works against **BAS as actually deployed on chain 97** |
+| `forge test --evm-version cancun --fork-url <chain 56>` | **68 passed / 0 failed**, **identical gas** | cross-check: the primitive is the same on mainnet; the result is not a state coincidence |
 | `npm run probe` in `web/` | **41 checks / 0 failed** against a live anvil fork of chain 97 (19 Sep) | the verification page reads real chain data correctly: identity, status, holder, artifact, prerequisite chain, `isIssuer`, `isDelisted`. It now walks **four verdicts on one chain**: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" — the last two pairs being exactly the distinctions that used to be provable only inside forge tests |
 | `forge script … --broadcast` on an anvil fork of 97 | succeeded · paid **0.0002934787 BNB** | resolver + artifact + `registerSchema()` + whitelist actually work on real chain state |
 | dry-run of the same script | succeeded · **3,827,994 gas = 0.0003828 BNB** | the deploy path is ready and costs pocket change |
 | `eth_getCode` + `eth_call` on BAS | 18,881 B identical on 56 and 97; `getSchemaRegistry()` answers exactly as its README table | the primitive we depend on is real and documented honestly |
 | x402 agent-payment PoC | **31 tests passed** (15 unit + 8 fork 97 + 8 fork 56) | agent settlement works on BNB Chain, including settlement that costs the payer no gas |
 
-Of the 60: 30 resolver fork tests + 9 end-to-end fork tests + 21 offline artifact tests.
+Of the 68: 38 resolver fork tests + 9 end-to-end fork tests + 21 offline artifact tests.
 Everything labelled *fork* is tested against a third party's real deployment, not a copy we made.
 
 ## Not proven — and must not be written as if it were

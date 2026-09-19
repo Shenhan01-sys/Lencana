@@ -8,11 +8,13 @@ import {
     Attestation,
     AttestationRequest,
     AttestationRequestData,
+    DelegatedAttestationRequest,
+    MultiDelegatedAttestationRequest,
     RevocationRequest,
     RevocationRequestData
 } from "../lib/bas/src/IEAS.sol";
 import { SchemaRecord } from "../lib/bas/src/ISchemaRegistry.sol";
-import { EMPTY_UID, NO_EXPIRATION_TIME, AccessDenied, NotFound } from "../lib/bas/src/Common.sol";
+import { EMPTY_UID, NO_EXPIRATION_TIME, Signature, AccessDenied, NotFound } from "../lib/bas/src/Common.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// Cermin penanda (selector) error EAS yang aslinya dideklarasikan di dalam badan
@@ -22,6 +24,24 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 error AlreadyRevoked();
 error AlreadyTimestamped();
 error AlreadyRevokedOffchain();
+
+/// Cermin error milik `EIP1271Verifier` — jalur delegasi penerbitan (**D31**). Sama alasannya
+/// dengan tiga di atas: kontrak aslinya tidak bisa ikut dikompilasi di rig ini, dan selector
+/// dihitung dari tanda tangan, jadi nama + parameternya harus persis.
+error InvalidSignature();
+error DeadlineExpired();
+error InvalidNonce();
+
+/// @dev Dua getter EIP-1271 yang dibutuhkan relayer. `IEAS.sol` verbatim BAS TIDAK
+/// mendeklarasikannya (ia interface inti), dan salinan verbatim itu sengaja tidak kita edit —
+/// permukaan bacanya ditirai di sini. `getDomainSeparator()` dipakai alih-alih menghitungnya
+/// sendiri: kalau BAS mengganti domain, tes inilah yang gagal lebih dulu, bukan relayer
+/// TypeScript yang menghasilkan tanda tangan salah di chain publik.
+interface IEIP1271Getters {
+    function getDomainSeparator() external view returns (bytes32);
+    function getNonce(address account) external view returns (uint256);
+    function increaseNonce(uint256 newNonce) external;
+}
 
 /// Cermin event governance resolver, dipakai bersama `vm.expectEmit`. Layak diuji, bukan
 /// sekadar hiasan: BAS tidak menyediakan Indexer untuk BSC, jadi emisi on-chain ini adalah
@@ -76,6 +96,19 @@ contract CredentialResolverForkTest is Test {
     address internal other = makeAddr("orang-lain");
     address internal stranger = makeAddr("penyerang");
 
+    /// Penerbit yang TIDAK punya gas — keadaan yang ingin dijamin D31: kuncinya hanya dipakai
+    /// untuk MENANDATANGANI, dompetnya tidak pernah jadi `msg.sender`.
+    uint256 internal constant AGENT_PK = 0xA9317;
+    address internal agent;
+    address internal relayer = makeAddr("relayer-platform");
+    uint256 internal constant STRANGER_AGENT_PK = 0xB342;
+
+    /// Type hash EIP-712 untuk tipe `Attest`, persis konstanta privat di `EIP1271Verifier.sol`.
+    /// Ditulis sebagai angka, bukan `keccak256("Attest(...)")`, supaya tes ini terikat ke nilai
+    /// yang benar-benar dipakai kontrak: kalau saya salah salin, yang muncul `InvalidSignature`,
+    /// bukan kelulusan palsu.
+    bytes32 internal constant ATTEST_TYPEHASH = 0xfeb2925a02bae3dae48d424a0437a2b6ac939aa9230ddc55a1a76f065d988076;
+
     bytes32 internal constant COURSE = keccak256("web3-dasar-2026");
     bytes32 internal constant ADV = keccak256("web3-lanjut-2026");
 
@@ -106,6 +139,13 @@ contract CredentialResolverForkTest is Test {
         schemaId = resolver.schemaUID();
 
         vm.deal(issuer, 10 ether);
+
+        // Untuk bagian 3c (delegasi, D31): agen dan relayer dua alamat BERBEDA, dan hanya
+        // relayer yang masuk akal jadi `msg.sender`.
+        agent = vm.addr(AGENT_PK);
+        resolver.addIssuer(agent);
+        vm.deal(relayer, 10 ether);
+        vm.deal(agent, 1 ether);
     }
 
     // ------------------------------------------------------------- util
@@ -455,6 +495,226 @@ contract CredentialResolverForkTest is Test {
 
         assertFalse(resolver.isDelisted(issuer), "delisting oleh pihak luar meninggalkan efek");
         assertTrue(resolver.isIssuer(issuer));
+    }
+
+    // ---- 3c. penerbitan didelegasi: platform menyiarkan, agen tetap penerbit (D31)
+    //
+    // Semua tes di bagian ini memakai `attestByDelegation` MILIK BAS yang ter-deploy, bukan
+    // tiruan kita. Kalau BAS di chain ini tidak punya fungsi itu, tes-lah yang gagal — dan itu
+    // informasi yang jauh lebih murah daripada mengetahuinya lewat demo di depan juri.
+
+    /// @dev Digest persis seperti `_verifyAttest` di `EIP1271Verifier.sol`: urutan field tidak
+    ///   boleh bergeser satu slot pun, `bytes data` masuk sebagai `keccak256(data.data)`, dan
+    ///   nonce yang ditandatangani harus sama dengan nonce kontrak SAAT ITU (EAS melakukan
+    ///   `_nonces[attester]++` DI DALAM hash). Domain separator dibaca dari kontrak, bukan
+    ///   dihitung sendiri — kalau BAS mengganti domain, tes ini yang jatuh lebih dulu.
+    function _digest(address attester, bytes32 schema, AttestationRequestData memory d, uint256 nonce, uint64 deadline)
+        internal
+        view
+        returns (bytes32)
+    {
+        bytes32 structHash = keccak256(
+            abi.encode(
+                ATTEST_TYPEHASH,
+                attester,
+                schema,
+                d.recipient,
+                d.expirationTime,
+                d.revocable,
+                d.refUID,
+                keccak256(d.data),
+                d.value,
+                nonce,
+                deadline
+            )
+        );
+        return keccak256(abi.encodePacked("\x19\x01", IEIP1271Getters(address(bas)).getDomainSeparator(), structHash));
+    }
+
+    function _dataFor(address who, bytes32 courseId, bytes32 prereq)
+        internal
+        view
+        returns (AttestationRequestData memory)
+    {
+        return AttestationRequestData({
+            recipient: who,
+            expirationTime: uint64(block.timestamp + YEAR),
+            revocable: true,
+            refUID: prereq,
+            data: abi.encode(_hashOf(who, courseId), courseId, EMPTY_UID),
+            value: 0
+        });
+    }
+
+    function _nonceOf(address who) internal view returns (uint256) {
+        return IEIP1271Getters(address(bas)).getNonce(who);
+    }
+
+    function _signedRequest(uint256 pk, address attester, AttestationRequestData memory d, uint256 nonce, uint64 deadline)
+        internal
+        view
+        returns (DelegatedAttestationRequest memory)
+    {
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(pk, _digest(attester, schemaId, d, nonce, deadline));
+        return DelegatedAttestationRequest({
+            schema: schemaId,
+            data: d,
+            signature: Signature({ v: v, r: r, s: s }),
+            attester: attester,
+            deadline: deadline
+        });
+    }
+
+    /// @dev `vm.prank` dipasang TERAKHIR, sesudah request (dan seluruh staticcall-nya) selesai —
+    ///   pelajaran yang sudah dua kali dibayar mahal di berkas ini.
+    function _relay(DelegatedAttestationRequest memory req) internal returns (bytes32) {
+        vm.prank(relayer);
+        return bas.attestByDelegation(req);
+    }
+
+    function test_fork_Delegasi_PenerbitTetapAgen_BukanYangMenyiarkan() public {
+        AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
+        uint256 nonce = _nonceOf(agent);
+        DelegatedAttestationRequest memory req = _signedRequest(AGENT_PK, agent, d, nonce, uint64(block.timestamp + 1 hours));
+
+        bytes32 uid = _relay(req);
+
+        Attestation memory a = bas.getAttestation(uid);
+        assertEq(a.attester, agent, "yang tercatat harus agen penandatangan, bukan yang menyiarkan");
+        assertNotEq(a.attester, relayer);
+        assertEq(a.recipient, scholar);
+        assertEq(resolver.attestationOf(_hashOf(scholar, COURSE)), uid, "resolver tidak mencatat kredensial delegasi");
+        assertEq(_nonceOf(agent), nonce + 1, "nonce agen tidak naik setelah delegasi dipakai");
+
+        // Kredensial hasil delegasi harus terbaca sama normalnya oleh verifier.
+        (bool exists, bool revoked, bool expired, bool delisted, address iss,,) = resolver.statusOf(_hashOf(scholar, COURSE));
+        assertTrue(exists, "kredensial delegasi tidak terbaca statusOf");
+        assertFalse(revoked);
+        assertFalse(expired);
+        assertFalse(delisted);
+        assertEq(iss, agent);
+    }
+
+    function test_fork_Delegasi_TandaTanganBukanMilikAgen_Ditolak() public {
+        AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
+        // Ditandatangani kunci asing, diklaim atas nama `agent`: tepat seperti upaya
+        // memalsukan "agen kami yang menerbitkan".
+        DelegatedAttestationRequest memory req =
+            _signedRequest(STRANGER_AGENT_PK, agent, d, _nonceOf(agent), uint64(block.timestamp + 1 hours));
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(InvalidSignature.selector));
+        bas.attestByDelegation(req);
+    }
+
+    function test_fork_Delegasi_AgenBelumDiizinkan_DitolakResolverKita() public {
+        // Tanda tangan SAH, tapi atas nama agen yang tidak kita akui. Ini membuktikan guard
+        // kita membaca `attestation.attester`, bukan `msg.sender` — tanpa itu, relayer pihak
+        // ketiga bisa menyamar jadi agen mana pun.
+        address outsider = vm.addr(STRANGER_AGENT_PK);
+        AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
+        DelegatedAttestationRequest memory req =
+            _signedRequest(STRANGER_AGENT_PK, outsider, d, _nonceOf(outsider), uint64(block.timestamp + 1 hours));
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(CredentialResolver.NotAnIssuer.selector, outsider));
+        bas.attestByDelegation(req);
+
+        assertEq(resolver.attestationOf(_hashOf(scholar, COURSE)), EMPTY_UID, "kredensial tertolak malah tercatat");
+    }
+
+    function test_fork_Delegasi_DeadlineLewat_Ditolak() public {
+        AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
+        DelegatedAttestationRequest memory req = _signedRequest(AGENT_PK, agent, d, _nonceOf(agent), uint64(block.timestamp - 1));
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(DeadlineExpired.selector));
+        bas.attestByDelegation(req);
+    }
+
+    function test_fork_Delegasi_NonceSalah_Ditolak() public {
+        AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
+        // Menandatangani nonce yang akan datang = membuat tanda tangan yang tidak akan pernah
+        // cocok, kecuali nonce kontrak digeser. Sekalian membuktikan nonce BUKAN hiasan.
+        DelegatedAttestationRequest memory req =
+            _signedRequest(AGENT_PK, agent, d, _nonceOf(agent) + 1, uint64(block.timestamp + 1 hours));
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(InvalidSignature.selector));
+        bas.attestByDelegation(req);
+    }
+
+    function test_fork_Delegasi_DibatalkanAgen_SendiriTetapBisaMenerbitkan() public {
+        AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
+        uint256 nonce = _nonceOf(agent);
+        DelegatedAttestationRequest memory req = _signedRequest(AGENT_PK, agent, d, nonce, uint64(block.timestamp + 1 hours));
+
+        // Tanda tangannya masih sah dan belum dipakai. Kill switch ada di sisi AGEN:
+        // `increaseNonce(newNonce)` membuat semua delegasi ber-nonce lama mati serentak.
+        vm.prank(agent);
+        IEIP1271Getters(address(bas)).increaseNonce(nonce + 1);
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(InvalidSignature.selector));
+        bas.attestByDelegation(req);
+
+        // Dan pembatalan itu tidak mengunci agen di luar — ia tinggal menandatangani dengan
+        // nonce baru. Bedakan "mencabut kewenangan agen" (milik kita, D30) dari "agen mencabut
+        // delegasi yang sudah ia tebar" (milik dia).
+        DelegatedAttestationRequest memory fresh =
+            _signedRequest(AGENT_PK, agent, _dataFor(scholar, ADV, EMPTY_UID), _nonceOf(agent), uint64(block.timestamp + 1 hours));
+        bytes32 uid = _relay(fresh);
+        assertEq(bas.getAttestation(uid).attester, agent);
+    }
+
+    function test_fork_BatchDelegasi_TigaKredensialSatuPanggilan() public {
+        // Yang membuat jalur delegasi layak dipakai produksi: satu kursus bisa diterbitkan
+        // lesson-per-lesson dalam SATU transaksi, dengan nonce menaik, tanpa dompet agen.
+        bytes32[3] memory courses = [COURSE, ADV, keccak256("web3-dasar-2026-b")];
+        AttestationRequestData[] memory datas = new AttestationRequestData[](3);
+        Signature[] memory sigs = new Signature[](3);
+        uint256 nonce = _nonceOf(agent);
+        uint64 deadline = uint64(block.timestamp + 1 hours);
+
+        for (uint256 i = 0; i < 3; i++) {
+            datas[i] = _dataFor(scholar, courses[i], EMPTY_UID);
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(AGENT_PK, _digest(agent, schemaId, datas[i], nonce + i, deadline));
+            sigs[i] = Signature({ v: v, r: r, s: s });
+        }
+
+        MultiDelegatedAttestationRequest[] memory batch = new MultiDelegatedAttestationRequest[](1);
+        batch[0] = MultiDelegatedAttestationRequest({
+            schema: schemaId,
+            data: datas,
+            signatures: sigs,
+            attester: agent,
+            deadline: deadline
+        });
+
+        vm.prank(relayer);
+        bytes32[] memory uids = bas.multiAttestByDelegation(batch);
+
+        assertEq(uids.length, 3);
+        assertEq(_nonceOf(agent), nonce + 3, "batch harus menaikkan nonce sebanyak item-nya");
+        for (uint256 i = 0; i < 3; i++) {
+            assertEq(bas.getAttestation(uids[i]).attester, agent, "attester salah di item batch");
+            assertNotEq(resolver.attestationOf(_hashOf(scholar, courses[i])), EMPTY_UID, "item batch tidak tercatat resolver");
+        }
+    }
+
+    function test_fork_Delegasi_TidakJadiJalanTikus_PrasyaratTercabutTetapDitolak() public {
+        // Jalur delegasi tidak boleh melewati guard kita sendiri. Kalau iya, agen bermasalah
+        // tinggal menyewa relayer untuk menembus aturan yang sama.
+        bytes32 baseUid = _issue(scholar, COURSE, EMPTY_UID);
+        _revoke(baseUid, issuer);
+
+        AttestationRequestData memory d = _dataFor(scholar, ADV, baseUid);
+        DelegatedAttestationRequest memory req =
+            _signedRequest(AGENT_PK, agent, d, _nonceOf(agent), uint64(block.timestamp + 1 hours));
+
+        vm.prank(relayer);
+        vm.expectRevert(abi.encodeWithSelector(CredentialResolver.PrerequisiteRevoked.selector, baseUid));
+        bas.attestByDelegation(req);
     }
 
     // ------------------------------- 4. BAS primitives yang kita pakai langsung apa adanya

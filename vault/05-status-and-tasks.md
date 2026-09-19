@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| On-chain layer (2 contracts) | ✅ written · **60 tests pass on fork chain 97 and 56** · deploy proven on a fork |
+| On-chain layer (2 contracts) | ✅ written · **68 tests pass on fork chain 97 and 56** · deploy proven on a fork |
 | Verification page | ✅ built · typecheck + build pass · **probe 41 checks / 0 failed against live chain state (19 Sep)**, covering four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" |
 | Reproducible demo data | ✅ `SeedDemo` seeds four distinct verdicts and converges in **two documented runs**; verified on a clean fork 19 Sep. The cause of the old failure was EAS's UID formula, not our code — see [03-evidence-and-limits.md](03-evidence-and-limits.md) |
 | Credential-signing backend | ⬜ **does not exist.** The blocker is no longer ignorance — the document format is now read. What blocks it: **the status-list decision below** |
@@ -42,18 +42,28 @@ the verification frontend, which is user-facing, will carry a language switch.
       its issuers are third parties (D30). Both recorded where they belong.
 - [ ] 🔴 **Issuance relayer** (`attestByDelegation`). The platform fronts issuance gas while the
       third-party agent stays the `attester`. This is **off-chain only** — no contract and no
-      `schemaUID` impact. Everything needed is verified in
-      [02-architecture.md](02-architecture.md#who-owns-the-agent-and-who-pays-for-issuance):
+      `schemaUID` impact. The primitive is **already proven against the deployed BAS** by 8 fork
+      tests on chain 97 and 56 (19 Sep): correct delegation records the agent as `attester`, forgeries
+      and stale deadlines/nonces revert, `increaseNonce(newNonce)` invalidates unused delegations
+      without locking the agent out, a 3-item batch lands in one call, and a delegated credential
+      chaining onto a revoked prerequisite is still refused. What is written is the service:
       EIP-712 domain `("EAS","1.3.0")`, `ATTEST_TYPEHASH 0xfeb2925a…`, field order, `getNonce()`,
-      `multiAttestByDelegation` for batches, `increaseNonce()` as the owner's kill switch.
-      Blocked by the same thing as deployment: **a wallet holding testnet BNB**
+      `multiAttestByDelegation`, all in [02-architecture.md](02-architecture.md#who-owns-the-agent-and-who-pays-for-issuance).
+      ⚠️ Running it against a **public** chain is what still needs testnet BNB; the logic itself no
+      longer needs funding to be trusted
 - [ ] `PaymentSplitter` — the platform's fixed share is what recovers the fronted gas (see the
       economics note in 02-architecture). Keep it a flat percentage; **no debt ledger**
 
 ## What is blocking, and who can unblock it
 
-1. **⏰ Needs a human, not tooling** — the BSC testnet faucet is **CAPTCHA-gated**. Fund one wallet
-   with testnet BNB and deployment becomes a single command. Measured on a fork: **0.0003828 BNB**.
+1. **⏰ Needs a human, not tooling** — one wallet has to hold testnet BNB. Measured 19 Sep, and the
+   usual diagnosis is **wrong**: the obstacle is not a CAPTCHA but a **mainnet-holding eligibility**.
+   The official BNB faucet requires *"0.002 BNB on BSC Mainnet"* and Chainstack's requires 0.08 ETH on
+   Ethereum mainnet plus an API key, so a fresh burner wallet fails both. **QuickNode's**
+   `faucet.quicknode.com/binance-smart-chain/bnb-testnet` states plainly that *"a brand new wallet can
+   claim"* (no account, no minimum, 12 h cooldown) — the only human step left is its bot check. Fund
+   one wallet and deployment becomes a single command; measured on a fork, everything we deploy costs
+   **0.0003828 BNB**, so one claim covers this project hundreds of times over.
 2. **🧠 A decision to take before the backend is written** — how our on-chain revocation becomes
    visible to a standard Open Badges verifier. Three options are analysed in
    [02-architecture.md](02-architecture.md#one-decision-still-open-a-standard-status-list-vs-our-on-chain-revocation);
