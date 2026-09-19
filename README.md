@@ -47,7 +47,7 @@ Every number below is the output of a command that was run, not a plan.
 | `npm run check` in `signer/` | **36 checks / 0 failed** (19 Sep) — OpenBadgeCredential 3.0 built and signed with `DataIntegrityProof` + `eddsa-rdfc-2022`; tampering, a swapped verification method and an unlisted key all fail to verify; the served bitstring's bits are then read **from `statusOf()` on the deployed resolver**, not from our own state |
 | `npm run probe:serve` in `signer/` | **19 checks / 0 failed** against the running server — same assertions, everything over HTTP, so the issuer document and the two status lists are verified the way a third-party tool would verify them |
 | `forge script … --broadcast` on an anvil fork of 97 | deploy succeeded · **0.0003828 BNB** (3,827,994 gas) |
-| repo contents read back from the GitHub API | **39 files**; no `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env` |
+| repo contents read back from the GitHub API | **54 files**; no `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env`, `signer/.keys/` (re-measured 19 Sep, same command) |
 
 The fork tests call **BAS (BNB Attestation Service, a fork of EAS 1.3.0) exactly as deployed on
 chain** — not a copy we deployed ourselves. Those are also the addresses a judge can open.
