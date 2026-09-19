@@ -117,7 +117,7 @@ contract CredentialResolverForkTest is Test {
             expirationTime: expires,
             revocable: true,
             refUID: prereq,
-            data: abi.encode(_hashOf(who, courseId), courseId),
+            data: abi.encode(_hashOf(who, courseId), courseId, EMPTY_UID),
             value: 0
         });
         vm.prank(issuer);
@@ -174,7 +174,7 @@ contract CredentialResolverForkTest is Test {
             expirationTime: uint64(block.timestamp + YEAR),
             revocable: true,
             refUID: EMPTY_UID,
-            data: abi.encode(_hashOf(scholar, COURSE), COURSE),
+            data: abi.encode(_hashOf(scholar, COURSE), COURSE, EMPTY_UID),
             value: 0
         });
         vm.prank(stranger); // tidak pernah masuk whitelist
@@ -271,7 +271,7 @@ contract CredentialResolverForkTest is Test {
             expirationTime: uint64(block.timestamp + YEAR),
             revocable: true,
             refUID: EMPTY_UID,
-            data: abi.encode(foreignHash, foreignCourse),
+            data: abi.encode(foreignHash, foreignCourse, EMPTY_UID),
             value: 0
         });
         vm.prank(issuer);
@@ -395,5 +395,105 @@ contract CredentialResolverForkTest is Test {
         (, bool rF, bool eF,,,) = resolver.statusOf(forever);
         assertFalse(eF, "tanpa expirationTime tidak boleh dianggap kedaluwarsa");
         assertFalse(rF);
+    }
+
+    // ============================ 6. LEVEL LESSON (schema 3 field, D28.1) ====================
+
+    bytes32 internal constant LESSON1 = keccak256("lesson-1");
+    bytes32 internal constant LESSON2 = keccak256("lesson-2");
+
+    /// @dev Hash kredensial level lesson harus ikut memuat lessonId, kalau tidak dua lesson
+    /// di kursus yang sama akan menghasilkan hash yang sama dan kena AlreadyIssued.
+    function _lessonHash(address who, bytes32 courseId, bytes32 lessonId) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked("vc:", who, courseId, lessonId));
+    }
+
+    function _issueLesson(address who, bytes32 courseId, bytes32 lessonId, bytes32 prereq) internal returns (bytes32) {
+        AttestationRequestData memory d = AttestationRequestData({
+            recipient: who,
+            expirationTime: uint64(block.timestamp + YEAR),
+            revocable: true,
+            refUID: prereq,
+            data: abi.encode(_lessonHash(who, courseId, lessonId), courseId, lessonId),
+            value: 0
+        });
+        vm.prank(issuer);
+        bas.attest(AttestationRequest({ schema: schemaId, data: d }));
+        bytes32 uid = resolver.attestationOf(_lessonHash(who, courseId, lessonId));
+        assertNotEq(uid, EMPTY_UID, "lesson tidak tercatat");
+        return uid;
+    }
+
+    /// @dev Cerita produk yang sebenarnya: lesson 1 -> lesson 2 -> sertifikat kursus.
+    /// Rantai ini memakai mekanisme prerequisiteOf yang SUDAH ada, jadi "lesson 2 tidak bisa
+    /// terbit kalau lesson 1 dicabut" datang gratis dari kode yang sudah lulus test.
+    function test_fork_RantaiLesson_Sampai_SertifikatKursus() public {
+        bytes32 l1 = _issueLesson(scholar, COURSE, LESSON1, EMPTY_UID);
+        bytes32 l2 = _issueLesson(scholar, COURSE, LESSON2, l1);
+        bytes32 cert = _issue(scholar, COURSE, l2); // tingkat kursus: lessonId = EMPTY_UID
+
+        assertEq(resolver.lessonOf(l1), LESSON1, "lessonId lesson-1 salah tersimpan");
+        assertEq(resolver.lessonOf(l2), LESSON2, "lessonId lesson-2 salah tersimpan");
+        assertEq(resolver.lessonOf(cert), EMPTY_UID, "kredensial tingkat kursus harus tanpa lessonId");
+        assertEq(resolver.prerequisiteOf(cert), l2, "sertifikat kursus harus menunjuk lesson terakhir");
+        assertEq(resolver.prerequisiteOf(l2), l1);
+    }
+
+    /// @dev Ini adegan demo terkuat: cabut lesson 1, lalu sertifikat kursus tidak bisa terbit.
+    function test_fork_LessonDicabut_SertifikatKursusDitolak() public {
+        bytes32 l1 = _issueLesson(scholar, COURSE, LESSON1, EMPTY_UID);
+        _issueLesson(scholar, COURSE, LESSON2, l1);
+
+        _revoke(l1, issuer);
+
+        // sertifikat kursus yang menumpang rantai itu harus ditolak
+        AttestationRequestData memory d = AttestationRequestData({
+            recipient: scholar,
+            expirationTime: uint64(block.timestamp + YEAR),
+            revocable: true,
+            refUID: l1,
+            data: abi.encode(_hashOf(scholar, COURSE), COURSE, EMPTY_UID),
+            value: 0
+        });
+        vm.prank(issuer);
+        vm.expectRevert(abi.encodeWithSelector(CredentialResolver.PrerequisiteRevoked.selector, l1));
+        bas.attest(AttestationRequest({ schema: schemaId, data: d }));
+    }
+
+    /// @dev Enumerasi per pemegang: satu-satunya cara membangun "daftar sertifikat saya" dari
+    /// chain, karena BAS tidak punya Indexer untuk BSC.
+    function test_fork_EnumerasiPerPemegang_TanpaIndexer() public {
+        assertEq(resolver.credentialCount(scholar), 0, "harus kosong di awal");
+
+        bytes32 l1 = _issueLesson(scholar, COURSE, LESSON1, EMPTY_UID);
+        bytes32 l2 = _issueLesson(scholar, COURSE, LESSON2, l1);
+        bytes32 cert = _issue(scholar, COURSE, l2);
+        _issue(other, COURSE, EMPTY_UID); // peserta lain, tidak boleh nyampur
+
+        bytes32[] memory mine = resolver.credentialsOf(scholar);
+        assertEq(mine.length, 3, "jumlah kredensial peserta salah");
+        assertEq(mine[0], _lessonHash(scholar, COURSE, LESSON1), "urutan penerbitan salah");
+        assertEq(mine[1], _lessonHash(scholar, COURSE, LESSON2));
+        assertEq(mine[2], _hashOf(scholar, COURSE));
+        assertEq(cert, resolver.attestationOf(mine[2]));
+
+        assertEq(resolver.credentialCount(other), 1, "kredensial peserta lain ikut tercampur");
+        assertEq(resolver.credentialCount(stranger), 0, "alamat tanpa kredensial harus kosong");
+    }
+
+    /// @dev Schema 3 field berarti 96 byte. Data 64 byte (bentuk lama) harus ditolak keras,
+    /// bukan didecode senyap dengan field bergeser.
+    function test_fork_DataPanjangSalah_Ditolak() public {
+        AttestationRequestData memory d = AttestationRequestData({
+            recipient: scholar,
+            expirationTime: uint64(block.timestamp + YEAR),
+            revocable: true,
+            refUID: EMPTY_UID,
+            data: abi.encode(_hashOf(scholar, COURSE), COURSE), // 64 byte, kurang lessonId
+            value: 0
+        });
+        vm.prank(issuer);
+        vm.expectRevert(CredentialResolver.BadDataLength.selector);
+        bas.attest(AttestationRequest({ schema: schemaId, data: d }));
     }
 }

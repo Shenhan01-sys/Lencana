@@ -105,7 +105,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
             expirationTime: expires,
             revocable: true,
             refUID: prereq,
-            data: abi.encode(_vcHash(who, courseId), courseId),
+            data: abi.encode(_vcHash(who, courseId), courseId, EMPTY_UID),
             value: 0
         });
         vm.prank(by);

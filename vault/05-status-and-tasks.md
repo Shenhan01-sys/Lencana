@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| On-chain layer (2 contracts) | ✅ written · **47 tests pass on fork chain 97 and 56** · deploy proven on a fork |
+| On-chain layer (2 contracts) | ✅ written · **51 tests pass on fork chain 97 and 56** · deploy proven on a fork |
 | Verification page | ✅ built · typecheck + build pass · **probe 19/19 against a live chain** (active-credential path) |
 | Reproducible demo data | 🟡 script exists, **1 transaction still fails**, and it leaves the demo state incomplete |
 | Credential-signing backend | ⬜ **does not exist.** The blocker is no longer ignorance — the document format is now read. What blocks it: **the status-list decision below** |

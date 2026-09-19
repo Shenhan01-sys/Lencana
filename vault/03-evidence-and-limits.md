@@ -8,8 +8,8 @@ written as "not tested" rather than skipped.
 | command | result | meaning |
 |---|---|---|
 | `forge test --no-match-path "*.fork.t.sol"` | **19 passed / 0 failed** (offline, ~25 ms) | the soulbound artifact mechanics are right: transfer, approve and burn all refused; `locked()` always true; the ERC-5192 interfaceId matches |
-| `forge test --evm-version cancun --fork-url <chain 97>` | **47 passed / 0 failed** | the whole on-chain layer works against **BAS as actually deployed on chain 97** |
-| `forge test --evm-version cancun --fork-url <chain 56>` | **47 passed / 0 failed**, **identical gas** | cross-check: the primitive is the same on mainnet; the result is not a state coincidence |
+| `forge test --evm-version cancun --fork-url <chain 97>` | **51 passed / 0 failed** | the whole on-chain layer works against **BAS as actually deployed on chain 97** |
+| `forge test --evm-version cancun --fork-url <chain 56>` | **51 passed / 0 failed**, **identical gas** | cross-check: the primitive is the same on mainnet; the result is not a state coincidence |
 | `npm run probe` in `web/` | **19/19 passed** against a live chain | the verification page reads real chain data correctly: identity, status, holder, artifact, prerequisite chain, `isIssuer` |
 | `forge script … --broadcast` on an anvil fork of 97 | succeeded · paid **0.0002934787 BNB** | resolver + artifact + `registerSchema()` + whitelist actually work on real chain state |
 | dry-run of the same script | succeeded · **3,827,994 gas = 0.0003828 BNB** | the deploy path is ready and costs pocket change |

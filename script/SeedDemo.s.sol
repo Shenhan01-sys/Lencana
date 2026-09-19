@@ -147,7 +147,10 @@ contract SeedDemo is Script {
             expirationTime: expires,
             revocable: true,
             refUID: prereq,
-            data: abi.encode(credentialHash, courseId),
+            // Schema 3 field (D28.1): credentialHash, courseId, lessonId.
+            // Skrip ini masih menabur level KURSUS saja (lessonId = EMPTY_UID); data demo
+            // berantai lesson menyusul bersama backend-nya.
+            data: abi.encode(credentialHash, courseId, EMPTY_UID),
             value: 0
         });
         bas.attest(AttestationRequest({ schema: schemaId, data: d }));

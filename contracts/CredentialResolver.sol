@@ -49,7 +49,16 @@ import { ICredentialRegistry } from "./interfaces/ICredentialRegistry.sol";
 contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry {
     /// @dev String schema EAS. Bentuknya menentukan UID schema, jadi mengubah satu karakter
     /// pun menghasilkan schema yang berbeda di chain dan memecah verifier yang sudah ada.
-    string public constant CREDENTIAL_SCHEMA = "bytes32 credentialHash,bytes32 courseId";
+    ///
+    /// 🔴 TIGA field, dan ini keputusan yang tidak bisa diulang murah (D28.1). `lessonId` ada
+    /// karena satu kursus punya banyak lesson dan sertifikat kursus adalah akumulasi semuanya.
+    /// Ditambahkan SEBELUM deploy publik: sesudahnya, schema baru = UID baru = kredensial lama
+    /// menunjuk UID lama dan verifier harus mendukung dua schema selamanya.
+    ///
+    /// Level lesson TIDAK menyimpan nilai. Skor hidup di dokumen VC off-chain
+    /// (`credentialSubject.result[]` + `achievement.criteria`) dan ditandatangani penerbit.
+    /// `lessonId` = EMPTY_UID untuk kredensial tingkat kursus.
+    string public constant CREDENTIAL_SCHEMA = "bytes32 credentialHash,bytes32 courseId,bytes32 lessonId";
 
     /// @dev Harus tetap true. Tanpa kemampuan mencabut, sistem tidak bisa dipercaya
     /// institusi — dan attestation pada schema non-revocable tidak bisa diperbaiki lagi.
@@ -61,16 +70,36 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
     /// @dev uid attestation => UID prasyaratnya (EMPTY_UID bila tidak berprasyarat).
     mapping(bytes32 => bytes32) public prerequisiteOf;
 
+    /// @dev uid attestation => lessonId-nya. EMPTY_UID untuk kredensial tingkat kursus.
+    mapping(bytes32 => bytes32) public lessonOf;
+
     /// @dev true bila attestation ini diterbitkan lewat resolver ini. Ini yang membuat
     /// verifier bisa membedakan "attestation ada di chain" dari "attestation ini kredensial
     /// yang kami akui" — attestation lain di chain lain tidak ikut dianggap.
     mapping(bytes32 => bool) public issuedHere;
 
+    /// @dev pemegang => daftar credentialHash miliknya, urut penerbitan.
+    ///
+    /// Ada karena **BAS tidak menyediakan Indexer untuk BSC** (hanya opBNB), jadi tidak ada cara
+    /// murah menelusuri log untuk membangun "daftar sertifikat saya". Tanpa indeks ini dashboard
+    /// peserta tidak bisa dibaca dari chain sama sekali.
+    ///
+    /// ⚠️ Biaya yang disadari: satu push array per penerbitan, dan array tumbuh tanpa batas untuk
+    /// satu alamat. `credentialsOf` adalah view (gratis bagi pemanggil), tapi alamat dengan ribuan
+    /// kredensial bisa melewati batas gas RPC saat dibaca — jadi backend tetap perlu paginasi.
+    mapping(address => bytes32[]) internal _credentialsOf;
+
     mapping(address => bool) private _issuer;
 
     event IssuerAdded(address indexed issuer);
     event IssuerRemoved(address indexed issuer);
-    event CredentialIssued(bytes32 indexed credentialHash, bytes32 indexed uid, address indexed issuer, bytes32 prereqUid);
+    event CredentialIssued(
+        bytes32 indexed credentialHash,
+        bytes32 indexed uid,
+        address indexed holder,
+        bytes32 prereqUid,
+        bytes32 lessonId
+    );
     event CredentialRevoked(bytes32 indexed credentialHash, bytes32 indexed uid, address indexed issuer);
 
     error ZeroAddress();
@@ -139,7 +168,7 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
     function onAttest(Attestation calldata attestation, uint256) internal override returns (bool) {
         if (!_issuer[attestation.attester]) revert NotAnIssuer(attestation.attester);
 
-        (bytes32 credentialHash,) = _decode(attestation.data);
+        (bytes32 credentialHash,, bytes32 lessonId) = _decode(attestation.data);
 
         // Satu kredensial = satu attestation. Tidak bisa diduplikasi, dan tidak bisa
         // diterbitkan ulang dengan recipient berbeda sebagai "salinan sah".
@@ -149,9 +178,11 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
 
         attestationOf[credentialHash] = attestation.uid;
         prerequisiteOf[attestation.uid] = prereq;
+        lessonOf[attestation.uid] = lessonId;
         issuedHere[attestation.uid] = true;
+        _credentialsOf[attestation.recipient].push(credentialHash);
 
-        emit CredentialIssued(credentialHash, attestation.uid, attestation.attester, prereq);
+        emit CredentialIssued(credentialHash, attestation.uid, attestation.recipient, prereq, lessonId);
         return true;
     }
 
@@ -160,7 +191,7 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
     /// (`revocationTime != 0 -> AlreadyRevoked`). Yang ditambahkan di sini hanya jejak
     /// event supaya halaman verifikasi tidak perlu menelusuri log attestation.
     function onRevoke(Attestation calldata attestation, uint256) internal override returns (bool) {
-        (bytes32 credentialHash,) = _decode(attestation.data);
+        (bytes32 credentialHash,,) = _decode(attestation.data);
         emit CredentialRevoked(credentialHash, attestation.uid, attestation.attester);
         return true;
     }
@@ -200,11 +231,30 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
         return _eas.getAttestation(uid).recipient;
     }
 
+    /// @notice Semua credentialHash milik satu alamat, urut penerbitan.
+    /// @dev Ada karena BAS tidak punya Indexer untuk BSC, jadi "daftar sertifikat saya" tidak
+    /// bisa dibangun dari log. ⚠️ Tidak berpaginasi: alamat dengan sangat banyak kredensial bisa
+    /// membuat view ini mahal bagi node RPC — backend tetap harus membatasi.
+    function credentialsOf(address holder) external view returns (bytes32[] memory) {
+        return _credentialsOf[holder];
+    }
+
+    function credentialCount(address holder) external view returns (uint256) {
+        return _credentialsOf[holder].length;
+    }
+
     // --------------------------------------------------------------- internal
 
-    function _decode(bytes calldata data) internal pure returns (bytes32 credentialHash, bytes32 courseId) {
-        if (data.length != 64) revert BadDataLength();
-        (credentialHash, courseId) = abi.decode(data, (bytes32, bytes32));
+    /// @dev 96 byte = tiga word (credentialHash, courseId, lessonId). Panjangnya diperiksa
+    /// eksplisit: kalau schema berubah di masa depan, kegagalan harus keras dan terbaca,
+    /// bukan decode senyap yang menggeser semua field.
+    function _decode(bytes calldata data)
+        internal
+        pure
+        returns (bytes32 credentialHash, bytes32 courseId, bytes32 lessonId)
+    {
+        if (data.length != 96) revert BadDataLength();
+        (credentialHash, courseId, lessonId) = abi.decode(data, (bytes32, bytes32, bytes32));
     }
 
     /// @dev Inti inovasi #1. Mengembalikan UID prasyarat (EMPTY_UID bila tidak ada).

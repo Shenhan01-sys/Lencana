@@ -182,17 +182,29 @@ export function decimalStringToHex(dec: string): Hex {
 }
 
 /**
- * `attestation.data` kita = abi.encode(credentialHash, courseId) → 64 byte.
- * Dipotong manual supaya halaman tetap bisa menampilkan isinya walau panjangnya tak terduga,
- * dan panjang aneh itu dilaporkan, tidak ditelan.
+ * `attestation.data` kita = abi.encode(credentialHash, courseId, lessonId) → 96 byte.
+ *
+ * Tiga word sejak schema dilebarkan ke level lesson (D28.1). `lessonId` = 0x00..00 untuk
+ * kredensial tingkat kursus. Dipotong manual supaya halaman tetap bisa menampilkan isinya
+ * walau panjangnya tak terduga, dan panjang aneh itu dilaporkan, tidak ditelan.
  */
-export function decodeData(data: Hex): { credentialHash: Hex | null; courseId: Hex | null; note: string } {
+export function decodeData(
+  data: Hex,
+): { credentialHash: Hex | null; courseId: Hex | null; lessonId: Hex | null; note: string } {
   const bytes = Math.max(0, (data.length - 2) / 2)
-  if (bytes < 64) return { credentialHash: null, courseId: null, note: `data hanya ${bytes} B — kurang dari 64 B yang diharapkan` }
+  if (bytes < 96) {
+    return {
+      credentialHash: null,
+      courseId: null,
+      lessonId: null,
+      note: `data hanya ${bytes} B - kurang dari 96 B yang diharapkan (schema 3 field)`,
+    }
+  }
   return {
     credentialHash: `0x${data.slice(2, 66)}` as Hex,
     courseId: `0x${data.slice(66, 130)}` as Hex,
-    note: bytes === 64 ? '64 B, sesuai layout (credentialHash, courseId)' : `${bytes} B — hanya 2 word pertama yang dibaca`,
+    lessonId: `0x${data.slice(130, 194)}` as Hex,
+    note: bytes === 96 ? '96 B, sesuai layout (credentialHash, courseId, lessonId)' : `${bytes} B - hanya 3 word pertama yang dibaca`,
   }
 }
 

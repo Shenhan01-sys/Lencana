@@ -12,7 +12,7 @@
 ```
 OpenBadgeCredential JSON  --keccak256-->  credentialHash
                                                  |
-                                                 v   attest(schemaUID, abi.encode(hash, courseId))
+                                                 v   attest(schemaUID, abi.encode(hash, courseId, lessonId))
                               BAS on BNB Chain (a fork of EAS 1.3.0, someone else's)
                                     ^
                                     | EAS calls onAttest() BEFORE the attestation is accepted
@@ -64,6 +64,74 @@ tests on two chains**.
 Consequence for our wording: *"non-repudiable revocation"* is **default EAS/BAS behaviour, not our
 finding**. Ours: the issuer whitelist, the revocation-aware prerequisite chain, and one-call
 wallet-free verification.
+
+## Lesson-level granularity (added 19 Sep, before any public deploy)
+
+A course has many lessons, and the course certificate is the accumulation of them. The schema
+therefore carries **three** fields:
+
+```solidity
+string public constant CREDENTIAL_SCHEMA = "bytes32 credentialHash,bytes32 courseId,bytes32 lessonId";
+// _decode() rejects anything that is not exactly 96 bytes -> BadDataLength
+```
+
+`lessonId == 0` means a course-level credential. Lessons chain through the **same** `refUID`
+mechanism as courses, so "lesson 3 cannot be issued if lesson 2 was revoked" comes free from code
+that was already proven — no new mechanism was invented for it.
+
+Two things deliberately stay **off-chain**:
+
+- **Scores.** Raw marks are personal data. They live in the signed VC document, in the standard's
+  own fields: `credentialSubject.result[]` (`Result` = `type`, `achievedLevel`, `alignment`,
+  `resultDescription`, `status`, `value`) for the results, and `achievement.criteria` (required) for
+  the rubric. Only the document's hash reaches the chain.
+- **Names.** See the privacy decision below.
+
+What *was* added on-chain, in the same window, because the resolver is effectively write-once:
+`lessonOf(uid)` and a per-holder index `credentialsOf(address)` / `credentialCount(address)`. The
+index exists because **BAS ships no Indexer for BSC** (only opBNB), so "my certificates" cannot be
+built from logs. Known cost, accepted: one array push per issuance, unbounded growth per address,
+so the backend must still paginate.
+
+### Privacy: pseudonymous by default, named by choice
+
+The standard is **deliberately asymmetric** here — read from `ob_v3p0_achievementcredential_schema.json`:
+
+| class | name fields? |
+|---|---|
+| `Profile` (used for `issuer`) | ✅ `name`, `givenName`, `familyName`, `email`, `phone`, `url`, `image`, `address`, `dateOfBirth`, … |
+| `AchievementSubject` (the learner) | ❌ **no `name` at all** |
+
+The learner is identified by `id` (an IRI) and/or `identifier[]`, where `IdentityObject` is
+`{type, hashed, identityHash, identityType, salt}` with `type/hashed/identityHash/identityType`
+required — i.e. **hashed identity plus salt, never plaintext**.
+
+So the disclosure choice is ours to design, in three levels:
+
+| level | what a verifier sees | where the name lives |
+|---|---|---|
+| **pseudonymous** (default) | the address only | nowhere |
+| **named** | name, photo, LinkedIn link, and a badge image carrying the name | `AchievementSubject.id` points at a **learner-controlled `Profile` document**; the name is rendered into the badge `image` |
+| **named + provable** | a recruiter types the candidate's email → matched against `identityHash` + published `salt` → confirmed, **without us ever storing the plaintext** | `identifier[]` |
+
+We deliberately do **not** bake a `displayName` into the credential even though
+`additionalProperties: true` would allow it: a name inside a signed document **cannot be changed
+without re-issuing**, and third-party validators may ignore custom fields. Pointing at a profile
+keeps the learner in control and stays 100% standard.
+
+**Three limits that must appear in the UI, not in a FAQ:**
+
+1. **"Anonymous" on a chain can only mean pseudonymous.** `attestation.recipient` is a public
+   address forever and `holderOf()` returns it. Hiding it in our UI does not make it unreadable, so
+   the label must be **"pseudonymous (address only)"** vs **"named"** — never "anonymous".
+2. **`named` is forever.** Once a name is inside a signed, publicly hosted document, **revocation
+   does not retract it**. Hence pseudonymous as the default, and the warning appears **at the moment
+   of choosing**.
+3. **Changing the choice means re-issuing**, not editing: new document → new hash → new attestation,
+   old one revoked. Our revocation-aware chain makes that clean.
+
+This feature has **zero on-chain footprint** — it lives entirely in the signed document — so it did
+not compete with the schema window above.
 
 ## `schemaUID` is derived, not stored
 
