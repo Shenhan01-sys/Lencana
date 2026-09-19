@@ -22,6 +22,15 @@ const VERDICT_LABEL: Record<string, { title: string; sub: string; cls: string }>
   VALID: { title: 'VALID', sub: 'Kredensial aktif dan terverifikasi di chain', cls: 'ok' },
   REVOKED: { title: 'DICABUT', sub: 'Pernah terbit, lalu dicabut — jejaknya permanen', cls: 'bad' },
   EXPIRED: { title: 'KEDALUWARSA', sub: 'Waktu berlakunya habis, tanpa ada yang menyentuh', cls: 'warn' },
+  // Sengaja diberi label sendiri, bukan digabung ke DICABUT. Di chain `revocationTime` tetap 0,
+  // jadi menampilkan delisting sebagai "dicabut" adalah klaim yang bisa dibantah verifier mana
+  // pun dengan satu eth_call. Bagi pembaca hasilnya sama-sama "jangan diterima", tapi sebabnya
+  // berbeda: yang satu tindakan penerbit dan permanen, yang satu penilaian platform dan bisa pulih.
+  ISSUER_DELISTED: {
+    title: 'PENERBIT DILISTING',
+    sub: 'Platform menarik dukungannya dari penerbit — attestation-nya sendiri belum dicabut',
+    cls: 'bad',
+  },
   NOT_FOUND: { title: 'TIDAK DIKENALI', sub: 'Tidak pernah diterbitkan lewat sistem ini', cls: 'bad' },
   WRONG_CHAIN: { title: 'CHAIN TIDAK COCOK', sub: 'Kami menolak menampilkan hasil dari chain lain', cls: 'bad' },
   NOT_CONFIGURED: { title: 'BELUM DIKONFIGURASI', sub: 'Address kontrak belum diisi', cls: 'muted' },
@@ -145,6 +154,13 @@ export function renderReport(r: Report): string {
         row('Tercatat di resolver', yn(c.exists)) +
           row('Dicabut', yn(c.revoked), c.revocationTime ? `pada ${ts(c.revocationTime)} — permanen, tidak ada jalur pembatalan` : 'tidak ada jalur untuk membatalkan pencabutan') +
           row('Kedaluwarsa', yn(c.expired)) +
+          row(
+            'Penerbit dilisting',
+            yn(c.issuerDelisted),
+            c.issuerDelisted
+              ? 'platform menarik dukungannya; revocationTime di chain tetap 0, dan bisa dipulihkan lewat relistIssuer'
+              : 'penerbitnya masih diakui platform',
+          ) +
           row('Diterbitkan', ts(c.issuedAt || c.attestationTime), c.issuedAt ? age(c.issuedAt, now) : '') +
           row('Berlaku sampai', ts(c.expiresAt), c.expiresAt ? age(c.expiresAt, now) : 'tanpa expiry') +
           row('Dapat dicabut (sejak terbit)', yn(c.revocable), 'kalau false, pencabutan mustahil selamanya — itu bukan fitur di sini') +
@@ -152,7 +168,7 @@ export function renderReport(r: Report): string {
           row('Anchor bukti waktu terpisah', r.anchors.evidenceTimestamp ? `<code>${esc(r.anchors.evidenceTimestamp)}</code>` : '<span class="na">tidak ada</span>', 'IEAS.timestamp(hash) — write-once'),
       ),
       {
-        note: 'Kedaluwarsa dan dicabut adalah dua hal berbeda dan ditampilkan terpisah. Keduanya berarti "tidak berlaku", tapi sebabnya berbeda dan itu yang dicari auditor.',
+        note: 'Dicabut, kedaluwarsa, dan penerbit dilisting adalah TIGA hal berbeda dan ditampilkan terpisah. Dua yang pertama adalah fakta tentang kredensialnya dan berasal dari attester atau dari waktu; yang ketiga adalah penilaian platform tentang penerbitnya dan bisa dipulihkan. Ketiganya berarti "jangan diterima", tapi sebabnya berbeda — dan sebab itulah yang dicari auditor.',
       },
     ),
   )

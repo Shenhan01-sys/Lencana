@@ -13,6 +13,7 @@ import {
 } from "../lib/bas/src/IEAS.sol";
 import { SchemaRecord } from "../lib/bas/src/ISchemaRegistry.sol";
 import { EMPTY_UID, NO_EXPIRATION_TIME, AccessDenied, NotFound } from "../lib/bas/src/Common.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// Cermin penanda (selector) error EAS yang aslinya dideklarasikan di dalam badan
 /// `contract EAS`. File itu dipaku ke `pragma solidity 0.8.19` dan tidak bisa ikut
@@ -21,6 +22,12 @@ import { EMPTY_UID, NO_EXPIRATION_TIME, AccessDenied, NotFound } from "../lib/ba
 error AlreadyRevoked();
 error AlreadyTimestamped();
 error AlreadyRevokedOffchain();
+
+/// Cermin event governance resolver, dipakai bersama `vm.expectEmit`. Layak diuji, bukan
+/// sekadar hiasan: BAS tidak menyediakan Indexer untuk BSC, jadi emisi on-chain ini adalah
+/// satu-satunya jejak tindakan platform yang bisa dibaca pihak luar tanpa izin kita.
+event IssuerDelisted(address indexed issuer);
+event IssuerRelisted(address indexed issuer);
 
 /// @title CredentialResolver diuji terhadap BAS yang BENAR-BENAR TER-DEPLOY di BSC
 /// testnet (chain 97), bukan terhadap tiruan yang kita deploy sendiri.
@@ -161,10 +168,12 @@ contract CredentialResolverForkTest is Test {
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
         assertTrue(resolver.issuedHere(uid), "attestation tidak ditandai issuedHere");
 
-        (bool exists, bool revoked, bool expired, address who,,) = resolver.statusOf(_hashOf(scholar, COURSE));
+        (bool exists, bool revoked, bool expired, bool delisted, address who,,) =
+            resolver.statusOf(_hashOf(scholar, COURSE));
         assertTrue(exists, "statusOf tidak menemukan kredensialnya");
         assertFalse(revoked);
         assertFalse(expired);
+        assertFalse(delisted, "penerbit sehat tidak boleh terbaca delisted");
         assertEq(who, issuer, "penerbit yang tercatat salah");
     }
 
@@ -196,9 +205,12 @@ contract CredentialResolverForkTest is Test {
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
         resolver.removeIssuer(issuer);
 
-        (, bool revoked, bool expired,,,) = resolver.statusOf(_hashOf(scholar, COURSE));
+        (, bool revoked, bool expired, bool delisted,,,) = resolver.statusOf(_hashOf(scholar, COURSE));
         assertFalse(revoked, "izin dicabut tidak boleh membuat kredensial jadi tercabut");
         assertFalse(expired);
+        // Inti pemisahan dua flag: keluar baik-baik TIDAK boleh menandai penerbitnya.
+        assertFalse(delisted, "removeIssuer adalah keluar baik-baik, bukan delisting");
+        assertFalse(resolver.isDelisted(issuer));
         assertTrue(bas.isAttestationValid(uid));
     }
 
@@ -302,12 +314,12 @@ contract CredentialResolverForkTest is Test {
         bytes32 h = _hashOf(scholar, COURSE);
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
 
-        (, bool revokedBefore,,,,) = resolver.statusOf(h);
+        (, bool revokedBefore,,,,,) = resolver.statusOf(h);
         assertFalse(revokedBefore, "seharusnya belum tercabut");
 
         _revoke(uid, issuer);
 
-        (, bool revokedAfter,,,,) = resolver.statusOf(h);
+        (, bool revokedAfter,,,,,) = resolver.statusOf(h);
         assertTrue(revokedAfter, "status pencabutan tidak terbaca");
     }
 
@@ -330,8 +342,119 @@ contract CredentialResolverForkTest is Test {
         vm.expectRevert(AccessDenied.selector);
         _revoke(uid, stranger);
 
-        (, bool revoked,,,,) = resolver.statusOf(_hashOf(scholar, COURSE));
+        (, bool revoked,,,,,) = resolver.statusOf(_hashOf(scholar, COURSE));
         assertFalse(revoked, "percobaan mencabut diam-diam meninggalkan efek");
+    }
+
+    // ------------- 3b. rem platform atas agen pihak ketiga: delisting, bukan pencabutan
+
+    /// @dev Batas yang memotivasi seluruh bagian ini, dan ia harus DIBUKTIKAN bukan
+    /// dinyatakan. Yang memegang whitelist adalah kontrak test ini (`address(this)` = owner
+    /// resolver = platform). Tapi EAS hanya mengizinkan attester asal yang mencabut
+    /// (`_revoke`: `attestation.attester != revoker -> AccessDenied`), jadi terhadap agen
+    /// pihak ketiga platform tidak punya daya cabut sama sekali. Kalau suatu hari test ini
+    /// gagal, artinya EAS berubah dan model delisting kita harus ditulis ulang.
+    function test_fork_PlatformTidakBisaMencabutKredensialAgen() public {
+        bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
+
+        vm.expectRevert(AccessDenied.selector);
+        _revoke(uid, address(this));
+
+        (, bool revoked,,,,,) = resolver.statusOf(_hashOf(scholar, COURSE));
+        assertFalse(revoked, "platform ternyata bisa mencabut - asumsi dasar bagian ini salah");
+    }
+
+    /// @dev Yang paling penting dari semua test delisting adalah apa yang TIDAK terjadi.
+    /// Delisting MENANDAI, bukan mencabut: `revoked` tetap false dan attestation di BAS tetap
+    /// valid, karena kita memang tidak punya daya mengubahnya. Mengaku sebaliknya di halaman
+    /// verifikasi adalah kebohongan yang bisa diuji siapa pun dalam satu eth_call.
+    function test_fork_Delisting_MenandaiTanpaMencabut() public {
+        bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
+
+        vm.expectEmit(true, true, true, true);
+        emit IssuerDelisted(issuer);
+        resolver.delistIssuer(issuer);
+
+        (bool exists, bool revoked,, bool delisted,,,) = resolver.statusOf(_hashOf(scholar, COURSE));
+        assertTrue(exists, "rekordnya tidak boleh hilang");
+        assertFalse(revoked, "delisting menyamar jadi pencabutan - ini harus dua verdict berbeda");
+        assertTrue(delisted, "statusOf tidak melaporkan delisting");
+        assertTrue(bas.isAttestationValid(uid), "attestation di BAS seharusnya tidak tersentuh");
+        assertEq(bas.getAttestation(uid).revocationTime, 0, "delisting ternyata menyentuh rekord BAS");
+
+        assertFalse(resolver.isIssuer(issuer), "hak menerbitkan seharusnya hilang");
+        assertTrue(resolver.isDelisted(issuer));
+    }
+
+    function test_fork_Delisting_PenerbitanBaruDitolak() public {
+        resolver.delistIssuer(issuer);
+        vm.expectRevert(abi.encodeWithSelector(CredentialResolver.NotAnIssuer.selector, issuer));
+        _attemptNextYear(scholar, COURSE, EMPTY_UID);
+    }
+
+    /// @dev Skenario nyata marketplace: peserta mulai dengan agen A, lalu pindah ke agen B
+    /// sesudah A didelisting. Tanpa cek ini, delisting jadi kosmetik — kredensial agen
+    /// bermasalah tetap bisa dipakai membuka kredensial lanjutan lewat agen yang sehat.
+    function test_fork_PrasyaratDariAgenDelisted_Ditolak() public {
+        address agenKedua = makeAddr("agen-kedua");
+        resolver.addIssuer(agenKedua);
+        vm.deal(agenKedua, 10 ether);
+
+        bytes32 l1 = _issue(scholar, COURSE, EMPTY_UID); // diterbitkan oleh `issuer`
+        resolver.delistIssuer(issuer);
+
+        AttestationRequestData memory d = AttestationRequestData({
+            recipient: scholar,
+            expirationTime: uint64(block.timestamp + YEAR),
+            revocable: true,
+            refUID: l1,
+            data: abi.encode(_hashOf(scholar, ADV), ADV, EMPTY_UID),
+            value: 0
+        });
+        vm.prank(agenKedua); // agen KEDUA sehat, tapi dasarnya yang sudah tidak dipercaya
+        vm.expectRevert(abi.encodeWithSelector(CredentialResolver.PrerequisiteIssuerDelisted.selector, l1));
+        bas.attest(AttestationRequest({ schema: schemaId, data: d }));
+    }
+
+    /// @dev Klaim "bisa dipulihkan" harus diuji, bukan dinyatakan. Sesudah relist, kredensial
+    /// lama langsung terbaca normal lagi — karena flag-nya hidup di sisi penerbit, tidak
+    /// disalin ke tiap kredensial — dan penerbitan baru jalan lagi.
+    function test_fork_Relisting_MemulihkanStatusDanHak() public {
+        bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
+        resolver.delistIssuer(issuer);
+
+        vm.expectEmit(true, true, true, true);
+        emit IssuerRelisted(issuer);
+        resolver.relistIssuer(issuer);
+
+        (, , , bool delisted,,,) = resolver.statusOf(_hashOf(scholar, COURSE));
+        assertFalse(delisted, "kredensial lama tidak pulih sesudah relisting");
+        assertTrue(resolver.isIssuer(issuer), "hak menerbitkan tidak kembali");
+        assertFalse(resolver.isDelisted(issuer));
+        assertTrue(bas.isAttestationValid(uid));
+
+        // Dan rantai prasyarat hidup lagi: lesson lanjutan di atas kredensial lama diterima.
+        bytes32 l2 = _issue(scholar, ADV, uid);
+        assertEq(resolver.prerequisiteOf(l2), uid, "prasyarat tidak tersambung sesudah pemulihan");
+    }
+
+    /// @dev Re-admission lewat pintu belakang harus tertutup. Kalau `addIssuer` bisa
+    /// memulihkan agen yang didelisting, pemulihan jadi efek samping yang tidak ber-event
+    /// dan jejak governance-nya hilang.
+    function test_fork_AgenDelisted_TidakBisaLewatAddIssuer() public {
+        resolver.delistIssuer(issuer);
+        vm.expectRevert(abi.encodeWithSelector(CredentialResolver.DelistedCannotBeReadmitted.selector, issuer));
+        resolver.addIssuer(issuer);
+        assertFalse(resolver.isIssuer(issuer), "addIssuer diam-diam memulihkan agen delisted");
+    }
+
+    function test_fork_DelistingHanyaOlehOwner() public {
+        vm.prank(stranger);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger));
+        resolver.delistIssuer(issuer);
+
+        assertFalse(resolver.isDelisted(issuer), "delisting oleh pihak luar meninggalkan efek");
+        assertTrue(resolver.isIssuer(issuer));
     }
 
     // ------------------------------- 4. BAS primitives yang kita pakai langsung apa adanya
@@ -378,13 +501,13 @@ contract CredentialResolverForkTest is Test {
         uint64 exp = uint64(block.timestamp + 1 days);
         _issueExpiring(scholar, COURSE, EMPTY_UID, exp);
 
-        (, bool revoked0, bool expired0,,,) = resolver.statusOf(h);
+        (, bool revoked0, bool expired0,,,,) = resolver.statusOf(h);
         assertFalse(revoked0);
         assertFalse(expired0, "seharusnya belum kedaluwarsa");
 
         vm.warp(exp + 1);
 
-        (, bool revoked1, bool expired1,,,) = resolver.statusOf(h);
+        (, bool revoked1, bool expired1,,,,) = resolver.statusOf(h);
         assertTrue(expired1, "kedaluwarsa tidak terdeteksi");
         assertFalse(revoked1, "kedaluwarsa bukan pencabutan, keduanya harus bisa dibedakan");
 
@@ -392,7 +515,7 @@ contract CredentialResolverForkTest is Test {
         bytes32 forever = _hashOf(other, COURSE);
         _issueExpiring(other, COURSE, EMPTY_UID, NO_EXPIRATION_TIME);
         vm.warp(block.timestamp + 100 * YEAR);
-        (, bool rF, bool eF,,,) = resolver.statusOf(forever);
+        (, bool rF, bool eF,,,,) = resolver.statusOf(forever);
         assertFalse(eF, "tanpa expirationTime tidak boleh dianggap kedaluwarsa");
         assertFalse(rF);
     }

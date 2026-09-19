@@ -39,6 +39,13 @@ import { ICredentialRegistry } from "./interfaces/ICredentialRegistry.sol";
 ///     SUDAH KEDALUWARSA — dan juga di atas prasyarat milik orang lain. Keempatnya ditutup
 ///     di `_validatePrerequisite`, yang tidak bisa dilewati siapa pun karena ia berjalan
 ///     di dalam `attest()` milik BAS.
+///  4. **Delisting penerbit pihak ketiga.** Penerbit di sini adalah agen AI milik orang lain:
+///     mereka yang men-deploy, memegang kunci, dan bertanggung jawab atas isinya. Lencana
+///     hanya menyediakan tempat mereka bekerja. Konsekuensinya keras dan sudah diverifikasi
+///     dari sumber: EAS hanya mengizinkan attester asal yang mencabut, jadi platform
+///     TIDAK BISA membatalkan kredensial agen lain. `delistIssuer` adalah rem yang tersisa —
+///     ia menghentikan penerbitan baru, menolak kredensialnya dipakai sebagai prasyarat, dan
+///     membuat `statusOf` mengembalikannya sebagai verdict tersendiri.
 ///
 /// ## Yang TIDAK dilakukan di sini (dan itu disengaja)
 ///
@@ -91,8 +98,29 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
 
     mapping(address => bool) private _issuer;
 
+    /// @dev Penerbit yang DITEKAN oleh platform karena sebab. Ini bukan sinonim dari
+    /// "sudah dihapus dari whitelist" — dan pemisahannya disengaja:
+    ///
+    ///   `removeIssuer`  -> tidak boleh menerbitkan lagi, kredensial lama TETAP VALID
+    ///   `delistIssuer`  -> tidak boleh menerbitkan lagi, kredensial lama dibaca DILISTING
+    ///
+    /// Kenapa perlu ada: penerbitnya adalah agen pihak ketiga yang kuncinya bukan milik kita.
+    /// EAS hanya mengizinkan attester asal yang mencabut (`_revoke`:
+    /// `if (attestation.attester != revoker) revert AccessDenied()`), dan jalur delegasinya pun
+    /// tetap butuh tanda tangan attester itu sendiri per-UID — jadi TIDAK ADA cara bagi platform
+    /// untuk mencabut kredensial agen lain, dan tidak ada blanket pre-authorization karena UID
+    /// attestation yang belum terbit tidak bisa diketahui lebih dulu. Tanpa flag ini, agen yang
+    /// kuncinya bocor tetap terbaca VALID di halaman verifikasi kita selamanya.
+    ///
+    /// Arah dayanya failsafe dan itu yang membuatnya aman: flag ini hanya bisa membuat verdict
+    /// LEBIH KETAT, tidak pernah lebih longgar. Tidak ada input yang membuat kredensial mati
+    /// terbaca hidup. Ia juga bisa dipulihkan lewat `relistIssuer`, dan keduanya ber-event.
+    mapping(address => bool) private _delisted;
+
     event IssuerAdded(address indexed issuer);
     event IssuerRemoved(address indexed issuer);
+    event IssuerDelisted(address indexed issuer);
+    event IssuerRelisted(address indexed issuer);
     event CredentialIssued(
         bytes32 indexed credentialHash,
         bytes32 indexed uid,
@@ -105,6 +133,12 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
     error ZeroAddress();
     error IssuerAlreadyExists(address issuer);
     error IssuerNotRegistered(address issuer);
+    error IssuerNotDelisted(address issuer);
+
+    /// @dev Sengaja bukan `addIssuer` yang bisa memulihkan agen yang didelisting. Re-admission
+    /// harus tindakan terpisah yang terlihat dan ber-event, supaya pemulihan tidak pernah terjadi
+    /// sebagai efek samping dari "menambah penerbit".
+    error DelistedCannotBeReadmitted(address issuer);
     error NotAnIssuer(address sender);
     error AlreadyIssued(bytes32 credentialHash);
     error BadDataLength();
@@ -112,6 +146,11 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
     error PrerequisiteExpired(bytes32 prereqUid);
     error PrerequisiteWrongHolder(bytes32 prereqUid);
     error PrerequisiteNotOurs(bytes32 prereqUid);
+
+    /// @dev Tanpa ini delisting hanya kosmetik: agen yang sudah dinyatakan bermasalah masih
+    /// bisa dipakai sebagai dasar untuk menerbitkan kredensial lanjutan, lewat agen lain yang
+    /// sehat. Skenarionya nyata di marketplace — peserta pindah agen di tengah jalur belajar.
+    error PrerequisiteIssuerDelisted(bytes32 prereqUid);
     error SchemaAlreadyRegistered();
 
     constructor(IEAS eas, address owner) SchemaResolver(eas) Ownable(owner) {
@@ -144,22 +183,57 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
     function addIssuer(address issuer) external onlyOwner {
         if (issuer == address(0)) revert ZeroAddress();
         if (_issuer[issuer]) revert IssuerAlreadyExists(issuer);
+        if (_delisted[issuer]) revert DelistedCannotBeReadmitted(issuer);
         _issuer[issuer] = true;
         emit IssuerAdded(issuer);
     }
 
-    /// @notice Mencabut HAK menerbitkan. Kredensial yang sudah terbit TIDAK ikut cabut:
-    /// status kredensial hanya berubah lewat `revoke()` atas attestation-nya sendiri.
+    /// @notice Mencabut HAK menerbitkan. Kredensial yang sudah terbit TIDAK ikut cabut dan
+    /// tetap terbaca VALID: status kredensial hanya berubah lewat `revoke()` atas
+    /// attestation-nya sendiri, yang hanya bisa dipanggil attester asalnya.
     /// Dipisahkan supaya pencabutan izin tidak jadi cara diam-diam membatalkan ribuan
     /// sertifikat milik penerbit yang bermasalah.
+    ///
+    /// Ini jalur keluar baik-baik: sebuah agen berhenti memakai Lencana, sertifikat alumninya
+    /// tetap sah. Untuk agen yang bermasalah, pakai `delistIssuer`.
     function removeIssuer(address issuer) external onlyOwner {
         if (!_issuer[issuer]) revert IssuerNotRegistered(issuer);
         delete _issuer[issuer];
         emit IssuerRemoved(issuer);
     }
 
+    /// @notice Menekan penerbit karena sebab: kehilangan hak menerbitkan DAN kredensial yang
+    /// sudah ia terbitkan ikut terbaca sebagai delisted oleh `statusOf`.
+    ///
+    /// Ini satu-satunya rem yang platform punya atas agen pihak ketiga, dan batas itu harus
+    /// diucapkan keras-keras: ia TIDAK mencabut attestation-nya. `revoked` tetap false dan
+    /// kolom `revocationTime` di BAS tidak berubah — yang berubah adalah penilaian platform
+    /// atas penerbitnya. Halaman verifikasi harus menampilkan keduanya sebagai dua hal
+    /// berbeda, bukan menyamarkan delisting menjadi "revoked".
+    function delistIssuer(address issuer) external onlyOwner {
+        if (!_issuer[issuer]) revert IssuerNotRegistered(issuer);
+        delete _issuer[issuer];
+        _delisted[issuer] = true;
+        emit IssuerDelisted(issuer);
+    }
+
+    /// @notice Memulihkan penerbit yang didelisting. Kredensial lamanya langsung terbaca
+    /// normal lagi, karena flag-nya hidup di sisi penerbit, bukan disalin ke tiap kredensial.
+    function relistIssuer(address issuer) external onlyOwner {
+        if (!_delisted[issuer]) revert IssuerNotDelisted(issuer);
+        delete _delisted[issuer];
+        _issuer[issuer] = true;
+        emit IssuerRelisted(issuer);
+    }
+
     function isIssuer(address who) external view returns (bool) {
         return _issuer[who];
+    }
+
+    /// @dev Dipakai layar pilih-agen untuk menampilkan status admission tiap agen, dan dipakai
+    /// halaman verifikasi tanpa harus mengambil satu kredensial lebih dulu.
+    function isDelisted(address who) external view returns (bool) {
+        return _delisted[who];
     }
 
     // ------------------------------------------- dipanggil oleh BAS/EAS sah saja
@@ -201,14 +275,26 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
     /// @notice Satu `eth_call` untuk verifier: status lengkap sebuah kredensial, tanpa
     /// wallet dan TANPA indexer. Ini penting: deployment BAS hanya menyediakan Indexer
     /// untuk opBNB, bukan untuk BSC — jadi verifikasi tidak boleh bergantung padanya.
+    ///
+    /// `revoked` dan `issuerDelisted` adalah DUA hal berbeda dan tidak boleh digabung di UI:
+    /// `revoked` berasal dari attester-nya sendiri dan permanen; `issuerDelisted` adalah
+    /// penilaian platform atas penerbitnya dan bisa dipulihkan.
     function statusOf(bytes32 credentialHash)
         external
         view
-        returns (bool exists, bool revoked, bool expired, address issuer, uint64 issuedAt, uint64 expiresAt)
+        returns (
+            bool exists,
+            bool revoked,
+            bool expired,
+            bool issuerDelisted,
+            address issuer,
+            uint64 issuedAt,
+            uint64 expiresAt
+        )
     {
         bytes32 uid = attestationOf[credentialHash];
         if (uid == EMPTY_UID || !issuedHere[uid]) {
-            return (false, false, false, address(0), 0, 0);
+            return (false, false, false, false, address(0), 0, 0);
         }
 
         Attestation memory a = _eas.getAttestation(uid);
@@ -216,6 +302,7 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
             true,
             a.revocationTime != 0,
             a.expirationTime != NO_EXPIRATION_TIME && block.timestamp > a.expirationTime,
+            _delisted[a.attester],
             a.attester,
             a.time,
             a.expirationTime
@@ -273,6 +360,13 @@ contract CredentialResolver is SchemaResolver, Ownable2Step, ICredentialRegistry
             revert PrerequisiteExpired(prereq);
         }
         if (base.recipient != attestation.recipient) revert PrerequisiteWrongHolder(prereq);
+
+        // Yang ini bukan celah EAS melainkan konsekuensi model kepemilikan kita: penerbitnya
+        // agen pihak ketiga, dan platform tidak bisa mencabut attestation mereka. Jadi
+        // satu-satunya cara menghentikan pengaruh agen bermasalah adalah menolak kredensialnya
+        // dipakai sebagai dasar. Urutannya disengaja terakhir: penolakan yang lebih spesifik
+        // (dicabut / kedaluwarsa / salah pemegang) harus menang dulu.
+        if (_delisted[base.attester]) revert PrerequisiteIssuerDelisted(prereq);
 
         return prereq;
     }

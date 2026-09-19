@@ -6,8 +6,8 @@
 
 | | |
 |---|---|
-| On-chain layer (2 contracts) | ✅ written · **51 tests pass on fork chain 97 and 56** · deploy proven on a fork |
-| Verification page | ✅ built · typecheck + build pass · **probe 19/19 against a live chain** (active-credential path) |
+| On-chain layer (2 contracts) | ✅ written · **60 tests pass on fork chain 97 and 56** · deploy proven on a fork |
+| Verification page | ✅ built · typecheck + build pass · **probe 19/19 against a live chain** (17 Sep, active-credential path) · ⚠️ **needs a re-run**: `statusOf` widened to 7 values for issuer delisting, so the probe now declares 20 checks and the local anvil fork still holds a stale 2-field resolver |
 | Reproducible demo data | 🟡 script exists, **1 transaction still fails**, and it leaves the demo state incomplete |
 | Credential-signing backend | ⬜ **does not exist.** The blocker is no longer ignorance — the document format is now read. What blocks it: **the status-list decision below** |
 | Real course content | ⬜ none. Without it there is nothing to demonstrate |
@@ -35,6 +35,19 @@ the verification frontend, which is user-facing, will carry a language switch.
         label translated. Translating a spec quote turns a citation into a paraphrase
 - [ ] Solidity test names and revert messages are currently Indonesian. Converting them is cheap but
       touches every test file — decide once, before the demo video, and don't do it halfway
+- [ ] 🔴 **Redeploy the anvil fork, then re-run `npm run probe`.** The running fork still holds the
+      old **2-field** resolver; the schema is now 3 fields and `statusOf` returns 7 values, so the
+      probe would fail on the schema rather than on the page. Do not report a probe count until this
+      is green again — the "19/19" in the tables above is a **17 Sep** result
+- [ ] 🔴 **Issuance relayer** (`attestByDelegation`). The platform fronts issuance gas while the
+      third-party agent stays the `attester`. This is **off-chain only** — no contract and no
+      `schemaUID` impact. Everything needed is verified in
+      [02-architecture.md](02-architecture.md#who-owns-the-agent-and-who-pays-for-issuance):
+      EIP-712 domain `("EAS","1.3.0")`, `ATTEST_TYPEHASH 0xfeb2925a…`, field order, `getNonce()`,
+      `multiAttestByDelegation` for batches, `increaseNonce()` as the owner's kill switch.
+      Blocked by the same thing as deployment: **a wallet holding testnet BNB**
+- [ ] `PaymentSplitter` — the platform's fixed share is what recovers the fronted gas (see the
+      economics note in 02-architecture). Keep it a flat percentage; **no debt ledger**
 
 ## What is blocking, and who can unblock it
 

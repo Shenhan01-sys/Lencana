@@ -127,23 +127,32 @@ contract CredentialEndToEndOnBscForkTest is Test {
         return certs.mint(to, h, "https://example.org/vc/1.json");
     }
 
-    // Helper baca tipis. Alasannya praktis: `statusOf` mengembalikan 6 nilai, dan salah
+    // Helper baca tipis. Alasannya praktis: `statusOf` mengembalikan 7 nilai, dan salah
     // menghitung slot destructuring membuat test gagal dengan pesan yang tidak menjelaskan
-    // apa-apa. Satu tempat hitung, nol salah hitung.
+    // apa-apa. Satu tempat hitung, nol salah hitung — dan itu terbukti berguna: ketika
+    // `issuerDelisted` disisipkan sebagai nilai ke-4, hanya blok ini yang perlu diubah.
 
     function _exists(bytes32 h) internal view returns (bool) {
-        (bool e,,,,,) = resolver.statusOf(h);
+        (bool e,,,,,,) = resolver.statusOf(h);
         return e;
     }
 
     function _isRevoked(bytes32 h) internal view returns (bool) {
-        (, bool r,,,,) = resolver.statusOf(h);
+        (, bool r,,,,,) = resolver.statusOf(h);
         return r;
     }
 
     function _isExpired(bytes32 h) internal view returns (bool) {
-        (, , bool x,,,) = resolver.statusOf(h);
+        (, , bool x,,,,) = resolver.statusOf(h);
         return x;
+    }
+
+    /// @dev Verdict keempat dan yang paling mudah disalahartikan: BUKAN `revoked`.
+    /// Delisting adalah penilaian platform atas penerbitnya dan bisa dipulihkan;
+    /// pencabutan berasal dari attester-nya dan permanen.
+    function _isDelisted(bytes32 h) internal view returns (bool) {
+        (, , , bool d,,,) = resolver.statusOf(h);
+        return d;
     }
 
     // =========================================== adegan demo 1: verifikasi tanpa wallet
@@ -156,12 +165,13 @@ contract CredentialEndToEndOnBscForkTest is Test {
         bytes32 uid = _attest(issuer, learner, COURSE, EMPTY_UID, _nextYear());
 
         vm.prank(recruiter);
-        (bool exists, bool revoked, bool expired, address who, uint64 issuedAt, uint64 expiresAt) =
+        (bool exists, bool revoked, bool expired, bool delisted, address who, uint64 issuedAt, uint64 expiresAt) =
             resolver.statusOf(h);
 
         assertTrue(exists, "kredensial tidak ditemukan");
         assertFalse(revoked);
         assertFalse(expired);
+        assertFalse(delisted, "penerbit sehat terbaca delisted");
         assertEq(who, issuer, "penerbit yang ditampilkan salah");
         assertGt(issuedAt, 0);
         assertGt(expiresAt, block.timestamp);

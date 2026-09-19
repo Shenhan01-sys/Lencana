@@ -37,7 +37,24 @@ export type ReadLog = { label: string; target: Address; args: string; ok: boolea
 
 export type Interpretation = 'credentialHash' | 'attestationUid' | 'sbtTokenId' | 'issuerAddress' | 'unresolved'
 
-export type Verdict = 'VALID' | 'REVOKED' | 'EXPIRED' | 'NOT_FOUND' | 'WRONG_CHAIN' | 'NOT_CONFIGURED' | 'UNREACHABLE'
+/**
+ * Urutan presedensi diterapkan di bagian 9 `verify()`, dan urutannya disengaja: fakta tingkat
+ * KREDENSIAL (REVOKED, EXPIRED) menang atas penilaian tingkat PENERBIT (ISSUER_DELISTED).
+ *
+ * 🔴 `ISSUER_DELISTED` bukan sinonim REVOKED dan tidak boleh ditampilkan sebagai "revoked".
+ * Pencabutan berasal dari attester-nya sendiri dan permanen; delisting berasal dari platform
+ * dan bisa dipulihkan lewat `relistIssuer`. Di chain, `revocationTime` tetap 0 — jadi
+ * menyamakan keduanya adalah klaim yang bisa dibantah siapa pun dalam satu eth_call.
+ */
+export type Verdict =
+  | 'VALID'
+  | 'REVOKED'
+  | 'EXPIRED'
+  | 'ISSUER_DELISTED'
+  | 'NOT_FOUND'
+  | 'WRONG_CHAIN'
+  | 'NOT_CONFIGURED'
+  | 'UNREACHABLE'
 
 export type ChainMeta = {
   chainId: number
@@ -55,6 +72,8 @@ export type CredentialInfo = {
   exists: boolean
   revoked: boolean
   expired: boolean
+  /** Penerbitnya sedang ditekan platform. Lihat catatan pada `Verdict` — ini bukan `revoked`. */
+  issuerDelisted: boolean
   issuer: Address | null
   holder: Address | null
   attester: Address | null
@@ -122,6 +141,8 @@ const LIMITS = [
   'Soulbound tidak mencegah screenshot, penyalinan gambar, atau penyimpanan PDF.',
   'Kredensial yang dicabut TETAP SELAMANYA terbaca sebagai "dicabut". Itu disengaja: riwayat tidak boleh bisa dibersihkan.',
   'Kedaluwarsa bukan pencabutan. Keduanya punya baris sendiri dan tidak boleh digabung.',
+  'Penerbit di sistem ini adalah agen pihak ketiga: mereka yang men-deploy, memegang kunci, dan bertanggung jawab atas isinya. Di EAS hanya attester asal yang boleh mencabut (`attestation.attester != revoker -> AccessDenied`), jadi kami TIDAK BISA membatalkan kredensial mereka. Yang bisa kami lakukan hanyalah menarik dukungan (delisting) dan menghentikan penerbitan berikutnya — dan itu kami tampilkan sebagai verdict sendiri, bukan disamarkan menjadi "dicabut".',
+  'Delisting bisa dipulihkan. Kalau sebuah kredensial terbaca "penerbit dilisting" hari ini, ia bisa terbaca VALID lagi besok tanpa attestation-nya disentuh — karena yang berubah adalah penilaian kami atas penerbitnya, bukan rekamannya di chain.',
   'Kebenaran HASIL PENILAIAN tidak bisa dibuktikan on-chain. Yang terbukti hanyalah bahwa penerbit berizin menyatakan peserta ini lulus.',
   'Pengakuan hukum atau institusional atas kredensial ini TIDAK diklaim.',
   'Halaman ini membaca chain langsung, tanpa backend kami di jalur verifikasi. Status kebenaran selalu gratis; yang berbayar hanyalah kenyamanan (verifikasi massal).',
@@ -227,6 +248,7 @@ const emptyCredential = (): CredentialInfo => ({
   exists: false,
   revoked: false,
   expired: false,
+  issuerDelisted: false,
   issuer: null,
   holder: null,
   attester: null,
@@ -470,7 +492,7 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
 
   // -------------------------------------------- 3. status dari resolver kita
   if (credentialHash) {
-    const st = await read<readonly [boolean, boolean, boolean, Address, bigint, bigint]>(
+    const st = await read<readonly [boolean, boolean, boolean, boolean, Address, bigint, bigint]>(
       'CredentialResolver.statusOf(hash)',
       ep.resolver,
       credentialHash,
@@ -483,13 +505,18 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
         }),
     )
     if (st) {
+      // Destructuring bernama, bukan st[3]/st[4]. Alasannya sama seperti helper baca di test
+      // fork: kalau suatu hari arity-nya berubah lagi, ini GAGAL KOMPILE alih-alih diam-diam
+      // menggeser indeks dan menampilkan alamat penerbit yang salah.
+      const [exists, revoked, expired, issuerDelisted, issuer, issuedAt, expiresAt] = st
       report.credential.hash = credentialHash
-      report.credential.exists = st[0]
-      report.credential.revoked = st[1]
-      report.credential.expired = st[2]
-      report.credential.issuer = st[3]
-      report.credential.issuedAt = Number(st[4])
-      report.credential.expiresAt = Number(st[5])
+      report.credential.exists = exists
+      report.credential.revoked = revoked
+      report.credential.expired = expired
+      report.credential.issuerDelisted = issuerDelisted
+      report.credential.issuer = issuer
+      report.credential.issuedAt = Number(issuedAt)
+      report.credential.expiresAt = Number(expiresAt)
     }
     report.credential.holder = await read<Address>('CredentialResolver.holderOf(hash)', ep.resolver, credentialHash, () =>
       client.readContract({ address: ep.resolver, abi: credentialResolverAbi, functionName: 'holderOf', args: [credentialHash as Hex] }),
@@ -678,9 +705,19 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
     reasons.push(
       `Kedaluwarsa ${new Date(c.expiresAt * 1000).toISOString()} (${Math.max(0, Math.round((now - c.expiresAt) / 86400))} hari lalu) — berubah sendiri, tanpa ada yang menyentuh apa pun.`,
     )
+  } else if (c.issuerDelisted) {
+    report.verdict = 'ISSUER_DELISTED'
+    reasons.push(
+      `Penerbitnya (${c.issuer ?? 'tidak terbaca'}) sedang DILISTING oleh platform. Ini BUKAN pencabutan, dan perbedaannya penting: attestation-nya masih ada di chain dengan revocationTime = 0, karena di EAS hanya attester asal yang boleh mencabut dan platform tidak punya daya itu atas agen pihak ketiga. Yang berubah adalah dukungan platform, dan itu bisa dipulihkan lewat relistIssuer.`,
+    )
+    reasons.push(
+      'Konsekuensi praktis yang bisa diuji: kredensial ini tidak lagi diterima sebagai prasyarat untuk menerbitkan kredensial lanjutan (PrerequisiteIssuerDelisted), dan artefak soulbound barunya tidak bisa dicetak (IssuerDelisted).',
+    )
   } else {
     report.verdict = 'VALID'
-    reasons.push('Diterbitkan oleh penerbit yang terdaftar di resolver, belum dicabut, dan belum kedaluwarsa.')
+    reasons.push(
+      'Diterbitkan oleh penerbit yang terdaftar di resolver, belum dicabut, belum kedaluwarsa, dan penerbitnya tidak sedang dilisting. Keempatnya dibaca dari chain dalam satu eth_call.',
+    )
     if (c.expiresAt !== 0) reasons.push(`Berlaku sampai ${new Date(c.expiresAt * 1000).toISOString()}.`)
     else reasons.push('Tanpa tanggal kedaluwarsa. Rancangan kita mewajibkan expiry, jadi kredensial seperti ini layak dipertanyakan.')
   }
@@ -714,6 +751,7 @@ function finish(r: Report, ep: Endpoint) {
     `cast call ${ep.resolver} "schemaUID()" --rpc-url ${ep.rpcUrl}`,
     r.credential.uid && ep.bas !== ZERO_ADDR ? `cast call ${ep.bas} "getAttestation(bytes32)" ${r.credential.uid} --rpc-url ${ep.rpcUrl}` : '',
     r.credential.issuer ? `cast call ${ep.resolver} "isIssuer(address)" ${r.credential.issuer} --rpc-url ${ep.rpcUrl}` : '',
+    r.credential.issuer ? `cast call ${ep.resolver} "isDelisted(address)" ${r.credential.issuer} --rpc-url ${ep.rpcUrl}` : '',
   ].filter(Boolean)
 
   r.reproduction.curl = [
@@ -722,7 +760,7 @@ function finish(r: Report, ep: Endpoint) {
   ]
 
   r.reproduction.selectors = [
-    ['statusOf(bytes32)', 'getAttestation(bytes32)', 'holderOf(bytes32)', 'isIssuer(address)', 'schemaUID()', 'locked(uint256)', 'tokenOfCredential(bytes32)'] as string[],
+    ['statusOf(bytes32)', 'getAttestation(bytes32)', 'holderOf(bytes32)', 'isIssuer(address)', 'isDelisted(address)', 'schemaUID()', 'locked(uint256)', 'tokenOfCredential(bytes32)'] as string[],
   ]
     .flat()
     .map((sig) => ({ name: sig, selector: toFunctionSelector(sig) }))

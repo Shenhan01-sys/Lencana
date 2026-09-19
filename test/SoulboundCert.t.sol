@@ -13,6 +13,7 @@ contract StubCredentialRegistry is ICredentialRegistry {
     bool public exists;
     bool public revoked;
     bool public expired;
+    bool public delisted;
     address public issuer;
     address public holder;
     uint64 public issuedAt;
@@ -22,6 +23,7 @@ contract StubCredentialRegistry is ICredentialRegistry {
         exists = true;
         revoked = false;
         expired = false;
+        delisted = false;
         holder = holder_;
         issuer = issuer_;
         issuedAt = uint64(block.timestamp);
@@ -36,8 +38,12 @@ contract StubCredentialRegistry is ICredentialRegistry {
         expired = v;
     }
 
-    function statusOf(bytes32) external view returns (bool, bool, bool, address, uint64, uint64) {
-        return (exists, revoked, expired, issuer, issuedAt, expiresAt);
+    function setDelisted(bool v) external {
+        delisted = v;
+    }
+
+    function statusOf(bytes32) external view returns (bool, bool, bool, bool, address, uint64, uint64) {
+        return (exists, revoked, expired, delisted, issuer, issuedAt, expiresAt);
     }
 
     function holderOf(bytes32) external view returns (address) {
@@ -139,6 +145,28 @@ contract SoulboundCertTest is Test {
         registry.setExpired(true);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.CredentialExpired.selector, credHash));
         _mintCert(learner, credHash, uri);
+    }
+
+    /// @dev Penerbit yang didelisting tidak mendapat artefak. Perhatikan apa yang TIDAK
+    /// terjadi di sini: `revoked` tetap false. Jadi ini penahanan artefak, bukan pembatalan
+    /// sertifikat — dan halaman verifikasi harus menampilkannya sebagai verdict sendiri.
+    function test_PenerbitDelisted_MintDitolak() public {
+        registry.setDelisted(true);
+        vm.expectRevert(abi.encodeWithSelector(SoulboundCert.IssuerDelisted.selector, credHash));
+        _mintCert(learner, credHash, uri);
+    }
+
+    /// @dev Klaim "bisa dipulihkan" harus diuji, bukan cuma dinyatakan di komentar.
+    /// Sesudah flag dilepas, mint yang sama harus berhasil tanpa perubahan apa pun pada
+    /// kredensialnya — itu bukti bahwa delisting menekan artefak baru, bukan menghapusnya.
+    function test_PenerbitDipulihkan_MintJalanLagi() public {
+        registry.setDelisted(true);
+        vm.expectRevert(abi.encodeWithSelector(SoulboundCert.IssuerDelisted.selector, credHash));
+        _mintCert(learner, credHash, uri);
+
+        registry.setDelisted(false);
+        uint256 tokenId = _mintCert(learner, credHash, uri);
+        assertEq(cert.ownerOf(tokenId), learner, "artefak tidak sampai ke peserta sesudah pemulihan");
     }
 
     function test_MintUntukOrangSalah_Ditolak() public {

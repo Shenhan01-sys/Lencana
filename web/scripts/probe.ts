@@ -57,6 +57,9 @@ async function main() {
   check('hash asing -> NOT_FOUND', r0.verdict === 'NOT_FOUND', r0.verdict)
   check('hash asing -> alasan terisi', r0.reasons.length > 0)
   check('hash asing -> panel rantai kosong', r0.chainHistory.length === 0)
+  // Verdict ke-4 harus default false, bukan undefined: renderer memanggil yn() atas nilainya,
+  // dan `undefined` akan tampil sebagai baris kosong yang diam-diam.
+  check('hash asing -> tidak ditandai delisted', r0.credential.issuerDelisted === false, String(r0.credential.issuerDelisted))
 
   // --- 2. address asing ---------------------------------------------------------
   const r1 = await verify('0x' + '22'.repeat(20), ep)

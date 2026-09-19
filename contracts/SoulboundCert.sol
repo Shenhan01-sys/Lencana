@@ -75,6 +75,7 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
     error CredentialNotFound(bytes32 credentialHash);
     error CredentialRevoked(bytes32 credentialHash);
     error CredentialExpired(bytes32 credentialHash);
+    error IssuerDelisted(bytes32 credentialHash);
     error WrongHolder(bytes32 credentialHash, address expected, address asked);
     error AlreadyBound(bytes32 credentialHash);
     error NotTransferable();
@@ -109,10 +110,16 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
         uint256 tokenId = uint256(credentialHash);
         if (credentialOf[tokenId] != bytes32(0)) revert AlreadyBound(credentialHash);
 
-        (bool exists, bool revoked, bool expired,,,) = registry.statusOf(credentialHash);
+        (bool exists, bool revoked, bool expired, bool delisted,,,) = registry.statusOf(credentialHash);
         if (!exists) revert CredentialNotFound(credentialHash);
         if (revoked) revert CredentialRevoked(credentialHash);
         if (expired) revert CredentialExpired(credentialHash);
+        // Penerbit yang didelisting tidak mendapat artefak baru. Yang ditahan hanyalah
+        // artefaknya: kredensial peserta tidak berubah status, dan setelah `relistIssuer`
+        // mint ini langsung bisa jalan. Alasannya bukan menghukum peserta — mencetak
+        // artefak adalah tindakan platform, dan platform baru saja menyatakan tidak
+        // berdiri di belakang penerbit itu.
+        if (delisted) revert IssuerDelisted(credentialHash);
 
         address holder = registry.holderOf(credentialHash);
         if (holder != learner) revert WrongHolder(credentialHash, holder, learner);

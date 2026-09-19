@@ -23,7 +23,11 @@
 import { parseAbi } from 'viem'
 
 export const credentialResolverAbi = parseAbi([
-  'function statusOf(bytes32 credentialHash) view returns (bool exists, bool revoked, bool expired, address issuer, uint64 issuedAt, uint64 expiresAt)',
+  // 🔴 TUJUH nilai, dan `issuerDelisted` ada di posisi ke-4 — bukan di akhir. Menyalin urutan
+  // dari memori akan menggeser `issuer`/`issuedAt`/`expiresAt` tanpa error apa pun: decode
+  // tetap "berhasil", dan halaman menampilkan alamat yang salah sebagai penerbit.
+  // Sumber: contracts/CredentialResolver.sol -> statusOf()
+  'function statusOf(bytes32 credentialHash) view returns (bool exists, bool revoked, bool expired, bool issuerDelisted, address issuer, uint64 issuedAt, uint64 expiresAt)',
   'function holderOf(bytes32 credentialHash) view returns (address)',
   'function attestationOf(bytes32 credentialHash) view returns (bytes32)',
   'function prerequisiteOf(bytes32 uid) view returns (bytes32)',
@@ -33,6 +37,7 @@ export const credentialResolverAbi = parseAbi([
   'function issuedHere(bytes32 uid) view returns (bool)',
   'function schemaUID() view returns (bytes32)',
   'function isIssuer(address who) view returns (bool)',
+  'function isDelisted(address who) view returns (bool)',
   'function CREDENTIAL_SCHEMA() view returns (string)',
   'function SCHEMA_REVOCABLE() view returns (bool)',
   'function owner() view returns (address)',

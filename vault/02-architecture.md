@@ -6,7 +6,7 @@
 |---|---|---|
 | **Credential** | us (off-chain) | `OpenBadgeCredential` JSON-LD, signed by the issuer's key. **This is the credential** |
 | **Anchor · revocation · expiry · timestamp** | **BAS** (third party, already deployed) | `attest()` / `revoke()` / `timestamp()` / `revokeOffchain()` — **zero Solidity written by us** |
-| **Issuer authorisation + prerequisite chain** | `contracts/CredentialResolver.sol` (ours) | issuer whitelist; rejects prerequisites that are revoked / expired / belonging to someone else / not ours; `statusOf()` & `holderOf()` for verifiers |
+| **Issuer admission + prerequisite chain + delisting** | `contracts/CredentialResolver.sol` (ours) | issuer whitelist; rejects prerequisites that are revoked / expired / belonging to someone else / not ours / **issued by a delisted agent**; `delistIssuer()` as the only brake the platform has over a third-party issuer; `statusOf()` & `holderOf()` for verifiers |
 | **Learner artifact** | `contracts/SoulboundCert.sol` (ours) | ERC-721 + ERC-5192; `mint()` refuses a credential that is not live; transfer / approve / burn all refused |
 
 ```
@@ -178,25 +178,152 @@ auditable public key, whose issuance log cannot be edited retroactively"*. We ma
 *"trustless"*, *"reputation proven on-chain"*, *"the agent cryptographically validates itself"*, or
 *"TEE/zkML-verified"*.
 
-## Who bears the cost
+## Who owns the agent, and who pays for issuance
+
+**We do not own the agents.** Each agent is deployed, hosted and keyed by its own owner. Lencana is
+the venue they work in, and the owner of the rules they must satisfy.
+
+| role | who | what they own | what we own over them |
+|---|---|---|---|
+| **agent owner / deployer** | third party | the agent's code, model, infrastructure, **issuing key**, ERC-8004 identity NFT | **nothing** — we do not host it and never hold its key |
+| **course creator / institution** | third party | course material, rubric, assessment task | the venue, and a revenue share |
+| **learner** | user | their wallet; pays enrolment plus x402 to the agent | — |
+| **Lencana (us)** | platform | schema, resolver, **admission**, soulbound artifact, verification page, payment rail | ← **this is the product** |
+
+This *strengthens* the pitch rather than weakening it. ERC-8004 reputation is live on chains 97 and
+56 and attaches to the **agent's own** identity NFT, so an agent arrives carrying portable
+reputation that learners can compare on real numbers. The honest submission line:
+*"Lencana does not own the agents. It owns the rules they must satisfy."*
+
+### The hard constraint this creates — read from source, not assumed
+
+Because the issuer is someone else's agent, there is something we assumed we could do and cannot:
+
+```solidity
+// EAS.sol, _revoke()  — "Allow only original attesters to revoke their attestations."
+if (attestation.attester != revoker) {
+    revert AccessDenied();
+}
+```
+
+`revokeByDelegation()` does not help either: it routes through the same `_revoke()`, and what
+`_verifyRevoke()` checks is an EIP-712 signature **from that attester**. Nor can an agent
+pre-authorise revocation at onboarding — `RevocationRequestData` carries a `uid`, and the uid of an
+attestation that does not exist yet **cannot be known in advance**. There is no blanket
+authorisation in EAS.
+
+**So the platform has no revocation power over a third-party agent at all.** Without a countermeasure
+a rogue agent — or one whose key leaked — would keep reading `VALID` on our own verification page
+forever. That is precisely the failure this product exists to remove.
+
+### The countermeasure: two flags, two verdicts
+
+| action | new issuance | already-issued credentials | verdict |
+|---|---|---|---|
+| `removeIssuer()` | refused | **stay VALID** | `VALID` |
+| `delistIssuer()` | refused | marked | **`ISSUER_DELISTED`** |
+
+The split is deliberate: an agent that leaves amicably must not invalidate thousands of alumni
+certificates; an agent that misbehaved must be suppressible. `addIssuer()` **cannot** readmit a
+delisted agent (`DelistedCannotBeReadmitted`) — readmission is a separate, event-emitting act so the
+governance trail is never a side effect.
+
+Delisting also reaches the prerequisite chain (`PrerequisiteIssuerDelisted`). Without that it would be
+cosmetic: a bad agent's credential could still unlock advanced credentials **through a different,
+healthy agent** — which is exactly what happens when a learner switches agent mid-course.
+
+**Why this power is safe rather than arbitrary censorship:** its direction is **failsafe**. It can
+only ever make a verdict *stricter*, never looser; no input makes a dead credential read alive. It is
+`onlyOwner`, it emits, and it is reversible via `relistIssuer()` — all tested, not merely asserted.
+
+**What must not be claimed:** "the platform can revoke problematic credentials" (it cannot, and a test
+proves it) · showing delisting as "revoked" (`revocationTime` stays `0` on chain, so anyone can
+disprove that in one `eth_call`) · "trustless admission" (the whitelist **is** centralised curation —
+that is our value, so say so plainly).
+
+### 🔗 This also answers the open status-list decision
+
+If the bitstring status list is derived **from chain state** (option A below), a delisted issuer's
+credentials get their bits set too — so **third-party Open Badges verifiers see the delisting as
+well**. Without the flag, delisting would only ever appear on our own page and option A would lose
+much of its point. Two decisions taken separately turn out to close each other.
+
+### Gas: fronted by the platform, recovered from the agent's share
+
+Naively, "we pay the gas" means **we send `attest()`** — and EAS records `msg.sender` as the attester,
+so *we* would become the issuer and the third-party agent would lose its role entirely. The correct
+route already exists:
+
+```solidity
+// EAS.sol
+function attestByDelegation(DelegatedAttestationRequest calldata delegatedRequest)
+    external payable returns (bytes32)
+{
+    _verifyAttest(delegatedRequest);
+    ...
+    return _attest(delegatedRequest.schema, data, delegatedRequest.attester, msg.value, true).uids[0];
+}                                              // ^^^^^^^^^^^^^^^^^^^^^^ the SIGNER, not msg.sender
+```
+
+The agent signs an EIP-712 delegation off-chain — **free, and it needs no BNB at all** — our relayer
+sends it and pays the gas, and `attestation.attester` stays the **agent's address**. Whitelist,
+delisting, prerequisite checks and revocation rights all keep attaching to the right party.
+
+Parameters verified from source, so the relayer never guesses:
+
+| item | value |
+|---|---|
+| EIP-712 domain | `EIP1271Verifier("EAS", "1.3.0")` → name `"EAS"`, version `"1.3.0"` |
+| `ATTEST_TYPEHASH` | `0xfeb2925a02bae3dae48d424a0437a2b6ac939aa9230ddc55a1a76f065d988076` |
+| hashed field order | attester, schema, recipient, expirationTime, revocable, refUID, **`keccak256(data.data)`**, value, nonce, deadline |
+| nonce | per attester, auto-incremented inside the hash, readable via `getNonce(address)` |
+| contract wallets | ✅ `SignatureChecker.isValidSignatureNow` → **EIP-1271**, so an agent owned by a Safe works |
+| batching | ✅ `multiAttestByDelegation` — every lesson of a course in **one** transaction, signatures at increasing nonces |
+| kill switch | ✅ `increaseNonce()` — the owner can invalidate all outstanding delegations |
+| deadline | `deadline != NO_EXPIRATION_TIME && deadline < _time()` → `DeadlineExpired()`. **`deadline = 0` means never expires** — use ~15 min instead |
+
+**Economics — do not over-engineer.** BSC gas per attestation is **sub-cent** (deploying every
+contract we wrote costs 0.0003828 BNB). Recovery therefore needs no precision: a flat platform
+percentage in `PaymentSplitter`, sized above the expected gas, is enough. **No debt ledger.** The
+recorded risk, not built against: an agent that issues a lot but earns little puts us net negative.
+
+**Framing discipline — soften the UX, not the numbers.** To an *agent*, "you never touch gas" is true
+and is a real selling point: **zero-BNB onboarding**. In the *submission*, do not hide it —
+"the platform fronts issuance gas and recovers it through a fixed share of x402 fees" is a good answer
+because it is clear unit economics.
+
+**Limits this adds (they belong in the UI, not a FAQ):**
+
+1. **The relayer can censor.** We see every delegation before it lands and can drop or delay it. We
+   **cannot** forge or alter one — it is signed. And the agent can always relay its own `attest()` as
+   a fallback, so the censorship is not total.
+2. **A leaked delegation is a bearer instrument.** Whoever holds it can submit it and pay the gas.
+   The damage is limited to *when*, never *what*, and its nonce is single-use. Mitigation: short
+   `deadline`, never `0`.
+3. **The relayer wallet becomes critical infrastructure** and a target. For the hackathon: a testnet
+   key holding no real funds.
+
+### Who bears which cost
 
 > Learners pay for **the learning**. Learners do not pay for **proof of having succeeded**.
 
 | who | buys what | recipient |
 |---|---|---|
 | learner | access to course modules | platform / instructor |
-| **sponsoring institution** (its agent signs) | publishing a credential on chain | gas: the facilitator · price: the issuer's budget |
+| learner | an agent's help inside a course (x402, per session) | **agent owner**, minus the platform share |
+| **platform** | gas to publish a credential — fronted, then recovered from that share | relayer wallet |
 | recruiter / B2B | **bulk verification** via API | platform |
 | **anyone** | **the truth about status** | — **free, wallet-free, forever** |
 
-Putting the fee on the **issuer** is an anti-fraud brake: issuing a fake burns the issuer's money. If
-the learner paid, the victim would be funding the fraud done to them. The real money is not here
-anyway — BSC gas is pocket change; what has business value is repeated verification by parties with
-a budget.
+Putting issuance cost nowhere near the learner is an anti-fraud brake: the party that benefits from
+issuing is the party whose money moves. If the learner paid, the victim would be funding the fraud
+done to them. The real money is not here anyway — BSC gas is pocket change; what has business value is
+repeated verification by parties with a budget.
 
-**Separate these two** (I once conflated them): *"the agent pays"* means the agent **signs**; the one
-**bearing** the cost is the institution funding that wallet. What makes it an agent is **authority to
-act**, not ownership of the money.
+**Separate these two** (I once conflated them): *"the agent signs"* is about **authority to act**;
+*"who bears the cost"* is about whose wallet moves. Under the delegation route they are now cleanly
+apart: the agent signs, the platform pays, and the platform's share of the agent's x402 revenue makes
+it whole.
 
 ## Locked decisions
 
@@ -207,10 +334,13 @@ act**, not ownership of the money.
 | 13 Sep | 🔴 **Pivot: the credential is a VC / Open Badges 3.0 document; the NFT is only an artifact.** Every on-chain token standard explicitly denies credential semantics (ERC-721: *"does not define issuer, holder, subject, claim, proof, revocation, expiry, or privacy semantics; minting and burning are outside the specification"*) |
 | 13 Sep | Greenfield **out of the critical path** — its testnet is reset after ~7 days, and judging happens later |
 | 16 Sep | **BAS becomes the anchor**; the hand-written `IssuerRegistry` + `CredentialAnchor` are deleted (3 contracts → 2) |
-| 16 Sep | **Agent = issuer, verifier = deterministic and wallet-free. Issuance cost borne by the sponsoring institution** |
+| 16 Sep | **Agent = issuer, verifier = deterministic and wallet-free.** ~~Issuance cost borne by the sponsoring institution~~ — **superseded 19 Sep**, see below |
 | 16 Sep | OB3.0 specification read from raw files and independently re-verified (see [04-technical-reference.md](04-technical-reference.md)) |
 | 17 Sep | Project name: **Lencana**. Agent name: **Issuer** |
 | 17 Sep | Public repository created; documentation language = **English** |
+| 19 Sep | **Agents are third-party owned; Lencana is only the venue.** The agent itself is the `attester`, holding its own key |
+| 19 Sep | **`delistIssuer()` added before any public deploy.** EAS gives the platform no revocation power over a third-party attestation, so delisting is the only brake — and it is a **distinct verdict from `revoked`**. `statusOf()` widened to 7 values |
+| 19 Sep | **Issuance gas fronted by the platform via `attestByDelegation`**, recovered from the platform's share of x402 fees. Off-chain only — no contract or `schemaUID` impact |
 
 ## 🔴 One decision still open: a standard status list vs our on-chain revocation
 
@@ -227,7 +357,7 @@ tool.
 
 | option | contents | cost |
 |---|---|---|
-| **A** ⭐ | A bitstring status list **derived from chain state** (read `revocationTime != 0` → build the bitstring → sign it as a status list credential → serve it at a URL), and the **bitstring hash recorded with `timestamp()` on BAS**, so anyone can prove the served list was not edited | Interoperable **and** non-repudiable. Honest wording: *"we serve the list; we cannot silently change its hash."* ±1–2 days |
+| **A** ⭐ | A bitstring status list **derived from chain state** — read `revocationTime != 0` **and `isDelisted(attester)`**, build the bitstring, sign it as a status list credential, serve it at a URL — and the **bitstring hash recorded with `timestamp()` on BAS**, so anyone can prove the served list was not edited | Interoperable **and** non-repudiable. Honest wording: *"we serve the list; we cannot silently change its hash."* **Bonus since 19 Sep:** because the list is derived from chain state, platform **delisting also reaches third-party verifiers** — otherwise it would only ever appear on our own page. ±1–2 days |
 | B | Drop `credentialStatus` (allowed — it is optional `[0..1]`) | No work, but standard verifiers never see revocation → our page is the only correct one. That is a closed platform, not public verification |
 | C | A custom `type` pointing at our API | ⚠️ **Trap.** `additionalProperties: true` allows it, but §9.1 defines no behaviour for foreign types → validators **skip** the status check and tell nobody. This is B wearing A's clothes |
 

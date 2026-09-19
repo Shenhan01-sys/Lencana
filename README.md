@@ -39,10 +39,10 @@ Every number below is the output of a command that was run, not a plan.
 
 | command | result |
 |---|---|
-| `forge test --no-match-path "*.fork.t.sol"` | **19 passed / 0 failed** (offline) |
-| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | **51 passed / 0 failed** on **chain 97** |
-| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **51 passed / 0 failed** on **chain 56**, identical gas figures |
-| `npm run probe` in `web/` | **19/19 passed** against a real chain |
+| `forge test --no-match-path "*.fork.t.sol"` | **21 passed / 0 failed** (offline) |
+| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | **60 passed / 0 failed** on **chain 97** |
+| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **60 passed / 0 failed** on **chain 56**, identical gas figures |
+| `npm run probe` in `web/` | **19/19 passed** against a real chain (17 Sep) · ⚠️ **stale, not re-run**: `statusOf` has since widened to 7 values and the probe now declares 20 checks |
 | `forge script … --broadcast` on an anvil fork of 97 | deploy succeeded · **0.0003828 BNB** (3,827,994 gas) |
 | repo contents read back from the GitHub API | **39 files**; no `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env` |
 
@@ -110,9 +110,9 @@ verification scripts.
 npm install                                  # OpenZeppelin 5.1.0
 forge install foundry-rs/forge-std --no-git  # --no-git is required while the folder is not a git repo
 
-npm test                                     # 19 tests, offline, ~25 ms
-npm run test:fork:testnet                    # 51 tests on chain 97
-npm run test:fork:mainnet                    # 51 tests on chain 56
+npm test                                     # 21 tests, offline, ~25 ms
+npm run test:fork:testnet                    # 60 tests on chain 97
+npm run test:fork:mainnet                    # 60 tests on chain 56
 ```
 
 > ⚠️ **`--evm-version cancun` is mandatory for fork tests**, not decoration. Without it, calls that
@@ -166,7 +166,7 @@ contracts/
   SoulboundCert.sol          ERC-721 + ERC-5192; mint refuses a dead credential; no transfer/burn
   interfaces/ICredentialRegistry.sol
 lib/bas/src/                 verbatim copy of the BAS interface — auditable, not invented
-test/                        19 offline · 19 resolver fork · 9 end-to-end fork
+test/                        21 offline · 30 resolver fork · 9 end-to-end fork
 script/                      DeployCredentials.s.sol · SeedDemo.s.sol
 web/                         verification page (Vite + vanilla TS + viem, static)
 vault/                       project context: why it is shaped like this
