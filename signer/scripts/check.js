@@ -164,17 +164,26 @@ check('hash bitstring deterministik (bahan untuk timestamp() BAS)',
 // `web/scripts/probe.ts`, jadi kedua berkas mengawasi keadaan yang sama.
 const rpc = process.env.RPC_URL
 const resolverAddress = process.env.RESOLVER_ADDRESS
-const watched = [
+const envHashes = [
   process.env.DEMO_HASH, process.env.DEMO_REVOKED_HASH,
   process.env.DEMO_CHAINED_HASH, process.env.DEMO_DELISTED_HASH,
 ].filter(Boolean).map((h) => h.toLowerCase())
 
+// Hash yang diawasi = yang diisi lewat env DIKAMPUKAN dengan yang diketahui store. Kalau tidak,
+// pemeriksaan invarian hanya jalan saat seorang kebetulan mengisi DEMO_HASH dengan hash yang
+// pernah diterbitkan di sini — dan itu berarti cakupannya ditentukan keberuntungan, bukan oleh kita.
+let watched = envHashes
+if (rpc && resolverAddress) {
+  const { watchedHashes } = await import('../src/store.js')
+  watched = [...new Set([...envHashes, ...(await watchedHashes()).map((h) => h.toLowerCase())])]
+}
+
 if (!rpc || !resolverAddress || watched.length === 0) {
-  skipped.push('bagian 5 — daftar status dari chain (butuh RPC_URL + RESOLVER_ADDRESS + DEMO_HASH/…)')
+  skipped.push('bagian 5 — daftar status dari chain (butuh RPC_URL + RESOLVER_ADDRESS, dan minimal satu kredensial dikenal: lewat DEMO_HASH/… atau store)')
 } else {
   const { readChainStatuses, revokedUids, suspendedUids } = await import('../src/chainStatus.js')
   const statuses = await readChainStatuses({ rpcUrl: rpc, resolverAddress, hashes: watched })
-  check(`chain mengembalikan keempat hash demo sebagai attestation kita (${statuses.size}/${watched.length})`,
+  check(`chain mengenali seluruh kredensial yang diawasi sebagai attestation kita (${statuses.size}/${watched.length})`,
     statuses.size === watched.length && statuses.size > 0)
 
   const chainAlloc = new IndexAllocator()

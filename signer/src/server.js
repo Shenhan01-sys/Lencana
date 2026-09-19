@@ -24,7 +24,7 @@ import { loadKey, issuerDocument } from './issuer.js'
 import { REVOCATION, SUSPENSION, renderList } from './lists.js'
 import { sha256Hex } from './credential.js'
 import { makeDocumentLoader } from './sign.js'
-import { knownHashes, getCredential } from './store.js'
+import { watchedHashes, getCredential } from './store.js'
 
 const PORT = Number(process.env.PORT ?? 8787)
 const HOST = process.env.HOST ?? '127.0.0.1'
@@ -49,9 +49,9 @@ const documentLoader = makeDocumentLoader(loaderDocs)
  * milik orang lain — kegagalan sunyi, dokumen tetap sah, cuma salah alamat.
  */
 async function buildList (purpose) {
-  const hashes = WATCHED.length ? WATCHED : await knownHashes()
+  const hashes = WATCHED.length ? WATCHED : await watchedHashes()
   if (!RESOLVER || !RPC_URL || hashes.length === 0) {
-    throw new Error('RESOLVER_ADDRESS / RPC_URL belum diisi (dan store belum punya kredensial)')
+    throw new Error('RESOLVER_ADDRESS / RPC_URL belum diisi (dan store belum punya kredensial terbit maupun adopsi)')
   }
   return renderList({
     purpose, baseUrl: BASE_URL, rpcUrl: RPC_URL, resolverAddress: RESOLVER, hashes,

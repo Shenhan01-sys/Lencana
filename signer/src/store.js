@@ -25,11 +25,26 @@ const STATE = join(STORE_DIR, 'state.json')
 
 async function read () {
   try {
-    return JSON.parse(await readFile(STATE, 'utf8'))
+    const parsed = JSON.parse(await readFile(STATE, 'utf8'))
+    return { nextIndex: 0, byUid: {}, credentials: {}, watched: {}, ...parsed }
   } catch (err) {
     if (err.code !== 'ENOENT') throw err
-    return { nextIndex: 0, byUid: {}, credentials: {} }
+    return { nextIndex: 0, byUid: {}, credentials: {}, watched: {} }
   }
+}
+
+/**
+ * Kredensial yang dipantau daftar status = yang kita TERBITKAN sendiri + yang DIADOPSI dari chain.
+ * Dua-duanya harus masuk: kalau hanya registry terbitan yang dibaca, empat keadaan hasil `SeedDemo`
+ * (yang dicabut dan yang penerbitnya dijatuhkan — justru yang paling ingin kita tunjukkan) tidak akan
+ * pernah muncul di list yang kita sajikan. List-nya tidak error, cuma tampak pendek — dan itu cara
+ * paling nyaman untuk salah.
+ */
+export async function watchedHashes () {
+  const state = await read()
+  const fromIssued = Object.values(state.credentials).map((c) => c.credentialHash)
+  const fromAdopted = Object.values(state.watched)
+  return [...new Set([...fromIssued, ...fromAdopted].map((h) => h.toLowerCase()))]
 }
 
 async function write (state) {
@@ -39,14 +54,23 @@ async function write (state) {
 
 /** Alokator yang membaca dan menulis state di disk. */
 export async function loadAllocator () {
-  const state = await read()
-  const alloc = new IndexAllocator({ nextIndex: state.nextIndex, byUid: state.byUid })
+  const initial = await read()
+  const alloc = new IndexAllocator({ nextIndex: initial.nextIndex, byUid: initial.byUid })
   return {
     alloc,
+    /**
+     * ⚠️ Baca ULANG sebelum menulis, lalu tambal hanya dua field alokasi.
+     *
+     * Versi pertama menulis objek hasil baca di awal proses. Karena `watchCredential` dan
+     * `rememberCredential` juga menulis berkas yang sama di antaranya, commit lalu MENIMPA
+     * state dengan salinan lama dan catatan yang baru ditulis hilang tanpa suara — terdeteksi
+     * di sini sebagai "4 diadopsi, tapi yang dipantau tetap 1".
+     */
     async commit () {
-      state.nextIndex = alloc.state.nextIndex
-      state.byUid = alloc.state.byUid
-      await write(state)
+      const current = await read()
+      current.nextIndex = alloc.state.nextIndex
+      current.byUid = alloc.state.byUid
+      await write(current)
     },
   }
 }
@@ -69,8 +93,19 @@ export async function getCredential (id) {
   return state.credentials[id] ?? null
 }
 
-/** uid yang pernah kita terbitkan, untuk server, supaya ia mengawasi hal yang sama. */
+/** Kredensial yang pernah kita terbitkan sendiri. */
 export async function knownHashes () {
   const state = await read()
   return Object.values(state.credentials).map((c) => c.credentialHash)
+}
+
+/**
+ * Catat kredensial yang diadopsi dari chain supaya ikut dipantau daftar status.
+ * Sengaja terpisah dari `rememberCredential`: yang ini TIDAK punya dokumen OB3.0 dari kita —
+ * ia sudah ada di chain sebelum backend ini ada, dan tugas kita hanya membuat statusnya terbaca.
+ */
+export async function watchCredential (uid, credentialHash) {
+  const state = await read()
+  state.watched[uid] = credentialHash
+  await write(state)
 }

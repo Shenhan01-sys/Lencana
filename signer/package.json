@@ -10,9 +10,11 @@
   },
   "scripts": {
     "agent": "node scripts/agent.js",
+    "adopt": "node scripts/adopt.js --demo",
     "check": "node scripts/check.js",
     "serve": "node src/server.js",
     "probe:serve": "node scripts/serve-probe.js",
+    "issue": "node scripts/issue.js",
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {

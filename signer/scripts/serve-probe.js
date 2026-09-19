@@ -20,6 +20,10 @@ const EXPECT_CLEAN = (process.env.EXPECT_CLEAN ?? '').split(',').filter(Boolean)
 
 let ran = 0
 let failures = 0
+// Sama seperti check.js: grup yang tidak diuji harus DILAPORKAN, bukan hilang dari jumlah.
+// Angka hijau yang mengecil tanpa sebab tertulis adalah cara paling mudah menyesatkan tanpa
+// berbohong — dan kami menagih hal yang sama di catatan riset orang lain.
+const skipped = []
 function check (name, cond, detail = '') {
   ran += 1
   if (cond) console.log(`  ok    ${name}`)
@@ -86,8 +90,10 @@ const EXPECT = [
 ]
 
 if (EXPECT.length === 0) {
-  console.log('\nLEWAT pemeriksaan bit: isi EXPECT_REVOKED / EXPECT_SUSPENDED / EXPECT_CLEAN dengan uid')
+  skipped.push('semua pemeriksaan bit (EXPECT_REVOKED / EXPECT_SUSPENDED / EXPECT_CLEAN kosong)')
 } else {
+  if (!EXPECT_REVOKED.length) skipped.push('EXPECT_REVOKED kosong — jalur "dicabut" tidak diuji lewat HTTP')
+  if (!EXPECT_SUSPENDED.length) skipped.push('EXPECT_SUSPENDED kosong — jalur "agen di-delisting" tidak diuji lewat HTTP')
   check('server memetakan slot untuk setiap kredensial yang diawasi',
     EXPECT.every((e) => slots[REVOCATION].has(e.uid) && slots[SUSPENSION].has(e.uid)),
     `${slots[REVOCATION].size} slot dilaporkan`)
@@ -108,4 +114,8 @@ if (EXPECT.length === 0) {
 }
 
 console.log(`\n${failures === 0 ? 'PROBE SERVE HIJAU' : 'PROBE SERVE MERAH'} — ${ran} pemeriksaan, ${failures} gagal`)
+if (skipped.length) {
+  console.log(`\n--grup yang DILEWATI (${skipped.length})— angka di atas bukan cakupan penuh--`)
+  for (const s of skipped) console.log(`  - ${s}`)
+}
 process.exitCode = failures === 0 ? 0 : 1
