@@ -41,17 +41,22 @@ The confirmed cause is the primitive, not our code. An EAS UID is
 `keccak256(schema, recipient, attester, block.timestamp, expirationTime, revocable, refUID, data, bump)`
 — it contains the timestamp of the **mined** transaction. A script can only ever hold a simulation
 estimate for a credential it is creating in the same process, and two steps need that value as an
-argument: `attest(refUID = uid)` for the advanced course and `revoke(uid)` for the base. Broadcasting
-an estimate is what failed; and because `--slow` aborts every transaction after the first failure, the
-run left the state half-built.
+argument: `attest(refUID = uid)` for the advanced course and `revoke(uid)` for the base. Both revert with
+EAS's **`NotFound()`** (selector `0xc5723b51`; `EAS.sol:468-472` for the refUID check, `:517-520` for the
+revoke check), and the failure then *cascades*: the artifact mint of the advanced credential dies next
+with our own `CredentialNotFound(bytes32)` (`0x0d99a0d1`) because that attestation never landed.
+Broadcasting an estimate is what failed; and because `--slow` aborts every transaction after the first
+failure, the run left the state half-built.
 
 `--slow` was re-tested on a clean fork on 19 Sep and **does not fix it**: one `--slow` run still
-completes only pass 1's work. The fix is structural and lives in the script — it records whether each
-credential was already on chain *before* the process started, runs the UID-dependent steps only in
-that case, and otherwise stops after the UID-free scenes and prints why. So the documented sequence
-is **two runs**: the first seeds everything that needs no UID, the second reads real UIDs, finishes
-the chain and the revocation, prints the report, and every run after that is a no-op. Measured on a
-clean fork, then measured again by the 41-check probe.
+completes only pass 1's work. The old "3 failing transactions → 1" figure is now explained rather than
+remembered: the first failure was the UID-guessing `attest`, so each fix upstream changed how many
+transactions were left to fail — that number was never measuring a single cause. The fix is in our code,
+not in a flag: the script records whether each credential was already on chain *before* the process
+started, runs the UID-dependent steps only in that case, and otherwise stops after the UID-free scenes
+and prints why. So the documented sequence is **two runs**: the first seeds everything that needs no UID,
+the second reads real UIDs, finishes the chain and the revocation, prints the report, and every run after
+that is a no-op. Measured on a clean fork, then measured again by the 41-check probe.
 
 The general rule taken from this: **a script may consume hashes, which it can compute, but never
 UIDs, which only the chain knows.** Every input the page and the probe take is a credential hash for
