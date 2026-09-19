@@ -11,9 +11,10 @@ recruiter verifies a certificate by opening a URL in a browser — that is the w
 Built for the **Indonesia Web3 Hackathon 2026** — *Consumer Apps* track (· *AI Agents*), on BNB
 Chain.
 
-> ⚠️ **Pre-release status.** No contract has been broadcast to a public testnet yet, and the
-> credential-signing backend does not exist yet. The table below draws a hard line between what is
-> proven and what merely compiles.
+> ⚠️ **Pre-release status.** No contract has been broadcast to a public testnet yet. The
+> credential-signing backend now exists (`signer/`) and is measured, but it has **not** yet been
+> taken through a third-party validator, and the issue → anchor → sign path is not yet one command.
+> The table below draws a hard line between what is proven and what merely compiles.
 
 ---
 
@@ -43,6 +44,8 @@ Every number below is the output of a command that was run, not a plan.
 | `forge test --evm-version cancun --fork-url <anvil fork of 97>` | **68 passed / 0 failed** on **chain 97** (19 Sep) |
 | `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **68 passed / 0 failed** on **chain 56** (19 Sep), identical gas figures |
 | `npm run probe` in `web/` | **41 checks / 0 failed** against a live anvil fork of chain 97 (19 Sep), exercising four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid but its prerequisite is revoked" |
+| `npm run check` in `signer/` | **36 checks / 0 failed** (19 Sep) — OpenBadgeCredential 3.0 built and signed with `DataIntegrityProof` + `eddsa-rdfc-2022`; tampering, a swapped verification method and an unlisted key all fail to verify; the served bitstring's bits are then read **from `statusOf()` on the deployed resolver**, not from our own state |
+| `npm run probe:serve` in `signer/` | **19 checks / 0 failed** against the running server — same assertions, everything over HTTP, so the issuer document and the two status lists are verified the way a third-party tool would verify them |
 | `forge script … --broadcast` on an anvil fork of 97 | deploy succeeded · **0.0003828 BNB** (3,827,994 gas) |
 | repo contents read back from the GitHub API | **39 files**; no `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env` |
 
@@ -178,6 +181,8 @@ lib/bas/src/                 verbatim copy of the BAS interface — auditable, n
 test/                        21 offline · 38 resolver fork · 9 end-to-end fork
 script/                      DeployCredentials.s.sol · SeedDemo.s.sol
 web/                         verification page (Vite + vanilla TS + viem, static)
+signer/                      OpenBadgeCredential 3.0 signing + BitstringStatusList derived from chain
+                             (plain ESM; see signer/README.md for what it does not claim yet)
 vault/                       project context: why it is shaped like this
 ```
 

@@ -23,6 +23,11 @@ dist/
 *.key
 secrets.json
 
+# Kunci Ed25519 agen demo (Multikey, teks) yang dibuat signer/scripts/agent.js.
+# `*.key` di atas tidak menangkapnya karena berkasnya ber-ekstensi .json.
+.keys/
+signer/.keys/
+
 # Editor / OS
 .obsidian/
 .DS_Store

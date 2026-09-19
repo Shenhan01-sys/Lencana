@@ -9,7 +9,7 @@
 | On-chain layer (2 contracts) | ✅ written · **68 tests pass on fork chain 97 and 56** · deploy proven on a fork |
 | Verification page | ✅ built · typecheck + build pass · **probe 41 checks / 0 failed against live chain state (19 Sep)**, covering four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" |
 | Reproducible demo data | ✅ `SeedDemo` seeds four distinct verdicts and converges in **two documented runs**; verified on a clean fork 19 Sep. The cause of the old failure was EAS's UID formula, not our code — see [03-evidence-and-limits.md](03-evidence-and-limits.md) |
-| Credential-signing backend | ⬜ **does not exist.** The blocker is no longer ignorance — the document format is now read. What blocks it: **the status-list decision below** |
+| Credential-signing backend | 🟡 **exists and is measured** (`app/signer/`, 19 Sep): `OpenBadgeCredential` 3.0 signed with `DataIntegrityProof` + `eddsa-rdfc-2022`, two BitstringStatusLists served, **36 checks + 19 over-HTTP checks, 0 failed**. Still missing: the `timestamp()` anchor of each bitstring hash on BAS, one end-to-end issue→anchor→sign command, and the `vc.1ed.tech` run below |
 | Real course content | ⬜ none. Without it there is nothing to demonstrate |
 | Deploy to public testnet | ⬜ keys exist now (burners, generated locally); blocked on **funding** only. The deployer address is the `deployer` line printed by `DeployCredentials.s.sol` |
 | Repository | ✅ `github.com/Shenhan01-sys/Lencana` (public). ⚠️ History starts **17 Sep**, not day one |
@@ -64,13 +64,14 @@ the verification frontend, which is user-facing, will carry a language switch.
    claim"* (no account, no minimum, 12 h cooldown) — the only human step left is its bot check. Fund
    one wallet and deployment becomes a single command; measured on a fork, everything we deploy costs
    **0.0003828 BNB**, so one claim covers this project hundreds of times over.
-2. **🧠 A decision to take before the backend is written** — how our on-chain revocation becomes
-   visible to a standard Open Badges verifier. Three options are analysed in
-   [02-architecture.md](02-architecture.md#one-decision-still-open-a-standard-status-list-vs-our-on-chain-revocation);
-   the recommendation is **A**: a bitstring status list **derived from chain state**, its hash
-   recorded with `timestamp()` on BAS. **Why it matters and is not cosmetic:** without it, our
-   credential can pass a third-party validator while showing "ACTIVE" for a certificate we already
-   revoked.
+2. **🧠 ~~A decision to take before the backend is written~~ → taken 19 Sep (option A)** — the
+   status list is built and served from chain state. What replaced the decision as the blocker is
+   the **interoperability run**: until a credential passes `https://vc.1ed.tech`, the phrase to use
+   is "built to the specification", never "1EdTech compatible". Three options are still analysed in
+   [02-architecture.md](02-architecture.md#d241--decided-19-sep-option-a-a-bitstring-status-list-derived-from-chain-state)
+   for the record, with the refinement building it forced: **two** lists (`revocation` +
+   `suspension`), because one bit cannot hold both a permanent revocation and a recoverable
+   delisting.
 3. **✍️ The course itself** — topic, rubric, essay question, and who the demo "institution" is. This
    is a product decision, and nothing demos without it.
 

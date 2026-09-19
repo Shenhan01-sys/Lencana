@@ -356,7 +356,13 @@ institution" — on chain its minter is us, and that is publicly visible.
 | 19 Sep | **The platform mints the artifact; the agent only signs the claim.** Found by measuring, not by designing: `SoulboundCert.mint()` admits one `owner()`, which cannot be "each third-party agent". `DeployCredentials` now passes the deployer, not the issuer |
 | 19 Sep | **`SeedDemo` is documented as two runs.** An EAS UID contains the mined `block.timestamp`, so no single script run can chain or revoke on a UID it just created. `--slow` was re-tested and does **not** fix it; the script now refuses to broadcast a guessed UID |
 
-## 🔴 One decision still open: a standard status list vs our on-chain revocation
+## ✅ D24.1 — DECIDED 19 Sep: option A, a bitstring status list derived from chain state
+
+> Taken by the builder on 19 Sep. `signer/` is the implementation; the numbers below are its
+> measured state, not a plan. Two things are still open inside A and are named as tasks, not hidden
+> in prose: the hash of each served bitstring is **not yet** recorded on BAS via `timestamp()`, and
+> the document has **not yet** passed `https://vc.1ed.tech`. Until the second one happens, the word
+> to use is "built to the specification", never "interoperable".
 
 An Open Badges verifier **does not read the chain**. Status checking is defined for exactly one type:
 
@@ -371,9 +377,21 @@ tool.
 
 | option | contents | cost |
 |---|---|---|
-| **A** ⭐ | A bitstring status list **derived from chain state** — read `revocationTime != 0` **and `isDelisted(attester)`**, build the bitstring, sign it as a status list credential, serve it at a URL — and the **bitstring hash recorded with `timestamp()` on BAS**, so anyone can prove the served list was not edited | Interoperable **and** non-repudiable. Honest wording: *"we serve the list; we cannot silently change its hash."* **Bonus since 19 Sep:** because the list is derived from chain state, platform **delisting also reaches third-party verifiers** — otherwise it would only ever appear on our own page. ±1–2 days |
+| **A** ⭐ **← BUILT** | A bitstring status list **derived from chain state** — read `revocationTime != 0` **and `isDelisted(attester)`**, build the bitstring, sign it as a status list credential, serve it at a URL — and the **bitstring hash recorded with `timestamp()` on BAS**, so anyone can prove the served list was not edited | Interoperable **and** non-repudiable. Honest wording: *"we serve the list; we cannot silently change its hash."* **Bonus since 19 Sep:** because the list is derived from chain state, platform **delisting also reaches third-party verifiers** — otherwise it would only ever appear on our own page. ⚠️ Refined while building: that bonus needs **two** lists (`revocation` + `suspension`), not one — see the note below the table |
 | B | Drop `credentialStatus` (allowed — it is optional `[0..1]`) | No work, but standard verifiers never see revocation → our page is the only correct one. That is a closed platform, not public verification |
 | C | A custom `type` pointing at our API | ⚠️ **Trap.** `additionalProperties: true` allows it, but §9.1 defines no behaviour for foreign types → validators **skip** the status check and tell nobody. This is B wearing A's clothes |
+
+**What building it changed about the plan.** Option A was written as *one* list whose bits come from
+`revocationTime != 0` **or** `isDelisted(attester)`. That would have thrown away the one thing D30 was
+built to create: EAS revocation is permanent, delisting is recoverable, and a single bit cannot say
+both. The Bitstring Status List spec already offers the vocabulary — `revocation` is *"not
+reversible"*, `suspension` is *"reversible"* — and allows more than one `credentialStatus` entry per
+credential, so `signer/` publishes **two** lists and the credential references both. The distinction
+therefore survives the trip through a third party's tool instead of collapsing at our border.
+
+One thing is deliberately **not** in any list: expiry. The document carries `validUntil` and verifiers
+read that themselves; encoding expiry a second time in a bitstring creates two sources of truth that
+are allowed to disagree.
 
 ## Third-party addresses (verified, not copied from docs)
 
