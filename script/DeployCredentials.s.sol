@@ -62,10 +62,12 @@ contract DeployCredentials is Script {
         resolver.registerSchema();
         resolver.addIssuer(issuer);
 
-        // Kunci penerbit artefak = issuer: pihak yang menandatangani VC-lah yang mencetak
-        // artefaknya, supaya identitas penerbit konsisten di lapis dokumen dan lapis chain.
-        // Nama & symbol ini yang tampil di wallet peserta, jadi ini bagian dari produk.
-        SoulboundCert certs = new SoulboundCert(ICredentialRegistry(address(resolver)), "Lencana", "LNC", issuer);
+        // Pemilik artefak = PLATFORM (deployer), bukan agen penerbit. Ini konsekuensi D30:
+        // penerbitnya banyak dan bukan milik kami, sedangkan `mint()` hanya mengakui satu
+        // owner. Pembagian yang tersisa: agen membuat klaimnya di BAS atas namanya sendiri,
+        // platform yang mencetak salinan artefaknya. Nama & symbol ini yang tampil di wallet
+        // peserta, jadi lapis ini memang wajah platform — bukan wajah salah satu agennya.
+        SoulboundCert certs = new SoulboundCert(ICredentialRegistry(address(resolver)), "Lencana", "LNC", deployer);
 
         vm.stopBroadcast();
 

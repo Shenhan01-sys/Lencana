@@ -7,11 +7,11 @@
 | | |
 |---|---|
 | On-chain layer (2 contracts) | ✅ written · **60 tests pass on fork chain 97 and 56** · deploy proven on a fork |
-| Verification page | ✅ built · typecheck + build pass · **probe 19/19 against a live chain** (17 Sep, active-credential path) · ⚠️ **needs a re-run**: `statusOf` widened to 7 values for issuer delisting, so the probe now declares 20 checks and the local anvil fork still holds a stale 2-field resolver |
-| Reproducible demo data | 🟡 script exists, **1 transaction still fails**, and it leaves the demo state incomplete |
+| Verification page | ✅ built · typecheck + build pass · **probe 41 checks / 0 failed against live chain state (19 Sep)**, covering four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" |
+| Reproducible demo data | ✅ `SeedDemo` seeds four distinct verdicts and converges in **two documented runs**; verified on a clean fork 19 Sep. The cause of the old failure was EAS's UID formula, not our code — see [03-evidence-and-limits.md](03-evidence-and-limits.md) |
 | Credential-signing backend | ⬜ **does not exist.** The blocker is no longer ignorance — the document format is now read. What blocks it: **the status-list decision below** |
 | Real course content | ⬜ none. Without it there is nothing to demonstrate |
-| Deploy to public testnet | ⬜ blocked on a wallet holding testnet BNB |
+| Deploy to public testnet | ⬜ keys exist now (burners, generated locally); blocked on **funding** only. The deployer address is the `deployer` line printed by `DeployCredentials.s.sol` |
 | Repository | ✅ `github.com/Shenhan01-sys/Lencana` (public). ⚠️ History starts **17 Sep**, not day one |
 | Event registration | ⬜ not done. Required before submitting; the detailed rubric is only opened to registered participants |
 
@@ -35,10 +35,11 @@ the verification frontend, which is user-facing, will carry a language switch.
         label translated. Translating a spec quote turns a citation into a paraphrase
 - [ ] Solidity test names and revert messages are currently Indonesian. Converting them is cheap but
       touches every test file — decide once, before the demo video, and don't do it halfway
-- [ ] 🔴 **Redeploy the anvil fork, then re-run `npm run probe`.** The running fork still holds the
-      old **2-field** resolver; the schema is now 3 fields and `statusOf` returns 7 values, so the
-      probe would fail on the schema rather than on the page. Do not report a probe count until this
-      is green again — the "19/19" in the tables above is a **17 Sep** result
+- [x] ~~Redeploy the anvil fork, then re-run `npm run probe`~~ — **done 19 Sep**: fresh fork, contracts
+      redeployed from current source, `SeedDemo` run twice, probe **41 checks / 0 failed**. Two
+      findings came out of it: `--slow` was never the fix for the failing seed transactions, and
+      `SoulboundCert.mint()` accepting only its owner makes the **platform** the artifact minter once
+      its issuers are third parties (D30). Both recorded where they belong.
 - [ ] 🔴 **Issuance relayer** (`attestByDelegation`). The platform fronts issuance gas while the
       third-party agent stays the `attester`. This is **off-chain only** — no contract and no
       `schemaUID` impact. Everything needed is verified in
@@ -81,7 +82,7 @@ the verification frontend, which is user-facing, will carry a language switch.
 
 | dates | target |
 |---|---|
-| 17–18 Sep | `SeedDemo` clean + REVOKED-path probe green · status-list decision taken |
+| 17–18 Sep | ~~`SeedDemo` clean + REVOKED-path probe green~~ → **done 19 Sep**, one day late: the seed converges in two runs and the probe now covers `REVOKED`, `ISSUER_DELISTED` and the chained path. ⚠️ **status-list decision still not taken** — it has slipped every day since 17 Sep and it blocks the signing backend |
 | 19–21 Sep | signing backend working · one real course with content |
 | 22–23 Sep | `vc.1ed.tech` check · **agent go/no-go** |
 | 24–26 Sep | deploy to 97 · x402 layer (Uji A) · tighten the scenes |

@@ -10,7 +10,7 @@ written as "not tested" rather than skipped.
 | `forge test --no-match-path "*.fork.t.sol"` | **21 passed / 0 failed** (offline, ~21 ms) | the soulbound artifact mechanics are right: transfer, approve and burn all refused; `locked()` always true; the ERC-5192 interfaceId matches; a delisted issuer's artifact is refused and returns after relisting |
 | `forge test --evm-version cancun --fork-url <chain 97>` | **60 passed / 0 failed** | the whole on-chain layer works against **BAS as actually deployed on chain 97** |
 | `forge test --evm-version cancun --fork-url <chain 56>` | **60 passed / 0 failed**, **identical gas** | cross-check: the primitive is the same on mainnet; the result is not a state coincidence |
-| `npm run probe` in `web/` | **19/19 passed** against a live chain (17 Sep) · ⚠️ **STALE — not re-run since** | the verification page reads real chain data correctly: identity, status, holder, artifact, prerequisite chain, `isIssuer`. ⚠️ `statusOf` has since widened from 6 to **7 values** (`issuerDelisted`, see [02-architecture.md](02-architecture.md)) and the probe now declares **20 checks**. Until it is re-run against a redeployed fork, treat the probe as **unproven** — the local anvil fork still holds the old 2-field resolver, so re-running today would fail on the schema, not on the page |
+| `npm run probe` in `web/` | **41 checks / 0 failed** against a live anvil fork of chain 97 (19 Sep) | the verification page reads real chain data correctly: identity, status, holder, artifact, prerequisite chain, `isIssuer`, `isDelisted`. It now walks **four verdicts on one chain**: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" — the last two pairs being exactly the distinctions that used to be provable only inside forge tests |
 | `forge script … --broadcast` on an anvil fork of 97 | succeeded · paid **0.0002934787 BNB** | resolver + artifact + `registerSchema()` + whitelist actually work on real chain state |
 | dry-run of the same script | succeeded · **3,827,994 gas = 0.0003828 BNB** | the deploy path is ready and costs pocket change |
 | `eth_getCode` + `eth_call` on BAS | 18,881 B identical on 56 and 97; `getSchemaRegistry()` answers exactly as its README table | the primitive we depend on is real and documented honestly |
@@ -24,27 +24,38 @@ Everything labelled *fork* is tested against a third party's real deployment, no
 | claim | actual state |
 |---|---|
 | ❌ "our contracts are live on testnet" | Every success above is a **fork** (real state, no real transaction) or **local anvil**. We have no public address yet |
-| ⚠️ "the verification page is tested end to end" | The probe passed, but on an **active** credential. The **REVOKED** path is proved by forge tests only, because the demo data is still incomplete (see below). Fix the seed script before writing that sentence in a submission |
+| ⚠️ "the verification page is tested end to end" | Tested against **real chain state**, which is not the same thing: no browser run, no third-party validator, and the RPC is a node we point at. Safe wording: *the page's data layer is verified against deployed contract state, including the revoked and delisted paths* |
 | ❌ "our credential is compatible with the 1EdTech validator" | **Never run.** It is a target, not a result |
 | ❌ "HTTP 402 payment works" | What was proven in x402 is **on-chain settlement**. A server answering `402` with a client sending a `PAYMENT` header has **never been executed** |
 | ❌ Indonesian e-learning market figures | **Zero primary evidence**, not shrunken numbers. Do not fill with guesses |
 | ❌ "no competitors in this niche" | Credentialing competitors (POAP / Galxe / Layer3 / Sismo / Gitcoin Passport) were **never researched**. The "no competitors" claim rests only on four scraped submissions |
 | ⚠️ "BAS is a well-maintained project" | Its addresses are alive, but the repo has 3 stars and its last functional commit is May 2024 |
 
-## Known broken and not yet fixed
+## Solved: the seed script that could not finish in one run
 
-**`script/SeedDemo.s.sol` leaves incomplete demo state on the local fork.**
+`script/SeedDemo.s.sol` used to leave incomplete demo state: the base credential read ACTIVE while
+the advanced credential and the revocation never landed. The suspicion recorded here for two days
+("probably our own `AlreadyIssued` guard firing under `--slow`") was **wrong**.
 
-The script was made idempotent (3 failing transactions → 1), but **one `attest` transaction still
-fails**, and `--slow` **aborts every transaction after a failure**. So: the **base** credential
-exists and reads ACTIVE, while the **advanced** credential and the **revocation** never landed.
-The cause is **not confirmed**; what is confirmed is that replaying the same call as an `eth_call`
-on the immediately preceding block **succeeds** — so it is an ordering/state issue at broadcast
-time, not the calldata.
+The confirmed cause is the primitive, not our code. An EAS UID is
+`keccak256(schema, recipient, attester, block.timestamp, expirationTime, revocable, refUID, data, bump)`
+— it contains the timestamp of the **mined** transaction. A script can only ever hold a simulation
+estimate for a credential it is creating in the same process, and two steps need that value as an
+argument: `attest(refUID = uid)` for the advanced course and `revoke(uid)` for the base. Broadcasting
+an estimate is what failed; and because `--slow` aborts every transaction after the first failure, the
+run left the state half-built.
 
-The interesting part: the most likely cause is **our own anti-duplication guard** (`AlreadyIssued`)
-doing its job correctly when `--slow` re-executes the script. Our feature was caught in production
-by our own tooling. Not a product or security blocker — a demo-convenience blocker.
+`--slow` was re-tested on a clean fork on 19 Sep and **does not fix it**: one `--slow` run still
+completes only pass 1's work. The fix is structural and lives in the script — it records whether each
+credential was already on chain *before* the process started, runs the UID-dependent steps only in
+that case, and otherwise stops after the UID-free scenes and prints why. So the documented sequence
+is **two runs**: the first seeds everything that needs no UID, the second reads real UIDs, finishes
+the chain and the revocation, prints the report, and every run after that is a no-op. Measured on a
+clean fork, then measured again by the 41-check probe.
+
+The general rule taken from this: **a script may consume hashes, which it can compute, but never
+UIDs, which only the chain knows.** Every input the page and the probe take is a credential hash for
+exactly that reason.
 
 ## Claims we forbid ourselves
 

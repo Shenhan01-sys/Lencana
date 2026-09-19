@@ -7,7 +7,7 @@
 | **Credential** | us (off-chain) | `OpenBadgeCredential` JSON-LD, signed by the issuer's key. **This is the credential** |
 | **Anchor · revocation · expiry · timestamp** | **BAS** (third party, already deployed) | `attest()` / `revoke()` / `timestamp()` / `revokeOffchain()` — **zero Solidity written by us** |
 | **Issuer admission + prerequisite chain + delisting** | `contracts/CredentialResolver.sol` (ours) | issuer whitelist; rejects prerequisites that are revoked / expired / belonging to someone else / not ours / **issued by a delisted agent**; `delistIssuer()` as the only brake the platform has over a third-party issuer; `statusOf()` & `holderOf()` for verifiers |
-| **Learner artifact** | `contracts/SoulboundCert.sol` (ours) | ERC-721 + ERC-5192; `mint()` refuses a credential that is not live; transfer / approve / burn all refused |
+| **Learner artifact** | `contracts/SoulboundCert.sol` (ours) | ERC-721 + ERC-5192; `mint()` refuses a credential that is not live; transfer / approve / burn all refused. **Minted by the platform, not by the agent** — `mint()` admits one owner while issuers are many and third-party (D30) |
 
 ```
 OpenBadgeCredential JSON  --keccak256-->  credentialHash
@@ -325,6 +325,13 @@ repeated verification by parties with a budget.
 apart: the agent signs, the platform pays, and the platform's share of the agent's x402 revenue makes
 it whole.
 
+There is a **third** axis, and it was discovered by measurement rather than by design: *who mints the
+soulbound artifact*. `SoulboundCert.mint()` accepts exactly one caller — its `owner()`. Since D30 the
+issuers are many and none of them is us, so one issuance key cannot also be the artifact key for all
+of them. The split that survived: **the agent's claim is the attestation, the NFT is the platform's
+presentation of it**, minted by the platform's key. Do not describe the artifact as "issued by the
+institution" — on chain its minter is us, and that is publicly visible.
+
 ## Locked decisions
 
 | date | decision |
@@ -341,6 +348,8 @@ it whole.
 | 19 Sep | **Agents are third-party owned; Lencana is only the venue.** The agent itself is the `attester`, holding its own key |
 | 19 Sep | **`delistIssuer()` added before any public deploy.** EAS gives the platform no revocation power over a third-party attestation, so delisting is the only brake — and it is a **distinct verdict from `revoked`**. `statusOf()` widened to 7 values |
 | 19 Sep | **Issuance gas fronted by the platform via `attestByDelegation`**, recovered from the platform's share of x402 fees. Off-chain only — no contract or `schemaUID` impact |
+| 19 Sep | **The platform mints the artifact; the agent only signs the claim.** Found by measuring, not by designing: `SoulboundCert.mint()` admits one `owner()`, which cannot be "each third-party agent". `DeployCredentials` now passes the deployer, not the issuer |
+| 19 Sep | **`SeedDemo` is documented as two runs.** An EAS UID contains the mined `block.timestamp`, so no single script run can chain or revoke on a UID it just created. `--slow` was re-tested and does **not** fix it; the script now refuses to broadcast a guessed UID |
 
 ## 🔴 One decision still open: a standard status list vs our on-chain revocation
 

@@ -28,13 +28,15 @@ mechanical questions instead. See [02-architecture.md](02-architecture.md).
 | | who | relationship to crypto |
 |---|---|---|
 | **Rina, 24** — learner | takes the course, submits work, receives a certificate | **none.** Never sees a seed phrase, never signs a transaction, never pays for the certificate |
-| **A training institution** — issuer and sponsor | writes the course, sets the pass standard, **pays** for on-chain issuance | holds one key, held by its agent |
+| **A training institution** — issuer and sponsor | writes the course, sets the pass standard | owns the agent, therefore owns the **issuance** key. It is a third party to us: we admit it, and we can delist it, but we cannot sign, speak or revoke on its behalf |
 | **Bagas, HR** — verifier | receives hundreds of applicants, wants to know which are real | **none.** Opens a URL, pastes a code |
 
 The hackathon track literally reads *"social, gaming and loyalty with **seamless UX**"*. Wallet-free
 onboarding is therefore the product, not a feature. The mechanism is boring and that is the point:
-**the issuer pays the gas**, so the learner never sends a transaction. We deliberately avoid
-ERC-4337 / paymasters, because their availability on BSC was never verified.
+**the learner never sends a transaction**. What pays for that comfort (D31): the platform *fronts*
+the issuance gas and recovers it from the issuer's fee share, so "the issuer pays" is true as
+economics and false as plumbing — the issuer's key signs, our wallet broadcasts. We deliberately
+avoid ERC-4337 / paymasters, because their availability on BSC was never verified.
 
 ## The real flow, step by step
 

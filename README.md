@@ -40,9 +40,9 @@ Every number below is the output of a command that was run, not a plan.
 | command | result |
 |---|---|
 | `forge test --no-match-path "*.fork.t.sol"` | **21 passed / 0 failed** (offline) |
-| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | **60 passed / 0 failed** on **chain 97** |
-| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **60 passed / 0 failed** on **chain 56**, identical gas figures |
-| `npm run probe` in `web/` | **19/19 passed** against a real chain (17 Sep) · ⚠️ **stale, not re-run**: `statusOf` has since widened to 7 values and the probe now declares 20 checks |
+| `forge test --evm-version cancun --fork-url <anvil fork of 97>` | **60 passed / 0 failed** on **chain 97** (19 Sep) |
+| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **60 passed / 0 failed** on **chain 56** (19 Sep), identical gas figures |
+| `npm run probe` in `web/` | **41 checks / 0 failed** against a live anvil fork of chain 97 (19 Sep), exercising four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid but its prerequisite is revoked" |
 | `forge script … --broadcast` on an anvil fork of 97 | deploy succeeded · **0.0003828 BNB** (3,827,994 gas) |
 | repo contents read back from the GitHub API | **39 files**; no `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env` |
 
@@ -51,8 +51,7 @@ chain** — not a copy we deployed ourselves. Those are also the addresses a jud
 
 **What is not proven, and must not be claimed:** no contract is live on a public testnet (every
 success above is a *fork* — real state, no real transaction); the page has never been run against a
-third-party validator; the HTTP 402 payment layer has never been executed; and the page's
-"revoked" path is still covered only by forge tests, not by the probe. Details:
+third-party validator; the HTTP 402 payment layer has never been executed. Details:
 [`vault/03-evidence-and-limits.md`](vault/03-evidence-and-limits.md).
 
 ## How it works
@@ -125,19 +124,29 @@ Prove it without funds and without a real deploy — fork chain 97 into a local 
 anvil --fork-url https://bsc-testnet.publicnode.com --port 8545 --chain-id 97 --silent
 
 set DEPLOYER_PRIVATE_KEY=<anvil test key #0>
-set ISSUER_ADDRESS=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+set ISSUER_ADDRESS=<anvil test key #1 address>
 forge script script/DeployCredentials.s.sol:DeployCredentials --rpc-url http://127.0.0.1:8545 --broadcast
 
 set ISSUER_PRIVATE_KEY=<anvil test key #1>
+set ISSUER_B_PRIVATE_KEY=<anvil test key #2>
 set RESOLVER_ADDRESS=<from above>
 set CERT_ADDRESS=<from above>
-forge script script/SeedDemo.s.sol:SeedDemo --rpc-url http://127.0.0.1:8545 --broadcast --slow
+forge script script/SeedDemo.s.sol:SeedDemo --rpc-url http://127.0.0.1:8545 --broadcast
+forge script script/SeedDemo.s.sol:SeedDemo --rpc-url http://127.0.0.1:8545 --broadcast
 ```
 
-**`--slow` on `SeedDemo` is required, not "slow by preference".** EAS computes an attestation UID
-partly from `block.timestamp`; a plain `forge script` broadcasts **the calldata produced during
-simulation**, so any UID-dependent argument goes stale once it lands in a different block. Without
-`--slow`: three transactions fail.
+**`SeedDemo` is run TWICE, and that is a property of EAS, not of the script.** An attestation UID
+is `keccak256(schema, recipient, attester, block.timestamp, expirationTime, revocable, refUID,
+data, bump)` — it contains the timestamp of the **mined** transaction, which the script cannot know
+while it is still simulating. Two steps need a real UID: issuing the advanced course *on top of*
+the basic one (`refUID`), and revoking the basic one. So the first run seeds everything that needs
+no UID and stops; the second run finds those attestations already on chain, reads their real UIDs,
+and finishes the chain, the revocation and the report. The script is idempotent from there on.
+
+It does **not** broadcast stale calldata when run once, and `--slow` is neither required nor
+sufficient — both were measured on a clean fork (19 Sep): one run with `--slow` still leaves
+pass 1's job unfinished. What the page consumes is the credential **hash**, which is deterministic;
+that is why the printed UIDs carry a warning and the hashes do not.
 
 ### Verification page
 

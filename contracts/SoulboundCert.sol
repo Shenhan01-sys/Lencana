@@ -95,9 +95,15 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
     // ------------------------------------------------------------------ mint
 
     /// @notice Mencetak artefak untuk satu kredensial yang sedang hidup.
-    /// @dev `msg.sender` harus kunci penerbit (owner). Dalam produk, kuncinya dipegang agen
-    /// AI penerbit di bawah anggaran institusi — tapi itu tidak mengubah apa pun di sini:
-    /// yang sah hanya satu alamat, dan alamat itu terlihat publik.
+    /// @dev `msg.sender` harus owner kontrak ini. sejak D30 itu BUKAN agen penerbit:
+    /// penerbitnya banyak dan milik pihak ketiga, sedangkan satu kunci mint hanya bisa
+    /// satu alamat. Pembagian yang tersisa dan yang kami pakai:
+    ///   attestation = klaim AGEN, dicatat di BAS atas nama agen itu (D30/D31);
+    ///   artefak     = salinan penyajian dari PLATFORM, dicetak di sini.
+    /// Jadi `NotIssuer` di bawah ini dibaca "bukan pencetak artefak yang sah", dan yang
+    /// sah itu alamat platform — yang juga publik, dan juga bisa diganti lewat
+    /// `transferOwnership`. Yang tidak berubah: artefak tetap tidak punya daya apa pun
+    /// atas kredensialnya; ia hanya menunjuk hash-nya.
     function mint(address learner, bytes32 credentialHash, string calldata uri) external returns (uint256) {
         if (msg.sender != owner()) revert NotIssuer(msg.sender);
         if (learner == address(0)) revert ZeroAddress();
