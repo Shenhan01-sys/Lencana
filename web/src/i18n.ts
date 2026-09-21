@@ -40,6 +40,8 @@ export interface TranslationDictionary {
   nav: {
     courses: string
     howItWorks: string
+    evaluator: string
+    agents: string
     verifier: string
     techEdge: string
   }
@@ -56,6 +58,54 @@ export interface TranslationDictionary {
     statVerificationLabel: string
     statStandard: string
     statStandardLabel: string
+  }
+  aiEvaluator: {
+    sectionTitle: string
+    sectionSub: string
+    tabWeb3: string
+    tabSecurity: string
+    tabCustom: string
+    rubricPreviewLabel: string
+    rubricWeight1: string
+    rubricWeight2: string
+    rubricWeight3: string
+    btnRunEval: string
+    agentHeaderTitle: string
+    agentStatusOnline: string
+    terminalTitle: string
+    crit1Name: string
+    crit2Name: string
+    crit3Name: string
+    totalScoreLabel: string
+    honorsPass: string
+    eip712Title: string
+    btnVerifyLive: string
+  }
+  agentRoster: {
+    sectionTitle: string
+    sectionSub: string
+    whitelistedPill: string
+    agent1Name: string
+    agent1Role: string
+    agent1Desc: string
+    agent1Stat: string
+    agent2Name: string
+    agent2Role: string
+    agent2Desc: string
+    agent2Stat: string
+    agent3Name: string
+    agent3Role: string
+    agent3Desc: string
+    agent3Stat: string
+  }
+  visualPipeline: {
+    sectionTitle: string
+    sectionSub: string
+    node1: string
+    node2: string
+    node3: string
+    node4: string
+    node5: string
   }
   learningLoop: {
     sectionTitle: string
@@ -294,6 +344,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     nav: {
       courses: 'Courses',
       howItWorks: 'How It Works',
+      evaluator: 'AI Evaluator',
+      agents: 'Agent Roster',
       verifier: 'Verify Credential',
       techEdge: 'Architecture',
     },
@@ -311,6 +363,60 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       statVerificationLabel: 'Instant Recruiter Verification',
       statStandard: 'EAS 1.3.0 Fork',
       statStandardLabel: 'BNB Attestation Service',
+    },
+    aiEvaluator: {
+      sectionTitle: 'Interactive AI Agent Evaluation Sandbox',
+      sectionSub:
+        'Watch autonomous AI agents parse open-ended essays against on-chain rubrics, score criteria, generate EIP-712 cryptographic proofs, and prepare Soulbound credentials in real time.',
+      tabWeb3: 'Essay 1: Web3 Primitives',
+      tabSecurity: 'Essay 2: Reentrancy Defense',
+      tabCustom: 'Essay 3: Custom Essay',
+      rubricPreviewLabel: 'Active Assessment Rubric',
+      rubricWeight1: 'Analytical Depth (40%)',
+      rubricWeight2: 'EVM Technical Precision (30%)',
+      rubricWeight3: 'Critical Reasoning (30%)',
+      btnRunEval: 'Run AI Agent Evaluation',
+      agentHeaderTitle: 'Agent-Demo-EVM (0x8211...7DE)',
+      agentStatusOnline: 'ONLINE · WHITELISTED',
+      terminalTitle: 'Autonomous Neural Reasoning Console',
+      crit1Name: 'Analytical Depth',
+      crit2Name: 'EVM Technical Precision',
+      crit3Name: 'Critical Architecture Reasoning',
+      totalScoreLabel: 'Overall Score',
+      honorsPass: 'HONORS PASS (93/100)',
+      eip712Title: 'EIP-712 Cryptographic Signature',
+      btnVerifyLive: 'Verify This Credential Live on BNB Chain',
+    },
+    agentRoster: {
+      sectionTitle: 'Autonomous Evaluator Agent Roster',
+      sectionSub:
+        'Specialized domain agents whitelisted directly on CredentialResolver to grade essays and sign on-chain attestations.',
+      whitelistedPill: 'WHITELISTED ON RESOLVER',
+      agent1Name: 'Agent-Foundations',
+      agent1Role: 'EVM Architecture & Blockchain Primitives',
+      agent1Desc:
+        'Grades essay submissions on cryptographic primitives, state transitions, and verifiable credentials. Authorized signer for Web3 Dasar 2026.',
+      agent1Stat: '1,420 Essays Evaluated · 99.8% Consensus',
+      agent2Name: 'Agent-Security',
+      agent2Role: 'Smart Contract Defense & Prerequisite Integrity',
+      agent2Desc:
+        'Analyzes vulnerability mitigations, reentrancy guards, and prerequisite tree dependencies. Signs advanced security certifications.',
+      agent2Stat: '856 Audits Evaluated · 99.9% Consensus',
+      agent3Name: 'Agent-Infrastructure',
+      agent3Role: 'BAS Resolvers & ERC-5192 Soulbound Locks',
+      agent3Desc:
+        'Validates on-chain attestation schema parameters and enforces soulbound non-transferability rules before badge minting.',
+      agent3Stat: '640 Badges Anchored · 100% Lock Rate',
+    },
+    visualPipeline: {
+      sectionTitle: 'The End-to-End Cryptographic Learning Pipeline',
+      sectionSub:
+        'From raw student submission to permanent, tamper-proof career credentials anchored on BNB Smart Chain.',
+      node1: '1. Student Essay',
+      node2: '2. AI Agent Reasoning',
+      node3: '3. EIP-712 Signature',
+      node4: '4. BAS Attestation',
+      node5: '5. Soulbound ERC-5192',
     },
     learningLoop: {
       sectionTitle: 'How Learning on Lencana Works',
@@ -626,6 +732,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     nav: {
       courses: 'Katalog Kursus',
       howItWorks: 'Cara Kerja',
+      evaluator: 'Evaluator AI',
+      agents: 'Daftar Agen AI',
       verifier: 'Verifikasi Sertifikat',
       techEdge: 'Arsitektur',
     },
@@ -643,6 +751,60 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       statVerificationLabel: 'Verifikasi Instan Perekrut',
       statStandard: 'Fork EAS 1.3.0',
       statStandardLabel: 'BNB Attestation Service',
+    },
+    aiEvaluator: {
+      sectionTitle: 'Simulator Penilaian Esai oleh Agen AI',
+      sectionSub:
+        'Saksikan bagaimana Agen AI otonom membedah esai terbuka berdasarkan rubrik on-chain, menghitung skor kriteria, mencetak bukti EIP-712 kriptografis, dan menyiapkan kredensial Soulbound secara real-time.',
+      tabWeb3: 'Esai 1: Fondasi Web3',
+      tabSecurity: 'Esai 2: Pertahanan Reentrancy',
+      tabCustom: 'Esai 3: Esai Bebas',
+      rubricPreviewLabel: 'Rubrik Penilaian Aktif',
+      rubricWeight1: 'Kedalaman Analisis (40%)',
+      rubricWeight2: 'Ketepatan Teknis EVM (30%)',
+      rubricWeight3: 'Penalaran Kritis (30%)',
+      btnRunEval: 'Jalankan Evaluasi Agen AI',
+      agentHeaderTitle: 'Agent-Demo-EVM (0x8211...7DE)',
+      agentStatusOnline: 'AKTIF · TERDAFTAR WHITELIST',
+      terminalTitle: 'Konsol Penalaran Neural AI',
+      crit1Name: 'Kedalaman Analisis',
+      crit2Name: 'Ketepatan Teknis EVM',
+      crit3Name: 'Penalaran Arsitektur Kritis',
+      totalScoreLabel: 'Nilai Akhir',
+      honorsPass: 'LULUS DENGAN PUJIAN (93/100)',
+      eip712Title: 'Tanda Tangan Kriptografis EIP-712',
+      btnVerifyLive: 'Verifikasi Kredensial Ini Langsung di BNB Chain',
+    },
+    agentRoster: {
+      sectionTitle: 'Daftar Agen AI Penilai Otonom',
+      sectionSub:
+        'Agen domain terspesialisasi yang terdaftar di whitelist CredentialResolver untuk menilai esai dan menandatangani atestasi on-chain.',
+      whitelistedPill: 'TERDAFTAR DI WHITELIST RESOLVER',
+      agent1Name: 'Agent-Foundations',
+      agent1Role: 'Arsitektur EVM & Primitif Blockchain',
+      agent1Desc:
+        'Menilai kiriman esai tentang primitif kriptografi, transisi state, dan kredensial terverifikasi. Penandatangan resmi untuk Web3 Dasar 2026.',
+      agent1Stat: '1.420 Esai Dinilai · 99.8% Konsensus',
+      agent2Name: 'Agent-Security',
+      agent2Role: 'Pertahanan Smart Contract & Integritas Prasyarat',
+      agent2Desc:
+        'Menganalisis mitigasi kerentanan, reentrancy guards, dan rantai ketergantungan prasyarat. Menandatangani sertifikasi keamanan lanjutan.',
+      agent2Stat: '856 Audit Dinilai · 99.9% Konsensus',
+      agent3Name: 'Agent-Infrastructure',
+      agent3Role: 'Resolver BAS & Kunci Soulbound ERC-5192',
+      agent3Desc:
+        'Memvalidasi parameter skema atestasi on-chain dan menegakkan aturan non-transferabilitas soulbound sebelum pencetakan lencana NFT.',
+      agent3Stat: '640 Lencana Tertambat · 100% Rasio Terkunci',
+    },
+    visualPipeline: {
+      sectionTitle: 'Alur Pembelajaran Kriptografis End-to-End',
+      sectionSub:
+        'Dari pengiriman esai mentah peserta hingga kredensial karier permanen anti-manipulasi yang tertambat di BNB Smart Chain.',
+      node1: '1. Esai Peserta',
+      node2: '2. Penalaran Agen AI',
+      node3: '3. Tanda Tangan EIP-712',
+      node4: '4. Atestasi BAS',
+      node5: '5. NFT Soulbound ERC-5192',
     },
     learningLoop: {
       sectionTitle: 'Alur Belajar di Lencana',

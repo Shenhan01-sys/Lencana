@@ -37,8 +37,10 @@
           </a>
 
           <nav class="nav-links">
-            <a href="#courses" id="nav-courses">Courses</a>
             <a href="#how-it-works" id="nav-how">How It Works</a>
+            <a href="#ai-evaluator" id="nav-evaluator">AI Evaluator</a>
+            <a href="#ai-agents" id="nav-agents">Agent Roster</a>
+            <a href="#courses" id="nav-courses">Courses</a>
             <a href="#verifier" id="nav-verifier">Verifier</a>
             <a href="#architecture" id="nav-tech">Architecture</a>
           </nav>
@@ -61,6 +63,10 @@
       <section class="hero-section">
         <div class="hero-container">
           <div class="hero-copy">
+            <div class="ai-status-ticker">
+              <span class="ai-pulse-dot"></span>
+              <span id="ticker-text">Autonomous AI Evaluator Mesh: Active · 3 Domain Agents Online · BSC Testnet</span>
+            </div>
             <div class="hero-eyebrow" id="hero-eyebrow">BNB CHAIN · NEXT-GEN WEB3 EDTECH</div>
             <h1 class="hero-headline">
               <span id="hero-title-1">Master Web3 Skills.</span><br />
@@ -190,6 +196,296 @@
               The credential hash is anchored to BNB Attestation Service, and a Soulbound ERC-5192 NFT badge is minted to your
               learner address with zero gas fees for you.
             </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3.1 CRYPTOGRAPHIC PIPELINE (VISUAL FLOW) -->
+      <section class="section-container" id="pipeline">
+        <div class="section-header">
+          <div class="section-kicker" id="pipeline-kicker">CRYPTOGRAPHIC DATAFLOW</div>
+          <h2 class="section-title" id="pipeline-title">The End-to-End Cryptographic Learning Pipeline</h2>
+          <p class="section-sub" id="pipeline-sub">
+            From raw student submission to permanent, tamper-proof career credentials anchored on BNB Smart Chain.
+          </p>
+        </div>
+
+        <div class="pipeline-track">
+          <div class="pipeline-node">
+            <div class="node-icon">📝</div>
+            <div class="node-badge">01 · INPUT</div>
+            <h4 class="node-title" id="pnode-1-title">Student Essay</h4>
+            <p class="node-desc" id="pnode-1-desc">Open-ended synthesis comparing EVM primitives &amp; state anchors.</p>
+          </div>
+
+          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+          <div class="pipeline-node highlight">
+            <div class="node-icon">🧠</div>
+            <div class="node-badge">02 · AI AGENT</div>
+            <h4 class="node-title" id="pnode-2-title">Neural Rubric Engine</h4>
+            <p class="node-desc" id="pnode-2-desc">Autonomous LLM agent measures criteria against on-chain rubrics.</p>
+          </div>
+
+          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+          <div class="pipeline-node">
+            <div class="node-icon">✍️</div>
+            <div class="node-badge">03 · CRYPTO</div>
+            <h4 class="node-title" id="pnode-3-title">EIP-712 Signature</h4>
+            <p class="node-desc" id="pnode-3-desc">Agent key signs structured payload (hash, scores, recipient address).</p>
+          </div>
+
+          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+          <div class="pipeline-node highlight">
+            <div class="node-icon">⛓️</div>
+            <div class="node-badge">04 · BAS ANCHOR</div>
+            <h4 class="node-title" id="pnode-4-title">BNB Attestation</h4>
+            <p class="node-desc" id="pnode-4-desc">CredentialResolver registers attestation with immutable timestamp.</p>
+          </div>
+
+          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+          <div class="pipeline-node">
+            <div class="node-icon">🔒</div>
+            <div class="node-badge">05 · ARTIFACT</div>
+            <h4 class="node-title" id="pnode-5-title">Soulbound ERC-5192</h4>
+            <p class="node-desc" id="pnode-5-desc">Locked badge minted to learner's wallet with zero gas fees.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3.2 INTERACTIVE AI AGENT EVALUATION SANDBOX -->
+      <section class="section-container" id="ai-evaluator">
+        <div class="section-header">
+          <div class="section-kicker" id="ai-eval-kicker">LIVE NEURAL EVALUATION ENGINE</div>
+          <h2 class="section-title" id="ai-eval-title">Interactive AI Agent Evaluation Sandbox</h2>
+          <p class="section-sub" id="ai-eval-sub">
+            Watch autonomous AI agents parse open-ended essays against on-chain rubrics, score criteria, generate EIP-712
+            cryptographic proofs, and prepare Soulbound credentials in real time.
+          </p>
+        </div>
+
+        <div class="eval-sandbox-grid">
+          <!-- Left: Student Submission Terminal -->
+          <div class="eval-input-card">
+            <div class="eval-card-header">
+              <span class="eval-card-tag" id="ai-input-tag">STUDENT SUBMISSION STAGE</span>
+              <div class="eval-preset-tabs">
+                <button type="button" class="preset-tab active" id="tab-essay-web3">Web3 Primitives</button>
+                <button type="button" class="preset-tab" id="tab-essay-security">Reentrancy Defense</button>
+                <button type="button" class="preset-tab" id="tab-essay-custom">Custom Essay</button>
+              </div>
+            </div>
+
+            <div class="eval-rubric-strip">
+              <span class="rubric-strip-title" id="ai-rubric-strip-title">Active Rubric Weights:</span>
+              <span class="rubric-chip" id="chip-crit-1">Analytical Depth · 40%</span>
+              <span class="rubric-chip" id="chip-crit-2">EVM Precision · 30%</span>
+              <span class="rubric-chip" id="chip-crit-3">Architecture Defense · 30%</span>
+            </div>
+
+            <div class="eval-textarea-wrap">
+              <textarea id="essay-input" spellcheck="false" rows="7"></textarea>
+            </div>
+
+            <div class="eval-cta-bar">
+              <button type="button" class="btn btn-ai-run" id="btn-run-ai-eval">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                </svg>
+                <span id="btn-run-eval-text">Run AI Agent Evaluation</span>
+              </button>
+              <div class="eval-status-flag" id="eval-status-flag">
+                <span class="flag-dot"></span>
+                <span id="flag-text">Ready for evaluation</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: AI Neural Reasoning Console -->
+          <div class="eval-console-card">
+            <div class="console-header">
+              <div class="agent-avatar-mini">
+                <div class="radar-sweep"></div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6l4 2" />
+                </svg>
+              </div>
+              <div class="agent-meta-group">
+                <div class="agent-name-row">
+                  <span class="agent-title-text" id="ai-agent-console-name">Agent-Demo-EVM</span>
+                  <span class="agent-status-badge" id="ai-agent-console-status">ONLINE · WHITELISTED</span>
+                </div>
+                <code class="agent-key-text">Signer: 0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE</code>
+              </div>
+            </div>
+
+            <!-- Terminal Output Window -->
+            <div class="console-terminal" id="eval-terminal-box">
+              <div class="terminal-line system" id="tline-1">[00.00s] Evaluator initialized. Model: Claude 3.5 Sonnet / Custom Weights.</div>
+              <div class="terminal-line info" id="tline-2">[00.02s] Resolver contract: 0xe01a16e50fd9d8c0ff4230874f8d8c086e811627 (Whitelisted)</div>
+              <div class="terminal-line" id="tline-3">[00.05s] Ready. Select an essay and click Run AI Agent Evaluation.</div>
+            </div>
+
+            <!-- Dynamic Scoring Meters -->
+            <div class="score-meters-container" id="score-meters-container">
+              <div class="meter-row">
+                <div class="meter-labels">
+                  <span class="meter-name" id="lbl-meter-1">Analytical Depth (40%)</span>
+                  <span class="meter-val" id="val-meter-1">-- / 40</span>
+                </div>
+                <div class="meter-bar-track">
+                  <div class="meter-bar-fill" id="fill-meter-1" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div class="meter-row">
+                <div class="meter-labels">
+                  <span class="meter-name" id="lbl-meter-2">EVM Technical Precision (30%)</span>
+                  <span class="meter-val" id="val-meter-2">-- / 30</span>
+                </div>
+                <div class="meter-bar-track">
+                  <div class="meter-bar-fill" id="fill-meter-2" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div class="meter-row">
+                <div class="meter-labels">
+                  <span class="meter-name" id="lbl-meter-3">Critical Architecture Reasoning (30%)</span>
+                  <span class="meter-val" id="val-meter-3">-- / 30</span>
+                </div>
+                <div class="meter-bar-track">
+                  <div class="meter-bar-fill" id="fill-meter-3" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Composite Grade Card -->
+              <div class="composite-grade-box" id="composite-grade-box">
+                <div>
+                  <span class="composite-lbl" id="lbl-composite">Overall Composite Grade</span>
+                  <div class="composite-score" id="val-composite">-- / 100</div>
+                </div>
+                <div class="composite-status" id="badge-composite">AWAITING EVALUATION</div>
+              </div>
+            </div>
+
+            <!-- EIP-712 Signature Box -->
+            <div class="eip712-box" id="eip712-box">
+              <div class="eip712-header">
+                <span class="eip712-tag" id="eip712-tag">EIP-712 CRYPTOGRAPHIC PROOF</span>
+                <span class="eip712-status" id="eip712-status">VALID ECDSA</span>
+              </div>
+              <div class="eip712-digest-row">
+                <span class="digest-lbl">Digest Hash:</span>
+                <code class="digest-val" id="val-eip712-digest">0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</code>
+              </div>
+              <div class="eip712-sig-row">
+                <span class="sig-lbl">ECDSA (r, s, v):</span>
+                <code class="sig-val" id="val-eip712-sig">r: 0x4e2... s: 0x71b... v: 27</code>
+              </div>
+            </div>
+
+            <!-- Action Button: Jump to Live Verifier -->
+            <div class="console-action-footer">
+              <button type="button" class="btn btn-verify-live" id="btn-verify-generated-eval">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+                <span id="btn-verify-eval-text">Verify This Credential Live on BNB Chain ➔</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3.3 AUTONOMOUS EVALUATOR AGENT ROSTER -->
+      <section class="section-container" id="ai-agents">
+        <div class="section-header">
+          <div class="section-kicker" id="roster-kicker">ON-CHAIN WHITELISTED AGENTS</div>
+          <h2 class="section-title" id="roster-title">Autonomous Evaluator Agent Roster</h2>
+          <p class="section-sub" id="roster-sub">
+            Specialized domain agents whitelisted directly on CredentialResolver to grade essays and sign on-chain attestations.
+          </p>
+        </div>
+
+        <div class="agent-roster-grid">
+          <!-- Agent Card 1 -->
+          <div class="agent-card">
+            <div class="agent-card-top">
+              <div class="agent-avatar hex-glow">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F0B90B" stroke-width="1.8">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <span class="agent-whitelist-pill" id="roster-pill-1">● WHITELISTED</span>
+            </div>
+            <h3 class="agent-card-name" id="agent-1-name">Agent-Foundations</h3>
+            <span class="agent-card-role" id="agent-1-role">EVM Architecture &amp; Blockchain Primitives</span>
+            <p class="agent-card-desc" id="agent-1-desc">
+              Grades essay submissions on cryptographic primitives, state transitions, and verifiable credentials. Authorized signer for Web3 Dasar 2026.
+            </p>
+            <div class="agent-card-meta">
+              <div class="agent-key-chip">
+                <span>Signer:</span>
+                <code>0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE</code>
+              </div>
+              <div class="agent-stat-pill" id="agent-1-stat">1,420 Essays Evaluated · 99.8% Consensus</div>
+            </div>
+          </div>
+
+          <!-- Agent Card 2 -->
+          <div class="agent-card">
+            <div class="agent-card-top">
+              <div class="agent-avatar shield-glow">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0ECB81" stroke-width="1.8">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <span class="agent-whitelist-pill ok" id="roster-pill-2">● WHITELISTED</span>
+            </div>
+            <h3 class="agent-card-name" id="agent-2-name">Agent-Security</h3>
+            <span class="agent-card-role" id="agent-2-role">Smart Contract Defense &amp; Prerequisite Integrity</span>
+            <p class="agent-card-desc" id="agent-2-desc">
+              Analyzes vulnerability mitigations, reentrancy guards, and prerequisite tree dependencies. Signs advanced security certifications.
+            </p>
+            <div class="agent-card-meta">
+              <div class="agent-key-chip">
+                <span>Signer:</span>
+                <code>0x3Fa9D4220b30C8aE463b15E8bB8361099238111B</code>
+              </div>
+              <div class="agent-stat-pill" id="agent-2-stat">856 Audits Evaluated · 99.9% Consensus</div>
+            </div>
+          </div>
+
+          <!-- Agent Card 3 -->
+          <div class="agent-card">
+            <div class="agent-card-top">
+              <div class="agent-avatar lock-glow">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9B51E0" stroke-width="1.8">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </div>
+              <span class="agent-whitelist-pill" id="roster-pill-3">● WHITELISTED</span>
+            </div>
+            <h3 class="agent-card-name" id="agent-3-name">Agent-Infrastructure</h3>
+            <span class="agent-card-role" id="agent-3-role">BAS Resolvers &amp; ERC-5192 Soulbound Locks</span>
+            <p class="agent-card-desc" id="agent-3-desc">
+              Validates on-chain attestation schema parameters and enforces soulbound non-transferability rules before badge minting.
+            </p>
+            <div class="agent-card-meta">
+              <div class="agent-key-chip">
+                <span>Signer:</span>
+                <code>0x9B12c8E4b1A55d49603Eb5F3B4075bA78A5244AA</code>
+              </div>
+              <div class="agent-stat-pill" id="agent-3-stat">640 Badges Anchored · 100% Lock Rate</div>
+            </div>
           </div>
         </div>
       </section>
