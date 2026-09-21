@@ -466,6 +466,34 @@ function simulateAiEvaluation() {
       currentLang === 'en' ? 'Evaluating essay against on-chain rubrics...' : 'Mengevaluasi esai dengan rubrik on-chain...'
   }
 
+  // Reset Token Scanner Chips
+  const tokChips = document.querySelectorAll<HTMLElement>('.tok-chip')
+  tokChips.forEach((chip) => chip.classList.remove('active'))
+
+  // Reset Radar Chart & Legend
+  const radarPoly = $('radar-data-poly') as SVGPolygonElement | null
+  const dot0 = $('radar-dot-0') as SVGCircleElement | null
+  const dot1 = $('radar-dot-1') as SVGCircleElement | null
+  const dot2 = $('radar-dot-2') as SVGCircleElement | null
+  const dot3 = $('radar-dot-3') as SVGCircleElement | null
+  const dot4 = $('radar-dot-4') as SVGCircleElement | null
+  const radarStatus = $('radar-legend-status')
+
+  if (radarPoly) radarPoly.setAttribute('points', '110,88 128,102 121,126 99,126 92,102')
+  if (dot0) { dot0.setAttribute('cx', '110'); dot0.setAttribute('cy', '88') }
+  if (dot1) { dot1.setAttribute('cx', '128'); dot1.setAttribute('cy', '102') }
+  if (dot2) { dot2.setAttribute('cx', '121'); dot2.setAttribute('cy', '126') }
+  if (dot3) { dot3.setAttribute('cx', '99'); dot3.setAttribute('cy', '126') }
+  if (dot4) { dot4.setAttribute('cx', '92'); dot4.setAttribute('cy', '102') }
+  if (radarStatus) radarStatus.textContent = currentLang === 'en' ? 'Status: Evaluating...' : 'Status: Mengevaluasi...'
+
+  // Sequentially illuminate token chips
+  tokChips.forEach((chip, idx) => {
+    setTimeout(() => {
+      chip.classList.add('active')
+    }, 120 * (idx + 1))
+  })
+
   // Reset meters
   const fill1 = $('fill-meter-1') as HTMLElement | null
   const fill2 = $('fill-meter-2') as HTMLElement | null
@@ -496,24 +524,33 @@ function simulateAiEvaluation() {
     `
   }
 
+  // Phase 1: Analytical Depth
   setTimeout(() => {
     if (fill1) fill1.style.width = '95%'
     if (val1) val1.textContent = '38 / 40'
+    if (dot0) { dot0.setAttribute('cx', '110'); dot0.setAttribute('cy', '43') }
+    if (radarPoly) radarPoly.setAttribute('points', '110,43 128,102 121,126 99,126 92,102')
+
     if (terminalBox) {
       terminalBox.innerHTML += `<div class="terminal-line">[00.85s] Criterion 1 (Analytical Depth): 38/40 · PASS (40% weight)</div>`
       terminalBox.scrollTop = terminalBox.scrollHeight
     }
   }, 500)
 
+  // Phase 2: EVM Precision
   setTimeout(() => {
     if (fill2) fill2.style.width = '93.3%'
     if (val2) val2.textContent = '28 / 30'
+    if (dot1) { dot1.setAttribute('cx', '171'); dot1.setAttribute('cy', '89') }
+    if (radarPoly) radarPoly.setAttribute('points', '110,43 171,89 121,126 99,126 92,102')
+
     if (terminalBox) {
       terminalBox.innerHTML += `<div class="terminal-line">[01.35s] Criterion 2 (EVM Precision): 28/30 · PASS (30% weight)</div>`
       terminalBox.scrollTop = terminalBox.scrollHeight
     }
   }, 1000)
 
+  // Phase 3: Architecture Defense & Composite Honors Pass
   setTimeout(() => {
     if (fill3) fill3.style.width = '90%'
     if (val3) val3.textContent = '27 / 30'
@@ -522,6 +559,16 @@ function simulateAiEvaluation() {
       badgeComp.textContent = currentLang === 'en' ? 'HONORS PASS (93/100)' : 'LULUS DENGAN PUJIAN (93/100)'
       badgeComp.className = 'composite-status'
     }
+
+    // Expand all 5 vertices to full honors coordinates
+    if (dot0) { dot0.setAttribute('cx', '110'); dot0.setAttribute('cy', '43') }
+    if (dot1) { dot1.setAttribute('cx', '171'); dot1.setAttribute('cy', '89') }
+    if (dot2) { dot2.setAttribute('cx', '147'); dot2.setAttribute('cy', '160') }
+    if (dot3) { dot3.setAttribute('cx', '71'); dot3.setAttribute('cy', '163') }
+    if (dot4) { dot4.setAttribute('cx', '47'); dot4.setAttribute('cy', '90') }
+    if (radarPoly) radarPoly.setAttribute('points', '110,43 171,89 147,160 71,163 47,90')
+    if (radarStatus) radarStatus.textContent = currentLang === 'en' ? 'Status: Honors Pass (93/100)' : 'Status: Lulus Pujian (93/100)'
+
     if (terminalBox) {
       terminalBox.innerHTML += `
         <div class="terminal-line">[01.85s] Criterion 3 (Architecture Defense): 27/30 · PASS (30% weight)</div>
