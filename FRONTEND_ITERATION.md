@@ -90,6 +90,21 @@ Clean tabs/accordions to prevent endless scrolling:
 
 ---
 
+## 3.1 Comprehensive Page Architecture (Derived from Vault Specifications)
+
+Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dave/lencana/vault/01-briefing.md), [`vault/02-architecture.md`](file:///C:/Project_Dave/lencana/vault/02-architecture.md), and [`vault/05-status-and-tasks.md`](file:///C:/Project_Dave/lencana/vault/05-status-and-tasks.md), Lencana requires **6 core pages/views** to fully realize the end-to-end user journeys for **Rina (Learner)**, **Training Institutions (Issuers)**, **Bagas (HR Recruiter)**, and **Hackathon Judges**:
+
+| Page / Route | Primary Persona | Purpose & Vault Requirement | Key Features & Visual Elements |
+|---|---|---|---|
+| **1. Landing Page & Discovery Portal**<br>`#/` or `index.html` | Everyone (Learners, HR, Judges) | Brand storefront, high-converting EdTech value prop, and live demonstration sandbox | • Split-screen Hero with cybernetic credential badge plaque (`ai_badge.jpg`)<br>• 3-Step Learning Loop with visual micro-mockups (Code editor, Neural equalizer, SBT seal)<br>• Live Cryptographic Pipeline (5-node signal track)<br>• Interactive AI Evaluator preview with dynamic SVG Radar Chart<br>• Whitelisted Agent Roster with radial consensus gauges<br>• Technical Edge Bento Grid (closing EAS loopholes) |
+| **2. Micro-Courses Catalog & Study Room**<br>`#/courses` & `#/courses/:id` | **Rina (Learner, 24)** | Course discovery, syllabus progression, and interactive study modules | • Course catalog cards with difficulty, duration, and prerequisite badges<br>• **Visual Prerequisite Tree**: Graphical unlock map (*Web3 Dasar* ➔ *BNB Chain Security*)<br>• Interactive lesson player (markdown modules + code snippets)<br>• Assessment prompt & rubric criteria weights preview |
+| **3. AI Evaluator & Student Submission Workspace**<br>`#/submit` or `#/courses/:id/eval` | **Rina (Learner)** & **AI Agents** | Dedicated open-ended essay submission and real-time autonomous grading | • Focused essay submission editor with live AST tokenization<br>• **Live Neural Rubric Engine**: Real-time criterion grading (Depth, EVM, Architecture)<br>• **Dynamic Pentagonal SVG Skill Radar Chart** morphing live<br>• EIP-712 signature generation from domain agent key<br>• Gasless attestation broadcast via platform relayer<br>• Soulbound badge mint celebration modal |
+| **4. Instant Public Verifier & Forensic Audit Suite**<br>`#/verify` or `#/verify?q=...` | **Bagas (HR Recruiter)** & **Judges** | 0-wallet, 0-account, 0-server trust public verification against live BNB node | • Fast search input for `credentialHash`, `UID`, `tokenId`, or `address`<br>• 1-Click quick sample pills (`VALID`, `REVOKED`, `EXPIRED`, `ISSUER_DELISTED`)<br>• 5-Tab technical inspection (`Summary`, `On-Chain BAS & Prereqs`, `Soulbound NFT`, `CLI Audit`, `RPC Log`)<br>• Copyable `cast call` and `curl JSON-RPC` commands<br>• Prominent Honest Limits panel |
+| **5. Learner Portfolio & Credential Showcase**<br>`#/portfolio` or `#/portfolio/:address` | **Rina (Learner)** | Personal career showcase, credential export, and privacy management | • Gallery of earned Soulbound ERC-5192 credentials with holographic shine<br>• W3C Open Badges 3.0 JSON-LD viewer & 1-click export `.json`<br>• **Privacy Disclosure Controller**: 3 privacy tiers (**Pseudonymous address**, **Named profile**, **Named + Provable salted email hash**)<br>• Shareable LinkedIn badge links & QR codes |
+| **6. Issuer & AI Agent Governance Hub**<br>`#/agent-hub` or `#/issuer` | **Institutions & Agent Operators** | Monitor agent whitelisting, rubric enforcement, and cryptographic revocation | • Whitelisted AI Agent monitor (signing keys, nonces, consensus radial gauges)<br>• Rubric management and score convergence telemetry<br>• Cryptographic revocation console (`revoke()` or `revokeOffchain()` on EAS)<br>• Platform Delist/Relist monitor (demonstrating anti-compromise failsafe) |
+
+---
+
 ## 4. Iteration Roadmap
 
 - [x] **Iteration 1: i18n Foundation & Language Toggle**
@@ -126,6 +141,25 @@ Clean tabs/accordions to prevent endless scrolling:
   - Built a dynamic SVG Skill Radar Chart that morphs its 5-axis polygon on live evaluation, paired with a real-time Token Scanner Matrix with sequential glowing illumination.
   - Added SVG radial consensus gauges (99.8%, 99.9%, 100%) and compute activity equalizers to the Agent Roster.
   - Added visual infographics to all 4 Bento Grid cards (evaluation comparison pipeline, prerequisite checkmark matrix, transfer rejection circuit, and direct browser-to-node RPC bridge).
+- [ ] **Iteration 8: Micro-Courses Catalog & Interactive Study Room (`#/courses` & `#/courses/:id`)**
+  - Course syllabus module accordion with lesson progression.
+  - Visual prerequisite unlock tree showing on-chain dependency graph.
+  - Interactive lesson player (markdown + EVM code snippets).
+  - Assessment essay assignment prompt with rubric weight breakdown.
+- [ ] **Iteration 9: Fullscreen AI Assessment & Submission Studio (`#/submit`)**
+  - Dedicated student submission terminal with real-time word/AST token count.
+  - Live Neural grading view with animated criteria score convergence and dynamic radar morphing.
+  - EIP-712 typed data signing simulation and BAS attestation broadcast.
+  - Soulbound ERC-5192 mint celebration modal.
+- [ ] **Iteration 10: Learner Portfolio & Credential Showcase (`#/portfolio`)**
+  - Personal credential gallery with cybernetic plaque view for Rina.
+  - W3C Open Badges 3.0 raw JSON-LD viewer & export `.json`.
+  - Privacy Disclosure Controller: Pseudonymous (Address only) vs Named (Profile IRI + Salted email hash) with explicit immutable address warning.
+  - Shareable public verification links & QR codes.
+- [ ] **Iteration 11: Issuer & AI Agent Governance Hub (`#/agent-hub`)**
+  - Whitelisted AI domain agent roster monitor (keys, nonces, consensus gauges).
+  - Cryptographic revocation testing console (`revoke()` / `revokeOffchain()`).
+  - Platform Delist/Relist monitor illustrating anti-compromise defense.
 
 ---
 
