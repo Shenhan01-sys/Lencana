@@ -377,9 +377,12 @@ function updateStaticText() {
   setText('nav-tech', dict.nav.techEdge)
 
   // Hero Section
+  // Kinetic Brutalist Hero Section (Iteration 9)
   setText('hero-eyebrow', dict.hero.eyebrow)
-  setText('hero-title-1', dict.hero.titleLine1)
-  setText('hero-title-2', dict.hero.titleLine2)
+  setText('kinetic-word-1', dict.hero.kineticWord1)
+  setText('kinetic-word-2', dict.hero.kineticWord2)
+  setText('kinetic-word-3', dict.hero.kineticWord3)
+  setText('badge-rotating-text', dict.hero.badgeText)
   setText('hero-subtitle', dict.hero.subtitle)
   setText('hero-btn-explore-text', dict.hero.btnExplore)
   setText('hero-btn-verify-text', dict.hero.btnVerify)
@@ -389,6 +392,12 @@ function updateStaticText() {
   setText('stat-2-lbl', dict.hero.statVerificationLabel)
   setText('stat-3-val', dict.hero.statStandard)
   setText('stat-3-lbl', dict.hero.statStandardLabel)
+  setText('feat-1-heading', dict.hero.feat1Heading)
+  setText('feat-1-sub', dict.hero.feat1Sub)
+  setText('feat-2-heading', dict.hero.feat2Heading)
+  setText('feat-2-sub', dict.hero.feat2Sub)
+  setText('feat-3-heading', dict.hero.feat3Heading)
+  setText('feat-3-sub', dict.hero.feat3Sub)
 
   // The Learning Loop
   setText('loop-title', dict.learningLoop.sectionTitle)
@@ -727,6 +736,12 @@ function wire() {
 
   // Hero & Course Catalog sample buttons
   $('btn-load-demo-hero')?.addEventListener('click', () => {
+    inputEl.value = SAMPLE_HASHES.valid
+    run()
+    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+  })
+
+  $('btn-hero-recruiter-check')?.addEventListener('click', () => {
     inputEl.value = SAMPLE_HASHES.valid
     run()
     document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })

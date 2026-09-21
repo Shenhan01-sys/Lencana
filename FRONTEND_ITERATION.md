@@ -206,4 +206,21 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
 - 100% responsive layout across mobile and desktop breakpoints with zero layout shift.
 - Verified with TypeScript typecheck (`tsc --noEmit`) and Vite production build (`0` errors).
 
+### Iteration 9: Kinetic Brutalist EdTech Hero & Connected Value-Prop Features (Completed)
+- Adapted high-impact kinetic brutalist design to Lencana and BNB Chain ecosystem:
+  - **Massive 3D Typography Stack:** `#LENCANA` (BNB Gold with 14-layer extruded bronze shadow), `ON-CHAIN` (Crisp White with 14-layer extruded charcoal shadow), and `CREDENTIALS` rendered at fluid `clamp(4rem, 13vw, 155px)`.
+  - **Floating Glassmorphism Showcase Cards:**
+    - Card 1 (`rina.bnb`): Learner persona with gold avatar, `0x5cA3...7c3B`, `93/100 Honors Pass`, and smooth floating keyframe animation (`@keyframes floatCardRina`). Clicking triggers 1-click credential verification.
+    - Card 2 (`bagas-recruiter.bnb`): HR & recruiter persona with emerald avatar, `Live eth_call Audit`, `0 Gas Verification`, and smooth floating keyframe animation (`@keyframes floatCardRecruiter`).
+  - **Hand-Drawn Doodle SVG Accents:** Custom curved vector doodle arrows (`ArrowGoldLeft` and `ArrowEmeraldRight`) connecting headline typography to floating cards.
+  - **Rotating Circular SVG Badge:** Continuous spin animation (`@keyframes spinBadge`) with curved text path (`VERIFY ON BNB CHAIN • ZERO WALLET REQUIRED • OPEN BADGES 3.0 •`) and central arrow, smoothly linking down to the Verifier Sandbox.
+  - **Connected 3-Card Value-Prop Section:** Curved elevated surface (`rounded-t-[2.5rem]`) with 3 cards connected by doodle arrows:
+    1. `AUTONOMOUS AI ESSAY GRADING` with live AI Agent chip (`Agent-Foundations` · `93/100 HONORS`).
+    2. `BAS ATTESTATION RESOLVER HOOKS` with resolver schema chip (`CredentialResolver.sol` · `100% LOCKED`).
+    3. `ZERO-WALLET PUBLIC PROOF` with verification speed bubble (`0.42s · 0 GAS`).
+- Preserved 100% pure vanilla/Vite/TS/CSS performance without external framework bloat or React rerenders.
+- Full bilingual dictionary support in `web/src/i18n.ts` (`en` & `id`).
+- Verified with `npm run typecheck` (`tsc --noEmit`) and `npm run build` with **0 errors**.
+
+
 

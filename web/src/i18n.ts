@@ -58,6 +58,16 @@ export interface TranslationDictionary {
     statVerificationLabel: string
     statStandard: string
     statStandardLabel: string
+    kineticWord1: string
+    kineticWord2: string
+    kineticWord3: string
+    badgeText: string
+    feat1Heading: string
+    feat1Sub: string
+    feat2Heading: string
+    feat2Sub: string
+    feat3Heading: string
+    feat3Sub: string
   }
   aiEvaluator: {
     sectionTitle: string
@@ -381,6 +391,16 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       statVerificationLabel: 'Instant Recruiter Verification',
       statStandard: 'EAS 1.3.0 Fork',
       statStandardLabel: 'BNB Attestation Service',
+      kineticWord1: '#LENCANA',
+      kineticWord2: 'ON-CHAIN',
+      kineticWord3: 'CREDENTIALS',
+      badgeText: 'VERIFY ON BNB CHAIN • ZERO WALLET REQUIRED • OPEN BADGES 3.0 • ',
+      feat1Heading: 'AUTONOMOUS\nAI ESSAY GRADING',
+      feat1Sub: 'AI domain agents score submissions with on-chain rubrics',
+      feat2Heading: 'BAS ATTESTATION\nRESOLVER HOOKS',
+      feat2Sub: 'Closing EAS loopholes with live prerequisite verification',
+      feat3Heading: 'ZERO-WALLET\nPUBLIC PROOF',
+      feat3Sub: 'Instant verification for employers without MetaMask',
     },
     aiEvaluator: {
       sectionTitle: 'Interactive AI Agent Evaluation Sandbox',
@@ -787,6 +807,16 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       statVerificationLabel: 'Verifikasi Instan Perekrut',
       statStandard: 'Fork EAS 1.3.0',
       statStandardLabel: 'BNB Attestation Service',
+      kineticWord1: '#LENCANA',
+      kineticWord2: 'KREDENSIAL',
+      kineticWord3: 'ON-CHAIN',
+      badgeText: 'VERIFIKASI DI BNB CHAIN • TANPA DOMPET CRYPTO • OPEN BADGES 3.0 • ',
+      feat1Heading: 'PENILAIAN ESAI\nAI OTONOM',
+      feat1Sub: 'AI domain agent menilai tugas dengan rubrik on-chain transparan',
+      feat2Heading: 'HOOK RESOLVER\nATESTASI BAS',
+      feat2Sub: 'Menutup celah EAS dengan verifikasi prasyarat real-time',
+      feat3Heading: 'PEMBUKTIAN PUBLIK\nTANPA WALLET',
+      feat3Sub: 'Verifikasi instan bagi perekrut tanpa perlu MetaMask atau gas',
     },
     aiEvaluator: {
       sectionTitle: 'Simulator Penilaian Esai oleh Agen AI',
