@@ -118,12 +118,27 @@ export interface TranslationDictionary {
     step3Desc: string
   }
   coursesSection: {
+    sectionKicker: string
     sectionTitle: string
     sectionSub: string
+    learnerProfileName: string
+    learnerSubInfo: string
+    privacyLabel: string
+    privacyPseudo: string
+    privacyNamed: string
+    stat1Title: string
+    stat1Desc: string
+    stat2Title: string
+    stat2Desc: string
+    stat3Title: string
+    stat3Desc: string
+    availableHeading: string
+    activeCoursesTag: string
     badgeLevelBeginner: string
     badgeLevelAdvanced: string
     badgeSoulbound: string
     badgePrereqRequired: string
+    badgeUnlocked: string
     course1Title: string
     course1Desc: string
     course1Rubric: string
@@ -131,8 +146,11 @@ export interface TranslationDictionary {
     course2Desc: string
     course2Rubric: string
     courseIssuerAgent: string
+    btnOpenStudy: string
     btnViewSyllabus: string
     btnEnroll: string
+    studyModalKicker: string
+    studyModalProceed: string
   }
   bentoSection: {
     sectionTitle: string
@@ -432,12 +450,27 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
         'The credential hash is anchored to BNB Attestation Service, and a Soulbound ERC-5192 NFT badge is minted to your learner address with zero gas fees for you.',
     },
     coursesSection: {
-      sectionTitle: 'Featured Micro-Courses',
-      sectionSub: 'Practical, project-based courses evaluated by specialized AI domain agents.',
-      badgeLevelBeginner: 'Beginner · 2 Hours',
-      badgeLevelAdvanced: 'Advanced · 4 Hours',
+      sectionKicker: 'LMS LEARNER DASHBOARD',
+      sectionTitle: 'Micro-Courses Marketplace & Study Room',
+      sectionSub: 'Curated modular courses evaluated by autonomous AI domain agents with on-chain rubrics.',
+      learnerProfileName: 'Rina Oktaviani',
+      learnerSubInfo: 'Web3 Architecture Track · BSC Testnet',
+      privacyLabel: 'W3C Privacy Mode:',
+      privacyPseudo: '🔒 Pseudonymous',
+      privacyNamed: '👤 Named Profile',
+      stat1Title: 'Active Enrolled Courses',
+      stat1Desc: 'Web3 Dasar 2026 & BNB Security. Final essays awaiting evaluation.',
+      stat2Title: 'Soulbound Badges Earned',
+      stat2Desc: 'W3C Open Badges 3.0 attested on BAS and locked as ERC-5192 NFTs.',
+      stat3Title: 'AI Domain Agents Online',
+      stat3Desc: 'Whitelisted signers: Foundations, Security, Infrastructure.',
+      availableHeading: 'Available Micro-Courses',
+      activeCoursesTag: '2 Active Courses',
+      badgeLevelBeginner: '2 Hours · Modular',
+      badgeLevelAdvanced: '4 Hours · Advanced',
       badgeSoulbound: 'Soulbound Badge',
-      badgePrereqRequired: 'Prerequisite: Web3 Dasar',
+      badgePrereqRequired: '🔒 Prerequisite: Web3 Dasar',
+      badgeUnlocked: '✓ UNLOCKED',
       course1Title: 'Web3 Dasar 2026: Foundations & Architecture',
       course1Desc:
         'Understand blockchain primitives, EVM execution, and verifiable credentials. Complete an analytical essay comparing centralized certificates with on-chain attestations.',
@@ -446,9 +479,12 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       course2Desc:
         'Master access control, resolver hooks, and prerequisite validation chains on BNB Smart Chain. Requires Web3 Dasar 2026 completion to unlock.',
       course2Rubric: 'Rubric: Vulnerability analysis (50%), Architecture defense (30%), Clarity (20%). Passing score: 75/100.',
-      courseIssuerAgent: 'Evaluator Agent: Agent-Demo (Ed25519 Whitelisted)',
+      courseIssuerAgent: 'AI Agent: Agent-Foundations',
+      btnOpenStudy: 'Open Study Room ➔',
       btnViewSyllabus: 'View Syllabus',
       btnEnroll: 'Start Course',
+      studyModalKicker: 'STUDY ROOM · INTERACTIVE LESSON',
+      studyModalProceed: 'Proceed to AI Essay Evaluation ➔',
     },
     bentoSection: {
       sectionTitle: 'Why Lencana is Technically Differentiable',
@@ -820,12 +856,27 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
         'Hash kredensial ditambatkan ke BNB Attestation Service, dan lencana NFT Soulbound ERC-5192 dicetak ke alamat Anda tanpa biaya gas sepeser pun untuk Anda.',
     },
     coursesSection: {
-      sectionTitle: 'Katalog Micro-Course Pilihan',
-      sectionSub: 'Kursus berbasis proyek praktis yang dinilai langsung oleh Agen AI terspesialisasi.',
-      badgeLevelBeginner: 'Pemula · 2 Jam',
-      badgeLevelAdvanced: 'Lanjutan · 4 Jam',
+      sectionKicker: 'DASHBOARD BELAJAR SISWA',
+      sectionTitle: 'Katalog Micro-Course & Ruang Belajar',
+      sectionSub: 'Kursus modular praktis yang dinilai langsung oleh Agen AI terspesialisasi dengan rubrik on-chain.',
+      learnerProfileName: 'Rina Oktaviani',
+      learnerSubInfo: 'Jalur Arsitektur Web3 · BSC Testnet',
+      privacyLabel: 'Mode Privasi W3C:',
+      privacyPseudo: '🔒 Pseudonim',
+      privacyNamed: '👤 Profil Bernama',
+      stat1Title: 'Kursus Aktif Diikuti',
+      stat1Desc: 'Web3 Dasar 2026 & Keamanan BNB. Esai akhir siap dinilai agen AI.',
+      stat2Title: 'Lencana Soulbound Diraih',
+      stat2Desc: 'W3C Open Badges 3.0 tertambat di BAS dan terkunci sebagai NFT ERC-5192.',
+      stat3Title: 'Agen AI Penilai Aktif',
+      stat3Desc: 'Penandatangan whitelist: Foundations, Security, Infrastructure.',
+      availableHeading: 'Katalog Kursus Tersedia',
+      activeCoursesTag: '2 Kursus Aktif',
+      badgeLevelBeginner: '2 Jam · Modular',
+      badgeLevelAdvanced: '4 Jam · Lanjutan',
       badgeSoulbound: 'Lencana Soulbound',
-      badgePrereqRequired: 'Prasyarat: Web3 Dasar',
+      badgePrereqRequired: '🔒 Prasyarat: Web3 Dasar',
+      badgeUnlocked: '✓ TERBUKA',
       course1Title: 'Web3 Dasar 2026: Fondasi & Arsitektur',
       course1Desc:
         'Pahami primitif blockchain, eksekusi EVM, dan kredensial terverifikasi. Selesaikan tugas esai komparasi antara sertifikat database vs attestation on-chain.',
@@ -834,9 +885,12 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       course2Desc:
         'Kuasai kontrol akses resolver dan rantai prasyarat di BNB Chain. Memerlukan kelulusan Web3 Dasar 2026 untuk membuka akses materi.',
       course2Rubric: 'Rubrik: Analisis kerentanan (50%), Pertahanan arsitektur (30%), Kejelasan (20%). Nilai lulus: 75/100.',
-      courseIssuerAgent: 'Agen Penilai: Agent-Demo (Ed25519 Whitelisted)',
+      courseIssuerAgent: 'Agen AI: Agent-Foundations',
+      btnOpenStudy: 'Buka Ruang Belajar ➔',
       btnViewSyllabus: 'Lihat Silabus',
       btnEnroll: 'Mulai Belajar',
+      studyModalKicker: 'RUANG BELAJAR · MODUL INTERAKTIF',
+      studyModalProceed: 'Lanjut ke Evaluasi Esai AI ➔',
     },
     bentoSection: {
       sectionTitle: 'Keunggulan Arsitektur Lencana',

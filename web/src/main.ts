@@ -35,6 +35,336 @@ In smart contract certification, prerequisite chains must strictly prevent repla
   custom: `Enter your custom Web3 architecture or smart contract essay here for autonomous AI grading...`,
 }
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+interface CourseLesson {
+  tabLabel: { en: string; id: string }
+  title: { en: string; id: string }
+  subtitle: { en: string; id: string }
+  summary: { en: string; id: string }
+  points: { en: string[]; id: string[] }
+  codeSnippet?: string
+}
+
+interface CourseData {
+  title: { en: string; id: string }
+  kicker: { en: string; id: string }
+  essayPresetKey: 'web3' | 'security'
+  modules: [CourseLesson, CourseLesson, CourseLesson]
+}
+
+const COURSE_CATALOG_DATA: Record<'c1' | 'c2', CourseData> = {
+  c1: {
+    title: {
+      en: 'Web3 Dasar 2026: Foundations & Architecture',
+      id: 'Web3 Dasar 2026: Fondasi & Arsitektur',
+    },
+    kicker: {
+      en: 'STUDY ROOM · INTERACTIVE LESSON',
+      id: 'STUDY ROOM · MATERI INTERAKTIF',
+    },
+    essayPresetKey: 'web3',
+    modules: [
+      {
+        tabLabel: { en: 'Module 1: Primitives', id: 'Modul 1: Primitif' },
+        title: {
+          en: '1. Blockchain Primitives & EVM State Machine',
+          id: '1. Primitif Blockchain & State Machine EVM',
+        },
+        subtitle: {
+          en: 'Deterministic state transitions, cryptographic hashing, and gas execution.',
+          id: 'Transisi state deterministik, hashing kriptografi, dan eksekusi gas.',
+        },
+        summary: {
+          en: 'Ethereum Virtual Machine (EVM) operates as a quasi-Turing complete state machine. Every transaction executes deterministic opcodes with gas metering on BNB Smart Chain.',
+          id: 'Ethereum Virtual Machine (EVM) berfungsi sebagai state machine quasi-Turing complete. Setiap transaksi mengeksekusi opcode deterministik dengan kalkulasi gas pada BNB Smart Chain.',
+        },
+        points: {
+          en: [
+            'State trie architecture (MPT) ensures tamper-evident account balances and storage slots.',
+            'Keccak-256 cryptographic digests guarantee non-repudiation of course submissions.',
+            'EIP-155 replay protection binds transactions strictly to BSC Testnet (Chain ID 97) or BSC Mainnet (Chain ID 56).',
+          ],
+          id: [
+            'Arsitektur Merkle Patricia Trie (MPT) memastikan integritas saldo dan penyimpanan akun tanpa celah manipulasi.',
+            'Digest kriptografis Keccak-256 menjamin non-repudiation atas penyerahan tugas peserta.',
+            'Perlindungan replay EIP-155 mengunci transaksi secara ketat pada BSC Testnet (Chain ID 97) atau BSC Mainnet (Chain ID 56).',
+          ],
+        },
+        codeSnippet: `// Deterministic Credential Hash Commitment
+bytes32 credentialHash = keccak256(
+    abi.encodePacked(recipientAddress, courseId, gradeScore, block.timestamp)
+);`,
+      },
+      {
+        tabLabel: { en: 'Module 2: Attestations', id: 'Modul 2: Atestasi' },
+        title: {
+          en: '2. W3C Open Badges 3.0 & BAS Schemas',
+          id: '2. W3C Open Badges 3.0 & Skema BAS',
+        },
+        subtitle: {
+          en: 'Off-chain verifiable credentials anchored via BNB Attestation Service.',
+          id: 'Kredensial terverifikasi off-chain yang di-anchor via BNB Attestation Service.',
+        },
+        summary: {
+          en: 'Rather than issuing static PDF certificates, Lencana formats credentials adhering to the W3C Open Badges 3.0 standard. Attestation digests are signed via EIP-712 typed structured data by autonomous AI Domain Agents.',
+          id: 'Alih-alih sertifikat PDF statis, Lencana menerbitkan kredensial berstandar W3C Open Badges 3.0. Digest atestasi ditandatangani via data terstruktur bertipe EIP-712 oleh AI Domain Agent otonom.',
+        },
+        points: {
+          en: [
+            'Attestation UID anchored on BNB Attestation Service (BAS) registry with immutable timestamps.',
+            'Zero gas required by learners: AI Domain Agents co-sign and submit attestation proofs.',
+            'ERC-5192 Soulbound interface enforces non-transferability (locked = true).',
+          ],
+          id: [
+            'UID Atestasi terpasang permanen pada registry BNB Attestation Service (BAS) beserta timestamp tak terhapus.',
+            'Tanpa biaya gas bagi peserta: AI Domain Agent melakukan co-sign dan memproses bukti atestasi.',
+            'Antarmuka Soulbound ERC-5192 menjamin sertifikat terkunci pada dompet penerima (locked = true).',
+          ],
+        },
+        codeSnippet: `// EIP-712 Schema Struct for BAS Attestation
+struct AttestationRequestData {
+    address recipient;
+    uint64 expirationTime;
+    bool revocable;
+    bytes32 refUID;
+    bytes data; // W3C OpenBadge 3.0 payload hash
+}`,
+      },
+      {
+        tabLabel: { en: 'Module 3: Essay Capstone', id: 'Modul 3: Tugas Esai' },
+        title: {
+          en: '3. Capstone Analytical Essay Task',
+          id: '3. Tugas Capstone Esai Analitis',
+        },
+        subtitle: {
+          en: 'Evaluate centralized credentials vs decentralized verifiable attestations.',
+          id: 'Evaluasi komparasi sertifikat terpusat vs atestasi terverifikasi terdesentralisasi.',
+        },
+        summary: {
+          en: 'To complete this course and unlock your Soulbound Credential, write a rigorous essay comparing centralized Web2 certificates against on-chain Open Badges 3.0. Your essay will be evaluated live by Agent-Foundations against on-chain Rubric #0x91a7.',
+          id: 'Untuk menuntaskan kursus ini dan mencetak Kredensial Soulbound, tulis esai komparasi mendalam antara sertifikat Web2 konvensional dengan Open Badges 3.0 on-chain. Esai Anda akan dinilai langsung oleh Agent-Foundations menggunakan Rubrik On-Chain #0x91a7.',
+        },
+        points: {
+          en: [
+            'Criterion 1 (40%): Analytical Depth & security comparison.',
+            'Criterion 2 (30%): EVM execution precision and state persistence.',
+            'Criterion 3 (30%): Architectural defense & non-repudiation proof.',
+          ],
+          id: [
+            'Kriteria 1 (40%): Kedalaman analitis & komparasi keamanan.',
+            'Kriteria 2 (30%): Presisi teknis eksekusi EVM & persistensi state.',
+            'Kriteria 3 (30%): Pertahanan arsitektural & pembuktian non-repudiation.',
+          ],
+        },
+      },
+    ],
+  },
+  c2: {
+    title: {
+      en: 'BNB Chain Security & Prerequisite Integrity',
+      id: 'BNB Chain Security & Integritas Prasyarat',
+    },
+    kicker: {
+      en: 'STUDY ROOM · ADVANCED TRACK',
+      id: 'STUDY ROOM · KELAS LANJUTAN',
+    },
+    essayPresetKey: 'security',
+    modules: [
+      {
+        tabLabel: { en: 'Module 1: Defense Patterns', id: 'Modul 1: Pola Pertahanan' },
+        title: {
+          en: '1. Reentrancy Defense & CEI Principles',
+          id: '1. Pertahanan Reentrancy & Prinsip CEI',
+        },
+        subtitle: {
+          en: 'Securing smart contracts against cross-function and cross-contract reentrancy.',
+          id: 'Mengamankan smart contract dari reentrancy lintas fungsi dan lintas kontrak.',
+        },
+        summary: {
+          en: 'Learn how malicious re-entrant calls exploit state updates. Master the Checks-Effects-Interactions (CEI) design pattern and integrate OpenZeppelin ReentrancyGuard mutexes.',
+          id: 'Pelajari bagaimana pemanggilan re-entrant mengeksploitasi keterlambatan pembaruan state. Kuasai pola desain Checks-Effects-Interactions (CEI) serta integrasi mutex ReentrancyGuard OpenZeppelin.',
+        },
+        points: {
+          en: [
+            'Checks: Validate caller, arguments, and whitelist status before execution.',
+            'Effects: Mutate contract state before making external transfers or calls.',
+            'Interactions: Execute untrusted external calls only after state is safely committed.',
+          ],
+          id: [
+            'Checks: Validasi pemanggil, parameter, dan status whitelist sebelum eksekusi.',
+            'Effects: Ubah state kontrak sebelum melakukan pengiriman dana atau panggilan eksternal.',
+            'Interactions: Eksekusi panggilan kontrak eksternal hanya setelah state aman tersimpan.',
+          ],
+        },
+        codeSnippet: `// Checks-Effects-Interactions Pattern
+function claimBadge(uint256 courseId) external nonReentrant {
+    require(hasCompletedPrerequisite(msg.sender, courseId), "Prereq locked"); // Checks
+    _claimedBadges[msg.sender][courseId] = true;                               // Effects
+    _mintSoulboundBadge(msg.sender, courseId);                                 // Interactions
+}`,
+      },
+      {
+        tabLabel: { en: 'Module 2: BAS Resolver Hooks', id: 'Modul 2: Hook Resolver' },
+        title: {
+          en: '2. BAS Resolver Hooks & Delisting Registers',
+          id: '2. Hook Resolver BAS & Daftar Delisting',
+        },
+        subtitle: {
+          en: 'Programmatic on-chain attestation verification and revocation enforcement.',
+          id: 'Verifikasi atestasi programatik on-chain dan penegakan pencabutan sertifikat.',
+        },
+        summary: {
+          en: 'Lencana employs CredentialResolver.sol hooked into BNB Attestation Service. When an attestation is presented, the resolver contract programmatically checks revocation status, delisted issuer registries, and prerequisite completion trees.',
+          id: 'Lencana mengimplementasikan CredentialResolver.sol yang terhubung ke BNB Attestation Service. Saat atestasi diverifikasi, kontrak resolver memeriksa status pencabutan, daftar delisting penerbit, dan pohon prasyarat secara on-chain.',
+        },
+        points: {
+          en: [
+            'Multi-tenant resolver validation: Checks whether issuer address is in good standing.',
+            'Real-time revocation check: Revoked credentials fail instant on-chain verification.',
+            'Prerequisite gating: Blocks higher-level credential claims if prerequisite UID is missing.',
+          ],
+          id: [
+            'Validasi resolver multi-tenant: Memeriksa apakah alamat penerbit bereputasi aktif.',
+            'Pengecekan pembatalan real-time: Kredensial yang dicabut langsung gagal diverifikasi.',
+            'Gating prasyarat bertingkat: Memblokir klaim sertifikat lanjutan jika UID prasyarat belum tuntas.',
+          ],
+        },
+        codeSnippet: `// CredentialResolver onAttest Hook
+function onAttest(Attestation calldata attestation, uint256 /*value*/) internal view override returns (bool) {
+    if (delistedIssuers[attestation.attester]) return false;
+    if (attestation.revocationTime > 0) return false;
+    return true;
+}`,
+      },
+      {
+        tabLabel: { en: 'Module 3: Defense Essay', id: 'Modul 3: Esai Pertahanan' },
+        title: {
+          en: '3. Security Capstone Defense Essay',
+          id: '3. Tugas Capstone Esai Keamanan',
+        },
+        subtitle: {
+          en: 'Mitigating cross-function reentrancy and prerequisite chain integrity.',
+          id: 'Mitigasi reentrancy lintas fungsi dan integritas rantai prasyarat sertifikasi.',
+        },
+        summary: {
+          en: 'Demonstrate your comprehension of advanced smart contract security on BNB Chain. Write an analytical essay defending prerequisite graph integrity and anti-replay schemes, graded by Agent-Security against Rubric #0x42f1.',
+          id: 'Tunjukkan pemahaman mendalam Anda mengenai keamanan smart contract di BNB Chain. Susun esai pertahanan atas integritas pohon prasyarat dan skema anti-replay, yang dinilai langsung oleh Agent-Security dengan Rubrik #0x42f1.',
+        },
+        points: {
+          en: [
+            'Criterion 1 (50%): Reentrancy mitigation & CEI implementation rigor.',
+            'Criterion 2 (30%): Resolver hook logic & prerequisite dependency graph.',
+            'Criterion 3 (20%): Clarity and formal verification recommendations.',
+          ],
+          id: [
+            'Kriteria 1 (50%): Mitigasi reentrancy & ketegasan implementasi pola CEI.',
+            'Kriteria 2 (30%): Logika hook resolver & grafik ketergantungan prasyarat.',
+            'Kriteria 3 (20%): Kejelasan penyampaian dan rekomendasi verifikasi formal.',
+          ],
+        },
+      },
+    ],
+  },
+}
+
+let currentCourseId: 'c1' | 'c2' = 'c1'
+let currentModuleIdx = 0
+let privacyMode: 'pseudo' | 'named' = 'pseudo'
+
+function renderStudyModal() {
+  const data = COURSE_CATALOG_DATA[currentCourseId]
+  const mod = data.modules[currentModuleIdx]
+  const isEn = currentLang === 'en'
+
+  setText('study-modal-kicker', data.kicker[currentLang])
+  setText('study-modal-title', data.title[currentLang])
+
+  // Update tabs text & active state
+  const tabs = [$('tab-mod-1'), $('tab-mod-2'), $('tab-mod-3')]
+  data.modules.forEach((m, idx) => {
+    const tabEl = tabs[idx]
+    if (tabEl) {
+      tabEl.textContent = m.tabLabel[currentLang]
+      tabEl.classList.toggle('active', idx === currentModuleIdx)
+    }
+  })
+
+  // Render Lesson Content
+  const contentEl = $('study-lesson-content')
+  if (contentEl) {
+    const pointsList = mod.points[currentLang].map((pt) => `<li>${pt}</li>`).join('')
+    const codeBlock = mod.codeSnippet
+      ? `<pre class="lesson-code-snippet"><code>${escapeHtml(mod.codeSnippet)}</code></pre>`
+      : ''
+
+    contentEl.innerHTML = `
+      <div class="lesson-header">
+        <h3 style="margin: 0 0 4px; color: var(--text-main); font-size: 18px;">${mod.title[currentLang]}</h3>
+        <span style="font-size: 13px; color: var(--bnb-gold); font-family: var(--font-mono);">${mod.subtitle[currentLang]}</span>
+      </div>
+      <p style="margin: 12px 0; font-size: 14px; line-height: 1.65; color: var(--text-sub);">${mod.summary[currentLang]}</p>
+      <div class="lesson-card-box">
+        <h4>${isEn ? 'Core Concepts & Specifications' : 'Konsep Utama & Spesifikasi'}</h4>
+        <ul class="lesson-bullet-list">${pointsList}</ul>
+        ${codeBlock}
+      </div>
+    `
+  }
+
+  // Update Footer Text
+  const footerText = $('study-footer-text')
+  if (footerText) {
+    footerText.textContent = isEn
+      ? `Module ${currentModuleIdx + 1} of 3 · Self-Paced · ${data.title[currentLang]}`
+      : `Modul ${currentModuleIdx + 1} dari 3 · Mandiri · ${data.title[currentLang]}`
+  }
+}
+
+function openStudyModal(courseId: 'c1' | 'c2', moduleIdx: number = 0) {
+  currentCourseId = courseId
+  currentModuleIdx = moduleIdx
+  renderStudyModal()
+  const modal = $('study-modal')
+  if (modal) modal.classList.remove('hidden')
+  document.body.style.overflow = 'hidden'
+}
+
+function closeStudyModal() {
+  const modal = $('study-modal')
+  if (modal) modal.classList.add('hidden')
+  document.body.style.overflow = ''
+}
+
+function setStudyModule(idx: number) {
+  currentModuleIdx = idx
+  renderStudyModal()
+}
+
+function setPrivacyMode(mode: 'pseudo' | 'named') {
+  privacyMode = mode
+  const btnPseudo = $('btn-privacy-pseudo')
+  const btnNamed = $('btn-privacy-named')
+  const learnerName = $('learner-profile-name')
+  const learnerSub = $('learner-sub-info')
+
+  if (mode === 'pseudo') {
+    btnPseudo?.classList.add('active')
+    btnNamed?.classList.remove('active')
+    if (learnerName) learnerName.textContent = DICTIONARIES[currentLang].coursesSection.learnerProfileName
+    if (learnerSub) learnerSub.textContent = DICTIONARIES[currentLang].coursesSection.learnerSubInfo
+  } else {
+    btnNamed?.classList.add('active')
+    btnPseudo?.classList.remove('active')
+    if (learnerName) learnerName.textContent = `${DICTIONARIES[currentLang].coursesSection.learnerProfileName} ✓`
+    if (learnerSub) {
+      learnerSub.textContent = 'did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B (Salted Hash #8F92)'
+    }
+  }
+}
+
 function updateStaticText() {
   const dict = DICTIONARIES[currentLang]
 
@@ -122,23 +452,42 @@ function updateStaticText() {
   setText('agent-3-desc', dict.agentRoster.agent3Desc)
   setText('agent-3-stat', dict.agentRoster.agent3Stat)
 
-  // Featured Micro-Courses
+  // LMS Learner Dashboard & Micro-Courses Marketplace (Iteration 8)
+  setText('courses-kicker', dict.coursesSection.sectionKicker)
   setText('courses-title', dict.coursesSection.sectionTitle)
   setText('courses-sub', dict.coursesSection.sectionSub)
+  setText('learner-profile-name', dict.coursesSection.learnerProfileName)
+  setText('learner-sub-info', dict.coursesSection.learnerSubInfo)
+  setText('privacy-label', dict.coursesSection.privacyLabel)
+  setText('btn-privacy-pseudo', dict.coursesSection.privacyPseudo)
+  setText('btn-privacy-named', dict.coursesSection.privacyNamed)
+  setText('lms-stat-1-title', dict.coursesSection.stat1Title)
+  setText('lms-stat-1-desc', dict.coursesSection.stat1Desc)
+  setText('lms-stat-2-title', dict.coursesSection.stat2Title)
+  setText('lms-stat-2-desc', dict.coursesSection.stat2Desc)
+  setText('lms-stat-3-title', dict.coursesSection.stat3Title)
+  setText('lms-stat-3-desc', dict.coursesSection.stat3Desc)
+  setText('courses-list-heading', dict.coursesSection.availableHeading)
+  setText('courses-count-tag', dict.coursesSection.activeCoursesTag)
   setText('c1-badge-lvl', dict.coursesSection.badgeLevelBeginner)
   setText('c1-badge-sbt', dict.coursesSection.badgeSoulbound)
+  setText('c1-badge-unlocked', dict.coursesSection.badgeUnlocked)
   setText('c1-title', dict.coursesSection.course1Title)
   setText('c1-desc', dict.coursesSection.course1Desc)
-  setText('c1-rubric', dict.coursesSection.course1Rubric)
-  setText('c1-agent', `${dict.coursesSection.courseIssuerAgent}: Agent-Demo`)
-  setText('btn-enroll-c1', dict.coursesSection.btnEnroll)
+  setText('c1-agent', `${dict.coursesSection.courseIssuerAgent}: Agent-Foundations`)
+  setText('btn-open-study-c1', dict.coursesSection.btnOpenStudy)
   setText('c2-badge-lvl', dict.coursesSection.badgeLevelAdvanced)
   setText('c2-badge-prereq', dict.coursesSection.badgePrereqRequired)
   setText('c2-title', dict.coursesSection.course2Title)
   setText('c2-desc', dict.coursesSection.course2Desc)
-  setText('c2-rubric', dict.coursesSection.course2Rubric)
   setText('c2-agent', `${dict.coursesSection.courseIssuerAgent}: Agent-Security`)
-  setText('btn-enroll-c2', dict.coursesSection.btnEnroll)
+  setText('btn-open-study-c2', dict.coursesSection.btnOpenStudy)
+  setText('study-modal-kicker', dict.coursesSection.studyModalKicker)
+  setText('btn-study-proceed-eval', dict.coursesSection.studyModalProceed)
+
+  // Re-apply privacy mode labels and re-render study modal if active
+  setPrivacyMode(privacyMode)
+  renderStudyModal()
 
   // Verifier Section & Input Card
   setText('verifier-title', dict.inputSection.sectionTitle)
@@ -383,17 +732,31 @@ function wire() {
     document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
   })
 
-  $('btn-enroll-c1')?.addEventListener('click', () => {
-    inputEl.value = SAMPLE_HASHES.valid
-    run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+  // LMS Study Room & Course Catalog Interactions (Iteration 8)
+  $('btn-open-study-c1')?.addEventListener('click', () => {
+    openStudyModal('c1', 0)
   })
 
-  $('btn-enroll-c2')?.addEventListener('click', () => {
-    inputEl.value = SAMPLE_HASHES.revoked
-    run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+  $('btn-open-study-c2')?.addEventListener('click', () => {
+    openStudyModal('c2', 0)
   })
+
+  $('btn-close-study-modal')?.addEventListener('click', closeStudyModal)
+  $('study-modal-backdrop')?.addEventListener('click', closeStudyModal)
+
+  $('tab-mod-1')?.addEventListener('click', () => setStudyModule(0))
+  $('tab-mod-2')?.addEventListener('click', () => setStudyModule(1))
+  $('tab-mod-3')?.addEventListener('click', () => setStudyModule(2))
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeStudyModal()
+    }
+  })
+
+  // Privacy Mode Toggle
+  $('btn-privacy-pseudo')?.addEventListener('click', () => setPrivacyMode('pseudo'))
+  $('btn-privacy-named')?.addEventListener('click', () => setPrivacyMode('named'))
 
   // AI Evaluation Preset Tabs
   const essayInput = $('essay-input') as HTMLTextAreaElement | null
@@ -410,6 +773,17 @@ function wire() {
   tabWeb3?.addEventListener('click', () => selectEssayTab(tabWeb3, ESSAY_PRESETS.web3))
   tabSec?.addEventListener('click', () => selectEssayTab(tabSec, ESSAY_PRESETS.security))
   tabCust?.addEventListener('click', () => selectEssayTab(tabCust, ESSAY_PRESETS.custom))
+
+  // Proceed from Study Room to AI Evaluator
+  $('btn-study-proceed-eval')?.addEventListener('click', () => {
+    closeStudyModal()
+    if (currentCourseId === 'c1') {
+      selectEssayTab(tabWeb3, ESSAY_PRESETS.web3)
+    } else {
+      selectEssayTab(tabSec, ESSAY_PRESETS.security)
+    }
+    document.getElementById('ai-evaluator')?.scrollIntoView({ behavior: 'smooth' })
+  })
 
   // AI Evaluation Trigger Button
   $('btn-run-ai-eval')?.addEventListener('click', () => {

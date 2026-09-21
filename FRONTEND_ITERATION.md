@@ -141,11 +141,11 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
   - Built a dynamic SVG Skill Radar Chart that morphs its 5-axis polygon on live evaluation, paired with a real-time Token Scanner Matrix with sequential glowing illumination.
   - Added SVG radial consensus gauges (99.8%, 99.9%, 100%) and compute activity equalizers to the Agent Roster.
   - Added visual infographics to all 4 Bento Grid cards (evaluation comparison pipeline, prerequisite checkmark matrix, transfer rejection circuit, and direct browser-to-node RPC bridge).
-- [ ] **Iteration 8: Micro-Courses Catalog & Interactive Study Room (`#/courses` & `#/courses/:id`)**
-  - Course syllabus module accordion with lesson progression.
-  - Visual prerequisite unlock tree showing on-chain dependency graph.
-  - Interactive lesson player (markdown + EVM code snippets).
-  - Assessment essay assignment prompt with rubric weight breakdown.
+- [x] **Iteration 8: LMS Learner Dashboard, Bento Course Cards & Interactive Study Room (`#courses`)**
+  - Designed LMS Learner Header card (Learner Persona: Rina Oktaviani, BSC Testnet 97, zero gas tag, interactive W3C Privacy Mode toggle: Pseudonymous vs Named Profile).
+  - Integrated 3 quick notification and metric cards matching modern smart LMS UI (Enrolled Courses, Soulbound Badges, AI Domain Agents).
+  - Created high-impact horizontal Bento Course cards with custom AI-generated artwork thumbnails (`course_foundations.jpg`, `course_security.jpg`), rubric chips, and evaluator agent badges.
+  - Built full Interactive Study Room modal (`#study-modal`) with modular lesson tab switching, rich code snippets, and direct 1-click bridge to the AI Essay Evaluator sandbox.
 - [ ] **Iteration 9: Fullscreen AI Assessment & Submission Studio (`#/submit`)**
   - Dedicated student submission terminal with real-time word/AST token count.
   - Live Neural grading view with animated criteria score convergence and dynamic radar morphing.
@@ -195,4 +195,15 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
 - Embedded SVG circular radial gauges for agent consensus and real-time frequency equalizer bars.
 - Integrated micro-diagrams into Bento cards: Subjective-to-Deterministic flow, prerequisite checkmark matrix, ERC-5192 revert circuit, and browser-to-node RPC cable.
 - Verified 100% TypeScript type safety and production build output (`0` errors).
+
+### Iteration 8: LMS Learner Dashboard, Bento Course Cards & Interactive Study Room (Completed)
+- Adapted HSE Digital Smart LMS reference architecture:
+  - Designed the **Learner Profile Card** for Persona Rina Oktaviani with online status indicator, wallet-free 0 gas tag, and interactive **W3C Privacy Mode toggle** (`Pseudonymous` address-only vs `Named Profile` with DID & salted identity hash).
+  - Integrated **3 Quick Metric Cards** (`Active Courses [2]`, `Soulbound Badges [2]`, `AI Domain Agents Online [3]`) in BNB Gold, Emerald, and Cyber-Purple hues.
+  - Implemented **Horizontal Bento Course Cards** featuring high-definition generated artwork thumbnails (`course_foundations.jpg`, `course_security.jpg`) on the left, rubric weight tags, assigned AI Domain Agent chips, and completion stats.
+  - Built the **Interactive Study Room Modal** (`#study-modal`) featuring modular syllabus tabs (Module 1: Primitives/Defense, Module 2: Attestations/Resolver, Module 3: Capstone Essay), readable specifications, code snippets, and a direct 1-click bridge (`Proceed to AI Essay Evaluation ➔`) that loads the course essay and smooth-scrolls to the evaluation sandbox.
+- Single-source i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
+- 100% responsive layout across mobile and desktop breakpoints with zero layout shift.
+- Verified with TypeScript typecheck (`tsc --noEmit`) and Vite production build (`0` errors).
+
 

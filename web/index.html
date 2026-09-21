@@ -709,63 +709,216 @@
         </div>
       </section>
 
-      <!-- 4. FEATURED MICRO-COURSES CATALOG -->
+      <!-- 4. LMS LEARNER DASHBOARD & MICRO-COURSES MARKETPLACE -->
       <section class="section-container" id="courses">
         <div class="section-header">
-          <h2 class="section-title" id="courses-title">Featured Micro-Courses</h2>
+          <div class="section-kicker" id="courses-kicker">LMS LEARNER DASHBOARD</div>
+          <h2 class="section-title" id="courses-title">Micro-Courses Marketplace &amp; Study Room</h2>
           <p class="section-sub" id="courses-sub">
-            Practical, project-based courses evaluated by specialized AI domain agents.
+            Curated modular courses evaluated by autonomous AI domain agents with on-chain rubrics.
           </p>
         </div>
 
-        <div class="courses-grid">
-          <!-- Course Card 1 -->
-          <div class="course-card">
-            <div class="course-badges">
-              <span class="course-badge level" id="c1-badge-lvl">Beginner · 2 Hours</span>
-              <span class="course-badge sbt" id="c1-badge-sbt">Soulbound Badge</span>
+        <!-- 4.1 Learner Profile Card (Persona: Rina) -->
+        <div class="lms-learner-card">
+          <div class="learner-profile-main">
+            <div class="learner-avatar-wrap">
+              <div class="learner-avatar-img">RO</div>
+              <span class="avatar-online-dot"></span>
             </div>
-            <h3 class="course-title" id="c1-title">Web3 Dasar 2026: Foundations &amp; Architecture</h3>
-            <p class="course-desc" id="c1-desc">
-              Understand blockchain primitives, EVM execution, and verifiable credentials. Complete an analytical essay comparing
-              centralized certificates with on-chain attestations.
-            </p>
-            <div class="course-rubric-box">
-              <span class="rubric-label">Assessment Rubric</span>
-              <p class="rubric-text" id="c1-rubric">
-                Analytical depth (40%), Technical precision (30%), Critical reasoning (30%). Passing score: 70/100.
-              </p>
-            </div>
-            <div class="course-card-footer">
-              <span class="course-issuer-pill" id="c1-agent">AI Agent: Agent-Demo</span>
-              <button class="btn btn-secondary btn-sm" id="btn-enroll-c1">Start Course</button>
+            <div class="learner-profile-details">
+              <div class="learner-name-row">
+                <h3 class="learner-name" id="learner-profile-name">Rina Oktaviani</h3>
+                <span class="learner-role-pill">LEARNER ACCOUNT</span>
+                <span class="learner-gasless-tag">0 GAS REQUIRED</span>
+              </div>
+              <div class="learner-meta-row">
+                <span class="learner-meta-sub" id="learner-sub-info">Web3 Architecture Track · BSC Testnet</span>
+                <span class="meta-dot-sep">•</span>
+                <code class="learner-addr">0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B</code>
+              </div>
             </div>
           </div>
 
-          <!-- Course Card 2 -->
-          <div class="course-card">
-            <div class="course-badges">
-              <span class="course-badge level advanced" id="c2-badge-lvl">Advanced · 4 Hours</span>
-              <span class="course-badge prereq" id="c2-badge-prereq">Prerequisite: Web3 Dasar</span>
+          <div class="learner-privacy-widget">
+            <span class="privacy-label" id="privacy-label">W3C Privacy Mode:</span>
+            <div class="privacy-toggle-group">
+              <button type="button" class="btn-privacy active" id="btn-privacy-pseudo" title="Identified by public address only. No personal plaintext stored.">🔒 Pseudonymous</button>
+              <button type="button" class="btn-privacy" id="btn-privacy-named" title="Profile IRI linked with salted identity hash.">👤 Named Profile</button>
             </div>
-            <h3 class="course-title" id="c2-title">BNB Chain Security &amp; Prerequisite Integrity</h3>
-            <p class="course-desc" id="c2-desc">
-              Master access control, resolver hooks, and prerequisite validation chains on BNB Smart Chain. Requires Web3 Dasar 2026
-              completion to unlock.
-            </p>
-            <div class="course-rubric-box">
-              <span class="rubric-label">Assessment Rubric</span>
-              <p class="rubric-text" id="c2-rubric">
-                Vulnerability analysis (50%), Architecture defense (30%), Clarity (20%). Passing score: 75/100.
+          </div>
+        </div>
+
+        <!-- 4.2 Three LMS Quick Notification & Metric Cards -->
+        <div class="lms-metrics-grid">
+          <div class="lms-metric-card gold">
+            <div class="metric-icon-badge">2</div>
+            <div class="metric-copy">
+              <h4 class="metric-title" id="lms-stat-1-title">Active Enrolled Courses</h4>
+              <p class="metric-desc" id="lms-stat-1-desc">Web3 Dasar 2026 &amp; BNB Security. Final essays awaiting evaluation.</p>
+            </div>
+          </div>
+
+          <div class="lms-metric-card emerald">
+            <div class="metric-icon-badge">2</div>
+            <div class="metric-copy">
+              <h4 class="metric-title" id="lms-stat-2-title">Soulbound Badges Earned</h4>
+              <p class="metric-desc" id="lms-stat-2-desc">W3C Open Badges 3.0 attested on BAS and locked as ERC-5192 NFTs.</p>
+            </div>
+          </div>
+
+          <div class="lms-metric-card purple">
+            <div class="metric-icon-badge">3</div>
+            <div class="metric-copy">
+              <h4 class="metric-title" id="lms-stat-3-title">AI Domain Agents Online</h4>
+              <p class="metric-desc" id="lms-stat-3-desc">Whitelisted signers: Foundations, Security, Infrastructure.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4.3 Horizontal Course Bento Cards -->
+        <div class="courses-list-container">
+          <div class="courses-list-header">
+            <h3 class="courses-list-title" id="courses-list-heading">Available Micro-Courses</h3>
+            <span class="courses-count-tag" id="courses-count-tag">2 Active Courses</span>
+          </div>
+
+          <!-- Course 1 Horizontal Bento Card -->
+          <div class="course-bento-card">
+            <div class="course-thumb-column">
+              <img src="/assets/course_foundations.jpg" alt="Web3 Dasar" class="course-bento-thumb" />
+              <div class="course-thumb-overlay"></div>
+              <span class="course-thumb-badge gold">LEVEL: BEGINNER</span>
+            </div>
+
+            <div class="course-bento-info">
+              <div class="course-top-pills">
+                <span class="course-badge level" id="c1-badge-lvl">2 Hours · Modular</span>
+                <span class="course-badge sbt" id="c1-badge-sbt">Soulbound Badge</span>
+                <span class="course-badge status-open" id="c1-badge-unlocked">✓ UNLOCKED</span>
+              </div>
+
+              <h3 class="course-bento-title" id="c1-title">Web3 Dasar 2026: Foundations &amp; Architecture</h3>
+              <p class="course-bento-desc" id="c1-desc">
+                Understand blockchain primitives, EVM execution, and verifiable credentials. Complete an analytical essay comparing
+                centralized certificates with on-chain attestations.
               </p>
+
+              <div class="course-evaluator-strip">
+                <div class="eval-agent-info">
+                  <span class="agent-chip-icon">🤖</span>
+                  <span class="agent-chip-label" id="c1-agent">AI Agent: Agent-Foundations</span>
+                  <code class="agent-chip-addr">0x8211...7DE</code>
+                </div>
+                <div class="course-rubric-mini">
+                  <span class="rubric-mini-tag" id="c1-rubric-tag">Rubric #0x91a7:</span>
+                  <span class="mini-chip">Depth 40%</span>
+                  <span class="mini-chip">EVM 30%</span>
+                  <span class="mini-chip">Reasoning 30%</span>
+                </div>
+              </div>
+
+              <div class="course-bento-footer">
+                <div class="course-stats-meta">
+                  <span class="enrolled-stat" id="c1-enrolled">👥 1,420 Enrolled</span>
+                  <span class="meta-sep">•</span>
+                  <span class="pass-stat">99.8% Pass Rate</span>
+                  <span class="meta-sep">•</span>
+                  <span class="standard-stat">W3C Open Badges 3.0</span>
+                </div>
+                <div class="course-actions">
+                  <button type="button" class="btn btn-primary btn-sm" id="btn-open-study-c1">Open Study Room ➔</button>
+                </div>
+              </div>
             </div>
-            <div class="course-card-footer">
-              <span class="course-issuer-pill" id="c2-agent">AI Agent: Agent-Security</span>
-              <button class="btn btn-secondary btn-sm" id="btn-enroll-c2">Start Course</button>
+          </div>
+
+          <!-- Course 2 Horizontal Bento Card -->
+          <div class="course-bento-card">
+            <div class="course-thumb-column">
+              <img src="/assets/course_security.jpg" alt="BNB Chain Security" class="course-bento-thumb" />
+              <div class="course-thumb-overlay emerald"></div>
+              <span class="course-thumb-badge emerald">LEVEL: ADVANCED</span>
+            </div>
+
+            <div class="course-bento-info">
+              <div class="course-top-pills">
+                <span class="course-badge level advanced" id="c2-badge-lvl">4 Hours · Advanced</span>
+                <span class="course-badge prereq" id="c2-badge-prereq">🔒 Prerequisite: Web3 Dasar</span>
+                <span class="course-badge status-gated">BAS PREREQUISITE CHECK</span>
+              </div>
+
+              <h3 class="course-bento-title" id="c2-title">BNB Chain Security &amp; Prerequisite Integrity</h3>
+              <p class="course-bento-desc" id="c2-desc">
+                Master access control, resolver hooks, and prerequisite validation chains on BNB Smart Chain. Requires Web3 Dasar 2026
+                completion to unlock.
+              </p>
+
+              <div class="course-evaluator-strip">
+                <div class="eval-agent-info">
+                  <span class="agent-chip-icon">🛡️</span>
+                  <span class="agent-chip-label" id="c2-agent">AI Agent: Agent-Security</span>
+                  <code class="agent-chip-addr">0x3Fa9...11B</code>
+                </div>
+                <div class="course-rubric-mini">
+                  <span class="rubric-mini-tag" id="c2-rubric-tag">Rubric #0x42f1:</span>
+                  <span class="mini-chip">Defense 50%</span>
+                  <span class="mini-chip">Architecture 30%</span>
+                  <span class="mini-chip">Clarity 20%</span>
+                </div>
+              </div>
+
+              <div class="course-bento-footer">
+                <div class="course-stats-meta">
+                  <span class="enrolled-stat" id="c2-enrolled">👥 856 Enrolled</span>
+                  <span class="meta-sep">•</span>
+                  <span class="pass-stat">99.9% Pass Rate</span>
+                  <span class="meta-sep">•</span>
+                  <span class="standard-stat">ERC-5192 Soulbound</span>
+                </div>
+                <div class="course-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" id="btn-open-study-c2">Open Study Room ➔</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
+
+      <!-- 4.4 INTERACTIVE STUDY ROOM MODAL -->
+      <div class="study-modal hidden" id="study-modal" role="dialog" aria-modal="true">
+        <div class="study-modal-backdrop" id="study-modal-backdrop"></div>
+        <div class="study-modal-dialog">
+          <div class="study-modal-header">
+            <div>
+              <span class="study-modal-badge" id="study-modal-kicker">STUDY ROOM · INTERACTIVE LESSON</span>
+              <h3 class="study-modal-title" id="study-modal-title">Web3 Dasar 2026: Foundations &amp; Architecture</h3>
+            </div>
+            <button type="button" class="study-modal-close" id="btn-close-study-modal" aria-label="Close">&times;</button>
+          </div>
+
+          <div class="study-modal-body">
+            <!-- Module Syllabus Tabs -->
+            <div class="syllabus-tabs-strip">
+              <button type="button" class="syllabus-tab active" id="tab-mod-1">Module 1: Primitives</button>
+              <button type="button" class="syllabus-tab" id="tab-mod-2">Module 2: BAS Attestations</button>
+              <button type="button" class="syllabus-tab" id="tab-mod-3">Module 3: Capstone Essay Task</button>
+            </div>
+
+            <div class="study-lesson-content" id="study-lesson-content">
+              <!-- Dynamically populated via JavaScript -->
+            </div>
+          </div>
+
+          <div class="study-modal-footer">
+            <div class="study-footer-meta" id="study-footer-status">
+              <span class="study-dot"></span>
+              <span id="study-footer-text">Module 1 of 3 · Self-Paced</span>
+            </div>
+            <button type="button" class="btn btn-primary" id="btn-study-proceed-eval">Proceed to AI Essay Evaluation ➔</button>
+          </div>
+        </div>
+      </div>
 
       <!-- 5. INTERACTIVE CREDENTIAL VERIFIER SANDBOX -->
       <section class="section-container" id="verifier">
