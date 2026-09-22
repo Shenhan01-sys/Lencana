@@ -156,22 +156,47 @@ function normalizeSignature (sig) {
   }
 }
 
-/** Bentuk argumen `DelegatedAttestationRequest`/`MultiDelegatedAttestationRequest` untuk viem. */
-function toRequest ({ schema, attester, deadline, entries }) {
+/** Satu `AttestationRequestData`. Nama field, bukan posisi: viem menyusun tuple per komponen. */
+function toDataStruct (e) {
+  if (!e.signature) throw new Error('entri tanpa tanda tangan: tanda tangani dulu dengan signDelegatedAttestation')
+  return {
+    recipient: e.recipient,
+    expirationTime: BigInt(e.expirationTime),
+    revocable: e.revocable ?? true,
+    refUID: e.refUID ?? EMPTY_UID,
+    data: e.data,
+    value: e.value ?? 0n,
+  }
+}
+
+/**
+ * `MultiDelegatedAttestationRequest` — `data` dan `signatures` adalah ARRAY yang sejajar.
+ */
+export function toMultiRequest ({ schema, attester, deadline, entries }) {
   return {
     schema,
-    data: entries.map((e) => ({
-      recipient: e.recipient,
-      expirationTime: BigInt(e.expirationTime),
-      revocable: e.revocable ?? true,
-      refUID: e.refUID ?? EMPTY_UID,
-      data: e.data,
-      value: e.value ?? 0n,
-    })),
-    signatures: entries.map((e) => {
-      if (!e.signature) throw new Error('entri tanpa tanda tangan: tanda tangani dulu dengan signDelegatedAttestation')
-      return e.signature
-    }),
+    data: entries.map(toDataStruct),
+    signatures: entries.map((e) => e.signature),
+    attester,
+    deadline: BigInt(deadline),
+  }
+}
+
+/**
+ * `DelegatedAttestationRequest` — SATU struct `data` dan SATU `signature`.
+ *
+ * Ini bukan versi jamak yang dikurangi: bentuknya beda, dan dulu keduanya dilayani satu builder.
+ * Akibatnya jalur tunggal mengirim ARRAY ke posisi yang harusnya struct, lalu viem menyerahkannya
+ * sebagai object ke parameter `address` -> `InvalidAddressError: Address "[object Object]"`.
+ * Kegagalannya di sisi klien dan sebelum gas apa pun bergerak, yang justru membuatnya mudah
+ * dianggap sepele. Sekarang tiap jalur punya pembentuknya sendiri, supaya tidak ada yang bisa
+ * "kira-kira sama".
+ */
+export function toSingleRequest ({ schema, attester, deadline, entry }) {
+  return {
+    schema,
+    data: toDataStruct(entry),
+    signature: entry.signature,
     attester,
     deadline: BigInt(deadline),
   }
@@ -194,15 +219,20 @@ export async function relayDelegated ({
   const account = privateKeyToAccount(platformPrivateKey)
   const chain = chainFor(await client.getChainId(), rpcUrl)
   const wallet = createWalletClient({ account, chain, transport: http(rpcUrl) })
-  const args = toRequest({ schema, attester, deadline, entries })
 
-  const txHash = batch
-    ? await wallet.writeContract({
-        address: basAddress, abi: basAbi, functionName: 'multiAttestByDelegation', args: [[args]],
-      })
-    : await wallet.writeContract({
-        address: basAddress, abi: basAbi, functionName: 'attestByDelegation', args: [args],
-      })
+  let txHash
+  if (batch) {
+    txHash = await wallet.writeContract({
+      address: basAddress, abi: basAbi, functionName: 'multiAttestByDelegation',
+      args: [[toMultiRequest({ schema, attester, deadline, entries })]],
+    })
+  } else {
+    if (entries.length !== 1) throw new Error(`jalur tunggal butuh tepat 1 entri, dapat ${entries.length}`)
+    txHash = await wallet.writeContract({
+      address: basAddress, abi: basAbi, functionName: 'attestByDelegation',
+      args: [toSingleRequest({ schema, attester, deadline, entry: entries[0] })],
+    })
+  }
 
   const receipt = await client.waitForTransactionReceipt({ hash: txHash })
   if (receipt.status !== 'success') throw new Error(`delegasi revert: ${txHash}`)

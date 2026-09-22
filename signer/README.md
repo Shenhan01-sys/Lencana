@@ -18,10 +18,13 @@ This closes decision **D24.1 = A** (see `../vault/02-architecture.md`).
 | `src/store.js` | the append-only allocation record + issued-credential registry on the issuer side |
 | `src/lists.js` | renders a status list — **shared by the server and the issuer**, and it also owns `servedHashes()`, the single answer to "which credentials are in the list" (see below: sharing the renderer was not enough) |
 | `src/anchor.js` | `timestamp()` of the bitstring hash on BAS, then reads it back |
+| `src/delegation.js` | the **EIP-712 delegation path**: the agent signs an attestation, the platform broadcasts it. Refuses to return a signature that does not recover to the agent's own address, and builds the single and batch request shapes separately (they are different structs, not one struct minus an array) |
 | `src/issuer.js` | the agent's Ed25519 document key and its issuer document |
 | `src/sign.js` | `DataIntegrityProof` + `eddsa-rdfc-2022` sign/verify, and the JSON-LD document loader |
 | `src/server.js` | serves `/issuers/:slug`, `/credentials/0x…`, `/credentials/status/{revocation,suspension}`, `/healthz` |
 | `scripts/issue.js` | **one command**: score → on-chain attestation (agent's own key) → signed document → status lists → bitstring hash anchored to BAS |
+| `scripts/delegate.js` | **`npm run delegate`** — the same issuance over `attestByDelegation`: ids derived from the course material, agent signs, **platform pays the gas**, then everything is read back from the chain including the agent's unchanged balance. Adopts the credential into the watched set at the moment it is issued, so the served list can never quietly omit it. `--dry-run` stops before broadcasting and says which claims it therefore has not made |
+| `scripts/anchor.js` | **`npm run anchor`** — witnesses the list currently being served. Idempotent: an already-timestamped hash costs no gas. See the measured limit below: it witnesses **bits**, not membership |
 | `scripts/check.js` | 45 checks: document shape, signature, status lists, chain-derived bits, the index invariant, and bitstring determinism under re-render and under reordered input |
 | `scripts/serve-probe.js` | 20 checks: the same over HTTP, against the running server (the bit-level ones need `EXPECT_*`; without them it prints the group it skipped) |
 
@@ -69,6 +72,31 @@ Two keys per agent, deliberately: the **EOA** is the on-chain `attester` (D30/D3
 Multikey** signs the document. Standard verifiers only ever see the second one; the two are linked
 by the issuer document URL, which is legal because §8.5 of OB3.0 "only requires HTTP URL support".
 
+## The agent signs; the platform pays
+
+`npm run delegate` is the only command in this package that proves the design decision the whole
+agent story rests on, and it is worth reading its output line by line:
+
+```
+tx platform  : 0xbe44e128…54d5   gas 370131
+  ok    attester = AGEN, bukan penyiar
+  ok    saldo agen TIDAK berubah (nol gas di sisi agen)
+  ok    nonce agen naik 3 -> 4
+```
+
+An attestation whose recorded author is an address that never sent a transaction is only possible
+because our `onAttest` gates `_issuer[attestation.attester]` rather than `msg.sender`. That single
+choice is what makes third-party issuers onboardable without handing them BNB — and it is also why
+the platform holds no signing power over the credential: it can delay a broadcast, it cannot
+author one.
+
+Two shapes of the same idea are implemented, and they are **not** interchangeable:
+`attestByDelegation` takes one `AttestationRequestData` plus one signature;
+`multiAttestByDelegation` takes parallel arrays. Serving both from one builder produced
+`InvalidAddressError: Address "[object Object]"` — an array where a struct belonged. The failure
+landed client-side, before any gas moved, which is exactly the kind of bug that survives review
+because the batch path already worked. Each path now builds its own request.
+
 ## Run it
 
 ```bash
@@ -78,6 +106,8 @@ node scripts/check.js                 # 45 checks with a chain to read (28 offli
 node src/server.js                    # http://127.0.0.1:8787
 node scripts/serve-probe.js           # 20 checks against the running server
 node scripts/issue.js --course web3-dasar-2026 --learner 0x… --score 87
+npm run delegate   # agent signs, platform broadcasts: needs tsx (devDependency) for the .ts imports
+npm run anchor     # witness the list currently served; costs no gas if nothing changed
 ```
 
 `check.js` section 5 and the server read `process.env` and **nothing else** — no dotenv, unlike
@@ -132,10 +162,11 @@ disagree.
   to the terms that actually exist in the published contexts, but interoperability is only claimed
   after it passes someone else's validator. That test is still open, and it is the single most
   valuable thing left in this package.
-- **Everything measured here ran against a local anvil fork of chain 97**, including the one command
-  that attests, signs, renders and anchors (`timestamp()` recorded and read back on the fork).
-  Nothing in `signer/` has touched a public chain yet — no backend of ours has a public URL, which
-  is exactly what the third-party validator test will need.
+- **Everything in this package has now run against the public BSC testnet (chain 97)**, not a fork:
+  `issue.js` attested and anchored, `check.js` and `serve-probe.js` read live chain state, and
+  `delegate.js` published lesson-level attestations through both delegation entry points
+  (21–22 Sep). The addresses are in `../vault/04-technical-reference.md` §D. What still has no
+  public endpoint is this server itself — which is the precondition for the bullet above.
 - **The anchor's precision is stated, not oversold.** `timestamp()` stores `uint64` per `bytes32`
   and keeps no content, so it proves *"this bitstring hash existed at this time"*, not *"we always
   serve this list"*. And two empty lists hash identically (see above), so a hash for an

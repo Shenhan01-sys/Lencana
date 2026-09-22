@@ -15,6 +15,7 @@
     "serve": "node src/server.js",
     "probe:serve": "node scripts/serve-probe.js",
     "issue": "node scripts/issue.js",
+    "delegate": "tsx scripts/delegate.js",
     "anchor": "node scripts/anchor.js",
     "smoke": "node scripts/smoke.mjs"
   },
@@ -25,5 +26,8 @@
     "jsonld": "^9.0.0",
     "jsonld-signatures": "^11.6.0",
     "viem": "^2.56.5"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
   }
 }
