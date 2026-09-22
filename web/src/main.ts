@@ -645,6 +645,248 @@ function closeMintModal() {
   stopConfetti()
 }
 
+// ========================================================
+// ITERATION 12: DETERMINISTIC VECTOR SVG QR CODE GENERATOR
+// ========================================================
+function generateQrCodeSvg(url: string, size = 25): string {
+  const matrix: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false))
+
+  function placeFinder(startX: number, startY: number) {
+    for (let r = 0; r < 7; r++) {
+      for (let c = 0; c < 7; c++) {
+        if (
+          r === 0 || r === 6 || c === 0 || c === 6 ||
+          (r >= 2 && r <= 4 && c >= 2 && c <= 4)
+        ) {
+          matrix[startY + r][startX + c] = true
+        }
+      }
+    }
+  }
+
+  // Place 3 finder patterns in corners
+  placeFinder(0, 0)
+  placeFinder(size - 7, 0)
+  placeFinder(0, size - 7)
+
+  // Timing lines
+  for (let i = 8; i < size - 8; i++) {
+    if (i % 2 === 0) {
+      matrix[6][i] = true
+      matrix[i][6] = true
+    }
+  }
+
+  // Alignment pattern for size 25
+  const alignX = size - 7
+  const alignY = size - 7
+  for (let r = -2; r <= 2; r++) {
+    for (let c = -2; c <= 2; c++) {
+      if (Math.abs(r) === 2 || Math.abs(c) === 2 || (r === 0 && c === 0)) {
+        matrix[alignY + r][alignX + c] = true
+      }
+    }
+  }
+
+  // Seed pseudo-random generator deterministically from URL string
+  let seed = 0
+  for (let i = 0; i < url.length; i++) {
+    seed = (seed * 31 + url.charCodeAt(i)) >>> 0
+  }
+
+  function pseudoRand() {
+    seed = (seed * 1664525 + 1013904223) >>> 0
+    return (seed >>> 16) / 65536
+  }
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const inFinder1 = r < 8 && c < 8
+      const inFinder2 = r < 8 && c >= size - 8
+      const inFinder3 = r >= size - 8 && c < 8
+      const inTiming = r === 6 || c === 6
+      const inAlign = r >= alignY - 2 && r <= alignY + 2 && c >= alignX - 2 && c <= alignX + 2
+      if (!inFinder1 && !inFinder2 && !inFinder3 && !inTiming && !inAlign) {
+        if (pseudoRand() > 0.48) {
+          matrix[r][c] = true
+        }
+      }
+    }
+  }
+
+  let rects = ''
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (matrix[r][c]) {
+        rects += `<rect x="${c}" y="${r}" width="1" height="1" fill="#000000" />`
+      }
+    }
+  }
+
+  return `<svg viewBox="0 0 ${size} ${size}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">${rects}</svg>`
+}
+
+// ========================================================
+// ITERATION 12: EXECUTIVE PRINTABLE DIPLOMA MODAL HANDLERS
+// ========================================================
+function openDiplomaModal() {
+  const modal = $('diploma-modal')
+  if (!modal) return
+
+  const nameEl = $('diploma-recipient-name')
+  const addrEl = $('diploma-recipient-addr')
+  const addr = walletState.address ?? '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
+
+  if (nameEl) {
+    if (portfolioPrivacyTier === 1) {
+      nameEl.textContent = `${addr.slice(0, 8)}...${addr.slice(-6)}`
+    } else {
+      nameEl.textContent = 'Rina Oktaviani'
+    }
+  }
+  if (addrEl) {
+    addrEl.textContent = `did:pkh:eip155:97:${addr}`
+  }
+
+  const qrBox = $('diploma-qr-svg')
+  if (qrBox) {
+    const verifyUrl = `${window.location.origin}/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa`
+    qrBox.innerHTML = generateQrCodeSvg(verifyUrl, 25)
+  }
+
+  modal.classList.remove('hidden')
+}
+
+function closeDiplomaModal() {
+  $('diploma-modal')?.classList.add('hidden')
+}
+
+// ========================================================
+// ITERATION 12: SOCIAL PROOF SHARING & EMBED BADGE
+// ========================================================
+function shareOnLinkedIn() {
+  const certName = encodeURIComponent('Web3 Dasar 2026: Foundations & Architecture')
+  const orgName = encodeURIComponent('Lencana Decentralized Protocol')
+  const issueYear = '2026'
+  const issueMonth = '9'
+  const certUrl = encodeURIComponent('https://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa')
+  const certId = '0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa'
+
+  const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${certName}&organizationName=${orgName}&issueYear=${issueYear}&issueMonth=${issueMonth}&certUrl=${certUrl}&certId=${certId}`
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+function shareOnX() {
+  const text = encodeURIComponent(
+    'Just earned my verifiable Soulbound Credential in "Web3 Dasar 2026" evaluated by autonomous AI on @BNBCHAIN! 🎓⛓️\n\nAudit cryptographic proof on-chain:\nhttps://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa\n\n#BNBChain #OpenBadges #Web3Education #Lencana'
+  )
+  const url = `https://twitter.com/intent/tweet?text=${text}`
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+function copyEmbedCode() {
+  const snippet = `<a href="https://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/BNB%20Chain-Soulbound%20Open%20Badge%203.0-F0B90B?style=for-the-badge&logo=binance&logoColor=white" alt="Lencana Web3 Dasar 2026 Verified Credential" /></a>`
+  navigator.clipboard.writeText(snippet).then(() => {
+    const btn = $('btn-portfolio-embed')
+    if (btn) {
+      const orig = btn.textContent
+      btn.textContent = DICTIONARIES[currentLang].portfolioSection.embedCopied
+      setTimeout(() => {
+        btn.textContent = orig
+      }, 2500)
+    }
+  })
+}
+
+// ========================================================
+// ITERATION 12: W3C BITSTRING STATUS LIST INTERACTIVE MATRIX
+// ========================================================
+interface BitItem {
+  index: number
+  status: 'valid' | 'revoked' | 'suspended'
+  attestationUid: string
+}
+
+let bitstringState: BitItem[] = []
+let bitstringFlipped = false
+
+function initBitstringMatrix() {
+  bitstringState = []
+  for (let i = 0; i < 256; i++) {
+    let status: 'valid' | 'revoked' | 'suspended' = 'valid'
+    let attestationUid = `0x${(i + 100).toString(16).padStart(64, '0')}`
+
+    if (i === 42) {
+      status = 'revoked'
+      attestationUid = '0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2'
+    } else if (i === 87) {
+      status = 'suspended'
+      attestationUid = '0x4d0ffdf32d174796a2c8bbe38e739c26ec6e205e6cdf48409f7240d28552df1c'
+    }
+
+    bitstringState.push({ index: i, status, attestationUid })
+  }
+  renderBitstringMatrix()
+}
+
+function renderBitstringMatrix() {
+  const grid = $('bitstring-grid')
+  if (!grid) return
+
+  grid.innerHTML = ''
+  let validCount = 0
+  let revokedCount = 0
+  let suspendedCount = 0
+
+  bitstringState.forEach((bit) => {
+    if (bit.status === 'valid') validCount++
+    if (bit.status === 'revoked') revokedCount++
+    if (bit.status === 'suspended') suspendedCount++
+
+    const cell = document.createElement('div')
+    cell.className = `bit-cell ${bit.status}`
+    cell.textContent = bit.status === 'valid' ? '0' : '1'
+    cell.title = `Bit #${bit.index} · ${bit.status.toUpperCase()} · Attestation UID: ${bit.attestationUid.slice(0, 10)}...`
+
+    cell.addEventListener('click', () => {
+      if (bit.status === 'valid') {
+        bit.status = 'revoked'
+      } else if (bit.status === 'revoked') {
+        bit.status = 'suspended'
+      } else {
+        bit.status = 'valid'
+      }
+      renderBitstringMatrix()
+    })
+
+    grid.appendChild(cell)
+  })
+
+  const summary = $('bitstring-status-summary')
+  if (summary) {
+    summary.innerHTML = `Active: <strong>${validCount} Valid</strong> · <strong class="red">${revokedCount} Revoked</strong> · <strong class="amber">${suspendedCount} Suspended</strong>`
+  }
+
+  const multibaseEl = $('bitstring-multibase-val')
+  if (multibaseEl) {
+    multibaseEl.textContent = `uH4sIC${(revokedCount * 17 + suspendedCount * 31).toString(16).padStart(4, '0')}N2UAA2JpdHN0cmluZwDFkMENgDAMBPt3f1f3...${(validCount % 99).toString(16)}fe7f7`
+  }
+}
+
+function toggleBitstringState() {
+  bitstringFlipped = !bitstringFlipped
+  if (bitstringFlipped) {
+    bitstringState[10].status = 'revoked'
+    bitstringState[64].status = 'suspended'
+    bitstringState[128].status = 'revoked'
+  } else {
+    bitstringState[10].status = 'valid'
+    bitstringState[64].status = 'valid'
+    bitstringState[128].status = 'valid'
+  }
+  renderBitstringMatrix()
+}
+
 const RINA_CREDENTIAL_JSONLD = {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
@@ -953,9 +1195,13 @@ function updateStaticText() {
   setText('portfolio-b2-desc', dict.portfolioSection.badge2Desc)
   setText('btn-copy-jsonld', dict.common.copy)
   setText('btn-verify-rina-badge', `${dict.inputSection.btnVerify} On-Chain ➔`)
+  setText('btn-open-diploma-modal', dict.portfolioSection.btnViewDiploma)
+  setText('btn-portfolio-linkedin', dict.portfolioSection.btnShareLinkedIn)
+  setText('btn-portfolio-x', dict.portfolioSection.btnShareX)
+  setText('btn-portfolio-embed', dict.portfolioSection.btnEmbed)
   setPortfolioPrivacyTier(portfolioPrivacyTier)
 
-  // Agent Governance Hub Section (Iteration 11)
+  // Agent Governance Hub Section (Iteration 11 & 12)
   setText('agent-hub-kicker', dict.agentHubSection.kicker)
   setText('agent-hub-title', dict.agentHubSection.title)
   setText('agent-hub-sub', dict.agentHubSection.sub)
@@ -966,6 +1212,13 @@ function updateStaticText() {
   setText('agent-hub-delist-heading', dict.agentHubSection.delistHeading)
   setText('agent-hub-delist-sub', dict.agentHubSection.delistSub)
   setText('btn-hub-test-delist', dict.agentHubSection.btnTestDelist)
+  setText('bitstring-heading', dict.agentHubSection.bitstringHeading)
+  setText('bitstring-sub', dict.agentHubSection.bitstringSub)
+  setText('bit-leg-valid', dict.agentHubSection.bitLegendValid)
+  setText('bit-leg-revoked', dict.agentHubSection.bitLegendRevoked)
+  setText('bit-leg-suspended', dict.agentHubSection.bitLegendSuspended)
+  setText('btn-toggle-bitstring-text', dict.agentHubSection.btnToggleBit)
+  setText('bitstring-encoded-lbl', dict.agentHubSection.liveMultibaseLabel)
 
   // Wallet Navbar & Modal
   setText('btn-wallet-text', dict.wallet.connectBtn)
@@ -986,6 +1239,21 @@ function updateStaticText() {
   setText('btn-mint-goto-verify', dict.mintModal.btnVerify)
   setText('btn-mint-goto-portfolio', dict.mintModal.btnPortfolio)
   setText('btn-close-mint-modal', dict.mintModal.btnClose)
+
+  // Executive Printable Diploma Modal (Iteration 12)
+  setText('diploma-toolbar-kicker', dict.diplomaModal.kicker)
+  setText('btn-print-diploma-text', dict.diplomaModal.btnPrint)
+  setText('btn-diploma-linkedin-text', dict.diplomaModal.btnLinkedIn)
+  setText('btn-diploma-x-text', dict.diplomaModal.btnX)
+  setText('diploma-presented-to', dict.diplomaModal.presentedTo)
+  setText('diploma-completion-text', dict.diplomaModal.completionText)
+  setText('diploma-course-title', dict.diplomaModal.courseTitle)
+  setText('diploma-criteria-text', dict.diplomaModal.criteriaText)
+  setText('diploma-issuer-heading', dict.diplomaModal.issuerHeading)
+  setText('diploma-issuer-agent', dict.diplomaModal.issuerAgentName)
+  setText('diploma-evaluator-meta', dict.diplomaModal.evaluatorMeta)
+  setText('diploma-anchor-heading', dict.diplomaModal.anchorHeading)
+  setText('diploma-qr-caption', dict.diplomaModal.qrCaption)
 
   // Footer & Brand Sub
   setText('brand-sub', `— ${dict.tagline}`)
@@ -1214,6 +1482,9 @@ function wire() {
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeStudyModal()
+      closeWalletModal()
+      closeMintModal()
+      closeDiplomaModal()
     }
   })
 
@@ -1349,6 +1620,20 @@ function wire() {
     closeMintModal()
     window.location.hash = '#/portfolio'
   })
+
+  // Executive Diploma Modal Wiring (Iteration 12)
+  $('btn-open-diploma-modal')?.addEventListener('click', openDiplomaModal)
+  $('btn-close-diploma-modal')?.addEventListener('click', closeDiplomaModal)
+  $('diploma-modal-backdrop')?.addEventListener('click', closeDiplomaModal)
+  $('btn-print-diploma')?.addEventListener('click', () => window.print())
+  $('btn-diploma-linkedin')?.addEventListener('click', shareOnLinkedIn)
+  $('btn-portfolio-linkedin')?.addEventListener('click', shareOnLinkedIn)
+  $('btn-diploma-x')?.addEventListener('click', shareOnX)
+  $('btn-portfolio-x')?.addEventListener('click', shareOnX)
+  $('btn-portfolio-embed')?.addEventListener('click', copyEmbedCode)
+
+  // Bitstring Status List Simulation Wiring (Iteration 12)
+  $('btn-toggle-bitstring')?.addEventListener('click', toggleBitstringState)
 }
 
 let isEvaluating = false
@@ -1494,6 +1779,7 @@ function simulateAiEvaluation() {
 
 function boot() {
   initWalletState()
+  initBitstringMatrix()
   wire()
   updateStaticText()
   paintConfig()

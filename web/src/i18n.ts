@@ -408,6 +408,11 @@ export interface TranslationDictionary {
     btnViewRaw: string
     btnShareBadge: string
     btnBscScan: string
+    btnViewDiploma: string
+    btnShareLinkedIn: string
+    btnShareX: string
+    btnEmbed: string
+    embedCopied: string
   }
   agentHubSection: {
     kicker: string
@@ -421,6 +426,32 @@ export interface TranslationDictionary {
     delistSub: string
     btnTestDelist: string
     delistWarning: string
+    bitstringHeading: string
+    bitstringSub: string
+    bitLegendValid: string
+    bitLegendRevoked: string
+    bitLegendSuspended: string
+    btnToggleBit: string
+    liveMultibaseLabel: string
+  }
+  diplomaModal: {
+    kicker: string
+    title: string
+    presentedTo: string
+    completionText: string
+    courseTitle: string
+    criteriaText: string
+    issuerHeading: string
+    issuerAgentName: string
+    evaluatorMeta: string
+    anchorHeading: string
+    anchorUid: string
+    qrCaption: string
+    qrHint: string
+    btnPrint: string
+    btnLinkedIn: string
+    btnX: string
+    btnClose: string
   }
 }
 
@@ -863,6 +894,11 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnViewRaw: 'Inspect Raw Metadata',
       btnShareBadge: 'Share Verification Link',
       btnBscScan: 'View on BscScan',
+      btnViewDiploma: 'View Official Diploma 📜',
+      btnShareLinkedIn: 'Add to LinkedIn',
+      btnShareX: 'Share on X',
+      btnEmbed: 'Embed Badge',
+      embedCopied: 'Badge Embed HTML copied to clipboard!',
     },
     agentHubSection: {
       kicker: 'ISSUER & PROTOCOL GOVERNANCE',
@@ -876,6 +912,13 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       delistSub: 'If an AI agent key is ever compromised, the platform contract immediately delists it, blocking new attestations while preserving past verified credentials.',
       btnTestDelist: 'Simulate Delisting Compromised Agent-B',
       delistWarning: 'Failsafe Guard: Delisted signers are immediately rejected by CredentialResolver on-chain.',
+      bitstringHeading: 'W3C Bitstring Status List (Chain-State Derived)',
+      bitstringSub: 'Visual representation of BitstringStatusList2021 where revocation & suspension bits are computed directly from live smart contract storage, guaranteeing zero out-of-sync discrepancies.',
+      bitLegendValid: 'Bit 0: Valid / Active (Unrevoked)',
+      bitLegendRevoked: 'Bit 1: Permanently Revoked',
+      bitLegendSuspended: 'Bit 1: Suspended / Delisted',
+      btnToggleBit: 'Simulate State Flip',
+      liveMultibaseLabel: 'Live Gzip Multibase String:',
     },
     wallet: {
       connectBtn: 'Sign in with Browser',
@@ -900,6 +943,25 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnVerify: 'Audit Live in Verifier Sandbox ➔',
       btnPortfolio: 'View in Learner Portfolio ➔',
       btnClose: 'Close',
+    },
+    diplomaModal: {
+      kicker: 'BNB SMART CHAIN · OFFICIAL SOULBOUND DIPLOMA',
+      title: 'Executive Credential of Achievement',
+      presentedTo: 'THIS SOULBOUND ACADEMIC CREDENTIAL IS PROUDLY CONFERRED UPON',
+      completionText: 'for successfully defending the capstone curriculum and demonstrating verified expertise in',
+      courseTitle: 'Web3 Dasar 2026: Foundations & Architecture',
+      criteriaText: 'Evaluated by autonomous domain AI agent against on-chain Rubric #0x91a7 with composite score 93/100 (Honors Pass). Anchored to BNB Attestation Service and minted as a non-transferable Soulbound ERC-5192 Token.',
+      issuerHeading: 'AUTONOMOUS EVALUATOR AGENT',
+      issuerAgentName: 'Agent-Foundations (0x8211...7DE)',
+      evaluatorMeta: 'EIP-712 ECDSA Signature · Rubric #0x91a7',
+      anchorHeading: 'ON-CHAIN ANCHOR & PROTOCOL REGISTRAR',
+      anchorUid: 'BAS Attestation UID: 0x0b95...67fa · Chain 97',
+      qrCaption: 'SCAN TO VERIFY ON-CHAIN',
+      qrHint: 'Instant zero-wallet cryptographic verification on BNB Chain',
+      btnPrint: 'Print Official Diploma / Save PDF',
+      btnLinkedIn: 'Add to LinkedIn Profile',
+      btnX: 'Share on X',
+      btnClose: 'Close Diploma',
     },
   },
   id: {
@@ -1340,6 +1402,11 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnViewRaw: 'Inspeksi Metadata Mentah',
       btnShareBadge: 'Bagikan Link Verifikasi',
       btnBscScan: 'Lihat di BscScan',
+      btnViewDiploma: 'Lihat Ijazah Resmi 📜',
+      btnShareLinkedIn: 'Tambah ke LinkedIn',
+      btnShareX: 'Bagikan di X',
+      btnEmbed: 'Embed Lencana',
+      embedCopied: 'Kode Embed Lencana berhasil disalin!',
     },
     agentHubSection: {
       kicker: 'TATA KELOLA PENERBIT & PROTOKOL',
@@ -1353,6 +1420,13 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       delistSub: 'Jika kunci privat agen bocor, kontrak platform langsung mendelisting agen tersebut: menolak sertifikat baru tanpa membatalkan kredensial sah terdahulu.',
       btnTestDelist: 'Simulasikan Delisting Agen-B',
       delistWarning: 'Pengaman Otomatis: Agen yang didelisting seketika ditolak oleh CredentialResolver on-chain.',
+      bitstringHeading: 'W3C Bitstring Status List (Berdasarkan State Kontrak)',
+      bitstringSub: 'Representasi visual BitstringStatusList2021 di mana bit pencabutan & suspensi dihitung langsung dari storage smart contract, menjamin sinkronisasi mutlak 100%.',
+      bitLegendValid: 'Bit 0: Aktif / Sah (Belum Dicabut)',
+      bitLegendRevoked: 'Bit 1: Dicabut Permanen',
+      bitLegendSuspended: 'Bit 1: Ditangguhkan / Delisted',
+      btnToggleBit: 'Simulasikan Perubahan Bit',
+      liveMultibaseLabel: 'String Multibase Gzip Real-Time:',
     },
     wallet: {
       connectBtn: 'Masuk dengan Browser',
@@ -1377,6 +1451,25 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnVerify: 'Audit Langsung di Sandbox Verifikasi ➔',
       btnPortfolio: 'Lihat di Portofolio Siswa ➔',
       btnClose: 'Tutup',
+    },
+    diplomaModal: {
+      kicker: 'BNB SMART CHAIN · IJAZAH AKADEMIK SOULBOUND RESMI',
+      title: 'Kredensial Eksekutif Capaian Prestasi',
+      presentedTo: 'KREDENSIAL AKADEMIK SOULBOUND INI DIBERIKAN DENGAN BANGGA KEPADA',
+      completionText: 'atas keberhasilan mempertahankan kurikulum capstone dan membuktikan keahlian terverifikasi dalam',
+      courseTitle: 'Web3 Dasar 2026: Fondasi & Arsitektur',
+      criteriaText: 'Dievaluasi oleh agen AI domain otonom terhadap Rubrik on-chain #0x91a7 dengan skor komposit 93/100 (Lulus Pujian). Tertambat pada BNB Attestation Service dan dicetak sebagai Token Soulbound ERC-5192 non-transferable.',
+      issuerHeading: 'AGEN PENILAI OTONOM BERWENANG',
+      issuerAgentName: 'Agent-Foundations (0x8211...7DE)',
+      evaluatorMeta: 'Tanda Tangan ECDSA EIP-712 · Rubrik #0x91a7',
+      anchorHeading: 'PENAMBAT ON-CHAIN & REGISTRAR PROTOKOL',
+      anchorUid: 'UID Atestasi BAS: 0x0b95...67fa · Chain 97',
+      qrCaption: 'PINDAI UNTUK VERIFIKASI ON-CHAIN',
+      qrHint: 'Verifikasi kriptografis instan tanpa wallet melalui kamera ponsel',
+      btnPrint: 'Cetak Ijazah Resmi / Simpan PDF',
+      btnLinkedIn: 'Tambah ke Profil LinkedIn',
+      btnX: 'Bagikan di X',
+      btnClose: 'Tutup Ijazah',
     },
   },
 }

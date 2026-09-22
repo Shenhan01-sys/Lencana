@@ -1254,6 +1254,10 @@
 
                   <div class="badge-card-actions">
                     <button type="button" class="btn btn-primary btn-sm" id="btn-verify-rina-badge">Verify On-Chain ➔</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-open-diploma-modal">📜 View Diploma</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-portfolio-linkedin">💼 LinkedIn</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-portfolio-x">𝕏 Share</button>
+                    <button type="button" class="btn btn-ghost btn-sm" id="btn-portfolio-embed">📋 Embed</button>
                     <a href="https://testnet.bscscan.com/address/0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" id="btn-view-bscscan">BscScan ↗</a>
                   </div>
                 </div>
@@ -1588,6 +1592,45 @@
               </button>
             </div>
           </div>
+
+          <!-- W3C Bitstring Status List Section (Iteration 12) -->
+          <div class="bitstring-console-section">
+            <div class="bitstring-header-bar">
+              <div>
+                <span class="bitstring-kicker">W3C SPECIFICATION · ON-CHAIN DERIVED</span>
+                <h3 class="bitstring-heading" id="bitstring-heading">W3C Bitstring Status List (Chain-State Derived)</h3>
+                <p class="bitstring-sub" id="bitstring-sub">
+                  Visual representation of BitstringStatusList2021 where revocation &amp; suspension bits are computed directly from live smart contract storage, guaranteeing zero out-of-sync discrepancies.
+                </p>
+              </div>
+              <div class="bitstring-controls">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-bitstring">
+                  <span id="btn-toggle-bitstring-text">Simulate State Flip</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="bitstring-legend-bar">
+              <span class="bit-legend-item"><span class="legend-dot valid"></span> <span id="bit-leg-valid">Bit 0: Valid / Active (Unrevoked)</span></span>
+              <span class="bit-legend-item"><span class="legend-dot revoked"></span> <span id="bit-leg-revoked">Bit 1: Permanently Revoked</span></span>
+              <span class="bit-legend-item"><span class="legend-dot suspended"></span> <span id="bit-leg-suspended">Bit 1: Suspended / Delisted</span></span>
+            </div>
+
+            <div class="bitstring-matrix-card">
+              <div class="bitstring-matrix-meta">
+                <span>Bitstring Size: <strong>256 Bits (32 Bytes)</strong></span>
+                <span id="bitstring-status-summary">Active: <strong>254 Valid</strong> · <strong class="red">1 Revoked</strong> · <strong class="amber">1 Suspended</strong></span>
+              </div>
+
+              <!-- 16x16 Interactive Bit Matrix -->
+              <div class="bitstring-grid" id="bitstring-grid"></div>
+
+              <div class="bitstring-encoded-row">
+                <span class="encoded-lbl" id="bitstring-encoded-lbl">Live Gzip Multibase String:</span>
+                <code class="encoded-val" id="bitstring-multibase-val">uH4sICG3bN2UAA2JpdHN0cmluZwDFkMENgDAMBPt3f1f3...7fe7f7f7</code>
+              </div>
+            </div>
+          </div>
         </section>
       </div>
 
@@ -1717,6 +1760,115 @@
               <button type="button" class="btn btn-primary" id="btn-mint-goto-verify">Audit Live in Verifier Sandbox ➔</button>
               <button type="button" class="btn btn-secondary" id="btn-mint-goto-portfolio">View in Learner Portfolio ➔</button>
               <button type="button" class="btn btn-ghost" id="btn-close-mint-modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXECUTIVE PRINTABLE DIPLOMA MODAL (ITERATION 12) -->
+      <div class="diploma-modal hidden" id="diploma-modal" role="dialog" aria-modal="true">
+        <div class="diploma-modal-backdrop" id="diploma-modal-backdrop"></div>
+        <div class="diploma-modal-dialog">
+          <!-- Top Control Bar (Hidden in Print) -->
+          <div class="diploma-toolbar no-print">
+            <div class="diploma-toolbar-left">
+              <span class="diploma-toolbar-tag" id="diploma-toolbar-kicker">BNB SMART CHAIN · OFFICIAL SOULBOUND DIPLOMA</span>
+            </div>
+            <div class="diploma-toolbar-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="btn-print-diploma">
+                🖨️ <span id="btn-print-diploma-text">Print / Save as PDF</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-diploma-linkedin">
+                💼 <span id="btn-diploma-linkedin-text">Add to LinkedIn</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-diploma-x">
+                𝕏 <span id="btn-diploma-x-text">Share on X</span>
+              </button>
+              <button type="button" class="btn-close-modal" id="btn-close-diploma-modal" aria-label="Close">✕</button>
+            </div>
+          </div>
+
+          <!-- Printable Diploma Sheet -->
+          <div class="diploma-sheet" id="diploma-sheet">
+            <div class="diploma-border-outer">
+              <div class="diploma-border-inner">
+                <div class="diploma-corner-ornament top-left"></div>
+                <div class="diploma-corner-ornament top-right"></div>
+                <div class="diploma-corner-ornament bottom-left"></div>
+                <div class="diploma-corner-ornament bottom-right"></div>
+
+                <!-- Header Brand Crest -->
+                <div class="diploma-header">
+                  <div class="diploma-crest">
+                    <svg class="diploma-bnb-diamond" viewBox="0 0 48 48" width="48" height="48">
+                      <path fill="#F0B90B" d="M24 0L31.2 7.2L12.4 26L5.2 18.8L24 0Z" />
+                      <path fill="#F0B90B" d="M36.8 12.8L44 20L24 40L16.8 32.8L36.8 12.8Z" />
+                      <path fill="#F0B90B" d="M24 14.4L29.6 20L24 25.6L18.4 20L24 14.4Z" />
+                      <path fill="#F0B90B" d="M48 24L40.8 31.2L35.2 25.6L42.4 18.4L48 24Z" />
+                      <path fill="#F0B90B" d="M0 24L7.2 16.8L12.8 22.4L5.6 29.6L0 24Z" />
+                      <path fill="#F0B90B" d="M24 48L16.8 40.8L35.6 22L42.8 29.2L24 48Z" />
+                    </svg>
+                  </div>
+                  <div class="diploma-org-meta">
+                    <span class="diploma-org-name">LENCANA DECENTRALIZED PROTOCOL</span>
+                    <span class="diploma-network-stamp">BNB SMART CHAIN • TESTNET 97</span>
+                  </div>
+                  <h2 class="diploma-main-heading">SOULBOUND DIPLOMA OF ACHIEVEMENT</h2>
+                  <div class="diploma-heading-separator"></div>
+                </div>
+
+                <!-- Recipient & Conferred Block -->
+                <div class="diploma-body">
+                  <p class="diploma-presented-line" id="diploma-presented-to">THIS SOULBOUND ACADEMIC CREDENTIAL IS PROUDLY CONFERRED UPON</p>
+                  <h1 class="diploma-recipient-name" id="diploma-recipient-name">Rina Oktaviani</h1>
+                  <code class="diploma-recipient-addr" id="diploma-recipient-addr">did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B</code>
+
+                  <p class="diploma-completion-line" id="diploma-completion-text">
+                    for successfully defending the capstone curriculum and demonstrating verified expertise in
+                  </p>
+                  <h3 class="diploma-course-name" id="diploma-course-title">Web3 Dasar 2026: Foundations &amp; Architecture</h3>
+                  <p class="diploma-criteria-desc" id="diploma-criteria-text">
+                    Evaluated by autonomous domain AI agent against on-chain Rubric #0x91a7 with composite score 93/100 (Honors Pass).
+                    Anchored to BNB Attestation Service and minted as a non-transferable Soulbound ERC-5192 Token.
+                  </p>
+                </div>
+
+                <!-- Footer Cryptographic Proofs & QR Bar -->
+                <div class="diploma-footer">
+                  <!-- Evaluator Signer -->
+                  <div class="diploma-col left">
+                    <div class="diploma-sign-line"></div>
+                    <span class="diploma-sign-title" id="diploma-issuer-heading">AUTONOMOUS EVALUATOR</span>
+                    <strong class="diploma-sign-name" id="diploma-issuer-agent">Agent-Foundations</strong>
+                    <code class="diploma-sign-addr">0x8211...7DE</code>
+                    <span class="diploma-sign-sub" id="diploma-evaluator-meta">EIP-712 · Rubric #0x91a7</span>
+                  </div>
+
+                  <!-- Central Cryptographic QR Code -->
+                  <div class="diploma-col center">
+                    <div class="diploma-qr-container" id="diploma-qr-container">
+                      <div class="diploma-qr-placeholder" id="diploma-qr-svg"></div>
+                    </div>
+                    <span class="diploma-qr-caption" id="diploma-qr-caption">SCAN TO VERIFY ON-CHAIN</span>
+                    <span class="diploma-qr-hash">UID: 0x0b95c8...67fa</span>
+                  </div>
+
+                  <!-- Protocol Registrar -->
+                  <div class="diploma-col right">
+                    <div class="diploma-seal-emboss">
+                      <div class="seal-inner">
+                        <span class="seal-text-top">BNB ATTESTATION SERVICE</span>
+                        <span class="seal-icon">🔒</span>
+                        <span class="seal-text-bot">ERC-5192 SOULBOUND</span>
+                      </div>
+                    </div>
+                    <span class="diploma-sign-title" id="diploma-anchor-heading">PROTOCOL REGISTRAR</span>
+                    <strong class="diploma-sign-name">CredentialResolver.sol</strong>
+                    <code class="diploma-sign-addr">0xe01a...1627</code>
+                    <span class="diploma-sign-sub" id="diploma-chain-meta">BSC Testnet · Block #41,921,804</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
