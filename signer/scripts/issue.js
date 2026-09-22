@@ -20,7 +20,7 @@ import { createPublicClient, createWalletClient, http, keccak256, stringToBytes,
 import { privateKeyToAccount } from 'viem/accounts'
 
 import { credentialHashOf, buildOpenBadgeCredential } from '../src/credential.js'
-import { REVOCATION, SUSPENSION, renderList } from '../src/lists.js'
+import { REVOCATION, SUSPENSION, renderList, servedHashes } from '../src/lists.js'
 import { loadAllocator, rememberCredential } from '../src/store.js'
 import { loadKey, issuerDocument } from '../src/issuer.js'
 import { makeDocumentLoader, signDocument, verifyDocument } from '../src/sign.js'
@@ -174,19 +174,27 @@ console.log(`dokumen     : ${signedDoc.id}`)
 console.log(`slot        : revocation ${revocationIndex} · suspension ${suspensionIndex}`)
 
 // 4. Kunci hash tiap daftar status ke chain, lalu BACA ULANG — jangan percaya nilai return.
+//
+// ⚠️ Yang di-anchor adalah hash daftar atas SEMUA kredensial yang dipantau (`servedHashes()`),
+// bukan daftar berisi kredensial yang baru terbit ini saja. Server menghidangkan yang pertama,
+// jadi hanya hash itulah yang bisa membuktikan "daftar yang kalian baca bukan hasil suntingan".
+// Versi sebelumnya memakai `[credentialHash]` dan menghasilkan anchor yang sah bentuknya tapi
+// tidak mengikat apa pun — dua daftar beda input, jadi hash-nya tidak akan pernah sama.
+const anchorHashes = await servedHashes()
 for (const purpose of [REVOCATION, SUSPENSION]) {
   const list = await renderList({
     purpose, baseUrl: BASE_URL, rpcUrl: RPC_URL, resolverAddress: RESOLVER,
-    hashes: [credentialHash], key: agent.key, controllerDocument: issuerDoc, documentLoader: loader,
+    hashes: anchorHashes, key: agent.key, controllerDocument: issuerDoc, documentLoader: loader,
   })
   const before = await readAnchor({ rpcUrl: RPC_URL, basAddress: BAS, data: list.hash })
   if (before > 0n) {
-    console.log(`anchor ${purpose}: sudah ada sejak ${before} — tidak diulang`)
+    console.log(`anchor ${purpose}: sudah ada sejak ${before} — tidak diulang (${list.watched} kredensial, ${list.flagged} bit)`)
     continue
   }
   const a = await anchorListHash({ rpcUrl: RPC_URL, basAddress: BAS, privateKey: platformPk, encodedList: list.encodedList })
   const seen = await readAnchor({ rpcUrl: RPC_URL, basAddress: BAS, data: a.data })
   if (seen === 0n) throw new Error(`anchor ${purpose} tertulis tapi tidak terbaca kembali`)
-  console.log(`anchor ${purpose}: ${a.data} -> jam ${seen} (gas ${a.gasUsed})`)
+  if (a.data !== list.hash) throw new Error(`hash yang tertambang ${a.data} bukan hash yang dirender ${list.hash}`)
+  console.log(`anchor ${purpose}: ${a.data} -> jam ${seen} (gas ${a.gasUsed}, ${list.watched} kredensial, ${list.flagged} bit)`)
 }
 console.log(`\nsajikan: npm run serve  →  ${BASE_URL}/credentials/${credentialHash}`)

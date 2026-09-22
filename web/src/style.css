@@ -63,3 +63,85 @@ table.log { width: 100%; border-collapse: collapse; font-size: 12px; }
 table.log th, table.log td { padding: 4px 6px; border-bottom: 1px solid #8883; text-align: left; vertical-align: top; }
 .err-row { background: rgba(170,17,85,.09); }
 footer { margin: 22px 0 8px; font-size: 12.5px; opacity: .8; max-width: 92ch; }
+
+/* ---------------------------------------------------------------- halaman belajar
+
+   Gaya sengaja meneruskan keputusan berkas ini di atas: fungsional, tanpa framework, tanpa
+   warna yang membawa makna. Satu-satunya warna baru yang ditambahkan adalah ok/bad, dan itu
+   sudah dipakai verifier. */
+
+.topnav { display: flex; gap: 14px; flex-wrap: wrap; padding: 6px 0 14px; font-size: 13.5px; border-bottom: 1px solid #8883; margin-bottom: 16px; }
+.topnav a { text-decoration: none; border-bottom: 1px solid transparent; }
+.topnav a:hover { border-bottom-color: currentColor; }
+
+/* View lama (verifier) dan view baru (belajar) berbagi satu <main id="out">, jadi yang
+   disembunyikan adalah bagian yang hanya punya arti untuk salah satunya. */
+body[data-view="lms"] .ask, body[data-view="lms"] .config, body[data-view="lms"] #banner,
+body[data-view="lms"] header .lede, body[data-view="lms"] footer { display: none; }
+body[data-view="lms"] h1 .sub::after { content: "— belajar"; }
+body[data-view="verify"] header h1 .sub { opacity: .65; }
+
+.card { margin: 0 0 var(--gap); padding: 14px; border: 1px solid #8883; border-radius: 6px; }
+.card h2 { font-size: 19px; }
+.hero { margin-bottom: 18px; }
+.muted { font-size: 12.5px; opacity: .75; margin: 4px 0; max-width: 92ch; }
+.tag { display: inline-block; margin-left: 6px; padding: 1px 6px; font-size: 11.5px; border: 1px solid #8884; border-radius: 99px; opacity: .85; }
+.tag.ok { border-color: #2e7d32; color: #2e7d32; }
+.bad { color: #a15; font-weight: 600; }
+.ok { color: #2e7d32; font-weight: 600; }
+
+.crumbs { font-size: 12.5px; opacity: .8; margin-bottom: 10px; }
+.crumbs .sep { opacity: .5; margin: 0 4px; }
+.progress-line { height: 6px; background: rgba(127,127,127,.2); border-radius: 99px; overflow: hidden; margin: 8px 0; }
+.progress-line span { display: block; height: 100%; background: currentColor; opacity: .7; }
+
+.course h3 { margin-top: 0; }
+.course h3 a { text-decoration: none; }
+.module h3 a { text-decoration: none; }
+ul.lessons, ol.lessons { margin: 6px 0 0; padding-left: 20px; }
+ul.lessons { list-style: none; padding-left: 0; }
+ul.lessons li, ol.lessons li { padding: 5px 0; border-bottom: 1px solid #8882; font-size: 13.5px; }
+ul.lessons li:last-child, ol.lessons li:last-child { border-bottom: 0; }
+ol.lessons li p { margin: 2px 0 0; }
+.kind { font-size: 11.5px; opacity: .7; margin-left: 6px; }
+.min { font-size: 11.5px; opacity: .6; margin-left: 6px; }
+.done { float: right; font-weight: 700; }
+
+.lesson-head { border-bottom: 1px solid #8883; padding-bottom: 8px; margin-bottom: 10px; }
+.lesson h2 { font-size: 21px; }
+.lesson p { max-width: 76ch; }
+.lesson .lang { font-size: 11px; opacity: .6; margin: 2px 0 10px; }
+.lesson pre { padding: 10px; overflow-x: auto; background: rgba(127,127,127,.12); border-radius: 5px; font-size: 12px; }
+.lesson pre code { font-size: 12px; }
+
+aside.note { margin: 12px 0; padding: 10px 12px; border-left: 3px solid #b58900; background: rgba(181,137,0,.08); border-radius: 0 5px 5px 0; font-size: 13px; opacity: 1; }
+aside.note strong { display: block; margin-bottom: 4px; }
+aside.note p { margin: 0; }
+aside.try { margin: 12px 0; padding: 10px 12px; border: 1px dashed #8886; border-radius: 6px; font-size: 13.5px; }
+aside.try strong { display: block; margin-bottom: 4px; }
+blockquote { margin: 12px 0; padding-left: 12px; border-left: 3px solid #8886; }
+blockquote footer { margin: 4px 0 0; font-size: 12px; }
+
+dl.terms dt { font-weight: 600; margin-top: 8px; }
+dl.terms dd { margin: 2px 0 0 0; font-size: 13.5px; opacity: .92; }
+ul.links { list-style: none; padding-left: 0; }
+ul.links li { padding: 4px 0; border-bottom: 1px solid #8882; font-size: 13.5px; }
+
+.question { margin: 12px 0; padding-bottom: 8px; border-bottom: 1px solid #8882; }
+.question .q { font-size: 13.5px; margin: 0 0 4px; }
+.opt { display: block; font-size: 13.5px; padding: 3px 0; }
+.opt input { margin-right: 6px; }
+.why { font-size: 12.5px; margin: 6px 0 0; padding: 6px 8px; background: rgba(127,127,127,.1); border-radius: 5px; }
+.question[data-answer="0"] .opt:nth-of-type(1), .question[data-answer="1"] .opt:nth-of-type(2),
+.question[data-answer="2"] .opt:nth-of-type(3), .question[data-answer="3"] .opt:nth-of-type(4) { font-weight: 600; }
+
+table.rubric { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+table.rubric th, table.rubric td { text-align: left; padding: 4px 6px; border-bottom: 1px solid #8882; }
+.lesson .actions { margin-top: 12px; }
+.ids { margin-top: 14px; font-size: 12.5px; }
+.pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 10px; border-top: 1px solid #8883; font-size: 13px; }
+
+table { border-collapse: collapse; font-size: 13px; width: 100%; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #8882; vertical-align: top; }
+#me-address { padding: 6px; border: 1px solid #8884; border-radius: 4px; background: transparent; color: inherit; font-family: ui-monospace, monospace; }
+

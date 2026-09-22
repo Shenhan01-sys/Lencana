@@ -110,9 +110,14 @@ is broken" or "the feature does not exist" while the cause is elsewhere.
 | `error -32001 block not found` when forking | that node does not serve the **historical state** a fork needs (`bsc-rpc.publicnode.com` on mainnet is like this) |
 | BscScan cannot be used as a verification tool | HTML → 403; API V1 deprecated; Etherscan V2 for BSC = **Paid Tier Only**. What works: **public RPC + `eth_getCode`/`eth_call`**. Side effect: `forge verify-contract` will probably fail — do not spend days there |
 | `web_fetch` used to read code | returns a model summary, or nothing on large documents. **Download raw** (`raw.githubusercontent.com`) then read. For big repos: the git tree API in one call (`/git/trees/<branch>?recursive=1`) |
+| **Free RPC refuses a BURST while accepting single calls** | Four sequential `eth_getStorageAt` probes return 4/4, yet the 41-read verification probe dies on `408 Request timeout on the free plan`. The capability question is not "can it connect" but "does it survive being hit at once" — measure it. `--retries` on Foundry does not cover this class. |
+| `Failure on receiving a receipt` | does **not** mean the transaction was not sent. Re-running a state-changing script without checking will issue twice. Read the sender's pending nonce before and after, and stop if it moved. |
+| `failed to get account for 0x…` naming an address that is nowhere in the project, on the **first** real broadcast | `--slow` inspects senders recorded in earlier runs, and an anvil fork of chain 97 writes into the **same** `broadcast/<Script>/97/` directory as the public testnet — Foundry cannot tell them apart. Archive `app/broadcast/` before the first broadcast against a real chain. |
 
 **Probe the endpoints first, then talk about the contract.** Distinguish four different failures:
 *connection dead* ≠ *TLS rejected* ≠ *node lacks historical state* ≠ *contract behaves wrongly*.
+A fifth one now belongs on that list: *endpoint throttles parallel reads* — it looks exactly like a
+bug in the thing being read, because the harness that fails is the one that reads the most.
 
 ### Solidity and Windows
 
@@ -132,3 +137,28 @@ is broken" or "the feature does not exist" while the cause is elsewhere.
    prank, expect, nonce, `block.timestamp`, RPC — **before blaming the product**.
 3. **"Assigned to an agent" ≠ "already examined."** Every claim here has a command behind it.
 4. **For decisive technical claims, direct verification beats literature synthesis.**
+
+## D. Live deployment — BSC testnet, chain 97
+
+Deployed 21 Sep, and re-read from the chain afterwards rather than trusted from a build log:
+
+| item | address |
+|---|---|
+| `CredentialResolver` (our layer) | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` |
+| `SoulboundCert` (artifact layer, owned by the platform) | `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` |
+| our schema UID, registered in the **public** BAS schema registry | `0x70a8c3a3ade3d7595422313112fb24f32e2dd8a65c7609574341a8ac6091a051` |
+| BAS core used (not deployed by us) | `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` |
+| BAS schema registry reached through it | `0x08C8b8417313fF130526862f90cd822B55002D72` |
+
+`schemaUID` is a function of the **resolver address**, so these two rows are locked together: a new
+resolver means a new schema, and old verifiers stop recognising credentials issued under the old one.
+The resolver cannot be quietly "fixed" by redeploying.
+
+Measured cost, at the 0.1 gwei the testnet quoted that day: the whole deployment is
+**4,191,202 gas ≈ 0.00042 BNB**, one attestation 316,384 gas, one BAS `timestamp()` anchor ≈ 45,900
+gas. The complete sequence — deploy, seed twice, issue, anchor both lists — stays under 0.002 BNB, so
+0.01 BNB of testnet faucet money is comfortably enough and cost is not a design constraint here.
+
+What is *not* claimed by this section: source verification on the block explorer (BscScan V1 is
+deprecated, Etherscan V2 for BSC is paid), and any mainnet (chain 56) deployment.
+

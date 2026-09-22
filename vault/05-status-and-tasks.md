@@ -1,17 +1,18 @@
 # 05 — Status and order of work
 
-**Last updated: 17 September 2026. Submission deadline: 30 September 2026, 23:59 WIB (≈13 days).**
+**Last updated: 21 September 2026. Submission deadline: 30 September 2026, 23:59 WIB (≈9 days).**
 
 ## Where things stand
 
 | | |
 |---|---|
-| On-chain layer (2 contracts) | ✅ written · **68 tests pass on fork chain 97 and 56** · deploy proven on a fork |
-| Verification page | ✅ built · typecheck + build pass · **probe 41 checks / 0 failed against live chain state (19 Sep)**, covering four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" |
-| Reproducible demo data | ✅ `SeedDemo` seeds four distinct verdicts and converges in **two documented runs**; verified on a clean fork 19 Sep. The cause of the old failure was EAS's UID formula, not our code — see [03-evidence-and-limits.md](03-evidence-and-limits.md) |
-| Credential-signing backend | 🟡 **exists, measured, and one command deep** (`app/signer/`, 19 Sep): `OpenBadgeCredential` 3.0 signed with `DataIntegrityProof` + `eddsa-rdfc-2022`, two BitstringStatusLists served from chain state, and `scripts/issue.js` running score → attestation → document → lists → `timestamp()` anchor in one go. **41 + 19 checks, 0 failed.** What is left: the `vc.1ed.tech` run below, and a **public** URL for those lists to live at |
-| Real course content | ⬜ none. Without it there is nothing to demonstrate |
-| Deploy to public testnet | ⬜ keys exist now (burners, generated locally); blocked on **funding** only. The deployer address is the `deployer` line printed by `DeployCredentials.s.sol` |
+| On-chain layer (2 contracts) | ✅ written · **68 tests pass on fork chain 97 and 56** · **deployed to public chain 97 (21 Sep)** — addresses and measured cost in [04-technical-reference.md](04-technical-reference.md) §D, re-read from the chain by an independent script (13/13), not trusted from a build log |
+| Verification page | ✅ built · typecheck + build pass · **probe 51 checks / 0 failed against the PUBLIC testnet (22 Sep)**, covering four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" |
+| Reproducible demo data | ✅ `SeedDemo` seeds four distinct verdicts and converges in **two documented runs** — now run against public chain 97, and the four credential hashes came out **identical to the fork**, which is the point of hashing (holder, courseId) instead of pointing at a UID |
+| Credential-signing backend | ✅ **exists, one command deep, and green against the public chain (21 Sep)**: `app/signer/` issues `OpenBadgeCredential` 3.0 with `DataIntegrityProof` + `eddsa-rdfc-2022`, serves two BitstringStatusLists derived from chain state, and anchors both list hashes with BAS `timestamp()`. `check.js` **45/45**, HTTP `serve-probe` **20/20**. What is left: the `vc.1ed.tech` run below, and a **public** URL for those lists to live at — the issued document currently carries `http://127.0.0.1:8787/…` |
+| Real course content | ✅ **21–22 Sep.** A learning surface exists: **2 courses · 7 modules · 24 lessons · 34 pages · 412 minutes · 28 quiz questions · 2 rubric-scored essays**, all six lesson kinds used. Counts come from `npm run inventory`, which reads the course data — not from a number typed into a document. The flagship course id is deliberately `web3-dasar-2026`, the same constant `SeedDemo.s.sol` hashes into `courseId`, and `npm run probe` recomputes the demo learner's `credentialHash` from the course content and asserts it equals the attestation on public chain 97 |
+| Learning surface (`web/#/…`) | ✅ built 22 Sep · hash router + templates over typed content, no UI framework (the reason `verify.ts` stays DOM-free and probeable) · progress in localStorage and labelled as **not evidence** · typecheck + build green · probe **51/51** |
+| Deploy to public testnet | ✅ **done 21 Sep.** Funding was the only blocker and it turned out to be trivial: the whole sequence costs under 0.002 BNB of testnet gas. One rule learned doing it — the faucet claim has to land on the address whose **key** is in `.env`, because `forge` signs with that key and not with a wallet |
 | Repository | ✅ `github.com/Shenhan01-sys/Lencana` (public). ⚠️ History starts **17 Sep**, not day one |
 | Event registration | ⬜ not done. Required before submitting; the detailed rubric is only opened to registered participants |
 
@@ -56,14 +57,17 @@ the verification frontend, which is user-facing, will carry a language switch.
 
 ## What is blocking, and who can unblock it
 
-1. **⏰ Needs a human, not tooling** — one wallet has to hold testnet BNB. Measured 19 Sep, and the
-   usual diagnosis is **wrong**: the obstacle is not a CAPTCHA but a **mainnet-holding eligibility**.
+1. **~~Needs a human, not tooling~~ → done 21 Sep.** One wallet had to hold testnet BNB, and the
+   usual diagnosis was **wrong**: the obstacle is not a CAPTCHA but a **mainnet-holding eligibility**.
    The official BNB faucet requires *"0.002 BNB on BSC Mainnet"* and Chainstack's requires 0.08 ETH on
    Ethereum mainnet plus an API key, so a fresh burner wallet fails both. **QuickNode's**
    `faucet.quicknode.com/binance-smart-chain/bnb-testnet` states plainly that *"a brand new wallet can
-   claim"* (no account, no minimum, 12 h cooldown) — the only human step left is its bot check. Fund
-   one wallet and deployment becomes a single command; measured on a fork, everything we deploy costs
-   **0.0003828 BNB**, so one claim covers this project hundreds of times over.
+   claim"* (no account, no minimum, 12 h cooldown) — the only human step is its bot check.
+   Two things that runbook settled the argument: the fork estimate (0.0003828 BNB) was slightly under
+   and irrelevant — **the full sequence costs under 0.002 BNB**, so 0.01 covers it several times over;
+   and the claim must land on **the address whose key is in `.env`**, because `forge` signs with that
+   key, not with a wallet. Money that arrives in a wallet can only be a hop, and a wallet cannot send
+   anything until it already holds gas — which is the circular trap that made this look hard.
 2. **🧠 ~~A decision to take before the backend is written~~ → taken 19 Sep (option A)** — the
    status list is built and served from chain state. What replaced the decision as the blocker is
    the **interoperability run**: until a credential passes `https://vc.1ed.tech`, the phrase to use
@@ -79,15 +83,24 @@ the verification frontend, which is user-facing, will carry a language switch.
 
 | | task | why this position |
 |---|---|---|
-| 1 | **Finish `SeedDemo`** so the demo state is complete (advanced credential + revocation land), then run the probe on the **REVOKED** path | small, and it closes the only hole in the layer we are most proud of |
-| 2 | **Take the status-list decision** | it determines the credential document's shape — writing the backend first means rewriting it |
-| 3 | **Signing backend**: `eddsa-rdfc-2022`, two ordered `@context`s, `validUntil`, mandatory `achievement.criteria`, `verificationMethod` as a plain HTTP URL is enough | the critical path is now the off-chain layer, not the on-chain one |
-| 4 | **One real course + rubric + essay task** | a product with no content cannot be demonstrated |
-| 5 | **Interoperability check**: send a credential to `https://vc.1ed.tech` and record the result. **Before it passes, do not write "1EdTech compatible"** | our strongest missing proof, and it needs almost no new code |
-| 6 | **Deploy to chain 97** → address resolves → fill it into the page | formal work once the wallet is funded |
-| 7 | **Paid verification over x402** (server answers `402`, client sends a `PAYMENT` header) | **never executed at all** — so far only on-chain settlement is proven |
-| 8 | **Agent go/no-go: 23 Sep** | if the agent cannot sign and anchor one credential **end to end without human intervention**, drop the agent layer and submit Consumer Apps only. The core product stands without it |
-| 9 | Video ≤5 min (4 scenes) + submission form + public repo check | 28–30 Sep |
+| 1 | **Public URL for `app/signer/`** — the issuer document and both status lists must be reachable from outside, because a standard verifier *opens those URLs* | the issued credential currently says `http://127.0.0.1:8787/…`; that is a document nobody else can verify, and it is the only thing standing between us and the next row |
+| 2 | **Interoperability check**: send a credential to `https://vc.1ed.tech` and record the result. **Before it passes, do not write "1EdTech compatible"** | our strongest missing proof, and it needs almost no new code — only row 1 |
+| 3 | **One real course + rubric + essay task**, plus the demo institution's name | a product with no content cannot be demonstrated, and the video has nothing to show |
+| 4 | **Agent go/no-go: 23 Sep** — can it sign and anchor one credential end to end without a human? | if not, drop the agent layer and submit Consumer Apps only; the core product stands without it |
+| 5 | **Paid verification over x402** (server answers `402`, client sends a `PAYMENT` header) | **never executed at all** — so far only on-chain settlement is proven. Keep it a flat percentage; **no debt ledger** |
+| 6 | **Registration + submission wallet + team name** (`luma.com/pcc699dv` and the portal) | without registration the submission is not counted, however good it is |
+| 7 | Video ≤5 min (4 scenes) + public repo check | 28–30 Sep |
+
+<details><summary>Closed on the way here (16–21 Sep)</summary>
+
+| was | now |
+|---|---|
+| `SeedDemo` completing the demo state (advanced credential + revocation) | ✅ four verdicts on public chain 97, in two documented runs |
+| the status-list decision (D24.1) | ✅ taken 19 Sep, option A: bitstring derived from chain state — and it came out as **two** lists |
+| signing backend: `eddsa-rdfc-2022`, ordered `@context`s, `validUntil`, mandatory `achievement.criteria`, `verificationMethod` as an HTTP URL | ✅ `app/signer/`, 45 + 20 checks green against the public chain |
+| deploy to chain 97 | ✅ 21 Sep; addresses and measured cost in [04-technical-reference.md](04-technical-reference.md) §D |
+
+</details>
 
 ## Calendar
 

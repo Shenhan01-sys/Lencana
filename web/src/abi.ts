@@ -49,6 +49,20 @@ export const basAbi = parseAbi([
   'function getSchemaRegistry() view returns (address)',
   'function getTimestamp(bytes32 data) view returns (uint64)',
   'function getRevokeOffchain(address revoker, bytes32 data) view returns (uint64)',
+  // Jalur delegasi (D31): agen MENANDATANGANI, platform yang MENYIARKAN. `attester` yang tercatat
+  // tetap alamat agen — itu satu-satunya alasan D31 bisa ada, dan `onAttest` kita menggerbangi
+  // `_issuer[attestation.attester]`, bukan `msg.sender`.
+  //
+  // ⚠️ Urutan field di dalam tuple bukan gaya, ia ABI: `data` memakai urutan struct IEAS
+  // (recipient, expirationTime, revocable, refUID, data, value) dan `signature` adalah (v, r, s).
+  // Salah satu posisi = tanda tangan tidak cocok = `InvalidSignature()` di chain publik, dan itu
+  // tidak bisa ditemukan dengan membaca kode sendirian. Sumber: lib/bas/src/IEAS.sol
+  // + `getDomainSeparator`/`getNonce` dibaca dari kontrak, TIDAK dihitung sendiri.
+  'function getDomainSeparator() view returns (bytes32)',
+  'function getNonce(address account) view returns (uint256)',
+  'function increaseNonce(uint256 newNonce) external',
+  'function attestByDelegation((bytes32 schema, (address recipient, uint64 expirationTime, bool revocable, bytes32 refUID, bytes data, uint256 value) data, (uint8 v, bytes32 r, bytes32 s) signature, address attester, uint64 deadline) delegatedRequest) payable returns (bytes32 uid)',
+  'function multiAttestByDelegation((bytes32 schema, (address recipient, uint64 expirationTime, bool revocable, bytes32 refUID, bytes data, uint256 value)[] data, (uint8 v, bytes32 r, bytes32 s)[] signatures, address attester, uint64 deadline)[] requests) payable returns (bytes32[] uids)',
 ])
 
 export const schemaRegistryAbi = parseAbi([

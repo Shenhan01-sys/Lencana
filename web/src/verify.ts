@@ -148,12 +148,19 @@ const LIMITS = [
   'Halaman ini membaca chain langsung, tanpa backend kami di jalur verifikasi. Status kebenaran selalu gratis; yang berbayar hanyalah kenyamanan (verifikasi massal).',
 ]
 
-/** Default: BSC testnet. BAS core & registry diverifikasi keberadaannya (lihat Concepts/BNB-Attestation-Service). */
+/**
+ * Default: BSC testnet chain 97 — deployment PUBLIK kita sendiri, ter-deploy 21 Sep.
+ *
+ * Kenapa tidak nol lagi: halaman yang meminta verifier menempelkan address sendiri adalah
+ * halaman yang akan salah dibaca juri. Address ini terbaca dari chain lewat
+ * `_research\verify_deploy97.py` (13/13), bukan disalin dari log foundry. Panel konfigurasi
+ * tetap boleh mengisinya dengan fork anvil atau mainnet 56 — yang berubah cuma defaultnya.
+ */
 export function defaultEndpoint(): Endpoint {
   return {
     rpcUrl: 'https://bsc-testnet.publicnode.com',
-    resolver: ZERO_ADDR,
-    cert: ZERO_ADDR,
+    resolver: '0x7CA624caFDe5cA3A27b33d26be56F73a90792065',
+    cert: '0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c',
     bas: '0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD',
     chainId: 97,
     label: 'BNB Smart Chain Testnet',

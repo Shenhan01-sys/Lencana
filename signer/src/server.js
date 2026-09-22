@@ -21,10 +21,10 @@
  */
 import { createServer } from 'node:http'
 import { loadKey, issuerDocument } from './issuer.js'
-import { REVOCATION, SUSPENSION, renderList } from './lists.js'
+import { REVOCATION, SUSPENSION, renderList, servedHashes } from './lists.js'
 import { sha256Hex } from './credential.js'
 import { makeDocumentLoader } from './sign.js'
-import { watchedHashes, getCredential } from './store.js'
+import { getCredential } from './store.js'
 
 const PORT = Number(process.env.PORT ?? 8787)
 const HOST = process.env.HOST ?? '127.0.0.1'
@@ -32,7 +32,6 @@ const BASE_URL = process.env.BASE_URL ?? `http://${HOST}:${PORT}`
 const AGENT_SLUG = process.env.AGENT_SLUG ?? 'agent-demo'
 const RESOLVER = process.env.RESOLVER_ADDRESS
 const RPC_URL = process.env.RPC_URL
-const WATCHED = (process.env.STATUS_HASHES ?? '').split(',').map((s) => s.trim()).filter(Boolean)
 
 const { key, controller, name } = await loadKey(AGENT_SLUG)
 const issuerDoc = issuerDocument({ controller, name, key })
@@ -49,7 +48,7 @@ const documentLoader = makeDocumentLoader(loaderDocs)
  * milik orang lain — kegagalan sunyi, dokumen tetap sah, cuma salah alamat.
  */
 async function buildList (purpose) {
-  const hashes = WATCHED.length ? WATCHED : await watchedHashes()
+  const hashes = await servedHashes()
   if (!RESOLVER || !RPC_URL || hashes.length === 0) {
     throw new Error('RESOLVER_ADDRESS / RPC_URL belum diisi (dan store belum punya kredensial terbit maupun adopsi)')
   }

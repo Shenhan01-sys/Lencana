@@ -167,6 +167,56 @@ async function main() {
     check('agen dijatuhkan -> semua pembacaan berhasil', r6.readLog.every((l) => l.ok), r6.readLog.filter((l) => !l.ok).map((l) => l.label).join(', '))
   }
 
+  // --- 8. isi kursus -----------------------------------------------------------
+  // Bagian ini TIDAK butuh chain: ia mengaudit data yang menghasilkan angka di katalog dan di
+  // README. Alasannya sama dengan alasan probe ini ada — angka yang tidak dihitung dari datanya
+  // sendiri adalah klaim. Enam templat tidak boleh berubah jadi enam ribu halaman tanpa ada yang
+  // memeriksa bahwa kuisnya punya kunci jawaban di dalam rentang pilihan.
+  const { auditAll, catalogStats, findCourse, findLesson } = await import('../src/courses/index')
+  const { LESSON_KINDS, courseIdOf, credentialHashOf } = await import('../src/content')
+  const { keccak256, toBytes } = await import('viem')
+  const problems = auditAll()
+  check(
+    'isi kursus lolos audit (slug unik, kunci jawaban sah, rubrik = 100, tautan absolut)',
+    problems.length === 0,
+    problems.slice(0, 4).map((p) => `${p.where}: ${p.what}`).join(' | '),
+  )
+  const cs = catalogStats()
+  check('lebih dari satu kursus di katalog — satu kursus itu brosur, bukan LMS', cs.courses > 1, `${cs.courses}`)
+  check('jumlah halaman dihitung dari struktur, bukan ditulis tangan',
+    cs.pages === 1 + cs.courses + cs.modules + cs.lessons, `${cs.pages} halaman`)
+  check('keenam jenis lesson benar-benar terpakai, bukan daftar hiasan',
+    LESSON_KINDS.every((k) => cs.kinds[k] > 0), JSON.stringify(cs.kinds))
+  check('kuis dan esai ada (yang dinilai rubrik, bukan hanya dibaca)',
+    cs.quizQuestions >= 15 && cs.essays >= 2, `${cs.quizQuestions} soal, ${cs.essays} esai`)
+
+  // Ini yang mengikat materi ke chain. `courseId = keccak256(id kursus)` dan `SeedDemo.s.sol`
+  // memakai `keccak256("web3-dasar-2026")`, jadi kalau ada yang "merapikan" id kursus, yang
+  // terputus adalah hubungan antara materi ini dan attestasi yang benar-benar tertambang.
+  const dasar = findCourse('web3-dasar-2026')
+  const lanjut = findCourse('web3-lanjut-2026')
+  check('id kursus = konstanta SeedDemo (materi menunjuk attestasi yang ada)',
+    !!dasar && !!lanjut, `${dasar ? 'ok' : 'web3-dasar-2026 HILANG'} / ${lanjut ? 'ok' : 'web3-lanjut-2026 HILANG'}`)
+  if (dasar) {
+    const cid = courseIdOf(dasar)
+    check('courseId materi = keccak256("web3-dasar-2026"), dihitung ulang, bukan disalin',
+      cid === keccak256(toBytes('web3-dasar-2026')), cid)
+    // Adegan [1] di chain: LEARNER memegang web3-dasar-2026 dan kredensialnya DICABUT.
+    // Peserta itu 0x2eF9… (bukan 0x5cA3…, itu peserta kedua di adegan [3]) — salah tempel di
+    // baris ini akan menghasilkan "gagal" yang bunyinya seperti datanya rusak.
+    const learner = '0x2eF9aF5e0601b93a0347166FBd7EC3F677b9A988'
+    check('credentialHash adegan [1] bisa dihitung ulang dari sisi materi',
+      credentialHashOf(learner, cid) === '0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2',
+      credentialHashOf(learner, cid))
+  }
+  if (lanjut) {
+    const first = lanjut.modules[0]?.lessons[0]
+    check('lesson pertama kursus lanjut benar-benar bisa dicari lewat rute',
+      !!first && !!findLesson(lanjut, first.slug), first?.slug ?? '(tidak ada lesson)')
+    check('prasyarat kursus lanjut menunjuk kursus dasar, seperti rantai di chain',
+      lanjut.prereqCourseId === 'web3-dasar-2026', String(lanjut.prereqCourseId))
+  }
+
   // Diagnosa: tanpa blok ini, probe hanya melaporkan "panggilan X gagal" dan kita tetap
   // buta terhadap SEBABNYA — yang membuat probe tidak lebih berguna dari menebak.
   const anyFail = [r0, ...(demo ? [demo] : [])].flatMap((r) => r.readLog).filter((l) => !l.ok)

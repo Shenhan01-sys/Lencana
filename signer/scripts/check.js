@@ -238,7 +238,13 @@ if (!rpc || !resolverAddress || watched.length === 0) {
   //     seluruh mekanisme status list hanya menjadi hiasan yang lolos verifikasi tanda tangan —
   //     dan itu kegagalan yang TIDAK terlihat di `verify()`. Pemeriksaannya persis invarian yang
   //     membuat alokator harus pindah ke store (lihat src/store.js).
-  const { renderList } = await import('../src/lists.js')
+  //
+  // ⚠️ Daftarnya dirender dari `servedHashes()`, BUKAN dari satu kredensial yang sedang diuji.
+  //     Dengan input sekali-kredensial, bit yang diperiksa berasal dari bitstring yang tidak
+  //     pernah disajikan siapa pun — pemeriksaan itu bisa hijau sementara daftar yang benar
+  //     salah. Ini kelas bug yang sama dengan anchor satu-kredensial di scripts/issue.js.
+  const { renderList, servedHashes } = await import('../src/lists.js')
+  const served = await servedHashes()
   const { listCredentials } = await import('../src/store.js')
   const { createIssuerKey, issuerDocument } = await import('../src/issuer.js')
   const { makeDocumentLoader } = await import('../src/sign.js')
@@ -257,7 +263,7 @@ if (!rpc || !resolverAddress || watched.length === 0) {
       for (const entry of rec.document.credentialStatus) {
         const purpose = entry.statusPurpose
         const rendered = await renderList({
-          purpose, baseUrl: BASE, rpcUrl: rpc, resolverAddress, hashes: [rec.credentialHash],
+          purpose, baseUrl: BASE, rpcUrl: rpc, resolverAddress, hashes: served,
           key: ephemeral.key, controllerDocument: ephDoc, documentLoader: ephLoader,
         })
         const idx = Number(entry.statusListIndex)
@@ -273,6 +279,28 @@ if (!rpc || !resolverAddress || watched.length === 0) {
         check(`[${rec.course}] ${purpose}: dokumennya menunjuk URL daftar yang sah dan benar`,
           urlOk, entry.statusListCredential)
       }
+    }
+
+    // 5c. Determinisme sajian. Server membangun bitstring ULANG tiap permintaan, jadi dua hal
+    //     wajib benar selamanya: render ulang atas masukan sama menghasilkan hash sama, dan hash
+    //     itu tidak boleh berubah kalau urutan masukan diacak. Kalau salah satu gagal, nomor bit
+    //     yang ditulis ke dalam dokumen kehilangan artinya — dan itu tidak akan pernah kelihatan
+    //     di pemeriksaan tanda tangan.
+    //
+    //     Sengaja TIDAK membandingkan dengan hash yang di-anchor: anchor adalah saksi pada saat
+    //     terbit, dan setiap pencabutan sesudah itu memang mengubah daftar yang disajikan —
+    //     memeriksa sama-persis akan merah karena alasan yang salah. Yang menjamin anchor mengikat
+    //     daftar sajian adalah `servedHashes()` di sisi penerbit (lihat scripts/issue.js).
+    const renderServed = async (purpose, list) => (await renderList({
+      purpose, baseUrl: BASE, rpcUrl: rpc, resolverAddress, hashes: list,
+      key: ephemeral.key, controllerDocument: ephDoc, documentLoader: ephLoader,
+    })).hash
+    for (const purpose of [REVOCATION, SUSPENSION]) {
+      const a = await renderServed(purpose, served)
+      const b = await renderServed(purpose, served)
+      const c = await renderServed(purpose, [...served].reverse())
+      check(`${purpose}: render ulang atas masukan sama -> hash sama`, a === b, `${a} vs ${b}`)
+      check(`${purpose}: urutan masukan diacak -> hash TETAP sama`, a === c, `${a} vs ${c}`)
     }
   }
 }

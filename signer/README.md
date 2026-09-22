@@ -16,14 +16,14 @@ This closes decision **D24.1 = A** (see `../vault/02-architecture.md`).
 | `src/statusList.js` | Bitstring Status List: index allocation, bitstring encoding, the status list credential itself |
 | `src/chainStatus.js` | reads `statusOf()` from the deployed resolver and decides which bits are set |
 | `src/store.js` | the append-only allocation record + issued-credential registry on the issuer side |
-| `src/lists.js` | renders a status list — **shared by the server and the issuer**, so the hash we anchor comes from the same code that serves the list |
+| `src/lists.js` | renders a status list — **shared by the server and the issuer**, and it also owns `servedHashes()`, the single answer to "which credentials are in the list" (see below: sharing the renderer was not enough) |
 | `src/anchor.js` | `timestamp()` of the bitstring hash on BAS, then reads it back |
 | `src/issuer.js` | the agent's Ed25519 document key and its issuer document |
 | `src/sign.js` | `DataIntegrityProof` + `eddsa-rdfc-2022` sign/verify, and the JSON-LD document loader |
 | `src/server.js` | serves `/issuers/:slug`, `/credentials/0x…`, `/credentials/status/{revocation,suspension}`, `/healthz` |
 | `scripts/issue.js` | **one command**: score → on-chain attestation (agent's own key) → signed document → status lists → bitstring hash anchored to BAS |
-| `scripts/check.js` | 41 checks: document shape, signature, status lists, chain-derived bits, and the index invariant |
-| `scripts/serve-probe.js` | 19 checks: the same over HTTP, against the running server |
+| `scripts/check.js` | 45 checks: document shape, signature, status lists, chain-derived bits, the index invariant, and bitstring determinism under re-render and under reordered input |
+| `scripts/serve-probe.js` | 20 checks: the same over HTTP, against the running server (the bit-level ones need `EXPECT_*`; without them it prints the group it skipped) |
 
 ## Who owns the bit number
 
@@ -38,6 +38,22 @@ signature verification, because the document would still be perfectly valid.
 **at the index the document itself claims**, read from the rendered list, must equal what the chain
 says.
 
+## Who decides which credentials are in the list
+
+A second rule sits next to the first, and breaking it is quieter. `lists.js` exports
+**`servedHashes()`**, and it is the only place that answer may come from — the server builds its
+lists with it, and `issue.js` anchors with it.
+
+Until 21 Sep the issuer anchored `sha256` of a list rendered over **one** credential (the one being
+issued) while the server served a list over **all** of them. Both went through the same `renderList`,
+so the *rules* were identical and the code looked shared — but the *inputs* differed, so the anchored
+hash could never equal the bitstring anyone actually read. Every form was valid, the signature
+checked, and the anchor proved nothing. Sharing a function is not sharing a decision.
+
+`check.js` §5c now pins the property that made the bug possible: rendering the same input twice must
+give the same hash, and reversing the input order must **not** change it. A served list that depends
+on iteration order would silently orphan the index written into every older document.
+
 ## Two empty lists share a hash
 
 `sha256("")` of an all-zero bitstring is the same for `revocation` and `suspension`, so anchoring an
@@ -45,6 +61,9 @@ empty list records one hash for both purposes — measured, not theorised. Conse
 an anchor is only meaningful **once a bit is set**, and `getTimestamp()` cannot tell you *which*
 list a hash belonged to. If that ever matters, the fix is to include the purpose in the anchored
 digest, not to hope readers infer it.
+
+This is also why `issue.js` says `sudah ada … — tidak diulang` for the second purpose when both lists
+happen to be empty: it is the collision above being detected, not a skipped step.
 
 Two keys per agent, deliberately: the **EOA** is the on-chain `attester` (D30/D31), the **Ed25519
 Multikey** signs the document. Standard verifiers only ever see the second one; the two are linked
@@ -55,21 +74,36 @@ by the issuer document URL, which is legal because §8.5 of OB3.0 "only requires
 ```bash
 npm install
 node scripts/agent.js                 # creates .keys/agent-demo.json (testnet-only)
-node scripts/check.js                 # 28 checks offline; 41 with a chain to read
+node scripts/check.js                 # 45 checks with a chain to read (28 offline)
 node src/server.js                    # http://127.0.0.1:8787
-node scripts/serve-probe.js           # 19 checks against the running server
+node scripts/serve-probe.js           # 20 checks against the running server
 node scripts/issue.js --course web3-dasar-2026 --learner 0x… --score 87
 ```
 
-`check.js` section 5 and the server need a chain to read; set them the same way `web/`'s probe does:
+`check.js` section 5 and the server read `process.env` and **nothing else** — no dotenv, unlike
+`issue.js` and `adopt.js`, which read `app/.env` themselves. Run them through an env loader or they
+will silently fall back to `http://127.0.0.1:8545` and report failures that mean "not configured".
+
+Against the public BSC testnet (chain 97), the values that produce full coverage:
 
 ```bash
-set RPC_URL=http://127.0.0.1:8545
-set RESOLVER_ADDRESS=0xE01a16E50FD9D8c0Ff4230874F8D8C086e811627
+set RPC_URL=https://bsc-testnet.publicnode.com
+set RESOLVER_ADDRESS=0x7CA624caFDe5cA3A27b33d26be56F73a90792065
 set STATUS_HASHES=<comma-separated credential hashes>   # optional: default is everything in the store
+set EXPECT_REVOKED=<uid>
+set EXPECT_SUSPENDED=<uid>
+set EXPECT_CLEAN=<uid>,<uid>
 ```
 
-Without them `check.js` still runs and says **which group it skipped** — a green number that hides
+`EXPECT_*` drive `serve-probe`'s bit-level checks and take **UIDs, not hashes** — take them from
+`/healthz` or `adopt.js`, both of which read them back off the chain. A run without them prints 11
+checks and names the skipped group: the number it prints is never a coverage claim. The UIDs that a
+`SeedDemo` run *prints* for credentials it minted itself are estimates by design (see the UID rule
+in the repo docs); only the values read from the chain afterwards are usable here.
+
+An anvil fork of chain 97 is addressed the same way with `RPC_URL=http://127.0.0.1:8545`.
+
+Without a chain `check.js` still runs and says **which group it skipped** — a green number that hides
 an untested path is the failure mode this repo complains about in other people's research.
 
 Requires **Node ≥ 22.18**. This package is plain ESM JavaScript — but `chainStatus.js` imports

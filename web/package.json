@@ -1,15 +1,16 @@
 {
-  "name": "credential-verifier-web",
+  "name": "lencana-web",
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "Halaman verifikasi kredensial tanpa wallet: membaca CredentialResolver + BAS + SoulboundCert langsung lewat eth_call. Estetika sengaja minimal — informasi lengkap dulu.",
+  "description": "Halaman belajar dan halaman verifikasi kredensial. Verifier membaca CredentialResolver + BAS + SoulboundCert langsung lewat eth_call, tanpa backend dan tanpa wallet. Estetika sengaja minimal — informasi lengkap dulu.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "probe": "tsx scripts/probe.ts"
+    "probe": "tsx scripts/probe.ts",
+    "inventory": "tsx scripts/inventory.ts"
   },
   "dependencies": {
     "viem": "^2.56.5"
@@ -20,5 +21,5 @@
     "typescript": "^5.9.3",
     "vite": "^7.1.6"
   },
-  "comment": "Sengaja TANPA framework UI. Produknya adalah halaman yang membuktikan sesuatu tanpa mempercayai kami; menambah reaktivitas dan state-management akan memperbesar permukaan gagal tanpa menambah satu pun informasi. src/verify.ts juga bebas-DOM supaya bisa dijalankan dari Node (npm run probe) dan diuji terhadap fork sungguhan."
+  "comment": "Sengaja TANPA framework UI. Produknya adalah halaman yang membuktikan sesuatu tanpa mempercayai kami; menambah reaktivitas dan state-management akan memperbesar permukaan gagal tanpa menambah satu pun informasi. src/verify.ts juga bebas-DOM supaya bisa dijalankan dari Node (npm run probe) dan diuji terhadap fork sungguhan. Halaman belajar menambah HALAMAN, bukan framework: src/content.ts adalah datanya, src/lms.ts adalah satu router hash dengan beberapa templat, dan verifier tetap tidak menyentuh keduanya. Konsekuensi yang diterima: tidak ada komponen reaktif, dan `#/...` dipilih supaya `?q=` milik verifier tidak pernah bertabrakan."
 }

@@ -1,6 +1,7 @@
 import { verify, type Endpoint, type Report } from './verify'
 import { renderEmpty, renderReport } from './render'
 import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
+import { bindLms, renderLms } from './lms'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T
 
@@ -136,14 +137,38 @@ function wire() {
   })
 }
 
-function boot() {
-  wire()
-  paintConfig()
-  paintBanner()
+/**
+ * Satu `<main id="out">` dipakai dua hal. Keputusan siapa yang memegangnya diambil di sini,
+ * bukan di dalam templat: rute hash -> halaman belajar, sisanya -> verifier.
+ *
+ * Kenapa tidak dua berkas HTML terpisah: halaman verifikasi harus tetap bisa dibuka dengan satu
+ * tautan `?q=0x…` tanpa rute apa pun, dan itu alamat yang tercetak di dokumen kredensial serta di
+ * README. Memindahkan verifier ke rute baru akan memutus tautan yang sudah kami sebarkan.
+ */
+function applyView(): boolean {
+  const lms = renderLms(outEl)
+  document.body.dataset.view = lms ? 'lms' : 'verify'
+  document.title = lms ? 'Lencana — belajar' : 'Lencana — verifikasi kredensial'
+  return lms
+}
+
+function showVerifier(): void {
   const q = new URLSearchParams(location.search).get('q')
   if (q) inputEl.value = q
   outEl.innerHTML = renderEmpty()
-  if (q) run()
+  if (q || inputEl.value.trim()) run()
+}
+
+function boot(): void {
+  wire()
+  paintConfig()
+  paintBanner()
+  bindLms(outEl)
+  if (!applyView()) showVerifier()
+
+  addEventListener('hashchange', () => {
+    if (!applyView()) showVerifier()
+  })
 }
 
 boot()
