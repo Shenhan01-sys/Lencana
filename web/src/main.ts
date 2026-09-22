@@ -887,6 +887,187 @@ function toggleBitstringState() {
   renderBitstringMatrix()
 }
 
+// ========================================================
+// ITERATION 13: INTERACTIVE TAMPER & FORGERY PLAYGROUND
+// ========================================================
+function simulateAttack(attackType: 1 | 2 | 3 | 4) {
+  const terminal = $('tamper-terminal-body')
+  const pill = $('tamper-revert-pill')
+  if (!terminal) return
+
+  terminal.innerHTML = ''
+  if (pill) {
+    pill.className = 'tamper-revert-pill reverted'
+  }
+
+  if (attackType === 1) {
+    if (pill) pill.textContent = 'REVERTED: INVALID SIGNATURE'
+    terminal.innerHTML = `
+      <div class="tamper-line system">[00.04s] Attacker modifies payload: score: "93/100" ➔ "99/100 (Summa Cum Laude)"</div>
+      <div class="tamper-line">[00.12s] Recomputing Keccak256(payload)...</div>
+      <div class="tamper-line trace">Original Digest: 0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</div>
+      <div class="tamper-line trace">Tampered Digest: 0x7e3a1f8d92410a5b8812c9381ea5b00918c7263bda495821038b584920491823</div>
+      <div class="tamper-line">[00.22s] Calling BAS.getAttestation(0x7e3a1f8d9...) on chain 97...</div>
+      <div class="tamper-line revert">[EVM REVERT] AttestationNotFound(0x7e3a1f8d9...) · Attestation does not exist on-chain!</div>
+      <div class="tamper-line">[00.32s] Calling ecrecover(0x7e3a..., v: 27, r: 0x4e2..., s: 0x71b...)...</div>
+      <div class="tamper-line revert">[00.40s] Recovered Signer: 0x937Fa2... != Whitelisted Agent (0x8211...7DE)</div>
+      <div class="tamper-line revert">[CRITICAL FAIL] Cryptographic signature check FAILED. Any single byte tampering breaks mathematical verification!</div>
+    `
+  } else if (attackType === 2) {
+    if (pill) pill.textContent = 'REVERTED: ERC-5192 LOCKED'
+    terminal.innerHTML = `
+      <div class="tamper-line system">[00.05s] Attacker invokes SoulboundCert.safeTransferFrom(from: 0x5cA3..., to: 0xAttacker..., tokenId: 1)</div>
+      <div class="tamper-line">[00.14s] SoulboundCert queries internal lock registry: locked(1)...</div>
+      <div class="tamper-line trace">locked(1) == true · Token was issued as immutable Soulbound Credential</div>
+      <div class="tamper-line">[00.24s] Executing _beforeTokenTransfer(0x5cA3..., 0xAttacker..., 1)...</div>
+      <div class="tamper-line revert">[EVM REVERT] ErrLocked(1) - "ERC-5192: Soulbound non-transferable token"</div>
+      <div class="tamper-line trace">Transaction reverted by EVM. Gas consumed: 21,418 gas.</div>
+      <div class="tamper-line success">[SECURITY PASS] The credential remains locked to learner wallet 0x5cA3...7c3B. Secondary market sale impossible!</div>
+    `
+  } else if (attackType === 3) {
+    if (pill) pill.textContent = 'REVERTED: NOT AN ISSUER'
+    terminal.innerHTML = `
+      <div class="tamper-line system">[00.06s] Unauthorized caller 0x4d0ffdf32d1... attempts attestByDelegation() on BAS schema #0x2c4e...</div>
+      <div class="tamper-line">[00.15s] BAS invokes resolver hook: CredentialResolver.onAttest(attestation, msg.value)</div>
+      <div class="tamper-line trace">CredentialResolver checking whitelist: _issuer[0x4d0ffdf32d1...]</div>
+      <div class="tamper-line revert">[EVM REVERT] NotAnIssuer(0x4d0ffdf32d174796a2c8bbe38e739c26ec6e205e)</div>
+      <div class="tamper-line trace">Attestation refused by CredentialResolver hook. Zero bytes written to chain.</div>
+      <div class="tamper-line success">[SECURITY PASS] Malicious agents cannot issue credentials without explicit platform governance whitelisting!</div>
+    `
+  } else if (attackType === 4) {
+    if (pill) pill.textContent = 'REVERTED: PREREQUISITE REVOKED'
+    terminal.innerHTML = `
+      <div class="tamper-line system">[00.05s] Attacker attempts to claim "BNB Chain Security" requiring "Web3 Dasar 2026"</div>
+      <div class="tamper-line">[00.16s] CredentialResolver checking prerequisite tree: checkPrerequisites(refUID)</div>
+      <div class="tamper-line trace">Reading BAS storage for refUID: 0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2...</div>
+      <div class="tamper-line trace">Found attestation: revocationTime == 1774051200 (REVOKED ON-CHAIN)</div>
+      <div class="tamper-line revert">[EVM REVERT] PrerequisiteRevoked(0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2)</div>
+      <div class="tamper-line trace">Transaction reverted at depth 1. EAS prerequisite loophole CLOSED.</div>
+      <div class="tamper-line success">[SECURITY PASS] Lencana ensures revoked foundational credentials instantly disqualify chained advanced credentials!</div>
+    `
+  }
+}
+
+function resetTamperSimulator() {
+  const terminal = $('tamper-terminal-body')
+  const pill = $('tamper-revert-pill')
+  if (pill) {
+    pill.className = 'tamper-revert-pill'
+    pill.textContent = 'STATUS: SYSTEM READY'
+  }
+  if (terminal) {
+    terminal.innerHTML = `
+      <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0xe01a...) and SoulboundCert (0x96f6...).</div>
+      <div class="tamper-line">[Ready] Select an attack scenario above to test on-chain cryptographic reverts.</div>
+    `
+  }
+}
+
+// ========================================================
+// ITERATION 13: B2B RECRUITER BULK AUDIT & x402 PROTOCOL
+// ========================================================
+const CANDIDATE_BATCH_DATA = [
+  { name: 'Rina Oktaviani', hash: '0x0b95c8...67fa', verdict: 'valid', tag: 'VALID · HONORS (93)' },
+  { name: 'Dimas Pratama', hash: '0x1a82d4...41ea', verdict: 'valid', tag: 'VALID · PASS (88)' },
+  { name: 'Siti Nurhaliza', hash: '0x992b11...902f', verdict: 'valid', tag: 'VALID · HONORS (95)' },
+  { name: 'Budi Santoso', hash: '0xf34bdc...56f2', verdict: 'revoked', tag: 'REVOKED · BIT #42' },
+  { name: 'Dewi Lestari', hash: '0x43fa21...12ab', verdict: 'valid', tag: 'VALID · PASS (85)' },
+  { name: 'Andi Wijaya', hash: '0x88bb33...77cd', verdict: 'valid', tag: 'VALID · PASS (82)' },
+  { name: 'Mega Rahmawati', hash: '0x4d0ffd...df1c', verdict: 'delisted', tag: 'DELISTED · BIT #87' },
+  { name: 'Fajar Nugraha', hash: '0x71aa22...33ee', verdict: 'valid', tag: 'VALID · HONORS (91)' },
+  { name: 'Gita Savitri', hash: '0x55cc88...99bb', verdict: 'valid', tag: 'VALID · PASS (87)' },
+  { name: 'Hendra Gunawan', hash: '0x66dd44...11aa', verdict: 'valid', tag: 'VALID · PASS (84)' },
+]
+
+function renderBatchCandidatesList() {
+  const container = $('batch-candidates-list')
+  if (!container) return
+
+  container.innerHTML = ''
+  CANDIDATE_BATCH_DATA.forEach((cand) => {
+    const item = document.createElement('div')
+    item.className = 'batch-cand-item'
+    item.innerHTML = `
+      <div class="batch-cand-info">
+        <span class="batch-cand-name">${cand.name}</span>
+        <code class="batch-cand-hash">${cand.hash}</code>
+      </div>
+      <span class="batch-cand-verdict ${cand.verdict}">${cand.tag}</span>
+    `
+    container.appendChild(item)
+  })
+}
+
+let isSimulatingX402 = false
+function simulateX402Batch() {
+  if (isSimulatingX402) return
+  isSimulatingX402 = true
+
+  const btn = $('btn-simulate-x402') as HTMLButtonElement | null
+  if (btn) btn.disabled = true
+
+  const step1 = $('xstep-1')
+  const step2 = $('xstep-2')
+  const step3 = $('xstep-3')
+  const step4 = $('xstep-4')
+  const step2Status = $('xstep-2-status')
+  const step3Status = $('xstep-3-status')
+  const step4Status = $('xstep-4-status')
+
+  // Reset steps
+  ;[step1, step2, step3, step4].forEach((s) => s?.classList.remove('active', 'done'))
+  if (step2Status) step2Status.textContent = 'WAITING'
+  if (step3Status) step3Status.textContent = 'WAITING'
+  if (step4Status) step4Status.textContent = 'WAITING'
+
+  // Step 1: Active
+  step1?.classList.add('active')
+
+  // Step 2: Gateway returns 402 Payment Required
+  setTimeout(() => {
+    step1?.classList.remove('active')
+    step1?.classList.add('done')
+    step2?.classList.add('active')
+    if (step2Status) {
+      step2Status.textContent = '402 CHALLENGE'
+      step2Status.className = 'flow-status-pill active'
+    }
+  }, 350)
+
+  // Step 3: Recruiter client signs EIP-712 micro-payment authorization
+  setTimeout(() => {
+    step2?.classList.remove('active')
+    step2?.classList.add('done')
+    if (step2Status) {
+      step2Status.textContent = 'CHALLENGED'
+      step2Status.className = 'flow-status-pill done'
+    }
+    step3?.classList.add('active')
+    if (step3Status) {
+      step3Status.textContent = 'SIGNED (0.0005 tBNB)'
+      step3Status.className = 'flow-status-pill active'
+    }
+  }, 850)
+
+  // Step 4: Batch audit completed in 118ms
+  setTimeout(() => {
+    step3?.classList.remove('active')
+    step3?.classList.add('done')
+    if (step3Status) {
+      step3Status.textContent = 'SETTLED'
+      step3Status.className = 'flow-status-pill done'
+    }
+    step4?.classList.add('done')
+    if (step4Status) {
+      step4Status.textContent = '200 OK (118ms)'
+      step4Status.className = 'flow-status-pill done'
+    }
+    renderBatchCandidatesList()
+    if (btn) btn.disabled = false
+    isSimulatingX402 = false
+  }, 1350)
+}
+
 const RINA_CREDENTIAL_JSONLD = {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
@@ -1254,6 +1435,38 @@ function updateStaticText() {
   setText('diploma-evaluator-meta', dict.diplomaModal.evaluatorMeta)
   setText('diploma-anchor-heading', dict.diplomaModal.anchorHeading)
   setText('diploma-qr-caption', dict.diplomaModal.qrCaption)
+
+  // Tamper & Forgery Defense Playground (Iteration 13)
+  setText('tamper-kicker', dict.tamperPlayground.kicker)
+  setText('tamper-title', dict.tamperPlayground.title)
+  setText('tamper-sub', dict.tamperPlayground.sub)
+  setText('btn-reset-tamper-text', dict.tamperPlayground.resetBtn)
+  setText('tcard-title-1', dict.tamperPlayground.attack1Title)
+  setText('tcard-desc-1', dict.tamperPlayground.attack1Desc)
+  setText('btn-attack-1', dict.tamperPlayground.attack1Btn)
+  setText('tcard-title-2', dict.tamperPlayground.attack2Title)
+  setText('tcard-desc-2', dict.tamperPlayground.attack2Desc)
+  setText('btn-attack-2', dict.tamperPlayground.attack2Btn)
+  setText('tcard-title-3', dict.tamperPlayground.attack3Title)
+  setText('tcard-desc-3', dict.tamperPlayground.attack3Desc)
+  setText('btn-attack-3', dict.tamperPlayground.attack3Btn)
+  setText('tcard-title-4', dict.tamperPlayground.attack4Title)
+  setText('tcard-desc-4', dict.tamperPlayground.attack4Desc)
+  setText('btn-attack-4', dict.tamperPlayground.attack4Btn)
+  setText('tamper-terminal-title', dict.tamperPlayground.terminalTitle)
+
+  // B2B Recruiter Bulk Audit & x402 Protocol (Iteration 13)
+  setText('x402-kicker', dict.x402Console.kicker)
+  setText('x402-title', dict.x402Console.title)
+  setText('x402-sub', dict.x402Console.sub)
+  setText('btn-simulate-x402-text', dict.x402Console.btnSimulateBatch)
+  setText('x402-philosophy-kicker', dict.x402Console.philosophyKicker)
+  setText('x402-philosophy-text', dict.x402Console.philosophyText)
+  setText('xstep-1-name', dict.x402Console.step1Label)
+  setText('xstep-2-name', dict.x402Console.step2Label)
+  setText('xstep-3-name', dict.x402Console.step3Label)
+  setText('xstep-4-name', dict.x402Console.step4Label)
+  setText('x402-candidates-audited', dict.x402Console.candidatesAudited)
 
   // Footer & Brand Sub
   setText('brand-sub', `— ${dict.tagline}`)
@@ -1634,6 +1847,16 @@ function wire() {
 
   // Bitstring Status List Simulation Wiring (Iteration 12)
   $('btn-toggle-bitstring')?.addEventListener('click', toggleBitstringState)
+
+  // Tamper & Forgery Defense Playground Wiring (Iteration 13)
+  $('btn-attack-1')?.addEventListener('click', () => simulateAttack(1))
+  $('btn-attack-2')?.addEventListener('click', () => simulateAttack(2))
+  $('btn-attack-3')?.addEventListener('click', () => simulateAttack(3))
+  $('btn-attack-4')?.addEventListener('click', () => simulateAttack(4))
+  $('btn-reset-tamper')?.addEventListener('click', resetTamperSimulator)
+
+  // B2B Recruiter Bulk Audit & x402 Protocol Wiring (Iteration 13)
+  $('btn-simulate-x402')?.addEventListener('click', simulateX402Batch)
 }
 
 let isEvaluating = false
@@ -1780,6 +2003,7 @@ function simulateAiEvaluation() {
 function boot() {
   initWalletState()
   initBitstringMatrix()
+  renderBatchCandidatesList()
   wire()
   updateStaticText()
   paintConfig()

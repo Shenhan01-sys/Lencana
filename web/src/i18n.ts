@@ -453,6 +453,41 @@ export interface TranslationDictionary {
     btnX: string
     btnClose: string
   }
+  tamperPlayground: {
+    kicker: string
+    title: string
+    sub: string
+    attack1Btn: string
+    attack1Title: string
+    attack1Desc: string
+    attack2Btn: string
+    attack2Title: string
+    attack2Desc: string
+    attack3Btn: string
+    attack3Title: string
+    attack3Desc: string
+    attack4Btn: string
+    attack4Title: string
+    attack4Desc: string
+    terminalTitle: string
+    revertBadge: string
+    resetBtn: string
+  }
+  x402Console: {
+    kicker: string
+    title: string
+    sub: string
+    philosophyKicker: string
+    philosophyText: string
+    btnSimulateBatch: string
+    batchSizeLabel: string
+    step1Label: string
+    step2Label: string
+    step3Label: string
+    step4Label: string
+    candidatesAudited: string
+    latencyLabel: string
+  }
 }
 
 export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
@@ -963,6 +998,41 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnX: 'Share on X',
       btnClose: 'Close Diploma',
     },
+    tamperPlayground: {
+      kicker: 'CRYPTOGRAPHIC INTEGRITY & FORGERY DEFENSE PLAYGROUND',
+      title: 'Real-Time Tamper & Attack Vector Playground',
+      sub: 'Simulate adversarial attacks against Lencana’s cryptographic primitives. Watch EVM smart contract revert guards and SHA-256/Keccak digests defend the protocol live.',
+      attack1Btn: 'Simulate 1-Byte Grade Tamper',
+      attack1Title: 'Attack 1: Document Tampering (Grade 93 ➔ 99)',
+      attack1Desc: 'Adversary modifies an essay score or name in the JSON-LD payload. Result: Keccak256 digests mismatch and ECDSA signature fails.',
+      attack2Btn: 'Simulate Soulbound Token Theft',
+      attack2Title: 'Attack 2: ERC-5192 Token Theft / Transfer',
+      attack2Desc: 'Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with ErrLocked(1).',
+      attack3Btn: 'Simulate Rogue Agent Impersonation',
+      attack3Title: 'Attack 3: Unapproved Rogue Agent Issuance',
+      attack3Desc: 'Malicious bot attempts to mint or attest without whitelisting. Result: CredentialResolver reverts with NotAnIssuer(0xBadBot).',
+      attack4Btn: 'Simulate Revoked Prerequisite Attack',
+      attack4Title: 'Attack 4: Revoked Prerequisite Chaining Attack',
+      attack4Desc: 'Attacker attempts to claim Level 2 credential while Level 1 prerequisite was revoked. Result: Reverts with PrerequisiteRevoked().',
+      terminalTitle: 'Simulated EVM Execution Trace & Call Stack',
+      revertBadge: 'REVERTED ON-CHAIN',
+      resetBtn: 'Reset Simulator',
+    },
+    x402Console: {
+      kicker: 'RECRUITER BULK VERIFICATION & x402 PROTOCOL',
+      title: 'B2B Recruiter Bulk Audit & x402 Micropayments',
+      sub: 'Enterprise ATS & recruiter protocol for auditing hundreds of applicant credentials in milliseconds via HTTP 402 Payment Required micropayments.',
+      philosophyKicker: 'CORE PROTOCOL PRINCIPLE',
+      philosophyText: 'We charge for convenience, never for truth. Public verification is free, wallet-free, forever. x402 micropayments directly reimburse platform issuance gas without debt ledgers.',
+      btnSimulateBatch: 'Simulate 10-Candidate Batch Audit (0.0005 BNB)',
+      batchSizeLabel: 'Batch Payload: 10 Candidate Resume Credential Hashes',
+      step1Label: '1. Client Request: POST /api/v1/verify/batch',
+      step2Label: '2. Gateway Challenge: HTTP/1.1 402 Payment Required',
+      step3Label: '3. Micropayment Authorization: PAYMENT: eip712-allowance',
+      step4Label: '4. Verified Batch Report: 10/10 Candidates Processed in 118ms',
+      candidatesAudited: '10 Candidates Audited: 8 VALID · 1 REVOKED · 1 DELISTED',
+      latencyLabel: 'Latency: 118ms · Fee Settled: 0.0005 tBNB',
+    },
   },
   id: {
     appName: 'Lencana',
@@ -1470,6 +1540,41 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnLinkedIn: 'Tambah ke Profil LinkedIn',
       btnX: 'Bagikan di X',
       btnClose: 'Tutup Ijazah',
+    },
+    tamperPlayground: {
+      kicker: 'PLAYGROUND INTEGRITAS KRIPTOGRAFIS & PERTAHANAN PEMALSUAN',
+      title: 'Playground Simulasi Serangan & Anti-Manipulasi Real-Time',
+      sub: 'Uji simulasi serangan musuh terhadap primitif kriptografi Lencana. Saksikan guard revert smart contract EVM dan digest Keccak256 mempertahankan protokol secara langsung.',
+      attack1Btn: 'Simulasikan Modifikasi Nilai 1-Byte',
+      attack1Title: 'Serangan 1: Manipulasi Dokumen (Nilai 93 ➔ 99)',
+      attack1Desc: 'Penyerang mengubah nilai esai atau nama di payload JSON-LD. Hasil: Digest Keccak256 tidak cocok dan verifikasi ECDSA gagal total.',
+      attack2Btn: 'Simulasikan Pencurian Token Soulbound',
+      attack2Title: 'Serangan 2: Pencurian / Transfer Token ERC-5192',
+      attack2Desc: 'Pembeli pasar sekunder mencoba memanggil safeTransferFrom(Rina, Pencuri, tokenId). Hasil: EVM menolak dengan revert ErrLocked(1).',
+      attack3Btn: 'Simulasikan Agen Palsu Tak Berizin',
+      attack3Title: 'Serangan 3: Penerbitan oleh Agen Liar Tanpa Whitelist',
+      attack3Desc: 'Bot berbahaya mencoba membuat atestasi tanpa terdaftar di whitelist. Hasil: CredentialResolver menolak dengan NotAnIssuer(0xBadBot).',
+      attack4Btn: 'Simulasikan Serangan Prasyarat Dicabut',
+      attack4Title: 'Serangan 4: Rantai Prasyarat yang Telah Dicabut',
+      attack4Desc: 'Penyerang mencoba mengeklaim sertifikat Level 2 padahal prasyarat Level 1 telah dicabut. Hasil: Revert dengan PrerequisiteRevoked().',
+      terminalTitle: 'Jejak Eksekusi EVM & Call Stack Terenkapsulasi',
+      revertBadge: 'REVERT ON-CHAIN (GAGAL DITEMBUS)',
+      resetBtn: 'Reset Simulator',
+    },
+    x402Console: {
+      kicker: 'VERIFIKASI MASSAL PEREKRUT & PROTOKOL x402',
+      title: 'Audit Massal Perekrut B2B & Protokol Pembayaran Mikro x402',
+      sub: 'Protokol enterprise untuk HR dan sistem ATS menyaring ratusan kredensial pelamar dalam hitungan milidetik via protokol micropayment HTTP 402.',
+      philosophyKicker: 'PRINSIP UTAMA PROTOKOL',
+      philosophyText: 'Kami mengenakan biaya untuk kenyamanan, bukan untuk kebenaran. Verifikasi publik selalu gratis tanpa dompet selamanya. Biaya mikro x402 langsung menutupi biaya gas penerbitan tanpa buku utang.',
+      btnSimulateBatch: 'Simulasikan Audit 10 Kandidat (0.0005 BNB)',
+      batchSizeLabel: 'Payload Batch: 10 Hash Kredensial Resume Pelamar',
+      step1Label: '1. Permintaan Klien: POST /api/v1/verify/batch',
+      step2Label: '2. Gateway Challenge: HTTP/1.1 402 Payment Required',
+      step3Label: '3. Otorisasi Pembayaran Mikro: PAYMENT: eip712-allowance',
+      step4Label: '4. Laporan Audit Selesai: 10/10 Kandidat Diproses dalam 118ms',
+      candidatesAudited: '10 Kandidat Diaudit: 8 VALID · 1 DICABUT · 1 DELISTED',
+      latencyLabel: 'Latensi: 118ms · Biaya Selesai: 0.0005 tBNB',
     },
   },
 }

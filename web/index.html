@@ -1168,6 +1168,193 @@
 
           <!-- Live Results Output Container -->
           <main id="out" class="results-container"></main>
+
+          <!-- INTERACTIVE TAMPER & FORGERY DEFENSE PLAYGROUND (SCENE 3) -->
+          <div class="tamper-playground-section" id="tamper-playground">
+            <div class="tamper-header-bar">
+              <div>
+                <span class="tamper-kicker" id="tamper-kicker">CRYPTOGRAPHIC INTEGRITY &amp; FORGERY DEFENSE PLAYGROUND</span>
+                <h3 class="tamper-title" id="tamper-title">Real-Time Tamper &amp; Attack Vector Playground</h3>
+                <p class="tamper-sub" id="tamper-sub">
+                  Simulate adversarial attacks against Lencana’s cryptographic primitives. Watch EVM smart contract revert guards and SHA-256/Keccak digests defend the protocol live.
+                </p>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-tamper">
+                ↺ <span id="btn-reset-tamper-text">Reset Simulator</span>
+              </button>
+            </div>
+
+            <!-- 4 Attack Simulation Cards Grid -->
+            <div class="tamper-cards-grid">
+              <!-- Attack Card 1 -->
+              <div class="tamper-card" id="tcard-1">
+                <div class="tcard-header">
+                  <span class="tcard-icon">🔏</span>
+                  <span class="tcard-badge" id="tcard-badge-1">SHA-256 / KECCAK</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-1">Attack 1: Document Tampering (Grade 93 ➔ 99)</h4>
+                <p class="tcard-desc" id="tcard-desc-1">
+                  Adversary modifies an essay score or name in the JSON-LD payload. Result: Keccak256 digests mismatch and ECDSA signature fails.
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-1">
+                    Simulate 1-Byte Grade Tamper
+                  </button>
+                </div>
+              </div>
+
+              <!-- Attack Card 2 -->
+              <div class="tamper-card" id="tcard-2">
+                <div class="tcard-header">
+                  <span class="tcard-icon">🔒</span>
+                  <span class="tcard-badge red" id="tcard-badge-2">ERC-5192 SOULBOUND</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-2">Attack 2: ERC-5192 Token Theft / Transfer</h4>
+                <p class="tcard-desc" id="tcard-desc-2">
+                  Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with ErrLocked(1).
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-2">
+                    Simulate Soulbound Token Theft
+                  </button>
+                </div>
+              </div>
+
+              <!-- Attack Card 3 -->
+              <div class="tamper-card" id="tcard-3">
+                <div class="tcard-header">
+                  <span class="tcard-icon">🤖</span>
+                  <span class="tcard-badge orange" id="tcard-badge-3">RESOLVER WHITELIST</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-3">Attack 3: Unapproved Rogue Agent Issuance</h4>
+                <p class="tcard-desc" id="tcard-desc-3">
+                  Malicious bot attempts to mint or attest without whitelisting. Result: CredentialResolver reverts with NotAnIssuer(0xBadBot).
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-3">
+                    Simulate Rogue Agent Impersonation
+                  </button>
+                </div>
+              </div>
+
+              <!-- Attack Card 4 -->
+              <div class="tamper-card" id="tcard-4">
+                <div class="tcard-header">
+                  <span class="tcard-icon">⛓️</span>
+                  <span class="tcard-badge purple" id="tcard-badge-4">PREREQUISITE HOOK</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-4">Attack 4: Revoked Prerequisite Chaining</h4>
+                <p class="tcard-desc" id="tcard-desc-4">
+                  Attacker attempts to claim Level 2 credential while Level 1 prerequisite was revoked. Result: Reverts with PrerequisiteRevoked().
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-4">
+                    Simulate Revoked Prerequisite Attack
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated EVM Stack Trace Terminal -->
+            <div class="tamper-terminal-card">
+              <div class="tamper-terminal-header">
+                <div class="ide-dots">
+                  <span class="ide-dot red"></span>
+                  <span class="ide-dot yellow"></span>
+                  <span class="ide-dot green"></span>
+                </div>
+                <span class="tamper-terminal-title" id="tamper-terminal-title">Simulated EVM Execution Trace &amp; Call Stack</span>
+                <span class="tamper-revert-pill" id="tamper-revert-pill">STATUS: SYSTEM READY</span>
+              </div>
+              <div class="tamper-terminal-body" id="tamper-terminal-body">
+                <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0xe01a...) and SoulboundCert (0x96f6...).</div>
+                <div class="tamper-line">[Ready] Select an attack scenario above to test on-chain cryptographic reverts.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- B2B RECRUITER BULK VERIFICATION & x402 PROTOCOL CONSOLE (SCENE 4) -->
+          <div class="x402-console-section" id="x402-console">
+            <div class="x402-header-bar">
+              <div>
+                <span class="x402-kicker" id="x402-kicker">RECRUITER BULK VERIFICATION &amp; x402 PROTOCOL</span>
+                <h3 class="x402-title" id="x402-title">B2B Recruiter Bulk Audit &amp; x402 Micropayments</h3>
+                <p class="x402-sub" id="x402-sub">
+                  Enterprise ATS &amp; recruiter protocol for auditing hundreds of applicant credentials in milliseconds via HTTP 402 Payment Required micropayments.
+                </p>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-simulate-x402">
+                ⚡ <span id="btn-simulate-x402-text">Simulate 10-Candidate Batch Audit (0.0005 BNB)</span>
+              </button>
+            </div>
+
+            <!-- Protocol Philosophy Callout -->
+            <div class="x402-philosophy-card">
+              <div class="philosophy-icon">⚖️</div>
+              <div class="philosophy-content">
+                <span class="philosophy-kicker" id="x402-philosophy-kicker">CORE PROTOCOL PRINCIPLE</span>
+                <p class="philosophy-text" id="x402-philosophy-text">
+                  We charge for convenience, never for truth. Public verification is free, wallet-free, forever. x402 micropayments directly reimburse platform issuance gas without debt ledgers.
+                </p>
+              </div>
+            </div>
+
+            <!-- 4-Step Protocol Handshake Stepper -->
+            <div class="x402-flow-card">
+              <div class="x402-flow-step done" id="xstep-1">
+                <div class="flow-step-num">1</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-1-name">Client Batch Request</strong>
+                  <code class="flow-step-code">POST /api/v1/verify/batch [10 hashes]</code>
+                </div>
+                <span class="flow-status-pill done">READY</span>
+              </div>
+
+              <div class="flow-arrow-down">➔</div>
+
+              <div class="x402-flow-step" id="xstep-2">
+                <div class="flow-step-num">2</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-2-name">HTTP 402 Gateway Challenge</strong>
+                  <code class="flow-step-code">WWW-Authenticate: x402 amount=0.0005 tBNB</code>
+                </div>
+                <span class="flow-status-pill" id="xstep-2-status">IDLE</span>
+              </div>
+
+              <div class="flow-arrow-down">➔</div>
+
+              <div class="x402-flow-step" id="xstep-3">
+                <div class="flow-step-num">3</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-3-name">EIP-712 Micro-Authorization</strong>
+                  <code class="flow-step-code">PAYMENT: eip712-allowance-0x82...</code>
+                </div>
+                <span class="flow-status-pill" id="xstep-3-status">IDLE</span>
+              </div>
+
+              <div class="flow-arrow-down">➔</div>
+
+              <div class="x402-flow-step" id="xstep-4">
+                <div class="flow-step-num">4</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-4-name">Batch Verification Output (200 OK)</strong>
+                  <code class="flow-step-code" id="xstep-4-meta">10 Candidates: 8 VALID · 1 REVOKED · 1 DELISTED</code>
+                </div>
+                <span class="flow-status-pill" id="xstep-4-status">IDLE</span>
+              </div>
+            </div>
+
+            <!-- Recruiter Batch Candidates Table -->
+            <div class="x402-results-card" id="x402-batch-results">
+              <div class="batch-results-header">
+                <span class="batch-results-title">Audited Candidates (Batch #91A7-B4)</span>
+                <span class="batch-results-stat" id="x402-candidates-audited">10 Candidates Audited: 8 VALID · 1 REVOKED · 1 DELISTED</span>
+              </div>
+              <div class="batch-candidates-list" id="batch-candidates-list">
+                <!-- 10 Candidates rendered dynamically via main.ts -->
+              </div>
+            </div>
+          </div>
         </section>
       </div>
 

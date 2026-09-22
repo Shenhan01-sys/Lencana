@@ -264,6 +264,27 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
 - Full bilingual i18n support in `web/src/i18n.ts` (EN and ID).
 - TypeScript check (`tsc --noEmit`) and Vite production build pass with **0 errors**.
 
+### Iteration 13: Interactive Tamper & Forgery Defense Playground (Scene 3) & B2B Recruiter Bulk Audit via x402 Micropayments (Scene 4)
+- **Interactive Tamper & Forgery Defense Playground (`#/verify`):**
+  - Designed an interactive adversarial security testing console right below the verifier sandbox to let hackathon judges and recruiters test real attack vectors against Lencana's cryptographic primitives.
+  - Implemented 4 live attack scenario simulators:
+    1. **Attack 1: Document Tampering (Grade 93 ➔ 99)**: Simulates modifying payload grade or student identity. Demonstrates mathematical digest divergence (`0x7e3a...` vs `0x0b95...`) and EVM revert `AttestationNotFound()`, plus ECDSA signature verification failure (`ecrecover != agentSigner`).
+    2. **Attack 2: ERC-5192 Soulbound Token Theft / Transfer**: Simulates an adversary invoking `safeTransferFrom(Rina, Thief, tokenId: 1)`. Demonstrates smart contract internal lock guard checking `locked(1) == true` and reverting with `ErrLocked(1)`.
+    3. **Attack 3: Rogue AI Agent Impersonation**: Simulates an unapproved rogue bot attempting to issue a credential attestation. Demonstrates BAS resolver hook calling `CredentialResolver.onAttest()` and reverting with `NotAnIssuer(0xBadBot)`.
+    4. **Attack 4: Revoked Prerequisite Chaining**: Simulates an attacker trying to claim Level 2 advanced credentials while Level 1 foundational credential was revoked. Demonstrates `checkPrerequisites()` detecting `revocationTime != 0` and reverting with `PrerequisiteRevoked()`.
+  - Built an encapsulated simulated EVM call stack terminal with live execution logs, gas consumption, and revert status badges.
+- **B2B Recruiter Bulk Audit & x402 Micropayment Protocol Console (`#/verify`):**
+  - Solves the enterprise scalability problem for recruiters (Bagas) and ATS systems auditing 20–50 applicant resumes in milliseconds.
+  - Interactive 4-step protocol handshake visualizer:
+    1. Client Batch Request: `POST /api/v1/verify/batch [10 hashes]`
+    2. Gateway Challenge: `HTTP/1.1 402 Payment Required (0.0005 tBNB)`
+    3. EIP-712 Micro-Authorization: `PAYMENT: eip712-allowance-...`
+    4. Batch Verification Output: `200 OK (118ms)` with green/red/amber status pills across all 10 candidates (8 Valid, 1 Revoked, 1 Delisted).
+  - Prominently highlights the core protocol principle: *"We charge for convenience, never for truth. Public verification is free, wallet-free, forever. x402 micropayments directly reimburse platform issuance gas without debt ledgers."*
+- Full bilingual i18n support in `web/src/i18n.ts` (EN and ID).
+- TypeScript check (`tsc --noEmit`) and Vite production build pass with **0 errors**.
+
+
 
 
 
