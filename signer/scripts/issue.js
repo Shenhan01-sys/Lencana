@@ -2,7 +2,12 @@
  * SATU perintah: nilai → kredensial on-chain → dokumen OB3.0 bertanda tangan → daftar status
  * → hash daftar dikunci ke chain.
  *
- *   node scripts/issue.js --course web3-dasar-2026 --learner 0x… --score 87
+ *   npm run issue -- --course web3-dasar-2026 --learner 0x… \
+ *        --quiz 80,80,90,70 --essay-score 90
+ *
+ * Tidak ada `--score`: yang masuk adalah BUKTI, dan angkanya dihitung terhadap manifest penerbit.
+ * Bukti yang belum lengkap membuat perintah ini BERHENTI sebelum gas bergerak — bukan memakai
+ * angka bawaan supaya demo jalan.
  *
  * Kenapa satu perintah: tiap tahapnya sudah terbukti sendiri-sendiri di `check.js`, tapi demo video
  * tidak bisa dijalankan lewat empat perintah manual di depan juri. Rantaian ini juga yang menguji
@@ -26,6 +31,8 @@ import { loadKey, issuerDocument } from '../src/issuer.js'
 import { makeDocumentLoader, signDocument, verifyDocument } from '../src/sign.js'
 import { readAnchor, anchorListHash } from '../src/anchor.js'
 import { EMPTY_UID } from '../../web/src/abi.ts'
+import { manifestOf } from '../../web/src/manifest.ts'
+import { computeScore, formatScore } from '../../web/src/score.ts'
 
 /** .env dibaca manual: menambah dotenv hanya untuk 8 baris adalah dependensi yang tidak perlu. */
 async function readEnv () {
@@ -45,9 +52,24 @@ const arg = (name, fallback) => {
 
 const course = arg('course')
 const learner = arg('learner')
-const score = arg('score', '87')
 if (!course || !learner) {
-  console.error('pakai: node scripts/issue.js --course <id> --learner <0x…> [--score <n>] [--days 365]')
+  console.error('pakai: npm run issue -- --course <id> --learner <0x…> --quiz 80,80,90,90 --essay-score 90 [--no-praktik]')
+  process.exit(2)
+}
+
+/**
+ * `--score` DIHAPUS. Yang masuk ke skrip ini sekarang adalah BUKTI, dan angkanya dihitung
+ * terhadap manifest penerbit (`web/src/score.ts`). Menerima nilai bulat dari perintah adalah satu
+ * -satunya cara platform mengarang kelulusan atas nama institusi — dan itulah yang kita kritik
+ * dari kompetitor, jadi tidak masuk akal kita lakukan sendiri.
+ */
+const quizScores = String(arg('quiz', '')).split(',').map((s) => s.trim()).filter(Boolean).map(Number)
+const essayRaw = arg('essay-score')
+const essayScore = essayRaw === undefined ? null : Number(essayRaw)
+const praktikCompleted = !process.argv.includes('--no-praktik')
+
+if (quizScores.some((n) => !Number.isFinite(n))) {
+  console.error('--quiz harus daftar angka 0..100 dipisah koma, tanpa nilai kosong')
   process.exit(2)
 }
 
@@ -55,9 +77,32 @@ const env = { ...await readEnv(), ...process.env }
 const { RPC_URL, RESOLVER_ADDRESS: RESOLVER, BAS_ADDRESS: BAS } = env
 const BASE_URL = env.BASE_URL ?? 'http://127.0.0.1:8787'
 const AGENT_SLUG = env.AGENT_SLUG ?? 'agent-demo'
-const DAYS = Number(arg('days', 365))
 for (const [k, v] of Object.entries({ RPC_URL, RESOLVER, BAS })) {
   if (!v) { console.error(`${k} belum diisi`); process.exit(2) }
+}
+
+// Kebijakan penilaian datang dari manifest penerbit, bukan dari argumen bebas. Kalau id kursus
+// tidak ada di registri manifest, kita berhenti SEBELUM gas bergerak: menerbitkan kredensial
+// tanpa kebijakan yang bisa ditunjuk berarti dokumen itu tidak bisa dijelaskan orang lain.
+const manifest = manifestOf(course)
+if (!manifest) {
+  console.error(`kursus "${course}" bukan manifest penerbit yang dikenal.`)
+  console.error(`yang tersedia: ${['web3-dasar-2026', 'web3-lanjut-2026'].join(', ')} (lihat web/src/manifest.ts)`)
+  process.exit(2)
+}
+const issuerName = manifest.issuer.name
+
+// Kadaluarsa = kebijakan penerbit. `--days` tetap ada sebagai uji (mis. menguji kedaluwarsa di
+// fork), tapi memakainya diam-diam akan membuat dokumen tidak cocok dengan `criteria`-nya.
+const DAYS = arg('days') ? Number(arg('days')) : manifest.course.validDays
+if (arg('days')) console.log(`⚠️ masa berlaku ditimpa manual (${DAYS} hari); kebijakan penerbit ${manifest.course.validDays}`)
+
+const grade = computeScore(manifest, { quizScores, praktikCompleted, essayScore })
+console.log(`penerbit    : ${issuerName}`)
+console.log(`penilaian   : ${formatScore(grade)}`)
+if (grade.verdict === 'BELUM_LENGKAP') {
+  console.error('\nberhenti: bukti belum lengkap. Tidak ada angka yang dikarang supaya skrip bisa jalan.')
+  process.exit(3)
 }
 
 const agentEoa = privateKeyToAccount(env.ISSUER_PRIVATE_KEY)
@@ -144,14 +189,22 @@ const loader = makeDocumentLoader({ [agent.controller]: issuerDoc })
 const { unsigned, indices } = buildOpenBadgeCredential({
   baseUrl: BASE_URL,
   issuer: agent,
+  // Nama, deskripsi, dan kriteria diambil dari MANIFEST penerbit. Teks kriteria membawa 12 hex
+  // terdepan rubricHash, supaya pertanyaan "87 ini dari rubrik yang mana" dijawab oleh dokumen
+  // itu sendiri, bukan oleh ingatan kita.
   course: {
     slug: course,
-    name: arg('name', course),
-    description: arg('desc', `Kredensial ${course}`),
-    criteria: arg('criteria', 'Nilai akhir dari penilaian agen'),
+    name: manifest.course.title,
+    description: manifest.course.blurb,
+    criteria: `${manifest.course.criteria} [rubrik ${grade.rubricRef}]`,
   },
   learner: { address: learner },
-  assessment: { score, method: arg('method', 'penilaian agen') },
+  // `score` tidak lagi diterima dari perintah: ini hasil hitung terhadap bukti + kebijakan penerbit.
+  assessment: {
+    score: String(grade.total),
+    method: arg('method', `dihitung dari bukti terhadap rubrik ${grade.rubricRef}`),
+    comment: grade.components.map((cp) => `${cp.name} ${cp.raw}×${cp.weight}%`).join(' · '),
+  },
   uid,
   issuedAtUnix: Number(expiresAt) - DAYS * 86400,
   expiresAtUnix: Number(expiresAt),
@@ -167,7 +220,11 @@ const signedDoc = await signDocument(unsigned, { key: agent.key, controllerDocum
 const verified = await verifyDocument(signedDoc, { controllerDocument: issuerDoc, documentLoader: loader })
 if (!verified.verified) throw new Error('dokumen hasil terbitan sendiri tidak lolos verifikasi — berhenti')
 await rememberCredential({
-  id: signedDoc.id, credentialHash, uid, learner: getAddress(learner), course, score,
+  id: signedDoc.id, credentialHash, uid, learner: getAddress(learner), course,
+  // Yang disimpan bukan cuma angkanya: `score` tanpa `evidence`/`rubricHash` adalah klaim yang
+  // tidak bisa ditelusuri, padahal seluruh titik keputusan ini adalah membuat angka bisa ditanya.
+  score: grade.total, verdict: grade.verdict, rubricHash: grade.rubricHash, rubricRef: grade.rubricRef,
+  issuer: issuerName, evidence: { quizScores, praktikCompleted, essayScore },
   signedAt: new Date().toISOString(), document: signedDoc,
 })
 console.log(`dokumen     : ${signedDoc.id}`)

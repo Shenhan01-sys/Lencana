@@ -14,7 +14,7 @@
     "check": "node scripts/check.js",
     "serve": "node src/server.js",
     "probe:serve": "node scripts/serve-probe.js",
-    "issue": "node scripts/issue.js",
+    "issue": "tsx scripts/issue.js",
     "delegate": "tsx scripts/delegate.js",
     "anchor": "node scripts/anchor.js",
     "smoke": "node scripts/smoke.mjs"

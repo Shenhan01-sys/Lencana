@@ -217,6 +217,31 @@ async function main() {
       lanjut.prereqCourseId === 'web3-dasar-2026', String(lanjut.prereqCourseId))
   }
 
+  // --- 8b. otoritas penilaian ------------------------------------------------
+  // Lubang yang ditutup bagian ini nyata: `passMark` dan `weights` sebelumnya hanya teks
+  // tampilan, dan angka kredensial datang dari argumen CLI manusia. Yang diperiksa di sini
+  // BUKAN aritmetika (itu pekerjaan `npm run rubric`) — tapi bahwa setiap kursus yang bisa
+  // dibuka orang punya kebijakan penerbit yang bisa ditunjuk sebuah dokumen. Kursus tanpa
+  // manifest tidak punya itu, dan kredensialnya tidak bisa dijelaskan.
+  const { COURSES } = await import('../src/courses/index')
+  const { manifestOf, rubricHashOf } = await import('../src/manifest')
+  const { computeScore, quizCount, essayCount } = await import('../src/score')
+  for (const c of COURSES) {
+    const mf = manifestOf(c.id)
+    check(`"${c.id}" punya manifest penerbit`, !!mf, 'tanpa manifest, kriteria dokumen tidak punya sumber')
+    if (!mf) continue
+    check(`  rubricHash ${c.id} terbentuk benar`, /^0x[0-9a-f]{64}$/.test(rubricHashOf(mf)))
+    const full = computeScore(mf, {
+      quizScores: Array.from({ length: quizCount(mf) }, () => 90),
+      praktikCompleted: true,
+      essayScore: essayCount(mf) ? 90 : null,
+    })
+    check(`  bukti lengkap -> keputusan, bukan "belum lengkap"`,
+      full.verdict !== 'BELUM_LENGKAP' && full.total !== null, `${full.verdict} ${full.total} vs ambang ${full.passMark}`)
+    const none = computeScore(mf, { quizScores: [], praktikCompleted: false, essayScore: null })
+    check(`  tanpa bukti -> menolak, BUKAN nol`, none.verdict === 'BELUM_LENGKAP' && none.total === null, String(none.total))
+  }
+
   // Diagnosa: tanpa blok ini, probe hanya melaporkan "panggilan X gagal" dan kita tetap
   // buta terhadap SEBABNYA — yang membuat probe tidak lebih berguna dari menebak.
   const anyFail = [r0, ...(demo ? [demo] : [])].flatMap((r) => r.readLog).filter((l) => !l.ok)

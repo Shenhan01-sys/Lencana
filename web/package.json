@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "probe": "tsx scripts/probe.ts",
+    "rubric": "tsx scripts/rubric-check.ts",
     "inventory": "tsx scripts/inventory.ts"
   },
   "dependencies": {

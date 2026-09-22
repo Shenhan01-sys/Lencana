@@ -18,6 +18,7 @@ import { makeClient } from './verify'
 import { esc } from './render'
 import { courseIdOf, lessonIdOf, LESSON_KINDS, type Block, type Course, type Lesson, type Module } from './content'
 import { auditAll, catalogStats, COURSES, findCourse, findLesson, moduleOf } from './courses/index'
+import { manifestOf, rubricHashOf, shortHash } from './manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse, type CourseSummary } from './progress'
 
 /**
@@ -136,9 +137,27 @@ function pageCatalog(): string {
   </section>`
 }
 
+/**
+ * Baris kelengkapan. Dulu berbunyi "mata penilai 100/100" dengan kolom "Status: siap diajukan" —
+ * keduanya menyesatkan, karena 100 di situ berarti "setiap mata punya bukti", BUKAN "nilainya
+ * cukup". Peserta berkuis 20 dan esai asal tulis akan membaca dirinya siap menerima ijazah.
+ */
+function completenessLine (st: CourseSummary, rubricRef: string): string {
+  return `<p><strong>${st.doneLessons}/${st.totalLessons} lesson</strong> di perangkat ini ·
+      rata-rata kuis ${st.quizAvg ?? '—'} · esai ${st.essayDrafted ? 'ada draf' : 'belum ada'} ·
+      bukti untuk ${st.gradedWeights}/100 mata penilai</p>
+    <p class="muted">${st.readyForCredential
+      ? 'Buktinya lengkap — tapi <strong>belum ada nilai</strong>: angka akhir dihitung terhadap rubrik penerbit, bukan oleh halaman ini.'
+      : 'Belum lengkap — belum ada yang bisa dinilai.'}
+      Rubrik versi <code>${esc(rubricRef)}</code> ikut tercetak ke dokumen kredensial saat terbit,
+      jadi kebijakan itu tidak bisa kami ganti setelah ijazahmu ada.</p>`
+}
+
 function pageSyllabus(course: Course): string {
   const lessons = course.modules.flatMap((m) => m.lessons)
   const st = summarize(course.id, lessons, course.weights)
+  const manifest = manifestOf(course.id)
+  const rubricRef = manifest ? shortHash(rubricHashOf(manifest)) : 'tanpa manifest'
   const mods = course.modules
     .map((m) => {
       const rows = m.lessons
@@ -168,12 +187,10 @@ function pageSyllabus(course: Course): string {
     <p class="muted">${esc(course.institution)}</p>
     <p>${esc(course.blurb)}</p>
     <p class="progress-line"><span style="width:${st.pct}%"></span></p>
-    <p><strong>${st.doneLessons}/${st.totalLessons} lesson</strong> di perangkat ini ·
-      rata-rata kuis ${st.quizAvg ?? '—'} · esai ${st.essayDrafted ? 'ada draf' : 'belum ada'} ·
-      mata penilai lengkap ${st.gradedWeights}/100</p>
+    ${completenessLine(st, rubricRef)}
     <h3>Kamu akan bisa</h3>
     <ul>${course.outcome.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>
-    <h3>Cara dinilai</h3>
+    <h3>Kebijakan penilaian penerbit</h3>
     <p>${esc(course.criteria)}</p>
     <p class="muted">Bobot: kuis ${course.weights.kuis}% · praktik ${course.weights.praktik}% ·
       esai ${course.weights.esai}%. Ambang lulus ${course.passMark}/100.
@@ -312,8 +329,9 @@ function pageLesson(course: Course, mod: Module, lesson: Lesson, reveal: boolean
       ${prev ? `<a href="${link('course', course.id, 'l', prev.l.slug)}">← ${esc(prev.l.title)}</a>` : '<span></span>'}
       ${next ? `<a href="${link('course', course.id, 'l', next.l.slug)}">${esc(next.l.title)} →</a>` : `<a href="${link('me')}">Ringkasanku →</a>`}
     </nav>
-    <p class="muted">Kelulusan perangkat ini: ${st.pct}% lesson, mata penilai ${st.gradedWeights}/100.
-    Angkanya milik localStorage kamu, bukan bukti apa pun.</p>
+    <p class="muted">Perangkat ini mencatat ${st.pct}% lesson dan bukti untuk ${st.gradedWeights}/100 mata
+    penilai. Angkanya milik localStorage kamu dan bukan bukti apa pun — yang bernilai hanya
+    pernyataan penerbit di chain.</p>
   </article>`
 }
 
@@ -325,18 +343,18 @@ function pageMe(): string {
       <td>${st.quizAvg ?? '—'}</td>
       <td>${st.essayDrafted ? 'ada draf' : '—'}</td>
       <td>${st.gradedWeights}/100</td>
-      <td>${st.readyForCredential ? 'siap diajukan' : 'belum lengkap'}</td>
+      <td>${st.readyForCredential ? 'bukti lengkap, belum dinilai' : 'belum lengkap'}</td>
       <td><button data-action="wipe" data-course="${esc(c.id)}">hapus</button></td></tr>`
   }).join('')
 
   return `${breadcrumb([{ label: 'Katalog', href: link() }, { label: 'Saya' }])}
   <section class="card">
     <h2>Progres di perangkat ini</h2>
-    <table><thead><tr><th>Kursus</th><th>Lesson</th><th>Kuis</th><th>Esai</th><th>Penilai</th><th>Status</th><th></th></tr></thead>
+    <table><thead><tr><th>Kursus</th><th>Lesson</th><th>Kuis</th><th>Esai</th><th>Bukti</th><th>Status</th><th></th></tr></thead>
     <tbody>${rows}</tbody></table>
     <aside class="note"><strong>Kenapa belum ada tombol "ajukan"</strong>
       <p>Menyerahkan hasil belajar ke chain adalah tindakan penerbit, bukan tombol di halaman bacaan.
-      Yang bisa kami lakukan dari sini: memastikan kolom "Penilai" penuh, lalu memberi alamatmu ke
+      Yang bisa kami lakukan dari sini: memastikan kolom "Bukti" penuh, lalu memberi alamatmu ke
       jalur penerbitan. Kolom itu juga yang akan ditanya lebih dulu waktu itu.</p></aside>
   </section>
   <section class="card">
