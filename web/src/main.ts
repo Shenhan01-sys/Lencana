@@ -2,6 +2,7 @@ import { verify, type Endpoint, type Report } from './verify'
 import { renderEmpty, renderReport } from './render'
 import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
 import { getSavedLanguage, saveLanguage, DICTIONARIES, type Lang } from './i18n'
+import { renderLmsRoute } from './lms'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -1153,6 +1154,10 @@ function handleRoute() {
     targetPageId = 'page-portfolio'
   } else if (hash === '#/agent-hub' || hash === '#ai-agents' || hash === '#agent-hub') {
     targetPageId = 'page-agent-hub'
+  } else if (hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me') {
+    // Lapisan materi (src/lms.ts) menggambar di #lms-mount milik halaman courses. Route ini
+    // sengaja dipakai awalan berbeda dari #/courses Dave: yang satu tokonya, yang satu isinya.
+    targetPageId = 'page-courses'
   } else {
     targetPageId = 'page-home'
   }
@@ -1165,6 +1170,10 @@ function handleRoute() {
       p.classList.add('hidden')
     }
   })
+
+  // Gambar (atau bersihkan) lapisan materi di halaman courses. Fungsi ini tahu sendiri apakah
+  // route-nya miliknya, jadi memanggilnya pada setiap route tidak akan menimpa apa pun.
+  renderLmsRoute()
 
   const routeNavMap: Record<string, string> = {
     'page-home': 'nav-home',

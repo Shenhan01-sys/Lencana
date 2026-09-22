@@ -11,6 +11,7 @@
  * query string). Karena itu tautan "buka di verifier" dan rute LMS bisa hidup berdampingan.
  */
 import { isAddress } from 'viem'
+import './lms.css'
 import { credentialResolverAbi } from './abi'
 import { isConfigured, loadEndpoint } from './config'
 import { makeClient } from './verify'
@@ -19,7 +20,11 @@ import { courseIdOf, lessonIdOf, LESSON_KINDS, type Block, type Course, type Les
 import { auditAll, catalogStats, COURSES, findCourse, findLesson, moduleOf } from './courses/index'
 import { courseProgress, recordLesson, summarize, wipeCourse, type CourseSummary } from './progress'
 
-const VERIFY_BASE = `${location.pathname}`
+/**
+ * Tautan ke verifier. `?q=` dibaca halaman verifikasi saat boot (main.ts) dan `#/verify`
+ * adalah rute Dave, jadi keduanya harus ikut — menaruh `#/verify` saja tidak mengisi inputnya.
+ */
+const verifyLink = (credentialHash: string) => `${location.pathname}?q=${encodeURIComponent(credentialHash)}#/verify`
 
 /** Label jenis, dipakai di kartu lesson dan di navigasi antar-modul. */
 const KIND_LABEL: Record<string, string> = {
@@ -32,7 +37,10 @@ const KIND_LABEL: Record<string, string> = {
 }
 
 function link(...parts: string[]): string {
-  return `#/${parts.map(encodeURIComponent).join('/')}`
+  // Katalog = `#/learn`, BUKAN `#/courses`: yang terakhir itu halaman marketplace Dave.
+  // Dua pemilik untuk satu rute adalah cara paling pasti untuk saling menimpa.
+  const seg = parts.length ? parts : ['learn']
+  return `#/${seg.map(encodeURIComponent).join('/')}`
 }
 
 function breadcrumb(trail: { label: string; href?: string }[]): string {
@@ -377,7 +385,7 @@ async function readMyCredentials(addr: string): Promise<string> {
         })) as readonly [boolean, boolean, boolean, boolean, string, bigint, bigint]
         const [exists, revoked, expired, delisted] = s
         const verdict = !exists ? 'tidak dikenal' : revoked ? 'DICABUT' : expired ? 'KEDALUWARSA' : delisted ? 'PENERBIT DITARIK' : 'BERLAKU'
-        const q = `${VERIFY_BASE}?q=${encodeURIComponent(h)}`
+        const q = verifyLink(h)
         return `<tr><td><a href="${q}">${h.slice(0, 12)}…</a></td><td>${esc(verdict)}</td></tr>`
       }),
     )
@@ -407,35 +415,61 @@ function currentLesson(): { course: Course; mod: Module; lesson: Lesson } | unde
   return undefined
 }
 
-/** Menulis ulang halaman. Return false = bukan rute LMS, biar verifier yang pegang. */
-export function renderLms(root: HTMLElement): boolean {
-  const hash = location.hash
-  if (!hash.startsWith('#/')) return false
+/** Tempat lapisan materi menggambar: satu div di dalam halaman courses milik Dave. */
+function getMount (): HTMLElement | null {
+  return document.getElementById('lms-mount')
+}
 
-  root.innerHTML = ''
+function isLmsRoute (hash: string): boolean {
+  return hash === '#/learn' || hash === '#/me' || hash.startsWith('#/course/')
+}
+
+let delegated = false
+
+/**
+ * Dipanggil `handleRoute()` di main.ts pada SETIAP perpindahan rute. Fungsi ini tahu sendiri
+ * apakah rute itu miliknya: kalau bukan, mount dibersihkan dan halaman Dave dibiarkan apa adanya.
+ * Itu yang membuat dua lapis frontend bisa hidup di satu aplikasi tanpa saling menimpa.
+ */
+export function renderLmsRoute (): boolean {
+  const mount = getMount()
+  if (!mount) return false
+
+  const hash = (location.hash || '#/').toLowerCase().split('?')[0]
+  if (!isLmsRoute(hash)) {
+    mount.innerHTML = ''
+    delete document.body.dataset.lmsRoute
+    return false
+  }
+
+  if (!delegated) {
+    bindLms(mount)
+    delegated = true
+  }
+  document.body.dataset.lmsRoute = 'active'
+
   const seg = parse(hash)
-
-  if (!seg.length) {
-    root.innerHTML = pageCatalog()
+  if (seg[0] === 'learn') {
+    mount.innerHTML = pageCatalog()
     return true
   }
   if (seg[0] === 'me') {
-    root.innerHTML = pageMe()
+    mount.innerHTML = pageMe()
     return true
   }
   if (seg[0] === 'course') {
     const course = findCourse(seg[1])
     if (!course) {
-      root.innerHTML = notFound('Kursus tidak ditemukan', `Id "${seg[1] ?? '(kosong)'}" tidak ada di katalog. Yang tersedia: ${COURSES.map((c) => c.id).join(', ')}.`)
+      mount.innerHTML = notFound('Kursus tidak ditemukan', `Id "${seg[1] ?? '(kosong)'}" tidak ada di katalog. Yang tersedia: ${COURSES.map((c) => c.id).join(', ')}.`)
       return true
     }
     if (seg.length === 2) {
-      root.innerHTML = pageSyllabus(course)
+      mount.innerHTML = pageSyllabus(course)
       return true
     }
     if (seg[2] === 'm') {
       const mod = moduleOf(course, seg[3])
-      root.innerHTML = mod
+      mount.innerHTML = mod
         ? pageModule(course, mod)
         : notFound('Modul tidak ditemukan', `Modul "${seg[3]}" bukan bagian dari ${course.id}.`)
       return true
@@ -443,15 +477,15 @@ export function renderLms(root: HTMLElement): boolean {
     if (seg[2] === 'l') {
       const found = findLesson(course, seg[3])
       if (!found) {
-        root.innerHTML = notFound('Lesson tidak ditemukan', `Lesson "${seg[3]}" bukan bagian dari ${course.id}.`)
+        mount.innerHTML = notFound('Lesson tidak ditemukan', `Lesson "${seg[3]}" bukan bagian dari ${course.id}. Route lengkapnya #/course/${course.id}/l/<slug>.`)
         return true
       }
-      root.innerHTML = pageLesson(course, found.module, found.lesson, false)
+      mount.innerHTML = pageLesson(course, found.module, found.lesson, false)
       startWordCount()
       return true
     }
   }
-  root.innerHTML = notFound('Rute tidak dikenal', `Yang dikenal: #/, #/course/<id>, #/course/<id>/m/<modul>, #/course/<id>/l/<lesson>, #/me.`)
+  mount.innerHTML = notFound('Rute tidak dikenal', `Yang dikenal: #/learn · #/course/<kursus> · #/course/<kursus>/m/<modul> · #/course/<kursus>/l/<lesson> · #/me`)
   return true
 }
 
@@ -469,8 +503,7 @@ function startWordCount(): void {
 }
 
 function rerender(): void {
-  const root = document.getElementById('out')
-  if (root) renderLms(root)
+  renderLmsRoute()
 }
 
 export function bindLms(root: HTMLElement): void {
@@ -518,7 +551,7 @@ export function bindLms(root: HTMLElement): void {
         }</span>`
       }
       // Reveal dipasang ulang lewat render supaya alasan tiap soal ikut muncul.
-      const host = document.getElementById('out')
+      const host = getMount()
       if (host) {
         host.innerHTML = pageLesson(lesson.course, lesson.mod, lesson.lesson, true)
         startWordCount()

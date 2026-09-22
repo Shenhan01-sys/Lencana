@@ -1,0 +1,79 @@
+/**
+ * Gaya lapisan materi — BERDIRI SENDIRI, sengaja tidak ditambahkan ke style.css.
+ *
+ * Alasannya praktis dan punya dasar: style.css adalah berkas kerja Dave (7.000+ baris, dia yang
+ * pegang FE). Menempelkan blok saya ke ujungnya berarti setiap push dia berpotensi konflik di
+ * berkas yang sama, dan yang harus saya rawat dari pekerjaan ini bukan tampilan — tapi kontennya.
+ * Dipisah begini, dia bisa menata ulang semua ini tanpa menyentuh satu baris pun materi/kontrak.
+ *
+ * Kelas yang dipakai sengaja generik (card, muted, tag) dan semua selectors dikunci di bawah
+ * #lms-mount, supaya tidak ikut mengubah halaman Dave kalau ada nama kelas yang kebetulan sama.
+ */
+
+/* Ketika rute materi aktif, marketplace Dave disembunyikan di dalam halaman yang sama.
+   Bukan display:none permanen — begitu keluar dari #/learn, tokonya muncul lagi utuh. */
+body[data-lms-route] #page-courses > .section-container:not(#lms-mount) { display: none; }
+
+#lms-mount { color: inherit; font-size: 15px; line-height: 1.62; max-width: 1100px; margin: 0 auto; padding: 18px 0 40px; }
+#lms-mount .card { margin: 0 0 16px; padding: 16px; border: 1px solid rgba(128,128,128,.45); border-radius: 8px; }
+#lms-mount .card h2 { font-size: 20px; margin: 0 0 6px; }
+#lms-mount .card h3 { font-size: 16px; margin: 14px 0 4px; }
+#lms-mount p { max-width: 78ch; }
+#lms-mount .lede { opacity: .92; }
+#lms-mount .muted { font-size: 12.5px; opacity: .72; margin: 4px 0; max-width: 92ch; }
+#lms-mount .ok { color: #2e7d32; font-weight: 600; }
+#lms-mount .bad { color: #c0392b; font-weight: 600; }
+
+#lms-mount .crumbs { font-size: 12.5px; opacity: .8; margin-bottom: 12px; }
+#lms-mount .crumbs .sep { opacity: .5; margin: 0 5px; }
+
+#lms-mount .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+#lms-mount .course h3 { margin-top: 0; }
+#lms-mount .progress-line { height: 6px; background: rgba(128,128,128,.22); border-radius: 99px; overflow: hidden; margin: 8px 0; }
+#lms-mount .progress-line > span { display: block; height: 100%; background: currentColor; opacity: .65; }
+
+#lms-mount .tag { display: inline-block; margin-left: 6px; padding: 1px 7px; font-size: 11.5px; border: 1px solid rgba(128,128,128,.5); border-radius: 99px; opacity: .85; }
+#lms-mount .tag.ok { border-color: #2e7d32; color: #2e7d32; }
+
+#lms-mount ul.lessons, #lms-mount ol.lessons { margin: 8px 0 0; padding-left: 20px; }
+#lms-mount ul.lessons { list-style: none; padding-left: 0; }
+#lms-mount ul.lessons > li, #lms-mount ol.lessons > li { padding: 6px 0; border-bottom: 1px solid rgba(128,128,128,.22); font-size: 13.5px; }
+#lms-mount ul.lessons > li:last-child, #lms-mount ol.lessons > li:last-child { border-bottom: 0; }
+#lms-mount .kind, #lms-mount .min { font-size: 11.5px; opacity: .68; margin-left: 6px; }
+#lms-mount .done { float: right; font-weight: 700; }
+
+#lms-mount .lesson-head { border-bottom: 1px solid rgba(128,128,128,.35); padding-bottom: 8px; margin-bottom: 10px; }
+#lms-mount pre { padding: 10px; overflow-x: auto; background: rgba(128,128,128,.13); border-radius: 6px; font-size: 12px; }
+#lms-mount pre code { font-size: 12px; }
+#lms-mount .lang { font-size: 11px; opacity: .6; margin: 2px 0 10px; }
+
+#lms-mount aside.note { margin: 12px 0; padding: 10px 12px; border-left: 3px solid #b58900; background: rgba(181,137,0,.09); border-radius: 0 6px 6px 0; font-size: 13px; }
+#lms-mount aside.note strong { display: block; margin-bottom: 4px; }
+#lms-mount aside.note p { margin: 0; }
+#lms-mount aside.try { margin: 12px 0; padding: 10px 12px; border: 1px dashed rgba(128,128,128,.55); border-radius: 6px; font-size: 13.5px; }
+#lms-mount aside.try strong { display: block; margin-bottom: 4px; }
+#lms-mount blockquote { margin: 12px 0; padding-left: 12px; border-left: 3px solid rgba(128,128,128,.5); }
+#lms-mount blockquote footer { margin-top: 4px; font-size: 12px; opacity: .8; }
+
+#lms-mount dl.terms dt { font-weight: 600; margin-top: 8px; }
+#lms-mount dl.terms dd { margin: 2px 0 0; font-size: 13.5px; opacity: .92; }
+#lms-mount ul.links { list-style: none; padding-left: 0; }
+#lms-mount ul.links > li { padding: 4px 0; border-bottom: 1px solid rgba(128,128,128,.22); font-size: 13.5px; }
+
+#lms-mount .question { margin: 12px 0; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,.22); }
+#lms-mount .question .q { font-size: 13.5px; margin: 0 0 4px; }
+#lms-mount .opt { display: block; font-size: 13.5px; padding: 3px 0; }
+#lms-mount .why { font-size: 12.5px; margin: 6px 0 0; padding: 6px 8px; background: rgba(128,128,128,.12); border-radius: 6px; }
+#lms-mount textarea { width: 100%; padding: 8px; border: 1px solid rgba(128,128,128,.5); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
+#lms-mount #me-address { padding: 6px; border: 1px solid rgba(128,128,128,.5); border-radius: 6px; background: transparent; color: inherit; font-family: ui-monospace, monospace; }
+
+#lms-mount table { border-collapse: collapse; font-size: 13px; width: 100%; }
+#lms-mount th, #lms-mount td { text-align: left; padding: 5px 8px; border-bottom: 1px solid rgba(128,128,128,.22); vertical-align: top; }
+
+#lms-mount .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+#lms-mount .btn, #lms-mount button { font: inherit; font-size: 13.5px; padding: 7px 12px; border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+#lms-mount .btn { text-decoration: none; display: inline-block; }
+#lms-mount button.primary { font-weight: 600; }
+#lms-mount .status { font-size: 13.5px; min-height: 20px; margin: 8px 0 0; }
+#lms-mount .ids { margin-top: 14px; font-size: 12.5px; }
+#lms-mount .pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(128,128,128,.35); font-size: 13px; }
