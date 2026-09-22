@@ -389,12 +389,260 @@ function setPortfolioPrivacyTier(tier: number) {
   }
 }
 
+function updateEditorLineNumbers() {
+  const essayInput = $('essay-input') as HTMLTextAreaElement | null
+  const gutter = $('eval-gutter')
+  const charsCounter = $('ide-chars-counter')
+  if (!essayInput) return
+
+  const val = essayInput.value || ''
+  if (charsCounter) charsCounter.textContent = `Chars: ${val.length}`
+
+  const lines = val.split('\n').length
+  const lineCount = Math.max(lines, 8)
+  if (gutter) {
+    let html = ''
+    for (let i = 1; i <= lineCount; i++) {
+      html += `<span>${i}</span>`
+    }
+    gutter.innerHTML = html
+  }
+}
+
 function updateEssayWordCount() {
   const essayInput = $('essay-input') as HTMLTextAreaElement | null
   const text = essayInput?.value || ''
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   const astTokens = Math.round(words * 1.35)
   setText('essay-token-count', `Words: ${words} · AST Tokens: ~${astTokens} · Rubric: 100%`)
+  updateEditorLineNumbers()
+}
+
+interface WalletState {
+  isConnected: boolean
+  address: string | null
+  isDemo: boolean
+}
+
+let walletState: WalletState = {
+  isConnected: false,
+  address: null,
+  isDemo: false,
+}
+
+function initWalletState() {
+  try {
+    const saved = sessionStorage.getItem('lencana_wallet')
+    if (saved) {
+      walletState = JSON.parse(saved)
+      renderWalletState()
+    }
+  } catch {}
+}
+
+function renderWalletState() {
+  const connectBtn = $('btn-connect-wallet')
+  const connectedPill = $('wallet-connected-pill')
+  const addrDisplay = $('wallet-address-display')
+  const learnerAddrEl = document.querySelector('.learner-addr')
+  const portfolioAddrEl = document.querySelector('.portfolio-wallet-addr')
+  const mintReceiptAddr = $('mint-receipt-recipient')
+
+  if (walletState.isConnected && walletState.address) {
+    connectBtn?.classList.add('hidden')
+    connectedPill?.classList.remove('hidden')
+    const short = `${walletState.address.slice(0, 6)}...${walletState.address.slice(-4)}`
+    if (addrDisplay) {
+      addrDisplay.textContent = walletState.isDemo ? `rina.bnb (${short})` : short
+    }
+    if (learnerAddrEl) learnerAddrEl.textContent = walletState.address
+    if (portfolioAddrEl) portfolioAddrEl.textContent = walletState.address
+    if (mintReceiptAddr) mintReceiptAddr.textContent = walletState.address
+  } else {
+    connectBtn?.classList.remove('hidden')
+    connectedPill?.classList.add('hidden')
+    if (learnerAddrEl) learnerAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
+    if (portfolioAddrEl) portfolioAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
+    if (mintReceiptAddr) mintReceiptAddr.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
+  }
+}
+
+function openWalletModal() {
+  const modal = $('wallet-modal')
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.add('hidden')
+    statusEl.textContent = ''
+  }
+  modal?.classList.remove('hidden')
+}
+
+function closeWalletModal() {
+  const modal = $('wallet-modal')
+  modal?.classList.add('hidden')
+}
+
+async function connectBrowserWallet() {
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.remove('hidden')
+    statusEl.textContent = DICTIONARIES[currentLang].wallet.connecting
+    statusEl.className = 'wallet-modal-status'
+  }
+
+  const eth = (window as any).ethereum
+  if (!eth) {
+    if (statusEl) {
+      statusEl.textContent = DICTIONARIES[currentLang].wallet.noExtension
+      statusEl.className = 'wallet-modal-status warn'
+    }
+    return
+  }
+
+  try {
+    const accounts = await eth.request({ method: 'eth_requestAccounts' })
+    if (accounts && accounts.length > 0) {
+      const addr = accounts[0]
+      try {
+        const chainIdHex = await eth.request({ method: 'eth_chainId' })
+        const chainId = parseInt(chainIdHex, 16)
+        if (chainId !== 97 && chainId !== 56) {
+          await eth.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x61' }],
+          })
+        }
+      } catch {}
+
+      walletState = { isConnected: true, address: addr, isDemo: false }
+      sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+      renderWalletState()
+      closeWalletModal()
+    }
+  } catch (err: any) {
+    if (statusEl) {
+      statusEl.textContent = err?.message || 'Connection rejected'
+      statusEl.className = 'wallet-modal-status error'
+    }
+  }
+}
+
+function connectDemoWallet() {
+  walletState = {
+    isConnected: true,
+    address: '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
+    isDemo: true,
+  }
+  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+  renderWalletState()
+  closeWalletModal()
+}
+
+function disconnectWallet() {
+  walletState = { isConnected: false, address: null, isDemo: false }
+  sessionStorage.removeItem('lencana_wallet')
+  renderWalletState()
+}
+
+let confettiAnimId: number | null = null
+
+function launchConfetti() {
+  const canvas = $('mint-confetti-canvas') as HTMLCanvasElement | null
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+
+  const colors = ['#F0B90B', '#0ECB81', '#A855F7', '#FFFFFF', '#FCD535']
+  const particles: Array<{
+    x: number
+    y: number
+    r: number
+    d: number
+    color: string
+    tilt: number
+    tiltAngle: number
+    tiltAngleIncremental: number
+  }> = []
+
+  for (let i = 0; i < 90; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: Math.random() * 6 + 3,
+      d: Math.random() * 3 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.floor(Math.random() * 10) - 10,
+      tiltAngle: 0,
+      tiltAngleIncremental: Math.random() * 0.07 + 0.05,
+    })
+  }
+
+  let angle = 0
+  function draw() {
+    if (!ctx || !canvas) return
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    angle += 0.01
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i]
+      p.tiltAngle += p.tiltAngleIncremental
+      p.y += (Math.cos(angle + p.d) + 1 + p.r / 2) * 0.9
+      p.x += Math.sin(angle) * 1.5
+      p.tilt = Math.sin(p.tiltAngle) * 12
+
+      ctx.beginPath()
+      ctx.lineWidth = p.r
+      ctx.strokeStyle = p.color
+      ctx.moveTo(p.x + p.tilt + p.r / 2, p.y)
+      ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2)
+      ctx.stroke()
+
+      if (p.y > canvas.height) {
+        particles[i] = {
+          x: Math.random() * canvas.width,
+          y: -10,
+          r: p.r,
+          d: p.d,
+          color: p.color,
+          tilt: p.tilt,
+          tiltAngle: p.tiltAngle,
+          tiltAngleIncremental: p.tiltAngleIncremental,
+        }
+      }
+    }
+
+    confettiAnimId = requestAnimationFrame(draw)
+  }
+
+  if (confettiAnimId) cancelAnimationFrame(confettiAnimId)
+  draw()
+}
+
+function stopConfetti() {
+  if (confettiAnimId) {
+    cancelAnimationFrame(confettiAnimId)
+    confettiAnimId = null
+  }
+  const canvas = $('mint-confetti-canvas') as HTMLCanvasElement | null
+  if (canvas) {
+    const ctx = canvas.getContext('2d')
+    ctx?.clearRect(0, 0, canvas.width, canvas.height)
+  }
+}
+
+function openMintModal() {
+  const modal = $('mint-modal')
+  modal?.classList.remove('hidden')
+  launchConfetti()
+}
+
+function closeMintModal() {
+  const modal = $('mint-modal')
+  modal?.classList.add('hidden')
+  stopConfetti()
 }
 
 const RINA_CREDENTIAL_JSONLD = {
@@ -719,6 +967,26 @@ function updateStaticText() {
   setText('agent-hub-delist-sub', dict.agentHubSection.delistSub)
   setText('btn-hub-test-delist', dict.agentHubSection.btnTestDelist)
 
+  // Wallet Navbar & Modal
+  setText('btn-wallet-text', dict.wallet.connectBtn)
+  setText('wallet-modal-title', dict.wallet.modalTitle)
+  setText('wallet-modal-sub', dict.wallet.modalSub)
+  setText('wallet-opt-browser-title', dict.wallet.browserOption)
+  setText('wallet-opt-browser-desc', dict.wallet.browserOptionSub)
+  setText('wallet-opt-demo-title', dict.wallet.demoOption)
+  setText('wallet-opt-demo-desc', dict.wallet.demoOptionSub)
+  renderWalletState()
+
+  // Mint Celebration Modal
+  setText('mint-modal-title', dict.mintModal.title)
+  setText('mint-modal-sub', dict.mintModal.sub)
+  setText('mint-tag-sbt', dict.mintModal.sbtBadge)
+  setText('mint-tag-honors', dict.mintModal.honorsTag)
+  setText('mint-tag-gasless', dict.mintModal.gaslessTag)
+  setText('btn-mint-goto-verify', dict.mintModal.btnVerify)
+  setText('btn-mint-goto-portfolio', dict.mintModal.btnPortfolio)
+  setText('btn-close-mint-modal', dict.mintModal.btnClose)
+
   // Footer & Brand Sub
   setText('brand-sub', `— ${dict.tagline}`)
   setText('ui-footer', dict.footer)
@@ -972,6 +1240,12 @@ function wire() {
   tabSec?.addEventListener('click', () => selectEssayTab(tabSec, ESSAY_PRESETS.security))
   tabCust?.addEventListener('click', () => selectEssayTab(tabCust, ESSAY_PRESETS.custom))
   essayInput?.addEventListener('input', updateEssayWordCount)
+  essayInput?.addEventListener('scroll', () => {
+    const gutter = $('eval-gutter')
+    if (gutter && essayInput) {
+      gutter.scrollTop = essayInput.scrollTop
+    }
+  })
 
   // Proceed from Study Room to AI Evaluator
   $('btn-study-proceed-eval')?.addEventListener('click', () => {
@@ -1053,6 +1327,28 @@ function wire() {
   // Language switcher buttons
   $('lang-en')?.addEventListener('click', () => setLanguage('en'))
   $('lang-id')?.addEventListener('click', () => setLanguage('id'))
+
+  // Wallet Navbar & Modal Wiring
+  $('btn-connect-wallet')?.addEventListener('click', openWalletModal)
+  $('btn-close-wallet-modal')?.addEventListener('click', closeWalletModal)
+  $('wallet-modal-backdrop')?.addEventListener('click', closeWalletModal)
+  $('btn-opt-browser-wallet')?.addEventListener('click', connectBrowserWallet)
+  $('btn-opt-demo-wallet')?.addEventListener('click', connectDemoWallet)
+  $('btn-disconnect-wallet')?.addEventListener('click', disconnectWallet)
+
+  // Celebratory Mint Modal Wiring
+  $('btn-close-mint-modal')?.addEventListener('click', closeMintModal)
+  $('mint-modal-backdrop')?.addEventListener('click', closeMintModal)
+  $('btn-mint-goto-verify')?.addEventListener('click', () => {
+    closeMintModal()
+    window.location.hash = '#/verify'
+    inputEl.value = SAMPLE_HASHES.valid
+    run()
+  })
+  $('btn-mint-goto-portfolio')?.addEventListener('click', () => {
+    closeMintModal()
+    window.location.hash = '#/portfolio'
+  })
 }
 
 let isEvaluating = false
@@ -1188,10 +1484,16 @@ function simulateAiEvaluation() {
     }
     if (btn) btn.disabled = false
     isEvaluating = false
+
+    // Iteration 11: Trigger holographic credential mint celebration modal
+    setTimeout(() => {
+      openMintModal()
+    }, 700)
   }, 1600)
 }
 
 function boot() {
+  initWalletState()
   wire()
   updateStaticText()
   paintConfig()

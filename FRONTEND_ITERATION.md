@@ -228,8 +228,25 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
   4. `#/verify` (`#page-verify`): Instant Credential Verifier Sandbox & Forensic Audit Suite with 5 tabs (`Summary`, `On-Chain BAS & Prereqs`, `Soulbound NFT`, `CLI Audit`, `Real-Time RPC Log`), quick sample test pills (`Valid`, `Revoked`, `Delisted`, `Format Check`), and honest boundary disclosures.
   5. `#/portfolio` (`#page-portfolio`): Decentralized Learner Portfolio for Rina Oktaviani with 3-tier privacy mode toggle (`Pseudonymous`, `Named Profile`, `Salted DID Hash`), earned soulbound badge gallery with live on-chain verify bridge, interactive W3C Open Badges 3.0 raw JSON-LD inspector, and 1-click `.json` file download.
   6. `#/agent-hub` (`#page-agent-hub`): Issuer & AI Agent Governance Hub with whitelisted domain agent dossiers, interactive cryptographic revocation console (`revoke()`), and anti-compromise delisting register.
-- All pages feature instant back/forward browser history support, sticky BNB navbar with persistent active indicator, and smooth bilingual i18n support.
-- Zero TypeScript errors (`tsc --noEmit`), zero build errors (`vite build` in 1.24s).
+### Iteration 11: Browser Wallet Connect, IDE Submission Studio Polish, and Celebratory Soulbound Mint Modal
+- **Navbar Web3 Wallet Integration with 1-Click Demo Learner Fallback:**
+  - Added `#wallet-nav-container` to the persistent top navbar with a primary `Connect Wallet` CTA and an active connected pill showing truncated address (`0x5cA3...7c3B`) or Web3 username (`rina.bnb`).
+  - Added `#wallet-modal` dialog supporting two frictionless pathways:
+    1. **Browser Wallet (MetaMask, Trust Wallet, Binance Wallet, etc.)**: Connects via `window.ethereum.request({ method: 'eth_requestAccounts' })` with auto-chain check/switch for BNB Smart Chain Testnet (`0x61` / 97) or Mainnet (`0x38` / 56).
+    2. **1-Click Demo Learner (`rina.bnb`)**: Fallback for instant testing with zero wallet setup or gas, persisting learner session in `sessionStorage` (`lencana_wallet`) across all 6 views (`#/courses`, `#/submit`, `#/portfolio`, etc.).
+  - Added disconnect action and synced learner/portfolio wallet displays dynamically upon connection changes.
+- **Visual Polish for AI Assessment Studio (`#/submit`):**
+  - Upgraded essay submission textarea into an **IDE-style code/essay editor frame** (`.eval-ide-frame`) with macOS-inspired window controls (red/yellow/green dots), file indicator (`student_submission_capstone.sol`), real-time status chip (`READY`), and live character & AST token counters.
+  - Implemented an **editor line numbers gutter** (`.eval-gutter`) that dynamically calculates line counts on input and syncs vertical scroll with the editor textarea.
+- **Celebratory Holographic Soulbound Credential Minting Modal (`#mint-modal`):**
+  - Upon successful AI essay evaluation (reaching Phase 3 Honors Pass), a celebratory modal automatically triggers with full-screen confetti animation via HTML5 canvas (`#mint-confetti-canvas`).
+  - Features a floating, rotating 3D holographic gold badge (`.mint-holographic-badge`), congratulatory achievement headers, gasless soulbound ERC-5192 tags, and a verifiable cryptographic receipt (`Tx Hash`, `Attestation UID`, `Recipient Address`).
+  - Direct 1-click navigation bridges:
+    - `Verify On-Chain ➔`: Closes modal, routes to `#/verify`, populates valid hash, and runs immediate verification audit.
+    - `View in Portfolio ➔`: Closes modal and routes directly to `#/portfolio`.
+- Complete bilingual i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
+- Verified with TypeScript typecheck (`tsc --noEmit`) and Vite production build (`0` errors).
+
 
 
 

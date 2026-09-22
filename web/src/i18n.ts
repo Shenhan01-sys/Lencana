@@ -49,6 +49,30 @@ export interface TranslationDictionary {
     agents: string
     techEdge: string
   }
+  wallet: {
+    connectBtn: string
+    connectedAs: string
+    modalTitle: string
+    modalSub: string
+    browserOption: string
+    browserOptionSub: string
+    demoOption: string
+    demoOptionSub: string
+    disconnect: string
+    connecting: string
+    noExtension: string
+    wrongNetwork: string
+  }
+  mintModal: {
+    title: string
+    sub: string
+    sbtBadge: string
+    honorsTag: string
+    gaslessTag: string
+    btnVerify: string
+    btnPortfolio: string
+    btnClose: string
+  }
   hero: {
     eyebrow: string
     titleLine1: string
@@ -853,6 +877,30 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnTestDelist: 'Simulate Delisting Compromised Agent-B',
       delistWarning: 'Failsafe Guard: Delisted signers are immediately rejected by CredentialResolver on-chain.',
     },
+    wallet: {
+      connectBtn: 'Sign in with Browser',
+      connectedAs: 'Connected:',
+      modalTitle: 'Sign in with Browser / Wallet',
+      modalSub: 'Connect your Web3 browser wallet or use the 1-Click Demo Learner account.',
+      browserOption: 'Browser Extension Wallet',
+      browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
+      demoOption: '1-Click Demo Learner (rina.bnb)',
+      demoOptionSub: 'Instant testing without installing extensions (0x5cA3...7c3B)',
+      disconnect: 'Disconnect',
+      connecting: 'Connecting...',
+      noExtension: 'No Web3 wallet extension found. Please use the Demo Account or install MetaMask.',
+      wrongNetwork: 'Please switch your wallet network to BNB Smart Chain Testnet (Chain ID: 97).',
+    },
+    mintModal: {
+      title: 'Soulbound Credential Minted on BNB Chain!',
+      sub: 'Your capstone essay passed autonomous AI evaluation. Open Badges 3.0 anchored via EAS CredentialResolver.',
+      sbtBadge: '🔒 ERC-5192 NON-TRANSFERABLE',
+      honorsTag: '93/100 HONORS PASS',
+      gaslessTag: '0 GAS FOR LEARNER',
+      btnVerify: 'Audit Live in Verifier Sandbox ➔',
+      btnPortfolio: 'View in Learner Portfolio ➔',
+      btnClose: 'Close',
+    },
   },
   id: {
     appName: 'Lencana',
@@ -1305,6 +1353,30 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       delistSub: 'Jika kunci privat agen bocor, kontrak platform langsung mendelisting agen tersebut: menolak sertifikat baru tanpa membatalkan kredensial sah terdahulu.',
       btnTestDelist: 'Simulasikan Delisting Agen-B',
       delistWarning: 'Pengaman Otomatis: Agen yang didelisting seketika ditolak oleh CredentialResolver on-chain.',
+    },
+    wallet: {
+      connectBtn: 'Masuk dengan Browser',
+      connectedAs: 'Terhubung:',
+      modalTitle: 'Masuk dengan Browser / Dompet',
+      modalSub: 'Hubungkan dompet Web3 browser kamu atau gunakan Akun Demo Siswa 1-Klik.',
+      browserOption: 'Ekstensi Dompet Browser',
+      browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
+      demoOption: 'Siswa Demo 1-Klik (rina.bnb)',
+      demoOptionSub: 'Uji coba instan tanpa perlu install ekstensi (0x5cA3...7c3B)',
+      disconnect: 'Putuskan',
+      connecting: 'Menghubungkan...',
+      noExtension: 'Ekstensi dompet Web3 tidak terdeteksi. Silakan gunakan Akun Demo atau install MetaMask.',
+      wrongNetwork: 'Harap alihkan jaringan dompet kamu ke BNB Smart Chain Testnet (Chain ID: 97).',
+    },
+    mintModal: {
+      title: 'Lencana Soulbound Berhasil Dicetak di BNB Chain!',
+      sub: 'Esai tugas akhirmu lulus evaluasi AI otonom. Kredensial Open Badges 3.0 tertambat via EAS CredentialResolver.',
+      sbtBadge: '🔒 ERC-5192 SOULBOUND MUTLAK',
+      honorsTag: '93/100 LULUS PUJIAN',
+      gaslessTag: '0 BIAYA GAS UNTUK SISWA',
+      btnVerify: 'Audit Langsung di Sandbox Verifikasi ➔',
+      btnPortfolio: 'Lihat di Portofolio Siswa ➔',
+      btnClose: 'Tutup',
     },
   },
 }

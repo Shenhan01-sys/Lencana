@@ -51,6 +51,23 @@
               <span class="badge-name" id="badge-name">BSC Testnet · 97</span>
             </div>
 
+            <div class="wallet-nav-container" id="wallet-nav-container">
+              <button type="button" class="btn btn-connect-wallet" id="btn-connect-wallet">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
+                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
+                  <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+                </svg>
+                <span id="btn-wallet-text">Sign in with Browser</span>
+              </button>
+
+              <div class="wallet-connected-pill hidden" id="wallet-connected-pill">
+                <span class="wallet-dot"></span>
+                <span class="wallet-address-display" id="wallet-address-display">0x5cA3...7c3B</span>
+                <button type="button" class="btn-disconnect-wallet" id="btn-disconnect-wallet" title="Disconnect">✕</button>
+              </div>
+            </div>
+
             <div class="lang-switch" role="group" aria-label="Language Switcher">
               <button id="lang-en" class="lang-btn active" type="button" aria-pressed="true">EN</button>
               <button id="lang-id" class="lang-btn" type="button" aria-pressed="false">ID</button>
@@ -882,8 +899,25 @@
                 </div>
               </div>
 
-              <div class="eval-textarea-wrap">
-                <textarea id="essay-input" spellcheck="false" rows="8"></textarea>
+              <div class="eval-ide-frame">
+                <div class="eval-ide-topbar">
+                  <div class="ide-dots">
+                    <span class="ide-dot red"></span>
+                    <span class="ide-dot yellow"></span>
+                    <span class="ide-dot green"></span>
+                  </div>
+                  <span class="ide-filename" id="ide-filename">SubmissionPayload.sol · Capstone Essay</span>
+                  <div class="ide-editor-meta">
+                    <span class="ide-chars-counter" id="ide-chars-counter">Chars: 0</span>
+                    <span class="ide-status-pill">EVM AST VALID</span>
+                  </div>
+                </div>
+                <div class="eval-editor-gutter-wrap">
+                  <div class="eval-gutter" id="eval-gutter">
+                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+                  </div>
+                  <textarea id="essay-input" spellcheck="false" rows="8"></textarea>
+                </div>
               </div>
 
               <div class="eval-cta-bar">
@@ -1587,6 +1621,103 @@
               <span id="study-footer-text">Module 1 of 3 · Self-Paced</span>
             </div>
             <button type="button" class="btn btn-primary" id="btn-study-proceed-eval">Proceed to AI Essay Evaluation ➔</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- WALLET CONNECT MODAL -->
+      <div class="wallet-modal hidden" id="wallet-modal" role="dialog" aria-modal="true">
+        <div class="wallet-modal-backdrop" id="wallet-modal-backdrop"></div>
+        <div class="wallet-modal-dialog">
+          <div class="wallet-modal-header">
+            <div>
+              <span class="wallet-modal-kicker">WEB3 AUTHENTICATION</span>
+              <h3 class="wallet-modal-title" id="wallet-modal-title">Sign in with Browser / Wallet</h3>
+            </div>
+            <button type="button" class="wallet-modal-close" id="btn-close-wallet-modal" aria-label="Close">&times;</button>
+          </div>
+
+          <p class="wallet-modal-sub" id="wallet-modal-sub">
+            Connect your Web3 browser wallet or use the 1-Click Demo Learner account to explore verifiable credentials on BNB Chain.
+          </p>
+
+          <div class="wallet-options-list">
+            <!-- Option 1: Browser Extension (MetaMask / Binance / Rabby) -->
+            <button type="button" class="wallet-option-card" id="btn-opt-browser-wallet">
+              <div class="wallet-opt-icon bnb">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                  <path d="M16 4L22.5 10.5L16 17L9.5 10.5L16 4ZM16 18.5L20 22.5L16 26.5L12 22.5L16 18.5ZM24 12L28 16L24 20L20 16L24 12ZM8 12L12 16L8 20L4 16L8 12Z" fill="#F0B90B" />
+                </svg>
+              </div>
+              <div class="wallet-opt-info">
+                <span class="wallet-opt-title" id="wallet-opt-browser-title">Browser Extension Wallet</span>
+                <span class="wallet-opt-desc" id="wallet-opt-browser-desc">MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet</span>
+              </div>
+              <span class="wallet-opt-arrow">➔</span>
+            </button>
+
+            <!-- Option 2: 1-Click Demo Learner -->
+            <button type="button" class="wallet-option-card demo" id="btn-opt-demo-wallet">
+              <div class="wallet-opt-icon demo">🎓</div>
+              <div class="wallet-opt-info">
+                <span class="wallet-opt-title" id="wallet-opt-demo-title">1-Click Demo Learner (rina.bnb)</span>
+                <span class="wallet-opt-desc" id="wallet-opt-demo-desc">Instant testing without installing extensions (0x5cA3...7c3B)</span>
+              </div>
+              <span class="wallet-opt-arrow">➔</span>
+            </button>
+          </div>
+
+          <div class="wallet-modal-status hidden" id="wallet-modal-status"></div>
+        </div>
+      </div>
+
+      <!-- CELEBRATORY SOULBOUND MINT MODAL -->
+      <div class="mint-modal hidden" id="mint-modal" role="dialog" aria-modal="true">
+        <div class="mint-modal-backdrop" id="mint-modal-backdrop"></div>
+        <canvas class="mint-confetti-canvas" id="mint-confetti-canvas"></canvas>
+        <div class="mint-modal-dialog">
+          <div class="mint-glow-ring"></div>
+          
+          <div class="mint-badge-showcase">
+            <div class="mint-3d-badge-container">
+              <img src="/assets/ai_badge.jpg" alt="Soulbound Badge" class="mint-badge-img" />
+              <div class="mint-scanlines"></div>
+              <div class="mint-hologram-shimmer"></div>
+            </div>
+          </div>
+
+          <div class="mint-content-stack">
+            <div class="mint-tag-row">
+              <span class="mint-tag-pill sbt" id="mint-tag-sbt">🔒 ERC-5192 NON-TRANSFERABLE</span>
+              <span class="mint-tag-pill honors" id="mint-tag-honors">93/100 HONORS PASS</span>
+              <span class="mint-tag-pill gasless" id="mint-tag-gasless">0 GAS FOR LEARNER</span>
+            </div>
+
+            <h3 class="mint-modal-title" id="mint-modal-title">Soulbound Credential Minted on BNB Chain!</h3>
+            <p class="mint-modal-sub" id="mint-modal-sub">
+              Your capstone essay passed autonomous AI evaluation. Open Badges 3.0 anchored via EAS CredentialResolver.
+            </p>
+
+            <div class="mint-receipt-box">
+              <div class="receipt-row">
+                <span class="receipt-lbl">Recipient Wallet:</span>
+                <code class="receipt-val" id="mint-receipt-recipient">0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B</code>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-lbl">Attestation UID:</span>
+                <code class="receipt-val" id="mint-receipt-uid">0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</code>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-lbl">BAS Resolver Hook:</span>
+                <code class="receipt-val">CredentialResolver.sol (0xe01a...1627)</code>
+              </div>
+            </div>
+
+            <div class="mint-modal-actions">
+              <button type="button" class="btn btn-primary" id="btn-mint-goto-verify">Audit Live in Verifier Sandbox ➔</button>
+              <button type="button" class="btn btn-secondary" id="btn-mint-goto-portfolio">View in Learner Portfolio ➔</button>
+              <button type="button" class="btn btn-ghost" id="btn-close-mint-modal">Close</button>
+            </div>
           </div>
         </div>
       </div>
