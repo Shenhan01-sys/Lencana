@@ -38,11 +38,15 @@ export interface TranslationDictionary {
   tagline: string
   description: string
   nav: {
+    home: string
     courses: string
+    submit: string
+    verifier: string
+    portfolio: string
+    agentHub: string
     howItWorks: string
     evaluator: string
     agents: string
-    verifier: string
     techEdge: string
   }
   hero: {
@@ -361,6 +365,39 @@ export interface TranslationDictionary {
     copy: string
     copied: string
   }
+  portfolioSection: {
+    kicker: string
+    title: string
+    sub: string
+    learnerName: string
+    learnerRole: string
+    privacyTier1Label: string
+    privacyTier2Label: string
+    privacyTier3Label: string
+    privacyWarning: string
+    badgesHeading: string
+    badge1Title: string
+    badge1Desc: string
+    badge2Title: string
+    badge2Desc: string
+    btnExportJson: string
+    btnViewRaw: string
+    btnShareBadge: string
+    btnBscScan: string
+  }
+  agentHubSection: {
+    kicker: string
+    title: string
+    sub: string
+    agentsHeading: string
+    revocationHeading: string
+    revocationSub: string
+    btnTestRevoke: string
+    delistHeading: string
+    delistSub: string
+    btnTestDelist: string
+    delistWarning: string
+  }
 }
 
 export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
@@ -370,11 +407,15 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     description:
       'Learn high-demand Web3 skills evaluated by autonomous AI agents. Earn Open Badges 3.0 credentials anchored to BNB Smart Chain with zero wallet friction.',
     nav: {
+      home: 'Home',
       courses: 'Courses',
+      submit: 'AI Studio',
+      verifier: 'Verifier',
+      portfolio: 'Portfolio',
+      agentHub: 'Agent Hub',
       howItWorks: 'How It Works',
       evaluator: 'AI Evaluator',
       agents: 'Agent Roster',
-      verifier: 'Verify Credential',
       techEdge: 'Architecture',
     },
     hero: {
@@ -779,6 +820,39 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       copy: 'Copy',
       copied: 'Copied!',
     },
+    portfolioSection: {
+      kicker: 'LEARNER CREDENTIAL SHOWCASE',
+      title: 'Decentralized Learning Portfolio',
+      sub: 'Tamper-proof career achievements verified on BNB Smart Chain. Export standard W3C JSON-LD or share directly with recruiters.',
+      learnerName: 'Rina Oktaviani',
+      learnerRole: 'Learner · Web3 Architecture Track · BSC Testnet 97',
+      privacyTier1Label: '🔒 Tier 1: Pseudonymous (0x5cA3...7c3B)',
+      privacyTier2Label: '👤 Tier 2: Named Profile (Rina Oktaviani)',
+      privacyTier3Label: '🛡️ Tier 3: Provable Identity (DID + Salted Email Hash)',
+      privacyWarning: 'Notice: On-chain recipient addresses are immutable. Privacy tiers govern metadata presentation and public resolution.',
+      badgesHeading: 'Earned Soulbound Badges',
+      badge1Title: 'Web3 Dasar 2026: Foundations & Architecture',
+      badge1Desc: 'Evaluated by Agent-Foundations · Rubric #0x91a7 · Score 93/100 (Honors Pass) · BAS Attestation #0x0b95...7fa',
+      badge2Title: 'BNB Chain Security & Prerequisite Integrity',
+      badge2Desc: 'Prerequisite unlocked · Currently enrolled in Study Room · Awaiting capstone defense essay submission',
+      btnExportJson: 'Export W3C JSON-LD (.json)',
+      btnViewRaw: 'Inspect Raw Metadata',
+      btnShareBadge: 'Share Verification Link',
+      btnBscScan: 'View on BscScan',
+    },
+    agentHubSection: {
+      kicker: 'ISSUER & PROTOCOL GOVERNANCE',
+      title: 'AI Agent & Protocol Governance Hub',
+      sub: 'Monitor whitelisted domain agents, cryptographic revocation status lists, and anti-compromise delisting registers.',
+      agentsHeading: 'Whitelisted Evaluator Agents',
+      revocationHeading: 'On-Chain Cryptographic Revocation Console',
+      revocationSub: 'Demonstrate non-repudiation: simulate revoking an attestation UID on BAS via CredentialResolver.',
+      btnTestRevoke: 'Simulate Revoke Attestation #0xf34b...',
+      delistHeading: 'Anti-Compromise Delisting Register',
+      delistSub: 'If an AI agent key is ever compromised, the platform contract immediately delists it, blocking new attestations while preserving past verified credentials.',
+      btnTestDelist: 'Simulate Delisting Compromised Agent-B',
+      delistWarning: 'Failsafe Guard: Delisted signers are immediately rejected by CredentialResolver on-chain.',
+    },
   },
   id: {
     appName: 'Lencana',
@@ -786,11 +860,15 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     description:
       'Kuasai keterampilan Web3 berstandar industri yang dinilai oleh Agen AI otonom. Dapatkan kredensial Open Badges 3.0 tertambat di BNB Smart Chain tanpa kerumitan wallet.',
     nav: {
+      home: 'Beranda',
       courses: 'Katalog Kursus',
+      submit: 'Studio AI',
+      verifier: 'Verifikasi',
+      portfolio: 'Portofolio',
+      agentHub: 'Pusat Tata Kelola',
       howItWorks: 'Cara Kerja',
       evaluator: 'Evaluator AI',
-      agents: 'Daftar Agen AI',
-      verifier: 'Verifikasi Sertifikat',
+      agents: 'Daftar Agen',
       techEdge: 'Arsitektur',
     },
     hero: {
@@ -1194,6 +1272,39 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       daysAhead: (d) => `${d} hari lagi`,
       copy: 'Salin',
       copied: 'Tersalin!',
+    },
+    portfolioSection: {
+      kicker: 'ETALASE KREDENSIAL PESERTA',
+      title: 'Portofolio Pembelajaran Terdesentralisasi',
+      sub: 'Capaian karier anti-manipulasi yang terverifikasi di BNB Smart Chain. Ekspor dokumen standar W3C JSON-LD atau bagikan langsung kepada perekrut.',
+      learnerName: 'Rina Oktaviani',
+      learnerRole: 'Peserta · Jalur Arsitektur Web3 · BSC Testnet 97',
+      privacyTier1Label: '🔒 Tingkat 1: Pseudonim (0x5cA3...7c3B)',
+      privacyTier2Label: '👤 Tingkat 2: Profil Bernama (Rina Oktaviani)',
+      privacyTier3Label: '🛡️ Tingkat 3: Identitas Terbukti (DID + Salted Hash Email)',
+      privacyWarning: 'Peringatan: Alamat dompet on-chain bersifat permanen. Tingkat privasi mengatur penyajian metadata publik pada kredensial.',
+      badgesHeading: 'Lencana Soulbound yang Diraih',
+      badge1Title: 'Web3 Dasar 2026: Fondasi & Arsitektur',
+      badge1Desc: 'Dinilai oleh Agent-Foundations · Rubrik #0x91a7 · Nilai 93/100 (Lulus Pujian) · Atestasi BAS #0x0b95...7fa',
+      badge2Title: 'BNB Chain Security & Integritas Prasyarat',
+      badge2Desc: 'Prasyarat terbuka · Sedang belajar di Study Room · Menunggu penyerahan esai pertahanan akhir',
+      btnExportJson: 'Ekspor W3C JSON-LD (.json)',
+      btnViewRaw: 'Inspeksi Metadata Mentah',
+      btnShareBadge: 'Bagikan Link Verifikasi',
+      btnBscScan: 'Lihat di BscScan',
+    },
+    agentHubSection: {
+      kicker: 'TATA KELOLA PENERBIT & PROTOKOL',
+      title: 'Pusat Tata Kelola Agen AI & Protokol',
+      sub: 'Pantau agen domain resmi di whitelist, daftar pencabutan kriptografis, dan mekanisme delisting anti-kebocoran kunci.',
+      agentsHeading: 'Daftar Agen Penilai Ber-Whitelist',
+      revocationHeading: 'Konsol Uji Pencabutan Kriptografis On-Chain',
+      revocationSub: 'Buktikan integritas: simulasikan pencabutan UID atestasi di BAS melalui CredentialResolver.',
+      btnTestRevoke: 'Simulasikan Pencabutan Atestasi #0xf34b...',
+      delistHeading: 'Register Delisting Anti-Kompromi Kunci',
+      delistSub: 'Jika kunci privat agen bocor, kontrak platform langsung mendelisting agen tersebut: menolak sertifikat baru tanpa membatalkan kredensial sah terdahulu.',
+      btnTestDelist: 'Simulasikan Delisting Agen-B',
+      delistWarning: 'Pengaman Otomatis: Agen yang didelisting seketika ditolak oleh CredentialResolver on-chain.',
     },
   },
 }

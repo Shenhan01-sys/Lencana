@@ -146,20 +146,18 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
   - Integrated 3 quick notification and metric cards matching modern smart LMS UI (Enrolled Courses, Soulbound Badges, AI Domain Agents).
   - Created high-impact horizontal Bento Course cards with custom AI-generated artwork thumbnails (`course_foundations.jpg`, `course_security.jpg`), rubric chips, and evaluator agent badges.
   - Built full Interactive Study Room modal (`#study-modal`) with modular lesson tab switching, rich code snippets, and direct 1-click bridge to the AI Essay Evaluator sandbox.
-- [ ] **Iteration 9: Fullscreen AI Assessment & Submission Studio (`#/submit`)**
-  - Dedicated student submission terminal with real-time word/AST token count.
-  - Live Neural grading view with animated criteria score convergence and dynamic radar morphing.
-  - EIP-712 typed data signing simulation and BAS attestation broadcast.
-  - Soulbound ERC-5192 mint celebration modal.
-- [ ] **Iteration 10: Learner Portfolio & Credential Showcase (`#/portfolio`)**
-  - Personal credential gallery with cybernetic plaque view for Rina.
-  - W3C Open Badges 3.0 raw JSON-LD viewer & export `.json`.
-  - Privacy Disclosure Controller: Pseudonymous (Address only) vs Named (Profile IRI + Salted email hash) with explicit immutable address warning.
-  - Shareable public verification links & QR codes.
-- [ ] **Iteration 11: Issuer & AI Agent Governance Hub (`#/agent-hub`)**
-  - Whitelisted AI domain agent roster monitor (keys, nonces, consensus gauges).
-  - Cryptographic revocation testing console (`revoke()` / `revokeOffchain()`).
-  - Platform Delist/Relist monitor illustrating anti-compromise defense.
+- [x] **Iteration 9: Kinetic Brutalist EdTech Hero & Connected Value-Props (`#/`)**
+  - Massive 3D extruded typography stack (`#LENCANA`, `ON-CHAIN`, `CREDENTIALS`), floating glass cards (`rina.bnb`, `bagas-recruiter.bnb`), doodle arrows, and rotating circular SVG badge.
+- [x] **Iteration 10: Complete Multi-Page Architecture (All 6 Core Pages Live & Routed)**
+  - Implemented zero-dependency client-side hash router supporting:
+    1. `#/` (`#page-home`): Discovery portal, kinetic hero, learning loop, cryptographic pipeline, app gateway teasers, bento technical grid.
+    2. `#/courses` (`#page-courses`): Micro-courses marketplace, visual prerequisite dependency graph, 3 LMS metric cards, horizontal course bento cards, and interactive study room modal.
+    3. `#/submit` (`#page-submit`): Fullscreen AI Assessment & Submission Studio with real-time AST token counter, preset essay selector, live neural streaming terminal, dynamic SVG skill radar chart, scoring meters, EIP-712 proof box, and gasless mint celebration.
+    4. `#/verify` (`#page-verify`): Instant Credential Verifier Sandbox & Forensic Audit Suite with 5 tabs (`Summary`, `On-Chain BAS & Prereqs`, `Soulbound NFT`, `CLI Audit`, `Real-Time RPC Log`).
+    5. `#/portfolio` (`#page-portfolio`): Decentralized Learner Portfolio for Rina Oktaviani with 3-tier privacy mode toggle (`Pseudonymous`, `Named Profile`, `Salted DID Hash`), earned soulbound badge gallery, raw W3C Open Badges 3.0 JSON-LD inspector, and 1-click `.json` file download.
+    6. `#/agent-hub` (`#page-agent-hub`): Issuer & AI Agent Governance Hub with whitelisted domain agent dossiers, interactive cryptographic revocation console (`revoke()`), and anti-compromise delisting register.
+  - Sticky navbar with persistent active link indicator, live network badge, and EN/ID language switcher.
+  - 100% build verification passing with `0` errors.
 
 ---
 
@@ -221,6 +219,17 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
 - Preserved 100% pure vanilla/Vite/TS/CSS performance without external framework bloat or React rerenders.
 - Full bilingual dictionary support in `web/src/i18n.ts` (`en` & `id`).
 - Verified with `npm run typecheck` (`tsc --noEmit`) and `npm run build` with **0 errors**.
+ 
+### Iteration 10: Complete Multi-Page Architecture (All 6 Core Pages Live & Routed)
+- Implemented high-performance, zero-dependency client-side hash routing (`handleRoute()`) across 6 dedicated page views:
+  1. `#/` (`#page-home`): Discovery portal, 14-layer 3D kinetic brutalist typography hero, 3 connected value-prop cards, 3-step learning loop, 5-node cryptographic pipeline, 5 app gateway teasers, and technical edge bento grid.
+  2. `#/courses` (`#page-courses`): Micro-courses marketplace, cryptographic prerequisite dependency graph (`Web3 Dasar 2026` ➔ `checkPrerequisites()` ➔ `BNB Chain Security`), LMS learner status card, 3 notification metrics, and horizontal bento course cards.
+  3. `#/submit` (`#page-submit`): Dedicated AI Assessment & Submission Studio with real-time AST token counter (`Words: X · AST Tokens: ~Y · Rubric: 100%`), essay preset selector, neural reasoning streaming terminal, morphing 5-axis SVG skill radar chart, scoring meters, and EIP-712 proof box.
+  4. `#/verify` (`#page-verify`): Instant Credential Verifier Sandbox & Forensic Audit Suite with 5 tabs (`Summary`, `On-Chain BAS & Prereqs`, `Soulbound NFT`, `CLI Audit`, `Real-Time RPC Log`), quick sample test pills (`Valid`, `Revoked`, `Delisted`, `Format Check`), and honest boundary disclosures.
+  5. `#/portfolio` (`#page-portfolio`): Decentralized Learner Portfolio for Rina Oktaviani with 3-tier privacy mode toggle (`Pseudonymous`, `Named Profile`, `Salted DID Hash`), earned soulbound badge gallery with live on-chain verify bridge, interactive W3C Open Badges 3.0 raw JSON-LD inspector, and 1-click `.json` file download.
+  6. `#/agent-hub` (`#page-agent-hub`): Issuer & AI Agent Governance Hub with whitelisted domain agent dossiers, interactive cryptographic revocation console (`revoke()`), and anti-compromise delisting register.
+- All pages feature instant back/forward browser history support, sticky BNB navbar with persistent active indicator, and smooth bilingual i18n support.
+- Zero TypeScript errors (`tsc --noEmit`), zero build errors (`vite build` in 1.24s).
 
 
 

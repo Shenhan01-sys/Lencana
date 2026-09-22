@@ -365,16 +365,167 @@ function setPrivacyMode(mode: 'pseudo' | 'named') {
   }
 }
 
+let portfolioPrivacyTier = 1
+
+function setPortfolioPrivacyTier(tier: number) {
+  portfolioPrivacyTier = tier
+  $('btn-tier-1')?.classList.toggle('active', tier === 1)
+  $('btn-tier-2')?.classList.toggle('active', tier === 2)
+  $('btn-tier-3')?.classList.toggle('active', tier === 3)
+
+  const nameEl = $('portfolio-learner-name')
+  const subEl = $('portfolio-learner-sub')
+  const dict = DICTIONARIES[currentLang].portfolioSection
+
+  if (tier === 1) {
+    if (nameEl) nameEl.textContent = '0x5cA3...7c3B (Pseudonymous)'
+    if (subEl) subEl.textContent = 'BSC Testnet · Address-only identity mode'
+  } else if (tier === 2) {
+    if (nameEl) nameEl.textContent = `${dict.learnerName} ✓`
+    if (subEl) subEl.textContent = dict.learnerRole
+  } else {
+    if (nameEl) nameEl.textContent = `${dict.learnerName} [Provable DID]`
+    if (subEl) subEl.textContent = 'did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B (Salted Hash #8F92)'
+  }
+}
+
+function updateEssayWordCount() {
+  const essayInput = $('essay-input') as HTMLTextAreaElement | null
+  const text = essayInput?.value || ''
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0
+  const astTokens = Math.round(words * 1.35)
+  setText('essay-token-count', `Words: ${words} · AST Tokens: ~${astTokens} · Rubric: 100%`)
+}
+
+const RINA_CREDENTIAL_JSONLD = {
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"
+  ],
+  "id": "urn:uuid:0b95c83b-9bd9-4923-ab29-9446e9c9fd72",
+  "type": ["VerifiableCredential", "OpenBadgeCredential"],
+  "name": "Web3 Dasar 2026: Foundations & Architecture",
+  "issuer": {
+    "id": "did:pkh:eip155:97:0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE",
+    "type": "Profile",
+    "name": "Lencana Agent-Foundations",
+    "url": "https://lencana.io"
+  },
+  "validFrom": "2026-09-21T00:00:00Z",
+  "credentialSubject": {
+    "id": "did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B",
+    "type": ["AchievementSubject"],
+    "achievement": {
+      "id": "urn:lencana:course:web3-dasar-2026",
+      "type": ["Achievement"],
+      "name": "Web3 Dasar 2026: Foundations & Architecture",
+      "description": "Mastery of EVM state machine, Keccak256 digests, and decentralized verifiable credentials.",
+      "criteria": {
+        "narrative": "Completed capstone synthesis essay evaluated by autonomous AI agent against on-chain rubric #0x91a7."
+      }
+    }
+  },
+  "evidence": [{
+    "id": "urn:eas:bsc-testnet:0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa",
+    "type": ["AttestationEvidence"],
+    "schema": "0x2c4e... (BAS Attestation Schema)",
+    "score": "93/100 (Honors)"
+  }],
+  "proof": {
+    "type": "EthereumEip712Signature2021",
+    "created": "2026-09-21T00:00:00Z",
+    "verificationMethod": "did:pkh:eip155:97:0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE#blockchainAccountId",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "0x4e2...71b...1b"
+  }
+}
+
+function downloadJsonLd() {
+  const jsonStr = JSON.stringify(RINA_CREDENTIAL_JSONLD, null, 2)
+  const blob = new Blob([jsonStr], { type: 'application/ld+json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'rina-oktaviani-web3-dasar-credential.json'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function copyJsonLd() {
+  const jsonStr = JSON.stringify(RINA_CREDENTIAL_JSONLD, null, 2)
+  navigator.clipboard.writeText(jsonStr).then(() => {
+    const btn = $('btn-copy-jsonld')
+    if (btn) {
+      const orig = btn.textContent
+      btn.textContent = DICTIONARIES[currentLang].common.copied
+      setTimeout(() => {
+        btn.textContent = orig
+      }, 2000)
+    }
+  })
+}
+
+function handleRoute() {
+  const rawHash = window.location.hash || '#/'
+  const hash = rawHash.toLowerCase().split('?')[0]
+
+  let targetPageId = 'page-home'
+  if (hash === '#/courses' || hash === '#courses') {
+    targetPageId = 'page-courses'
+  } else if (hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit') {
+    targetPageId = 'page-submit'
+  } else if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') {
+    targetPageId = 'page-verify'
+  } else if (hash === '#/portfolio' || hash === '#portfolio') {
+    targetPageId = 'page-portfolio'
+  } else if (hash === '#/agent-hub' || hash === '#ai-agents' || hash === '#agent-hub') {
+    targetPageId = 'page-agent-hub'
+  } else {
+    targetPageId = 'page-home'
+  }
+
+  const pages = document.querySelectorAll<HTMLElement>('.page-view')
+  pages.forEach((p) => {
+    if (p.id === targetPageId) {
+      p.classList.remove('hidden')
+    } else {
+      p.classList.add('hidden')
+    }
+  })
+
+  const routeNavMap: Record<string, string> = {
+    'page-home': 'nav-home',
+    'page-courses': 'nav-courses',
+    'page-submit': 'nav-submit',
+    'page-verify': 'nav-verify',
+    'page-portfolio': 'nav-portfolio',
+    'page-agent-hub': 'nav-agent-hub',
+  }
+
+  document.querySelectorAll('.nav-links .nav-link').forEach((link) => {
+    link.classList.toggle('active', link.id === routeNavMap[targetPageId])
+  })
+
+  if (hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture') {
+    const el = document.querySelector(hash)
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  } else {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+}
+
 function updateStaticText() {
   const dict = DICTIONARIES[currentLang]
 
   // Navbar
-  setText('nav-how', dict.nav.howItWorks)
-  setText('nav-evaluator', dict.nav.evaluator)
-  setText('nav-agents', dict.nav.agents)
+  setText('nav-home', dict.nav.home)
   setText('nav-courses', dict.nav.courses)
-  setText('nav-verifier', dict.nav.verifier)
-  setText('nav-tech', dict.nav.techEdge)
+  setText('nav-submit', dict.nav.submit)
+  setText('nav-verify', dict.nav.verifier)
+  setText('nav-portfolio', dict.nav.portfolio)
+  setText('nav-agent-hub', dict.nav.agentHub)
 
   // Hero Section
   // Kinetic Brutalist Hero Section (Iteration 9)
@@ -538,6 +689,35 @@ function updateStaticText() {
   setText('bento-3-desc', dict.bentoSection.card3Desc)
   setText('bento-4-title', dict.bentoSection.card4Title)
   setText('bento-4-desc', dict.bentoSection.card4Desc)
+
+  // Portfolio Section (Iteration 10)
+  setText('portfolio-kicker', dict.portfolioSection.kicker)
+  setText('portfolio-title', dict.portfolioSection.title)
+  setText('portfolio-sub', dict.portfolioSection.sub)
+  setText('btn-tier-1', dict.portfolioSection.privacyTier1Label)
+  setText('btn-tier-2', dict.portfolioSection.privacyTier2Label)
+  setText('btn-tier-3', dict.portfolioSection.privacyTier3Label)
+  setText('portfolio-privacy-warning', dict.portfolioSection.privacyWarning)
+  setText('portfolio-badges-heading', dict.portfolioSection.badgesHeading)
+  setText('portfolio-b1-title', dict.portfolioSection.badge1Title)
+  setText('portfolio-b1-desc', dict.portfolioSection.badge1Desc)
+  setText('portfolio-b2-title', dict.portfolioSection.badge2Title)
+  setText('portfolio-b2-desc', dict.portfolioSection.badge2Desc)
+  setText('btn-copy-jsonld', dict.common.copy)
+  setText('btn-verify-rina-badge', `${dict.inputSection.btnVerify} On-Chain ➔`)
+  setPortfolioPrivacyTier(portfolioPrivacyTier)
+
+  // Agent Governance Hub Section (Iteration 11)
+  setText('agent-hub-kicker', dict.agentHubSection.kicker)
+  setText('agent-hub-title', dict.agentHubSection.title)
+  setText('agent-hub-sub', dict.agentHubSection.sub)
+  setText('agent-hub-agents-heading', dict.agentHubSection.agentsHeading)
+  setText('agent-hub-revocation-heading', dict.agentHubSection.revocationHeading)
+  setText('agent-hub-revocation-sub', dict.agentHubSection.revocationSub)
+  setText('btn-hub-test-revoke', dict.agentHubSection.btnTestRevoke)
+  setText('agent-hub-delist-heading', dict.agentHubSection.delistHeading)
+  setText('agent-hub-delist-sub', dict.agentHubSection.delistSub)
+  setText('btn-hub-test-delist', dict.agentHubSection.btnTestDelist)
 
   // Footer & Brand Sub
   setText('brand-sub', `— ${dict.tagline}`)
@@ -782,12 +962,16 @@ function wire() {
   function selectEssayTab(tab: HTMLElement | null, text: string) {
     ;[tabWeb3, tabSec, tabCust].forEach((t) => t?.classList.remove('active'))
     tab?.classList.add('active')
-    if (essayInput) essayInput.value = text
+    if (essayInput) {
+      essayInput.value = text
+      updateEssayWordCount()
+    }
   }
 
   tabWeb3?.addEventListener('click', () => selectEssayTab(tabWeb3, ESSAY_PRESETS.web3))
   tabSec?.addEventListener('click', () => selectEssayTab(tabSec, ESSAY_PRESETS.security))
   tabCust?.addEventListener('click', () => selectEssayTab(tabCust, ESSAY_PRESETS.custom))
+  essayInput?.addEventListener('input', updateEssayWordCount)
 
   // Proceed from Study Room to AI Evaluator
   $('btn-study-proceed-eval')?.addEventListener('click', () => {
@@ -797,7 +981,7 @@ function wire() {
     } else {
       selectEssayTab(tabSec, ESSAY_PRESETS.security)
     }
-    document.getElementById('ai-evaluator')?.scrollIntoView({ behavior: 'smooth' })
+    window.location.hash = '#/submit'
   })
 
   // AI Evaluation Trigger Button
@@ -807,10 +991,40 @@ function wire() {
 
   // Verify Generated Eval Button
   $('btn-verify-generated-eval')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
     inputEl.value = SAMPLE_HASHES.valid
     run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
   })
+
+  // Portfolio Page interactions (Iteration 10)
+  $('btn-tier-1')?.addEventListener('click', () => setPortfolioPrivacyTier(1))
+  $('btn-tier-2')?.addEventListener('click', () => setPortfolioPrivacyTier(2))
+  $('btn-tier-3')?.addEventListener('click', () => setPortfolioPrivacyTier(3))
+
+  $('btn-verify-rina-badge')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    inputEl.value = SAMPLE_HASHES.valid
+    run()
+  })
+
+  $('btn-download-jsonld')?.addEventListener('click', downloadJsonLd)
+  $('btn-copy-jsonld')?.addEventListener('click', copyJsonLd)
+
+  // Agent Governance Hub interactions (Iteration 11)
+  $('btn-hub-test-revoke')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    inputEl.value = SAMPLE_HASHES.revoked
+    run()
+  })
+
+  $('btn-hub-test-delist')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    inputEl.value = SAMPLE_HASHES.delisted
+    run()
+  })
+
+  // Client-side Hash Router Listener
+  window.addEventListener('hashchange', handleRoute)
 
   // Tab switching delegation on results container
   outEl.addEventListener('click', (e) => {
@@ -983,17 +1197,21 @@ function boot() {
   paintConfig()
   paintBanner()
 
-  // Initialize default essay text
+  // Initialize default essay text & token counters
   const essayInput = $('essay-input') as HTMLTextAreaElement | null
   if (essayInput && !essayInput.value) {
     essayInput.value = ESSAY_PRESETS.web3
   }
+  updateEssayWordCount()
 
   const params = new URLSearchParams(location.search)
   const langParam = params.get('lang')
   if (langParam === 'en' || langParam === 'id') {
     setLanguage(langParam)
   }
+
+  // Activate client-side route
+  handleRoute()
 
   const q = params.get('q')
   if (q) {
