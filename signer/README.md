@@ -18,6 +18,7 @@ This closes decision **D24.1 = A** (see `../vault/02-architecture.md`).
 | `src/store.js` | the append-only allocation record + issued-credential registry on the issuer side |
 | `src/lists.js` | renders a status list — **shared by the server and the issuer**, and it also owns `servedHashes()`, the single answer to "which credentials are in the list" (see below: sharing the renderer was not enough) |
 | `src/anchor.js` | `timestamp()` of the bitstring hash on BAS, then reads it back |
+| `src/grade.js` | the rubric gate, including the **right to refuse**: `INSUFFICIENT_EVIDENCE`, `AWAITING_JUDGE`, `PARTIAL_JUDGEMENT`, `GRADED`. Reports a mechanical score and a final score separately and never merges them silently — `finalScore` stays `null` until a `judge` (model or human) is injected |
 | `src/delegation.js` | the **EIP-712 delegation path**: the agent signs an attestation, the platform broadcasts it. Refuses to return a signature that does not recover to the agent's own address, and builds the single and batch request shapes separately (they are different structs, not one struct minus an array) |
 | `src/issuer.js` | the agent's Ed25519 document key and its issuer document |
 | `src/sign.js` | `DataIntegrityProof` + `eddsa-rdfc-2022` sign/verify, and the JSON-LD document loader |
@@ -89,6 +90,18 @@ because our `onAttest` gates `_issuer[attestation.attester]` rather than `msg.se
 choice is what makes third-party issuers onboardable without handing them BNB — and it is also why
 the platform holds no signing power over the credential: it can delay a broadcast, it cannot
 author one.
+
+Two measurements of the gate on the fixtures, both refusing, neither signing anything:
+
+```
+essai-pendek.md     -> INSUFFICIENT_EVIDENCE  mekanis=20   (33/400 kata, 1/5 tanda)
+essai-230-kata.md   -> AWAITING_JUDGE         mekanis=80   (4/5 tanda, 228/400 kata)
+```
+
+The second one is the interesting case. The answer is substantively good — it names the resolver,
+cites `statusOf`, opens an RPC, and states its own limits — and the gate still refuses to turn that
+into a grade, because the five rubric criteria that need judgement have nobody judging them yet.
+A tool that returned `85` there would be indistinguishable from a tool that made it up.
 
 Two shapes of the same idea are implemented, and they are **not** interchangeable:
 `attestByDelegation` takes one `AttestationRequestData` plus one signature;

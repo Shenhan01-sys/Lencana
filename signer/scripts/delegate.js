@@ -19,8 +19,12 @@
  *
  *   node scripts/delegate.js --course web3-dasar-2026 --lesson kuis-keselamatan \
  *        --learner 0x2eF9aF5e0601b93a0347166FBd7EC3F677b9A988 [--deadline 900] [--dry-run]
+ *
+ *   node scripts/delegate.js --lesson esai-batas-bukti --essay fixtures/essai-230-kata.md --dry-run
+ *        ^ gerbang penilaian dijalankan lebih dulu; ia boleh MENOLAK menerbitkan
  */
 import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { createPublicClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
@@ -85,6 +89,47 @@ console.log(`peserta   : ${learner}`)
 console.log(`materi    : ${course.id} / ${lesson.slug}`)
 console.log(`          courseId ${cid.slice(0, 18)}…  lessonId ${lid.slice(0, 18)}…`)
 console.log(`          credentialHash ${hash}`)
+
+/**
+ * Gerbang penilaian. Ditaruh SEBELUM apa pun ditandatangani, karena menerbitkan kredensial
+ * "lulus" tanpa satu pun pemeriksaan yang dijalankan adalah persis hal yang verifier kita
+ * dirancang untuk tangkap.
+ *
+ * `--essay <berkas>` menilai teks peserta terhadap rubrik lesson ini. Lesson tanpa rubrik esai
+ * ditolak dengan alasan, BUKAN diloloskan diam-diam — opsi yang diberikan tapi tidak berlaku
+ * adalah cara paling nyaman untuk salah percaya pada alat sendiri.
+ */
+const essayPath = arg('essay')
+if (essayPath) {
+  if (!lesson.essay) {
+    console.error(`\n--essay tidak berlaku: lesson "${lesson.slug}" jenisnya ${lesson.kind} dan tidak punya rubrik esai.`)
+    console.error('Pilih lesson ber-jenis esai, misalnya esai-batas-bukti (web3-dasar-2026) atau esai-audit-sendiri (web3-lanjut-2026).')
+    process.exit(2)
+  }
+  const { gradeAgainstRubric, formatVerdict } = await import('../src/grade.js')
+  const text = await readFile(resolve(essayPath), 'utf8')
+  const grade = await gradeAgainstRubric({ text, essay: lesson.essay })
+  console.log(`\ngerbang penilaian: ${formatVerdict(grade)}`)
+  if (grade.note) console.log(`  ${grade.note}`)
+  if (grade.mechanical) {
+    for (const m of grade.mechanical) console.log(`    ${m.ok ? '+' : '-'} ${m.label}${m.detail ? ` (${m.detail})` : ''}`)
+  }
+
+  if (grade.verdict === 'AWAITING_JUDGE' && process.argv.includes('--allow-unjudged')) {
+    console.log('  ⚠️ GERBANG DILEWATI MANUAL (--allow-unjudged). Angka yang dipakai nanti adalah')
+    console.log('     hasil pemeriksaan mekanis, BUKAN penilaian. Jangan tulis itu sebagai "AI menilai".')
+  } else if (grade.verdict === 'INSUFFICIENT_EVIDENCE') {
+    console.log('\nBerhenti: tidak ada cukup bukti untuk menilai, dan tidak ada angka yang dikarang.')
+    process.exit(3)
+  } else if (grade.verdict === 'AWAITING_JUDGE') {
+    console.log('\nBerhenti: kriteria penilaian belum ada yang menilainya (seam `judge` kosong).')
+    console.log('Suntik penilai, atau terbitkan dengan --allow-unjudged dan sebut apa adanya.')
+    process.exit(3)
+  } else if (grade.verdict !== 'GRADED') {
+    console.log(`\nBerhenti: gerbang mengembalikan ${grade.verdict}.`)
+    process.exit(3)
+  }
+}
 
 const existing = await read('attestationOf', [hash])
 if (existing !== EMPTY_UID) {
