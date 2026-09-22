@@ -9,6 +9,7 @@
 import type { Report } from './verify'
 import { EMPTY_UID } from './abi'
 import { explorerLink } from './config'
+import { DICTIONARIES, type Lang } from './i18n'
 
 export function esc(s: unknown): string {
   return String(s ?? '')
@@ -18,50 +19,36 @@ export function esc(s: unknown): string {
     .replace(/"/g, '&quot;')
 }
 
-const VERDICT_LABEL: Record<string, { title: string; sub: string; cls: string }> = {
-  VALID: { title: 'VALID', sub: 'Kredensial aktif dan terverifikasi di chain', cls: 'ok' },
-  REVOKED: { title: 'DICABUT', sub: 'Pernah terbit, lalu dicabut — jejaknya permanen', cls: 'bad' },
-  EXPIRED: { title: 'KEDALUWARSA', sub: 'Waktu berlakunya habis, tanpa ada yang menyentuh', cls: 'warn' },
-  // Sengaja diberi label sendiri, bukan digabung ke DICABUT. Di chain `revocationTime` tetap 0,
-  // jadi menampilkan delisting sebagai "dicabut" adalah klaim yang bisa dibantah verifier mana
-  // pun dengan satu eth_call. Bagi pembaca hasilnya sama-sama "jangan diterima", tapi sebabnya
-  // berbeda: yang satu tindakan penerbit dan permanen, yang satu penilaian platform dan bisa pulih.
-  ISSUER_DELISTED: {
-    title: 'PENERBIT DILISTING',
-    sub: 'Platform menarik dukungannya dari penerbit — attestation-nya sendiri belum dicabut',
-    cls: 'bad',
-  },
-  NOT_FOUND: { title: 'TIDAK DIKENALI', sub: 'Tidak pernah diterbitkan lewat sistem ini', cls: 'bad' },
-  WRONG_CHAIN: { title: 'CHAIN TIDAK COCOK', sub: 'Kami menolak menampilkan hasil dari chain lain', cls: 'bad' },
-  NOT_CONFIGURED: { title: 'BELUM DIKONFIGURASI', sub: 'Address kontrak belum diisi', cls: 'muted' },
-  UNREACHABLE: { title: 'RPC TIDAK MENJAWAB', sub: 'Konfigurasi terisi, node-nya yang tidak terhubung', cls: 'warn' },
-}
-
 function ts(n: number | null | undefined): string {
   if (!n) return '—'
-  return `${new Date(n * 1000).toISOString()}  (unix ${n})`
+  return `${new Date(n * 1000).toISOString()} (unix ${n})`
 }
 
-function age(n: number, now: number): string {
+function age(n: number, now: number, lang: Lang): string {
   if (!n) return ''
   const d = Math.round((now - n) / 86400)
-  if (d === 0) return 'hari ini'
-  return d > 0 ? `${d} hari lalu` : `${-d} hari lagi`
+  const dict = DICTIONARIES[lang].common
+  if (d === 0) return dict.today
+  return d > 0 ? dict.daysAgo(d) : dict.daysAhead(-d)
 }
 
-function yn(v: boolean | null | undefined): string {
-  if (v === null || v === undefined) return '<span class="na">tidak terbaca</span>'
-  return v ? '<span class="yes">ya</span>' : '<span class="no">tidak</span>'
+function yn(v: boolean | null | undefined, lang: Lang): string {
+  const dict = DICTIONARIES[lang].common
+  if (v === null || v === undefined) return `<span class="na">${esc(dict.unreadable)}</span>`
+  return v ? `<span class="yes">${esc(dict.yes)}</span>` : `<span class="no">${esc(dict.no)}</span>`
 }
 
 function row(label: string, value: string, hint = ''): string {
   return `<tr><th>${esc(label)}</th><td>${value}${hint ? `<div class="hint">${esc(hint)}</div>` : ''}</td></tr>`
 }
 
-function addr(ep: Report['endpoint'], a: string | null | undefined, name = 'buka di explorer'): string {
-  if (!a || a === '0x0000000000000000000000000000000000000000') return '<span class="na">—</span>'
+function addr(ep: Report['endpoint'], a: string | null | undefined, lang: Lang, linkText?: string): string {
+  const label = linkText ?? DICTIONARIES[lang].panels.chainConfig.viewInExplorer
+  if (!a || a === '0x0000000000000000000000000000000000000000') return `<span class="na">—</span>`
   const link = explorerLink(ep, 'address', a)
-  return `<code class="addr">${esc(a)}</code>${link ? ` <a href="${link}" target="_blank" rel="noopener">${esc(name)}</a>` : ''}`
+  return `<code class="addr">${esc(a)}</code>${
+    link ? ` <a href="${link}" target="_blank" rel="noopener" class="exp-link">${esc(label)} ↗</a>` : ''
+  }`
 }
 
 function hex(v: string | null | undefined): string {
@@ -81,117 +68,227 @@ function table(rows: string): string {
   return `<table class="kv">${rows}</table>`
 }
 
-export function renderReport(r: Report): string {
+function translateReason(reason: string, lang: Lang): string {
+  if (lang === 'id') return reason
+  if (reason.includes('tidak tercatat di resolver yang dikonfigurasi')) {
+    return 'This credential is not recorded in the configured resolver. "Not found" means it was never issued through our system.'
+  }
+  if (reason.includes('BUKAN diterbitkan lewat resolver kami')) {
+    return 'The attestation exists on-chain, but was NOT issued through our resolver. External attestations do not automatically become verified credentials in this registry.'
+  }
+  if (reason.includes('Dicabut oleh penerbit yang sama')) {
+    return reason.replace('Dicabut oleh penerbit yang sama', 'Revoked on-chain by the issuing attester')
+      .replace('Pencabutan satu arah: tidak ada fungsi untuk membatalkannya, dan jejaknya tetap terbaca selamanya.', 'Revocation is immutable and one-way: no unrevoke function exists on EAS.')
+  }
+  if (reason.includes('Kedaluwarsa')) {
+    return reason.replace('Kedaluwarsa', 'Expired on-chain at').replace('hari lalu', 'days ago')
+      .replace('- berubah sendiri, tanpa ada yang menyentuh apa pun.', '— self-executing expiry without human intervention.')
+  }
+  if (reason.includes('sedang DILISTING oleh platform')) {
+    return 'The issuer agent has been DELISTED by the platform. This is NOT revocation: the attestation remains on-chain with revocationTime = 0, but platform whitelist authorization is suspended. Can be restored via relistIssuer.'
+  }
+  if (reason.includes('PrerequisiteIssuerDelisted')) {
+    return 'Testable consequence: this credential is no longer accepted as a valid prerequisite for higher courses, and new Soulbound artifacts cannot be minted.'
+  }
+  if (reason.includes('Kredensial aktif, tidak dicabut')) {
+    return 'Credential is live, unrevoked, unexpired, and its issuer is whitelisted.'
+  }
+  if (reason.includes('Prasyaratnya hidup')) {
+    return reason.replace('Prasyaratnya hidup', 'Prerequisite attestation is alive and unrevoked')
+  }
+  if (reason.includes('Artefak soulbound')) {
+    return reason.replace('Artefak soulbound terbit untuk peserta', 'Soulbound artifact minted for learner')
+      .replace('Artefak soulbound belum dicetak', 'Soulbound artifact not yet minted')
+  }
+  return reason
+}
+
+/**
+ * Renders an Open Badges 3.0 digital credential plaque.
+ */
+function renderCertificateCard(r: Report, lang: Lang): string {
+  const dict = DICTIONARIES[lang]
+  const c = r.credential
+  const cert = r.cert
+  const v = dict.verdicts[r.verdict] ?? dict.verdicts.NOT_FOUND
+
+  const courseTitle = c.courseId
+    ? c.courseId.includes('web3') ? 'Web3 Dasar 2026: Foundations & Architecture' : c.courseId
+    : (lang === 'en' ? 'Open Badges 3.0 Verifiable Credential' : 'Kredensial Belajar Open Badges 3.0')
+  const recipientAddr = c.holder ?? c.recipient ?? cert.owner ?? '0x...'
+  const issuerAddr = c.attester ?? c.issuer ?? '0x...'
+  const issueDate = c.issuedAt || c.attestationTime ? ts(c.issuedAt || c.attestationTime) : '—'
+  const isSbt = cert.supportsErc5192 && cert.locked
+
+  return `<div class="cert-card ${v.cls}">
+    <div class="cert-card-header">
+      <div class="cert-badge-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+      </div>
+      <div class="cert-header-text">
+        <span class="cert-kicker">BNB SMART CHAIN · VERIFIABLE CREDENTIAL</span>
+        <h3 class="cert-title">${esc(courseTitle)}</h3>
+      </div>
+      <div class="cert-status-badge ${v.cls}">
+        ${esc(v.title)}
+      </div>
+    </div>
+    
+    <div class="cert-body">
+      <div class="cert-field">
+        <span class="cert-label">${esc(dict.panels.partiesInvolved.holder)}</span>
+        <code class="cert-val addr">${esc(recipientAddr)}</code>
+      </div>
+      <div class="cert-field">
+        <span class="cert-label">${esc(dict.panels.partiesInvolved.issuerAgent)}</span>
+        <code class="cert-val addr">${esc(issuerAddr)}</code>
+      </div>
+      <div class="cert-meta-grid">
+        <div class="cert-field">
+          <span class="cert-label">${esc(dict.panels.validityStatus.issuedAt)}</span>
+          <span class="cert-meta-val">${esc(issueDate)}</span>
+        </div>
+        <div class="cert-field">
+          <span class="cert-label">${esc(dict.panels.soulboundArtifact.tokenId)}</span>
+          <span class="cert-meta-val">${cert.tokenId ? `#${esc(cert.tokenId)}` : '<span class="na">—</span>'}</span>
+        </div>
+        <div class="cert-field">
+          <span class="cert-label">${esc(dict.panels.soulboundArtifact.isLocked)}</span>
+          <span class="cert-meta-val">${isSbt ? `🔒 Soulbound (ERC-5192)` : '—'}</span>
+        </div>
+      </div>
+    </div>
+  </div>`
+}
+
+/**
+ * Visual verification stepper showing the 4-step trust pipeline.
+ */
+function renderStepper(r: Report, lang: Lang): string {
+  const c = r.credential
+  const cert = r.cert
+  const isEn = lang === 'en'
+
+  const step1Ok = Boolean(c.hash && c.uid)
+  const step2Ok = r.resolver.issuerApproved !== false && !c.issuerDelisted
+  const step3Ok = !c.revoked && !c.expired
+  const step4Ok = Boolean(cert.tokenId && cert.locked)
+
+  return `<div class="verify-stepper">
+    <div class="step-item ${step1Ok ? 'step-pass' : 'step-fail'}">
+      <div class="step-circle">${step1Ok ? '✓' : '1'}</div>
+      <div class="step-desc">
+        <div class="step-name">${isEn ? '1. BAS Attestation' : '1. Attestasi BAS'}</div>
+        <div class="step-sub">${step1Ok ? (isEn ? 'Anchored' : 'Tertambat') : (isEn ? 'Not found' : 'Tidak ada')}</div>
+      </div>
+    </div>
+    <div class="step-line ${step1Ok && step2Ok ? 'line-pass' : ''}"></div>
+    <div class="step-item ${step2Ok ? 'step-pass' : 'step-fail'}">
+      <div class="step-circle">${step2Ok ? '✓' : '2'}</div>
+      <div class="step-desc">
+        <div class="step-name">${isEn ? '2. Whitelist Check' : '2. Whitelist Penerbit'}</div>
+        <div class="step-sub">${step2Ok ? (isEn ? 'Approved' : 'Diizinkan') : (isEn ? 'Delisted' : 'Didelisting')}</div>
+      </div>
+    </div>
+    <div class="step-line ${step2Ok && step3Ok ? 'line-pass' : ''}"></div>
+    <div class="step-item ${step3Ok ? 'step-pass' : 'step-fail'}">
+      <div class="step-circle">${step3Ok ? '✓' : '3'}</div>
+      <div class="step-desc">
+        <div class="step-name">${isEn ? '3. Revocation State' : '3. Status Pencabutan'}</div>
+        <div class="step-sub">${step3Ok ? (isEn ? 'Clean' : 'Bersih') : (c.revoked ? (isEn ? 'Revoked' : 'Dicabut') : (isEn ? 'Expired' : 'Kedaluwarsa'))}</div>
+      </div>
+    </div>
+    <div class="step-line ${step3Ok && step4Ok ? 'line-pass' : ''}"></div>
+    <div class="step-item ${step4Ok ? 'step-pass' : 'step-info'}">
+      <div class="step-circle">${step4Ok ? '✓' : '4'}</div>
+      <div class="step-desc">
+        <div class="step-name">${isEn ? '4. Soulbound NFT' : '4. Artefak Soulbound'}</div>
+        <div class="step-sub">${step4Ok ? (isEn ? 'Minted & Locked' : 'Tercetak & Terkunci') : (isEn ? 'Optional / Not Minted' : 'Belum Dicetak')}</div>
+      </div>
+    </div>
+  </div>`
+}
+
+export function renderReport(r: Report, lang: Lang = 'id'): string {
+  const dict = DICTIONARIES[lang]
   const ep = r.endpoint
-  const v = VERDICT_LABEL[r.verdict] ?? VERDICT_LABEL.NOT_FOUND
+  const v = dict.verdicts[r.verdict] ?? dict.verdicts.NOT_FOUND
   const now = r.chain?.blockTimestamp ?? Math.floor(Date.now() / 1000)
   const c = r.credential
 
   const out: string[] = []
 
-  // 1 — keputusan
+  // 1 — Top Certificate Preview Plaque (for known credentials)
+  if (c.hash || c.uid) {
+    out.push(renderCertificateCard(r, lang))
+    out.push(renderStepper(r, lang))
+  }
+
+  // 2 — Keputusan / Verdict Banner
   out.push(`<section class="verdict ${v.cls}">
   <div class="verdict-title">${esc(v.title)}</div>
   <div class="verdict-sub">${esc(v.sub)}</div>
-  <ul class="reasons">${r.reasons.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+  <ul class="reasons">${r.reasons.map((x) => `<li>${esc(translateReason(x, lang))}</li>`).join('')}</ul>
 </section>`)
 
-  // 2 — apa yang diminta
-  out.push(
+  // Tab Header Navigation
+  out.push(`<div class="tabs-nav" role="tablist">
+    <button class="tab-btn active" data-tab="tab-summary" role="tab" aria-selected="true">${esc(dict.tabs.summary)}</button>
+    <button class="tab-btn" data-tab="tab-onchain" role="tab" aria-selected="false">${esc(dict.tabs.onChain)}</button>
+    <button class="tab-btn" data-tab="tab-soulbound" role="tab" aria-selected="false">${esc(dict.tabs.soulbound)}</button>
+    <button class="tab-btn" data-tab="tab-cli" role="tab" aria-selected="false">${esc(dict.tabs.cliAudit)}</button>
+    <button class="tab-btn" data-tab="tab-rpclog" role="tab" aria-selected="false">${esc(dict.tabs.rpcLog)}</button>
+  </div>`)
+
+  // TAB 1: Status & Parties
+  const pReq = dict.panels.requested
+  const pParties = dict.panels.partiesInvolved
+  const pId = dict.panels.credentialIdentity
+  const tab1Content = [
     panel(
-      'Yang kamu minta',
+      pReq.title,
       table(
-        row('Masukan', `<code class="addr">${esc(r.input.raw)}</code>`) +
-          row('Ditafsirkan sebagai', `<strong>${esc(r.input.interpretedAs)}</strong>`, r.input.note),
+        row(pReq.input, `<code class="addr">${esc(r.input.raw)}</code>`) +
+          row(pReq.interpretedAs, `<strong>${esc(r.input.interpretedAs)}</strong>`, r.input.note),
       ),
     ),
-  )
-
-  // 3 — chain & konfigurasi
-  out.push(
     panel(
-      'Chain & konfigurasi pembacaan',
+      pParties.title,
       table(
-        (r.chain
-          ? row('Network', `<strong>${esc(r.chain.name)}</strong>`, r.chain.isTestnet ? 'Testnet — angka di sini tidak punya nilai ekonomi' : 'Mainnet') +
-            row('chainId (dari RPC)', `<code>${esc(r.chain.chainId)}</code>`, `diharapkan ${r.chain.expectedChainId}`) +
-            row('Blok terbaru', `<code>${esc(r.chain.blockNumber.toString())}</code>`, `timestamp ${ts(r.chain.blockTimestamp)}`)
-          : row('chainId', '<span class="na">tidak terbaca</span>')) +
-          row('RPC', `<code>${esc(ep.rpcUrl)}</code>`) +
-          row('CredentialResolver (milik kami)', addr(ep, ep.resolver)) +
-          row('SoulboundCert (milik kami)', addr(ep, ep.cert)) +
-          row('BAS core (pihak ketiga)', addr(ep, ep.bas), 'buka BAS') +
-          row('BAS SchemaRegistry (pihak ketiga)', addr(ep, r.resolver.schemaRegistry ?? null), 'buka registry') +
-          row('BAC code ada?', yn(r.resolver.hasCode), 'bytecode pada address resolver') +
-          row('Artefak code ada?', yn(r.cert.hasCode)) +
-          row('Waktu laporan', ts(Math.floor(r.generatedAt / 1000))),
+        row(pParties.issuerAgent, addr(ep, c.attester ?? c.issuer, lang), pParties.issuerAgentHint) +
+          row(pParties.holder, addr(ep, c.holder ?? c.recipient, lang), pParties.holderHint) +
+          row(pParties.isAuthorized, yn(r.resolver.issuerApproved, lang), pParties.isAuthorizedHint) +
+          row(pParties.resolverOwner, addr(ep, r.resolver.owner, lang), pParties.resolverOwnerHint) +
+          row(pParties.schemaResolver, addr(ep, r.resolver.schemaRecord?.resolver, lang)),
+      ),
+      { note: pParties.note },
+    ),
+    panel(
+      pId.title,
+      table(
+        row(pId.hash, hex(c.hash), pId.hashHint) +
+          row(pId.attestationUid, hex(c.uid)) +
+          row(pId.courseId, hex(c.courseId), pId.courseIdHint) +
+          row(pId.schemaUid, hex(c.schemaUid)) +
+          row(pId.resolverSchemaUid, hex(r.resolver.schemaUid), pId.schemaUidHint) +
+          row(pId.schemaString, c.schemaUid ? `<code>${esc(r.resolver.schemaString ?? '—')}</code>` : '<span class="na">—</span>') +
+          row(pId.dataLength, esc(c.dataNote || '—')) +
+          row(pId.issuedThroughResolver, yn(c.ours, lang), pId.issuedThroughResolverHint),
       ),
     ),
-  )
+  ].join('\n')
 
-  // 4 — identitas kredensial
-  out.push(
-    panel(
-      'Identitas kredensial',
-      table(
-        row('credentialHash', hex(c.hash), 'keccak256 dari dokumen kredensial') +
-          row('UID attestation (BAS)', hex(c.uid)) +
-          row('courseId', hex(c.courseId), 'ID kursus, bukan nama peserta') +
-          row('Schema UID', hex(c.schemaUid)) +
-          row('UID schema resolver', hex(r.resolver.schemaUid), 'harus sama dengan di atas') +
-          row('String schema', c.schemaUid ? `<code>${esc(r.resolver.schemaString ?? '—')}</code>` : '<span class="na">—</span>') +
-          row('Panjang data attestation', esc(c.dataNote || '—')) +
-          row('Diterbitkan lewat resolver ini?', yn(c.ours), 'perbedaan antara "ada attestation di chain" dan "kredensial kami"'),
-      ),
-    ),
-  )
+  out.push(`<div id="tab-summary" class="tab-pane active" role="tabpanel">${tab1Content}</div>`)
 
-  // 5 — status
-  out.push(
-    panel(
-      'Status keberlakuan',
-      table(
-        row('Tercatat di resolver', yn(c.exists)) +
-          row('Dicabut', yn(c.revoked), c.revocationTime ? `pada ${ts(c.revocationTime)} — permanen, tidak ada jalur pembatalan` : 'tidak ada jalur untuk membatalkan pencabutan') +
-          row('Kedaluwarsa', yn(c.expired)) +
-          row(
-            'Penerbit dilisting',
-            yn(c.issuerDelisted),
-            c.issuerDelisted
-              ? 'platform menarik dukungannya; revocationTime di chain tetap 0, dan bisa dipulihkan lewat relistIssuer'
-              : 'penerbitnya masih diakui platform',
-          ) +
-          row('Diterbitkan', ts(c.issuedAt || c.attestationTime), c.issuedAt ? age(c.issuedAt, now) : '') +
-          row('Berlaku sampai', ts(c.expiresAt), c.expiresAt ? age(c.expiresAt, now) : 'tanpa expiry') +
-          row('Dapat dicabut (sejak terbit)', yn(c.revocable), 'kalau false, pencabutan mustahil selamanya — itu bukan fitur di sini') +
-          row('Dicabut off-chain oleh penerbit?', r.anchors.offchainRevokedByIssuer ? `<code>${esc(r.anchors.offchainRevokedByIssuer)}</code>` : '<span class="no">tidak</span>', 'jalur IEAS.revokeOffchain, terikat pasangan (pencabut, hash)') +
-          row('Anchor bukti waktu terpisah', r.anchors.evidenceTimestamp ? `<code>${esc(r.anchors.evidenceTimestamp)}</code>` : '<span class="na">tidak ada</span>', 'IEAS.timestamp(hash) — write-once'),
-      ),
-      {
-        note: 'Dicabut, kedaluwarsa, dan penerbit dilisting adalah TIGA hal berbeda dan ditampilkan terpisah. Dua yang pertama adalah fakta tentang kredensialnya dan berasal dari attester atau dari waktu; yang ketiga adalah penilaian platform tentang penerbitnya dan bisa dipulihkan. Ketiganya berarti "jangan diterima", tapi sebabnya berbeda — dan sebab itulah yang dicari auditor.',
-      },
-    ),
-  )
+  // TAB 2: On-Chain BAS & Prerequisites
+  const pCfg = dict.panels.chainConfig
+  const pStat = dict.panels.validityStatus
+  const pPre = dict.panels.prerequisites
+  const pBas = dict.panels.rawBasRecord
 
-  // 6 — orang/alamat yang terlibat
-  out.push(
-    panel(
-      'Alamat yang terlibat',
-      table(
-        row('Issuer — agen penerbit', addr(ep, c.attester ?? c.issuer),
-            'kolom `attester` di attestation BAS. Namanya "Issuer" karena itu memang nama field-nya di dokumen kredensial') +
-          row('Pemegang (recipient)', addr(ep, c.holder ?? c.recipient), 'alamat, bukan identitas manusia') +
-          row('Masih berizin menerbitkan?', yn(r.resolver.issuerApproved), 'izin menerbitkan ≠ pembatalan kredensial lama') +
-          row('Admin resolver', addr(ep, r.resolver.owner), 'bisa menambah/mencabut izin penerbit') +
-          row('Resolver terpasang di schema', addr(ep, r.resolver.schemaRecord?.resolver)),
-      ),
-      {
-        note: 'Schema UID dihitung dari keccak256(string schema, alamat resolver, revocable) — jadi alamat resolver ikut menentukan dan tidak bisa dipindah-pindah tanpa membuat schema baru.',
-      },
-    ),
-  )
-
-  // 7 — rantai prasyarat
+  let prereqHtml = ''
   if (r.chainHistory.length || c.refUid) {
     const rows = r.chainHistory
       .map(
@@ -199,111 +296,150 @@ export function renderReport(r: Report): string {
           `<tr><th>#${n.depth}</th><td><code class="addr">${esc(n.uid)}</code> — <span class="st-${n.status.toLowerCase()}">${esc(n.status)}</span></td></tr>`,
       )
       .join('')
-    out.push(
-      panel(
-        'Rantai prasyarat',
-        `<table class="kv">${row('Prasyarat langsung', hex(c.refUid))}${rows || row('', '<span class="na">tidak ada mata rantai lagi di atasnya</span>')}</table>`,
-        {
-          note: 'Yang dibuktikan di lapis ini: saat sertifikat lanjutan diterbitkan, prasyaratnya masih hidup, belum dicabut, dan milik pemegang yang sama. EAS mentah hanya mengecek prasyaratnya ADA — empat penolakan sisanya adalah kerja kami.',
-        },
-      ),
+    prereqHtml = panel(
+      pPre.title,
+      `<table class="kv">${row(pPre.directPrerequisite, hex(c.refUid))}${rows || row('', `<span class="na">${esc(pPre.noHigherChain)}</span>`)}</table>`,
+      { note: pPre.note },
     )
   }
 
-  // 8 — artefak soulbound
-  out.push(
+  const tab2Content = [
     panel(
-      'Artefak yang dimiliki peserta (soulbound)',
+      pStat.title,
       table(
-        row('Kontrak', addr(ep, r.cert.address)) +
-          row('Nama / simbol', `${esc(r.cert.name ?? '—')} / ${esc(r.cert.symbol ?? '—')}`) +
-          row('tokenId', r.cert.tokenId ? `<code>${esc(r.cert.tokenId)}</code>` : '<span class="na">tidak ada artefak untuk ini</span>', 'tokenId = angka dari credentialHash, jadi tidak bisa ada dua artefak') +
-          row('Dimiliki oleh', addr(ep, r.cert.owner)) +
-          row('locked()', yn(r.cert.locked)) +
-          row('Mendukung ERC-5192', yn(r.cert.supportsErc5192), 'interfaceId 0xb45a3c0e — wallet bisa melihat ini sebagai token tak terpindahtangankan') +
-          row('tokenURI', r.cert.tokenUri ? `<a href="${esc(r.cert.tokenUri)}" target="_blank" rel="noopener"><code>${esc(r.cert.tokenUri)}</code></a>` : '<span class="na">—</span>') +
-          row('Jumlah artefak milik pemegang', r.cert.holderBalance ? `<code>${esc(r.cert.holderBalance)}</code>` : '<span class="na">—</span>') +
-          row('Artefak menunjuk resolver ini?', yn(r.cert.wiredToThisResolver)),
+        row(pStat.recordedOnResolver, yn(c.exists, lang)) +
+          row(
+            pStat.revoked,
+            yn(c.revoked, lang),
+            c.revocationTime ? `${ts(c.revocationTime)} — ${pStat.revokedHintPermanent}` : pStat.revokedHintNone,
+          ) +
+          row(pStat.expired, yn(c.expired, lang)) +
+          row(
+            pStat.issuerDelisted,
+            yn(c.issuerDelisted, lang),
+            c.issuerDelisted ? pStat.issuerDelistedHint : pStat.issuerActiveHint,
+          ) +
+          row(pStat.issuedAt, ts(c.issuedAt || c.attestationTime), c.issuedAt ? age(c.issuedAt, now, lang) : '') +
+          row(pStat.expiresAt, ts(c.expiresAt), c.expiresAt ? age(c.expiresAt, now, lang) : pStat.noExpiry) +
+          row(pStat.revocableAtIssuance, yn(c.revocable, lang), pStat.revocableHint) +
+          row(
+            pStat.offchainRevoked,
+            r.anchors.offchainRevokedByIssuer ? `<code>${esc(r.anchors.offchainRevokedByIssuer)}</code>` : `<span class="no">${esc(dict.common.no)}</span>`,
+            pStat.offchainRevokedHint,
+          ) +
+          row(
+            pStat.evidenceTimestamp,
+            r.anchors.evidenceTimestamp ? `<code>${esc(r.anchors.evidenceTimestamp)}</code>` : `<span class="na">${esc(dict.common.notRecorded)}</span>`,
+            pStat.evidenceTimestampHint,
+          ),
       ),
-      {
-        note: 'Artefak BUKAN kredensial dan BUKAN bukti keberlakuan. Kredensialnya dokumen JSON bertanda tangan; status kebenarannya di panel atas. Artefak yang kredensialnya sudah dicabut tetap ada sebagai catatan sejarah.',
-      },
+      { note: pStat.note },
     ),
-  )
-
-  // 9 — record mentah di BAS
-  out.push(
+    prereqHtml,
     panel(
-      'Rekaman mentah di BAS (pihak ketiga, tidak bisa kami ubah)',
+      pCfg.title,
       table(
-        row('Attestation ada?', yn(Boolean(c.uid))) +
-          row('time', ts(c.attestationTime)) +
-          row('expirationTime', ts(c.expiresAt)) +
-          row('revocationTime', c.revocationTime ? ts(c.revocationTime) : '<span class="no">0 = belum dicabut</span>') +
-          row('refUID', hex(c.refUid)) +
-          row('Schema record: revocable', yn(r.resolver.schemaRecord?.revocable)) +
-          row('Schema record: isi', r.resolver.schemaRecord ? `<code>${esc(r.resolver.schemaRecord.schema)}</code>` : '<span class="na">—</span>'),
+        (r.chain
+          ? row(pCfg.network, `<strong>${esc(r.chain.name)}</strong>`, r.chain.isTestnet ? pCfg.testnetNotice : pCfg.mainnetNotice) +
+            row(pCfg.chainIdRpc, `<code>${esc(r.chain.chainId)}</code>`, `${pCfg.expected} ${r.chain.expectedChainId}`) +
+            row(pCfg.latestBlock, `<code>${esc(r.chain.blockNumber.toString())}</code>`, `timestamp ${ts(r.chain.blockTimestamp)}`)
+          : row(pCfg.chainIdRpc, `<span class="na">${esc(dict.common.unreadable)}</span>`)) +
+          row(pCfg.rpcUrl, `<code>${esc(ep.rpcUrl)}</code>`) +
+          row(pCfg.resolverContract, addr(ep, ep.resolver, lang)) +
+          row(pCfg.certContract, addr(ep, ep.cert, lang)) +
+          row(pCfg.basCore, addr(ep, ep.bas, lang), pCfg.viewInExplorer) +
+          row(pCfg.schemaRegistry, addr(ep, r.resolver.schemaRegistry ?? null, lang), pCfg.viewInExplorer) +
+          row(pCfg.hasResolverCode, yn(r.resolver.hasCode, lang), pCfg.bytecodeAtResolver) +
+          row(pCfg.hasCertCode, yn(r.cert.hasCode, lang)) +
+          row(pCfg.reportTime, ts(Math.floor(r.generatedAt / 1000))),
       ),
-      {
-        note: 'Semua baris di halaman ini bisa dibaca langsung dari chain oleh siapa pun. Tidak ada satu pun yang bersumber dari basis data kami — karena memang tidak ada.',
-      },
     ),
-  )
-
-  // 10 — cara mengulang sendiri
-  out.push(
     panel(
-      'Ulangi sendiri, tanpa halaman ini',
-      `<pre class="cmd">${r.reproduction.cast.map(esc).join('\n')}</pre>
-       <p class="note">atau tanpa Foundry, panggilan mentah JSON-RPC:</p>
-       <pre class="cmd">${r.reproduction.curl.map(esc).join('\n')}</pre>
-       <h3>Selector fungsi yang dipakai</h3>
-       <table class="kv">${r.reproduction.selectors.map((s) => row(s.name, `<code>${esc(s.selector)}</code>`)).join('')}</table>`,
-      {
-        note: 'Klaim "terverifikasi publik" tidak berarti apa-apa kalau satu-satunya cara memeriksanya adalah alat dari kami. Salin perintah di atas dan jalankan.',
-      },
+      pBas.title,
+      table(
+        row(pBas.attestationExists, yn(Boolean(c.uid), lang)) +
+          row(pBas.time, ts(c.attestationTime)) +
+          row(pBas.expirationTime, ts(c.expiresAt)) +
+          row(pBas.revocationTime, c.revocationTime ? ts(c.revocationTime) : `<span class="no">${esc(pBas.notRevokedRaw)}</span>`) +
+          row(pBas.refUid, hex(c.refUid)) +
+          row(pBas.schemaRevocable, yn(r.resolver.schemaRecord?.revocable, lang)) +
+          row(pBas.schemaString, r.resolver.schemaRecord ? `<code>${esc(r.resolver.schemaRecord.schema)}</code>` : '<span class="na">—</span>'),
+      ),
+      { note: pBas.note },
     ),
+  ].filter(Boolean).join('\n')
+
+  out.push(`<div id="tab-onchain" class="tab-pane" role="tabpanel">${tab2Content}</div>`)
+
+  // TAB 3: Soulbound NFT (ERC-5192)
+  const pSbt = dict.panels.soulboundArtifact
+  const tab3Content = panel(
+    pSbt.title,
+    table(
+      row(pSbt.contract, addr(ep, r.cert.address, lang)) +
+        row(pSbt.nameSymbol, `${esc(r.cert.name ?? '—')} / ${esc(r.cert.symbol ?? '—')}`) +
+        row(pSbt.tokenId, r.cert.tokenId ? `<code>${esc(r.cert.tokenId)}</code>` : `<span class="na">${esc(pSbt.noArtifact)}</span>`, pSbt.tokenIdHint) +
+        row(pSbt.ownedBy, addr(ep, r.cert.owner, lang)) +
+        row(pSbt.isLocked, yn(r.cert.locked, lang)) +
+        row(pSbt.supportsErc5192, yn(r.cert.supportsErc5192, lang), pSbt.supportsErc5192Hint) +
+        row(pSbt.tokenUri, r.cert.tokenUri ? `<a href="${esc(r.cert.tokenUri)}" target="_blank" rel="noopener"><code>${esc(r.cert.tokenUri)}</code></a>` : '<span class="na">—</span>') +
+        row(pSbt.holderBalance, r.cert.holderBalance ? `<code>${esc(r.cert.holderBalance)}</code>` : '<span class="na">—</span>') +
+        row(pSbt.wiredToResolver, yn(r.cert.wiredToThisResolver, lang)),
+    ),
+    { note: pSbt.note },
   )
 
-  // 11 — log pembacaan (transparansi penuh)
+  out.push(`<div id="tab-soulbound" class="tab-pane" role="tabpanel">${tab3Content}</div>`)
+
+  // TAB 4: CLI Audit Commands
+  const pRep = dict.panels.reproduction
+  const tab4Content = panel(
+    pRep.title,
+    `<pre class="cmd">${r.reproduction.cast.map(esc).join('\n')}</pre>
+     <p class="note">${esc(pRep.curlIntro)}</p>
+     <pre class="cmd">${r.reproduction.curl.map(esc).join('\n')}</pre>
+     <h3>${esc(pRep.functionSelectors)}</h3>
+     <table class="kv">${r.reproduction.selectors.map((s) => row(s.name, `<code>${esc(s.selector)}</code>`)).join('')}</table>`,
+    { note: pRep.note },
+  )
+
+  out.push(`<div id="tab-cli" class="tab-pane" role="tabpanel">${tab4Content}</div>`)
+
+  // TAB 5: Real-Time RPC Log
+  const pLog = dict.panels.readLog
   const failed = r.readLog.filter((l) => !l.ok).length
-  out.push(
-    panel(
-      `Panggilan yang dilakukan halaman ini (${r.readLog.length}${failed ? `, ${failed} gagal` : ', 0 gagal'})`,
-      `<table class="log"><thead><tr><th>status</th><th>panggilan</th><th>terhadap</th><th>argumen</th><th>hasil</th></tr></thead><tbody>${r.readLog
-        .map(
-          (l) =>
-            `<tr class="${l.ok ? 'ok-row' : 'err-row'}"><td>${l.ok ? '✓' : '✗'}</td><td><code>${esc(l.label)}</code></td><td><code class="short">${esc(l.target)}</code></td><td><code class="short">${esc(l.args || '—')}</code></td><td><code class="short">${esc(l.result)}</code></td></tr>`,
-        )
-        .join('')}</tbody></table>`,
-      {
-        note: 'Kalau sebuah baris di atas ✗, panelnya tetap muncul dan menulis "tidak terbaca". Tidak ada angka yang dipalsukan oleh kegagalan.',
-      },
-    ),
+  const tab5Content = panel(
+    pLog.title(r.readLog.length, failed),
+    `<table class="log"><thead><tr><th>${esc(pLog.colStatus)}</th><th>${esc(pLog.colCall)}</th><th>${esc(pLog.colTarget)}</th><th>${esc(pLog.colArguments)}</th><th>${esc(pLog.colResult)}</th></tr></thead><tbody>${r.readLog
+      .map(
+        (l) =>
+          `<tr class="${l.ok ? 'ok-row' : 'err-row'}"><td>${l.ok ? '✓' : '✗'}</td><td><code>${esc(l.label)}</code></td><td><code class="short">${esc(l.target)}</code></td><td><code class="short">${esc(l.args || '—')}</code></td><td><code class="short">${esc(l.result)}</code></td></tr>`,
+      )
+      .join('')}</tbody></table>`,
+    { note: pLog.note },
   )
 
-  // 12 — batas klaim
+  out.push(`<div id="tab-rpclog" class="tab-pane" role="tabpanel">${tab5Content}</div>`)
+
+  // Honest Limits Section (Always Visible)
+  const pLim = dict.panels.limits
   out.push(
     panel(
-      'Batas yang harus kamu ketahui',
-      `<ul class="limits">${r.limits.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`,
-      {
-        note: 'Bagian ini bukan formalitas hukum dan tidak bisa ditutup. Kami lebih memilih halaman yang mengatakan apa yang tidak dibuktikannya.',
-      },
+      pLim.title,
+      `<ul class="limits">${pLim.items.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`,
+      { note: pLim.note },
     ),
   )
 
   return out.join('\n')
 }
 
-export function renderEmpty(): string {
-  return `<section class="verdict muted"><div class="verdict-title">MENUNGGU MASUKAN</div>
-  <div class="verdict-sub">Tempel salah satu dari ini di kolom di atas</div>
+export function renderEmpty(lang: Lang = 'id'): string {
+  const dict = DICTIONARIES[lang].panels.emptyState
+  return `<section class="verdict muted"><div class="verdict-title">${esc(dict.title)}</div>
+  <div class="verdict-sub">${esc(dict.subtitle)}</div>
   <ul class="reasons">
-    <li><strong>credentialHash</strong> — 0x lalu 64 karakter hex. Bentuk paling kuat: dokumen kredensial tidak perlu bisa dilihat untuk diperiksa statusnya.</li>
-    <li><strong>UID attestation</strong> — 0x + 64 hex; halaman mengenali mana yang hash dan mana yang UID.</li>
-    <li><strong>tokenId artefak</strong> — angka decimal dari koleksi NFT peserta.</li>
-    <li><strong>address penerbit atau peserta</strong> — 0x + 40 hex; untuk memeriksa izin penerbit dan jumlah sertifikat seseorang.</li>
+    ${dict.items.map((item) => `<li><strong>${esc(item.title)}</strong> — ${esc(item.desc)}</li>`).join('')}
   </ul>
-  <p class="note">Tidak ada satu pun pemeriksaan di halaman ini yang memerlukan wallet, login, atau izin baca basis data.</p></section>`
+  <p class="note">${esc(dict.note)}</p></section>`
 }

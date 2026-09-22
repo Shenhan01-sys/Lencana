@@ -1,90 +1,2083 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lencana — verifikasi kredensial</title>
+    <title>Lencana — Web3 Micro-Courses & Verifiable Credentials on BNB Chain</title>
     <meta
       name="description"
-      content="Periksa sertifikat belajar tanpa wallet, tanpa login, dan tanpa perlu mempercayai kami. Dibaca langsung dari BNB Smart Chain."
+      content="Learn high-demand Web3 skills evaluated by autonomous AI agents. Earn Open Badges 3.0 credentials anchored to BNB Smart Chain with zero wallet friction."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <nav class="topnav">
-      <a href="#/">Belajar</a>
-      <a href="#/me">Saya</a>
-      <a href="#verifier">Verifikasi kredensial</a>
-    </nav>
+    <div class="app-layout">
+      <!-- 1. STICKY TOP NAVBAR -->
+      <header class="app-navbar">
+        <div class="nav-container">
+          <a href="#/" class="brand-link">
+            <div class="brand-logo-gem">
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+                <path
+                  d="M16 4L22.5 10.5L16 17L9.5 10.5L16 4ZM16 18.5L20 22.5L16 26.5L12 22.5L16 18.5ZM24 12L28 16L24 20L20 16L24 12ZM8 12L12 16L8 20L4 16L8 12Z"
+                  fill="#F0B90B"
+                />
+              </svg>
+            </div>
+            <div class="brand-text-group">
+              <span class="brand-title">Lencana</span>
+              <span class="brand-subtag">BNB Chain</span>
+            </div>
+          </a>
 
-    <header>
-      <h1>Lencana <span class="sub">— verifikasi kredensial</span></h1>
-      <p class="lede">
-        Tempel sebuah hash kredensial, UID attestation, tokenId artefak, atau sebuah address.
-        Halaman ini tidak punya backend dan tidak perlu: setiap angka di bawah dibaca langsung
-        dari chain, dan kamu bisa mengulangnya sendiri dengan perintah yang kami tampilkan.
-      </p>
-    </header>
+          <nav class="nav-links">
+            <a href="#/" id="nav-home" class="nav-link active">Home</a>
+            <a href="#/courses" id="nav-courses" class="nav-link">Courses</a>
+            <a href="#/submit" id="nav-submit" class="nav-link">AI Assessment</a>
+            <a href="#/verify" id="nav-verify" class="nav-link">Verifier</a>
+            <a href="#/portfolio" id="nav-portfolio" class="nav-link">Portfolio</a>
+            <a href="#/agent-hub" id="nav-agent-hub" class="nav-link">Agent Hub</a>
+          </nav>
 
-    <div id="banner" class="banner hidden"></div>
+          <div class="nav-actions">
+            <div class="network-badge" id="net-badge">
+              <span class="badge-dot"></span>
+              <span class="badge-name" id="badge-name">BSC Testnet · 97</span>
+            </div>
 
-    <section class="ask">
-      <label for="input">Masukan</label>
-      <textarea id="input" rows="2" spellcheck="false" placeholder="0x… (credentialHash atau UID attestation), angka decimal (tokenId), atau 0x… (address)"></textarea>
-      <div class="actions">
-        <button id="go" class="primary">Periksa</button>
-        <button id="clear">Kosongkan</button>
-        <button id="share">Salin tautan</button>
-        <button id="fill-sample">Isi contoh bentuk</button>
+            <div class="wallet-nav-container" id="wallet-nav-container">
+              <button type="button" class="btn btn-connect-wallet" id="btn-connect-wallet">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4" />
+                  <path d="M4 6v12c0 1.1.9 2 2 2h14v-4" />
+                  <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+                </svg>
+                <span id="btn-wallet-text">Sign in with Browser</span>
+              </button>
+
+              <div class="wallet-connected-pill hidden" id="wallet-connected-pill">
+                <span class="wallet-dot"></span>
+                <span class="wallet-address-display" id="wallet-address-display">0x5cA3...7c3B</span>
+                <button type="button" class="btn-disconnect-wallet" id="btn-disconnect-wallet" title="Disconnect">✕</button>
+              </div>
+            </div>
+
+            <div class="lang-switch" role="group" aria-label="Language Switcher">
+              <button id="lang-en" class="lang-btn active" type="button" aria-pressed="true">EN</button>
+              <button id="lang-id" class="lang-btn" type="button" aria-pressed="false">ID</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ========================================================
+           PAGE 1: HOME (DISCOVERY & SYSTEM ARCHITECTURE)
+           ======================================================== -->
+      <div class="page-view" id="page-home">
+        <!-- 2. KINETIC BRUTALIST HERO SECTION -->
+        <section class="kinetic-hero-section">
+          <div class="kinetic-bg-grid"></div>
+
+          <div class="kinetic-hero-container">
+            <!-- Top AI Mesh Status Ticker -->
+            <div class="ai-status-ticker">
+              <span class="ai-pulse-dot"></span>
+              <span id="ticker-text">Autonomous AI Evaluator Mesh: Active · 3 Domain Agents Online · BSC Testnet</span>
+            </div>
+
+            <div class="kinetic-hero-kicker" id="hero-eyebrow">BNB CHAIN · NEXT-GEN WEB3 EDTECH</div>
+
+            <!-- Massive Typography & Overlays Container -->
+            <div class="kinetic-title-stack-wrap">
+              <div class="kinetic-typography-stack">
+                <div class="kinetic-word-row row-1">
+                  <h1 class="kinetic-huge-text gold-text" id="kinetic-word-1">#LENCANA</h1>
+                </div>
+                <div class="kinetic-word-row row-2">
+                  <h1 class="kinetic-huge-text white-text" id="kinetic-word-2">ON-CHAIN</h1>
+                </div>
+                <div class="kinetic-word-row row-3">
+                  <h1 class="kinetic-huge-text white-text" id="kinetic-word-3">CREDENTIALS</h1>
+                </div>
+              </div>
+
+              <!-- Overlays: Floating Glass Cards, Doodle Arrows, Rotating Circular Badge -->
+              <div class="kinetic-overlays-container">
+                <!-- Floating Glass Card 1 (Learner Persona Rina) -->
+                <div class="kinetic-floating-card card-rina" id="btn-load-demo-hero" role="button" tabindex="0" title="Click to live-verify Rina's credential">
+                  <div class="floating-glass-box">
+                    <div class="floating-avatar-circle rina-avatar">
+                      <span class="avatar-initials">RO</span>
+                      <span class="avatar-check-badge">✓</span>
+                    </div>
+                    <div class="floating-card-info">
+                      <p class="floating-name">rina.bnb</p>
+                      <p class="floating-sub">0x5cA3...7c3B</p>
+                      <div class="floating-score-pill">93/100 Honors Pass</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Floating Glass Card 2 (Recruiter Bagas) -->
+                <div class="kinetic-floating-card card-recruiter" id="btn-hero-recruiter-check" role="button" tabindex="0" title="Click to test recruiter verification">
+                  <div class="floating-glass-box">
+                    <div class="floating-avatar-circle recruiter-avatar">
+                      <span class="avatar-initials">HR</span>
+                      <span class="avatar-check-badge emerald">⚡</span>
+                    </div>
+                    <div class="floating-card-info">
+                      <p class="floating-name">bagas-recruiter.bnb</p>
+                      <p class="floating-sub">Live eth_call Audit</p>
+                      <div class="floating-score-pill emerald">0 Gas Verification</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Doodle Arrow Left (Gold) -->
+                <div class="doodle-arrow doodle-arrow-left">
+                  <svg viewBox="0 0 100 100" class="doodle-svg gold" fill="none">
+                    <path d="M10,90 C 10,40 40,20 60,50 C 70,65 80,75 95,70" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M80,55 L95,70 L85,85" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+
+                <!-- Doodle Arrow Right (Emerald) -->
+                <div class="doodle-arrow doodle-arrow-right">
+                  <svg viewBox="0 0 100 100" class="doodle-svg emerald" fill="none">
+                    <path d="M90,10 C 80,60 60,80 40,60 C 20,40 40,20 60,30 C 80,40 70,70 50,80" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M65,75 L50,80 L55,65" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+
+                <!-- Rotating Circular Badge -->
+                <a href="#/verify" class="kinetic-circular-badge" title="Jump to Instant Credential Verifier">
+                  <div class="badge-rotating-ring">
+                    <svg viewBox="0 0 100 100" class="badge-ring-svg">
+                      <path id="badgeCirclePath" d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" fill="none" />
+                      <text class="badge-path-text" fill="#0B0E11">
+                        <textPath href="#badgeCirclePath" startOffset="0%" id="badge-rotating-text">
+                          VERIFY ON BNB CHAIN • ZERO WALLET REQUIRED • 
+                        </textPath>
+                      </text>
+                    </svg>
+                  </div>
+                  <div class="badge-center-icon">
+                    <svg viewBox="0 0 100 100" class="badge-arrow-svg" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20,80 Q 40,50 30,30 T 80,20" />
+                      <path d="M60,10 L80,20 L70,40" />
+                    </svg>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Hero Subtitle & CTA Group -->
+            <div class="kinetic-hero-footer-bar">
+              <p class="hero-subtext" id="hero-subtitle">
+                AI domain agents evaluate your practical essays with on-chain rubrics. Your achievements are minted as Soulbound Open
+                Badges 3.0 on BNB Smart Chain.
+              </p>
+
+              <div class="hero-cta-group">
+                <a href="#/courses" class="btn btn-primary" id="hero-btn-explore">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                  <span id="hero-btn-explore-text">Explore Micro-Courses</span>
+                </a>
+                <a href="#/verify" class="btn btn-secondary" id="hero-btn-verify">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <span id="hero-btn-verify-text">Verify a Credential</span>
+                </a>
+              </div>
+
+              <!-- Trust Micro-Strip -->
+              <div class="hero-stats">
+                <div class="stat-item">
+                  <span class="stat-val" id="stat-1-val">Open Badges 3.0</span>
+                  <span class="stat-lbl" id="stat-1-lbl">W3C Standard Format</span>
+                </div>
+                <div class="stat-sep"></div>
+                <div class="stat-item">
+                  <span class="stat-val" id="stat-2-val">0 Wallet Required</span>
+                  <span class="stat-lbl" id="stat-2-lbl">Instant Recruiter Verification</span>
+                </div>
+                <div class="stat-sep"></div>
+                <div class="stat-item">
+                  <span class="stat-val" id="stat-3-val">EAS 1.3.0 Fork</span>
+                  <span class="stat-lbl" id="stat-3-lbl">BNB Attestation Service</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONNECTED BOTTOM VALUE-PROP CARDS -->
+          <div class="kinetic-features-section">
+            <div class="kinetic-features-grid">
+              <!-- Feature Card 1 -->
+              <div class="kinetic-feature-card">
+                <h3 class="feature-card-heading" id="feat-1-heading">
+                  AUTONOMOUS<br />AI ESSAY GRADING
+                </h3>
+                <p class="feature-card-sub" id="feat-1-sub">
+                  AI domain agents score submissions with on-chain rubrics
+                </p>
+                <div class="feature-pill-wrap">
+                  <div class="feature-pill-body">
+                    <div class="feature-pill-avatar gold">🤖</div>
+                    <div class="feature-pill-text">
+                      <span class="pill-title">Agent-Foundations</span>
+                      <span class="pill-meta">Rubric #0x91a7 · EIP-712</span>
+                    </div>
+                  </div>
+                  <div class="feature-floating-tag gold">93/100 HONORS</div>
+                </div>
+                <div class="feature-connector-arrow arr-1">
+                  <svg viewBox="0 0 100 100" class="connector-svg" fill="none">
+                    <path d="M20,80 Q 40,20 80,40" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M60,20 L80,40 L50,60" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Feature Card 2 -->
+              <div class="kinetic-feature-card">
+                <h3 class="feature-card-heading" id="feat-2-heading">
+                  BAS ATTESTATION<br />RESOLVER HOOKS
+                </h3>
+                <p class="feature-card-sub" id="feat-2-sub">
+                  Closing EAS loopholes with live prerequisite verification
+                </p>
+                <div class="feature-pill-wrap">
+                  <div class="feature-pill-body">
+                    <div class="feature-pill-avatar emerald">🛡️</div>
+                    <div class="feature-pill-text">
+                      <span class="pill-title">CredentialResolver.sol</span>
+                      <span class="pill-meta">Schema #0x2c · Anti-Replay</span>
+                    </div>
+                  </div>
+                  <div class="feature-floating-tag emerald">100% LOCKED</div>
+                </div>
+                <div class="feature-connector-arrow arr-2">
+                  <svg viewBox="0 0 100 100" class="connector-svg" fill="none">
+                    <path d="M20,80 Q 40,20 80,40" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M60,20 L80,40 L50,60" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Feature Card 3 -->
+              <div class="kinetic-feature-card">
+                <h3 class="feature-card-heading" id="feat-3-heading">
+                  ZERO-WALLET<br />PUBLIC PROOF
+                </h3>
+                <p class="feature-card-sub" id="feat-3-sub">
+                  Instant verification for employers without MetaMask
+                </p>
+                <div class="feature-stat-bubble">
+                  <span class="bubble-tag">EST. BLOCK AUDIT</span>
+                  <span class="bubble-val">0.42s · 0 GAS</span>
+                  <div class="bubble-tail"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- THE LEARNING LOOP (3 STEPS) -->
+        <section class="section-container" id="how-it-works">
+          <div class="section-header">
+            <h2 class="section-title" id="loop-title">How Learning on Lencana Works</h2>
+            <p class="section-sub" id="loop-sub">
+              A seamless, trustless loop from interactive study to tamper-proof career credentials.
+            </p>
+          </div>
+
+          <div class="steps-grid">
+            <!-- Step 1 -->
+            <div class="step-card">
+              <div class="step-card-header">
+                <div class="step-num">01</div>
+                <span class="step-tag">HANDS-ON CODING</span>
+              </div>
+              <h3 class="step-title" id="step-1-title">1. Learn &amp; Complete Tasks</h3>
+              <p class="step-text" id="step-1-desc">
+                Study curated micro-courses and write analytical essays or smart contract tasks.
+              </p>
+              <div class="micro-mockup micro-editor">
+                <div class="micro-editor-bar">
+                  <span class="editor-dot red"></span>
+                  <span class="editor-dot yellow"></span>
+                  <span class="editor-dot green"></span>
+                  <span class="editor-title">TaskAssignment.sol</span>
+                  <span class="editor-status">SYNTAX OK</span>
+                </div>
+                <div class="micro-code">
+                  <span class="c-keyword">contract</span> <span class="c-type">LearnerSubmission</span> {<br />
+                  &nbsp;&nbsp;<span class="c-keyword">function</span> <span class="c-func">solveEVMTask</span>() <span class="c-keyword">external</span> {<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-keyword">require</span>(msg.sender != address(0));<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-keyword">emit</span> <span class="c-func">EssayReady</span>(proofHash);<br />
+                  &nbsp;&nbsp;}<br />
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card highlight">
+              <div class="step-card-header">
+                <div class="step-num">02</div>
+                <span class="step-tag live">AI EVALUATION</span>
+              </div>
+              <h3 class="step-title" id="step-2-title">2. AI Agent Evaluation</h3>
+              <p class="step-text" id="step-2-desc">
+                Autonomous domain agents grade submissions against on-chain rubrics and sign EIP-712 proofs.
+              </p>
+              <div class="micro-mockup micro-ai-core">
+                <div class="neural-nodes-row">
+                  <div class="neural-chip"><span class="neural-dot"></span>Depth 40%</div>
+                  <div class="neural-arrow">➔</div>
+                  <div class="neural-chip"><span class="neural-dot"></span>EVM 30%</div>
+                  <div class="neural-arrow">➔</div>
+                  <div class="neural-chip"><span class="neural-dot"></span>Defense 30%</div>
+                </div>
+                <div class="compute-equalizer-bar">
+                  <div class="eq-bars">
+                    <span class="eq-bar bar-1"></span>
+                    <span class="eq-bar bar-2"></span>
+                    <span class="eq-bar bar-3"></span>
+                    <span class="eq-bar bar-4"></span>
+                    <span class="eq-bar bar-5"></span>
+                    <span class="eq-bar bar-6"></span>
+                    <span class="eq-bar bar-7"></span>
+                    <span class="eq-bar bar-8"></span>
+                  </div>
+                  <span class="eq-text">AI CONVERGENCE: 93/100 (HONORS)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+              <div class="step-card-header">
+                <div class="step-num">03</div>
+                <span class="step-tag">ON-CHAIN ANCHOR</span>
+              </div>
+              <h3 class="step-title" id="step-3-title">3. Permanent On-Chain Proof</h3>
+              <p class="step-text" id="step-3-desc">
+                Credential hash anchored to BAS and Soulbound ERC-5192 NFT minted to learner wallet.
+              </p>
+              <div class="micro-mockup micro-sbt-seal">
+                <div class="sbt-seal-top">
+                  <div class="sbt-lock-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F0B90B" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </div>
+                  <div class="sbt-seal-meta">
+                    <span class="sbt-meta-title">🔒 ERC-5192 SOULBOUND</span>
+                    <span class="sbt-meta-sub">TX: 0x8a92...fe31 · Finalized</span>
+                  </div>
+                  <span class="sbt-fee-tag">0 GAS FOR LEARNER</span>
+                </div>
+                <div class="sbt-verify-row">
+                  <span class="sbt-verified-dot">✓</span>
+                  <span class="sbt-verified-text">Anchored to BNB Attestation Service</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CRYPTOGRAPHIC PIPELINE (VISUAL FLOW) -->
+        <section class="section-container" id="pipeline">
+          <div class="section-header">
+            <div class="section-kicker" id="pipeline-kicker">CRYPTOGRAPHIC DATAFLOW</div>
+            <h2 class="section-title" id="pipeline-title">The End-to-End Cryptographic Learning Pipeline</h2>
+            <p class="section-sub" id="pipeline-sub">
+              From raw student submission to permanent, tamper-proof career credentials anchored on BNB Smart Chain.
+            </p>
+          </div>
+
+          <div class="pipeline-track">
+            <div class="pipeline-node">
+              <div class="node-icon">📝</div>
+              <div class="node-badge">01 · INPUT</div>
+              <h4 class="node-title" id="pnode-1-title">Student Essay</h4>
+              <p class="node-desc" id="pnode-1-desc">Open-ended synthesis comparing EVM primitives &amp; state anchors.</p>
+            </div>
+            <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+            <div class="pipeline-node highlight">
+              <div class="node-icon">🧠</div>
+              <div class="node-badge">02 · AI AGENT</div>
+              <h4 class="node-title" id="pnode-2-title">Neural Rubric Engine</h4>
+              <p class="node-desc" id="pnode-2-desc">Autonomous LLM agent measures criteria against on-chain rubrics.</p>
+            </div>
+            <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+            <div class="pipeline-node">
+              <div class="node-icon">✍️</div>
+              <div class="node-badge">03 · CRYPTO</div>
+              <h4 class="node-title" id="pnode-3-title">EIP-712 Signature</h4>
+              <p class="node-desc" id="pnode-3-desc">Agent key signs structured payload (hash, scores, recipient address).</p>
+            </div>
+            <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+            <div class="pipeline-node highlight">
+              <div class="node-icon">⛓️</div>
+              <div class="node-badge">04 · BAS ANCHOR</div>
+              <h4 class="node-title" id="pnode-4-title">BNB Attestation</h4>
+              <p class="node-desc" id="pnode-4-desc">CredentialResolver registers attestation with immutable timestamp.</p>
+            </div>
+            <div class="pipeline-connector"><span class="connector-pulse"></span></div>
+
+            <div class="pipeline-node">
+              <div class="node-icon">🔒</div>
+              <div class="node-badge">05 · ARTIFACT</div>
+              <h4 class="node-title" id="pnode-5-title">Soulbound ERC-5192</h4>
+              <p class="node-desc" id="pnode-5-desc">Locked badge minted to learner's wallet with zero gas fees.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- QUICK PAGE JUMP GATEWAY TEASERS -->
+        <section class="section-container" id="portal-gateways">
+          <div class="section-header">
+            <div class="section-kicker">EXPLORE THE PLATFORM</div>
+            <h2 class="section-title">Dedicated App Portals</h2>
+            <p class="section-sub">
+              Access the complete suite of modular Web3 learning, AI assessment, forensic auditing, and decentralized governance.
+            </p>
+          </div>
+
+          <div class="gateways-grid">
+            <!-- Gateway 1: Courses -->
+            <a href="#/courses" class="gateway-card">
+              <div class="gateway-top">
+                <span class="gateway-icon gold">📚</span>
+                <span class="gateway-tag">MICRO-COURSES</span>
+              </div>
+              <h3 class="gateway-title">Courses Marketplace</h3>
+              <p class="gateway-desc">Modular Web3 courses with prerequisite verification chains and interactive study rooms.</p>
+              <div class="gateway-cta">Browse Courses ➔</div>
+            </a>
+
+            <!-- Gateway 2: Submit -->
+            <a href="#/submit" class="gateway-card">
+              <div class="gateway-top">
+                <span class="gateway-icon purple">🧠</span>
+                <span class="gateway-tag">AI ASSESSMENT</span>
+              </div>
+              <h3 class="gateway-title">AI Submission Studio</h3>
+              <p class="gateway-desc">Interactive essay sandbox, real-time AST token counter, dynamic radar telemetry, and EIP-712 signer.</p>
+              <div class="gateway-cta">Launch Studio ➔</div>
+            </a>
+
+            <!-- Gateway 3: Verifier -->
+            <a href="#/verify" class="gateway-card">
+              <div class="gateway-top">
+                <span class="gateway-icon emerald">⚡</span>
+                <span class="gateway-tag">PUBLIC VERIFIER</span>
+              </div>
+              <h3 class="gateway-title">Instant Verifier Sandbox</h3>
+              <p class="gateway-desc">Zero-wallet 5-tab forensic audit suite for recruiters and auditors on BNB Smart Chain.</p>
+              <div class="gateway-cta">Verify Credential ➔</div>
+            </a>
+
+            <!-- Gateway 4: Portfolio -->
+            <a href="#/portfolio" class="gateway-card">
+              <div class="gateway-top">
+                <span class="gateway-icon gold">🎓</span>
+                <span class="gateway-tag">PORTFOLIO</span>
+              </div>
+              <h3 class="gateway-title">Learner Portfolio</h3>
+              <p class="gateway-desc">Rina's decentralized credential showcase, 3-tier privacy mode, and W3C Open Badges 3.0 export.</p>
+              <div class="gateway-cta">View Portfolio ➔</div>
+            </a>
+
+            <!-- Gateway 5: Agent Hub -->
+            <a href="#/agent-hub" class="gateway-card">
+              <div class="gateway-top">
+                <span class="gateway-icon purple">🛡️</span>
+                <span class="gateway-tag">GOVERNANCE</span>
+              </div>
+              <h3 class="gateway-title">Agent Governance Hub</h3>
+              <p class="gateway-desc">Whitelisted issuer telemetry, on-chain revocation test console, and anti-compromise delisting register.</p>
+              <div class="gateway-cta">Open Governance ➔</div>
+            </a>
+          </div>
+        </section>
+
+        <!-- WHY LENCANA (TECHNICAL EDGE BENTO GRID) -->
+        <section class="section-container" id="architecture">
+          <div class="section-header">
+            <h2 class="section-title" id="bento-title">Why Lencana is Technically Differentiable</h2>
+            <p class="section-sub" id="bento-sub">
+              Closing real industry loopholes with deliberate cryptographic architecture.
+            </p>
+          </div>
+
+          <div class="bento-grid">
+            <!-- Card 1 -->
+            <div class="bento-card bento-wide">
+              <div class="bento-icon">🤖</div>
+              <h3 class="bento-title" id="bento-1-title">AI Agent as Issuer, Never Verifier</h3>
+              <p class="bento-text" id="bento-1-desc">
+                AI agents provide subjective, rich grading on essays. Verification remains 100% deterministic and static: math and
+                hashes only, never probabilistic AI.
+              </p>
+              <div class="bento-visual-diagram bento-flow">
+                <div class="bento-step-pill ai">
+                  <span class="step-pill-icon">🤖</span>
+                  <div class="step-pill-meta">
+                    <span class="pill-name">AI Domain Agent</span>
+                    <span class="pill-desc">Subjective Grading</span>
+                  </div>
+                </div>
+                <div class="bento-flow-arrow">➔</div>
+                <div class="bento-step-pill sig">
+                  <span class="step-pill-icon">✍️</span>
+                  <div class="step-pill-meta">
+                    <span class="pill-name">EIP-712 Signature</span>
+                    <span class="pill-desc">Cryptographic Hash</span>
+                  </div>
+                </div>
+                <div class="bento-flow-arrow">➔</div>
+                <div class="bento-step-pill chain">
+                  <span class="step-pill-icon">⛓️</span>
+                  <div class="step-pill-meta">
+                    <span class="pill-name">On-Chain Resolver</span>
+                    <span class="pill-desc">100% Deterministic Math</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bento-card">
+              <div class="bento-icon">🛡️</div>
+              <h3 class="bento-title" id="bento-2-title">Closing EAS Prerequisite Loopholes</h3>
+              <p class="bento-text" id="bento-2-desc">
+                Plain EAS only checks if a prerequisite attestation exists. Lencana enforces that prerequisites are alive,
+                unrevoked, unexpired, and belong to the same learner.
+              </p>
+              <div class="bento-visual-diagram bento-matrix-checks">
+                <div class="matrix-check-item pass"><span class="check-sym">✓</span><span class="check-text">Alive on Resolver</span></div>
+                <div class="matrix-check-item pass"><span class="check-sym">✓</span><span class="check-text">Unrevoked On-Chain</span></div>
+                <div class="matrix-check-item pass"><span class="check-sym">✓</span><span class="check-text">Unexpired Timestamp</span></div>
+                <div class="matrix-check-item pass"><span class="check-sym">✓</span><span class="check-text">Same Recipient Match</span></div>
+                <div class="matrix-check-item fail"><span class="check-sym">✕</span><span class="check-text">Sybil Attack Rejection</span></div>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bento-card">
+              <div class="bento-icon">🔒</div>
+              <h3 class="bento-title" id="bento-3-title">Soulbound ERC-5192 Artifacts</h3>
+              <p class="bento-text" id="bento-3-desc">
+                The verifiable credential is the signed JSON document; the Soulbound NFT is the learner’s showcase artifact.
+                Transfer, approval, and burning are strictly rejected.
+              </p>
+              <div class="bento-visual-diagram bento-circuit-box">
+                <div class="circuit-wire-flow">
+                  <span class="circuit-call">transferFrom(A, B)</span>
+                  <span class="circuit-arrow">➔</span>
+                  <span class="circuit-gate">🔒 ERC-5192 Hook</span>
+                  <span class="circuit-arrow">➔</span>
+                  <span class="circuit-revert">🛑 REVERT: Locked()</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bento-card bento-wide">
+              <div class="bento-icon">🌐</div>
+              <h3 class="bento-title" id="bento-4-title">Zero-Wallet Public Verification</h3>
+              <p class="bento-text" id="bento-4-desc">
+                Recruiters do not need crypto, MetaMask, or accounts. A single browser eth_call checks the live chain directly,
+                independent of our backend.
+              </p>
+              <div class="bento-visual-diagram bento-rpc-bridge">
+                <div class="rpc-node-item browser">
+                  <span class="rpc-badge-icon">🌐</span>
+                  <div>
+                    <span class="rpc-node-name">Recruiter Web Browser</span>
+                    <span class="rpc-node-sub">Zero Wallet / No MetaMask Required</span>
+                  </div>
+                </div>
+                <div class="rpc-wire">
+                  <span class="rpc-wire-pulse"></span>
+                  <span class="rpc-wire-label">eth_call JSON-RPC</span>
+                </div>
+                <div class="rpc-node-item node">
+                  <span class="rpc-badge-icon">🟡</span>
+                  <div>
+                    <span class="rpc-node-name">BNB Smart Chain Node</span>
+                    <span class="rpc-node-sub">Direct Read / 0 Gas Fees</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-      <div id="status" class="status" role="status" aria-live="polite"></div>
-    </section>
 
-    <details id="config" class="config">
-      <summary>Konfigurasi pembacaan (RPC &amp; address kontrak)</summary>
-      <div class="grid">
-        <label>Preset chain
-          <select id="preset"></select>
-        </label>
-        <label>URL RPC
-          <input id="cfg-rpc" spellcheck="false" />
-        </label>
-        <label>CredentialResolver
-          <input id="cfg-resolver" spellcheck="false" placeholder="0x…" />
-        </label>
-        <label>SoulboundCert
-          <input id="cfg-cert" spellcheck="false" placeholder="0x…" />
-        </label>
-        <label>BAS core (milik BAS, bukan kami)
-          <input id="cfg-bas" spellcheck="false" placeholder="0x…" />
-        </label>
-        <label>chainId yang diharapkan
-          <input id="cfg-chain" inputmode="numeric" placeholder="97" />
-        </label>
-        <label>Nama tampilan
-          <input id="cfg-label" placeholder="BNB Smart Chain Testnet" />
-        </label>
-        <div class="actions">
-          <button id="apply">Terapkan &amp; periksa ulang</button>
+      <!-- ========================================================
+           PAGE 2: COURSES (LMS DASHBOARD & STUDY ROOM)
+           ======================================================== -->
+      <div class="page-view hidden" id="page-courses">
+        <section class="section-container" id="courses">
+          <div class="section-header">
+            <div class="section-kicker" id="courses-kicker">LMS LEARNER DASHBOARD</div>
+            <h2 class="section-title" id="courses-title">Micro-Courses Marketplace &amp; Study Room</h2>
+            <p class="section-sub" id="courses-sub">
+              Curated modular courses evaluated by autonomous AI domain agents with on-chain rubrics.
+            </p>
+          </div>
+
+          <!-- Visual Prerequisite Dependency Tree -->
+          <div class="prereq-tree-panel">
+            <div class="prereq-tree-header">
+              <span class="prereq-tree-tag">ON-CHAIN DEPENDENCY GRAPH</span>
+              <h4 class="prereq-tree-heading">Cryptographic Prerequisite Enforcement</h4>
+            </div>
+            <div class="prereq-flow-visual">
+              <div class="prereq-node-box unlocked">
+                <div class="prereq-node-header">
+                  <span class="prereq-status-badge pass">UNLOCKED</span>
+                  <span class="prereq-lvl">STAGE 1</span>
+                </div>
+                <span class="prereq-node-title">Web3 Dasar 2026</span>
+                <span class="prereq-node-sub">EVM Architecture &amp; Primitives</span>
+              </div>
+
+              <div class="prereq-flow-connector">
+                <div class="prereq-wire-pulse"></div>
+                <div class="prereq-hook-badge">
+                  <span>Resolver.checkPrereq()</span>
+                </div>
+              </div>
+
+              <div class="prereq-node-box locked">
+                <div class="prereq-node-header">
+                  <span class="prereq-status-badge req">PREREQ VERIFIED</span>
+                  <span class="prereq-lvl">STAGE 2</span>
+                </div>
+                <span class="prereq-node-title">BNB Chain Security</span>
+                <span class="prereq-node-sub">Prerequisite: Web3 Dasar 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Learner Profile Card -->
+          <div class="lms-learner-card">
+            <div class="learner-profile-main">
+              <div class="learner-avatar-wrap">
+                <div class="learner-avatar-img">RO</div>
+                <span class="avatar-online-dot"></span>
+              </div>
+              <div class="learner-profile-details">
+                <div class="learner-name-row">
+                  <h3 class="learner-name" id="learner-profile-name">Rina Oktaviani</h3>
+                  <span class="learner-role-pill">LEARNER ACCOUNT</span>
+                  <span class="learner-gasless-tag">0 GAS REQUIRED</span>
+                </div>
+                <div class="learner-meta-row">
+                  <span class="learner-meta-sub" id="learner-sub-info">Web3 Architecture Track · BSC Testnet</span>
+                  <span class="meta-dot-sep">•</span>
+                  <code class="learner-addr">0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B</code>
+                </div>
+              </div>
+            </div>
+
+            <div class="learner-privacy-widget">
+              <span class="privacy-label" id="privacy-label">W3C Privacy Mode:</span>
+              <div class="privacy-toggle-group">
+                <button type="button" class="btn-privacy active" id="btn-privacy-pseudo" title="Identified by public address only. No personal plaintext stored.">🔒 Pseudonymous</button>
+                <button type="button" class="btn-privacy" id="btn-privacy-named" title="Profile IRI linked with salted identity hash.">👤 Named Profile</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Three LMS Quick Notification & Metric Cards -->
+          <div class="lms-metrics-grid">
+            <div class="lms-metric-card gold">
+              <div class="metric-icon-badge">2</div>
+              <div class="metric-copy">
+                <h4 class="metric-title" id="lms-stat-1-title">Active Enrolled Courses</h4>
+                <p class="metric-desc" id="lms-stat-1-desc">Web3 Dasar 2026 &amp; BNB Security. Final essays awaiting evaluation.</p>
+              </div>
+            </div>
+
+            <div class="lms-metric-card emerald">
+              <div class="metric-icon-badge">2</div>
+              <div class="metric-copy">
+                <h4 class="metric-title" id="lms-stat-2-title">Soulbound Badges Earned</h4>
+                <p class="metric-desc" id="lms-stat-2-desc">W3C Open Badges 3.0 attested on BAS and locked as ERC-5192 NFTs.</p>
+              </div>
+            </div>
+
+            <div class="lms-metric-card purple">
+              <div class="metric-icon-badge">3</div>
+              <div class="metric-copy">
+                <h4 class="metric-title" id="lms-stat-3-title">AI Domain Agents Online</h4>
+                <p class="metric-desc" id="lms-stat-3-desc">Whitelisted signers: Foundations, Security, Infrastructure.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Horizontal Course Bento Cards -->
+          <div class="courses-list-container">
+            <div class="courses-list-header">
+              <h3 class="courses-list-title" id="courses-list-heading">Available Micro-Courses</h3>
+              <span class="courses-count-tag" id="courses-count-tag">2 Active Courses</span>
+            </div>
+
+            <!-- Course 1 -->
+            <div class="course-bento-card">
+              <div class="course-thumb-column">
+                <img src="/assets/course_foundations.jpg" alt="Web3 Dasar" class="course-bento-thumb" />
+                <div class="course-thumb-overlay"></div>
+                <span class="course-thumb-badge gold">LEVEL: BEGINNER</span>
+              </div>
+
+              <div class="course-bento-info">
+                <div class="course-top-pills">
+                  <span class="course-badge level" id="c1-badge-lvl">2 Hours · Modular</span>
+                  <span class="course-badge sbt" id="c1-badge-sbt">Soulbound Badge</span>
+                  <span class="course-badge status-open" id="c1-badge-unlocked">✓ UNLOCKED</span>
+                </div>
+
+                <h3 class="course-bento-title" id="c1-title">Web3 Dasar 2026: Foundations &amp; Architecture</h3>
+                <p class="course-bento-desc" id="c1-desc">
+                  Understand blockchain primitives, EVM execution, and verifiable credentials. Complete an analytical essay comparing
+                  centralized certificates with on-chain attestations.
+                </p>
+
+                <div class="course-evaluator-strip">
+                  <div class="eval-agent-info">
+                    <span class="agent-chip-icon">🤖</span>
+                    <span class="agent-chip-label" id="c1-agent">AI Agent: Agent-Foundations</span>
+                    <code class="agent-chip-addr">0x8211...7DE</code>
+                  </div>
+                  <div class="course-rubric-mini">
+                    <span class="rubric-mini-tag" id="c1-rubric-tag">Rubric #0x91a7:</span>
+                    <span class="mini-chip">Depth 40%</span>
+                    <span class="mini-chip">EVM 30%</span>
+                    <span class="mini-chip">Reasoning 30%</span>
+                  </div>
+                </div>
+
+                <div class="course-bento-footer">
+                  <div class="course-stats-meta">
+                    <span class="enrolled-stat" id="c1-enrolled">👥 1,420 Enrolled</span>
+                    <span class="meta-sep">•</span>
+                    <span class="pass-stat">99.8% Pass Rate</span>
+                    <span class="meta-sep">•</span>
+                    <span class="standard-stat">W3C Open Badges 3.0</span>
+                  </div>
+                  <div class="course-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-open-study-c1">Open Study Room ➔</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Course 2 -->
+            <div class="course-bento-card">
+              <div class="course-thumb-column">
+                <img src="/assets/course_security.jpg" alt="BNB Chain Security" class="course-bento-thumb" />
+                <div class="course-thumb-overlay emerald"></div>
+                <span class="course-thumb-badge emerald">LEVEL: ADVANCED</span>
+              </div>
+
+              <div class="course-bento-info">
+                <div class="course-top-pills">
+                  <span class="course-badge level advanced" id="c2-badge-lvl">4 Hours · Advanced</span>
+                  <span class="course-badge prereq" id="c2-badge-prereq">🔒 Prerequisite: Web3 Dasar</span>
+                  <span class="course-badge status-gated">BAS PREREQUISITE CHECK</span>
+                </div>
+
+                <h3 class="course-bento-title" id="c2-title">BNB Chain Security &amp; Prerequisite Integrity</h3>
+                <p class="course-bento-desc" id="c2-desc">
+                  Master access control, resolver hooks, and prerequisite validation chains on BNB Smart Chain. Requires Web3 Dasar 2026
+                  completion to unlock.
+                </p>
+
+                <div class="course-evaluator-strip">
+                  <div class="eval-agent-info">
+                    <span class="agent-chip-icon">🛡️</span>
+                    <span class="agent-chip-label" id="c2-agent">AI Agent: Agent-Security</span>
+                    <code class="agent-chip-addr">0x3Fa9...11B</code>
+                  </div>
+                  <div class="course-rubric-mini">
+                    <span class="rubric-mini-tag" id="c2-rubric-tag">Rubric #0x42f1:</span>
+                    <span class="mini-chip">Defense 50%</span>
+                    <span class="mini-chip">Architecture 30%</span>
+                    <span class="mini-chip">Clarity 20%</span>
+                  </div>
+                </div>
+
+                <div class="course-bento-footer">
+                  <div class="course-stats-meta">
+                    <span class="enrolled-stat" id="c2-enrolled">👥 856 Enrolled</span>
+                    <span class="meta-sep">•</span>
+                    <span class="pass-stat">99.9% Pass Rate</span>
+                    <span class="meta-sep">•</span>
+                    <span class="standard-stat">ERC-5192 Soulbound</span>
+                  </div>
+                  <div class="course-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-open-study-c2">Open Study Room ➔</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================================
+           PAGE 3: SUBMIT (AI ASSESSMENT & SUBMISSION STUDIO)
+           ======================================================== -->
+      <div class="page-view hidden" id="page-submit">
+        <section class="section-container" id="ai-evaluator">
+          <div class="section-header">
+            <div class="section-kicker" id="ai-eval-kicker">LIVE NEURAL EVALUATION ENGINE</div>
+            <h2 class="section-title" id="ai-eval-title">Interactive AI Agent Evaluation Sandbox</h2>
+            <p class="section-sub" id="ai-eval-sub">
+              Watch autonomous AI agents parse open-ended essays against on-chain rubrics, score criteria, generate EIP-712
+              cryptographic proofs, and prepare Soulbound credentials in real time.
+            </p>
+          </div>
+
+          <div class="eval-sandbox-grid">
+            <!-- Left: Student Submission Terminal -->
+            <div class="eval-input-card">
+              <div class="eval-card-header">
+                <span class="eval-card-tag" id="ai-input-tag">STUDENT SUBMISSION STAGE</span>
+                <div class="eval-preset-tabs">
+                  <button type="button" class="preset-tab active" id="tab-essay-web3">Web3 Primitives</button>
+                  <button type="button" class="preset-tab" id="tab-essay-security">Reentrancy Defense</button>
+                  <button type="button" class="preset-tab" id="tab-essay-custom">Custom Essay</button>
+                </div>
+              </div>
+
+              <!-- Live AST Token Count & Rubric Strip -->
+              <div class="eval-rubric-strip">
+                <span class="rubric-strip-title" id="ai-rubric-strip-title">Active Rubric Weights:</span>
+                <span class="rubric-chip" id="chip-crit-1">Analytical Depth · 40%</span>
+                <span class="rubric-chip" id="chip-crit-2">EVM Precision · 30%</span>
+                <span class="rubric-chip" id="chip-crit-3">Architecture Defense · 30%</span>
+              </div>
+
+              <!-- Token Scanner Matrix Strip -->
+              <div class="token-matrix-strip">
+                <div class="token-matrix-top-row">
+                  <span class="token-matrix-label">ON-CHAIN ATTRIBUTES &amp; SPEC TOKENS:</span>
+                  <span class="essay-token-counter-pill" id="essay-token-count">Words: 68 · Tokens: ~85 · Rubric: 100%</span>
+                </div>
+                <div class="token-matrix-chips" id="token-matrix-chips">
+                  <span class="tok-chip" id="tok-1">EAS 1.3.0</span>
+                  <span class="tok-chip" id="tok-2">keccak256</span>
+                  <span class="tok-chip" id="tok-3">EIP-712</span>
+                  <span class="tok-chip" id="tok-4">secp256k1</span>
+                  <span class="tok-chip" id="tok-5">ERC-5192</span>
+                  <span class="tok-chip" id="tok-6">Resolver 0xe01a</span>
+                  <span class="tok-chip" id="tok-7">BSC Testnet · 97</span>
+                </div>
+              </div>
+
+              <div class="eval-ide-frame">
+                <div class="eval-ide-topbar">
+                  <div class="ide-dots">
+                    <span class="ide-dot red"></span>
+                    <span class="ide-dot yellow"></span>
+                    <span class="ide-dot green"></span>
+                  </div>
+                  <span class="ide-filename" id="ide-filename">SubmissionPayload.sol · Capstone Essay</span>
+                  <div class="ide-editor-meta">
+                    <span class="ide-chars-counter" id="ide-chars-counter">Chars: 0</span>
+                    <span class="ide-status-pill">EVM AST VALID</span>
+                  </div>
+                </div>
+                <div class="eval-editor-gutter-wrap">
+                  <div class="eval-gutter" id="eval-gutter">
+                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+                  </div>
+                  <textarea id="essay-input" spellcheck="false" rows="8"></textarea>
+                </div>
+              </div>
+
+              <div class="eval-cta-bar">
+                <button type="button" class="btn btn-ai-run" id="btn-run-ai-eval">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                  </svg>
+                  <span id="btn-run-eval-text">Run AI Agent Evaluation</span>
+                </button>
+                <div class="eval-status-flag" id="eval-status-flag">
+                  <span class="flag-dot"></span>
+                  <span id="flag-text">Ready for evaluation</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: AI Neural Reasoning Console -->
+            <div class="eval-console-card">
+              <div class="console-header">
+                <div class="agent-avatar-mini">
+                  <div class="radar-sweep"></div>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v6l4 2" />
+                  </svg>
+                </div>
+                <div class="agent-meta-group">
+                  <div class="agent-name-row">
+                    <span class="agent-title-text" id="ai-agent-console-name">Agent-Demo-EVM</span>
+                    <span class="agent-status-badge" id="ai-agent-console-status">ONLINE · WHITELISTED</span>
+                  </div>
+                  <code class="agent-key-text">Signer: 0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE</code>
+                </div>
+              </div>
+
+              <!-- Dynamic SVG Skill Radar Chart -->
+              <div class="radar-telemetry-panel">
+                <div class="radar-chart-wrapper">
+                  <svg class="radar-svg" viewBox="0 0 220 220">
+                    <polygon class="radar-grid-poly" points="110,40 176,88 151,166 69,166 44,88" />
+                    <polygon class="radar-grid-poly" points="110,58 160,94 141,152 79,152 60,94" />
+                    <polygon class="radar-grid-poly" points="110,75 143,99 130,138 90,138 77,99" />
+                    <polygon class="radar-grid-poly" points="110,93 127,105 120,124 100,124 94,105" />
+                    
+                    <line class="radar-axis" x1="110" y1="110" x2="110" y2="40" />
+                    <line class="radar-axis" x1="110" y1="110" x2="176" y2="88" />
+                    <line class="radar-axis" x1="110" y1="110" x2="151" y2="166" />
+                    <line class="radar-axis" x1="110" y1="110" x2="69" y2="166" />
+                    <line class="radar-axis" x1="110" y1="110" x2="44" y2="88" />
+
+                    <polygon id="radar-data-poly" class="radar-data-poly" points="110,88 128,102 121,126 99,126 92,102" />
+                    
+                    <circle id="radar-dot-0" class="radar-vertex-dot" cx="110" cy="88" r="3.5" />
+                    <circle id="radar-dot-1" class="radar-vertex-dot" cx="128" cy="102" r="3.5" />
+                    <circle id="radar-dot-2" class="radar-vertex-dot" cx="121" cy="126" r="3.5" />
+                    <circle id="radar-dot-3" class="radar-vertex-dot" cx="99" cy="126" r="3.5" />
+                    <circle id="radar-dot-4" class="radar-vertex-dot" cx="92" cy="102" r="3.5" />
+
+                    <text x="110" y="32" class="radar-label top" text-anchor="middle">DEPTH</text>
+                    <text x="182" y="92" class="radar-label right" text-anchor="start">EVM PRECISION</text>
+                    <text x="156" y="180" class="radar-label b-right" text-anchor="start">ARCHITECTURE</text>
+                    <text x="64" y="180" class="radar-label b-left" text-anchor="end">SECURITY</text>
+                    <text x="38" y="92" class="radar-label left" text-anchor="end">STANDARDS</text>
+                  </svg>
+                </div>
+                <div class="radar-legend-chips">
+                  <div class="legend-badge"><span class="legend-color-box active"></span><span id="radar-legend-status">Status: Ready</span></div>
+                  <div class="legend-badge"><span class="legend-color-box pass"></span><span>Pass: 70%</span></div>
+                  <div class="legend-badge"><span class="legend-color-box honors"></span><span>Honors: 90%+</span></div>
+                </div>
+              </div>
+
+              <!-- Terminal Output Window -->
+              <div class="console-terminal" id="eval-terminal-box">
+                <div class="terminal-line system" id="tline-1">[00.00s] Evaluator initialized. Model: Claude 3.5 Sonnet / Custom Weights.</div>
+                <div class="terminal-line info" id="tline-2">[00.02s] Resolver contract: 0xe01a16e50fd9d8c0ff4230874f8d8c086e811627 (Whitelisted)</div>
+                <div class="terminal-line" id="tline-3">[00.05s] Ready. Select an essay and click Run AI Agent Evaluation.</div>
+              </div>
+
+              <!-- Dynamic Scoring Meters -->
+              <div class="score-meters-container" id="score-meters-container">
+                <div class="meter-row">
+                  <div class="meter-labels">
+                    <span class="meter-name" id="lbl-meter-1">Analytical Depth (40%)</span>
+                    <span class="meter-val" id="val-meter-1">-- / 40</span>
+                  </div>
+                  <div class="meter-bar-track">
+                    <div class="meter-bar-fill" id="fill-meter-1" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="meter-row">
+                  <div class="meter-labels">
+                    <span class="meter-name" id="lbl-meter-2">EVM Technical Precision (30%)</span>
+                    <span class="meter-val" id="val-meter-2">-- / 30</span>
+                  </div>
+                  <div class="meter-bar-track">
+                    <div class="meter-bar-fill" id="fill-meter-2" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="meter-row">
+                  <div class="meter-labels">
+                    <span class="meter-name" id="lbl-meter-3">Critical Architecture Reasoning (30%)</span>
+                    <span class="meter-val" id="val-meter-3">-- / 30</span>
+                  </div>
+                  <div class="meter-bar-track">
+                    <div class="meter-bar-fill" id="fill-meter-3" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <!-- Composite Grade Card -->
+                <div class="composite-grade-box" id="composite-grade-box">
+                  <div>
+                    <span class="composite-lbl" id="lbl-composite">Overall Composite Grade</span>
+                    <div class="composite-score" id="val-composite">-- / 100</div>
+                  </div>
+                  <div class="composite-status" id="badge-composite">AWAITING EVALUATION</div>
+                </div>
+              </div>
+
+              <!-- EIP-712 Signature Box -->
+              <div class="eip712-box" id="eip712-box">
+                <div class="eip712-header">
+                  <span class="eip712-tag" id="eip712-tag">EIP-712 CRYPTOGRAPHIC PROOF</span>
+                  <span class="eip712-status" id="eip712-status">VALID ECDSA</span>
+                </div>
+                <div class="eip712-digest-row">
+                  <span class="digest-lbl">Digest Hash:</span>
+                  <code class="digest-val" id="val-eip712-digest">0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</code>
+                </div>
+                <div class="eip712-sig-row">
+                  <span class="sig-lbl">ECDSA (r, s, v):</span>
+                  <code class="sig-val" id="val-eip712-sig">r: 0x4e2... s: 0x71b... v: 27</code>
+                </div>
+              </div>
+
+              <div class="console-action-footer">
+                <button type="button" class="btn btn-verify-live" id="btn-verify-generated-eval">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                  </svg>
+                  <span id="btn-verify-eval-text">Verify This Credential Live on BNB Chain ➔</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================================
+           PAGE 4: VERIFY (INSTANT CREDENTIAL VERIFIER SANDBOX)
+           ======================================================== -->
+      <div class="page-view hidden" id="page-verify">
+        <section class="section-container" id="verifier">
+          <div class="section-header">
+            <h2 class="section-title" id="verifier-title">Instant Credential Verifier Sandbox</h2>
+            <p class="section-sub" id="verifier-sub">
+              Paste any credential identifier below or click a quick sample to run live verification against BNB Smart Chain.
+            </p>
+          </div>
+
+          <div id="banner" class="banner hidden"></div>
+
+          <div class="ask-card">
+            <div class="ask-header">
+              <label for="input" id="lbl-input">Input Identifier</label>
+              <span class="input-hint" id="input-hint">credentialHash, attestation UID, tokenId, or address</span>
+            </div>
+
+            <div class="input-wrapper">
+              <textarea
+                id="input"
+                rows="2"
+                spellcheck="false"
+                placeholder="0x… (credentialHash or attestation UID), decimal number (tokenId), or 0x… (address)"
+              ></textarea>
+            </div>
+
+            <div class="actions-bar">
+              <div class="primary-actions">
+                <button id="go" class="btn btn-primary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <span id="btn-go-text">Verify</span>
+                </button>
+                <button id="clear" class="btn btn-ghost">Clear</button>
+                <button id="share" class="btn btn-ghost">Share Link</button>
+              </div>
+
+              <!-- Quick Sample Test Pills -->
+              <div class="sample-pills">
+                <span class="sample-label" id="sample-label">Quick Samples:</span>
+                <button type="button" id="sample-valid" class="sample-pill valid">Valid Credential</button>
+                <button type="button" id="sample-revoked" class="sample-pill revoked">Revoked Credential</button>
+                <button type="button" id="sample-delisted" class="sample-pill delisted">Delisted Issuer</button>
+                <button type="button" id="fill-sample" class="sample-pill format">Format Check</button>
+              </div>
+            </div>
+
+            <div id="status" class="status-msg" role="status" aria-live="polite"></div>
+          </div>
+
+          <!-- Reader Configuration Drawer -->
+          <details id="config" class="config-panel">
+            <summary id="cfg-summary">Reader Configuration (RPC &amp; Contract Addresses)</summary>
+            <div class="config-grid">
+              <div class="cfg-field">
+                <label for="preset" id="lbl-preset">Network Preset</label>
+                <select id="preset"></select>
+              </div>
+              <div class="cfg-field">
+                <label for="cfg-rpc" id="lbl-rpc">RPC URL</label>
+                <input id="cfg-rpc" spellcheck="false" />
+              </div>
+              <div class="cfg-field">
+                <label for="cfg-resolver" id="lbl-resolver">CredentialResolver Address</label>
+                <input id="cfg-resolver" spellcheck="false" placeholder="0x…" />
+              </div>
+              <div class="cfg-field">
+                <label for="cfg-cert" id="lbl-cert">SoulboundCert Address</label>
+                <input id="cfg-cert" spellcheck="false" placeholder="0x…" />
+              </div>
+              <div class="cfg-field">
+                <label for="cfg-bas" id="lbl-bas">BAS Core (EAS 1.3.0 deployment)</label>
+                <input id="cfg-bas" spellcheck="false" placeholder="0x…" />
+              </div>
+              <div class="cfg-field">
+                <label for="cfg-chain" id="lbl-chain">Expected Chain ID</label>
+                <input id="cfg-chain" inputmode="numeric" placeholder="97" />
+              </div>
+              <div class="cfg-field">
+                <label for="cfg-label" id="lbl-label">Display Network Name</label>
+                <input id="cfg-label" placeholder="BNB Smart Chain Testnet" />
+              </div>
+              <div class="cfg-field action-field">
+                <button id="apply" class="btn btn-secondary">Apply &amp; Re-verify</button>
+              </div>
+            </div>
+            <p class="config-note" id="cfg-note">
+              The chain ID returned by the RPC is always checked against the expected chain ID. If mismatched, results are
+              strictly rejected — reading another chain is zero evidence.
+            </p>
+          </details>
+
+          <!-- Live Results Output Container -->
+          <main id="out" class="results-container"></main>
+
+          <!-- INTERACTIVE TAMPER & FORGERY DEFENSE PLAYGROUND (SCENE 3) -->
+          <div class="tamper-playground-section" id="tamper-playground">
+            <div class="tamper-header-bar">
+              <div>
+                <span class="tamper-kicker" id="tamper-kicker">CRYPTOGRAPHIC INTEGRITY &amp; FORGERY DEFENSE PLAYGROUND</span>
+                <h3 class="tamper-title" id="tamper-title">Real-Time Tamper &amp; Attack Vector Playground</h3>
+                <p class="tamper-sub" id="tamper-sub">
+                  Simulate adversarial attacks against Lencana’s cryptographic primitives. Watch EVM smart contract revert guards and SHA-256/Keccak digests defend the protocol live.
+                </p>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-reset-tamper">
+                ↺ <span id="btn-reset-tamper-text">Reset Simulator</span>
+              </button>
+            </div>
+
+            <!-- 4 Attack Simulation Cards Grid -->
+            <div class="tamper-cards-grid">
+              <!-- Attack Card 1 -->
+              <div class="tamper-card" id="tcard-1">
+                <div class="tcard-header">
+                  <span class="tcard-icon">🔏</span>
+                  <span class="tcard-badge" id="tcard-badge-1">SHA-256 / KECCAK</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-1">Attack 1: Document Tampering (Grade 93 ➔ 99)</h4>
+                <p class="tcard-desc" id="tcard-desc-1">
+                  Adversary modifies an essay score or name in the JSON-LD payload. Result: Keccak256 digests mismatch and ECDSA signature fails.
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-1">
+                    Simulate 1-Byte Grade Tamper
+                  </button>
+                </div>
+              </div>
+
+              <!-- Attack Card 2 -->
+              <div class="tamper-card" id="tcard-2">
+                <div class="tcard-header">
+                  <span class="tcard-icon">🔒</span>
+                  <span class="tcard-badge red" id="tcard-badge-2">ERC-5192 SOULBOUND</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-2">Attack 2: ERC-5192 Token Theft / Transfer</h4>
+                <p class="tcard-desc" id="tcard-desc-2">
+                  Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with ErrLocked(1).
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-2">
+                    Simulate Soulbound Token Theft
+                  </button>
+                </div>
+              </div>
+
+              <!-- Attack Card 3 -->
+              <div class="tamper-card" id="tcard-3">
+                <div class="tcard-header">
+                  <span class="tcard-icon">🤖</span>
+                  <span class="tcard-badge orange" id="tcard-badge-3">RESOLVER WHITELIST</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-3">Attack 3: Unapproved Rogue Agent Issuance</h4>
+                <p class="tcard-desc" id="tcard-desc-3">
+                  Malicious bot attempts to mint or attest without whitelisting. Result: CredentialResolver reverts with NotAnIssuer(0xBadBot).
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-3">
+                    Simulate Rogue Agent Impersonation
+                  </button>
+                </div>
+              </div>
+
+              <!-- Attack Card 4 -->
+              <div class="tamper-card" id="tcard-4">
+                <div class="tcard-header">
+                  <span class="tcard-icon">⛓️</span>
+                  <span class="tcard-badge purple" id="tcard-badge-4">PREREQUISITE HOOK</span>
+                </div>
+                <h4 class="tcard-title" id="tcard-title-4">Attack 4: Revoked Prerequisite Chaining</h4>
+                <p class="tcard-desc" id="tcard-desc-4">
+                  Attacker attempts to claim Level 2 credential while Level 1 prerequisite was revoked. Result: Reverts with PrerequisiteRevoked().
+                </p>
+                <div class="tcard-action">
+                  <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-4">
+                    Simulate Revoked Prerequisite Attack
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated EVM Stack Trace Terminal -->
+            <div class="tamper-terminal-card">
+              <div class="tamper-terminal-header">
+                <div class="ide-dots">
+                  <span class="ide-dot red"></span>
+                  <span class="ide-dot yellow"></span>
+                  <span class="ide-dot green"></span>
+                </div>
+                <span class="tamper-terminal-title" id="tamper-terminal-title">Simulated EVM Execution Trace &amp; Call Stack</span>
+                <span class="tamper-revert-pill" id="tamper-revert-pill">STATUS: SYSTEM READY</span>
+              </div>
+              <div class="tamper-terminal-body" id="tamper-terminal-body">
+                <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0xe01a...) and SoulboundCert (0x96f6...).</div>
+                <div class="tamper-line">[Ready] Select an attack scenario above to test on-chain cryptographic reverts.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- B2B RECRUITER BULK VERIFICATION & x402 PROTOCOL CONSOLE (SCENE 4) -->
+          <div class="x402-console-section" id="x402-console">
+            <div class="x402-header-bar">
+              <div>
+                <span class="x402-kicker" id="x402-kicker">RECRUITER BULK VERIFICATION &amp; x402 PROTOCOL</span>
+                <h3 class="x402-title" id="x402-title">B2B Recruiter Bulk Audit &amp; x402 Micropayments</h3>
+                <p class="x402-sub" id="x402-sub">
+                  Enterprise ATS &amp; recruiter protocol for auditing hundreds of applicant credentials in milliseconds via HTTP 402 Payment Required micropayments.
+                </p>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-simulate-x402">
+                ⚡ <span id="btn-simulate-x402-text">Simulate 10-Candidate Batch Audit (0.0005 BNB)</span>
+              </button>
+            </div>
+
+            <!-- Protocol Philosophy Callout -->
+            <div class="x402-philosophy-card">
+              <div class="philosophy-icon">⚖️</div>
+              <div class="philosophy-content">
+                <span class="philosophy-kicker" id="x402-philosophy-kicker">CORE PROTOCOL PRINCIPLE</span>
+                <p class="philosophy-text" id="x402-philosophy-text">
+                  We charge for convenience, never for truth. Public verification is free, wallet-free, forever. x402 micropayments directly reimburse platform issuance gas without debt ledgers.
+                </p>
+              </div>
+            </div>
+
+            <!-- 4-Step Protocol Handshake Stepper -->
+            <div class="x402-flow-card">
+              <div class="x402-flow-step done" id="xstep-1">
+                <div class="flow-step-num">1</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-1-name">Client Batch Request</strong>
+                  <code class="flow-step-code">POST /api/v1/verify/batch [10 hashes]</code>
+                </div>
+                <span class="flow-status-pill done">READY</span>
+              </div>
+
+              <div class="flow-arrow-down">➔</div>
+
+              <div class="x402-flow-step" id="xstep-2">
+                <div class="flow-step-num">2</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-2-name">HTTP 402 Gateway Challenge</strong>
+                  <code class="flow-step-code">WWW-Authenticate: x402 amount=0.0005 tBNB</code>
+                </div>
+                <span class="flow-status-pill" id="xstep-2-status">IDLE</span>
+              </div>
+
+              <div class="flow-arrow-down">➔</div>
+
+              <div class="x402-flow-step" id="xstep-3">
+                <div class="flow-step-num">3</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-3-name">EIP-712 Micro-Authorization</strong>
+                  <code class="flow-step-code">PAYMENT: eip712-allowance-0x82...</code>
+                </div>
+                <span class="flow-status-pill" id="xstep-3-status">IDLE</span>
+              </div>
+
+              <div class="flow-arrow-down">➔</div>
+
+              <div class="x402-flow-step" id="xstep-4">
+                <div class="flow-step-num">4</div>
+                <div class="flow-step-content">
+                  <strong class="flow-step-name" id="xstep-4-name">Batch Verification Output (200 OK)</strong>
+                  <code class="flow-step-code" id="xstep-4-meta">10 Candidates: 8 VALID · 1 REVOKED · 1 DELISTED</code>
+                </div>
+                <span class="flow-status-pill" id="xstep-4-status">IDLE</span>
+              </div>
+            </div>
+
+            <!-- Recruiter Batch Candidates Table -->
+            <div class="x402-results-card" id="x402-batch-results">
+              <div class="batch-results-header">
+                <span class="batch-results-title">Audited Candidates (Batch #91A7-B4)</span>
+                <span class="batch-results-stat" id="x402-candidates-audited">10 Candidates Audited: 8 VALID · 1 REVOKED · 1 DELISTED</span>
+              </div>
+              <div class="batch-candidates-list" id="batch-candidates-list">
+                <!-- 10 Candidates rendered dynamically via main.ts -->
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================================
+           PAGE 5: PORTFOLIO (LEARNER CREDENTIAL SHOWCASE)
+           ======================================================== -->
+      <div class="page-view hidden" id="page-portfolio">
+        <section class="section-container" id="portfolio">
+          <div class="section-header">
+            <div class="section-kicker" id="portfolio-kicker">LEARNER CREDENTIAL SHOWCASE</div>
+            <h2 class="section-title" id="portfolio-title">Decentralized Learning Portfolio</h2>
+            <p class="section-sub" id="portfolio-sub">
+              Tamper-proof career achievements verified on BNB Smart Chain. Export standard W3C JSON-LD or share directly with recruiters.
+            </p>
+          </div>
+
+          <!-- Learner Profile Header Card with 3-Tier Privacy Controller -->
+          <div class="portfolio-profile-card">
+            <div class="portfolio-profile-left">
+              <div class="portfolio-avatar">RO</div>
+              <div class="portfolio-details">
+                <div class="portfolio-name-row">
+                  <h3 class="portfolio-name" id="portfolio-learner-name">Rina Oktaviani</h3>
+                  <span class="portfolio-verified-badge">✓ ON-CHAIN VERIFIED</span>
+                </div>
+                <p class="portfolio-sub-info" id="portfolio-learner-sub">Learner · Web3 Architecture Track · BSC Testnet 97</p>
+                <div class="portfolio-wallet-row">
+                  <span class="portfolio-wallet-label">Primary Wallet:</span>
+                  <code class="portfolio-wallet-addr">0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B</code>
+                </div>
+              </div>
+            </div>
+
+            <div class="portfolio-privacy-box">
+              <span class="privacy-box-title">W3C Privacy Mode &amp; Identity Disclosure:</span>
+              <div class="privacy-tier-pills">
+                <button type="button" class="btn-tier active" id="btn-tier-1" title="Public wallet only">🔒 Tier 1: Pseudonymous</button>
+                <button type="button" class="btn-tier" id="btn-tier-2" title="Named profile">👤 Tier 2: Named Profile</button>
+                <button type="button" class="btn-tier" id="btn-tier-3" title="Salted DID Hash">🛡️ Tier 3: Provable DID</button>
+              </div>
+              <p class="privacy-box-warning" id="portfolio-privacy-warning">
+                Notice: On-chain recipient addresses are immutable. Privacy tiers govern metadata presentation and public resolution.
+              </p>
+            </div>
+          </div>
+
+          <!-- Soulbound Badges Showcase Gallery -->
+          <div class="portfolio-badges-section">
+            <div class="portfolio-section-bar">
+              <h3 class="portfolio-section-heading" id="portfolio-badges-heading">Earned Soulbound Badges</h3>
+              <span class="badges-count-pill">1 Active · 1 In Progress</span>
+            </div>
+
+            <div class="portfolio-badges-grid">
+              <!-- Badge 1: Web3 Dasar 2026 -->
+              <div class="portfolio-badge-card active-badge">
+                <div class="badge-card-media">
+                  <img src="/assets/course_foundations.jpg" alt="Web3 Dasar" class="badge-card-img" />
+                  <div class="badge-media-overlay"></div>
+                  <div class="badge-seal-badge gold">🔒 ERC-5192 LOCKED</div>
+                </div>
+
+                <div class="badge-card-content">
+                  <div class="badge-card-tags">
+                    <span class="badge-tag gold">93/100 HONORS PASS</span>
+                    <span class="badge-tag standard">W3C Open Badges 3.0</span>
+                  </div>
+
+                  <h4 class="badge-card-title" id="portfolio-b1-title">Web3 Dasar 2026: Foundations &amp; Architecture</h4>
+                  <p class="badge-card-desc" id="portfolio-b1-desc">
+                    Evaluated by Agent-Foundations · Rubric #0x91a7 · Score 93/100 (Honors Pass) · BAS Attestation #0x0b95...7fa
+                  </p>
+
+                  <div class="badge-attestation-meta">
+                    <div class="meta-item">
+                      <span class="meta-label">Attestation UID:</span>
+                      <code class="meta-val">0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</code>
+                    </div>
+                    <div class="meta-item">
+                      <span class="meta-label">Evaluator Signer:</span>
+                      <code class="meta-val">0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE</code>
+                    </div>
+                  </div>
+
+                  <div class="badge-card-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-verify-rina-badge">Verify On-Chain ➔</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-open-diploma-modal">📜 View Diploma</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-portfolio-linkedin">💼 LinkedIn</button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-portfolio-x">𝕏 Share</button>
+                    <button type="button" class="btn btn-ghost btn-sm" id="btn-portfolio-embed">📋 Embed</button>
+                    <a href="https://testnet.bscscan.com/address/0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" id="btn-view-bscscan">BscScan ↗</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Badge 2: BNB Chain Security -->
+              <div class="portfolio-badge-card in-progress-badge">
+                <div class="badge-card-media">
+                  <img src="/assets/course_security.jpg" alt="BNB Security" class="badge-card-img" />
+                  <div class="badge-media-overlay emerald"></div>
+                  <div class="badge-seal-badge emerald">🔒 PREREQUISITE UNLOCKED</div>
+                </div>
+
+                <div class="badge-card-content">
+                  <div class="badge-card-tags">
+                    <span class="badge-tag emerald">ENROLLED IN STUDY ROOM</span>
+                    <span class="badge-tag standard">ERC-5192 Prereq Chain</span>
+                  </div>
+
+                  <h4 class="badge-card-title" id="portfolio-b2-title">BNB Chain Security &amp; Prerequisite Integrity</h4>
+                  <p class="badge-card-desc" id="portfolio-b2-desc">
+                    Prerequisite unlocked · Currently enrolled in Study Room · Awaiting capstone defense essay submission
+                  </p>
+
+                  <div class="badge-attestation-meta">
+                    <div class="meta-item">
+                      <span class="meta-label">Required Prereq:</span>
+                      <code class="meta-val">0x0b95...7fa (Web3 Dasar 2026 - Verified on BAS)</code>
+                    </div>
+                    <div class="meta-item">
+                      <span class="meta-label">Evaluator Signer:</span>
+                      <code class="meta-val">0x3Fa9D4220b30C8aE463b15E8bB8361099238111B</code>
+                    </div>
+                  </div>
+
+                  <div class="badge-card-actions">
+                    <a href="#/courses" class="btn btn-secondary btn-sm">Open Study Room ➔</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- W3C Open Badges 3.0 Raw JSON-LD Inspector -->
+          <div class="jsonld-inspector-panel">
+            <div class="jsonld-header-bar">
+              <div>
+                <span class="jsonld-badge-kicker">W3C STANDARD ARTIFACT</span>
+                <h4 class="jsonld-title">W3C Open Badges 3.0 Raw JSON-LD Inspector</h4>
+              </div>
+              <div class="jsonld-btn-group">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-copy-jsonld">Copy JSON-LD</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-download-jsonld">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  <span>Download .json</span>
+                </button>
+              </div>
+            </div>
+
+            <pre class="jsonld-code-view"><code id="raw-jsonld-code">{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"
+  ],
+  "id": "urn:uuid:0b95c83b-9bd9-4923-ab29-9446e9c9fd72",
+  "type": ["VerifiableCredential", "OpenBadgeCredential"],
+  "name": "Web3 Dasar 2026: Foundations & Architecture",
+  "issuer": {
+    "id": "did:pkh:eip155:97:0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE",
+    "type": "Profile",
+    "name": "Lencana Agent-Foundations",
+    "url": "https://lencana.io"
+  },
+  "validFrom": "2026-09-21T00:00:00Z",
+  "credentialSubject": {
+    "id": "did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B",
+    "type": ["AchievementSubject"],
+    "achievement": {
+      "id": "urn:lencana:course:web3-dasar-2026",
+      "type": ["Achievement"],
+      "name": "Web3 Dasar 2026: Foundations & Architecture",
+      "description": "Mastery of EVM state machine, Keccak256 digests, and decentralized verifiable credentials.",
+      "criteria": {
+        "narrative": "Completed capstone synthesis essay evaluated by autonomous AI agent against on-chain rubric #0x91a7."
+      }
+    }
+  },
+  "evidence": [{
+    "id": "urn:eas:bsc-testnet:0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa",
+    "type": ["AttestationEvidence"],
+    "schema": "0x2c4e... (BAS Attestation Schema)",
+    "score": "93/100 (Honors)"
+  }],
+  "proof": {
+    "type": "EthereumEip712Signature2021",
+    "created": "2026-09-21T00:00:00Z",
+    "verificationMethod": "did:pkh:eip155:97:0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE#blockchainAccountId",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "0x4e2...71b...1b"
+  }
+}</code></pre>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================================
+           PAGE 6: AGENT HUB (ISSUER & PROTOCOL GOVERNANCE)
+           ======================================================== -->
+      <div class="page-view hidden" id="page-agent-hub">
+        <section class="section-container" id="agent-hub">
+          <div class="section-header">
+            <div class="section-kicker" id="agent-hub-kicker">ISSUER &amp; PROTOCOL GOVERNANCE</div>
+            <h2 class="section-title" id="agent-hub-title">AI Agent &amp; Protocol Governance Hub</h2>
+            <p class="section-sub" id="agent-hub-sub">
+              Monitor whitelisted domain agents, cryptographic revocation status lists, and anti-compromise delisting registers.
+            </p>
+          </div>
+
+          <!-- Whitelisted Agent Dossiers -->
+          <div class="agent-hub-roster-wrap">
+            <div class="agent-hub-bar">
+              <h3 class="agent-hub-heading" id="agent-hub-agents-heading">Whitelisted Evaluator Agents</h3>
+              <span class="agent-hub-status-tag">3 Signers Whitelisted On-Chain</span>
+            </div>
+
+            <div class="agent-roster-grid">
+              <!-- Agent Card 1: Foundations -->
+              <div class="agent-card">
+                <div class="agent-card-top">
+                  <div class="agent-portrait-wrap">
+                    <img src="/assets/agent_foundations.jpg" alt="Agent-Foundations" class="agent-portrait-img" />
+                    <div class="agent-pulse-ring gold"></div>
+                  </div>
+                  <div class="agent-gauge-badge">
+                    <div class="agent-gauge-wrap">
+                      <svg class="radial-gauge-svg" viewBox="0 0 64 64">
+                        <circle class="gauge-bg" cx="32" cy="32" r="28" />
+                        <circle class="gauge-fill gold" cx="32" cy="32" r="28" stroke-dasharray="175.9" stroke-dashoffset="0.35" />
+                      </svg>
+                      <span class="gauge-pct">99.8%</span>
+                    </div>
+                    <span class="gauge-label">Consensus</span>
+                  </div>
+                </div>
+
+                <div class="agent-header-meta">
+                  <span class="agent-whitelist-pill" id="roster-pill-1">● WHITELISTED</span>
+                  <div class="agent-mini-eq">
+                    <span class="mini-bar b1"></span>
+                    <span class="mini-bar b2"></span>
+                    <span class="mini-bar b3"></span>
+                    <span class="mini-bar b4"></span>
+                  </div>
+                </div>
+
+                <h3 class="agent-card-name" id="agent-1-name">Agent-Foundations</h3>
+                <span class="agent-card-role" id="agent-1-role">EVM Architecture &amp; Blockchain Primitives</span>
+                <p class="agent-card-desc" id="agent-1-desc">
+                  Grades essay submissions on cryptographic primitives, state transitions, and verifiable credentials. Authorized signer for Web3 Dasar 2026.
+                </p>
+
+                <div class="agent-spec-chips">
+                  <span class="spec-chip">Rubric #0x91a7</span>
+                  <span class="spec-chip">EIP-712 Signer</span>
+                  <span class="spec-chip">Gasless Mint</span>
+                </div>
+
+                <div class="agent-card-meta">
+                  <div class="agent-key-chip">
+                    <span>Signer:</span>
+                    <code>0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE</code>
+                  </div>
+                  <div class="agent-stat-pill" id="agent-1-stat">1,420 Essays Evaluated · 99.8% Consensus</div>
+                </div>
+              </div>
+
+              <!-- Agent Card 2: Security -->
+              <div class="agent-card">
+                <div class="agent-card-top">
+                  <div class="agent-portrait-wrap">
+                    <img src="/assets/agent_security.jpg" alt="Agent-Security" class="agent-portrait-img" />
+                    <div class="agent-pulse-ring emerald"></div>
+                  </div>
+                  <div class="agent-gauge-badge">
+                    <div class="agent-gauge-wrap">
+                      <svg class="radial-gauge-svg" viewBox="0 0 64 64">
+                        <circle class="gauge-bg" cx="32" cy="32" r="28" />
+                        <circle class="gauge-fill emerald" cx="32" cy="32" r="28" stroke-dasharray="175.9" stroke-dashoffset="0.18" />
+                      </svg>
+                      <span class="gauge-pct">99.9%</span>
+                    </div>
+                    <span class="gauge-label">Consensus</span>
+                  </div>
+                </div>
+
+                <div class="agent-header-meta">
+                  <span class="agent-whitelist-pill ok" id="roster-pill-2">● WHITELISTED</span>
+                  <div class="agent-mini-eq">
+                    <span class="mini-bar b1"></span>
+                    <span class="mini-bar b2"></span>
+                    <span class="mini-bar b3"></span>
+                    <span class="mini-bar b4"></span>
+                  </div>
+                </div>
+
+                <h3 class="agent-card-name" id="agent-2-name">Agent-Security</h3>
+                <span class="agent-card-role" id="agent-2-role">Smart Contract Defense &amp; Prerequisite Integrity</span>
+                <p class="agent-card-desc" id="agent-2-desc">
+                  Analyzes vulnerability mitigations, reentrancy guards, and prerequisite tree dependencies. Signs advanced security certifications.
+                </p>
+
+                <div class="agent-spec-chips">
+                  <span class="spec-chip">Reentrancy Guard</span>
+                  <span class="spec-chip">Prereq Graph</span>
+                  <span class="spec-chip">AST Analysis</span>
+                </div>
+
+                <div class="agent-card-meta">
+                  <div class="agent-key-chip">
+                    <span>Signer:</span>
+                    <code>0x3Fa9D4220b30C8aE463b15E8bB8361099238111B</code>
+                  </div>
+                  <div class="agent-stat-pill" id="agent-2-stat">856 Audits Evaluated · 99.9% Consensus</div>
+                </div>
+              </div>
+
+              <!-- Agent Card 3: Infrastructure -->
+              <div class="agent-card">
+                <div class="agent-card-top">
+                  <div class="agent-portrait-wrap">
+                    <img src="/assets/agent_infra.jpg" alt="Agent-Infrastructure" class="agent-portrait-img" />
+                    <div class="agent-pulse-ring purple"></div>
+                  </div>
+                  <div class="agent-gauge-badge">
+                    <div class="agent-gauge-wrap">
+                      <svg class="radial-gauge-svg" viewBox="0 0 64 64">
+                        <circle class="gauge-bg" cx="32" cy="32" r="28" />
+                        <circle class="gauge-fill purple" cx="32" cy="32" r="28" stroke-dasharray="175.9" stroke-dashoffset="0" />
+                      </svg>
+                      <span class="gauge-pct">100%</span>
+                    </div>
+                    <span class="gauge-label">Lock Rate</span>
+                  </div>
+                </div>
+
+                <div class="agent-header-meta">
+                  <span class="agent-whitelist-pill" id="roster-pill-3">● WHITELISTED</span>
+                  <div class="agent-mini-eq">
+                    <span class="mini-bar b1"></span>
+                    <span class="mini-bar b2"></span>
+                    <span class="mini-bar b3"></span>
+                    <span class="mini-bar b4"></span>
+                  </div>
+                </div>
+
+                <h3 class="agent-card-name" id="agent-3-name">Agent-Infrastructure</h3>
+                <span class="agent-card-role" id="agent-3-role">BAS Resolvers &amp; ERC-5192 Soulbound Locks</span>
+                <p class="agent-card-desc" id="agent-3-desc">
+                  Validates on-chain attestation schema parameters and enforces soulbound non-transferability rules before badge minting.
+                </p>
+
+                <div class="agent-spec-chips">
+                  <span class="spec-chip">BAS Schema #0x2c</span>
+                  <span class="spec-chip">ERC-5192 Hook</span>
+                  <span class="spec-chip">State Registries</span>
+                </div>
+
+                <div class="agent-card-meta">
+                  <div class="agent-key-chip">
+                    <span>Signer:</span>
+                    <code>0x9B12c8E4b1A55d49603Eb5F3B4075bA78A5244AA</code>
+                  </div>
+                  <div class="agent-stat-pill" id="agent-3-stat">640 Badges Anchored · 100% Lock Rate</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Governance Simulation Consoles (Revocation & Anti-Compromise) -->
+          <div class="governance-consoles-grid">
+            <!-- Console 1: Cryptographic Revocation Console -->
+            <div class="gov-console-card">
+              <div class="gov-card-top">
+                <span class="gov-card-icon red">🛑</span>
+                <span class="gov-card-kicker">NON-REPUDIABLE REGISTRY</span>
+              </div>
+              <h3 class="gov-card-heading" id="agent-hub-revocation-heading">On-Chain Cryptographic Revocation Console</h3>
+              <p class="gov-card-sub" id="agent-hub-revocation-sub">
+                Demonstrate non-repudiation: simulate revoking an attestation UID on BAS via CredentialResolver.
+              </p>
+              <div class="gov-card-box">
+                <div class="gov-box-row">
+                  <span class="gov-row-lbl">Target Attestation:</span>
+                  <code class="gov-row-val">0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2</code>
+                </div>
+                <div class="gov-box-row">
+                  <span class="gov-row-lbl">Attester Guard:</span>
+                  <span class="gov-row-status ok">attestation.attester == msg.sender</span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-full" id="btn-hub-test-revoke">
+                Simulate Revoke Attestation #0xf34b...
+              </button>
+            </div>
+
+            <!-- Console 2: Anti-Compromise Delisting Register -->
+            <div class="gov-console-card">
+              <div class="gov-card-top">
+                <span class="gov-card-icon orange">🛡️</span>
+                <span class="gov-card-kicker">KEY COMPROMISE FAILSAFE</span>
+              </div>
+              <h3 class="gov-card-heading" id="agent-hub-delist-heading">Anti-Compromise Delisting Register</h3>
+              <p class="gov-card-sub" id="agent-hub-delist-sub">
+                If an AI agent key is ever compromised, the platform contract immediately delists it, blocking new attestations while preserving past verified credentials.
+              </p>
+              <div class="gov-card-box">
+                <div class="gov-box-row">
+                  <span class="gov-row-lbl">Compromised Signer:</span>
+                  <code class="gov-row-val">0x4d0ffdf32d174796a2c8bbe38e739c26ec6e205e6cdf48409f7240d28552df1c</code>
+                </div>
+                <div class="gov-box-row">
+                  <span class="gov-row-lbl">On-Chain State:</span>
+                  <span class="gov-row-status warn">DELISTED · Future Issues Blocked</span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-full" id="btn-hub-test-delist">
+                Simulate Delisting Compromised Agent-B
+              </button>
+            </div>
+          </div>
+
+          <!-- W3C Bitstring Status List Section (Iteration 12) -->
+          <div class="bitstring-console-section">
+            <div class="bitstring-header-bar">
+              <div>
+                <span class="bitstring-kicker">W3C SPECIFICATION · ON-CHAIN DERIVED</span>
+                <h3 class="bitstring-heading" id="bitstring-heading">W3C Bitstring Status List (Chain-State Derived)</h3>
+                <p class="bitstring-sub" id="bitstring-sub">
+                  Visual representation of BitstringStatusList2021 where revocation &amp; suspension bits are computed directly from live smart contract storage, guaranteeing zero out-of-sync discrepancies.
+                </p>
+              </div>
+              <div class="bitstring-controls">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-toggle-bitstring">
+                  <span id="btn-toggle-bitstring-text">Simulate State Flip</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="bitstring-legend-bar">
+              <span class="bit-legend-item"><span class="legend-dot valid"></span> <span id="bit-leg-valid">Bit 0: Valid / Active (Unrevoked)</span></span>
+              <span class="bit-legend-item"><span class="legend-dot revoked"></span> <span id="bit-leg-revoked">Bit 1: Permanently Revoked</span></span>
+              <span class="bit-legend-item"><span class="legend-dot suspended"></span> <span id="bit-leg-suspended">Bit 1: Suspended / Delisted</span></span>
+            </div>
+
+            <div class="bitstring-matrix-card">
+              <div class="bitstring-matrix-meta">
+                <span>Bitstring Size: <strong>256 Bits (32 Bytes)</strong></span>
+                <span id="bitstring-status-summary">Active: <strong>254 Valid</strong> · <strong class="red">1 Revoked</strong> · <strong class="amber">1 Suspended</strong></span>
+              </div>
+
+              <!-- 16x16 Interactive Bit Matrix -->
+              <div class="bitstring-grid" id="bitstring-grid"></div>
+
+              <div class="bitstring-encoded-row">
+                <span class="encoded-lbl" id="bitstring-encoded-lbl">Live Gzip Multibase String:</span>
+                <code class="encoded-val" id="bitstring-multibase-val">uH4sICG3bN2UAA2JpdHN0cmluZwDFkMENgDAMBPt3f1f3...7fe7f7f7</code>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- INTERACTIVE STUDY ROOM MODAL (GLOBAL APP COMPONENT) -->
+      <div class="study-modal hidden" id="study-modal" role="dialog" aria-modal="true">
+        <div class="study-modal-backdrop" id="study-modal-backdrop"></div>
+        <div class="study-modal-dialog">
+          <div class="study-modal-header">
+            <div>
+              <span class="study-modal-badge" id="study-modal-kicker">STUDY ROOM · INTERACTIVE LESSON</span>
+              <h3 class="study-modal-title" id="study-modal-title">Web3 Dasar 2026: Foundations &amp; Architecture</h3>
+            </div>
+            <button type="button" class="study-modal-close" id="btn-close-study-modal" aria-label="Close">&times;</button>
+          </div>
+
+          <div class="study-modal-body">
+            <div class="syllabus-tabs-strip">
+              <button type="button" class="syllabus-tab active" id="tab-mod-1">Module 1: Primitives</button>
+              <button type="button" class="syllabus-tab" id="tab-mod-2">Module 2: BAS Attestations</button>
+              <button type="button" class="syllabus-tab" id="tab-mod-3">Module 3: Capstone Essay Task</button>
+            </div>
+
+            <div class="study-lesson-content" id="study-lesson-content">
+              <!-- Dynamically populated via JavaScript -->
+            </div>
+          </div>
+
+          <div class="study-modal-footer">
+            <div class="study-footer-meta" id="study-footer-status">
+              <span class="study-dot"></span>
+              <span id="study-footer-text">Module 1 of 3 · Self-Paced</span>
+            </div>
+            <button type="button" class="btn btn-primary" id="btn-study-proceed-eval">Proceed to AI Essay Evaluation ➔</button>
+          </div>
         </div>
       </div>
-      <p class="note">
-        chainId dari RPC selalu dibandingkan dengan nilai yang kamu harapkan. Kalau tidak cocok,
-        halaman menolak menampilkan hasil — pembacaan dari chain lain bukan bukti apa pun.
-      </p>
-    </details>
 
-    <main id="out"></main>
+      <!-- WALLET CONNECT MODAL -->
+      <div class="wallet-modal hidden" id="wallet-modal" role="dialog" aria-modal="true">
+        <div class="wallet-modal-backdrop" id="wallet-modal-backdrop"></div>
+        <div class="wallet-modal-dialog">
+          <div class="wallet-modal-header">
+            <div>
+              <span class="wallet-modal-kicker">WEB3 AUTHENTICATION</span>
+              <h3 class="wallet-modal-title" id="wallet-modal-title">Sign in with Browser / Wallet</h3>
+            </div>
+            <button type="button" class="wallet-modal-close" id="btn-close-wallet-modal" aria-label="Close">&times;</button>
+          </div>
 
-    <footer>
-      <p>
-        Kontrak: <code>CredentialResolver</code> (whitelist penerbit + rantai prasyarat) dan
-        <code>SoulboundCert</code> (artefak ERC-5192), di atas <strong>BAS</strong> — fork EAS 1.3.0
-        yang sudah ter-deploy di BNB Smart Chain. Kredensialnya sendiri adalah dokumen
-        <em>Open Badges 3.0 / W3C Verifiable Credential</em> yang ditandatangani penerbit; chain
-        hanya menyimpan registry penerbit, status yang tidak bisa disembunyikan, dan bukti waktu.
-      </p>
-    </footer>
+          <p class="wallet-modal-sub" id="wallet-modal-sub">
+            Connect your Web3 browser wallet or use the 1-Click Demo Learner account to explore verifiable credentials on BNB Chain.
+          </p>
+
+          <div class="wallet-options-list">
+            <!-- Option 1: Browser Extension (MetaMask / Binance / Rabby) -->
+            <button type="button" class="wallet-option-card" id="btn-opt-browser-wallet">
+              <div class="wallet-opt-icon bnb">
+                <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                  <path d="M16 4L22.5 10.5L16 17L9.5 10.5L16 4ZM16 18.5L20 22.5L16 26.5L12 22.5L16 18.5ZM24 12L28 16L24 20L20 16L24 12ZM8 12L12 16L8 20L4 16L8 12Z" fill="#F0B90B" />
+                </svg>
+              </div>
+              <div class="wallet-opt-info">
+                <span class="wallet-opt-title" id="wallet-opt-browser-title">Browser Extension Wallet</span>
+                <span class="wallet-opt-desc" id="wallet-opt-browser-desc">MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet</span>
+              </div>
+              <span class="wallet-opt-arrow">➔</span>
+            </button>
+
+            <!-- Option 2: 1-Click Demo Learner -->
+            <button type="button" class="wallet-option-card demo" id="btn-opt-demo-wallet">
+              <div class="wallet-opt-icon demo">🎓</div>
+              <div class="wallet-opt-info">
+                <span class="wallet-opt-title" id="wallet-opt-demo-title">1-Click Demo Learner (rina.bnb)</span>
+                <span class="wallet-opt-desc" id="wallet-opt-demo-desc">Instant testing without installing extensions (0x5cA3...7c3B)</span>
+              </div>
+              <span class="wallet-opt-arrow">➔</span>
+            </button>
+          </div>
+
+          <div class="wallet-modal-status hidden" id="wallet-modal-status"></div>
+        </div>
+      </div>
+
+      <!-- CELEBRATORY SOULBOUND MINT MODAL -->
+      <div class="mint-modal hidden" id="mint-modal" role="dialog" aria-modal="true">
+        <div class="mint-modal-backdrop" id="mint-modal-backdrop"></div>
+        <canvas class="mint-confetti-canvas" id="mint-confetti-canvas"></canvas>
+        <div class="mint-modal-dialog">
+          <div class="mint-glow-ring"></div>
+          
+          <div class="mint-badge-showcase">
+            <div class="mint-3d-badge-container">
+              <img src="/assets/ai_badge.jpg" alt="Soulbound Badge" class="mint-badge-img" />
+              <div class="mint-scanlines"></div>
+              <div class="mint-hologram-shimmer"></div>
+            </div>
+          </div>
+
+          <div class="mint-content-stack">
+            <div class="mint-tag-row">
+              <span class="mint-tag-pill sbt" id="mint-tag-sbt">🔒 ERC-5192 NON-TRANSFERABLE</span>
+              <span class="mint-tag-pill honors" id="mint-tag-honors">93/100 HONORS PASS</span>
+              <span class="mint-tag-pill gasless" id="mint-tag-gasless">0 GAS FOR LEARNER</span>
+            </div>
+
+            <h3 class="mint-modal-title" id="mint-modal-title">Soulbound Credential Minted on BNB Chain!</h3>
+            <p class="mint-modal-sub" id="mint-modal-sub">
+              Your capstone essay passed autonomous AI evaluation. Open Badges 3.0 anchored via EAS CredentialResolver.
+            </p>
+
+            <div class="mint-receipt-box">
+              <div class="receipt-row">
+                <span class="receipt-lbl">Recipient Wallet:</span>
+                <code class="receipt-val" id="mint-receipt-recipient">0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B</code>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-lbl">Attestation UID:</span>
+                <code class="receipt-val" id="mint-receipt-uid">0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</code>
+              </div>
+              <div class="receipt-row">
+                <span class="receipt-lbl">BAS Resolver Hook:</span>
+                <code class="receipt-val">CredentialResolver.sol (0xe01a...1627)</code>
+              </div>
+            </div>
+
+            <div class="mint-modal-actions">
+              <button type="button" class="btn btn-primary" id="btn-mint-goto-verify">Audit Live in Verifier Sandbox ➔</button>
+              <button type="button" class="btn btn-secondary" id="btn-mint-goto-portfolio">View in Learner Portfolio ➔</button>
+              <button type="button" class="btn btn-ghost" id="btn-close-mint-modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXECUTIVE PRINTABLE DIPLOMA MODAL (ITERATION 12) -->
+      <div class="diploma-modal hidden" id="diploma-modal" role="dialog" aria-modal="true">
+        <div class="diploma-modal-backdrop" id="diploma-modal-backdrop"></div>
+        <div class="diploma-modal-dialog">
+          <!-- Top Control Bar (Hidden in Print) -->
+          <div class="diploma-toolbar no-print">
+            <div class="diploma-toolbar-left">
+              <span class="diploma-toolbar-tag" id="diploma-toolbar-kicker">BNB SMART CHAIN · OFFICIAL SOULBOUND DIPLOMA</span>
+            </div>
+            <div class="diploma-toolbar-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="btn-print-diploma">
+                🖨️ <span id="btn-print-diploma-text">Print / Save as PDF</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-diploma-linkedin">
+                💼 <span id="btn-diploma-linkedin-text">Add to LinkedIn</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-diploma-x">
+                𝕏 <span id="btn-diploma-x-text">Share on X</span>
+              </button>
+              <button type="button" class="btn-close-modal" id="btn-close-diploma-modal" aria-label="Close">✕</button>
+            </div>
+          </div>
+
+          <!-- Printable Diploma Sheet -->
+          <div class="diploma-sheet" id="diploma-sheet">
+            <div class="diploma-border-outer">
+              <div class="diploma-border-inner">
+                <div class="diploma-corner-ornament top-left"></div>
+                <div class="diploma-corner-ornament top-right"></div>
+                <div class="diploma-corner-ornament bottom-left"></div>
+                <div class="diploma-corner-ornament bottom-right"></div>
+
+                <!-- Header Brand Crest -->
+                <div class="diploma-header">
+                  <div class="diploma-crest">
+                    <svg class="diploma-bnb-diamond" viewBox="0 0 48 48" width="48" height="48">
+                      <path fill="#F0B90B" d="M24 0L31.2 7.2L12.4 26L5.2 18.8L24 0Z" />
+                      <path fill="#F0B90B" d="M36.8 12.8L44 20L24 40L16.8 32.8L36.8 12.8Z" />
+                      <path fill="#F0B90B" d="M24 14.4L29.6 20L24 25.6L18.4 20L24 14.4Z" />
+                      <path fill="#F0B90B" d="M48 24L40.8 31.2L35.2 25.6L42.4 18.4L48 24Z" />
+                      <path fill="#F0B90B" d="M0 24L7.2 16.8L12.8 22.4L5.6 29.6L0 24Z" />
+                      <path fill="#F0B90B" d="M24 48L16.8 40.8L35.6 22L42.8 29.2L24 48Z" />
+                    </svg>
+                  </div>
+                  <div class="diploma-org-meta">
+                    <span class="diploma-org-name">LENCANA DECENTRALIZED PROTOCOL</span>
+                    <span class="diploma-network-stamp">BNB SMART CHAIN • TESTNET 97</span>
+                  </div>
+                  <h2 class="diploma-main-heading">SOULBOUND DIPLOMA OF ACHIEVEMENT</h2>
+                  <div class="diploma-heading-separator"></div>
+                </div>
+
+                <!-- Recipient & Conferred Block -->
+                <div class="diploma-body">
+                  <p class="diploma-presented-line" id="diploma-presented-to">THIS SOULBOUND ACADEMIC CREDENTIAL IS PROUDLY CONFERRED UPON</p>
+                  <h1 class="diploma-recipient-name" id="diploma-recipient-name">Rina Oktaviani</h1>
+                  <code class="diploma-recipient-addr" id="diploma-recipient-addr">did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B</code>
+
+                  <p class="diploma-completion-line" id="diploma-completion-text">
+                    for successfully defending the capstone curriculum and demonstrating verified expertise in
+                  </p>
+                  <h3 class="diploma-course-name" id="diploma-course-title">Web3 Dasar 2026: Foundations &amp; Architecture</h3>
+                  <p class="diploma-criteria-desc" id="diploma-criteria-text">
+                    Evaluated by autonomous domain AI agent against on-chain Rubric #0x91a7 with composite score 93/100 (Honors Pass).
+                    Anchored to BNB Attestation Service and minted as a non-transferable Soulbound ERC-5192 Token.
+                  </p>
+                </div>
+
+                <!-- Footer Cryptographic Proofs & QR Bar -->
+                <div class="diploma-footer">
+                  <!-- Evaluator Signer -->
+                  <div class="diploma-col left">
+                    <div class="diploma-sign-line"></div>
+                    <span class="diploma-sign-title" id="diploma-issuer-heading">AUTONOMOUS EVALUATOR</span>
+                    <strong class="diploma-sign-name" id="diploma-issuer-agent">Agent-Foundations</strong>
+                    <code class="diploma-sign-addr">0x8211...7DE</code>
+                    <span class="diploma-sign-sub" id="diploma-evaluator-meta">EIP-712 · Rubric #0x91a7</span>
+                  </div>
+
+                  <!-- Central Cryptographic QR Code -->
+                  <div class="diploma-col center">
+                    <div class="diploma-qr-container" id="diploma-qr-container">
+                      <div class="diploma-qr-placeholder" id="diploma-qr-svg"></div>
+                    </div>
+                    <span class="diploma-qr-caption" id="diploma-qr-caption">SCAN TO VERIFY ON-CHAIN</span>
+                    <span class="diploma-qr-hash">UID: 0x0b95c8...67fa</span>
+                  </div>
+
+                  <!-- Protocol Registrar -->
+                  <div class="diploma-col right">
+                    <div class="diploma-seal-emboss">
+                      <div class="seal-inner">
+                        <span class="seal-text-top">BNB ATTESTATION SERVICE</span>
+                        <span class="seal-icon">🔒</span>
+                        <span class="seal-text-bot">ERC-5192 SOULBOUND</span>
+                      </div>
+                    </div>
+                    <span class="diploma-sign-title" id="diploma-anchor-heading">PROTOCOL REGISTRAR</span>
+                    <strong class="diploma-sign-name">CredentialResolver.sol</strong>
+                    <code class="diploma-sign-addr">0xe01a...1627</code>
+                    <span class="diploma-sign-sub" id="diploma-chain-meta">BSC Testnet · Block #41,921,804</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. FOOTER -->
+      <footer class="app-footer">
+        <div class="footer-container">
+          <p id="ui-footer">
+            Contracts: <code>CredentialResolver</code> (issuer whitelist + prerequisite validation) and
+            <code>SoulboundCert</code> (ERC-5192 soulbound badge) deployed on top of <strong>BAS</strong> — BNB Attestation
+            Service (fork of EAS 1.3.0) on BNB Smart Chain. Open Badges 3.0 / W3C Verifiable Credentials signed off-chain; the
+            blockchain enforces immutable registries and non-repudiable status lists.
+          </p>
+          <div class="footer-meta">
+            <span>Built for Indonesia Web3 Hackathon 2026</span>
+            <span>·</span>
+            <span>Consumer Apps (AI Agents) on BNB Chain</span>
+          </div>
+        </div>
+      </footer>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
