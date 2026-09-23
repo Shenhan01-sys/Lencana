@@ -20,13 +20,15 @@ This closes decision **D24.1 = A** (see `../vault/02-architecture.md`).
 | `src/anchor.js` | `timestamp()` of the bitstring hash on BAS, then reads it back |
 | `src/grade.js` | the rubric gate, including the **right to refuse**: `INSUFFICIENT_EVIDENCE`, `AWAITING_JUDGE`, `PARTIAL_JUDGEMENT`, `GRADED`. Reports a mechanical score and a final score separately and never merges them silently — `finalScore` stays `null` until a `judge` (model or human) is injected |
 | `src/delegation.js` | the **EIP-712 delegation path**: the agent signs an attestation, the platform broadcasts it. Refuses to return a signature that does not recover to the agent's own address, and builds the single and batch request shapes separately (they are different structs, not one struct minus an array) |
+| `src/x402.js` | the HTTP side of payment: the `402` requirements body, `X-PAYMENT` (base64 JSON), the two client signatures (EIP-2612 on the token, Permit2-with-witness on the proxy — **two domains that differ: one carries `version`, one does not**), and settlement as facilitator. It refuses to broadcast a payment that does not name our split, our token and our price — otherwise the server would pay gas to move someone else's money to an arbitrary address |
 | `src/issuer.js` | the agent's Ed25519 document key and its issuer document |
 | `src/sign.js` | `DataIntegrityProof` + `eddsa-rdfc-2022` sign/verify, and the JSON-LD document loader |
-| `src/server.js` | serves `/issuers/:slug`, `/credentials/0x…`, `/credentials/status/{revocation,suspension}`, `/healthz` |
+| `src/server.js` | serves `/issuers/:slug`, `/credentials/0x…`, `/credentials/status/{revocation,suspension}`, `/healthz`, and **`POST /verify` (paid)**. Runs under `tsx` because the verifier it calls lives in `../web/src` with extensionless imports |
 | `scripts/issue.js` | **one command**: score → on-chain attestation (agent's own key) → signed document → status lists → bitstring hash anchored to BAS |
 | `scripts/delegate.js` | **`npm run delegate`** — the same issuance over `attestByDelegation`: ids derived from the course material, agent signs, **platform pays the gas**, then everything is read back from the chain including the agent's unchanged balance. Adopts the credential into the watched set at the moment it is issued, so the served list can never quietly omit it. `--dry-run` stops before broadcasting and says which claims it therefore has not made |
 | `scripts/anchor.js` | **`npm run anchor`** — witnesses the list currently being served. Idempotent: an already-timestamped hash costs no gas. See the measured limit below: it witnesses **bits**, not membership |
-| `scripts/check.js` | 45 checks: document shape, signature, status lists, chain-derived bits, the index invariant, and bitstring determinism under re-render and under reordered input |
+| `scripts/x402-check.js` | **`npm run x402`** — a real client against the real server: `402` without payment, then payment, settlement, split, and the report; the money numbers are re-read from the chain rather than trusted from the response. Needs the server up and `DEMO_TOKEN_ADDRESS` + `SPLIT_ADDRESS` in `app/.env` |
+| `scripts/check.js` | 49 checks: document shape, signature, status lists, chain-derived bits, the index invariant, and bitstring determinism under re-render and under reordered input |
 | `scripts/serve-probe.js` | 20 checks: the same over HTTP, against the running server (the bit-level ones need `EXPECT_*`; without them it prints the group it skipped) |
 
 ## Who owns the bit number
