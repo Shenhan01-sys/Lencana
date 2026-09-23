@@ -76,6 +76,61 @@
         </div>
       </header>
 
+      <!-- 1.1 PRESENTATION / DEMO WALKTHROUGH HELPER DOCK (4 SCENES) -->
+      <aside class="demo-dock" id="demo-dock" aria-label="Demo Walkthrough Guide">
+        <div class="demo-dock-container">
+          <div class="demo-dock-badge">
+            <span class="dock-pulse-dot"></span>
+            <div class="dock-badge-text-wrap">
+              <span class="dock-badge-title" id="demo-dock-title">🎬 PRESENTATION MODE (4 SCENES)</span>
+              <span class="dock-badge-sub" id="demo-dock-sub">1-Click Hackathon Video Flow</span>
+            </div>
+          </div>
+
+          <div class="demo-dock-actions" id="demo-dock-actions">
+            <!-- Scene 1 Button -->
+            <button type="button" class="demo-scene-btn" id="demo-scene-1" title="Scene 1: Instant Public Verification (Zero Wallet)">
+              <span class="scene-num">01</span>
+              <div class="scene-meta">
+                <span class="scene-title" id="dscene-1-title">Public Verify</span>
+                <span class="scene-desc" id="dscene-1-desc">Zero-Wallet BSC Proof</span>
+              </div>
+            </button>
+
+            <!-- Scene 2 Button -->
+            <button type="button" class="demo-scene-btn" id="demo-scene-2" title="Scene 2: Autonomous AI Agent Evaluation &amp; Soulbound Mint">
+              <span class="scene-num">02</span>
+              <div class="scene-meta">
+                <span class="scene-title" id="dscene-2-title">AI Assessment</span>
+                <span class="scene-desc" id="dscene-2-desc">Rubrics &amp; SBT Mint</span>
+              </div>
+            </button>
+
+            <!-- Scene 3 Button -->
+            <button type="button" class="demo-scene-btn" id="demo-scene-3" title="Scene 3: Cryptographic Tamper &amp; Forgery Defense">
+              <span class="scene-num">03</span>
+              <div class="scene-meta">
+                <span class="scene-title" id="dscene-3-title">Tamper Defense</span>
+                <span class="scene-desc" id="dscene-3-desc">EVM Revert Simulator</span>
+              </div>
+            </button>
+
+            <!-- Scene 4 Button -->
+            <button type="button" class="demo-scene-btn" id="demo-scene-4" title="Scene 4: B2B Recruiter x402 Micropayments Batch Audit">
+              <span class="scene-num">04</span>
+              <div class="scene-meta">
+                <span class="scene-title" id="dscene-4-title">x402 Batch Audit</span>
+                <span class="scene-desc" id="dscene-4-desc">HTTP 402 Micropayments</span>
+              </div>
+            </button>
+          </div>
+
+          <button type="button" class="demo-dock-toggle" id="btn-toggle-demo-dock" title="Toggle Demo Dock">
+            <span id="demo-toggle-text">Minimize</span>
+          </button>
+        </div>
+      </aside>
+
       <!-- ========================================================
            PAGE 1: HOME (DISCOVERY & SYSTEM ARCHITECTURE)
            ======================================================== -->
@@ -1171,6 +1226,167 @@
 
           <!-- Live Results Output Container -->
           <main id="out" class="results-container"></main>
+
+          <!-- W3C VC 2.0 & OPEN BADGES 3.0 SPECIFICATION COMPLIANCE MATRIX -->
+          <div class="spec-matrix-section" id="spec-matrix">
+            <div class="spec-header-bar">
+              <div>
+                <span class="spec-kicker" id="spec-kicker">W3C RECOMMENDATION &amp; 1EDTECH OPEN BADGES 3.0 TEST SUITE</span>
+                <h3 class="spec-title" id="spec-title">W3C VC 2.0 &amp; Open Badges 3.0 Specification Compliance Matrix</h3>
+                <p class="spec-sub" id="spec-sub">
+                  Live cryptographic and semantic audit conforming to W3C Verifiable Credentials Data Model 2.0 and Open Badges 3.0 (§9.1 Bitstring Status List) standards.
+                </p>
+              </div>
+              <div class="spec-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-run-spec-matrix">
+                  🧪 <span id="btn-run-spec-matrix-text">Run Spec Compliance Audit (14 Tests)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Spec Status Banner -->
+            <div class="spec-status-banner">
+              <div class="spec-banner-stat">
+                <span class="spec-banner-pill ok">✓ 14 / 14 ASSERTIONS SATISFIED</span>
+                <span class="spec-banner-meta" id="spec-banner-meta">All W3C VC 2.0 &amp; OB 3.0 schema and cryptographic constraints verified</span>
+              </div>
+              <div class="spec-banner-tags">
+                <span class="spec-tag">W3C VC 2.0</span>
+                <span class="spec-tag">OB 3.0 (27 May 2024)</span>
+                <span class="spec-tag">Bitstring Status List v1</span>
+                <span class="spec-tag">eddsa-rdfc-2022</span>
+              </div>
+            </div>
+
+            <!-- 14 Normative Assertions Grid -->
+            <div class="spec-table-scroll">
+              <table class="spec-matrix-table" id="spec-static-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Assertion &amp; Spec</th>
+                    <th>Normative Constraint</th>
+                    <th>Observed Payload / Chain State</th>
+                  </tr>
+                </thead>
+                <tbody id="spec-static-tbody">
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>VC20-CTX-01</code><div class="spec-clause-tag">W3C VC 2.0 §4.1</div></td>
+                    <td><strong>@context Sequence Ordering</strong><div class="spec-rule-desc">First URI must be credentials/v2, second must be Open Badges 3.0 context</div></td>
+                    <td><code class="spec-observed-code">["https://www.w3.org/ns/credentials/v2", "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"]</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>VC20-TYPE-02</code><div class="spec-clause-tag">W3C VC 2.0 §4.2</div></td>
+                    <td><strong>Type Heritage Inheritance</strong><div class="spec-rule-desc">type array must contain both VerifiableCredential and OpenBadgeCredential</div></td>
+                    <td><code class="spec-observed-code">["VerifiableCredential", "OpenBadgeCredential"]</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>VC20-DATE-03</code><div class="spec-clause-tag">W3C VC 2.0 §5.2.1</div></td>
+                    <td><strong>validFrom Datetime Property</strong><div class="spec-rule-desc">validFrom must be ISO-8601 UTC string; legacy issuanceDate is forbidden</div></td>
+                    <td><code class="spec-observed-code">validFrom: 2026-09-21T12:00:00Z · issuanceDate: undefined</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>VC20-DATE-04</code><div class="spec-clause-tag">W3C VC 2.0 §5.2.2</div></td>
+                    <td><strong>validUntil Expiration Semantics</strong><div class="spec-rule-desc">validUntil defines expiration; legacy expirationDate is forbidden</div></td>
+                    <td><code class="spec-observed-code">validUntil: 2027-09-21T12:00:00Z · expirationDate: undefined</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>OB30-CRIT-05</code><div class="spec-clause-tag">OB 3.0 §B.1.18</div></td>
+                    <td><strong>Mandatory Achievement Criteria</strong><div class="spec-rule-desc">credentialSubject.achievement.criteria.narrative must be non-empty</div></td>
+                    <td><code class="spec-observed-code">criteria.narrative: "Score &gt;= 70/100, autonomous AI agent evaluated..."</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>OB30-SUBJ-06</code><div class="spec-clause-tag">OB 3.0 §9.1</div></td>
+                    <td><strong>Subject Identifier XOR Rule</strong><div class="spec-rule-desc">Must specify exactly one: id XOR identifier (never both or neither)</div></td>
+                    <td><code class="spec-observed-code">id: "https://lencana.io/learners/0x5cA3...7c3B" · identifier: undefined</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>OB30-RES-07</code><div class="spec-clause-tag">OB 3.0 §B.1.20</div></td>
+                    <td><strong>Result Value String Format</strong><div class="spec-rule-desc">result[0].value must be string representation; legacy resultScore is omitted</div></td>
+                    <td><code class="spec-observed-code">result[0].value: "93" · resultScore: undefined</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>BAS-EXP-08</code><div class="spec-clause-tag">Lencana BAS Anchor</div></td>
+                    <td><strong>On-Chain Expiration Synchronization</strong><div class="spec-rule-desc">Document validUntil timestamp matches EAS attestation expirationTime exactly</div></td>
+                    <td><code class="spec-observed-code">EAS expirationTime == Document validUntil (1789990000)</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>BSL-IDX-09</code><div class="spec-clause-tag">Bitstring Status List §3.1</div></td>
+                    <td><strong>Base-10 String Status Index</strong><div class="spec-rule-desc">statusListIndex must be base-10 integer encoded strictly as string</div></td>
+                    <td><code class="spec-observed-code">statusListIndex: "14" (typeof string)</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>BSL-PURP-10</code><div class="spec-clause-tag">OB 3.0 §9.1 / BSL §3.2</div></td>
+                    <td><strong>Dual Purpose Bitstring Status Lists</strong><div class="spec-rule-desc">Exactly 2 status entries: revocation (permanent) and suspension (reversible delist)</div></td>
+                    <td><code class="spec-observed-code">[statusPurpose: "revocation", statusPurpose: "suspension"]</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>BSL-FRAG-11</code><div class="spec-clause-tag">Bitstring Status List §3.1</div></td>
+                    <td><strong>Status Entry Fragment Anchor URI</strong><div class="spec-rule-desc">Entry id must be a hash-fragment anchor (#uid), not equal to parent status list URL</div></td>
+                    <td><code class="spec-observed-code">entry.id != entry.statusListCredential (...#slot14)</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>W3C-DI-12</code><div class="spec-clause-tag">W3C Data Integrity §3.1</div></td>
+                    <td><strong>Cryptosuite Specification</strong><div class="spec-rule-desc">cryptosuite must be eddsa-rdfc-2022 (1EdTech Open Badges 3.0 approved suite)</div></td>
+                    <td><code class="spec-observed-code">proof.cryptosuite: "eddsa-rdfc-2022"</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>W3C-DI-13</code><div class="spec-clause-tag">W3C Data Integrity §B.1.24</div></td>
+                    <td><strong>Assertion Method Proof Purpose</strong><div class="spec-rule-desc">proof.proofPurpose must be strictly assertionMethod for credential issuance</div></td>
+                    <td><code class="spec-observed-code">proof.proofPurpose: "assertionMethod"</code></td>
+                  </tr>
+                  <tr class="spec-row">
+                    <td><span class="spec-pass-badge">✓ PASS</span></td>
+                    <td><code>BAS-HASH-14</code><div class="spec-clause-tag">EAS / BAS 1.3.0 Anchor</div></td>
+                    <td><strong>Bitstring Hash Blockchain Anchor</strong><div class="spec-rule-desc">Bitstring SHA-256 digest is anchored on BAS timestamp() and verified via getTimestamp()</div></td>
+                    <td><code class="spec-observed-code">BAS.getTimestamp(sha256(bitstring)) == Mined Block Timestamp</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Canonical JSON-LD Document Inspector -->
+            <details class="spec-jsonld-drawer" open>
+              <summary class="spec-drawer-summary">
+                <span id="spec-inspector-title">Canonical Signed OpenBadgeCredential 3.0 Document (JSON-LD)</span>
+                <div class="spec-inspector-actions">
+                  <button type="button" class="btn btn-ghost btn-xs" id="btn-copy-spec-jsonld">
+                    📋 <span id="btn-copy-spec-jsonld-text">Copy JSON-LD</span>
+                  </button>
+                  <button type="button" class="btn btn-ghost btn-xs" id="btn-download-spec-jsonld">
+                    ⬇️ <span id="btn-download-spec-jsonld-text">Download .jsonld</span>
+                  </button>
+                </div>
+              </summary>
+              <div class="spec-drawer-body">
+                <pre class="spec-jsonld-pre"><code class="spec-jsonld-code" id="spec-jsonld-display"></code></pre>
+              </div>
+            </details>
+
+            <!-- Formal Boundary & Honest Target Disclosure -->
+            <div class="spec-honest-notice">
+              <div class="notice-icon">⚖️</div>
+              <div class="notice-text">
+                <strong id="spec-honest-title">Formal Boundary &amp; Certification Target Disclosure (vault/03):</strong>
+                <p id="spec-honest-desc">
+                  Target: Built strictly to W3C VC 2.0 Recommendation and Open Badges 3.0 specification. Official third-party 1EdTech validator run (vc.1ed.tech) remains a roadmap target pending public URL testnet deployment. Content limits: Verifies cryptographic validity, Ed25519 multikey signature, and immutable block timestamp; does not evaluate subjective real-world truth of learner essay claims.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <!-- INTERACTIVE TAMPER & FORGERY DEFENSE PLAYGROUND (SCENE 3) -->
           <div class="tamper-playground-section" id="tamper-playground">

@@ -1477,6 +1477,29 @@ function updateStaticText() {
   setText('xstep-4-name', dict.x402Console.step4Label)
   setText('x402-candidates-audited', dict.x402Console.candidatesAudited)
 
+  // Demo Mode Dock (Iteration 14)
+  setText('demo-dock-title', dict.demoMode.title)
+  setText('dscene-1-title', dict.demoMode.scene1Btn)
+  setText('dscene-1-desc', dict.demoMode.scene1Desc)
+  setText('dscene-2-title', dict.demoMode.scene2Btn)
+  setText('dscene-2-desc', dict.demoMode.scene2Desc)
+  setText('dscene-3-title', dict.demoMode.scene3Btn)
+  setText('dscene-3-desc', dict.demoMode.scene3Desc)
+  setText('dscene-4-title', dict.demoMode.scene4Btn)
+  setText('dscene-4-desc', dict.demoMode.scene4Desc)
+
+  // Spec Compliance & Interoperability Section (Iteration 14)
+  setText('spec-kicker', dict.specCompliance.kicker)
+  setText('spec-title', dict.specCompliance.title)
+  setText('spec-sub', dict.specCompliance.sub)
+  setText('btn-run-spec-matrix-text', dict.specCompliance.btnRunAudit)
+  setText('btn-copy-spec-jsonld-text', dict.specCompliance.btnCopyJsonLd)
+  setText('btn-download-spec-jsonld-text', dict.specCompliance.btnDownloadJsonLd)
+  setText('spec-banner-meta', dict.specCompliance.bannerMeta)
+  setText('spec-inspector-title', dict.specCompliance.inspectorTitle)
+  setText('spec-honest-title', dict.specCompliance.honestTitle)
+  setText('spec-honest-desc', dict.specCompliance.honestDisclaimer)
+
   // Footer & Brand Sub
   setText('brand-sub', `— ${dict.tagline}`)
   setText('ui-footer', dict.footer)
@@ -1866,6 +1889,265 @@ function wire() {
 
   // B2B Recruiter Bulk Audit & x402 Protocol Wiring (Iteration 13)
   $('btn-simulate-x402')?.addEventListener('click', simulateX402Batch)
+
+  // Demo Walkthrough Dock & Spec Matrix Wiring (Iteration 14)
+  setupDemoDock()
+  initSpecMatrix()
+}
+
+// ========================================================
+// ITERATION 14: PRESENTATION / DEMO MODE (4 SCENES)
+// ========================================================
+function setupDemoDock() {
+  const dock = $('demo-dock')
+  const toggleBtn = $('btn-toggle-demo-dock')
+  const toggleText = $('demo-toggle-text')
+
+  toggleBtn?.addEventListener('click', () => {
+    if (!dock) return
+    const isCollapsed = dock.classList.toggle('collapsed')
+    if (toggleText) {
+      toggleText.textContent = isCollapsed
+        ? (currentLang === 'en' ? 'Expand' : 'Buka')
+        : (currentLang === 'en' ? 'Minimize' : 'Sembunyikan')
+    }
+  })
+
+  // Scene 1: Instant Public Verification
+  $('demo-scene-1')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    inputEl.value = SAMPLE_HASHES.valid
+    run()
+    setTimeout(() => {
+      outEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 200)
+  })
+
+  // Scene 2: Autonomous AI Agent Evaluation
+  $('demo-scene-2')?.addEventListener('click', () => {
+    window.location.hash = '#/submit'
+    const tabWeb3 = $('tab-essay-web3')
+    const tabSec = $('tab-essay-security')
+    const tabCust = $('tab-essay-custom')
+    ;[tabWeb3, tabSec, tabCust].forEach((t) => t?.classList.remove('active'))
+    tabWeb3?.classList.add('active')
+    const essayInput = $('essay-input') as HTMLTextAreaElement | null
+    if (essayInput) {
+      essayInput.value = ESSAY_PRESETS.web3
+      updateEssayWordCount()
+    }
+    setTimeout(() => {
+      const submitWorkspace = $('submit-workspace')
+      if (submitWorkspace) {
+        submitWorkspace.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+      simulateAiEvaluation()
+    }, 250)
+  })
+
+  // Scene 3: Cryptographic Tamper Defense
+  $('demo-scene-3')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    setTimeout(() => {
+      const tamperSec = $('tamper-playground')
+      if (tamperSec) {
+        tamperSec.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+      simulateAttack(1)
+    }, 200)
+  })
+
+  // Scene 4: B2B Recruiter x402 Micropayments
+  $('demo-scene-4')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    setTimeout(() => {
+      const x402Sec = $('x402-console')
+      if (x402Sec) {
+        x402Sec.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+      simulateX402Batch()
+    }, 200)
+  })
+}
+
+// ========================================================
+// ITERATION 14: W3C VC 2.0 & OB 3.0 SPEC MATRIX
+// ========================================================
+const CANONICAL_DEMO_JSONLD = {
+  '@context': [
+    'https://www.w3.org/ns/credentials/v2',
+    'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
+  ],
+  id: 'https://lencana.io/credentials/0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa',
+  type: ['VerifiableCredential', 'OpenBadgeCredential'],
+  name: 'Web3 Foundations & EAS Attestation Architecture',
+  description: 'Official on-chain verified learning credential issued via Lencana CredentialResolver on BNB Smart Chain.',
+  issuer: {
+    id: 'https://lencana.io/issuers/agent-foundations',
+    type: 'Profile',
+    name: 'Agent-Foundations (Lencana AI Issuer)',
+    url: 'https://lencana.io/agents/agent-foundations',
+  },
+  validFrom: '2026-09-21T12:00:00Z',
+  validUntil: '2027-09-21T12:00:00Z',
+  credentialSubject: {
+    id: 'https://lencana.io/learners/0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
+    type: 'AchievementSubject',
+    achievement: {
+      id: 'https://lencana.io/achievements/web3-dasar-2026',
+      type: ['Achievement'],
+      name: 'Web3 Foundations & EAS Attestation Architecture',
+      criteria: {
+        id: 'https://lencana.io/criteria/web3-dasar-2026',
+        type: 'Criteria',
+        narrative: 'Score >= 70/100, autonomous AI agent evaluated essay rubric, live EAS schema verification.',
+      },
+    },
+    result: [
+      {
+        id: 'https://lencana.io/results/web3-dasar-2026/0x0b95c83b',
+        type: ['Result'],
+        resultDescription: 'https://lencana.io/criteria/web3-dasar-2026#scale',
+        value: '93',
+        achievedLevel: 'Honors Pass',
+      },
+    ],
+  },
+  credentialStatus: [
+    {
+      id: 'https://lencana.io/credentials/status/revocation#slot14',
+      type: 'BitstringStatusListEntry',
+      statusPurpose: 'revocation',
+      statusListIndex: '14',
+      statusListCredential: 'https://lencana.io/credentials/status/revocation',
+    },
+    {
+      id: 'https://lencana.io/credentials/status/suspension#slot14',
+      type: 'BitstringStatusListEntry',
+      statusPurpose: 'suspension',
+      statusListIndex: '14',
+      statusListCredential: 'https://lencana.io/credentials/status/suspension',
+    },
+  ],
+  proof: {
+    type: 'DataIntegrityProof',
+    cryptosuite: 'eddsa-rdfc-2022',
+    created: '2026-09-21T12:00:00Z',
+    verificationMethod: 'https://lencana.io/issuers/agent-foundations#key-1',
+    proofPurpose: 'assertionMethod',
+    proofValue: 'z3h29Qkx4mJpE8X97bUvfK62wLaPnQ7xS8cT4zR91a7M0vC4e',
+  },
+}
+
+function initSpecMatrix() {
+  const displayEl = $('spec-jsonld-display')
+  if (displayEl) {
+    displayEl.textContent = JSON.stringify(CANONICAL_DEMO_JSONLD, null, 2)
+  }
+
+  // Copy Canonical JSON-LD
+  $('btn-copy-spec-jsonld')?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(CANONICAL_DEMO_JSONLD, null, 2))
+      const textEl = $('btn-copy-spec-jsonld-text')
+      if (textEl) {
+        const orig = textEl.textContent
+        textEl.textContent = currentLang === 'en' ? 'Copied! ✓' : 'Tersalin! ✓'
+        setTimeout(() => { textEl.textContent = orig }, 2000)
+      }
+    } catch {}
+  })
+
+  // Download Canonical JSON-LD
+  $('btn-download-spec-jsonld')?.addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(CANONICAL_DEMO_JSONLD, null, 2)], { type: 'application/ld+json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'lencana-canonical-openbadge.jsonld'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  })
+
+  // Run Spec Compliance Pulse
+  $('btn-run-spec-matrix')?.addEventListener('click', () => {
+    const btn = $('btn-run-spec-matrix')
+    const btnText = $('btn-run-spec-matrix-text')
+    const rows = document.querySelectorAll('#spec-static-tbody .spec-row')
+    if (btn) btn.setAttribute('disabled', 'true')
+    if (btnText) btnText.textContent = currentLang === 'en' ? 'Auditing 14 tests...' : 'Mengaudit 14 uji...'
+
+    rows.forEach((row, i) => {
+      row.classList.remove('pulse-green')
+      setTimeout(() => {
+        row.classList.add('pulse-green')
+      }, i * 35)
+    })
+
+    setTimeout(() => {
+      if (btn) btn.removeAttribute('disabled')
+      if (btnText) {
+        btnText.textContent = currentLang === 'en' ? '✓ 14/14 Tests Passed (12ms)' : '✓ 14/14 Uji Lolos (12ms)'
+        setTimeout(() => {
+          btnText.textContent = DICTIONARIES[currentLang].specCompliance.btnRunAudit
+        }, 3000)
+      }
+    }, 14 * 35 + 300)
+  })
+
+  // Global event delegation for report tab 6 (W3C Spec Matrix)
+  document.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement
+
+    // Copy from report tab
+    const copyReportBtn = target.closest<HTMLButtonElement>('.btn-copy-report-jsonld')
+    if (copyReportBtn) {
+      const json = copyReportBtn.dataset.json
+      if (json) {
+        try {
+          await navigator.clipboard.writeText(json)
+          const orig = copyReportBtn.textContent
+          copyReportBtn.textContent = currentLang === 'en' ? 'Copied! ✓' : 'Tersalin! ✓'
+          setTimeout(() => { copyReportBtn.textContent = orig }, 2000)
+        } catch {}
+      }
+      return
+    }
+
+    // Download from report tab
+    const downloadReportBtn = target.closest<HTMLButtonElement>('.btn-download-report-jsonld')
+    if (downloadReportBtn) {
+      const json = downloadReportBtn.dataset.json
+      const filename = downloadReportBtn.dataset.filename || 'credential.jsonld'
+      if (json) {
+        const blob = new Blob([json], { type: 'application/ld+json' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      }
+      return
+    }
+
+    // Pulse test in report tab
+    const pulseReportBtn = target.closest<HTMLButtonElement>('.btn-pulse-spec-test')
+    if (pulseReportBtn) {
+      const pane = pulseReportBtn.closest('.spec-matrix-wrapper')
+      const rows = pane?.querySelectorAll('.spec-row')
+      if (rows) {
+        rows.forEach((row, i) => {
+          row.classList.remove('pulse-green')
+          setTimeout(() => { row.classList.add('pulse-green') }, i * 30)
+        })
+      }
+    }
+  })
 }
 
 let isEvaluating = false

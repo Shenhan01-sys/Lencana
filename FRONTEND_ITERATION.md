@@ -284,8 +284,34 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
 - Full bilingual i18n support in `web/src/i18n.ts` (EN and ID).
 - TypeScript check (`tsc --noEmit`) and Vite production build pass with **0 errors**.
 
-
-
-
-
-
+### Iteration 14: Presentation Demo Walkthrough Dock (4 Scenes) & W3C VC 2.0 / Open Badges 3.0 Specification Compliance Matrix
+- **Presentation Demo Walkthrough Helper Dock (4 Scenes):**
+  - Added a persistent sticky dock below the main navbar with glowing gold status indicator and 1-click navigation for all 4 hackathon demo scenes:
+    - **Scene 1: Public Verify:** Zero-wallet instant verification of sample credential hash on BSC testnet (routes to `#/verify`, triggers `run()`, and smooth scrolls to results).
+    - **Scene 2: AI Assessment:** Autonomous AI essay evaluation and Soulbound minting (routes to `#/submit`, selects Web3 Dasar, populates sample essay, runs evaluation radar animation, and triggers the celebratory Soulbound Mint modal).
+    - **Scene 3: Tamper Defense:** Adversarial security playground (routes to `#/verify`, smooth scrolls to `#tamper-playground`, executes Attack 1: Grade 93 ➔ 99 Tamper, and displays the simulated EVM revert call stack).
+    - **Scene 4: B2B Recruiter x402:** Enterprise bulk audit console (routes to `#/verify`, smooth scrolls to `#x402-console`, executes 4-step HTTP 402 payment handshake, and renders 10 candidate audit results).
+  - Includes an interactive minimize/expand toggle for screen space flexibility.
+- **W3C VC 2.0 & Open Badges 3.0 Specification Compliance Matrix:**
+  - Integrated into both `#page-verify` and the dynamic verification report (as a 6th forensic tab `#tab-w3c-spec`).
+  - Evaluates all 14 mandatory normative assertions of W3C Verifiable Credentials 2.0 and Open Badges 3.0 (§9.1 Bitstring Status List):
+    1. `@context` sequence ordering (`credentials/v2` followed by `ob/v3p0/context-3.0.3.json`).
+    2. Type heritage inheritance (`VerifiableCredential` + `OpenBadgeCredential`).
+    3. `validFrom` datetime property (ISO-8601 UTC string; legacy `issuanceDate` forbidden).
+    4. `validUntil` expiration semantics (`validUntil` defines expiration; legacy `expirationDate` forbidden).
+    5. Mandatory achievement criteria (`credentialSubject.achievement.criteria.narrative` present).
+    6. Subject identifier XOR rule (`id` XOR `identifier` strictly enforced).
+    7. Result value string format (`result[0].value` as string; legacy `resultScore` banned).
+    8. Blockchain expiration synchronization (Document `validUntil` matches EAS attestation `expirationTime`).
+    9. Base-10 string status index (`statusListIndex` represented strictly as base-10 string).
+    10. Dual purpose Bitstring Status Lists (`revocation` via agent EAS revoke + `suspension` via platform delisting).
+    11. Status entry fragment anchor URI (`id` is URI `#fragment`, strictly distinct from parent list URL).
+    12. Cryptosuite specification (`DataIntegrityProof` with `eddsa-rdfc-2022`).
+    13. Assertion method proof purpose (`proof.proofPurpose: "assertionMethod"`).
+    14. BAS bitstring blockchain anchor (`BAS.timestamp()` hash commitment verified via `getTimestamp()`).
+  - Features an interactive **"Run Spec Compliance Audit"** action with sequential green pulsing row animations.
+  - Features a live **Canonical Signed OpenBadgeCredential 3.0 Document (JSON-LD)** inspector with 1-click **Copy JSON-LD** and **Download .jsonld** actions.
+  - Prominent **Formal Boundary & Certification Target Disclosure** adhering strictly to `vault/03-evidence-and-limits.md`:
+    *"Target: Built strictly to W3C VC 2.0 Recommendation and Open Badges 3.0 specification. Official third-party 1EdTech validator run (vc.1ed.tech) remains a roadmap target pending public URL testnet deployment. Content limits: Verifies cryptographic validity, Ed25519 multikey signature, and immutable block timestamp; does not evaluate subjective real-world truth of learner essay claims."*
+- Full bilingual i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
+- Verified with TypeScript typecheck (`tsc --noEmit`) and Vite production build (`0` errors, `dist/` built in 2.16s).
