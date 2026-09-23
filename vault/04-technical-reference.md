@@ -149,6 +149,13 @@ Deployed 21 Sep, and re-read from the chain afterwards rather than trusted from 
 | our schema UID, registered in the **public** BAS schema registry | `0x70a8c3a3ade3d7595422313112fb24f32e2dd8a65c7609574341a8ac6091a051` |
 | BAS core used (not deployed by us) | `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` |
 | BAS schema registry reached through it | `0x08C8b8417313fF130526862f90cd822B55002D72` |
+| `SettlementSplit` (revenue split, 10% platform) | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` |
+| `DemoCourseToken` — labelled demo coin used to pay it | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` |
+| Permit2 / x402 exact proxy called by the payment test | `0x000000000022D473030F116dDEE9F6B43aC78BA3` / `0x402085c248EeA27D92E8b30b2C58ed07f9E20001` (neither is ours) |
+
+The last two rows exist because a payment demo is only worth showing if the reader can check which
+contracts were actually called. The split contract has **no mainnet deployment and no hosted
+caller**; the HTTP side that would use it is still unwritten.
 
 `schemaUID` is a function of the **resolver address**, so these two rows are locked together: a new
 resolver means a new schema, and old verifiers stop recognising credentials issued under the old one.
