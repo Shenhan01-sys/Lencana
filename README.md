@@ -42,9 +42,9 @@ Every number below is the output of a command that was run, not a plan.
 
 | command | result |
 |---|---|
-| `forge test --no-match-path "*.fork.t.sol"` | **21 passed / 0 failed** (offline) |
-| `forge test --evm-version cancun --fork-url <anvil fork of 97>` | **68 passed / 0 failed** on **chain 97** (19 Sep) |
-| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **68 passed / 0 failed** on **chain 56** (19 Sep), identical gas figures |
+| `forge test --no-match-path "*.fork.t.sol"` | **43 passed / 0 failed** (offline: 21 artifact + 22 settlement split) |
+| `forge test --evm-version cancun --fork-url <anvil fork of 97>` | **90 passed / 0 failed** on **chain 97** (23 Sep) |
+| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **90 passed / 0 failed** on **chain 56** (23 Sep), identical gas figures |
 | `npm run probe` in `web/` | **51 checks / 0 failed** against **public chain 97** (22 Sep) — four verdicts exercised (`VALID`, `REVOKED`, `ISSUER_DELISTED`, "valid but its prerequisite is revoked") **plus an audit of the course content**: every lesson slug unique, every quiz answer inside the option range, every rubric summing to 100, and the demo learner's `credentialHash` **recomputed from the course data** and asserted equal to the attestation on chain. On an anvil fork it was 41 (19 Sep) |
 | `npm run inventory` in `web/` | **2 courses · 7 modules · 24 lessons · 34 pages · 412 minutes · 28 quiz questions · 2 rubric-scored essays**, all six lesson kinds used. Printed from the data, not typed into a document — which is the only reason a page count may appear in this README |
 | `npm run check` in `signer/` | **45 checks / 0 failed** against **public chain 97** (21 Sep) — OpenBadgeCredential 3.0 built and signed with `DataIntegrityProof` + `eddsa-rdfc-2022`; tampering, a swapped verification method and an unlisted key all fail to verify; served bits are read **from `statusOf()` on the deployed resolver**, every credential's bit is checked **at the index the document itself claims**, and rendering the watched set twice (or in a different order) must produce the **same** bitstring hash |
@@ -117,8 +117,8 @@ npm install                                  # OpenZeppelin 5.1.0
 forge install foundry-rs/forge-std --no-git  # --no-git is required while the folder is not a git repo
 
 npm test                                     # 21 tests, offline, ~25 ms
-npm run test:fork:testnet                    # 68 tests on chain 97
-npm run test:fork:mainnet                    # 68 tests on chain 56
+npm run test:fork:testnet                    # 90 tests on chain 97
+npm run test:fork:mainnet                    # 90 tests on chain 56
 ```
 
 > ⚠️ **`--evm-version cancun` is mandatory for fork tests**, not decoration. Without it, calls that
