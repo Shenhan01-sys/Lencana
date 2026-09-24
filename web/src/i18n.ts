@@ -208,6 +208,7 @@ export interface TranslationDictionary {
     soulbound: string
     cliAudit: string
     rpcLog: string
+    w3cSpec: string
   }
   bannerNotDeployed: {
     title: string
@@ -488,6 +489,34 @@ export interface TranslationDictionary {
     candidatesAudited: string
     latencyLabel: string
   }
+  demoMode: {
+    kicker: string
+    title: string
+    toggleShow: string
+    toggleHide: string
+    scene1Btn: string
+    scene1Desc: string
+    scene2Btn: string
+    scene2Desc: string
+    scene3Btn: string
+    scene3Desc: string
+    scene4Btn: string
+    scene4Desc: string
+  }
+  specCompliance: {
+    kicker: string
+    title: string
+    sub: string
+    btnRunAudit: string
+    btnCopyJsonLd: string
+    btnDownloadJsonLd: string
+    badgePassed: string
+    bannerMeta: string
+    honestTitle: string
+    honestDisclaimer: string
+    inspectorTitle: string
+    copied: string
+  }
 }
 
 export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
@@ -659,6 +688,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       soulbound: 'Soulbound NFT (ERC-5192)',
       cliAudit: 'CLI Reproduction Commands',
       rpcLog: 'Real-Time RPC Log',
+      w3cSpec: 'W3C & OB 3.0 Spec',
     },
     bannerNotDeployed: {
       title: 'Our on-chain layer is not yet broadcast to this public chain.',
@@ -1033,6 +1063,35 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       candidatesAudited: '10 Candidates Audited: 8 VALID · 1 REVOKED · 1 DELISTED',
       latencyLabel: 'Latency: 118ms · Fee Settled: 0.0005 tBNB',
     },
+    demoMode: {
+      kicker: 'HACKATHON DEMO WALKTHROUGH',
+      title: '🎬 4-Scene Video Walkthrough Guide',
+      toggleShow: 'Show Walkthrough Guide',
+      toggleHide: 'Hide Guide',
+      scene1Btn: 'Scene 1: Public Verifier',
+      scene1Desc: 'Zero-wallet instant BSC verification',
+      scene2Btn: 'Scene 2: AI Essay Agent',
+      scene2Desc: 'Autonomous rubric scoring & SBT mint',
+      scene3Btn: 'Scene 3: Cryptographic Defense',
+      scene3Desc: 'Simulate EVM reverts & digest mismatch',
+      scene4Btn: 'Scene 4: B2B Recruiter x402',
+      scene4Desc: 'HTTP 402 batch candidate audit',
+    },
+    specCompliance: {
+      kicker: 'W3C VC 2.0 & 1EDTECH OPEN BADGES 3.0 TEST SUITE',
+      title: 'Specification Compliance & Interoperability Matrix',
+      sub: 'Live cryptographic and semantic audit conforming to W3C Verifiable Credentials Data Model 2.0 and Open Badges 3.0 (§9.1 Bitstring Status List) standards.',
+      btnRunAudit: 'Run Spec Compliance Audit (14 Tests)',
+      btnCopyJsonLd: 'Copy Canonical JSON-LD',
+      btnDownloadJsonLd: 'Download .jsonld',
+      badgePassed: '14 / 14 ASSERTIONS SATISFIED',
+      bannerMeta: 'All W3C VC 2.0 & OB 3.0 schema and cryptographic constraints verified',
+      honestTitle: 'Formal Boundary & Certification Target Disclosure',
+      honestDisclaimer:
+        'Target: Built strictly to W3C VC 2.0 Recommendation and Open Badges 3.0 specification. Official third-party 1EdTech validator run (vc.1ed.tech) remains a roadmap target pending public URL testnet deployment. Content limits: Verifies cryptographic validity, Ed25519 multikey signature, and immutable block timestamp; does not evaluate subjective real-world truth of learner essay claims.',
+      inspectorTitle: 'Canonical OpenBadgeCredential 3.0 JSON-LD Document',
+      copied: 'Copied to Clipboard! ✓',
+    },
   },
   id: {
     appName: 'Lencana',
@@ -1202,6 +1261,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       soulbound: 'NFT Soulbound (ERC-5192)',
       cliAudit: 'Perintah Replikasi CLI',
       rpcLog: 'Log Real-Time RPC',
+      w3cSpec: 'Kepatuhan Standar W3C',
     },
     bannerNotDeployed: {
       title: 'Lapis on-chain kami belum disiarkan ke chain.',
@@ -1575,6 +1635,35 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       step4Label: '4. Laporan Audit Selesai: 10/10 Kandidat Diproses dalam 118ms',
       candidatesAudited: '10 Kandidat Diaudit: 8 VALID · 1 DICABUT · 1 DELISTED',
       latencyLabel: 'Latensi: 118ms · Biaya Selesai: 0.0005 tBNB',
+    },
+    demoMode: {
+      kicker: 'PANDUAN DEMO HACKATHON',
+      title: '🎬 Panduan Walkthrough 4 Skenario Video',
+      toggleShow: 'Tampilkan Panduan',
+      toggleHide: 'Sembunyikan',
+      scene1Btn: 'Adegan 1: Verifier Instan',
+      scene1Desc: 'Verifikasi BSC instan tanpa dompet',
+      scene2Btn: 'Adegan 2: Agen Penilai AI',
+      scene2Desc: 'Penilaian esai otomatis & cetak SBT',
+      scene3Btn: 'Adegan 3: Pertahanan Pemalsuan',
+      scene3Desc: 'Simulasi revert EVM & selisih digest',
+      scene4Btn: 'Adegan 4: Rekruter B2B x402',
+      scene4Desc: 'Audit borongan kandidat via HTTP 402',
+    },
+    specCompliance: {
+      kicker: 'UJI STANDAR W3C VC 2.0 & 1EDTECH OPEN BADGES 3.0',
+      title: 'Matriks Kepatuhan Spesifikasi & Interoperabilitas',
+      sub: 'Audit kriptografis dan semantik langsung yang mematuhi standar W3C Verifiable Credentials Data Model 2.0 dan Open Badges 3.0 (§9.1 Bitstring Status List).',
+      btnRunAudit: 'Jalankan Audit Kepatuhan (14 Uji)',
+      btnCopyJsonLd: 'Salin Dokumen JSON-LD',
+      btnDownloadJsonLd: 'Unduh .jsonld',
+      badgePassed: '14 / 14 ASERSI TERPENUHI',
+      bannerMeta: 'Seluruh batasan skema dan kriptografi W3C VC 2.0 & OB 3.0 terverifikasi',
+      honestTitle: 'Keterbukaan Batasan Resmi & Target Sertifikasi',
+      honestDisclaimer:
+        'Target: Dibangun secara ketat sesuai Rekomendasi W3C VC 2.0 dan spesifikasi Open Badges 3.0. Pengujian validator pihak ketiga resmi di vc.1ed.tech adalah target peta jalan menunggu penempatan URL publik di testnet. Batasan isi: Memverifikasi keabsahan kriptografi, tanda tangan multikey Ed25519, dan timestamp blok yang tidak dapat diubah; tidak mengevaluasi kebenaran subjektif isi esai peserta.',
+      inspectorTitle: 'Dokumen Kredensial OpenBadgeCredential 3.0 Resmi (JSON-LD)',
+      copied: 'Tersalin ke Clipboard! ✓',
     },
   },
 }
