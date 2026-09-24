@@ -1207,13 +1207,10 @@ function updateStaticText() {
   setText('nav-portfolio', dict.nav.portfolio)
   setText('nav-agent-hub', dict.nav.agentHub)
 
-  // Hero Section
-  // Kinetic Brutalist Hero Section (Iteration 9)
+  // Hero Section - Executive Academic Standard
   setText('hero-eyebrow', dict.hero.eyebrow)
-  setText('kinetic-word-1', dict.hero.kineticWord1)
-  setText('kinetic-word-2', dict.hero.kineticWord2)
-  setText('kinetic-word-3', dict.hero.kineticWord3)
-  setText('badge-rotating-text', dict.hero.badgeText)
+  setText('hero-title-lead', dict.hero.titleLine1)
+  setText('hero-title-accent', dict.hero.titleLine2)
   setText('hero-subtitle', dict.hero.subtitle)
   setText('hero-btn-explore-text', dict.hero.btnExplore)
   setText('hero-btn-verify-text', dict.hero.btnVerify)
