@@ -21,6 +21,7 @@
  * attester), DEPLOYER_PRIVATE_KEY (kunci platform = yang anchor), AGENT_SLUG, BASE_URL.
  */
 import { readFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { createPublicClient, createWalletClient, http, keccak256, stringToBytes, encodeAbiParameters, getAddress, parseAbi } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
@@ -33,6 +34,7 @@ import { readAnchor, anchorListHash } from '../src/anchor.js'
 import { EMPTY_UID } from '../../web/src/abi.ts'
 import { manifestOf } from '../../web/src/manifest.ts'
 import { computeScore, formatScore } from '../../web/src/score.ts'
+import { DEFAULT_JUDGE_MODEL } from '../src/judge.js'
 
 /** .env dibaca manual: menambah dotenv hanya untuk 8 baris adalah dependensi yang tidak perlu. */
 async function readEnv () {
@@ -65,7 +67,8 @@ if (!course || !learner) {
  */
 const quizScores = String(arg('quiz', '')).split(',').map((s) => s.trim()).filter(Boolean).map(Number)
 const essayRaw = arg('essay-score')
-const essayScore = essayRaw === undefined ? null : Number(essayRaw)
+let essayScore = essayRaw === undefined ? null : Number(essayRaw)
+let essayGrading = null
 const praktikCompleted = !process.argv.includes('--no-praktik')
 
 if (quizScores.some((n) => !Number.isFinite(n))) {
@@ -96,6 +99,45 @@ const issuerName = manifest.issuer.name
 // fork), tapi memakainya diam-diam akan membuat dokumen tidak cocok dengan `criteria`-nya.
 const DAYS = arg('days') ? Number(arg('days')) : manifest.course.validDays
 if (arg('days')) console.log(`⚠️ masa berlaku ditimpa manual (${DAYS} hari); kebijakan penerbit ${manifest.course.validDays}`)
+
+/**
+ * `--essay <berkas>` membuat nilai esai berasal dari PENILAIAN, bukan dari angka yang diketik
+ * manusia. `--judge` memanggil model (lihat `npm run judge` untuk kontrol negatifnya); tanpa itu
+ * gerbang berhenti di AWAITING_JUDGE dan skrip menolak menerbitkan.
+ *
+ * Kenapa tidak cukup `--essay-score 90`: itu persis lubang yang baru kita tutup — angka kelulusan
+ * yang datang dari tangan. Flag itu tetap ada untuk menguji aritmetika `computeScore`, tapi tidak
+ * untuk dokumen yang kita klaim sebagai hasil penilaian.
+ */
+if (arg('essay')) {
+  const { gradeAgainstRubric, formatVerdict } = await import('../src/grade.js')
+  const { groqJudge } = await import('../src/judge.js')
+  const lessons = manifest.course.modules.flatMap((m) => m.lessons)
+  const wanted = arg('lesson')
+  const lesson = (wanted ? lessons.find((l) => l.slug === wanted) : lessons.find((l) => l.essay)) ?? null
+  if (!lesson?.essay) {
+    console.error(`tidak ada lesson ber-esai untuk "${wanted ?? course}" — periksa --lesson`)
+    process.exit(2)
+  }
+  const text = await readFile(resolve(arg('essay')), 'utf8')
+  const judge = process.argv.includes('--judge')
+    ? groqJudge({ model: process.env.JUDGE_MODEL })
+    : undefined
+  essayGrading = await gradeAgainstRubric({ text, essay: lesson.essay, judge })
+  essayGrading.lessonSlug = lesson.slug
+  essayGrading.judgeModel = judge ? (process.env.JUDGE_MODEL ?? DEFAULT_JUDGE_MODEL) : null
+  console.log(`esai (${lesson.slug}) : ${formatVerdict(essayGrading)}`)
+  if (essayGrading.finalScore === null) {
+    console.error(`\nberhenti: esai belum menghasilkan nilai (${essayGrading.verdict}).`)
+    console.error('Tambahkan --judge untuk menilai dengan model. Jangan isi --essay-score untuk melewatinya.')
+    process.exit(3)
+  }
+  if (essayRaw !== undefined && Number(essayRaw) !== essayGrading.finalScore) {
+    console.error(`--essay-score (${essayRaw}) bertentangan dengan hasil penilaian (${essayGrading.finalScore}) — berhenti.`)
+    process.exit(2)
+  }
+  essayScore = essayGrading.finalScore
+}
 
 const grade = computeScore(manifest, { quizScores, praktikCompleted, essayScore })
 console.log(`penerbit    : ${issuerName}`)
@@ -202,8 +244,16 @@ const { unsigned, indices } = buildOpenBadgeCredential({
   // `score` tidak lagi diterima dari perintah: ini hasil hitung terhadap bukti + kebijakan penerbit.
   assessment: {
     score: String(grade.total),
-    method: arg('method', `dihitung dari bukti terhadap rubrik ${grade.rubricRef}`),
-    comment: grade.components.map((cp) => `${cp.name} ${cp.raw}×${cp.weight}%`).join(' · '),
+    // Metode penilaian ikut ke dokumen: angka 96 tanpa "siapa yang menghitung dan dengan rubrik
+    // versi apa" hanyalah angka. Nama model + versi rubrik masuk ke sini supaya pertanyaan
+    // "87 ini dari mana" dijawab dokumen itu sendiri, bukan oleh log kita.
+    method: arg('method', essayGrading?.judgeModel
+      ? `dihitung dari bukti terhadap rubrik ${grade.rubricRef}; esai dinilai ${essayGrading.judgeModel} (temperature 0)`
+      : `dihitung dari bukti terhadap rubrik ${grade.rubricRef}`),
+    comment: [
+      ...grade.components.map((cp) => `${cp.name} ${cp.raw}×${cp.weight}%`),
+      ...(essayGrading?.perCriterion ?? []).map((c) => `esai: ${c.label} ${c.score}/${c.max}`),
+    ].join(' · '),
   },
   uid,
   issuedAtUnix: Number(expiresAt) - DAYS * 86400,
@@ -224,7 +274,20 @@ await rememberCredential({
   // Yang disimpan bukan cuma angkanya: `score` tanpa `evidence`/`rubricHash` adalah klaim yang
   // tidak bisa ditelusuri, padahal seluruh titik keputusan ini adalah membuat angka bisa ditanya.
   score: grade.total, verdict: grade.verdict, rubricHash: grade.rubricHash, rubricRef: grade.rubricRef,
-  issuer: issuerName, evidence: { quizScores, praktikCompleted, essayScore },
+  issuer: issuerName,
+  evidence: { quizScores, praktikCompleted, essayScore },
+  // Angka di dokumen bisa ditelusuri dari repo: lesson mana, verdict apa, model mana, dan
+  // berapa per kriteria — bukan hanya nilai akhir.
+  essayGrading: essayGrading
+    ? {
+        lesson: essayGrading.lessonSlug,
+        verdict: essayGrading.verdict,
+        score: essayGrading.finalScore,
+        judgeModel: essayGrading.judgeModel,
+        perCriterion: essayGrading.perCriterion,
+        mechanical: essayGrading.mechanical,
+      }
+    : null,
   signedAt: new Date().toISOString(), document: signedDoc,
 })
 console.log(`dokumen     : ${signedDoc.id}`)

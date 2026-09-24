@@ -29,9 +29,17 @@
  * penilai yang mentok di 100 juga tidak menyisakan apa pun untuk dibandingkan.
  *
  * Semua pemanggilan memakai `temperature: 0`. Itu bukan kebetulan: tanpa itu, nilai yang sama bisa
- * berbeda antar jalankan, dan kita tidak bisa lagi berkata "angka ini bisa ditelusuri". Bahkan
- * dengannya hasilnya masih bergeser (99/100; 6 pada fixture kosong, 4 di panggilan lain) — jadi
- * yang kita klaim adalah "model dan jawabannya tercatat", bukan "direproduksi persis".
+ * berbeda antar jalankan, dan kita tidak bisa lagi berkata "angka ini bisa ditelusuri".
+ *
+ * Tapi `temperature: 0` TIDAK membuat hasilnya tetap. Terukur 24 Sep, lima kali pada fixture yang
+ * sama (`npm run judge-variance`): jawaban substantif **91–100 (spread 9, rata-rata 96,4)**,
+ * jawaban kosong **2–3**, dan keputusan LULUS/TIDAK_LULUS **sama di kelimanya** — karena jarak dua
+ * kelas itu 93,6 poin sementara ambangnya 70.
+ *
+ * Kalimat yang boleh ditulis: **"keputusannya stabil, angkanya punya rentang ±5"**. Yang tidak
+ * boleh: "nilainya direproduksi persis". Menampilkan satu angka (96) tanpa rentangnya adalah cara
+ * membuat penilaian model terlihat lebih presisi daripada adanya — persis hal yang kita tuntut
+ * dari penerbit lain.
  */
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 export const DEFAULT_JUDGE_MODEL = 'openai/gpt-oss-120b'
@@ -77,15 +85,38 @@ export async function judgeWithModel (text, essay, opts = {}) {
     ],
   }
 
-  const res = await fetch(GROQ_URL, {
-    method: 'POST',
-    headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(opts.timeoutMs ?? 90_000),
-  })
-  if (!res.ok) {
-    const detail = (await res.text().catch(() => '')) .slice(0, 200)
-    throw new Error(`penilaian gagal: HTTP ${res.status} ${detail}`)
+  /**
+   * `temperature: 0` tidak membuat model ini murah: kuota akun terukur di **8.000 token per menit**
+   * untuk `openai/gpt-oss-120b`, dan satu panggilan penilaian memakai ±1.400 token (rubrik + dua
+   * fixture + jawaban bernalar). Artinya ±5 panggilan/menit — dan 429 pertama yang kudapat datang
+   * tepat di panggilan ketiga sebuah deretan.
+   *
+   * Ini bukan teori: penerbitan massal dengan penilaian model AKAN menabraknya. Jadi kami tunggu
+   * dan coba lagi (membaca `retry-after` kalau server memberikannya), dan baru menyerah setelah
+   * jeda kumulatif — menyerahkan kegagalan 429 yang sebenarnya cuma "tunggu" membuat orang
+   * mengira penilainya rusak.
+   */
+  const maxWaitMs = opts.maxWaitMs ?? 180_000
+  let waited = 0
+  let res
+  for (;;) {
+    res = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(opts.timeoutMs ?? 90_000),
+    })
+    if (res.ok) break
+    const detail = (await res.text().catch(() => '')).slice(0, 200)
+    const rateLimited = res.status === 429
+    const retryAfter = Number(res.headers.get('retry-after'))
+    const pause = rateLimited ? (Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 15_000) : 0
+    if (!rateLimited || waited + pause > maxWaitMs) {
+      throw new Error(`penilaian gagal: HTTP ${res.status} ${detail}${rateLimited ? ` (sudah menunggu ${waited / 1000}s)` : ''}`)
+    }
+    console.log(`  … kuota model habis (HTTP 429), menunggu ${Math.round(pause / 1000)}s — percobaan berikutnya`)
+    await new Promise((r) => setTimeout(r, pause))
+    waited += pause
   }
   const data = await res.json()
   const msg = data?.choices?.[0]?.message ?? {}
