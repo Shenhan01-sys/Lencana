@@ -108,7 +108,13 @@ if (essayPath) {
   }
   const { gradeAgainstRubric, formatVerdict } = await import('../src/grade.js')
   const text = await readFile(resolve(essayPath), 'utf8')
-  const grade = await gradeAgainstRubric({ text, essay: lesson.essay })
+  // `--judge` memanggil model. TANPA flag itu gerbang berhenti di AWAITING_JUDGE, dan itu
+  // perilaku yang benar: menolak menerbitkan lebih baik daripada memberi angka yang tidak
+  // dihasilkan siapa pun. Model yang dipakai sudah melewati kontrol negatif (`npm run judge`).
+  const judge = process.argv.includes('--judge')
+    ? (await import('../src/judge.js')).groqJudge({ model: process.env.JUDGE_MODEL })
+    : undefined
+  const grade = await gradeAgainstRubric({ text, essay: lesson.essay, judge })
   console.log(`\ngerbang penilaian: ${formatVerdict(grade)}`)
   if (grade.note) console.log(`  ${grade.note}`)
   if (grade.mechanical) {

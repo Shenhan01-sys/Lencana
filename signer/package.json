@@ -12,6 +12,7 @@
     "agent": "node scripts/agent.js",
     "adopt": "node scripts/adopt.js --demo",
     "check": "node scripts/check.js",
+    "judge": "tsx scripts/judge-check.js",
     "serve": "tsx src/server.js",
     "probe:serve": "node scripts/serve-probe.js",
     "x402": "node scripts/x402-check.js",
