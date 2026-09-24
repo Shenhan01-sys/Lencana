@@ -162,6 +162,51 @@ check('   split tidak menahan sisa (kontrak tanpa buku utang)', (await bal(SPLIT
 check('   settlement + split tx dilaporkan', Boolean(decoded?.settlement?.settleTx && decoded?.settlement?.splitTx),
   JSON.stringify(decoded?.settlement ?? {}))
 
+// --- 6. satu pembayaran harus melayani BEBERAPA verifikasi ------------------
+// Ini bukan fitur tambahan: ini satu-satunya hal yang membuat tarif 1000 satuan terkecil masuk
+// akal. Satu settlement on-chain = 190.659 gas (terukur dari receipt). Kalau satu pembayaran cuma
+// melayani satu kredensial, 10% platform dikalahkan harga BNB; kalau melayani N, biayanya dibagi
+// N. Yang diuji di bawah adalah klaim ekonomi, bukan kenyamanan.
+const batchWanted = [CREDENTIAL, env.DEMO_HASH].filter(Boolean).filter((h) => /^0x[0-9a-fA-F]{64}$/.test(h))
+if (batchWanted.length === 2) {
+  const nonce2 = nonce + 1
+  const tokenNonce2 = await public_.readContract({ address: TOKEN, abi, functionName: 'nonces', args: [client.address] })
+  const { eip2612: e2, witnessSig: w2 } = await buildClientPayment({
+    account: client, token: TOKEN, chainId: CHAIN_ID, amount: price,
+    payTo: req0.payTo, nonce: nonce2, deadline, validAfter: now - 5, tokenNonce: tokenNonce2,
+  })
+  const pay2 = {
+    x402Version: 1, scheme: 'exact', network: `eip155:${CHAIN_ID}`,
+    payload: {
+      token: TOKEN, amount: String(price), payer: client.address, nonce: nonce2, deadline,
+      validAfter: now - 5, payTo: req0.payTo, resource: req0.resource, eip2612: e2, witnessSig: w2,
+    },
+  }
+  const batchRes = await fetch(`${BASE}/verify`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-payment': encodePaymentHeader(pay2) },
+    body: JSON.stringify({ credentialHashes: batchWanted }),
+  })
+  const batchBody = await batchRes.json().catch(() => ({}))
+  const verdicts = (batchBody.reports ?? []).map((r) => r.verdict).sort().join(',')
+  check('6. satu pembayaran melayani 2 verifikasi', batchRes.status === 200 && batchBody.batch?.served === 2,
+    `status ${batchRes.status} · served ${batchBody.batch?.served} · ${JSON.stringify(batchBody).slice(0, 140)}`)
+  check('   kedua laporan keluar dengan verdict YANG BERBEDA (bukan satu hasil disalin dua kali)',
+    verdicts === 'REVOKED,VALID', verdicts || '(kosong)')
+  let bDec = null
+  try {
+    bDec = JSON.parse(Buffer.from(batchRes.headers.get('x-payment-response') ?? '', 'base64').toString('utf8'))
+  } catch { /* dilaporkan oleh pemeriksaan berikutnya */ }
+  check('   hanya SATU settlement untuk keduanya', Boolean(bDec?.settlement?.settleTx)
+    && bDec.settlement.settleTx !== decoded?.settlement?.settleTx && bDec.served === 2,
+    JSON.stringify({ served: bDec?.served, settleTx: String(bDec?.settlement?.settleTx).slice(0, 14) }))
+  const payeeAfter2 = await bal(PAYEE)
+  check('   pendapatan naik tepat satu harga lagi, bukan dua', payeeAfter2 - after.payee === 900n,
+    `selisih ${payeeAfter2 - after.payee}`)
+} else {
+  console.log('  lewat: batch tidak diuji (lingkungan tidak punya 2 hash yang sah)')
+}
+
 console.log(`\n${fails === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${fails} gagal`)
 console.log(`settleTx : ${decoded?.settlement?.settleTx ?? '(tidak ada)'}`)
 console.log(`splitTx  : ${decoded?.settlement?.splitTx ?? '(tidak ada)'}`)

@@ -164,17 +164,16 @@ async function handleVerify (req, res) {
   } catch (err) {
     return send(res, 400, { error: err.message })
   }
-  const credentialHash = String(body.credentialHash ?? body.i ?? '').trim()
-  if (!/^0x[0-9a-fA-F]{64}$/.test(credentialHash)) {
-    return send(res, 400, { error: 'butuh body JSON {credentialHash: 0x…64 heks}' })
-  }
+  const hashes = pickHashes(body)
+  if (hashes.error) return send(res, 400, { error: hashes.error })
+  const list = hashes.list
 
   let settled
   try {
     settled = await settlePayment({
       rpcUrl: RPC_URL, facilitatorPk: process.env.DEPLOYER_PRIVATE_KEY,
       payment, split: PAY_SPLIT, payee: PAY_PAYEE,
-      splitRefSalt: `${credentialHash}:${p.nonce}:${Date.now()}`,
+      splitRefSalt: `${list[0]}:${list.length}:${p.nonce}:${Date.now()}`,
     })
   } catch (err) {
     // Pembayaran yang gagal tidak membuat kami menahan datanya: 402 lagi, dengan sebab yang jelas.
@@ -182,9 +181,19 @@ async function handleVerify (req, res) {
   }
 
   const ep = defaultEndpoint()
-  const report = await verifyCredential(credentialHash, {
-    ...ep, rpcUrl: RPC_URL ?? ep.rpcUrl, resolver: RESOLVER ?? ep.resolver,
-  })
+  const endpoint = { ...ep, rpcUrl: RPC_URL ?? ep.rpcUrl, resolver: RESOLVER ?? ep.resolver }
+  const reports = []
+  // Empat pembaca paralel, bukan semua sekaligus: satu verifikasi memanggil RPC belasan kali, jadi
+  // 25 hash paralel penuh = ~300 eth_call serentak ke RPC publik yang kita UJI sendiri gugur kalau
+  // di-burst. Yang lebih cepat di sini justru menghasilkan laporan separuh kosong.
+  for (let i = 0; i < list.length; i += 4) {
+    const slice = list.slice(i, i + 4)
+    const part = await Promise.all(slice.map(async (h) => {
+      const r = await verifyCredential(h, endpoint)
+      return { credentialHash: h, verdict: r.verdict, reasons: r.reasons, credential: r.credential, anchors: r.anchors, limits: r.limits }
+    }))
+    reports.push(...part)
+  }
 
   const responseHeader = encodePaymentHeader({
     x402Version: 1,
@@ -194,6 +203,7 @@ async function handleVerify (req, res) {
     payer: p.payer,
     // Kami menambahkan ini di luar spesifikasi: bukti bahwa pendapatan TERBAGI, bukan cuma sampai.
     settlement: { settleTx: settled.settleTx, splitTx: settled.splitTx, splitRef: settled.splitRef },
+    served: reports.length,
   })
 
   return send(res, 200, {
@@ -202,8 +212,38 @@ async function handleVerify (req, res) {
     sharesOnChain: {
       payee: String(settled.issuerShare), facilitator: String(settled.platformShare), leftInSplit: String(settled.leftInSplit),
     },
-    report,
+    batch: { requested: list.length, served: reports.length, perSettlementGas: PER_VERIFICATION_GAS },
+    reports,
+    // `report` tetap diisi saat satu hash: klien lama (dan harness kita) tidak boleh diam-diam
+    // berubah makna hanya karena rute ini jadi bisa batch.
+    report: reports.length === 1 ? reports[0] : undefined,
   }, 'application/json', { 'x-payment-response': responseHeader })
+}
+
+/**
+ * Satu pembayaran harus melayani BANYAK verifikasi, dan itu bukan kenyamanan -- itu satu-satunya
+ * alasan rute ini boleh menagih. Satu settlement on-chain = 190.659 gas (terukur dari receipt);
+ * pada tarif 1000 satuan terkecil, gas per item harus turun lewat batch supaya 10% platform
+ * tidak kalah oleh harga BNB.
+ */
+const BATCH_MAX = 25
+const PER_VERIFICATION_GAS = 190659
+
+function pickHashes (body) {
+  const raw = Array.isArray(body.credentialHashes) ? body.credentialHashes
+    : (body.credentialHash ?? body.i) !== undefined ? [body.credentialHash ?? body.i] : []
+  const seen = new Set()
+  for (const item of raw) {
+    const h = String(item ?? '').trim()
+    if (!/^0x[0-9a-fA-F]{64}$/.test(h)) {
+      return { error: `setiap item harus hash 32 byte (0x…64 heks); dapat "${String(item).slice(0, 20)}"` }
+    }
+    seen.add(h.toLowerCase())
+  }
+  const list = [...seen]
+  if (!list.length) return { error: 'butuh body JSON {credentialHash: "0x…"} atau {credentialHashes: ["0x…"]}' }
+  if (list.length > BATCH_MAX) return { error: `batch maksimum ${BATCH_MAX} kredensial per pembayaran` }
+  return { list }
 }
 
 function checkPayment (p) {
