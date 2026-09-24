@@ -135,217 +135,269 @@
            PAGE 1: HOME (DISCOVERY & SYSTEM ARCHITECTURE)
            ======================================================== -->
       <div class="page-view" id="page-home">
-        <!-- 2. KINETIC BRUTALIST HERO SECTION -->
-        <section class="kinetic-hero-section">
-          <div class="kinetic-bg-grid"></div>
+        <!-- 2. EXECUTIVE ACADEMIC HERO SECTION -->
+        <section class="academic-hero-section">
+          <!-- Ambient Lighting Atmosphere -->
+          <div class="academic-ambient-glow"></div>
+          <div class="academic-radial-dome"></div>
 
-          <div class="kinetic-hero-container">
-            <!-- Top AI Mesh Status Ticker -->
-            <div class="ai-status-ticker">
+          <div class="academic-hero-container">
+            <!-- Top AI Mesh Status / Institution Pill -->
+            <div class="academic-institution-pill">
               <span class="ai-pulse-dot"></span>
-              <span id="ticker-text">Autonomous AI Evaluator Mesh: Active · 3 Domain Agents Online · BSC Testnet</span>
+              <span class="pill-kicker" id="hero-eyebrow">BNB CHAIN · AUTONOMOUS AI ACADEMY & ON-CHAIN REGISTRY</span>
+              <span class="pill-tag">TESTNET LIVE</span>
             </div>
 
-            <div class="kinetic-hero-kicker" id="hero-eyebrow">BNB CHAIN · NEXT-GEN WEB3 EDTECH</div>
+            <!-- Prestigious Masterclass Headline -->
+            <div class="academic-title-wrap">
+              <h1 class="academic-title">
+                <span class="title-lead" id="hero-title-lead">The On-Chain Standard for</span>
+                <span class="title-accent" id="hero-title-accent">Autonomous AI Credentials.</span>
+              </h1>
+            </div>
 
-            <!-- Massive Typography & Overlays Container -->
-            <div class="kinetic-title-stack-wrap">
-              <div class="kinetic-typography-stack">
-                <div class="kinetic-word-row row-1">
-                  <h1 class="kinetic-huge-text gold-text" id="kinetic-word-1">#LENCANA</h1>
-                </div>
-                <div class="kinetic-word-row row-2">
-                  <h1 class="kinetic-huge-text white-text" id="kinetic-word-2">ON-CHAIN</h1>
-                </div>
-                <div class="kinetic-word-row row-3">
-                  <h1 class="kinetic-huge-text white-text" id="kinetic-word-3">CREDENTIALS</h1>
-                </div>
+            <!-- Subtitle -->
+            <p class="academic-subtitle" id="hero-subtitle">
+              AI domain evaluators verify practical essays against immutable on-chain rubrics. Your achievements are cryptographically minted as Soulbound Open Badges 3.0 via BNB Attestation Service.
+            </p>
+
+            <!-- Refined Actions / Nested CTAs -->
+            <div class="academic-cta-group">
+              <a href="#/courses" class="btn btn-luxury-primary" id="hero-btn-explore">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <span id="hero-btn-explore-text">Explore Micro-Courses</span>
+                <span class="cta-arrow-bubble">➔</span>
+              </a>
+              <a href="#/verify" class="btn btn-luxury-secondary" id="hero-btn-verify">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <span id="hero-btn-verify-text">Instant Public Verifier</span>
+                <span class="cta-gas-badge">0 Gas</span>
+              </a>
+            </div>
+
+            <!-- 4-Pillar Trust Indicators -->
+            <div class="academic-trust-strip">
+              <div class="trust-item">
+                <span class="trust-val" id="stat-1-val">Open Badges 3.0</span>
+                <span class="trust-lbl" id="stat-1-lbl">W3C Standard Format</span>
               </div>
-
-              <!-- Overlays: Floating Glass Cards, Doodle Arrows, Rotating Circular Badge -->
-              <div class="kinetic-overlays-container">
-                <!-- Floating Glass Card 1 (Learner Persona Rina) -->
-                <div class="kinetic-floating-card card-rina" id="btn-load-demo-hero" role="button" tabindex="0" title="Click to live-verify Rina's credential">
-                  <div class="floating-glass-box">
-                    <div class="floating-avatar-circle rina-avatar">
-                      <span class="avatar-initials">RO</span>
-                      <span class="avatar-check-badge">✓</span>
-                    </div>
-                    <div class="floating-card-info">
-                      <p class="floating-name">rina.bnb</p>
-                      <p class="floating-sub">0x5cA3...7c3B</p>
-                      <div class="floating-score-pill">93/100 Honors Pass</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Floating Glass Card 2 (Recruiter Bagas) -->
-                <div class="kinetic-floating-card card-recruiter" id="btn-hero-recruiter-check" role="button" tabindex="0" title="Click to test recruiter verification">
-                  <div class="floating-glass-box">
-                    <div class="floating-avatar-circle recruiter-avatar">
-                      <span class="avatar-initials">HR</span>
-                      <span class="avatar-check-badge emerald">⚡</span>
-                    </div>
-                    <div class="floating-card-info">
-                      <p class="floating-name">bagas-recruiter.bnb</p>
-                      <p class="floating-sub">Live eth_call Audit</p>
-                      <div class="floating-score-pill emerald">0 Gas Verification</div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Doodle Arrow Left (Gold) -->
-                <div class="doodle-arrow doodle-arrow-left">
-                  <svg viewBox="0 0 100 100" class="doodle-svg gold" fill="none">
-                    <path d="M10,90 C 10,40 40,20 60,50 C 70,65 80,75 95,70" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M80,55 L95,70 L85,85" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </div>
-
-                <!-- Doodle Arrow Right (Emerald) -->
-                <div class="doodle-arrow doodle-arrow-right">
-                  <svg viewBox="0 0 100 100" class="doodle-svg emerald" fill="none">
-                    <path d="M90,10 C 80,60 60,80 40,60 C 20,40 40,20 60,30 C 80,40 70,70 50,80" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M65,75 L50,80 L55,65" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </div>
-
-                <!-- Rotating Circular Badge -->
-                <a href="#/verify" class="kinetic-circular-badge" title="Jump to Instant Credential Verifier">
-                  <div class="badge-rotating-ring">
-                    <svg viewBox="0 0 100 100" class="badge-ring-svg">
-                      <path id="badgeCirclePath" d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" fill="none" />
-                      <text class="badge-path-text" fill="#0B0E11">
-                        <textPath href="#badgeCirclePath" startOffset="0%" id="badge-rotating-text">
-                          VERIFY ON BNB CHAIN • ZERO WALLET REQUIRED • 
-                        </textPath>
-                      </text>
-                    </svg>
-                  </div>
-                  <div class="badge-center-icon">
-                    <svg viewBox="0 0 100 100" class="badge-arrow-svg" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M20,80 Q 40,50 30,30 T 80,20" />
-                      <path d="M60,10 L80,20 L70,40" />
-                    </svg>
-                  </div>
-                </a>
+              <div class="trust-sep"></div>
+              <div class="trust-item">
+                <span class="trust-val" id="stat-2-val">Zero Wallet Required</span>
+                <span class="trust-lbl" id="stat-2-lbl">Instant Recruiter eth_call Audit</span>
+              </div>
+              <div class="trust-sep"></div>
+              <div class="trust-item">
+                <span class="trust-val" id="stat-3-val">EAS 1.3.0 Engine</span>
+                <span class="trust-lbl" id="stat-3-lbl">BNB Attestation Service</span>
+              </div>
+              <div class="trust-sep"></div>
+              <div class="trust-item">
+                <span class="trust-val">ERC-5192 Soulbound</span>
+                <span class="trust-lbl">Non-Transferable Attestation</span>
               </div>
             </div>
 
-            <!-- Hero Subtitle & CTA Group -->
-            <div class="kinetic-hero-footer-bar">
-              <p class="hero-subtext" id="hero-subtitle">
-                AI domain agents evaluate your practical essays with on-chain rubrics. Your achievements are minted as Soulbound Open
-                Badges 3.0 on BNB Smart Chain.
-              </p>
+            <!-- CENTERPIECE VISUAL: The Double-Bezel Academic Credential Glass Plaque -->
+            <div class="hero-plaque-container">
+              <div class="hero-plaque-halo"></div>
 
-              <div class="hero-cta-group">
-                <a href="#/courses" class="btn btn-primary" id="hero-btn-explore">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                  </svg>
-                  <span id="hero-btn-explore-text">Explore Micro-Courses</span>
-                </a>
-                <a href="#/verify" class="btn btn-secondary" id="hero-btn-verify">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <span id="hero-btn-verify-text">Verify a Credential</span>
-                </a>
+              <!-- Main Glass Plaque -->
+              <div class="credential-glass-plaque">
+                <!-- Outer Bezel Hairline & Corner Accents -->
+                <div class="plaque-corner corner-tl"></div>
+                <div class="plaque-corner corner-tr"></div>
+                <div class="plaque-corner corner-bl"></div>
+                <div class="plaque-corner corner-br"></div>
+
+                <!-- Plaque Header -->
+                <div class="plaque-header">
+                  <div class="plaque-issuer-badge">
+                    <div class="issuer-crest">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                        <polyline points="2 17 12 22 22 17" />
+                        <polyline points="2 12 12 17 22 12" />
+                      </svg>
+                    </div>
+                    <div class="issuer-meta">
+                      <span class="issuer-title">BNB SMART CHAIN ACADEMIC REGISTRY</span>
+                      <span class="issuer-standard">W3C VERIFIABLE CREDENTIAL · SPEC v2.0</span>
+                    </div>
+                  </div>
+
+                  <div class="plaque-status-badge">
+                    <span class="status-indicator-dot"></span>
+                    <span class="status-label">ATTESTED ON-CHAIN</span>
+                  </div>
+                </div>
+
+                <!-- Plaque Body: Certificate Details -->
+                <div class="plaque-body">
+                  <div class="plaque-body-left">
+                    <div class="cert-award-kicker">CERTIFICATE OF DEMONSTRATED COMPETENCY</div>
+                    <h3 class="cert-course-title">BNB Smart Chain Web3 Security & Reentrancy Defense</h3>
+                    
+                    <div class="cert-recipient-grid">
+                      <div class="recipient-cell">
+                        <span class="cell-label">RECIPIENT / BENEFICIARY</span>
+                        <div class="cell-val-with-avatar">
+                          <span class="recipient-avatar">RO</span>
+                          <div class="recipient-details">
+                            <strong class="recipient-name">Rina S. Pramono, B.Sc.</strong>
+                            <code class="recipient-address">0x5cA3...7c3B</code>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="recipient-cell">
+                        <span class="cell-label">EVALUATION HONORS</span>
+                        <div class="honors-badge-wrap">
+                          <span class="honors-score">93 / 100</span>
+                          <span class="honors-grade">SUMMA CUM LAUDE</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Evaluation Rubric Breakdown Micro-Bar -->
+                    <div class="cert-rubric-summary">
+                      <div class="rubric-mini-col">
+                        <span class="rubric-mini-name">Analytical Depth</span>
+                        <div class="rubric-mini-bar"><div class="rubric-fill" style="width: 95%;"></div></div>
+                        <span class="rubric-mini-val">38/40</span>
+                      </div>
+                      <div class="rubric-mini-col">
+                        <span class="rubric-mini-name">EVM Security</span>
+                        <div class="rubric-mini-bar"><div class="rubric-fill" style="width: 90%;"></div></div>
+                        <span class="rubric-mini-val">27/30</span>
+                      </div>
+                      <div class="rubric-mini-col">
+                        <span class="rubric-mini-name">Reentrancy Mitigation</span>
+                        <div class="rubric-mini-bar"><div class="rubric-fill" style="width: 93%;"></div></div>
+                        <span class="rubric-mini-val">28/30</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Plaque Body Right: Golden On-Chain Seal & EAS Fingerprint -->
+                  <div class="plaque-body-right">
+                    <div class="official-wax-seal">
+                      <div class="seal-inner-ring">
+                        <svg class="seal-bnb-icon" viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+                          <path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8l-6 3.75L6 8l6-3.5zM6 9.8l5 3.12v5.77l-5-3.12V9.8zm12 5.77l-5 3.12v-5.77l5-3.12v5.77z"/>
+                        </svg>
+                        <span class="seal-text-top">LENCANA VERIFIED</span>
+                        <span class="seal-text-bottom">SOULBOUND SBT</span>
+                      </div>
+                    </div>
+
+                    <div class="cert-seal-meta">
+                      <span class="seal-meta-lbl">EAS RESOLVER PASS</span>
+                      <span class="seal-meta-val">100% REVERIFIED</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Plaque Footer: Forensic Attestation Bar & Live Demo Bridge -->
+                <div class="plaque-footer">
+                  <div class="plaque-footer-meta">
+                    <div class="meta-row">
+                      <span class="meta-name">ATTESTATION UID:</span>
+                      <code class="meta-hash">0x38914b1a7747e923e114df35d10ef44ac227cf43ef995b078a6ff60ec25cbb12</code>
+                    </div>
+                    <div class="meta-row">
+                      <span class="meta-name">EVALUATOR SIGNER:</span>
+                      <code class="meta-hash">0x91a7cD37B30A66f2... (Autonomous Security LLM Agent)</code>
+                    </div>
+                  </div>
+
+                  <!-- The Live 1-Click Verification Trigger -->
+                  <button class="plaque-verify-btn" id="btn-load-demo-hero" title="Click to test live verification on this credential">
+                    <span class="verify-btn-icon">⚡</span>
+                    <span class="verify-btn-text">Audit Live Proof in Verifier</span>
+                    <span class="verify-btn-arrow">→</span>
+                  </button>
+                </div>
               </div>
 
-              <!-- Trust Micro-Strip -->
-              <div class="hero-stats">
-                <div class="stat-item">
-                  <span class="stat-val" id="stat-1-val">Open Badges 3.0</span>
-                  <span class="stat-lbl" id="stat-1-lbl">W3C Standard Format</span>
-                </div>
-                <div class="stat-sep"></div>
-                <div class="stat-item">
-                  <span class="stat-val" id="stat-2-val">0 Wallet Required</span>
-                  <span class="stat-lbl" id="stat-2-lbl">Instant Recruiter Verification</span>
-                </div>
-                <div class="stat-sep"></div>
-                <div class="stat-item">
-                  <span class="stat-val" id="stat-3-val">EAS 1.3.0 Fork</span>
-                  <span class="stat-lbl" id="stat-3-lbl">BNB Attestation Service</span>
+              <!-- Floating Companion Recruiter Badge (Bagas HR) -->
+              <div class="recruiter-companion-pill" id="btn-hero-recruiter-check" role="button" tabindex="0" title="Click to simulate zero-wallet recruiter verification">
+                <div class="recruiter-pill-avatar">HR</div>
+                <div class="recruiter-pill-content">
+                  <div class="recruiter-pill-top">
+                    <span class="recruiter-name">bagas-recruiter.bnb</span>
+                    <span class="recruiter-status-pill">0 Gas Audit</span>
+                  </div>
+                  <div class="recruiter-pill-bottom">
+                    <span class="audit-badge">✓ Verified in 0.42s</span>
+                    <span class="audit-callout">No MetaMask Required →</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- CONNECTED BOTTOM VALUE-PROP CARDS -->
-          <div class="kinetic-features-section">
-            <div class="kinetic-features-grid">
-              <!-- Feature Card 1 -->
-              <div class="kinetic-feature-card">
-                <h3 class="feature-card-heading" id="feat-1-heading">
-                  AUTONOMOUS<br />AI ESSAY GRADING
-                </h3>
-                <p class="feature-card-sub" id="feat-1-sub">
-                  AI domain agents score submissions with on-chain rubrics
-                </p>
-                <div class="feature-pill-wrap">
-                  <div class="feature-pill-body">
-                    <div class="feature-pill-avatar gold">🤖</div>
-                    <div class="feature-pill-text">
-                      <span class="pill-title">Agent-Foundations</span>
-                      <span class="pill-meta">Rubric #0x91a7 · EIP-712</span>
-                    </div>
+            <!-- EXECUTIVE ARCHITECTURE BENTO GRID (3 HIGH-END MODULES) -->
+            <div class="academic-modules-section">
+              <div class="academic-modules-grid">
+                <!-- Module 1 -->
+                <div class="module-card">
+                  <div class="module-card-glow"></div>
+                  <div class="module-header">
+                    <span class="module-tag">MODULE 01 · MULTIMODAL AI</span>
+                    <span class="module-idx">01</span>
                   </div>
-                  <div class="feature-floating-tag gold">93/100 HONORS</div>
-                </div>
-                <div class="feature-connector-arrow arr-1">
-                  <svg viewBox="0 0 100 100" class="connector-svg" fill="none">
-                    <path d="M20,80 Q 40,20 80,40" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M60,20 L80,40 L50,60" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </div>
-              </div>
-
-              <!-- Feature Card 2 -->
-              <div class="kinetic-feature-card">
-                <h3 class="feature-card-heading" id="feat-2-heading">
-                  BAS ATTESTATION<br />RESOLVER HOOKS
-                </h3>
-                <p class="feature-card-sub" id="feat-2-sub">
-                  Closing EAS loopholes with live prerequisite verification
-                </p>
-                <div class="feature-pill-wrap">
-                  <div class="feature-pill-body">
-                    <div class="feature-pill-avatar emerald">🛡️</div>
-                    <div class="feature-pill-text">
-                      <span class="pill-title">CredentialResolver.sol</span>
-                      <span class="pill-meta">Schema #0x2c · Anti-Replay</span>
-                    </div>
+                  <h3 class="module-title" id="feat-1-heading">Autonomous AI Essay Grading</h3>
+                  <p class="module-desc" id="feat-1-sub">
+                    Domain-trained AI agents evaluate open-ended practical code and architectural essays against transparent on-chain rubrics.
+                  </p>
+                  <div class="module-footer-pill">
+                    <span class="pill-dot gold"></span>
+                    <span class="pill-caption">Agent-Foundations #0x91a7 · EIP-712</span>
                   </div>
-                  <div class="feature-floating-tag emerald">100% LOCKED</div>
                 </div>
-                <div class="feature-connector-arrow arr-2">
-                  <svg viewBox="0 0 100 100" class="connector-svg" fill="none">
-                    <path d="M20,80 Q 40,20 80,40" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M60,20 L80,40 L50,60" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </div>
-              </div>
 
-              <!-- Feature Card 3 -->
-              <div class="kinetic-feature-card">
-                <h3 class="feature-card-heading" id="feat-3-heading">
-                  ZERO-WALLET<br />PUBLIC PROOF
-                </h3>
-                <p class="feature-card-sub" id="feat-3-sub">
-                  Instant verification for employers without MetaMask
-                </p>
-                <div class="feature-stat-bubble">
-                  <span class="bubble-tag">EST. BLOCK AUDIT</span>
-                  <span class="bubble-val">0.42s · 0 GAS</span>
-                  <div class="bubble-tail"></div>
+                <!-- Module 2 -->
+                <div class="module-card">
+                  <div class="module-card-glow"></div>
+                  <div class="module-header">
+                    <span class="module-tag">MODULE 02 · EAS 1.3.0 CORE</span>
+                    <span class="module-idx">02</span>
+                  </div>
+                  <h3 class="module-title" id="feat-2-heading">BAS Resolver Security Hooks</h3>
+                  <p class="module-desc" id="feat-2-sub">
+                    Smart contract resolver gates enforce score thresholds and anti-replay verification before authorizing Soulbound minting.
+                  </p>
+                  <div class="module-footer-pill">
+                    <span class="pill-dot emerald"></span>
+                    <span class="pill-caption">CredentialResolver.sol · 100% Anti-Replay</span>
+                  </div>
+                </div>
+
+                <!-- Module 3 -->
+                <div class="module-card">
+                  <div class="module-card-glow"></div>
+                  <div class="module-header">
+                    <span class="module-tag">MODULE 03 · W3C & OPEN BADGES</span>
+                    <span class="module-idx">03</span>
+                  </div>
+                  <h3 class="module-title" id="feat-3-heading">Zero-Wallet Public Verification</h3>
+                  <p class="module-desc" id="feat-3-sub">
+                    Instant cryptographic verification for employers and recruiters via direct RPC calls without requiring wallet extensions.
+                  </p>
+                  <div class="module-footer-pill">
+                    <span class="pill-dot cyan"></span>
+                    <span class="pill-caption">Direct eth_call Audit · 0.42s · 0 Gas</span>
+                  </div>
                 </div>
               </div>
             </div>
+
           </div>
         </section>
 

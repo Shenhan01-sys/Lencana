@@ -315,3 +315,29 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
     *"Target: Built strictly to W3C VC 2.0 Recommendation and Open Badges 3.0 specification. Official third-party 1EdTech validator run (vc.1ed.tech) remains a roadmap target pending public URL testnet deployment. Content limits: Verifies cryptographic validity, Ed25519 multikey signature, and immutable block timestamp; does not evaluate subjective real-world truth of learner essay claims."*
 - Full bilingual i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
 - Verified with TypeScript typecheck (`tsc --noEmit`) and Vite production build (`0` errors, `dist/` built in 2.16s).
+
+### Iteration 15: Executive Academic Institute Hero Redesign ("Typical Kelas Gitu")
+- **Executive Academic Aesthetic Overhaul (`web/index.html` & `web/src/style.css`):**
+  - Replaced the kinetic brutalist hero (which featured comic book extruded shadows, doodle squiggles, and spinning stickers) with an ultra-prestigious, dignified Masterclass Academy standard aligning with top-tier Web3 institutes (Apple, Linear, MIT Web3 Academy).
+  - Ambient deep obsidian dome (`#08090C`) with subtle warm gold radial aura and hairline precision alignment.
+  - Institution status pill: `🏛️ BNB CHAIN · AUTONOMOUS AI ACADEMY & ON-CHAIN REGISTRY · TESTNET LIVE`.
+  - Masterclass editorial headline: *"The On-Chain Standard for Autonomous AI Credentials."* with platinum-to-gold luxury gradient accent.
+  - Refined nested action CTAs: `Explore Micro-Courses (➔)` and `Instant Public Verifier (0 Gas)`.
+  - 4-item hairline trust metric strip: Open Badges 3.0 W3C format, 0 Wallet Required eth_call audit, EAS 1.3.0 Engine, ERC-5192 Soulbound.
+- **Centerpiece Visual: Double-Bezel Academic Credential Glass Plaque (`.hero-plaque-container`):**
+  - Double-bezel titanium and gold hairline corner brackets with subtle ambient back-glow.
+  - Institutional crest and official on-chain status indicator dot.
+  - Demonstrated Competency Certificate for Rina S. Pramono (`0x5cA3...7c3B`) in *Web3 Security & Reentrancy Defense*.
+  - 93/100 Honors with Distinction (*Summa Cum Laude*) with live rubric progress breakdown (Analytical Depth, EVM Security, Reentrancy Mitigation).
+  - Official embossed gold wax seal with BNB Chain insignia and EAS resolver verification pass.
+  - Cryptographic attestation UID and AI faculty signer address (`0x91a7cD37B30A66f2...`).
+  - Interactive 1-click **"Audit Live Proof in Verifier"** button (`btn-load-demo-hero`) bridging directly to the forensic verification suite.
+  - Companion recruiter verification simulator pill (`bagas-recruiter.bnb` · `btn-hero-recruiter-check`).
+- **Executive Architecture Bento Grid (3 Modules):**
+  - Module 01: Autonomous AI Essay Grading (multimodal LLM evaluation with transparent on-chain rubrics).
+  - Module 02: BAS Resolver Security Hooks (tamper-proof prerequisite verification and anti-replay locks).
+  - Module 03: Zero-Wallet Public Verification (instant direct RPC inspection without MetaMask or gas).
+- **Internationalization & Verification:**
+  - Full bilingual i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
+  - TypeScript typecheck (`tsc --noEmit`) and Vite production build (`npm run build`) passed with **0 errors** (built in 2.50s).
+
