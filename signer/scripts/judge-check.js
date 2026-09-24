@@ -63,5 +63,24 @@ check('penilaian tidak seragam antar kriteria (tanda ia benar-benar membaca)',
   new Set((hollow.perCriterion ?? []).map((c) => c.score)).size > 1,
   JSON.stringify((hollow.perCriterion ?? []).map((c) => c.score)))
 
+// --- 6. pembanding: model yang TIDAK kita pakai, diuji dengan tes yang sama -----
+// Alasan pemilihan model tidak boleh jadi opini yang cuma hidup di skrip privat. Kalau seseorang
+// ingin bertanya "kenapa bukan yang tercepat?", jawabannya harus bisa ia jalankan sendiri.
+const RIVAL = 'qwen/qwen3.8-27b'
+try {
+  const rivalJudge = groqJudge({ model: RIVAL })
+  const rivalGood = await gradeAgainstRubric({ text: await load('essai-230-kata.md'), essay: lesson.essay, judge: rivalJudge })
+  const rivalHollow = await gradeAgainstRubric({ text: await load('essai-fasih-tapi-kosong.md'), essay: lesson.essay, judge: rivalJudge })
+  console.log(`\npembanding ${RIVAL}: substantif=${rivalGood.finalScore} kosong=${rivalHollow.finalScore}`)
+  check('kontrol negatif BERLAKU UNIVERSAL: pembanding juga menjatuhkan jawaban kosong',
+    (rivalHollow.finalScore ?? 999) < course.passMark, `dapat ${rivalHollow.finalScore}`)
+  // Yang membedakan dua model ini bukan "bisa menolak" — keduanya bisa. Yang dicatat di sini:
+  check('alasan pembanding bukan default: plafonnya jenuh (mentok di nilai maksimum rubrik)',
+    (rivalGood.finalScore ?? 0) >= (good.finalScore ?? 0) && (rivalGood.finalScore ?? 0) >= 99,
+    `${rivalGood.finalScore} vs ${good.finalScore}`)
+} catch (err) {
+  console.log(`  lewat: pembanding ${RIVAL} tidak bisa dipanggil (${err.message.slice(0, 80)})`)
+}
+
 console.log(`\n${bad === 0 ? 'PENILAI SAH' : 'PENILAI TIDAK SAH'} — ${bad} pemeriksaan gagal`)
 process.exitCode = bad ? 1 : 0

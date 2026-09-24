@@ -7,23 +7,31 @@
  *
  * ## Model dipilih karena hasil ukur, bukan karena nama
  *
- * Diuji 24 Sep terhadap rubrik asli `esai-batas-bukti` (kunci dari environment, katalog model
- * dibaca dari API-nya sendiri — akun ini TIDAK punya `llama-3.3-70b` sama sekali):
+ * Diuji 24 Sep terhadap rubrik asli `esai-batas-bukti` dengan DUA tulisan berbeda mutunya (kunci
+ * dari environment; katalog model dibaca dari API-nya sendiri — akun ini TIDAK punya
+ * `llama-3.3-70b`, dan `qwen/qwen3.8-27b` nyata ada, `owned_by: "Alibaba Cloud"`):
  *
- * | model | hasil | keputusan |
- * |---|---|---|
- * | `openai/gpt-oss-120b` | 20–24 dari 25 per kriteria, JSON di `content`, 2,4–2,8 s | **dipakai** |
- * | `openai/gpt-oss-20b` | 20–23, 1,1–1,5 s | cadangan |
- * | `qwen/qwen3.8-27b` | **25/25/25/… di SEMUA kriteria** | **DITOLAK** |
+ * | model | substantif | fasih-tapi-kosong | keputusan |
+ * |---|---|---|---|
+ * | `openai/gpt-oss-120b` | 99 | **6** | **dipakai** |
+ * | `openai/gpt-oss-20b` | ~95 | 4 | cadangan |
+ * | `qwen/qwen3.8-27b` | **100** | 8 | bukan default |
  *
- * Yang terakhir itu alasan berkas ini ada: model yang memberi nilai sempurna ke apa pun membuat
- * rubrik jadi mesin lulus otomatis, dan kredensial yang terbit darinya tidak berarti apa pun.
- * Karena itu `scripts/judge-check.js` mewajibkan **kontrol negatif**: jawaban yang fasih tapi kosong
- * harus mendapat nilai DI BAWAH ambang lulus. Penilai yang tidak bisa menjatuhkan seorang peserta
- * tidak sedang menilai.
+ * KOREKSI yang sengaja dibiarkan tertulis di kode: laporan pertamaku mengklaim qwen memberi
+ * "25/25 ke dua tulisan berbeda mutu". Itu SALAH — probe pertama cuma mengirim SATU esai ke semua
+ * model, dan aku menyimpulkan perbandingan yang belum kujalankan. Sesudah diuji betulan, qwen
+ * MENJATUHKAN jawaban kosong (8/100): dia bukan mesin lulus otomatis. Alasan sesungguhnya ia bukan
+ * default lebih kecil dan harus disebut dengan benar: **plafonnya jenuh** (langsung 100, tanpa
+ * kepala untuk membedakan "bagus" dari "sempurna") dan ia tidak menawarkan `structured_outputs`.
  *
- * Semua pemanggilan memakai `temperature: 0`. Itu bukan kebetulan: tanpa itu, nilai yang sama
- * bisa berbeda antar jalankan, dan kita tidak bisa lagi berkata "angka ini bisa ditelusuri".
+ * Karena itu `scripts/judge-check.js` mewajibkan **kontrol negatif**: jawaban fasih tapi kosong harus
+ * di bawah ambang lulus. Penilai yang tidak bisa menjatuhkan peserta tidak sedang menilai — dan
+ * penilai yang mentok di 100 juga tidak menyisakan apa pun untuk dibandingkan.
+ *
+ * Semua pemanggilan memakai `temperature: 0`. Itu bukan kebetulan: tanpa itu, nilai yang sama bisa
+ * berbeda antar jalankan, dan kita tidak bisa lagi berkata "angka ini bisa ditelusuri". Bahkan
+ * dengannya hasilnya masih bergeser (99/100; 6 pada fixture kosong, 4 di panggilan lain) — jadi
+ * yang kita klaim adalah "model dan jawabannya tercatat", bukan "direproduksi persis".
  */
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 export const DEFAULT_JUDGE_MODEL = 'openai/gpt-oss-120b'
