@@ -1162,6 +1162,10 @@ function handleRoute() {
     targetPageId = 'page-home'
   }
 
+  const isHome = targetPageId === 'page-home'
+  document.body.classList.toggle('is-home-page', isHome)
+  closeNexumMobileMenu()
+
   const pages = document.querySelectorAll<HTMLElement>('.page-view')
   pages.forEach((p) => {
     if (p.id === targetPageId) {
@@ -1727,6 +1731,7 @@ function wire() {
       closeWalletModal()
       closeMintModal()
       closeDiplomaModal()
+      closeNexumMobileMenu()
     }
   })
 
@@ -1890,6 +1895,44 @@ function wire() {
   // Demo Walkthrough Dock & Spec Matrix Wiring (Iteration 14)
   setupDemoDock()
   initSpecMatrix()
+
+  // Nexum Hero Mobile Drawer Wiring (Iteration 16)
+  setupNexumMobileMenu()
+}
+
+// ========================================================
+// ITERATION 16: NEXUM CINEMATIC HERO INTERACTIONS
+// ========================================================
+function closeNexumMobileMenu() {
+  const toggleBtn = $('nexum-menu-toggle')
+  const backdrop = $('nexum-mobile-backdrop')
+  const drawer = $('nexum-mobile-drawer')
+
+  toggleBtn?.classList.remove('is-open')
+  toggleBtn?.setAttribute('aria-expanded', 'false')
+  backdrop?.classList.remove('is-open')
+  drawer?.classList.remove('is-open')
+  document.body.style.overflow = ''
+}
+
+function setupNexumMobileMenu() {
+  const toggleBtn = $('nexum-menu-toggle')
+  const backdrop = $('nexum-mobile-backdrop')
+  const drawer = $('nexum-mobile-drawer')
+
+  toggleBtn?.addEventListener('click', () => {
+    const isOpen = drawer?.classList.toggle('is-open') ?? false
+    toggleBtn?.classList.toggle('is-open', isOpen)
+    toggleBtn?.setAttribute('aria-expanded', String(isOpen))
+    backdrop?.classList.toggle('is-open', isOpen)
+    document.body.style.overflow = isOpen ? 'hidden' : ''
+  })
+
+  backdrop?.addEventListener('click', closeNexumMobileMenu)
+
+  document.querySelectorAll<HTMLElement>('.nexum-mobile-link, .nexum-btn-mobile-full').forEach((link) => {
+    link.addEventListener('click', closeNexumMobileMenu)
+  })
 }
 
 // ========================================================
