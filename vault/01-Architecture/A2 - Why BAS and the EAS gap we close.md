@@ -1,0 +1,31 @@
+---
+tags: [architecture, "A2"]
+---
+
+# A2 - Why BAS and the EAS gap we close
+
+**Part of:** [[01-Architecture/01 - Architecture]]
+**Source:** `contracts/CredentialResolver.sol:348` (`_validatePrerequisite`) · `lib/bas/src/IEAS.sol:333`
+
+**Summary:** The lookup table for the anchor decision: which primitive properties BAS (a fork of EAS 1.3.0, deployed by someone else on chains 97 and 56) already guarantees, which single check EAS performs on a prerequisite, and which four additional facts `CredentialResolver` enforces instead. The hub essay carries the argument and the history; this note carries the names, line numbers and the test that proves each refusal. BAS is used, not written: the anchor layer contains **zero Solidity authored here**, and `EAS.sol` is not even in our build path — which is why the proofs are fork tests against the real deployment rather than unit tests against a copy.
+
+**Key points:**
+- **What we did not have to write** (each verified against the vendored interface): `timestamp(bytes32)` → `uint64` (`lib/bas/src/IEAS.sol:333`) with `getTimestamp(bytes32)` (`:363`) as the write-once anchor; `revoke(bytes32 uid)` on the attestation plus `revokeOffchain(bytes32)` (`:343`) and `getRevokeOffchain(address revoker, bytes32 data)` (`:368`) — the off-chain variant is bound to the revoking address, so two issuers cannot overwrite each other's status; `Attestation.revocationTime` / `.expirationTime` as native columns; `ISchemaRegistry.getSchema(bytes32 uid)` (`lib/bas/src/ISchemaRegistry.sol:34`), permissionless and fee-free.
+- **The gap, exactly:** EAS tests a `refUID` for *existence only* — restated at `contracts/CredentialResolver.sol:36-37`. `isAttestationValid(bytes32)` (`lib/bas/src/IEAS.sol:358`) is therefore **not** a liveness test: it returns true for a revoked, an expired and somebody else's attestation. Never use it as one.
+- **What `_validatePrerequisite()` adds** (`contracts/CredentialResolver.sol:348`), each with its own error: `PrerequisiteNotOurs` (`:148`), `PrerequisiteRevoked` (`:145`), `PrerequisiteExpired` (`:146`), `PrerequisiteWrongHolder` (`:147`), plus `PrerequisiteIssuerDelisted` (`:153`) — the last one is a consequence of our own ownership model (third-party agents), not an EAS hole.
+- **Each refusal is executed, on two chains:** `test_fork_PrasaratDicabut_PenerbitanLanjutanDitolak` (`test/CredentialResolver.fork.t.sol:277`), `..._Kedaluwarsa_...` (`:285`), `..._MilikOrangLain_...` (`:294`), `..._BukanKredensialKita_...` (`:300`), and the harder variant — a *valid* attestation issued under a different resolver — at `:312`. The delisted-prerequisite revert is asserted at `:455` inside the test at `:438`.
+- **Admission is not a client convention:** BAS calls `onAttest()` *before* accepting the attestation (`contracts/CredentialResolver.sol:241-242`), and the gate is `_issuer[attestation.attester]` → `NotAnIssuer(attester)` (`:142`). Refusal proven on the live deployment at `test/CredentialResolver.fork.t.sol:220`; one-credential-per-hash at `AlreadyIssued` (`:143`, test `:257`).
+- **The schema is three fields and the UID is derived:** `CREDENTIAL_SCHEMA` (`:68`), `SCHEMA_REVOCABLE = true` (`:72`), `schemaUID() = keccak256(abi.encodePacked(schema, address(this), revocable))` (`:164-166`) — the resolver's address is inside the UID, so a redeploy silently creates a different schema. Re-read from chain 97 on 2026-09-25: `cast call 0x7CA624caFDe5cA3A27b33d26be56F73a90792065 "CREDENTIAL_SCHEMA()(string)" --rpc-url https://bsc-testnet.publicnode.com` → `bytes32 credentialHash,bytes32 courseId,bytes32 lessonId`.
+- **How the third-party addresses were established** (not copied from a document): bytecode size identical on 97 and 56 (18,881 B) *and* `eth_call getSchemaRegistry()` returning the registry in the table — the constants and that verification note are at `test/CredentialResolver.fork.t.sol:66-70` (97) and `:72-77` (56). BAS core 97 `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD`, registry 97 `0x08C8b8417313fF130526862f90cd822B55002D72`.
+
+**Detail:**
+- **Why the proofs must be fork tests.** `EAS.sol`/`SchemaRegistry.sol` are pinned to `pragma solidity 0.8.19` and cannot compile alongside OpenZeppelin 5.1.0 (`^0.8.20`), so those files were moved out of the build path and only the interfaces are vendored (`package.json`, `comment`; the reason restated at `test/CredentialResolver.fork.t.sol:55-56`). The consequence is stronger evidence, not weaker: what is exercised is the deployment a judge can open.
+- **Error-name trap.** EAS errors are declared inside `contract EAS`, so they cannot be imported; the test file re-declares them by the same name (`test/CredentialResolver.fork.t.sol:21-31`, `error AlreadyRevoked();` at `:24`, `error InvalidSignature();` at `:31`) because a selector comes from the signature, not from the declaration site. A renamed mirror produces `next call did not revert as expected`, not a missing-error message.
+- `statusOf(bytes32)` (`contracts/CredentialResolver.sol:282`) is the one `eth_call` every verdict comes from; seven return values, `issuerDelisted` in **position 4**. `web/src/abi.ts:27-29` keeps that order and says why guessing it is silent corruption, and `web/src/abi.ts:11-13` records that BAS = EAS 1.3.0 has **no** `schemaVersion` in `Attestation` — adding one shifts every later field without any error.
+- **Deliberate cost, accepted:** BAS ships no Indexer for BSC (only opBNB), so the per-holder index `credentialsOf` / `credentialCount` (`:325`, `:329`) exists and grows unbounded per address; `CredentialResolver.sol:88-98` states the pagination duty it leaves on the backend.
+- **Not our claim:** *non-repudiable revocation* and the write-once timestamp are default EAS/BAS behaviour. Ours are the issuer whitelist, the revocation-aware prerequisite chain, and wallet-free one-call verification — the same sentence appears in the hub essay so the two cannot drift apart.
+- **Forbidden wording:** "official BNB Chain programme". The repository we rely on does not make that claim about itself; we use it because we tested the address.
+
+**Related:** [[02-Contracts/01 - Contracts]] · [[04-Signer-Service/S4 - Delegated issuance]] ·
+[[Concepts/Issuer Delisted vs Revoked]] · [[Concepts/Credential Hash vs Attestation UID]] ·
+[[00-Overview/03 - Decisions]] · [[09-Testing/00 - Hub Testing]]

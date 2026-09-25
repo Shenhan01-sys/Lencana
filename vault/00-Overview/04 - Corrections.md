@@ -1,0 +1,35 @@
+---
+tags: [overview, correction]
+status: active
+updated: 2026-09-25
+---
+
+# 04 - Corrections
+
+Wrong claims that were written down here or in the UI, and what replaced them. Kept on purpose: a
+vault that only records successes cannot tell you which of its numbers to trust. Each row names the
+thing that caught the error — that is the part worth copying.
+
+| claimed | true | caught by |
+|---|---|---|
+| "`--slow` fixes the failing `SeedDemo` transactions" (17 Sep) | No. The UID contains the mined `block.timestamp`, so a UID-dependent step is stale by construction. Fix is in code: two documented runs, gate on "already on chain before this process started" → **D32** | clean fork + reading `_getUID` |
+| `credentialHashOf = encodePacked(...)` | Must be `keccak256(encodePacked(...))`. My first version returned **54 bytes** that looked like a hash | `web/scripts/probe.ts` — the check that existed precisely to catch this |
+| "the judge model gave 25/25 to **two** essays of different quality" | **Never measured** — the first probe sent one essay to every model. Measured later: 100 and **8**, so it *can* fail an empty answer; the real reason it is not our default is a saturated ceiling, not leniency | a builder question ("where did that number come from?") followed by an actual run |
+| "at `temperature 0` the score drifts ±1" | Spread is **9 points** (91-100 on the same substantive essay, 5 runs). What is stable is the **pass/fail decision**, not the number | `npm run judge-variance` |
+| tx hashes `0xb477b7e7…` / `0x26d067b8…` written into a note | Wrong — abbreviated from memory. Real: `0x54b2d531…` / `0x0694ae2d…`, later `0x3486ff75…` / `0xb2f045d0…` | re-running the harness and reading its log file |
+| "12 watched credentials" | **11** — the dry run prints it | `npm run anchor -- --dry-run` |
+| "97 tests pass on chain 97 **and** 56" (quoted on 25 Sep as if both were fresh) | Only 97 was re-run on 25 Sep. The 56 figure is dated 23 Sep and must carry that date | writing this page |
+| "the signer server anchors the list it serves" | It did **not**: `issue.js` anchored a one-credential list while the server served all of them. Single source now, `servedHashes()` in `signer/src/lists.js` | comparing the anchored hash with the served hash |
+| `attestByDelegation` works with the batch request shape | It does not — an array landed where a struct belonged → `InvalidAddressError`. Caught before any gas moved | running `npm run delegate` on the public chain |
+| "nothing in `signer/` has touched a public chain yet" | Obsolete from 21 Sep onward | re-reading the line while writing a new one |
+| **In the shipped UI, still open:** a hand-typed "Open Badges 3.0 document" with 17 URLs on a domain we do not hold | The real document is served by `GET /credentials/0x…` and is signed. One field of the typed object (`0x0b95c83b…`) **is** a live credential, which is what makes the rest convincing | the front-end merge audit → [[10-Contributors/Open-Items/OI-1 - Fabricated credential document]] |
+| `../README.md` "no contract has been broadcast to a public testnet yet" | False since 21 Sep: 4 contracts on 97, re-read from the RPC | this audit |
+| [[00-Overview/01 - Briefing]] "Sign in. Email login. The backend creates an address for the learner" | Not built. There is no email login and no account: progress is `localStorage`, and the UI's "Sign in with Browser" is a wallet prompt, not the described flow | grepping `web/` for login/email while writing this page |
+
+## The habit this table is meant to teach
+
+Every row was caught by **running something**, never by re-reading the prose. A claim that has no
+command attached is a guess with better formatting — which is why [[AGENTS]] rule 1 forbids writing
+numbers that were not just produced, and [[09-Testing/00 - Hub Testing]] is the only home for them.
+
+**Related:** [[00-Overview/03 - Decisions]] · [[08-Results/01 - Evidence and Limits]] · [[10-Contributors/Claims-Cheat-Sheet]]

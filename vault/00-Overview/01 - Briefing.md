@@ -21,7 +21,7 @@ The failure we remove is concrete:
 > to: *who may mint, and how does a verifier know it is real?*
 
 Answering "because blockchain" does not survive a follow-up question. So the product answers four
-mechanical questions instead. See [02-architecture.md](02-architecture.md).
+mechanical questions instead. See [[01-Architecture/01 - Architecture|01 - Architecture]].
 
 ## The three people who use it
 
@@ -80,13 +80,13 @@ gets a verdict, all the raw evidence, and — **commands to repeat the check wit
    revoking one bad issuer cannot wipe out the rights of learners who did nothing wrong.
 2. **A prerequisite that is revoked kills what was built on it.** This was a **finding**, not a plan:
    EAS checks only that a prerequisite *exists*. See the "gap" section of
-   [02-architecture.md](02-architecture.md).
+   [[01-Architecture/01 - Architecture|01 - Architecture]].
 3. **Bulk verification is an economy, not a button.** A recruiter — or a recruiting agent — can pay
    per check over **x402**, and the agent-payment path on BNB Chain is already proven, including
    settlement that costs the payer no gas. The line: **we charge for convenience, never for truth.**
    The public page stays free forever.
 4. **The document is a standard, not our format.** Consequence: our credential should open in
-   somebody else's validator. Status of that proof: [03-evidence-and-limits.md](03-evidence-and-limits.md)
+   somebody else's validator. Status of that proof: [[08-Results/01 - Evidence and Limits|01 - Evidence and Limits]]
    — **not run yet**.
 
 ## The demo, as designed

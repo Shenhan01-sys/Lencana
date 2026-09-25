@@ -6,7 +6,7 @@
 
 | | |
 |---|---|
-| On-chain layer (3 contracts) | ✅ written · **97 tests pass on fork chain 97 and 56** (23 Sep) · **deployed to public chain 97 (21 Sep)** — addresses and measured cost in [04-technical-reference.md](04-technical-reference.md) §D, re-read from the chain by an independent script (13/13), not trusted from a build log. Third contract (`SettlementSplit`, revenue split) is deployed on 97 and received a **real x402 settlement** on 23 Sep; it has no mainnet deployment and no hosted caller, and the HTTP `402` side has never run — see the limits row below |
+| On-chain layer (3 contracts) | ✅ written · **97 tests pass on fork chain 97 and 56** (23 Sep) · **deployed to public chain 97 (21 Sep)** — addresses and measured cost in [[06-Spec-Research/01 - Spec Research|01 - Spec Research]] §D, re-read from the chain by an independent script (13/13), not trusted from a build log. Third contract (`SettlementSplit`, revenue split) is deployed on 97 and received a **real x402 settlement** on 23 Sep; it has no mainnet deployment and no hosted caller, and the HTTP `402` side has never run — see the limits row below |
 | Verification page | ✅ built · typecheck + build pass · **probe 59 checks / 0 failed against the PUBLIC testnet (23 Sep)**, covering four verdicts: `VALID`, `REVOKED`, `ISSUER_DELISTED`, and "valid while its prerequisite is revoked" |
 | Reproducible demo data | ✅ `SeedDemo` seeds four distinct verdicts and converges in **two documented runs** — now run against public chain 97, and the four credential hashes came out **identical to the fork**, which is the point of hashing (holder, courseId) instead of pointing at a UID |
 | Credential-signing backend | ✅ **exists, one command deep, and green against the public chain (21 Sep)**: `app/signer/` issues `OpenBadgeCredential` 3.0 with `DataIntegrityProof` + `eddsa-rdfc-2022`, serves two BitstringStatusLists derived from chain state, and anchors both list hashes with BAS `timestamp()`. `check.js` **53/53**, HTTP `serve-probe` **20/20** (jumlah check tumbuh bersama himpunan pantau; angkanya dicetak oleh run). What is left: the `vc.1ed.tech` run below, and a **public** URL for those lists to live at — the issued document currently carries `http://127.0.0.1:8787/…` |
@@ -54,7 +54,7 @@ the verification frontend, which is user-facing, will carry a language switch.
       `ATTEST_TYPEHASH 0xfeb2925a…`, field order and both request shapes (single ≠ batch — sharing
       one builder produced `InvalidAddressError`) live in `signer/src/delegation.js` with a guard
       that refuses a signature not recovering to the agent's own address.
-      See [02-architecture.md](02-architecture.md#who-owns-the-agent-and-who-pays-for-issuance) and D31/D36.
+      See [[01-Architecture/01 - Architecture|01 - Architecture]], section "Who owns the agent, and who pays for issuance", and D31/D36.
       ⬜ **Remaining:** a *service* (endpoint + queue + its own key handling) rather than a script a
       person runs, and a **third-party facilitator** for the paid path.
 - [x] ~~`PaymentSplitter` — the platform's fixed share is what recovers the fronted gas~~ →
@@ -83,7 +83,7 @@ the verification frontend, which is user-facing, will carry a language switch.
    status list is built and served from chain state. What replaced the decision as the blocker is
    the **interoperability run**: until a credential passes `https://vc.1ed.tech`, the phrase to use
    is "built to the specification", never "1EdTech compatible". Three options are still analysed in
-   [02-architecture.md](02-architecture.md#d241--decided-19-sep-option-a-a-bitstring-status-list-derived-from-chain-state)
+   [[01-Architecture/01 - Architecture|01 - Architecture]]
    for the record, with the refinement building it forced: **two** lists (`revocation` +
    `suspension`), because one bit cannot hold both a permanent revocation and a recoverable
    delisting.
@@ -109,7 +109,7 @@ the verification frontend, which is user-facing, will carry a language switch.
 | `SeedDemo` completing the demo state (advanced credential + revocation) | ✅ four verdicts on public chain 97, in two documented runs |
 | the status-list decision (D24.1) | ✅ taken 19 Sep, option A: bitstring derived from chain state — and it came out as **two** lists |
 | signing backend: `eddsa-rdfc-2022`, ordered `@context`s, `validUntil`, mandatory `achievement.criteria`, `verificationMethod` as an HTTP URL | ✅ `app/signer/`, 45 + 20 checks green against the public chain |
-| deploy to chain 97 | ✅ 21 Sep; addresses and measured cost in [04-technical-reference.md](04-technical-reference.md) §D |
+| deploy to chain 97 | ✅ 21 Sep; addresses and measured cost in [[06-Spec-Research/01 - Spec Research|01 - Spec Research]] §D |
 
 </details>
 

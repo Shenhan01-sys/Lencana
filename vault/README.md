@@ -1,31 +1,47 @@
-# 📚 Project briefing — Lencana
+---
+tags: [reference, hub]
+---
+
+# 📚 Lencana vault
 
 Context notes: **why** the product is shaped like this, not what is in it. To run the code,
-[`../README.md`](../README.md) is enough.
+[`../README.md`](../README.md) is enough. Judges and contributors read this folder; so do AI agents
+(see [`AGENTS.md`](AGENTS.md)).
 
 > **Deliberate scope.** These notes cover **Lencana only** — the e-course platform with verifiable
 > credentials. No other product, track or plan appears here.
+>
+> **Start at** [`START-HERE.md`](START-HERE.md). This file is only the two habits that keep the
+> folder trustworthy.
 
-| File | Contents | Read it when… |
-|---|---|---|
-| [01-briefing.md](01-briefing.md) | what the product is, who uses it, the flow from zero to a verified certificate, the demo scenes | you want to understand the product as a person, not as an engineer |
-| [02-architecture.md](02-architecture.md) | the layers and who owns each (credential, BAS anchor, resolver, artifact, assessment policy, assessment executor, learning surface, revenue split), why BAS is reused rather than rewritten, decisions with dates — **D24.1 implemented**, and D33–D41 added 21–24 Sep | you are about to change a contract, the backend, or who is allowed to decide a grade |
-| [03-evidence-and-limits.md](03-evidence-and-limits.md) | what **is** proven, what is **not**, and the list of claims we forbid ourselves | you are writing UI copy, the repo description, or presentation material |
-| [04-technical-reference.md](04-technical-reference.md) | Open Badges 3.0 / VC 2.0 facts taken from the raw specification, plus the toolchain traps that already cost us time | you are touching credential signing or the Foundry rig |
-| [05-status-and-tasks.md](05-status-and-tasks.md) | where things stand, the blockers, and the order of work to the deadline | you are continuing this work |
+1. **Every number came from a command that was run**, and each number lives in exactly one place
+   ([`09-Testing/`](09-Testing/) for harness results). Elsewhere it is linked, not restated. Where a
+   page and a fresh run disagree, **the run wins** — fix the page.
+2. **Failures are recorded, not hidden.** Several decisions here exist because an earlier conclusion
+   was wrong and the correction was written down in full
+   ([`00-Overview/04 - Corrections.md`](00-Overview/04%20-%20Corrections.md)).
 
-## How to read these notes correctly
+## Structure
 
-Two habits that keep them trustworthy:
-
-1. **Every number came from a command that was run**, not from memory. Wherever you read "passed",
-   there is a command that produced it.
-2. **Failures are recorded, not hidden.** Several decisions here exist because a previous conclusion
-   was wrong and the correction was written down in full. If a figure in these notes ever
-   contradicts reality, **trust reality** and update the notes.
+| folder | what is in it |
+|---|---|
+| `00-Overview/` | the product as a person would describe it, roadmap, decisions, corrections, demo scenes |
+| `01-Architecture/` | the layers and who owns each, why BAS is reused, the EAS gap |
+| `02-Contracts/` | one note per deployed contract, function by function |
+| `03-Frontend/` | verifier page + learning surface + the mount contract with the frontend maintainer |
+| `04-Signer-Service/` | the credential document, status lists, agent delegation, grading, payment |
+| `05-Course-Content/` | course data model, issuer manifests, grading authority |
+| `06-Spec-Research/` | facts taken from the raw specifications, not from summaries |
+| `07-Backlog/` | work left, risks, plan to the deadline, acceptance criteria per item |
+| `08-Results/` | evidence and limits, plus one executive summary per finished item |
+| `09-Testing/` | one record per harness command, with its real output |
+| `10-Contributors/` | ownership, claims cheat-sheet, open items for the frontend maintainer |
+| `Concepts/` | atomic concept notes (credential hash vs UID, rubricHash, fronted gas, …) |
+| `Module-Guides/`, `Notes/`, `Templates/`, `scripts/` | the scaffolding, per [`Conventions.md`](Conventions.md) |
 
 ## Language policy
 
-Everything in this folder is **English**. The one agreed exception is the verification frontend,
-which will carry an **Indonesian / English switch** (tracked in
-[05-status-and-tasks.md](05-status-and-tasks.md); not built yet).
+Everything in this folder is **English** — it ships inside the product repository and judges read it.
+The product UI is Indonesian-first with an EN switch; that exception belongs to `web/`, not here.
+
+Rules in full: [`Conventions.md`](Conventions.md) · for agents: [`AGENTS.md`](AGENTS.md)

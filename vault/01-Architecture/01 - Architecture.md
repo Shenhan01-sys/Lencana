@@ -351,7 +351,7 @@ institution" — on chain its minter is us, and that is publicly visible.
 | 13 Sep | Greenfield **out of the critical path** — its testnet is reset after ~7 days, and judging happens later |
 | 16 Sep | **BAS becomes the anchor**; the hand-written `IssuerRegistry` + `CredentialAnchor` are deleted (3 contracts → 2) |
 | 16 Sep | **Agent = issuer, verifier = deterministic and wallet-free.** ~~Issuance cost borne by the sponsoring institution~~ — **superseded 19 Sep**, see below |
-| 16 Sep | OB3.0 specification read from raw files and independently re-verified (see [04-technical-reference.md](04-technical-reference.md)) |
+| 16 Sep | OB3.0 specification read from raw files and independently re-verified (see [[06-Spec-Research/01 - Spec Research|01 - Spec Research]]) |
 | 17 Sep | Project name: **Lencana**. Agent name: **Issuer** |
 | 17 Sep | Public repository created; documentation language = **English** |
 | 19 Sep | **Agents are third-party owned; Lencana is only the venue.** The agent itself is the `attester`, holding its own key |

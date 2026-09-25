@@ -61,10 +61,10 @@ Every number below is the output of a command that was run, not a plan.
 The fork tests call **BAS (BNB Attestation Service, a fork of EAS 1.3.0) exactly as deployed on
 chain** — not a copy we deployed ourselves. Those are also the addresses a judge can open.
 
-**What is not proven, and must not be claimed:** no contract is live on a public testnet (every
-success above is a *fork* — real state, no real transaction); the page has never been run against a
-third-party validator; the HTTP 402 payment layer has never been executed. Details:
-[`vault/03-evidence-and-limits.md`](vault/03-evidence-and-limits.md).
+**What is not proven, and must not be claimed:** the 1EdTech validator has never been run (it opens
+URLs written inside the credential document, and ours still says `127.0.0.1`); the paid path has no
+third-party facilitator and no outside payer; the graded essays in the demo are fixtures, not real
+learners. Details: [`vault/10-Contributors/Claims-Cheat-Sheet.md`](vault/10-Contributors/Claims-Cheat-Sheet.md).
 
 ## How it works
 
