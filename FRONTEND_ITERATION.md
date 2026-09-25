@@ -341,28 +341,34 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
   - Full bilingual i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
   - TypeScript typecheck (`tsc --noEmit`) and Vite production build (`npm run build`) passed with **0 errors** (built in 2.50s).
 
-### Iteration 16: Pixel-Faithful Nexum Dark Cinematic AI-Ops Hero Page
-- **Single Full-Screen Architecture (`h-screen w-full overflow-hidden`):**
-  - Completely streamlined `#page-home` into a single full-screen, bottom-anchored cinematic AI-ops hero section (`.nexum-hero-section`).
-  - No second scroll section; all residual legacy landing sections trimmed cleanly so the first viewport delivers maximum dark cinematic impact.
-  - Viewport isolation via `body.is-home-page`: global navbar, footer, and presentation dock are hidden on `#page-home` while remaining active on all Web3 application subviews (`#/courses`, `#/submit`, `#/verify`, `#/portfolio`, `#/agent-hub`).
+### Iteration 16: Lencana Dark Cinematic AI-Ops Hero Page & Full Ecosystem Integration
+- **Lencana Brand Identity & Geometric Shield Crest:**
+  - Replaced dummy Nexum branding with **lencana** wordmark and custom geometric BNB shield/diamond cryptographic vector SVG.
+  - Page title and meta updated to: `Lencana — Autonomous AI Credentials on BNB Smart Chain`.
 - **Exact CloudFront Full-Bleed Background Video:**
-  - Integrated high-definition video URL: `https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4`.
-  - Absolute full-bleed `inset-0`, `w-full h-full object-cover`, with `autoplay`, `loop`, `muted`, and `playsinline`. No gradient overlay; content sits directly at `z-10`.
-- **Typography & Responsive Color Flipping System:**
-  - Exact Google Fonts loaded: `Geist` (weights 300, 400, 500, 600, 700) for global typography, and `Silkscreen` cursive strictly for the big stat number (`42,500+`).
-  - Strict responsive text flip: typography and brand elements render in near-black (`#010101`) on small screens and dynamically flip to crisp white (`#FFFFFF`) on `lg+` (1024px+) to guarantee legibility against the changing video background.
+  - Integrated high-definition cinematic video URL: `https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4`.
+  - Absolute full-bleed `inset-0`, `w-full h-full object-cover`, with `autoplay`, `loop`, `muted`, and `playsinline` at `z-0`. Content sits cleanly at `z-10`.
+- **Tailored Lencana Hero Headline & Eyebrow:**
+  - Eyebrow pill: `BNB SMART CHAIN · AUTONOMOUS AI CREDENTIAL REGISTRY`.
+  - Authoritative headline: *"Autonomous AI credentials that prove your on-chain mastery"* (`text-3xl sm:text-4xl lg:text-[3.5rem]`, font-semibold, leading-[1.1], tracking-tight, max-w-xl).
+- **Interactive Live Credential Search & Verification Capsule:**
+  - Replaced generic newsletter input with a functional Web3 verification capsule.
+  - Input: `Paste credential UID (0x...) or wallet address` with primary action button `Verify Now ➔`.
+  - Submitting seamlessly routes to `#/verify`, pre-fills the address or sample UID, and triggers the on-chain verification engine.
+  - 1-click test chip: `🟢 1-Click Test Valid Attestation (0x0b95...)` and `📚 Explore Micro-Courses`.
+- **Lencana Glass Cards (Stats & Recruiter Trust Plaque):**
+  - **Stats Glass Card (`bg-white/10 backdrop-blur-lg`):** Silkscreen counter **14,800+** with subtext *"On-chain credentials evaluated by autonomous AI and anchored permanently on BNB Chain."* plus metadata tags (`0 Gas eth_call`, `EAS 1.3 Resolver`).
+  - **Recruiter Trust Glass Card (`bg-white/10 backdrop-blur-lg`):** BNB Chain Ecosystem crest with authentic hiring quote: *"Lencana eliminated credential fraud in our hiring. A single eth_call proves candidate code was evaluated by autonomous AI and locked on-chain."* attributed to **Bagas Pratama** (`Head of Web3 Talent · ChainWorks`).
 - **Glassmorphic Navigation & Interactive Mobile Drawer:**
-  - Brand identity with exact SVG vector path (`viewBox="0 0 256 256"`) and lowercase **nexum** wordmark.
-  - Desktop Glass Nav Cluster: `rounded-full bg-white/10 px-1.5 py-1.5 backdrop-blur-lg` with links (`Modules`, `Clientele`, `Solutions` with 14px `ChevronDown`, `Billing`) seamlessly mapped to Lencana's Web3 portals.
-  - Separate "Get started" button with dark vertical gradient (`linear-gradient(to bottom, #2B2B2B, #101010)`).
-  - Mobile Hamburger (`md:hidden`) with 300ms morphing icon animation (`Menu` ↔ `X`), body scroll lock (`overflow: hidden`), glass overlay backdrop (`bg-black/80 backdrop-blur-md`), and slide-in drawer (`bg-black/90 backdrop-blur-xl`, `w-72`) with 60ms staggered link transitions and delayed bottom CTA.
-- **Bottom-Anchored Hero Content & Glass Cards:**
-  - Headline: *"Ship AI workers that grind while you rest"* (`text-3xl sm:text-4xl lg:text-[3.5rem]`, font-semibold, leading-[1.1], tracking-tight, max-w-xl).
-  - Capsule Email CTA: input *"Type your email"* nestled inside a rounded-full white capsule on desktop, stacking seamlessly on mobile.
-  - Stats Glass Card (`bg-white/10 backdrop-blur-lg`): Silkscreen counter **42,500+** with subtext *"Teams run Nexum to handle recurring ops daily."*.
-  - Testimonial Glass Card (`bg-white/10 backdrop-blur-lg`): Stratify brand badge, authentic quote, and Sara Klein avatar (`https://i.pravatar.cc/72?img=12`) with "Dir of Operations" title.
+  - Desktop Glass Nav Cluster: `rounded-full bg-white/10 px-1.5 py-1.5 backdrop-blur-lg` mapped directly to Lencana portals: `Courses` (`#/courses`), `AI Studio` (`#/submit`), `Verifier` (`#/verify`), `Portfolio` (`#/portfolio`), `Governance` (`#/agent-hub`).
+  - Nav Action Pill: `Launch Studio` (`linear-gradient(to bottom, #2B2B2B, #101010)`).
+  - Mobile Hamburger (`md:hidden`) with 300ms morphing icon animation (`Menu` ↔ `X`), glass overlay backdrop (`bg-black/80 backdrop-blur-md`), and slide-in drawer (`bg-black/90 backdrop-blur-xl`, `w-72`) with 60ms staggered link transitions and delayed bottom CTA.
+- **Full Ecosystem Architecture Below the Fold:**
+  - Restored `#portal-gateways` (Courses Marketplace, AI Submission Studio, Instant Verifier Sandbox, Learner Portfolio, Agent Governance Hub).
+  - Restored `#architecture` (Technical Edge Bento Grid: AI Agent as Issuer Never Verifier, Closing EAS Prerequisite Loopholes, Soulbound ERC-5192, Zero-Wallet Public Verification).
+  - Integrated subtle bottom scroll cue (`↓ Scroll to explore dedicated portals & architecture`).
 - **Build Verification & Performance:**
-  - Tested with `tsc --noEmit` and `vite build` (`0` errors, `dist/` built in 2.45s).
+  - Tested with `tsc --noEmit` and `vite build` (`0` errors, `dist/` built in 1.94s).
+
 
 

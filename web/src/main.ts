@@ -1933,6 +1933,33 @@ function setupNexumMobileMenu() {
   document.querySelectorAll<HTMLElement>('.nexum-mobile-link, .nexum-btn-mobile-full').forEach((link) => {
     link.addEventListener('click', closeNexumMobileMenu)
   })
+
+  // Hero Live Search & Instant Verification Wiring
+  const heroForm = $('nexum-hero-search-form')
+  const heroInput = $('hero-verify-input') as HTMLInputElement | null
+  heroForm?.addEventListener('submit', (e) => {
+    e.preventDefault()
+    const val = heroInput?.value.trim()
+    window.location.hash = '#/verify'
+    if (val) {
+      inputEl.value = val
+    } else {
+      inputEl.value = SAMPLE_HASHES.valid
+    }
+    run()
+    setTimeout(() => {
+      document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+    }, 150)
+  })
+
+  $('btn-hero-quick-sample')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    inputEl.value = SAMPLE_HASHES.valid
+    run()
+    setTimeout(() => {
+      document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+    }, 150)
+  })
 }
 
 // ========================================================
