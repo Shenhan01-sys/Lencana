@@ -9,7 +9,7 @@ tags: [frontend, "FE1"]
 
 **Summary:** The verifier is one function over one input: interpret the string, read chain state
 with `eth_call`, return a `Report`. There is no server in this path and no signer — `verify.ts`
-imports only viem's `createPublicClient`/`http` (`web/src/verify.ts:15`). It is deliberately
+imports only viem's `createPublicClient`/`http` (`web/src/verify.ts:12`). It is deliberately
 DOM-free, which is what lets `web/scripts/probe.ts:25` import the same file from Node and assert its
 values against chain 97; that is the difference between "the page reads the right data" being
 testable and being inferred from how it renders. The page prints the verdict, every read it made
@@ -38,7 +38,8 @@ testable and being inferred from how it renders. The page prints the verdict, ev
 - Reproduction is part of the product, not a footer: `finish()` builds the `cast call` lines, two
   raw JSON-RPC `curl` lines and a selector table from the same endpoint
   (`web/src/verify.ts:753-775`).
-- Nine limit strings are attached to every report (`web/src/verify.ts:139`).
+- Nine limit strings are attached to every report (`web/src/verify.ts:139`); the panel the visitor
+  actually reads renders the dictionary's list instead (`web/src/render.ts:743`).
 
 **Detail:**
 - `verify()` runs in numbered sections (`web/src/verify.ts:351`, `:424`, `:441`, `:500`, `:539`,
