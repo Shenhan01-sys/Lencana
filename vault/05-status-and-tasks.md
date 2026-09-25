@@ -42,19 +42,29 @@ the verification frontend, which is user-facing, will carry a language switch.
       findings came out of it: `--slow` was never the fix for the failing seed transactions, and
       `SoulboundCert.mint()` accepting only its owner makes the **platform** the artifact minter once
       its issuers are third parties (D30). Both recorded where they belong.
-- [ ] 🔴 **Issuance relayer** (`attestByDelegation`). The platform fronts issuance gas while the
-      third-party agent stays the `attester`. This is **off-chain only** — no contract and no
-      `schemaUID` impact. The primitive is **already proven against the deployed BAS** by 8 fork
-      tests on chain 97 and 56 (19 Sep): correct delegation records the agent as `attester`, forgeries
-      and stale deadlines/nonces revert, `increaseNonce(newNonce)` invalidates unused delegations
-      without locking the agent out, a 3-item batch lands in one call, and a delegated credential
-      chaining onto a revoked prerequisite is still refused. What is written is the service:
-      EIP-712 domain `("EAS","1.3.0")`, `ATTEST_TYPEHASH 0xfeb2925a…`, field order, `getNonce()`,
-      `multiAttestByDelegation`, all in [02-architecture.md](02-architecture.md#who-owns-the-agent-and-who-pays-for-issuance).
-      ⚠️ Running it against a **public** chain is what still needs testnet BNB; the logic itself no
-      longer needs funding to be trusted
-- [ ] `PaymentSplitter` — the platform's fixed share is what recovers the fronted gas (see the
-      economics note in 02-architecture). Keep it a flat percentage; **no debt ledger**
+- [x] 🔴 ~~**Issuance relayer** (`attestByDelegation`)~~ → **primitive and execution both proven; the
+      hosted service is what remains.** The platform fronts issuance gas while the third-party agent
+      stays the `attester` — off-chain only, no contract or `schemaUID` impact. Proven by 8 fork
+      tests on 97 and 56 (19 Sep), then **run against the public chain**: `npm run delegate`
+      (caller inside this repo, `signer/scripts/delegate.js`) issued 3 lesson credentials in one
+      batch (`tx 0xe31a917e…`, 1,024,813 gas) and one singly (`tx 0xbe44e128…`, 370,131 gas), and
+      reading the chain back showed `attester` = the agent, **the agent's balance unchanged to the
+      wei**, `lessonOf(uid)` equal to the lesson id derived from the course material, and the
+      attester nonce advancing once per request. EIP-712 domain `("EAS","1.3.0")`,
+      `ATTEST_TYPEHASH 0xfeb2925a…`, field order and both request shapes (single ≠ batch — sharing
+      one builder produced `InvalidAddressError`) live in `signer/src/delegation.js` with a guard
+      that refuses a signature not recovering to the agent's own address.
+      See [02-architecture.md](02-architecture.md#who-owns-the-agent-and-who-pays-for-issuance) and D31/D36.
+      ⬜ **Remaining:** a *service* (endpoint + queue + its own key handling) rather than a script a
+      person runs, and a **third-party facilitator** for the paid path.
+- [x] ~~`PaymentSplitter` — the platform's fixed share is what recovers the fronted gas~~ →
+      **`contracts/SettlementSplit.sol`**, deployed on public chain 97
+      (`0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE`): fixed platform share in bps with a 25% cap,
+      **no debt ledger** (every call pushes all of the money out and keeps nothing), a per-payment
+      replay guard, and `platformBps` that can only ever be **lowered**. 22 offline tests + 7 fork
+      tests against canonical Permit2 and the canonical x402 proxy, then a real settlement paid into
+      it and divided (D38, D39, D40). ⬜ Remaining: a **three-way** split if the agent's own fee
+      should be paid separately from the issuer's share — today it is one payee plus the platform.
 
 ## What is blocking, and who can unblock it
 
