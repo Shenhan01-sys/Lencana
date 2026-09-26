@@ -118,8 +118,13 @@ Sisanya (`SoulboundCert`, `SettlementSplit`, `DemoCourseToken`) masuk descriptio
 Dikoreksi 27 Sep saat builder mengisi form: plafonnya **5,600 karakter**, dan kami sudah menulis halaman
 sepanjang 67,345 karakter untuk itu. Teks yang ditempel sekarang:
 
-> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,508 karakter**, 77 baris, 1 tabel kontrak,
-> tanpa diagram, tanpa wikilink, tanpa jalur `vault/`, tanpa ID tiket internal (B38–B45, RF5, OI-*).
+> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,448 karakter**, 82 baris, satu diagram
+> Mermaid (urutan bisnis, parse-verified di mermaid 10 dan 11), tabel kontrak, angka terukur. Tanpa
+> wikilink, tanpa jalur `vault/`, tanpa ID tiket internal (B38–B45, RF5, OI-*), tanpa data kursus.
+
+strukturnya, sesuai permintaan builder 27 Sep: **apa Lencana itu → problem yang mau kita selesaikan →
+how it works (diagram + 7 langkah) → kontrak → terukur & batas**. Data kursus dan tabel perbandingan
+dibuang dari teks tempel — keduanya tetap ada di halaman referensi.
 
 Aturan yang berlaku untuk field ini, supaya tidak perlu ditulis ulang tiga kali:
 
@@ -131,9 +136,9 @@ Aturan yang berlaku untuk field ini, supaya tidak perlu ditulis ulang tiga kali:
 | jalur **source** (`web/src/verify.ts`, `contracts/…`) dan **perintah** (`npm run x402`) tetap ada | inilah yang bisa mereka cek sendiri di repo publik |
 | setiap bilangan tetap disebut tanggal + perintahnya | sama seperti di [[08-Results/01 - Evidence and Limits]] |
 
-Sisa ruang tinggal **92 karakter**. Kalau ada yang mau ditambahkan, kurangi dulu yang lain — kandidat
-yang paling aman dibuang adalah daftar `judge-variance` (nomornya sudah muncul di `08-Results`) atau
-kalimat break-even BNB di bagian uang.
+Sisa ruang tinggal **152 karakter** — satu diagram kedua butuh ±600, jadi tidak muat. Kalau ada yang mau
+ditambahkan, yang paling aman dikorbankan duluan: langkah 6 (penilai mekanis + model — angkanya sudah muncul
+di bagian "Measured") atau klausa break-even BNB di bagian uang.
 
 Versi panjangnya tetap hidup sebagai referensi: [[00-Overview/10 - Project Detail (long form)]]. Kalau
 nanti field-nya ternyata bisa lebih panjang (mis. ada field "full documentation" terpisah), itu yang
