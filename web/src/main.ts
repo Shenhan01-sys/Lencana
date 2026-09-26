@@ -365,6 +365,48 @@ function setPrivacyMode(mode: 'pseudo' | 'named') {
   }
 }
 
+function handleRoute() {
+  const hash = (window.location.hash || '#/').toLowerCase().split('?')[0]
+  let route = 'home'
+
+  if (hash === '#/courses' || hash === '#courses') route = 'courses'
+  else if (hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit') route = 'submit'
+  else if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') route = 'verify'
+  else if (hash === '#/agent-hub' || hash === '#ai-agents' || hash === '#agent-hub') route = 'agents'
+
+  document.body.classList.toggle('route-home', route === 'home')
+  document.body.classList.toggle('route-subpage', route !== 'home')
+
+  document.querySelectorAll<HTMLElement>('.route-surface').forEach((surface) => {
+    const visible = surface.dataset.route === route
+    surface.classList.toggle('hidden', !visible)
+    surface.setAttribute('aria-hidden', String(!visible))
+  })
+
+  const activeNav: Record<string, string> = {
+    home: 'nav-home',
+    courses: 'nav-courses',
+    submit: 'nav-evaluator',
+    verify: 'nav-verifier',
+    agents: 'nav-agents',
+  }
+
+  document.querySelectorAll('.nav-links a').forEach((link) => {
+    link.classList.toggle('active', link.id === activeNav[route] || (hash === '#architecture' && link.id === 'nav-tech'))
+  })
+
+  if (hash === '#architecture') {
+    requestAnimationFrame(() => document.getElementById('architecture')?.scrollIntoView({ behavior: 'smooth' }))
+  } else {
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }
+}
+
+function wireRouteNavigation() {
+  window.addEventListener('hashchange', handleRoute)
+  handleRoute()
+}
+
 function updateStaticText() {
   const dict = DICTIONARIES[currentLang]
 
@@ -423,7 +465,7 @@ function updateStaticText() {
   setText('ai-eval-kicker', currentLang === 'en' ? 'LIVE NEURAL EVALUATION ENGINE' : 'ENGINE EVALUASI NEURAL REAL-TIME')
   setText('ai-eval-title', dict.aiEvaluator.sectionTitle)
   setText('ai-eval-sub', dict.aiEvaluator.sectionSub)
-  setText('ai-input-tag', currentLang === 'en' ? 'STUDENT SUBMISSION STAGE' : 'TAHAP PENGIRIMAN ESAY PESERTA')
+  setText('ai-input-tag', currentLang === 'en' ? 'Choose a response' : 'Pilih jawaban')
   setText('tab-essay-web3', dict.aiEvaluator.tabWeb3)
   setText('tab-essay-security', dict.aiEvaluator.tabSecurity)
   setText('tab-essay-custom', dict.aiEvaluator.tabCustom)
@@ -738,13 +780,13 @@ function wire() {
   $('btn-load-demo-hero')?.addEventListener('click', () => {
     inputEl.value = SAMPLE_HASHES.valid
     run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+    window.location.hash = '#/verify'
   })
 
   $('btn-hero-recruiter-check')?.addEventListener('click', () => {
     inputEl.value = SAMPLE_HASHES.valid
     run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+    window.location.hash = '#/verify'
   })
 
   // LMS Study Room & Course Catalog Interactions (Iteration 8)
@@ -797,7 +839,7 @@ function wire() {
     } else {
       selectEssayTab(tabSec, ESSAY_PRESETS.security)
     }
-    document.getElementById('ai-evaluator')?.scrollIntoView({ behavior: 'smooth' })
+    window.location.hash = '#/submit'
   })
 
   // AI Evaluation Trigger Button
@@ -809,7 +851,7 @@ function wire() {
   $('btn-verify-generated-eval')?.addEventListener('click', () => {
     inputEl.value = SAMPLE_HASHES.valid
     run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+    window.location.hash = '#/verify'
   })
 
   // Tab switching delegation on results container
@@ -977,8 +1019,56 @@ function simulateAiEvaluation() {
   }, 1600)
 }
 
+function wireProofPlate() {
+  const stage = document.querySelector<HTMLElement>('.proof-stage')
+  if (!stage || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  let currentX = 4
+  let currentY = -6
+  let targetX = currentX
+  let targetY = currentY
+  let frame = 0
+
+  const render = () => {
+    currentX += (targetX - currentX) * 0.075
+    currentY += (targetY - currentY) * 0.075
+    stage.style.setProperty('--proof-rx', `${currentX.toFixed(2)}deg`)
+    stage.style.setProperty('--proof-ry', `${currentY.toFixed(2)}deg`)
+
+    if (Math.abs(targetX - currentX) > 0.01 || Math.abs(targetY - currentY) > 0.01) {
+      frame = requestAnimationFrame(render)
+    } else {
+      frame = 0
+    }
+  }
+
+  const move = (event: PointerEvent) => {
+    const rect = stage.getBoundingClientRect()
+    const x = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width))
+    const y = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height))
+    targetY = (x - 0.5) * 14
+    targetX = (0.5 - y) * 10
+    stage.style.setProperty('--proof-mx', `${(x * 100).toFixed(1)}%`)
+    stage.style.setProperty('--proof-my', `${(y * 100).toFixed(1)}%`)
+    if (!frame) frame = requestAnimationFrame(render)
+  }
+
+  const reset = () => {
+    targetX = 4
+    targetY = -6
+    stage.style.setProperty('--proof-mx', '50%')
+    stage.style.setProperty('--proof-my', '38%')
+    if (!frame) frame = requestAnimationFrame(render)
+  }
+
+  stage.addEventListener('pointermove', move, { passive: true })
+  stage.addEventListener('pointerleave', reset)
+}
+
 function boot() {
+  wireRouteNavigation()
   wire()
+  wireProofPlate()
   updateStaticText()
   paintConfig()
   paintBanner()
@@ -1005,4 +1095,3 @@ function boot() {
 }
 
 boot()
-

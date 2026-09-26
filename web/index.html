@@ -21,7 +21,7 @@
       <!-- 1. STICKY TOP NAVBAR -->
       <header class="app-navbar">
         <div class="nav-container">
-          <a href="#" class="brand-link">
+          <a href="#/" class="brand-link">
             <div class="brand-logo-gem">
               <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
                 <path
@@ -37,11 +37,11 @@
           </a>
 
           <nav class="nav-links">
-            <a href="#how-it-works" id="nav-how">How It Works</a>
-            <a href="#ai-evaluator" id="nav-evaluator">AI Evaluator</a>
-            <a href="#ai-agents" id="nav-agents">Agent Roster</a>
-            <a href="#courses" id="nav-courses">Courses</a>
-            <a href="#verifier" id="nav-verifier">Verifier</a>
+            <a href="#/" id="nav-home">Home</a>
+            <a href="#/courses" id="nav-courses">Courses</a>
+            <a href="#/submit" id="nav-evaluator">AI Studio</a>
+            <a href="#/verify" id="nav-verifier">Verifier</a>
+            <a href="#/agent-hub" id="nav-agents">Agent Hub</a>
             <a href="#architecture" id="nav-tech">Architecture</a>
           </nav>
 
@@ -59,414 +59,247 @@
         </div>
       </header>
 
-      <!-- 2. KINETIC BRUTALIST HERO SECTION (EDTECH & ON-CHAIN CREDENTIALS) -->
-      <section class="kinetic-hero-section">
-        <!-- Blueprint Cyber Background Grid -->
+      <!-- 2. CINEMATIC CREDENTIAL HERO -->
+      <section class="kinetic-hero-section lencana-proof-hero hybrid-hero route-surface" data-route="home">
+        <video
+          class="hybrid-hero-media"
+          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          aria-hidden="true"
+        ></video>
+        <div class="hybrid-hero-wash" aria-hidden="true"></div>
         <div class="kinetic-bg-grid"></div>
+        <div class="hybrid-scanline" aria-hidden="true"></div>
 
-        <div class="kinetic-hero-container">
-          <!-- Top AI Mesh Status Ticker -->
-          <div class="ai-status-ticker">
-            <span class="ai-pulse-dot"></span>
-            <span id="ticker-text">Autonomous AI Evaluator Mesh: Active · 3 Domain Agents Online · BSC Testnet</span>
-          </div>
-
-          <div class="kinetic-hero-kicker" id="hero-eyebrow">BNB CHAIN · NEXT-GEN WEB3 EDTECH</div>
-
-          <!-- Massive Typography & Overlays Container -->
-          <div class="kinetic-title-stack-wrap">
-            <!-- Typography Text Stack -->
-            <div class="kinetic-typography-stack">
-              <!-- Line 1: #LENCANA -->
-              <div class="kinetic-word-row row-1">
-                <h1 class="kinetic-huge-text gold-text" id="kinetic-word-1">#LENCANA</h1>
-              </div>
-
-              <!-- Line 2: ON-CHAIN -->
-              <div class="kinetic-word-row row-2">
-                <h1 class="kinetic-huge-text white-text" id="kinetic-word-2">ON-CHAIN</h1>
-              </div>
-
-              <!-- Line 3: CREDENTIALS -->
-              <div class="kinetic-word-row row-3">
-                <h1 class="kinetic-huge-text white-text" id="kinetic-word-3">CREDENTIALS</h1>
-              </div>
+        <div class="proof-hero-shell">
+          <div class="proof-hero-copy">
+            <div class="hybrid-hero-eyebrow">
+              <span></span>
+              AUTONOMOUS AI CREDENTIALS · BNB SMART CHAIN
             </div>
+            <h1 class="proof-hero-title">
+              <span id="kinetic-word-1">Proof you</span>
+              <span id="kinetic-word-2">can hold.</span>
+              <span id="kinetic-word-3" class="visually-hidden">Verifiable credentials</span>
+            </h1>
 
-            <!-- Absolute Overlays: Floating Glass Cards, Doodle Arrows, Rotating Circular Badge -->
-            <div class="kinetic-overlays-container">
-              
-              <!-- Floating Glass Card 1 (Bottom Left: Learner Persona Rina) -->
-              <div class="kinetic-floating-card card-rina" id="btn-load-demo-hero" role="button" tabindex="0" title="Click to live-verify Rina's credential">
-                <div class="floating-glass-box">
-                  <div class="floating-avatar-circle rina-avatar">
-                    <span class="avatar-initials">RO</span>
-                    <span class="avatar-check-badge">✓</span>
-                  </div>
-                  <div class="floating-card-info">
-                    <p class="floating-name">rina.bnb</p>
-                    <p class="floating-sub">0x5cA3...7c3B</p>
-                    <div class="floating-score-pill">93/100 Honors Pass</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Floating Glass Card 2 (Top Right: Recruiter/Auditor Bagas) -->
-              <div class="kinetic-floating-card card-recruiter" id="btn-hero-recruiter-check" role="button" tabindex="0" title="Click to test recruiter verification">
-                <div class="floating-glass-box">
-                  <div class="floating-avatar-circle recruiter-avatar">
-                    <span class="avatar-initials">HR</span>
-                    <span class="avatar-check-badge emerald">⚡</span>
-                  </div>
-                  <div class="floating-card-info">
-                    <p class="floating-name">bagas-recruiter.bnb</p>
-                    <p class="floating-sub">Live eth_call Audit</p>
-                    <div class="floating-score-pill emerald">0 Gas Verification</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Decorative Doodle SVG Arrow Left (Gold) -->
-              <div class="doodle-arrow doodle-arrow-left">
-                <svg viewBox="0 0 100 100" class="doodle-svg gold" fill="none">
-                  <path d="M10,90 C 10,40 40,20 60,50 C 70,65 80,75 95,70" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M80,55 L95,70 L85,85" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </div>
-
-              <!-- Decorative Doodle SVG Arrow Right (Emerald) -->
-              <div class="doodle-arrow doodle-arrow-right">
-                <svg viewBox="0 0 100 100" class="doodle-svg emerald" fill="none">
-                  <path d="M90,10 C 80,60 60,80 40,60 C 20,40 40,20 60,30 C 80,40 70,70 50,80" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M65,75 L50,80 L55,65" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </div>
-
-              <!-- Rotating Circular Badge with curved text -->
-              <a href="#verifier" class="kinetic-circular-badge" title="Jump to Instant Credential Verifier">
-                <div class="badge-rotating-ring">
-                  <svg viewBox="0 0 100 100" class="badge-ring-svg">
-                    <path id="badgeCirclePath" d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" fill="none" />
-                    <text class="badge-path-text" fill="#0B0E11">
-                      <textPath href="#badgeCirclePath" startOffset="0%" id="badge-rotating-text">
-                        VERIFY ON BNB CHAIN • ZERO WALLET REQUIRED • 
-                      </textPath>
-                    </text>
-                  </svg>
-                </div>
-                <div class="badge-center-icon">
-                  <svg viewBox="0 0 100 100" class="badge-arrow-svg" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20,80 Q 40,50 30,30 T 80,20" />
-                    <path d="M60,10 L80,20 L70,40" />
-                  </svg>
-                </div>
-              </a>
-
-            </div>
-          </div>
-
-          <!-- Hero Subtitle & CTA Group -->
-          <div class="kinetic-hero-footer-bar">
-            <p class="hero-subtext" id="hero-subtitle">
-              AI domain agents evaluate your practical essays with on-chain rubrics. Your achievements are minted as Soulbound Open
-              Badges 3.0 on BNB Smart Chain.
+            <p class="proof-hero-subtitle" id="hero-subtitle">
+              Autonomous AI credentials that prove your on-chain mastery.
             </p>
 
-            <div class="hero-cta-group">
-              <a href="#courses" class="btn btn-primary" id="hero-btn-explore">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                </svg>
+            <div class="hero-cta-group proof-hero-actions">
+              <a href="#/courses" class="btn btn-primary" id="hero-btn-explore">
                 <span id="hero-btn-explore-text">Explore Micro-Courses</span>
+                <span aria-hidden="true">↗</span>
               </a>
-              <a href="#verifier" class="btn btn-secondary" id="hero-btn-verify">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
+              <a href="#/verify" class="proof-text-link" id="hero-btn-verify">
                 <span id="hero-btn-verify-text">Verify a Credential</span>
+                <span aria-hidden="true">→</span>
               </a>
             </div>
 
-            <!-- Trust Micro-Strip -->
-            <div class="hero-stats">
-              <div class="stat-item">
-                <span class="stat-val" id="stat-1-val">Open Badges 3.0</span>
-                <span class="stat-lbl" id="stat-1-lbl">W3C Standard Format</span>
-              </div>
-              <div class="stat-sep"></div>
-              <div class="stat-item">
-                <span class="stat-val" id="stat-2-val">0 Wallet Required</span>
-                <span class="stat-lbl" id="stat-2-lbl">Instant Recruiter Verification</span>
-              </div>
-              <div class="stat-sep"></div>
-              <div class="stat-item">
-                <span class="stat-val" id="stat-3-val">EAS 1.3.0 Fork</span>
-                <span class="stat-lbl" id="stat-3-lbl">BNB Attestation Service</span>
-              </div>
+            <div class="proof-journey" aria-label="How Lencana works">
+              <div class="proof-journey-step"><span>01</span><strong>LEARN</strong></div>
+              <div class="proof-journey-line"></div>
+              <div class="proof-journey-step"><span>02</span><strong>EVALUATED</strong></div>
+              <div class="proof-journey-line"></div>
+              <div class="proof-journey-step"><span>03</span><strong>VERIFIED</strong></div>
             </div>
           </div>
+
+          <figure class="proof-stage" aria-label="Interactive Lencana credential">
+            <div class="proof-plate-wrap">
+              <article class="proof-plate">
+                <span class="proof-rim" aria-hidden="true"></span>
+                <span class="proof-rivet rivet-a" aria-hidden="true"></span>
+                <span class="proof-rivet rivet-b" aria-hidden="true"></span>
+                <span class="proof-rivet rivet-c" aria-hidden="true"></span>
+                <span class="proof-rivet rivet-d" aria-hidden="true"></span>
+
+                <div class="proof-plate-grid">
+                  <div class="proof-identity">
+                    <span class="proof-micro">VERIFIABLE LEARNING CREDENTIAL</span>
+                    <strong class="proof-plate-brand">LENCANA</strong>
+                    <span class="proof-course">WEB3 FOUNDATIONS · 2026</span>
+                    <span class="proof-serial">UID 0x0b95c83b...effcb367fa</span>
+                  </div>
+
+                  <div class="proof-status-list">
+                    <div class="proof-status-row">
+                      <span>01 · TASK</span>
+                      <strong>COMPLETED</strong>
+                    </div>
+                    <button class="proof-status-row proof-status-button" id="btn-load-demo-hero" type="button" title="Open the evaluated sample">
+                      <span>02 · AI EVALUATION</span>
+                      <strong class="gold">93 / 100 · HONORS</strong>
+                    </button>
+                    <button class="proof-status-row proof-status-button" id="btn-hero-recruiter-check" type="button" title="Verify the credential as a recruiter">
+                      <span>03 · PUBLIC PROOF</span>
+                      <strong class="verified"><i></i> VERIFIED · LOCKED</strong>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="proof-seal" aria-hidden="true"><span></span></div>
+                <div class="proof-plate-foot">SOULBOUND / PUBLIC PROOF / OPEN BADGES 3.0</div>
+              </article>
+            </div>
+            <figcaption>MOVE TO INSPECT · SELECT A PROOF TO VERIFY</figcaption>
+          </figure>
         </div>
 
-        <!-- 2.1 CONNECTED BOTTOM VALUE-PROP CARDS (CURVED SECTION) -->
-        <div class="kinetic-features-section">
-          <div class="kinetic-features-grid">
-            
-            <!-- Feature Card 1: Autonomous AI Essay Grading -->
-            <div class="kinetic-feature-card">
-              <h3 class="feature-card-heading" id="feat-1-heading">
-                AUTONOMOUS<br />AI ESSAY GRADING
-              </h3>
-              <p class="feature-card-sub" id="feat-1-sub">
-                AI domain agents score submissions with on-chain rubrics
-              </p>
-              
-              <div class="feature-pill-wrap">
-                <div class="feature-pill-body">
-                  <div class="feature-pill-avatar gold">🤖</div>
-                  <div class="feature-pill-text">
-                    <span class="pill-title">Agent-Foundations</span>
-                    <span class="pill-meta">Rubric #0x91a7 · EIP-712</span>
-                  </div>
-                </div>
-                <div class="feature-floating-tag gold">93/100 HONORS</div>
-              </div>
-
-              <!-- Doodle Arrow 1 to Card 2 -->
-              <div class="feature-connector-arrow arr-1">
-                <svg viewBox="0 0 100 100" class="connector-svg" fill="none">
-                  <path d="M20,80 Q 40,20 80,40" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M60,20 L80,40 L50,60" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </div>
-            </div>
-
-            <!-- Feature Card 2: BAS Attestation Resolver Hooks -->
-            <div class="kinetic-feature-card">
-              <h3 class="feature-card-heading" id="feat-2-heading">
-                BAS ATTESTATION<br />RESOLVER HOOKS
-              </h3>
-              <p class="feature-card-sub" id="feat-2-sub">
-                Closing EAS loopholes with live prerequisite verification
-              </p>
-              
-              <div class="feature-pill-wrap">
-                <div class="feature-pill-body">
-                  <div class="feature-pill-avatar emerald">🛡️</div>
-                  <div class="feature-pill-text">
-                    <span class="pill-title">CredentialResolver.sol</span>
-                    <span class="pill-meta">Schema #0x2c · Anti-Replay</span>
-                  </div>
-                </div>
-                <div class="feature-floating-tag emerald">100% LOCKED</div>
-              </div>
-
-              <!-- Doodle Arrow 2 to Card 3 -->
-              <div class="feature-connector-arrow arr-2">
-                <svg viewBox="0 0 100 100" class="connector-svg" fill="none">
-                  <path d="M20,80 Q 40,20 80,40" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M60,20 L80,40 L50,60" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </div>
-            </div>
-
-            <!-- Feature Card 3: Zero-Wallet Public Proof -->
-            <div class="kinetic-feature-card">
-              <h3 class="feature-card-heading" id="feat-3-heading">
-                ZERO-WALLET<br />PUBLIC PROOF
-              </h3>
-              <p class="feature-card-sub" id="feat-3-sub">
-                Instant verification for employers without MetaMask
-              </p>
-              
-              <div class="feature-stat-bubble">
-                <span class="bubble-tag">EST. BLOCK AUDIT</span>
-                <span class="bubble-val">0.42s · 0 GAS</span>
-                <div class="bubble-tail"></div>
-              </div>
-            </div>
-
+        <div class="hybrid-proof-strip" aria-label="Lencana proof system facts">
+          <div class="hybrid-proof-stat">
+            <strong>0</strong>
+            <span>wallets required<br />to verify</span>
+          </div>
+          <div class="hybrid-proof-stat">
+            <strong>1</strong>
+            <span>public link<br />to share</span>
+          </div>
+          <div class="hybrid-proof-quote">
+            <span>THE PROMISE</span>
+            <p>Work is evaluated by AI. Proof is verified by math.</p>
           </div>
         </div>
       </section>
 
-      <!-- 3. THE LEARNING LOOP (3 STEPS) -->
-      <section class="section-container" id="how-it-works">
-        <div class="section-header">
-          <h2 class="section-title" id="loop-title">How Learning on Lencana Works</h2>
-          <p class="section-sub" id="loop-sub">
-            A seamless, trustless loop from interactive study to tamper-proof career credentials.
-          </p>
+      <!-- 2.1 DEDICATED PRODUCT PORTALS -->
+      <section class="section-container landing-portals route-surface" data-route="home" id="portal-gateways">
+        <div class="portal-intro">
+          <span class="portal-kicker">CHOOSE YOUR PATH</span>
+          <h2>One system.<br />Four focused spaces.</h2>
+          <p>The landing page explains the promise. Each product space handles one job without turning the homepage into a dashboard.</p>
         </div>
-
-        <div class="steps-grid">
-          <!-- Step 1: Learn & Complete Tasks with Code Editor Widget -->
-          <div class="step-card">
-            <div class="step-card-header">
-              <div class="step-num">01</div>
-              <span class="step-tag">HANDS-ON CODING</span>
-            </div>
-            <h3 class="step-title" id="step-1-title">1. Learn &amp; Complete Tasks</h3>
-            <p class="step-text" id="step-1-desc">
-              Study curated micro-courses and write analytical essays or smart contract tasks.
-            </p>
-
-            <!-- Visual Micro-Mockup 1: Code Editor -->
-            <div class="micro-mockup micro-editor">
-              <div class="micro-editor-bar">
-                <span class="editor-dot red"></span>
-                <span class="editor-dot yellow"></span>
-                <span class="editor-dot green"></span>
-                <span class="editor-title">TaskAssignment.sol</span>
-                <span class="editor-status">SYNTAX OK</span>
-              </div>
-              <div class="micro-code">
-                <span class="c-keyword">contract</span> <span class="c-type">LearnerSubmission</span> {<br />
-                &nbsp;&nbsp;<span class="c-keyword">function</span> <span class="c-func">solveEVMTask</span>() <span class="c-keyword">external</span> {<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-keyword">require</span>(msg.sender != address(0));<br />
-                &nbsp;&nbsp;&nbsp;&nbsp;<span class="c-keyword">emit</span> <span class="c-func">EssayReady</span>(proofHash);<br />
-                &nbsp;&nbsp;}<br />
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 2: AI Agent Evaluation with Live Neural Equalizer -->
-          <div class="step-card highlight">
-            <div class="step-card-header">
-              <div class="step-num">02</div>
-              <span class="step-tag live">AI EVALUATION</span>
-            </div>
-            <h3 class="step-title" id="step-2-title">2. AI Agent Evaluation</h3>
-            <p class="step-text" id="step-2-desc">
-              Autonomous domain agents grade submissions against on-chain rubrics and sign EIP-712 proofs.
-            </p>
-
-            <!-- Visual Micro-Mockup 2: Neural Cluster & Equalizer -->
-            <div class="micro-mockup micro-ai-core">
-              <div class="neural-nodes-row">
-                <div class="neural-chip"><span class="neural-dot"></span>Depth 40%</div>
-                <div class="neural-arrow">➔</div>
-                <div class="neural-chip"><span class="neural-dot"></span>EVM 30%</div>
-                <div class="neural-arrow">➔</div>
-                <div class="neural-chip"><span class="neural-dot"></span>Defense 30%</div>
-              </div>
-              <div class="compute-equalizer-bar">
-                <div class="eq-bars">
-                  <span class="eq-bar bar-1"></span>
-                  <span class="eq-bar bar-2"></span>
-                  <span class="eq-bar bar-3"></span>
-                  <span class="eq-bar bar-4"></span>
-                  <span class="eq-bar bar-5"></span>
-                  <span class="eq-bar bar-6"></span>
-                  <span class="eq-bar bar-7"></span>
-                  <span class="eq-bar bar-8"></span>
-                </div>
-                <span class="eq-text">AI CONVERGENCE: 93/100 (HONORS)</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 3: Permanent On-Chain Proof with Soulbound Lock Plaque -->
-          <div class="step-card">
-            <div class="step-card-header">
-              <div class="step-num">03</div>
-              <span class="step-tag">ON-CHAIN ANCHOR</span>
-            </div>
-            <h3 class="step-title" id="step-3-title">3. Permanent On-Chain Proof</h3>
-            <p class="step-text" id="step-3-desc">
-              Credential hash anchored to BAS and Soulbound ERC-5192 NFT minted to learner wallet.
-            </p>
-
-            <!-- Visual Micro-Mockup 3: Soulbound Certificate Seal -->
-            <div class="micro-mockup micro-sbt-seal">
-              <div class="sbt-seal-top">
-                <div class="sbt-lock-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F0B90B" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                </div>
-                <div class="sbt-seal-meta">
-                  <span class="sbt-meta-title">🔒 ERC-5192 SOULBOUND</span>
-                  <span class="sbt-meta-sub">TX: 0x8a92...fe31 · Finalized</span>
-                </div>
-                <span class="sbt-fee-tag">0 GAS FOR LEARNER</span>
-              </div>
-              <div class="sbt-verify-row">
-                <span class="sbt-verified-dot">✓</span>
-                <span class="sbt-verified-text">Anchored to BNB Attestation Service</span>
-              </div>
-            </div>
-          </div>
+        <div class="portal-grid">
+          <a class="portal-card portal-card-courses" href="#/courses">
+            <span class="portal-index">01</span>
+            <div><small>LEARN</small><h3>Micro-Courses</h3><p>Study modular Web3 material and enter focused learning rooms.</p></div>
+            <strong>Open courses ↗</strong>
+          </a>
+          <a class="portal-card portal-card-studio" href="#/submit">
+            <span class="portal-index">02</span>
+            <div><small>EVALUATE</small><h3>AI Studio</h3><p>Submit work, inspect the rubric, and watch a score become signed proof.</p></div>
+            <strong>Launch studio ↗</strong>
+          </a>
+          <a class="portal-card portal-card-verify" href="#/verify">
+            <span class="portal-index">03</span>
+            <div><small>VERIFY</small><h3>Public Verifier</h3><p>Check a credential directly from the browser with no wallet or account.</p></div>
+            <strong>Verify proof ↗</strong>
+          </a>
+          <a class="portal-card portal-card-agents" href="#/agent-hub">
+            <span class="portal-index">04</span>
+            <div><small>GOVERN</small><h3>Agent Hub</h3><p>See which autonomous evaluators are authorized to issue credentials.</p></div>
+            <strong>Meet the agents ↗</strong>
+          </a>
         </div>
       </section>
 
-      <!-- 3.1 CRYPTOGRAPHIC PIPELINE (VISUAL FLOW) -->
-      <section class="section-container" id="pipeline">
-        <div class="section-header">
-          <div class="section-kicker" id="pipeline-kicker">CRYPTOGRAPHIC DATAFLOW</div>
-          <h2 class="section-title" id="pipeline-title">The End-to-End Cryptographic Learning Pipeline</h2>
+      <!-- 3. FROM WORK TO PROOF -->
+      <section class="section-container proof-flow-section route-surface hidden" data-route="archive" id="how-it-works">
+        <div class="proof-flow-header">
+          <h2 class="section-title" id="loop-title">From work to proof.</h2>
+          <p class="section-sub" id="loop-sub">Three moments. One credential you can take anywhere.</p>
+        </div>
+
+        <div class="proof-flow-board">
+          <article class="proof-flow-step">
+            <div class="proof-flow-index">01</div>
+            <div class="proof-flow-copy">
+              <h3 id="step-1-title">Do the work</h3>
+              <p id="step-1-desc">Complete a practical task that shows what you understand.</p>
+            </div>
+            <div class="flow-visual flow-submission" aria-label="A completed practical assignment">
+              <div class="flow-window-bar"><span></span><span>WEB3 FOUNDATIONS</span><strong>READY</strong></div>
+              <div class="flow-writing-lines"><i></i><i></i><i></i></div>
+              <div class="flow-submit-row"><span>ESSAY · 842 WORDS</span><strong>SUBMITTED ↗</strong></div>
+            </div>
+          </article>
+
+          <article class="proof-flow-step">
+            <div class="proof-flow-index">02</div>
+            <div class="proof-flow-copy">
+              <h3 id="step-2-title">See how it was judged</h3>
+              <p id="step-2-desc">Every score comes from a visible rubric, not a black box.</p>
+            </div>
+            <div class="flow-visual flow-evaluation" aria-label="Transparent AI evaluation score">
+              <strong class="flow-score">93</strong>
+              <div class="flow-rubrics">
+                <div><span>DEPTH</span><i style="--score: 96%"></i><b>38/40</b></div>
+                <div><span>PRECISION</span><i style="--score: 93%"></i><b>28/30</b></div>
+                <div><span>REASONING</span><i style="--score: 90%"></i><b>27/30</b></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="proof-flow-step">
+            <div class="proof-flow-index">03</div>
+            <div class="proof-flow-copy">
+              <h3 id="step-3-title">Share the proof</h3>
+              <p id="step-3-desc">One public link lets anyone check the result.</p>
+            </div>
+            <div class="flow-visual flow-share" aria-label="Public credential verification link">
+              <span class="flow-proof-mark">L</span>
+              <div><strong>Web3 Foundations</strong><span>lencana.id/proof/0b95c8</span></div>
+              <em><i></i> VERIFIED</em>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- 3.1 TECHNICAL PROOF RAIL -->
+      <section class="section-container proof-rail-section route-surface hidden" data-route="archive" id="pipeline">
+        <div class="proof-rail-header">
+          <h2 class="section-title" id="pipeline-title">What makes the proof permanent.</h2>
           <p class="section-sub" id="pipeline-sub">
-            From raw student submission to permanent, tamper-proof career credentials anchored on BNB Smart Chain.
+            Behind one simple link, five checks turn submitted work into a credential that cannot quietly change.
           </p>
         </div>
 
-        <div class="pipeline-track">
-          <div class="pipeline-node">
-            <div class="node-icon">📝</div>
-            <div class="node-badge">01 · INPUT</div>
-            <h4 class="node-title" id="pnode-1-title">Student Essay</h4>
-            <p class="node-desc" id="pnode-1-desc">Open-ended synthesis comparing EVM primitives &amp; state anchors.</p>
-          </div>
+        <div class="pipeline-track" aria-label="Credential proof pipeline">
+          <article class="pipeline-node">
+            <div class="node-badge">01</div>
+            <h4 class="node-title" id="pnode-1-title">Work submitted</h4>
+            <p class="node-desc">The learner sends a practical response for evaluation.</p>
+          </article>
+          <article class="pipeline-node highlight">
+            <div class="node-badge">02</div>
+            <h4 class="node-title" id="pnode-2-title">Rubric applied</h4>
+            <p class="node-desc">The AI evaluator scores the same visible criteria shown to the learner.</p>
+          </article>
+          <article class="pipeline-node">
+            <div class="node-badge">03</div>
+            <h4 class="node-title" id="pnode-3-title">Result signed</h4>
+            <p class="node-desc">An EIP-712 signature binds the score, learner, and issuer together.</p>
+          </article>
+          <article class="pipeline-node highlight">
+            <div class="node-badge">04</div>
+            <h4 class="node-title" id="pnode-4-title">Status anchored</h4>
+            <p class="node-desc">BNB Attestation Service records when the proof became valid.</p>
+          </article>
+          <article class="pipeline-node">
+            <div class="node-badge">05</div>
+            <h4 class="node-title" id="pnode-5-title">Proof stays yours</h4>
+            <p class="node-desc">A locked ERC-5192 badge makes the achievement portable, but not transferable.</p>
+          </article>
+        </div>
 
-          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
-
-          <div class="pipeline-node highlight">
-            <div class="node-icon">🧠</div>
-            <div class="node-badge">02 · AI AGENT</div>
-            <h4 class="node-title" id="pnode-2-title">Neural Rubric Engine</h4>
-            <p class="node-desc" id="pnode-2-desc">Autonomous LLM agent measures criteria against on-chain rubrics.</p>
-          </div>
-
-          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
-
-          <div class="pipeline-node">
-            <div class="node-icon">✍️</div>
-            <div class="node-badge">03 · CRYPTO</div>
-            <h4 class="node-title" id="pnode-3-title">EIP-712 Signature</h4>
-            <p class="node-desc" id="pnode-3-desc">Agent key signs structured payload (hash, scores, recipient address).</p>
-          </div>
-
-          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
-
-          <div class="pipeline-node highlight">
-            <div class="node-icon">⛓️</div>
-            <div class="node-badge">04 · BAS ANCHOR</div>
-            <h4 class="node-title" id="pnode-4-title">BNB Attestation</h4>
-            <p class="node-desc" id="pnode-4-desc">CredentialResolver registers attestation with immutable timestamp.</p>
-          </div>
-
-          <div class="pipeline-connector"><span class="connector-pulse"></span></div>
-
-          <div class="pipeline-node">
-            <div class="node-icon">🔒</div>
-            <div class="node-badge">05 · ARTIFACT</div>
-            <h4 class="node-title" id="pnode-5-title">Soulbound ERC-5192</h4>
-            <p class="node-desc" id="pnode-5-desc">Locked badge minted to learner's wallet with zero gas fees.</p>
-          </div>
+        <div class="proof-rail-meta" aria-label="Technical standards used">
+          <span>EIP-712 SIGNED</span>
+          <span>BAS TIMESTAMPED</span>
+          <span>ERC-5192 LOCKED</span>
         </div>
       </section>
 
       <!-- 3.2 INTERACTIVE AI AGENT EVALUATION SANDBOX -->
-      <section class="section-container" id="ai-evaluator">
-        <div class="section-header">
-          <div class="section-kicker" id="ai-eval-kicker">LIVE NEURAL EVALUATION ENGINE</div>
-          <h2 class="section-title" id="ai-eval-title">Interactive AI Agent Evaluation Sandbox</h2>
+      <section class="section-container evaluator-workbench-section route-surface hidden" data-route="submit" id="ai-evaluator">
+        <div class="evaluator-workbench-header">
+          <h2 class="section-title" id="ai-eval-title">See how a score is made.</h2>
           <p class="section-sub" id="ai-eval-sub">
-            Watch autonomous AI agents parse open-ended essays against on-chain rubrics, score criteria, generate EIP-712
-            cryptographic proofs, and prepare Soulbound credentials in real time.
+            Choose a response, run the evaluator, and watch each part of the rubric become a signed result.
           </p>
         </div>
 
@@ -474,7 +307,7 @@
           <!-- Left: Student Submission Terminal -->
           <div class="eval-input-card">
             <div class="eval-card-header">
-              <span class="eval-card-tag" id="ai-input-tag">STUDENT SUBMISSION STAGE</span>
+              <span class="eval-card-tag" id="ai-input-tag">Choose a response</span>
               <div class="eval-preset-tabs">
                 <button type="button" class="preset-tab active" id="tab-essay-web3">Web3 Primitives</button>
                 <button type="button" class="preset-tab" id="tab-essay-security">Reentrancy Defense</button>
@@ -491,7 +324,7 @@
 
             <!-- Token Scanner Matrix Strip -->
             <div class="token-matrix-strip">
-              <span class="token-matrix-label">ON-CHAIN ATTRIBUTES &amp; SPEC TOKENS:</span>
+              <span class="token-matrix-label">PROOF STANDARDS</span>
               <div class="token-matrix-chips" id="token-matrix-chips">
                 <span class="tok-chip" id="tok-1">EAS 1.3.0</span>
                 <span class="tok-chip" id="tok-2">keccak256</span>
@@ -662,7 +495,7 @@
       </section>
 
       <!-- 3.3 AUTONOMOUS EVALUATOR AGENT ROSTER -->
-      <section class="section-container" id="ai-agents">
+      <section class="section-container route-surface hidden" data-route="agents" id="ai-agents">
         <div class="section-header">
           <div class="section-kicker" id="roster-kicker">ON-CHAIN WHITELISTED AGENTS</div>
           <h2 class="section-title" id="roster-title">Autonomous Evaluator Agent Roster</h2>
@@ -828,8 +661,8 @@
       </section>
 
       <!-- 4. LMS LEARNER DASHBOARD & MICRO-COURSES MARKETPLACE -->
-      <section class="section-container" id="courses">
-        <div class="section-header">
+      <section class="section-container courses-command-section route-surface hidden" data-route="courses" id="courses">
+        <div class="section-header courses-editorial-header">
           <div class="section-kicker" id="courses-kicker">LMS LEARNER DASHBOARD</div>
           <h2 class="section-title" id="courses-title">Micro-Courses Marketplace &amp; Study Room</h2>
           <p class="section-sub" id="courses-sub">
@@ -837,8 +670,9 @@
           </p>
         </div>
 
-        <!-- 4.1 Learner Profile Card (Persona: Rina) -->
-        <div class="lms-learner-card">
+        <div class="lms-command-deck">
+          <!-- 4.1 Learner Profile Card (Persona: Rina) -->
+          <div class="lms-learner-card">
           <div class="learner-profile-main">
             <div class="learner-avatar-wrap">
               <div class="learner-avatar-img">RO</div>
@@ -865,10 +699,10 @@
               <button type="button" class="btn-privacy" id="btn-privacy-named" title="Profile IRI linked with salted identity hash.">👤 Named Profile</button>
             </div>
           </div>
-        </div>
+          </div>
 
-        <!-- 4.2 Three LMS Quick Notification & Metric Cards -->
-        <div class="lms-metrics-grid">
+          <!-- 4.2 Three LMS Quick Notification & Metric Cards -->
+          <div class="lms-metrics-grid">
           <div class="lms-metric-card gold">
             <div class="metric-icon-badge">2</div>
             <div class="metric-copy">
@@ -891,6 +725,7 @@
               <h4 class="metric-title" id="lms-stat-3-title">AI Domain Agents Online</h4>
               <p class="metric-desc" id="lms-stat-3-desc">Whitelisted signers: Foundations, Security, Infrastructure.</p>
             </div>
+          </div>
           </div>
         </div>
 
@@ -1039,17 +874,18 @@
       </div>
 
       <!-- 5. INTERACTIVE CREDENTIAL VERIFIER SANDBOX -->
-      <section class="section-container" id="verifier">
-        <div class="section-header">
+      <section class="section-container verifier-stage-section route-surface hidden" data-route="verify" id="verifier">
+        <div class="section-header verifier-editorial-header">
           <h2 class="section-title" id="verifier-title">Instant Credential Verifier Sandbox</h2>
           <p class="section-sub" id="verifier-sub">
             Paste any credential identifier below or click a quick sample to run live verification against BNB Smart Chain.
           </p>
         </div>
 
-        <div id="banner" class="banner hidden"></div>
+        <div class="verifier-console-shell">
+          <div id="banner" class="banner hidden"></div>
 
-        <div class="ask-card">
+          <div class="ask-card">
           <div class="ask-header">
             <label for="input" id="lbl-input">Input Identifier</label>
             <span class="input-hint" id="input-hint">credentialHash, attestation UID, tokenId, or address</span>
@@ -1088,10 +924,10 @@
           </div>
 
           <div id="status" class="status-msg" role="status" aria-live="polite"></div>
-        </div>
+          </div>
 
-        <!-- Reader Configuration Drawer -->
-        <details id="config" class="config-panel">
+          <!-- Reader Configuration Drawer -->
+          <details id="config" class="config-panel">
           <summary id="cfg-summary">Reader Configuration (RPC &amp; Contract Addresses)</summary>
           <div class="config-grid">
             <div class="cfg-field">
@@ -1130,15 +966,16 @@
             The chain ID returned by the RPC is always checked against the expected chain ID. If mismatched, results are
             strictly rejected — reading another chain is zero evidence.
           </p>
-        </details>
+          </details>
 
-        <!-- Live Results Output Container -->
-        <main id="out" class="results-container"></main>
+          <!-- Live Results Output Container -->
+          <main id="out" class="results-container"></main>
+        </div>
       </section>
 
       <!-- 6. WHY LENCANA (TECHNICAL EDGE BENTO GRID) -->
-      <section class="section-container" id="architecture">
-        <div class="section-header">
+      <section class="section-container architecture-story-section route-surface" data-route="home" id="architecture">
+        <div class="section-header architecture-editorial-header">
           <h2 class="section-title" id="bento-title">Why Lencana is Technically Differentiable</h2>
           <p class="section-sub" id="bento-sub">
             Closing real industry loopholes with deliberate cryptographic architecture.
@@ -1148,7 +985,7 @@
         <div class="bento-grid">
           <!-- Card 1: AI Agent as Issuer -->
           <div class="bento-card bento-wide">
-            <div class="bento-icon">🤖</div>
+            <div class="bento-icon" aria-hidden="true"></div>
             <h3 class="bento-title" id="bento-1-title">AI Agent as Issuer, Never Verifier</h3>
             <p class="bento-text" id="bento-1-desc">
               AI agents provide subjective, rich grading on essays. Verification remains 100% deterministic and static: math and
@@ -1158,7 +995,7 @@
             <!-- Visual Diagram 1: Evaluation vs Verification Separation -->
             <div class="bento-visual-diagram bento-flow">
               <div class="bento-step-pill ai">
-                <span class="step-pill-icon">🤖</span>
+                <span class="step-pill-icon" aria-hidden="true"></span>
                 <div class="step-pill-meta">
                   <span class="pill-name">AI Domain Agent</span>
                   <span class="pill-desc">Subjective Grading</span>
@@ -1166,7 +1003,7 @@
               </div>
               <div class="bento-flow-arrow">➔</div>
               <div class="bento-step-pill sig">
-                <span class="step-pill-icon">✍️</span>
+                <span class="step-pill-icon" aria-hidden="true"></span>
                 <div class="step-pill-meta">
                   <span class="pill-name">EIP-712 Signature</span>
                   <span class="pill-desc">Cryptographic Hash</span>
@@ -1174,7 +1011,7 @@
               </div>
               <div class="bento-flow-arrow">➔</div>
               <div class="bento-step-pill chain">
-                <span class="step-pill-icon">⛓️</span>
+                <span class="step-pill-icon" aria-hidden="true"></span>
                 <div class="step-pill-meta">
                   <span class="pill-name">On-Chain Resolver</span>
                   <span class="pill-desc">100% Deterministic Math</span>
@@ -1185,7 +1022,7 @@
 
           <!-- Card 2: Closing EAS Prerequisite Loopholes -->
           <div class="bento-card">
-            <div class="bento-icon">🛡️</div>
+            <div class="bento-icon" aria-hidden="true"></div>
             <h3 class="bento-title" id="bento-2-title">Closing EAS Prerequisite Loopholes</h3>
             <p class="bento-text" id="bento-2-desc">
               Plain EAS only checks if a prerequisite attestation exists. Lencana enforces that prerequisites are alive,
@@ -1219,7 +1056,7 @@
 
           <!-- Card 3: Soulbound ERC-5192 Artifacts -->
           <div class="bento-card">
-            <div class="bento-icon">🔒</div>
+            <div class="bento-icon" aria-hidden="true"></div>
             <h3 class="bento-title" id="bento-3-title">Soulbound ERC-5192 Artifacts</h3>
             <p class="bento-text" id="bento-3-desc">
               The verifiable credential is the signed JSON document; the Soulbound NFT is the learner’s showcase artifact.
@@ -1231,16 +1068,16 @@
               <div class="circuit-wire-flow">
                 <span class="circuit-call">transferFrom(A, B)</span>
                 <span class="circuit-arrow">➔</span>
-                <span class="circuit-gate">🔒 ERC-5192 Hook</span>
+                <span class="circuit-gate">ERC-5192 Hook</span>
                 <span class="circuit-arrow">➔</span>
-                <span class="circuit-revert">🛑 REVERT: Locked()</span>
+                <span class="circuit-revert">REVERT: Locked()</span>
               </div>
             </div>
           </div>
 
           <!-- Card 4: Zero-Wallet Public Verification -->
           <div class="bento-card bento-wide">
-            <div class="bento-icon">🌐</div>
+            <div class="bento-icon" aria-hidden="true"></div>
             <h3 class="bento-title" id="bento-4-title">Zero-Wallet Public Verification</h3>
             <p class="bento-text" id="bento-4-desc">
               Recruiters do not need crypto, MetaMask, or accounts. A single browser eth_call checks the live chain directly,
