@@ -19,6 +19,8 @@ counts as proof — no task here is "polish X".
 | **B41** | The last validator step: `verificationMethod` came from the agent record created with `http://127.0.0.1:8787/…`, and `npm run agent` refuses to overwrite ("sudah ada … tidak ditimpa") — so `BASE_URL` never reaches issuer identity | until this runs, "1EdTech compatible" stays banned; it is our only remaining strong claim | `POST /upload` with part `file` to `vc.1ed.tech`, verdict pasted verbatim into `09-Testing/T15` — pass **or** fail |
 | **B42** | Harness blind spot: `serve-probe` never starts the server with a **cold store**. Today the credential route and list rendering depend on store warmth | this is exactly how a "green 20/20" hid a real path failure | a probe run against a fresh store dir, or an explicit cold-store test |
 | **B43** | Documentation debt: `09-Testing/T6`, `T9`–`T14` unwritten; `08-Results/00 - Hub Results`, `10-Contributors/00 - Hub Contributors`, `07-Backlog/02 - Plan`, `Glossary`, `Quick-Reference` missing; 69 unresolved vault links; 13 Module-Guides still `_TODO` | every number quoted in submission material should have a home page with its date | `scripts\sync-vault.ps1` then `check-links.ps1` → `Broken: 0` |
+| **B44** | The grading **method never reaches the credential**. `issue.js:249-256` builds `method` / `comment` (rubric ref, judge model, temperature) and `credential.js` does not emit them: OB 3.0's `Result` admits only `{achievedLevel, resultDescription, status, value}`, and an out-of-context term is dropped in canonicalisation. Verified 26 Sep against `signer/.store/state.json` — `result[0]` has four keys | the artefact answers *"which rubric"* but not *"who ran it"*, so "an agent graded this" is checkable only against our own logs | a standards-compliant home for the method (served `/criteria/<slug>` document — see B45 — or `Result.achievedLevel`), plus a `check.js` assertion that a model-graded document reports the model |
+| **B45** | Nothing under `/criteria/`, `/achievements/`, `/learners/` is **served**, although every issued document points at those URLs (`resultDescription`, `achievement.id`, `credentialSubject.id`) | a strict validator or a recruiter following `resultDescription` lands on our 404-with-hint. Same root cause as B44: the credential references documents that exist only as strings | `GET /criteria/<slug>` serves the issuer's rubric document (criteria text, weights, rubric items, full `rubricHash`) and `serve-probe.js` asserts it resolves |
 
 ## Frontend owner (Dave) — see [[10-Contributors/Open-Items-for-Dave]]
 
@@ -33,6 +35,17 @@ counts as proof — no task here is "polish X".
 
 ## Facts locked this session (so nobody re-derives them)
 
+- **Course prose is chain material.** `manifest.course.blurb` becomes `achievement.description` and
+  `title` becomes `achievement.name` in every signed document (`issue.js:239-240`), and there is no
+  re-issue path for a document already out — so a wrong sentence in a course description is a wrong
+  sentence under a signature. `auditCourse` now refuses `/\bmenit\b/i` in a blurb; durations come from
+  `courseStats` (measured: `web3-dasar-2026` = **307** min, catalog = **412** min, per kind
+  bacaan 133 · esai 95 · praktik 85 · kuis 47 · kasus 34 · referensi 18).
+- **Per-lesson-kind minutes are derivable, and now measured** — the numbers above are from a one-off
+  `tsx` script over `COURSES`; `npm run inventory` prints the totals. Any future duration table in this
+  vault should be regenerated, not extended by hand.
+- **`issue.js` has `--score` removed for real** (K4): the flags are `--quiz`, `--essay-score`,
+  `--no-praktik`, and the composite is computed against the issuer's manifest before anything is signed.
 - `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` (CredentialResolver, chain 97) appears in
   `broadcast/DeployCredentials.s.sol/97/run-latest.json`, in `web/src/verify.ts` as the page's default
   endpoint, and in `vault/02-Contracts` → safe to type into the submission form. Network = BSC Testnet.

@@ -45,8 +45,13 @@ leaves the pipeline signed by an agent's key.
   (`signer/scripts/issue.js:87-94`); `--essay-score` survives only to exercise the arithmetic, and if
   a judged essay produces a different number the script stops rather than picking one (`:135-137`); a
   judge that returns no score is an error, not a default (`:130-133`).
-- What the document then carries: `score = String(grade.total)` (`signer/scripts/issue.js:246`) plus a
-  `result.method` naming the rubric version and, when a model graded, that model (`:249-252`).
+- What the document then carries: `score = String(grade.total)` (`signer/scripts/issue.js:246`) — and
+  **nothing else about the method**. `issue.js` also builds `method` and `comment` naming the rubric
+  version and the judge model (`:249-256`), but `credential.js` does not emit them: OB 3.0's `Result` is
+  `{achievedLevel, resultDescription, status, value}`, and an out-of-context term is silently dropped
+  during canonicalisation (`credential.js:96-108`). Verified against the stored documents on 26 Sep —
+  `result[0]` has four keys. So the credential says **which rubric**, not **which judge** → **B44**
+  ([[07-Backlog/03 - Findings and Tasks 2026-09-26]], [[00-Overview/04 - Corrections]]).
 
 **Detail:**
 - Measured on public chain 97 (2026-09-25): the first credential whose number did not come from a

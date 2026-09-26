@@ -44,6 +44,11 @@ without the platform deciding]].
   in the registry (`:284`) and a `prereqCourseId` pointing at a ghost (`:287`) — the same relation the
   chain enforces through `refUID`. `probe` calls them through `auditAll()` (`web/scripts/probe.ts:178`
   → `web/src/courses/index.ts:54-55`).
+- **A blurb may not state a duration** (`auditCourse`, added 26 Sep): `/\bmenit\b/i` in `course.blurb` is
+  a refused problem, because `blurb` is copied verbatim into `achievement.description` of every signed
+  credential (`signer/scripts/issue.js:240`) and a document already issued cannot be corrected. Durations
+  are `courseStats` output. The rule exists because of a real bug, not in theory: the flagship blurb said
+  *"Seratus sembilan puluh menit"* while its lessons sum to **307** → [[00-Overview/04 - Corrections]].
 
 **Detail:**
 - The course `id` is chain material, not a label: `SeedDemo.s.sol` hashes `keccak256("web3-dasar-2026")`
