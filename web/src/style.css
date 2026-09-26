@@ -8393,6 +8393,156 @@ body.is-home-page .app-main {
   50% { transform: translateY(4px); }
 }
 
+/* ========================================================
+   LENCANA HYBRID HERO — CINEMATIC SCENE, EDITORIAL PROOF
+   ======================================================== */
+.nexum-hero-section {
+  isolation: isolate;
+  background: #050708;
+}
+
+.nexum-hero-section::before,
+.nexum-hero-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.nexum-hero-section::before {
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(4, 6, 8, 0.93) 0%, rgba(4, 6, 8, 0.74) 43%, rgba(4, 6, 8, 0.24) 73%, rgba(4, 6, 8, 0.46) 100%),
+    linear-gradient(180deg, rgba(4, 6, 8, 0.26), transparent 46%, rgba(4, 6, 8, 0.84) 100%);
+}
+
+.nexum-hero-section::after {
+  z-index: 2;
+  opacity: 0.36;
+  background-image:
+    linear-gradient(rgba(240, 185, 11, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(90deg, #000, rgba(0, 0, 0, 0.54) 70%, transparent);
+}
+
+.nexum-bg-video {
+  filter: saturate(0.48) contrast(1.13) brightness(0.68) sepia(0.12);
+  transform: scale(1.012);
+}
+
+.nexum-main-content {
+  max-width: 1500px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.nexum-left-block {
+  max-width: 48rem;
+}
+
+.nexum-h1 {
+  display: grid;
+  gap: 1.1rem;
+  color: #f5f6f7;
+}
+
+.nexum-h1-system,
+.nexum-h1-proof {
+  display: block;
+}
+
+.nexum-h1-system {
+  max-width: 33ch;
+  color: rgba(255, 255, 255, 0.76);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+  font-weight: 580;
+  line-height: 1.32;
+  letter-spacing: -0.025em;
+}
+
+.nexum-h1-proof {
+  max-width: 7.4ch;
+  color: #f7f7f5;
+  font-family: 'Arial Black', 'Inter', sans-serif;
+  font-size: clamp(4.8rem, 7vw, 7.5rem);
+  font-weight: 950;
+  line-height: 0.79;
+  letter-spacing: -0.078em;
+  text-shadow: 0 12px 48px rgba(0, 0, 0, 0.48);
+}
+
+.nexum-glass-card {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(10, 12, 15, 0.65);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  color: #f5f6f7;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nexum-stats-number,
+.nexum-brand-title,
+.nexum-testimonial-quote,
+.nexum-author-name {
+  color: #f5f6f7;
+}
+
+.nexum-stats-body,
+.nexum-author-role,
+.nexum-badge-sub {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.nexum-nav-link,
+.nexum-brand,
+.nexum-hamburger-btn {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+@media (max-width: 1023px) {
+  .nexum-hero-section::before {
+    background:
+      linear-gradient(180deg, rgba(4, 6, 8, 0.72), rgba(4, 6, 8, 0.42) 48%, rgba(4, 6, 8, 0.91)),
+      linear-gradient(90deg, rgba(4, 6, 8, 0.74), transparent);
+  }
+
+  .nexum-h1,
+  .nexum-brand,
+  .nexum-hamburger-btn,
+  .nexum-stats-number,
+  .nexum-brand-title,
+  .nexum-testimonial-quote,
+  .nexum-author-name {
+    color: #f5f6f7;
+  }
+
+  .nexum-stats-body,
+  .nexum-author-role,
+  .nexum-badge-sub {
+    color: rgba(255, 255, 255, 0.62);
+  }
+}
+
+@media (max-width: 639px) {
+  .nexum-h1 {
+    gap: 0.85rem;
+  }
+
+  .nexum-h1-system {
+    max-width: 29ch;
+    font-size: 1rem;
+  }
+
+  .nexum-h1-proof {
+    font-size: clamp(3.35rem, 16vw, 4.8rem);
+  }
+
+  .nexum-main-content {
+    padding-bottom: 2.4rem;
+  }
+}
 
 
 
