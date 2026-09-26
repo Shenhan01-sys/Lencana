@@ -4,11 +4,13 @@ status: active
 updated: 2026-09-26
 ---
 
-# 10 - Project Detail, long form (submission)
+# 10 - Project Detail, long form (reference)
 
-Versi panjang dari [[00-Overview/09 - Project Detail (submission)]] untuk field yang plafonnya besar
-(±68k karakter) dan mendukung Mermaid. Semua angka berasal dari perintah yang dijalankan di repo ini,
-dan alamat kontrak dicocokkan ke `broadcast/DeployCredentials.s.sol/97/run-latest.json`.
+**Plafon field "Project Detail" ternyata 5,600 karakter, bukan 68k.** Teks yang benar-benar kita tempel
+ke formulir ada di [[00-Overview/10 - Project Detail (long form) - Copy]] (5,508 karakter, 27 Sep).
+Halaman ini tetap jadi **referensi panjang**: semua angka di sini berasal dari perintah yang dijalankan
+di repo ini, dan alamat kontraknya dicocokkan ke `broadcast/DeployCredentials.s.sol/97/run-latest.json` —
+jadi kalau ada kalimat di versi ringkas yang ditanya juri, buktinya ada di sini, bukan di kepala kita.
 
 **Part I (§1–§14)** is the argument: the problem, the three structural decisions, the lifecycle, the
 comparison, the limits. **Part II (§15–§24)** is the machinery underneath it, for a reviewer who wants
@@ -1127,11 +1129,12 @@ pasted text. `IMG-04` is the one that carries the argument: a revoked credential
   **all 18 diagrams in the vault** under both **mermaid@11** and **mermaid@10.9.8** — the form's renderer
   version is not ours to choose — then re-confirmed by putting the semicolon back and watching it fail
   again. `scripts\check-mermaid.ps1` now guards the rule (→ [[Conventions]]).
-- Character budget: the pasteable region is **67,345 characters** in 1,067 lines (15 fenced blocks: 14
-  Mermaid diagrams + 1 JSON document) against a 68,000 ceiling, leaving 655. The number is the same on
-  any machine, because `.gitattributes` pins `* text=auto eol=lf` — a fresh clone pastes LF, not CRLF.
-  If anything is added, drop §24's judge-walkthrough first: it is the only part repeated elsewhere.
-- Anything added to the pasteable part must displace something there; the annex costs nothing.
+- Character budget: **the field's ceiling turned out to be 5,600 characters, not 68,000** (found when
+  the builder tried to paste this page on 27 Sep). The submission text is therefore the condensed
+  [[00-Overview/10 - Project Detail (long form) - Copy]] — 5,508 characters, 77 lines, no diagram, no
+  vault paths, no internal task IDs. This page stays as the reference behind it: nothing here is
+  re-typed into the form, everything in the form is sourced from here.
+- Anything added to the condensed page must displace something there — it has 92 characters of slack.
 
 **Related:** [[00-Overview/09 - Project Detail (submission)]] (the short version, if the field is
 smaller) · [[00-Overview/08 - Submission Copy]] · [[00-Overview/06 - Business Process]] ·

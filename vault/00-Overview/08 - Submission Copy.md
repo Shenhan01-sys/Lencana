@@ -113,4 +113,30 @@ Sisanya (`SoulboundCert`, `SettlementSplit`, `DemoCourseToken`) masuk descriptio
 `0x6c227029…` **bukan milik kita** dan harus disebut sebagai pihak ketiga. Lihat
 [[07-Backlog/01 - Backlog]] untuk status source-verification di explorer.
 
+## Field "Project Detail" — plafon 5,600 karakter (bukan 68k)
+
+Dikoreksi 27 Sep saat builder mengisi form: plafonnya **5,600 karakter**, dan kami sudah menulis halaman
+sepanjang 67,345 karakter untuk itu. Teks yang ditempel sekarang:
+
+> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,508 karakter**, 77 baris, 1 tabel kontrak,
+> tanpa diagram, tanpa wikilink, tanpa jalur `vault/`, tanpa ID tiket internal (B38–B45, RF5, OI-*).
+
+Aturan yang berlaku untuk field ini, supaya tidak perlu ditulis ulang tiga kali:
+
+| aturan | alasannya |
+|---|---|
+| tidak ada `[[wikilink]]` | juri tidak punya vault kita; linknya mati di layar mereka |
+| tidak ada jalur `vault/…` atau `07-Backlog/…` | itu penomoran internal kita, bukan alamat yang bisa dibuka |
+| tidak ada ID tiket (B41, RF5, OI-11) | tanpa halaman tujuannya, angka itu hanya bunyi |
+| jalur **source** (`web/src/verify.ts`, `contracts/…`) dan **perintah** (`npm run x402`) tetap ada | inilah yang bisa mereka cek sendiri di repo publik |
+| setiap bilangan tetap disebut tanggal + perintahnya | sama seperti di [[08-Results/01 - Evidence and Limits]] |
+
+Sisa ruang tinggal **92 karakter**. Kalau ada yang mau ditambahkan, kurangi dulu yang lain — kandidat
+yang paling aman dibuang adalah daftar `judge-variance` (nomornya sudah muncul di `08-Results`) atau
+kalimat break-even BNB di bagian uang.
+
+Versi panjangnya tetap hidup sebagai referensi: [[00-Overview/10 - Project Detail (long form)]]. Kalau
+nanti field-nya ternyata bisa lebih panjang (mis. ada field "full documentation" terpisah), itu yang
+dikirim — jangan hasil pangkas ini.
+
 **Related:** [[00-Overview/06 - Business Process]] · [[10-Contributors/Claims-Cheat-Sheet]] · [[08-Results/01 - Evidence and Limits]]
