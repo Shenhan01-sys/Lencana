@@ -395,3 +395,51 @@ Related pages in the repository: `vault/00-Overview/06 - Business Process.md` (t
 `vault/10-Contributors/Claims-Cheat-Sheet.md` (the sentences we forbid ourselves),
 `vault/12-LMS-References/` (the six audited platforms, with commit SHAs),
 `vault/09-Testing/` (every number above with its raw output).
+
+## 13. How it compares — read from their code, not their marketing
+
+Each cell was checked in the cloned source (commit pinned in
+`vault/12-LMS-References/00 - Hub LMS References.md`). "No" means *we found no mechanism in that
+tree*, not *the product is bad* — these are mature systems doing a different job.
+
+| | Moodle | Open edX | Canvas | Chamilo | Frappe | LearnHouse | **Lencana** |
+|---|---|---|---|---|---|---|---|
+| course → chapter → lesson model | ✅ | ✅ XBlock | ✅ modules | ✅ | ✅ | ✅ | ✅ typed data |
+| server-side enrolment record | ✅ | ✅ | ✅ state machine per user+section | ✅ | ✅ row lock + duplicate check | ✅ `TrailRun` | ❌ **not built** |
+| grade **provenance** (who/what produced the number) | ✅ `usermodified` + history table | ✅ `score_type`, regrade | ✅ | ⚠️ | ⚠️ | ⚠️ | ⚠️ in the document, not in the UI |
+| signed credential | ❌ `Signed is not implemented yet.` | ❌ uuid link | ❌ | ❌ no `@context`, unsigned | ❌ | ❌ no status column | ✅ `eddsa-rdfc-2022`, VC 2.0 |
+| revocation visible to a stranger | ⚠️ row delete + `410`, so "never issued" is indistinguishable | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ two chain-derived lists, anchored |
+| grading policy pinned at issuance | ❌ criteria rebuilt per export | ⚠️ hashed, never enforced, never published | ❌ | ❌ | ❌ | ❌ | ✅ `rubricHash` inside the credential |
+| issuer = third party with its own keys | ❌ | ❌ | ❌ | ❌ settings toggle, not a key | ❌ | ❌ | ✅ agent signs, platform broadcasts |
+| verification without an account | ❌ | ❌ | ❌ | ⚠️ public name search | ⚠️ unguessable URL | ⚠️ unguessable URL | ✅ free, wallet-less |
+| machine-to-machine paid verification | ❌ | ❌ | ❌ | ❌ | ❌ | ⚠️ closed-source | ✅ x402, batch, split on chain |
+| prerequisites enforced outside the client | ⚠️ availability rules | ✅ content gating | ✅ module requirements | ❌ | ❌ order not server-gated | ⚠️ | ✅ at attestation time, on chain |
+
+**Canvas caveat, stated so nobody over-reads the row:** its clone was taken as a *sparse* checkout
+(`app/models`, `app/controllers`, `db/migrate`, `lib`, `config`, `spec/models`), so its certificate and
+badge machinery was **not inspected** — the ❌ in those five cells means "no evidence found in what we
+read", which is weaker than "does not exist". Every other column was read from a complete tree. The
+money cell is also scoped: exactly one payment-related string exists in the checked-out paths
+(`# Inactive is a "hard" state, i.e. tuition not paid`), and `app/services`/`gems`/`plugins` were out of
+scope. Re-checking this is cheap: widen the sparse set and look for the certificate service.
+
+What we deliberately do **not** take: their server-rendered admin surfaces, their authoring and
+gradebook UIs, and any part of their front ends. Lencana's learner surface stays plain, fast and
+typographic, and the learning data stays code-reviewed JSON rather than an editable database.
+
+## 14. What an institution actually does (onboarding, described honestly)
+
+Today an issuer's path is a handful of commands we operate for the demo — not a self-service flow.
+Stated exactly, because "publishers can join" is a sentence we do not get to say:
+
+| step | today | self-service would need |
+|---|---|---|
+| define the course and its rubric | ✅ a typed `CourseManifest` in this repo | a form that writes the same shape |
+| be recognised by the chain | ✅ `addIssuer` + an agent key record | an approval flow, and a key-custody decision |
+| issue credentials | ✅ `npm run issue` / `delegate`, run by us | a hosted issuance service with a queue and an idempotency record |
+| anchor the status lists | ✅ `npm run anchor`, idempotent | a scheduled worker |
+| get paid | ✅ the split contract keeps nothing back | a checkout, and the enrolment record above |
+| be removed for misconduct | ✅ `delistIssuer`, visible as its own verdict | a review process, not only a function |
+
+The honest summary: **the rails are built, the counter is not.** Every step above has a command behind
+it; none of them has a customer yet.
