@@ -97,3 +97,13 @@ input to identity creation, not a per-request decoration.
    three read routes).
 
 **Related:** [[09-Testing/00 - Hub Testing]] · [[04-Signer-Service/S7 - Server routes and lifecycle]] · [[00-Overview/02 - Roadmap to the Deadline]]
+
+## Later the same day: the shortcut is dead - URLs are baked at issuance
+
+Measured through the live tunnel: `GET /credentials/0x041e5898...` returned 200 / 3202 bytes, but the tunnel host appeared **0** times while `127.0.0.1` appeared **13** times (9 in `id` fields, 1 in `verificationMethod`, 2 in `statusListCredential`). So document URLs are stored when a credential is issued and are NOT re-rendered from `BASE_URL`: re-serving an existing credential under a public host cannot fix it.
+
+**B41 is therefore a 5-step chain, steps 2-4 write to chain (testnet gas):**
+
+1. Start the tunnel and read its domain from the tunnel log - quick-tunnel domains are random per run, never from notes. 2. Create a NEW agent record under that `BASE_URL` (`npm run agent` refuses to overwrite the localhost one). 3. Whitelist its address with `addIssuer`. 4. Issue one credential under that identity and require the host to appear >=3 times in the served payload. 5. `POST /upload` with part `file`, record the verdict verbatim in `09-Testing/T15`.
+
+Only after step 5 may the limits line change from never run to a result. Builder decision recorded on 26 Sep: issuance is NOT to be postponed - the credential is the thing a learner shows publicly (LinkedIn), so it must exist under a resolvable public identity.
