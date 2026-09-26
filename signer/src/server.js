@@ -24,7 +24,7 @@ import { loadKey, issuerDocument } from './issuer.js'
 import { REVOCATION, SUSPENSION, renderList, servedHashes } from './lists.js'
 import { sha256Hex } from './credential.js'
 import { makeDocumentLoader } from './sign.js'
-import { getCredential } from './store.js'
+import { getCredentialByHash } from './store.js'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
 
@@ -272,9 +272,11 @@ const server = createServer(async (req, res) => {
     // yang berbayar adalah jalur mesin-ke-mesin (agen yang memanggil kami untuk banyak kredensial).
     if (path === '/verify') return handleVerify(req, res)
     // kredensial yang sudah diterbitkan: `/credentials/<credentialHash>` — URL yang sama dengan
-    // `id` di dalam dokumen, jadi tautan yang dicetak di ijazah memang menunjuk ke sini
+    // `id` di dalam dokumen, jadi tautan yang dicetak di ijazah memang menunjuk ke sini.
+    // Rekaman tersimpan menurut hash-nya; `id` dokumen adalah URL penuh, dan permintaan masuk
+    // sebagai pathname — jadi keduanya tidak pernah string-cocok.
     if (path.startsWith('/credentials/0x')) {
-      const found = await getCredential(path)
+      const found = await getCredentialByHash(path.slice('/credentials/'.length))
       if (!found) return send(res, 404, { error: 'belum diterbitkan lewat backend ini', path })
       return send(res, 200, found)
     }

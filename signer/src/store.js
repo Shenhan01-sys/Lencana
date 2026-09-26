@@ -93,6 +93,21 @@ export async function getCredential (id) {
   return state.credentials[id] ?? null
 }
 
+/**
+ * Temukan rekaman dokumen menurut `credentialHash`-nya (atau UID-nya), bukan menurut string `id` —
+ * karena `id` adalah URL penuh sementara server menerima pathname.
+ */
+export async function getCredentialByHash (wanted) {
+  const needle = String(wanted ?? '').toLowerCase()
+  if (!needle) return null
+  const state = await read()
+  return Object.values(state.credentials).find((c) => {
+    if (String(c.credentialHash ?? '').toLowerCase() === needle) return true
+    if (String(c.uid ?? '').toLowerCase() === needle) return true
+    return String(c.id ?? '').toLowerCase().endsWith(needle)
+  }) ?? null
+}
+
 /** Kredensial yang pernah kita terbitkan sendiri. */
 export async function knownHashes () {
   const state = await read()

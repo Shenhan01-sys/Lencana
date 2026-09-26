@@ -51,6 +51,34 @@ was replaced.
 serve an inconsistent view, and an external request is what surfaced it. Until it is fixed, "public URL
 works" is proven only for the health route, and the phrase "1EdTech compatible" stays forbidden.
 
+## Correction, written the same evening (the section above contains a wrong diagnosis)
+
+I claimed the 404 on `GET /credentials/0x…` was "store/chain drift" and then "documents depend on local
+state". Both readings were wrong, and the actual facts are:
+
+1. **I passed a UID where a credentialHash belongs.** `/healthz`'s `slots` map is keyed by attestation
+   **UID**; `0xf62691df…` and `0xaabecd9b…` are UIDs. The route serves `/credentials/<credentialHash>`.
+   With a real hash — `0x041e5898b7ab38e40a3809f3288a378407e16741202b6abe303aa2c409a7f230` — the document
+   came back **HTTP 200, 3202 bytes** through the tunnel. The route was working as designed; the
+   transient `ok:false` healthz earlier was an RPC hiccup, not drift.
+2. **`watchCredential` is deliberately separate from `rememberCredential`** (`store.js:104-108`): adopted
+   credentials get status visibility only, and have no OB 3.0 document of ours to serve. The 404 body
+   ("belum diterbitkan lewat backend ini") is the honest answer for those, not a defect.
+3. **The real blocker is the identity URLs, and it is precise.** The served document contains
+   **zero** occurrences of the tunnel host, because `verificationMethod` and the issuer id come from the
+   stored agent record, written with `http://127.0.0.1:8787/…` at creation. `npm run agent` is
+   idempotent ("sudah ada: agent-demo (tidak ditimpa)") and has no refresh path, so `BASE_URL` reaches the
+   verify/list routes but **not the issuer identity**. A third-party verifier dereferences exactly those
+   fields, so it would follow a localhost URL and fail.
+4. **Validator wire format learned**: `POST /upload` rejects `uri` alone —
+   `Required part 'file' is not present.` It needs `-F "file=@doc.json;type=application/json"`, and the
+   earlier probe saved that response.
+
+So the remaining work is not "fix a broken route" but: mint/adopt one credential whose *stored* identity
+URLs are already public (re-create the agent record under `BASE_URL`, or issue a fresh credential after
+doing so), then upload it as `file`. `RF6`'s point stands in a sharper form: `BASE_URL` must be an
+input to identity creation, not a per-request decoration.
+
 ## Next actions, in order
 
 1. Re-seed the store from chain with the explicit list — `node scripts/adopt.js --hashes <the 11 from
