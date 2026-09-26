@@ -20,7 +20,7 @@ export const web3Dasar: Course = {
   institution: 'Yayasan Literasi Digital Nusantara (institusi demo, fiktif)',
   level: 'dasar',
   blurb:
-    'Seratus sembilan puluh menit yang mengubah kamu dari "pernah dengar blockchain" menjadi orang yang ' +
+    'Sekitar lima jam belajar yang mengubah kamu dari "pernah dengar blockchain" menjadi orang yang ' +
     'buka explorer, baca transaksi, dan menolak klaim sertifikat yang tidak bisa diverifikasi.',
   audience: [
     'Mahasiswa tingkat akhir yang melamar kerja di industri web3 Indonesia',

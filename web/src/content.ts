@@ -203,6 +203,14 @@ export function auditCourse(course: Course): Problem[] {
 
   if (!course.modules.length) bad(course.id, 'tidak punya modul')
 
+  // Durasi itu hasil hitung (courseStats), bukan kalimat yang ditulis tangan. Alasannya bukan
+  // estetika: `blurb` tercetak menjadi `achievement.description` pada dokumen yang sudah bertanda
+  // tangan dan tidak bisa dikoreksi setelah terbit — jadi angka durasi di teks adalah bug yang
+  // bisa ditandatangani.
+  if (/\bmenit\b/i.test(course.blurb)) {
+    bad(course.id, 'blurb menyebut durasi dalam menit — durasi dihitung dari lesson, jangan ditulis di teks')
+  }
+
   const moduleIds = new Set<string>()
   const slugs = new Set<string>()
 
