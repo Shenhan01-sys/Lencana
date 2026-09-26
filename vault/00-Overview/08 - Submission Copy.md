@@ -71,6 +71,37 @@ verification is free and instant and needs no account on our side or the issuer'
 | "on-chain diploma", "certificate stored on chain" | dokumennya di luar chain; yang di chain izin penerbit + status |
 | opBNB dalam bentuk apa pun | nol deployment, nol pengukuran di sana |
 
+## Solution (one paste-ready block)
+
+```text
+Lencana is a micro-course platform whose output is a credential that stands on its own.
+
+The issuer is the institution, not us. Every course ships with a manifest carrying that institution's
+own criteria, weights and pass mark, and the hash of that policy is written into every credential
+issued under it. A grade cannot be re-explained after the fact, by the school or by us. Work is scored
+against those rules by a mechanical scorer plus an optional model judge, both of which refuse to
+invent a number when evidence is missing.
+
+The party that signs is the institution's own agent. It signs attestations through delegation on BNB
+Attestation Service, a public EAS deployment we do not own, and it never needs a wallet or gas money,
+because Lencana broadcasts and pays for it.
+
+Verification asks nothing of the person checking. The page reads issuer permission and credential
+status directly from BNB Chain: no account, no wallet, nothing of ours on the request path.
+Revocation is real rather than implied. Two bitstring status lists, revocation and suspension, are
+rebuilt from chain state on every call, and both list hashes are timestamped on chain, so our own
+endpoint cannot quietly rewrite what a verifier reads.
+
+Learners also receive a soulbound artefact: one per credential, mintable only while the credential is
+live, never transferable.
+
+And the proof has a commercial shape. Machine callers buy verification in batches over x402; the
+payment is split on chain, the publisher keeps the majority, the platform's share is a fixed
+percentage that can only ever be lowered, and nothing is held back as debt.
+
+Live on BNB Chain testnet, with one demo issuer and its own test corpus.
+```
+
 ## Smart contract & network untuk form
 
 ```
