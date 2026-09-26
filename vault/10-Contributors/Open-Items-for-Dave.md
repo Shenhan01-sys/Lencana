@@ -135,6 +135,25 @@ artifact `0x021356a0e3b9ab440a571d4af62b215841a7c891`. What is deployed and used
 anvil* presets, say so in the label; if either is presented as the public testnet, a reader selecting it
 sees "not found" for credentials that are live. Your call — I have not touched the file.
 
+## OI-11 — the payment panel never talks to a server
+
+`web/src/main.ts:1003` `function simulateX402Batch()` drives the whole x402 console from three
+`setTimeout` calls (`:1028`, `:1039`, `:1054`) that set status text: `'402 CHALLENGE'` (`:1033`),
+`'SIGNED (0.0005 tBNB)'` (`:1048`), `'SETTLED'` (`:1058`), `'200 OK (118ms)'` (`:1063`).
+`findstr /n /c:"fetch(" web\src\main.ts` → **zero matches**: that flow makes no network call at all, and
+the 118 ms is a literal.
+
+Highest severity in this list, because the money path is the one thing this repository can actually
+prove: `cd signer && npm run x402` settles a real payment on public chain 97 through the canonical proxy
+and splits it in our contract ([[09-Testing/T6 - npm run x402]]). An animation that looks like a receipt,
+next to a real receipt we could show instead, is the worst available trade.
+
+**Smallest fix:** call the real endpoint and print what comes back — `POST {BASE_URL}/verify` with the
+batch of hashes, then render the `402` body's `accepts[]`, the `X-PAYMENT-RESPONSE` header and the
+settlement transaction hash. When the server is unreachable, print "server tidak terhubung" instead of
+`SETTLED`. The asset is the demo ERC-20 priced by `X402_PRICE` (`signer/src/server.js:39`), not `tBNB`
+(OI-7); the route is `/verify`, not `/api/v1/verify/batch` (OI-2).
+
 ## Re-run before you push
 
 ```powershell
