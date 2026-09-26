@@ -230,4 +230,168 @@ bits*, not *who is in the list* — and the thing that actually watches membersh
 (`watched`, `flagged`, `unallocated`) plus the signer harness. We state this in the limits panel (§9)
 rather than claim "the served list cannot be edited".
 
-<!-- MORE -->
+## 7. The artefact: what the NFT is *for*, and what it is not
+
+```mermaid
+flowchart LR
+  CR["credential<br/>(signed JSON, off chain)"] -->|"status checked at mint"| SB["SoulboundCert<br/>ERC-721 + ERC-5192"]
+  subgraph GATE["mint refuses, with a named error"]
+    E1["CredentialNotFound"]
+    E2["CredentialRevoked"]
+    E3["CredentialExpired"]
+    E4["IssuerDelisted"]
+    E5["WrongHolder"]
+    E6["AlreadyBound"]
+  end
+  SB -->|"tokenId = uint256(credentialHash)"| ONE["exactly one artefact<br/>per credential"]
+  SB -->|"transfers revert"| NO["not tradeable,<br/>not sellable"]
+  classDef bad fill:#742331,color:#fff
+  class E1,E2,E3,E4,E5,E6 bad
+```
+
+The artefact is deliberately **the least powerful object in the system**. It is what a learner shows,
+what a profile holds, what a wallet displays — and it grants nothing: no rights, no transfer, and no
+authority over the credential it points at. `mint()` can only be called by the platform's owner address
+and refuses loudly (table above) unless the credential is live and belongs to the person being minted to.
+"One credential, one artefact" is enforced by the key layout itself — `bytes32` and `uint256` are the
+same 256 bits reinterpreted, not a bookkeeping convention.
+
+Two things we record here rather than hide, because they are open work in our own backlog:
+
+- **There is no burn.** Revocation happens to the *status*, not the token. So an artefact can outlive
+  its own validity, which is exactly why the verifier page — not the wallet — is the correct place to
+  check a claim. Fixing the presentation half (metadata that resolves to live status) is task **B38**.
+- **Granularity is undecided** (**B39**). Lesson-level credentials exist; if every lesson minted a
+  token, one learner would carry ~24 artefacts per course and the portfolio becomes noise. This is a
+  product decision, and we would rather state it than let a default decide it.
+
+## 8. Money: verification as a machine-to-machine service
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant Ag as Calling agent (payer)
+  participant SV as Lencana signer
+  participant P2 as Permit2 (canonical)
+  participant XP as x402 ExactPermit2Proxy (canonical)
+  participant TK as fee token (ERC-20)
+  participant SP as SettlementSplit (ours)
+  Ag->>SV: POST /verify  (no payment)
+  SV-->>Ag: 402 Payment Required + accepts[] (amount, token, payTo, deadline)
+  Note over Ag: two EIP-712 signatures:<br/>token allowance permit + proxy witness
+  Ag->>SV: POST /verify + X-PAYMENT header  · sends ZERO transactions
+  SV->>P2: settleWithPermit
+  P2->>TK: transferFrom → payTo (= SettlementSplit)
+  SV->>SP: splitErc20(amount, ref)
+  SP->>TK: payout to the publisher  (majority)
+  SP->>TK: payout of platformBps to the platform  (fixed, can only be lowered)
+  SV-->>Ag: report(s) + X-PAYMENT-RESPONSE (proof of settlement)
+```
+
+The client never holds or sends a transaction: it signs two typed structures, and the platform does the
+rest. A payment is replay-proof by construction — the contract tracks `splitDone[ref]`, and a settlement
+is only divided once per reference.
+
+Measured, and the arithmetic that changed the product:
+
+| what | number |
+|---|---|
+| one settlement + one split | **190,659 gas** (114,728 + 75,931) |
+| at 0.1 gwei (this testnet) | ≈ 0.0000190659 BNB |
+| break-even BNB price for a $0.001 fee at a 10 % platform share | ≈ **$5.24** |
+| deployed `platformBps()` | **1000** (10 %), cap `MAX_BPS = 2500`, **decreases only** |
+
+At a per-report price, the platform's share of a $0.001 fee is smaller than the gas it pays — so the
+billable unit became a **batch** (up to 25 reports in one settlement, one payment returning reports with
+*different* verdicts, which is the case a single-report design cannot answer). Gas belongs to
+**issuance**, paid by whoever broadcasts; it is **never** a percentage deducted from the issuer's share,
+because the issuer did not choose that cost.
+
+## 9. What we measured — and the command that measures it
+
+Nothing in this document is a claim without a command behind it. From a clone of `app/`:
+
+| command | what it proves | result | date |
+|---|---|---|---|
+| `forge build` + `forge test --evm-version cancun --fork-url <97>` | the whole on-chain layer against **real** BAS on a fork of the public testnet | **97 passed / 0 failed** | 26 Sep |
+| `forge test … --fork-url <56>` | same suite against **mainnet** state (interfaces and constants match production) | 97 / 0, identical gas | 23 Sep |
+| `cd web && npx tsc --noEmit && npm run build` | the page compiles | clean | 26 Sep |
+| `cd web && npx tsx scripts/probe.ts` | the **page's own** `verify.ts` reading chain 97 for four verdicts; the seeder's `credentialHash` recomputed from course data equals the on-chain attestation | **59 / 0** | 26 Sep |
+| `cd web && npx tsx scripts/rubric-check.ts` | the pass mark is computed; policy and material hash separately | **17 / 0** | 26 Sep |
+| `cd web && npx tsx scripts/inventory.ts` | the size of the learning surface, printed from the data | 2 · 7 · 24 · **34 pages** · 412 min · 28 · 2 | 26 Sep |
+| `cd signer && node scripts/check.js` | document shape, `eddsa-rdfc-2022` round-trip, list bits equal to `statusOf()` | **53 / 0** | 26 Sep |
+| `cd signer && node scripts/serve-probe.js` | the same over HTTP against the running server | **20 / 0** | 26 Sep |
+| `cd signer && npm run x402` | `402` → pay → settle → **split** → report; balances read back **from the chain** | **20 / 0** | 24 Sep |
+| `cd signer && npm run delegate` | the agent signs, the platform broadcasts; agent balance unchanged to the wei | 8 / 0 | 23–25 Sep |
+| `cd signer && npm run judge` | **negative control** — a fluent but empty essay is failed, not passed | **7 / 0** (8/100) | 24 Sep |
+| `cd signer && npm run judge-variance` | how much a model score moves at `temperature 0` | substantive essay **91–100**; verdict stable in 5 runs | 24 Sep |
+| `cd signer && node scripts/anchor.js --dry-run` | what is being anchored, and that re-anchoring is idempotent | 11 watched, both list hashes unchanged | 26 Sep |
+
+The verdicts the page can return. The first four are the cases `probe.ts` asserts against the public
+network; `EXPIRED` is implemented in `verify.ts` and covered by tests, but **no seeded demo credential is
+expired**, so it is not part of what the probe measures (and should not be shown in the video without
+seeding one first).
+
+| input | verdict | why it is interesting |
+|---|---|---|
+| a live credential | `VALID` | the ordinary case |
+| a revoked one | `REVOKED` | the publisher cannot un-say it |
+| a delisted publisher's credential | `ISSUER_DELISTED` | a judgement about the *issuer*, not the learner |
+| valid, but its prerequisite was revoked | valid + chained warning | **the rule EAS itself does not enforce** — it checks a prerequisite exists, not that it is still alive |
+| an expired one | `EXPIRED` | validity days come from the issuer's manifest — implemented and tested, **not seeded** |
+
+## 10. Limits — what this is **not** yet
+
+We would rather you read this than discover it.
+
+- **The 1EdTech validator has never been run against our document.** We say *built to the
+  specification*, never *compatible*. The blocker is specific: the issuer identity was created with a
+  localhost `verificationMethod`, and the tool that creates it refuses to overwrite — so a public URL
+  does not yet reach the fields a verifier dereferences. The credential route itself answered
+  `200, 3202 bytes` through a public tunnel, so this is a last step, not a redesign.
+- **No real institution, no real learner.** The publisher is fictitious and labelled so; the graded
+  essays in the demo are our own fixtures.
+- **We are the facilitator on the paid path.** No third-party facilitator, no outside payer, no SLA,
+  and the fee token is a demo ERC-20 with an open `mint`.
+- **Verification is free and needs no account; the learner product has no enrolment record.** Progress is
+  `localStorage` and is labelled *not evidence*. The event a learner would actually pay for does not
+  exist yet — that is the largest gap in the product, and it is in our backlog, not in this document's
+  claims.
+- **Model-graded numbers have a range** (§ table above): the score is not bit-reproducible; the
+  pass/fail decision was stable in what we measured, which is a weaker claim and the only one we make.
+- **Testnet only.** Nothing on BSC mainnet, nothing on opBNB. Contract source is not verified on the
+  explorer (V1 deprecated, V2 paid) — so audit it by running the commands, not by trusting a paste.
+- **An anchored list pins its bits, not its membership** (§6). We do not claim the served list is
+  uneditable; we claim editing it is detectable, and membership is watched separately.
+
+## 11. Where to look in the code
+
+| if you want to check… | open |
+|---|---|
+| that the platform cannot invent a grade | `web/src/score.ts`, `web/src/manifest.ts`, `signer/scripts/issue.js` (no `--score`) |
+| the status the whole product rests on | `contracts/CredentialResolver.sol` → `statusOf()`, `isDelisted()` |
+| the artefact's refusal to be a diploma | `contracts/SoulboundCert.sol` (`mint`, `NotTransferable`) |
+| money being divided and kept nowhere | `contracts/SettlementSplit.sol` |
+| that a byte flip kills the signature | `signer/scripts/check.js` |
+| that verification does not touch our server | `web/src/verify.ts` (no DOM, no fetch of ours) + `web/scripts/probe.ts` |
+| the payment handshake | `signer/src/x402.js`, `signer/src/server.js` (`/verify`) |
+| our own mistakes, written down | `vault/00-Overview/04 - Corrections.md`, `vault/10-Contributors/Open-Items-for-Dave.md` |
+
+## 12. Figures to insert
+
+| slot | caption | source |
+|---|---|---|
+| `IMG-01` | catalogue: `#/learn` with the two courses | `cd web && npm run dev` |
+| `IMG-02` | one lesson with an **inline quiz** and the sidebar | `#/learn` |
+| `IMG-03` | verifier, `VALID` | paste `DEMO_HASH` from `.env` |
+| `IMG-04` | verifier, `REVOKED` | `DEMO_REVOKED_HASH` |
+| `IMG-05` | terminal: `402 Payment Required` → settlement | `cd signer && npm run x402` |
+| `IMG-06` | BscScan: one `splitErc20`, two payouts | chain 97 |
+| `IMG-07` | learner portfolio with its soulbound artefact | `#/portfolio` |
+| `IMG-08` | essay screen with the issuer's rubric visible | `#/learn` |
+
+Related pages in the repository: `vault/00-Overview/06 - Business Process.md` (the business view),
+`vault/00-Overview/08 - Submission Copy.md` (paste-ready tagline/problem/solution),
+`vault/10-Contributors/Claims-Cheat-Sheet.md` (the sentences we forbid ourselves),
+`vault/12-LMS-References/` (the six audited platforms, with commit SHAs),
+`vault/09-Testing/` (every number above with its raw output).
