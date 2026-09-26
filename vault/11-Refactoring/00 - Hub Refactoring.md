@@ -26,6 +26,7 @@ logged-in state look identical, so everything appears to be dummy data — and a
 | **RF3** | [[RF3 - Onboarding and Identity]] | wallet-only login → onboarding + profile; Privy as the embedded-wallet route and what it costs us in claims |
 | **RF4** | [[RF4 - Learning Surface Target Shape]] | the real learning page: chapters, inline interactivity, mentor sidebar; catalog beyond web3; six LMS references |
 | **RF5** | [[RF5 - Enrollment and the Paid Path]] | enrollment is the chargeable event; what exists on chain today and what does not |
+| **RF6** | [[RF6 - Core System, Backend and Contracts]] | our own side: four structural holes (no idempotency, no index, signer is a process not a service, money not attached to a user action), contract by contract, and the priority with four days left |
 
 Rules of engagement, inherited from [[Conventions]]:
 
