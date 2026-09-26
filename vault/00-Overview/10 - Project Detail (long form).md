@@ -824,7 +824,7 @@ sequenceDiagram
   participant AN as anchor.js
   participant BA as BAS
   IS->>ST: slot() — allocation happens AT ISSUANCE
-  Note over IS,ST: the issuer side owns the bit number;<br/>the server only ever peeks
+  Note over IS,ST: the issuer side owns the bit number —<br/>the server only ever peeks
   SV->>ST: peek() for each watched credential
   SV->>CH: attestationOf(hash) then statusOf(uid)
   CH-->>SV: revoked → revocation bit · issuerDelisted && !revoked → suspension bit
@@ -1120,10 +1120,17 @@ pasted text. `IMG-04` is the one that carries the argument: a revoked credential
 - The `190 menit` copy defect (§16) and the dropped `method` field (**B44**, **B45**) are logged in
   [[00-Overview/04 - Corrections]] and [[07-Backlog/03 - Findings and Tasks 2026-09-26]] with their
   measurements, so this page can be re-checked against the vault rather than trusted.
-- Character budget: the pasteable region is **67,344 characters** in 1,067 lines (15 fenced blocks: 14
-  Mermaid diagrams + 1 JSON document) against a 68,000 ceiling, leaving 656. A textarea normalises
-  pasted newlines to LF, so that is the number the form counts; if your editor disagrees, drop §24's
-  judge-walkthrough first — it is the only part repeated elsewhere.
+- **Every diagram here is parse-verified.** On 26 Sep one `sequenceDiagram` in this page and one in
+  [[00-Overview/09 - Project Detail (submission)]] were silently broken: a literal `;` in `Note` or
+  message text ends the statement, so Mermaid expected a second arrow and rendered nothing
+  (`Parse error on line 10 … Expecting 'NEWLINE', 'SOLID_ARROW', …`). Caught by running `parse()` from
+  `mermaid@11` over all 18 blocks in the vault, then re-confirmed by putting the semicolon back and
+  watching it fail. `scripts\check-mermaid.ps1` now guards the rule (→ [[Conventions]]).
+- Character budget: the pasteable region is **67,345 characters** in 1,067 lines (15 fenced blocks: 14
+  Mermaid diagrams + 1 JSON document) against a 68,000 ceiling, leaving 655. All **18** diagrams in this
+  vault — 14 here, 4 in the other two pages — were run through `mermaid@11`'s parser on 26 Sep: **0
+  failures**. A textarea normalises pasted newlines to LF, so that is the number the form counts; if your
+  editor disagrees, drop §24's judge-walkthrough first — it is the only part repeated elsewhere.
 - Anything added to the pasteable part must displace something there; the annex costs nothing.
 
 **Related:** [[00-Overview/09 - Project Detail (submission)]] (the short version, if the field is

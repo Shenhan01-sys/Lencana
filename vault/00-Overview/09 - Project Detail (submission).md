@@ -78,9 +78,9 @@ sequenceDiagram
   P->>AI: graded against the issuer's rubric (model or mechanical)
   AI-->>P: signed attestation payload (agent = attester)
   P->>C: broadcasts attestByDelegation, pays gas
-  C-->>P: attestation stored; statusOf() now answers
+  C-->>P: attestation stored · statusOf() now answers
   P->>L: credential document (Open Badges 3.0 / VC 2.0) + soulbound artefact
-  Note over C: two Bitstring Status Lists (revocation, suspension)<br/>rebuilt from chain state per request; both hashes timestamped on chain
+  Note over C: two Bitstring Status Lists (revocation, suspension)<br/>rebuilt from chain state per request · both hashes timestamped on chain
   L->>C: any recruiter checks — free, no wallet, no account
 ```
 
