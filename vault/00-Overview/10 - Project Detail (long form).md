@@ -417,11 +417,10 @@ tree*, not *the product is bad* — these are mature systems doing a different j
 | machine-to-machine paid verification | ❌ | ❌ | ❌ | ❌ | ❌ | ⚠️ closed-source | ✅ x402, batch, split on chain |
 | prerequisites enforced outside the client | ⚠️ availability rules | ✅ content gating | ✅ module requirements | ❌ | ❌ order not server-gated | ⚠️ | ✅ at attestation time, on chain |
 
-**Canvas caveat, stated so nobody over-reads its row:** its clone is a *sparse* checkout (`app/models`,
-`app/controllers`, `db/migrate`, `lib`, `config`, `spec/models`), so its certificate and badge machinery
-was **not inspected** — a ❌ in those cells means "no evidence found in what we read", which is weaker
-than "does not exist". Every other column was read from a complete tree. Re-checking is cheap: widen the
-sparse set and look for the certificate service.
+**Canvas caveat:** its clone is a *sparse* checkout (`app/models`, `app/controllers`, `db/migrate`, `lib`,
+`config`, `spec/models`), so its certificate and badge machinery was **not inspected** — a ❌ in those
+cells means "no evidence found in what we read", which is weaker than "does not exist". Every other column
+came from a complete tree. Re-checking is cheap: widen the sparse set and look for the certificate service.
 
 What we deliberately do **not** take: their server-rendered admin surfaces, their authoring and
 gradebook UIs, and any part of their front ends. Lencana's learner surface stays plain, fast and
@@ -459,20 +458,22 @@ course data; no number in this section was typed into a document.
 | course | modules | lessons | minutes | quiz lessons | essays | prerequisite |
 |---|---|---|---|---|---|---|
 | `web3-dasar-2026` — *Web3 Dasar untuk Praktisi* | 5 | 19 | 307 | 4 | 1 | — |
-| `web3-lanjut-2026` — *Untuk yang sudah bisa membaca transaksi* | 2 | 5 | 105 | 1 | 1 | `web3-dasar-2026` |
+| `web3-lanjut-2026` — *Web3 Lanjut — Kontrak, Izin, dan Audit Sendiri* | 2 | 5 | 105 | 1 | 1 | `web3-dasar-2026` |
 | **catalog total** | **7** | **24** | **412** (≈6.9 h) | **5** (28 questions) | **2** | one real chain |
 
 Structure, flagship course: `m1` Fondasi dan keselamatan (4 lessons) · `m2` Transaksi dan gas (4) ·
 `m3` Token, kontrak, dan cara membacanya (4) · `m4` Bukti belajar dan batasnya (4) · `m5` Merangkai
-semuanya (3). The last module ends in the graded essay, and `web3-lanjut-2026` opens only if the
-prerequisite credential is still alive on chain.
+semuanya (3). The last module ends in the graded essay. The advanced course declares `web3-dasar-2026` as
+its prerequisite, and the two halves of that sentence must be read separately: the **page** says so
+(`lms.ts:198`, an aside explaining the rule), while the **chain** enforces it — an advanced credential
+whose prerequisite was revoked, expired or belongs to someone else reverts at attestation time. Nothing
+locks a lesson in the browser, because there is no enrolment record to lock it against (table below).
 
 Where a learner's time actually goes — every lesson kind is used, and `probe.ts` **requires** all six to
 appear, so the set is not decorative:
 
 ```mermaid
-pie showData
-    title 412 learner-minutes by lesson kind
+pie title 412 learner-minutes by lesson kind
     "bacaan (9 lessons)" : 133
     "esai (2)" : 95
     "praktik (4)" : 85
@@ -544,8 +545,10 @@ A hash router over typed data, **no UI framework** — the same reason `verify.t
 therefore probeable from Node.
 
 Course text is Indonesian because the learner is Indonesian; everything the judge reads (code, docs,
-this document) is English. An Indonesian/English switch on the verifier page is in the backlog, not
-built — the audience for verification is Indonesian HR staff.
+this document) is English. The **verifier** page carries an Indonesian/English switch (`setLanguage()` at
+`main.ts:1521`, dictionaries in `web/src/i18n.ts`, choice persisted in `localStorage`) because its reader
+is an HR staffer, not us; the **learning** surface is Indonesian-only (`lms.ts` strings), which is the
+part still on the list.
 
 ### What the course layer does **not** pretend to be
 
@@ -727,9 +730,9 @@ about the tool, and the wrong one would go out under an agent's signature. Weigh
 stop everything (`manifest rusak, tidak ada nilai yang boleh diterbitkan`), and the boundary is tested on
 both sides of the rounding: `69.6 → 70 → LULUS`, `68.8 → 69 → TIDAK_LULUS`.
 
-What the platform cannot do, structurally: hand over a grade. `issue.js` **has no `--score` flag**; an
-unknown course id stops before any gas moves; and if a judged essay produces a different number than the
-recomputed one, the script stops rather than picking one.
+What the platform cannot do, structurally: hand over a grade. `issue.js` **has no `--score` flag**, an
+unknown course id stops before any gas moves, and if a judged essay disagrees with the recomputed number
+the script stops rather than picking one.
 
 **Related:** [[05-Course-Content/K4 - Scoring without the platform deciding]] · [[04-Signer-Service/S5 - Grading and the model judge]] · [[Concepts/Negative Control]]
 
@@ -778,9 +781,8 @@ schema edit fails hard instead of shifting every field one word.
 | `timestamp(bitstringHash)` | write-once per value | pins *which bits were served* (§19) |
 
 **No name, no email, no DID, no grade, no course text** is in any of it. The learner's identifier in the
-`credentialHash` is an address the learner chose to reveal by asking for verification of that URL. That
-is a design constraint, not a marketing line: a credential system that put grades on chain would be
-publishing personal data to an immutable ledger, and revocation would not be able to take it back.
+`credentialHash` is an address the learner chose to reveal by asking for verification of that URL. Not a
+marketing line: grades written to an immutable ledger are personal data that revocation cannot take back.
 
 `statusOf(bytes32)` answers the entire product in **one** `eth_call` — seven values, no wallet, no
 indexer (BNB Attestation Service ships an Indexer for opBNB only, so direct reads are a requirement, not
@@ -1001,7 +1003,8 @@ instead of serving a valid-looking all-zero list.
 
 What the credential in §16 references that we do **not** serve: `/learners/<address>`,
 `/achievements/<slug>`, `/criteria/<slug>#scale`. They are stable identifiers, not pages — legal under the
-spec, but whether a strict validator dereferences them is exactly the kind of thing we refuse to guess at.
+spec, but whether a strict validator dereferences them is exactly the kind of thing we refuse to guess
+at — open work as **B45**.
 
 **The public-URL situation, measured rather than assumed.** Through a quick tunnel on 26 Sep:
 `GET /issuers/agent-demo` → 200 JSON, `GET /credentials/0x041e5898…` → **200, 3202 bytes**, `/healthz` →
@@ -1043,8 +1046,8 @@ the keys of **burner testnet wallets only** and says so at the top).
 | 8 | `cd signer && npm run judge` / `judge-variance` | `GROQ_API_KEY` (no key ⇒ it throws rather than degrading) |
 | 9 | `cd signer && node scripts/anchor.js --dry-run` | `RESOLVER_ADDRESS` |
 
-Results and dates: **§9**. What each one asserts: the section it belongs to (§15 course data, §16
-document shape, §17 refusals, §19 list mechanics, §21 payment guards).
+Results and dates: **§9**. What each asserts: §15 (course data), §16 (document shape), §17 (refusals),
+§19 (list mechanics), §21 (payment guards).
 
 ⚠️ **A green line is not a scope statement, and this is the one trap in our own harnesses we want a
 reviewer to check us on.** The chain-reading harnesses take configuration from `process.env` and **skip
@@ -1117,8 +1120,11 @@ pasted text. `IMG-04` is the one that carries the argument: a revoked credential
 - The `190 menit` copy defect (§16) and the dropped `method` field (**B44**, **B45**) are logged in
   [[00-Overview/04 - Corrections]] and [[07-Backlog/03 - Findings and Tasks 2026-09-26]] with their
   measurements, so this page can be re-checked against the vault rather than trusted.
-- Character budget: the pasteable region must stay **under 68,000 characters** (the form's ceiling), so
-  anything added here has to displace something there.
+- Character budget: the pasteable region is **67,344 characters** in 1,067 lines (15 fenced blocks: 14
+  Mermaid diagrams + 1 JSON document) against a 68,000 ceiling, leaving 656. A textarea normalises
+  pasted newlines to LF, so that is the number the form counts; if your editor disagrees, drop §24's
+  judge-walkthrough first — it is the only part repeated elsewhere.
+- Anything added to the pasteable part must displace something there; the annex costs nothing.
 
 **Related:** [[00-Overview/09 - Project Detail (submission)]] (the short version, if the field is
 smaller) · [[00-Overview/08 - Submission Copy]] · [[00-Overview/06 - Business Process]] ·
