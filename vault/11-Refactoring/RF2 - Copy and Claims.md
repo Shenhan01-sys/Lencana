@@ -11,8 +11,9 @@ it cannot make.
 
 ## The hero caption
 
-Current live text (not in `main`, see RF-0): *"Autonomous AI credentials that prove your on-chain mastery."*
-Proposed replacement: *"…prove your skills and profile master on-chainly."*
+The shipped hero line, at `web/index.html:249` (`class="nexum-h1-system"`):
+*"Autonomous AI credentials that prove your on-chain mastery."*
+Proposed replacement from the builder: *"…prove your skills and profile master on-chainly."*
 
 Verdict on the proposal: **the direction is right, the sentence is not English.** `on-chainly` is not a
 word, and "profile master" reads as a person's job title. What the direction gets correct is the object

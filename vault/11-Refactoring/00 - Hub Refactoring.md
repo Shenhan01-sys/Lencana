@@ -20,7 +20,7 @@ logged-in state look identical, so everything appears to be dummy data — and a
 
 | # | note | what it decides |
 |---|---|---|
-| **RF-0** | [[#RF-0 — the site you are looking at is not this repository]] | blocker: audit target must be pinned before anything else |
+| **RF-0** | [[#RF-0 — my audit ran against a stale checkout; the correction is the finding]] | method: `git fetch` before any audit, and what I got wrong doing it |
 | **RF1** | [[RF1 - Consumer Readiness Audit]] | what is broken today, item by item, with `file:line` |
 | **RF2** | [[RF2 - Copy and Claims]] | the hero caption, the spec-jargon cards, wording that survives our own limits sheet |
 | **RF3** | [[RF3 - Onboarding and Identity]] | wallet-only login → onboarding + profile; Privy as the embedded-wallet route and what it costs us in claims |
@@ -37,23 +37,35 @@ Rules of engagement, inherited from [[Conventions]]:
 - Existing findings raised against `web/` are tracked in [[10-Contributors/Open-Items-for-Dave]]
   (OI-1…OI-10) and are **not** repeated here; this folder covers consumer shape, not citation errors.
 
-## RF-0 — the site you are looking at is not this repository
+## RF-0 — my audit ran against a stale checkout; the correction is the finding
 
-The caption quoted on 26 Sep — "Autonomous AI credentials that prove your on-chain mastery" — has
-**zero matches** in the repository:
+On 26 Sep I searched the repository for the caption quoted by the builder
+("Autonomous AI credentials that prove your on-chain mastery"), got no match, and concluded that the
+deployed site was not `main`. **That conclusion was wrong, and the reason matters more than the
+conclusion.**
+
+`git fetch` showed four commits I did not have — Dave's `codex/lencana-ui-final` line, merged as
+`e2d4a8b`. After merging, the string is exactly where the deployed site says it is:
 
 ```powershell
-cd app/web && findstr /s /n /c:"Autonomous AI credentials that prove" src\*.ts index.html   # 0 hits
+git grep -n "on-chain mastery" -- web
+# web/index.html:249:  <span class="nexum-h1-system">Autonomous AI credentials that prove your on-chain mastery.</span>
 ```
 
-What the repo does contain, at the closest position, is `web/src/i18n.ts:1066`
-(`tagline` = "Autonomous AI credentials: soulbound & permanent") and `:1063` (agents headline). Meanwhile
-`git log` says local `main` == `origin/main` == `d8f7cf5`, and `vercel.json` in the repo builds `web/dist`.
+So `lencana-psi.vercel.app` was faithful to `origin/main`; my working copy was behind, and I audited
+that stale copy as if it were the product. The rule that was already written down and that I broke
+([[08-Results/01 - Evidence and Limits]], `AGENTS.md` rule: the repository is a moving target —
+`git fetch` **first**, always) is the reason this folder's first item is a method rule rather than a
+design note:
 
-So the deployed `lencana-psi.vercel.app` is rendering from a commit, a branch, or a working copy that
-this repository does not have. **Consequence:** an audit of the deployment and an audit of the code are
-currently two different audits. Before refactoring starts, the deployed source must be pinned — push the
-working copy, or redeploy from `main` — otherwise work gets "fixed" against text nobody can find.
+1. `git fetch` + compare `git rev-parse HEAD` with `git ls-remote origin refs/heads/main` **before**
+   any audit or claim about the UI, and write the SHA the audit was done against in the note.
+2. Re-run the audit after merging. The findings in [[RF1 - Consumer Readiness Audit]] were re-checked
+   after the merge and survive: `btnEnroll` is still only a dictionary entry with no reference in any
+   `.ts` outside `i18n.ts` (`:189`, `:665`, `:1238`), the route table is unchanged (`main.ts:1147-1157`,
+   `:1195`), and `mentor` still has zero occurrences in `web/`.
+3. Copy findings, not guesses: the caption critique in [[RF2 - Copy and Claims]] stands on its own
+   merits and now cites `index.html:249`.
 
 ## Adjacent decision — the public URL needs a server, and half of it needs only a function
 
