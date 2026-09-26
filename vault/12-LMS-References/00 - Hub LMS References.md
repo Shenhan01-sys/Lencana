@@ -60,8 +60,11 @@ git clone --depth 1 --single-branch https://github.com/openedx/edx-platform.git 
 # canvas is huge: take only the paths that answer structural questions
 git clone --depth 1 --single-branch --filter=blob:none --no-checkout https://github.com/instructure/canvas-lms.git references/canvas-lms
 git -C references/canvas-lms sparse-checkout init --cone
-git -C references/canvas-lms sparse-checkout set app/models app/controllers db/migrate lib config db/views spec/models
+git -C references/canvas-lms sparse-checkout set app/models app/controllers db/migrate lib config spec/models
 git -C references/canvas-lms checkout
+# note: `db/views` does not exist at 1c9f0bb (db/ holds only migrate/), and db/migrate is squashed —
+# 95 files, everything pre-2023 inside 20101210192618_init_canvas_db.rb, so column claims describe the
+# current schema, not its history
 ```
 
 Measured footprint on 26 Sep (shallow, source only): moodle 430.8 MB · chamilo 316.3 MB ·
