@@ -18,7 +18,7 @@ written from the clone named below.
 | [[L3 - Chamilo]] | `github.com/chamilo/chamilo-lms` | `references/chamilo-lms` | `master` @ `a6cceea` |
 | [[L4 - Moodle]] | `github.com/moodle/moodle` | `references/moodle` | `main` @ `e68a1418b` |
 | [[L5 - Open edX]] | `github.com/openedx/edx-platform` | `references/edx-platform` | `master` @ `303f778` |
-| [[L6 - Canvas]] | `github.com/instructure/canvas-lms` | `references/canvas-lms` (sparse) | see `_research/out/clone_canvas.log` |
+| [[L6 - Canvas]] | `github.com/instructure/canvas-lms` | `references/canvas-lms` (sparse) | `master` @ `1c9f0bb` — 152.2 MB checked out |
 | [[L7 - What an e-course must have]] | — | synthesis of the six | — |
 | [[L8 - Lencana vs LMS]] | — | the comparison matrix + our gap list | — |
 
