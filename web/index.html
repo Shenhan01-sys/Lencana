@@ -80,14 +80,14 @@
         </div>
       </header>
 
-      <!-- 1.1 PRESENTATION / DEMO WALKTHROUGH HELPER DOCK (4 SCENES) -->
+      <!-- 1.1 RECORDING RUNBOOK — stays in document flow, never overlays product UI -->
       <aside class="demo-dock" id="demo-dock" aria-label="Demo Walkthrough Guide">
         <div class="demo-dock-container">
           <div class="demo-dock-badge">
             <span class="dock-pulse-dot"></span>
             <div class="dock-badge-text-wrap">
-              <span class="dock-badge-title" id="demo-dock-title">🎬 PRESENTATION MODE (4 SCENES)</span>
-              <span class="dock-badge-sub" id="demo-dock-sub">1-Click Hackathon Video Flow</span>
+              <span class="dock-badge-title" id="demo-dock-title">DEMO RUNBOOK</span>
+              <span class="dock-badge-sub" id="demo-dock-sub">Four guided scenes for a clean recording</span>
             </div>
           </div>
 
@@ -129,7 +129,7 @@
             </button>
           </div>
 
-          <button type="button" class="demo-dock-toggle" id="btn-toggle-demo-dock" title="Toggle Demo Dock">
+          <button type="button" class="demo-dock-toggle" id="btn-toggle-demo-dock" title="Toggle Demo Runbook">
             <span id="demo-toggle-text">Minimize</span>
           </button>
         </div>
@@ -140,16 +140,22 @@
            ======================================================== -->
       <div class="page-view" id="page-home">
         <!-- SINGLE FULL-SCREEN LENCANA CINEMATIC HERO (AI CREDENTIALS ON BNB CHAIN) -->
-        <section class="nexum-hero-section">
+        <section class="nexum-hero-section lencana-proof-hero hybrid-hero premium-home-hero">
           <!-- Background Video (Exact CloudFront Cinematic AI Visual) -->
           <video
-            class="nexum-bg-video"
+            class="nexum-bg-video hybrid-hero-media"
             src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4"
             autoplay
             loop
             muted
             playsinline
           ></video>
+          <!-- Living tree wallpaper (canvas, animated) -->
+          <canvas
+            class="hybrid-tree-canvas"
+            id="hero-tree-canvas"
+            aria-hidden="true"
+          ></canvas>
 
           <!-- Main Viewport Overlay (z-10, flex-col, h-full) -->
           <div class="nexum-hero-content-wrapper">
@@ -240,7 +246,8 @@
                 </div>
 
                 <h1 class="nexum-h1">
-                  Autonomous AI credentials that prove your on-chain mastery
+                  <span class="nexum-h1-system">Autonomous AI credentials that prove your on-chain mastery.</span>
+                  <span class="nexum-h1-proof">Proof you can hold.</span>
                 </h1>
 
                 <!-- Live Credential Search & Verification Capsule -->
@@ -270,8 +277,48 @@
                 </div>
               </div>
 
-              <!-- Right Side: Two Glass Cards -->
+              <!-- Right Side: 5176 credential object + current production evidence -->
               <div class="nexum-cards-container">
+                <figure class="proof-stage" aria-label="Interactive Lencana credential">
+                  <div class="proof-plate-wrap">
+                    <article class="proof-plate">
+                      <span class="proof-rim" aria-hidden="true"></span>
+                      <span class="proof-rivet rivet-a" aria-hidden="true"></span>
+                      <span class="proof-rivet rivet-b" aria-hidden="true"></span>
+                      <span class="proof-rivet rivet-c" aria-hidden="true"></span>
+                      <span class="proof-rivet rivet-d" aria-hidden="true"></span>
+
+                      <div class="proof-plate-grid">
+                        <div class="proof-identity">
+                          <span class="proof-micro">VERIFIABLE LEARNING CREDENTIAL</span>
+                          <strong class="proof-plate-brand">LENCANA</strong>
+                          <span class="proof-course">WEB3 FOUNDATIONS · 2026</span>
+                          <span class="proof-serial">UID 0x0b95c83b...effcb367fa</span>
+                        </div>
+
+                        <div class="proof-status-list">
+                          <div class="proof-status-row">
+                            <span>01 · TASK</span>
+                            <strong>COMPLETED</strong>
+                          </div>
+                          <button class="proof-status-row proof-status-button" id="btn-load-demo-hero" type="button" title="Open the evaluated sample">
+                            <span>02 · AI EVALUATION</span>
+                            <strong class="gold">93 / 100 · HONORS</strong>
+                          </button>
+                          <a class="proof-status-row proof-status-button" id="btn-hero-recruiter-check" href="#/verify" title="Verify the credential as a recruiter">
+                            <span>03 · PUBLIC PROOF</span>
+                            <strong class="verified"><i></i> VERIFIED · LOCKED</strong>
+                          </a>
+                        </div>
+                      </div>
+
+                      <div class="proof-seal" aria-hidden="true"><span></span></div>
+                      <div class="proof-plate-foot">SOULBOUND / PUBLIC PROOF / OPEN BADGES 3.0</div>
+                    </article>
+                  </div>
+                  <figcaption>MOVE TO INSPECT · SELECT A PROOF TO VERIFY</figcaption>
+                </figure>
+
                 <!-- Stats Card -->
                 <div class="nexum-glass-card nexum-stats-card">
                   <div>
@@ -327,9 +374,26 @@
           </div>
         </section>
 
+        <section class="hybrid-proof-strip" aria-label="Lencana product promise">
+          <div class="hybrid-proof-stat">
+            <span class="proof-stat-kicker">VERIFY</span>
+            <strong>0</strong>
+            <span class="proof-stat-copy">wallets required<br />to verify</span>
+          </div>
+          <div class="hybrid-proof-stat">
+            <span class="proof-stat-kicker">SHARE</span>
+            <strong>1</strong>
+            <span class="proof-stat-copy">public link<br />for every proof</span>
+          </div>
+          <div class="hybrid-proof-quote">
+            <span>THE PROMISE</span>
+            <p>Work is evaluated by AI. Proof is verified by math.</p>
+          </div>
+        </section>
+
         <!-- QUICK PAGE JUMP GATEWAY TEASERS -->
-        <section class="section-container" id="portal-gateways">
-          <div class="section-header">
+        <section class="section-container landing-portals" id="portal-gateways">
+          <div class="section-header portal-intro">
             <div class="section-kicker">EXPLORE THE PLATFORM</div>
             <h2 class="section-title">Dedicated App Portals</h2>
             <p class="section-sub">
@@ -337,9 +401,9 @@
             </p>
           </div>
 
-          <div class="gateways-grid">
+          <div class="gateways-grid portal-grid">
             <!-- Gateway 1: Courses -->
-            <a href="#/courses" class="gateway-card">
+            <a href="#/courses" class="gateway-card portal-card portal-card-courses">
               <div class="gateway-top">
                 <span class="gateway-icon gold">📚</span>
                 <span class="gateway-tag">MICRO-COURSES</span>
@@ -350,7 +414,7 @@
             </a>
 
             <!-- Gateway 2: Submit -->
-            <a href="#/submit" class="gateway-card">
+            <a href="#/submit" class="gateway-card portal-card portal-card-studio">
               <div class="gateway-top">
                 <span class="gateway-icon purple">🧠</span>
                 <span class="gateway-tag">AI ASSESSMENT</span>
@@ -361,7 +425,7 @@
             </a>
 
             <!-- Gateway 3: Verifier -->
-            <a href="#/verify" class="gateway-card">
+            <a href="#/verify" class="gateway-card portal-card portal-card-verify">
               <div class="gateway-top">
                 <span class="gateway-icon emerald">⚡</span>
                 <span class="gateway-tag">PUBLIC VERIFIER</span>
@@ -372,7 +436,7 @@
             </a>
 
             <!-- Gateway 4: Portfolio -->
-            <a href="#/portfolio" class="gateway-card">
+            <a href="#/portfolio" class="gateway-card portal-card portal-card-portfolio">
               <div class="gateway-top">
                 <span class="gateway-icon gold">🎓</span>
                 <span class="gateway-tag">PORTFOLIO</span>
@@ -383,7 +447,7 @@
             </a>
 
             <!-- Gateway 5: Agent Hub -->
-            <a href="#/agent-hub" class="gateway-card">
+            <a href="#/agent-hub" class="gateway-card portal-card portal-card-agents">
               <div class="gateway-top">
                 <span class="gateway-icon purple">🛡️</span>
                 <span class="gateway-tag">GOVERNANCE</span>
@@ -396,8 +460,8 @@
         </section>
 
         <!-- WHY LENCANA (TECHNICAL EDGE BENTO GRID) -->
-        <section class="section-container" id="architecture">
-          <div class="section-header">
+        <section class="section-container architecture-story-section" id="architecture">
+          <div class="section-header architecture-editorial-header">
             <h2 class="section-title" id="bento-title">Why Lencana is Technically Differentiable</h2>
             <p class="section-sub" id="bento-sub">
               Closing real industry loopholes with deliberate cryptographic architecture.

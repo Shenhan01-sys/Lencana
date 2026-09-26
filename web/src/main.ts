@@ -1698,15 +1698,17 @@ function wire() {
 
   // Hero & Course Catalog sample buttons
   $('btn-load-demo-hero')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
     inputEl.value = SAMPLE_HASHES.valid
     run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => outEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
   })
 
   $('btn-hero-recruiter-check')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
     inputEl.value = SAMPLE_HASHES.valid
     run()
-    document.getElementById('verifier')?.scrollIntoView({ behavior: 'smooth' })
+    setTimeout(() => outEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
   })
 
   // LMS Study Room & Course Catalog Interactions (Iteration 8)
@@ -2358,8 +2360,233 @@ function simulateAiEvaluation() {
   }, 1600)
 }
 
+function initHeroCardTilt() {
+  const hero = document.querySelector('.hybrid-hero') as HTMLElement | null
+  const stage = document.querySelector('.hybrid-hero .proof-stage') as HTMLElement | null
+  if (!hero || !stage) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (window.matchMedia('(hover: none)').matches) return
+
+  const maxTilt = 9
+  let raf = 0
+  let targetRx = 4
+  let targetRy = -6
+  let currentRx = 4
+  let currentRy = -6
+
+  const render = () => {
+    currentRx += (targetRx - currentRx) * 0.12
+    currentRy += (targetRy - currentRy) * 0.12
+    stage.style.setProperty('--proof-rx', `${currentRx.toFixed(2)}deg`)
+    stage.style.setProperty('--proof-ry', `${currentRy.toFixed(2)}deg`)
+    if (Math.abs(targetRx - currentRx) > 0.01 || Math.abs(targetRy - currentRy) > 0.01) {
+      raf = requestAnimationFrame(render)
+    } else {
+      raf = 0
+    }
+  }
+  const kick = () => {
+    if (!raf) raf = requestAnimationFrame(render)
+  }
+
+  hero.addEventListener('mousemove', (e) => {
+    const rect = stage.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / Math.max(rect.width, 1) - 0.5
+    const py = (e.clientY - rect.top) / Math.max(rect.height, 1) - 0.5
+    targetRy = -6 + px * maxTilt * 2
+    targetRx = 4 - py * maxTilt * 2
+    const mx = ((px + 0.5) * 100).toFixed(1)
+    const my = ((py + 0.5) * 100).toFixed(1)
+    stage.style.setProperty('--proof-mx', `${mx}%`)
+    stage.style.setProperty('--proof-my', `${my}%`)
+    kick()
+  })
+  hero.addEventListener('mouseleave', () => {
+    targetRx = 4
+    targetRy = -6
+    stage.style.setProperty('--proof-mx', '50%')
+    stage.style.setProperty('--proof-my', '38%')
+    kick()
+  })
+}
+
+function initHeroTreeCanvas() {
+  const canvas = document.getElementById('hero-tree-canvas') as HTMLCanvasElement | null
+  const hero = document.querySelector('.hybrid-hero') as HTMLElement | null
+  if (!canvas || !hero) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  let w = 0
+  let h = 0
+  let raf = 0
+  let running = true
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+  interface Spore {
+    x: number
+    y: number
+    r: number
+    speed: number
+    drift: number
+    phase: number
+    alpha: number
+  }
+  interface Leaf {
+    x: number
+    y: number
+    size: number
+    fall: number
+    sway: number
+    phase: number
+    rot: number
+    spin: number
+  }
+  let spores: Spore[] = []
+  let leaves: Leaf[] = []
+
+  const resize = () => {
+    const rect = hero.getBoundingClientRect()
+    w = Math.max(1, Math.floor(rect.width))
+    h = Math.max(1, Math.floor(rect.height))
+    canvas.width = Math.floor(w * dpr)
+    canvas.height = Math.floor(h * dpr)
+    canvas.style.width = `${w}px`
+    canvas.style.height = `${h}px`
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    const sporeCount = Math.min(70, Math.floor(w / 18))
+    spores = Array.from({ length: sporeCount }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: 0.8 + Math.random() * 2.2,
+      speed: 0.12 + Math.random() * 0.4,
+      drift: 4 + Math.random() * 14,
+      phase: Math.random() * Math.PI * 2,
+      alpha: 0.15 + Math.random() * 0.5,
+    }))
+    const leafCount = Math.min(26, Math.floor(w / 52))
+    leaves = Array.from({ length: leafCount }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      size: 3 + Math.random() * 5,
+      fall: 0.25 + Math.random() * 0.6,
+      sway: 10 + Math.random() * 26,
+      phase: Math.random() * Math.PI * 2,
+      rot: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.02,
+    }))
+  }
+
+  const drawTrunks = (t: number) => {
+    // Living banyan silhouettes on the right side, swaying gently
+    const trunks = 5
+    for (let i = 0; i < trunks; i++) {
+      const baseX = w * (0.62 + (i / trunks) * 0.34)
+      const sway = Math.sin(t / 2400 + i * 1.3) * (8 + i * 3)
+      const topX = baseX + sway
+      const grad = ctx.createLinearGradient(0, h * 0.15, 0, h)
+      grad.addColorStop(0, 'rgba(240,185,11,0.10)')
+      grad.addColorStop(0.55, 'rgba(20,28,24,0.55)')
+      grad.addColorStop(1, 'rgba(4,6,8,0.9)')
+      ctx.strokeStyle = grad
+      ctx.lineWidth = 10 - i * 1.4
+      ctx.lineCap = 'round'
+      ctx.beginPath()
+      ctx.moveTo(baseX, h + 10)
+      ctx.bezierCurveTo(baseX - 24 + sway * 0.4, h * 0.72, topX + 30, h * 0.42, topX, h * 0.12)
+      ctx.stroke()
+      // Canopy glow
+      const canopy = ctx.createRadialGradient(topX, h * 0.16, 2, topX, h * 0.16, 90 + i * 18)
+      canopy.addColorStop(0, 'rgba(120,220,150,0.20)')
+      canopy.addColorStop(0.5, 'rgba(60,140,90,0.10)')
+      canopy.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = canopy
+      ctx.beginPath()
+      ctx.arc(topX, h * 0.16, 90 + i * 18, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+
+  const drawSpores = (t: number) => {
+    for (const s of spores) {
+      const y = (s.y - (t / 1000) * s.speed * 12) % h
+      const yy = y < 0 ? y + h : y
+      const x = s.x + Math.sin(t / 1600 + s.phase) * s.drift
+      ctx.beginPath()
+      ctx.fillStyle = `rgba(190,255,200,${s.alpha.toFixed(3)})`
+      ctx.arc(x, yy, s.r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+
+  const drawLeaves = (t: number) => {
+    for (const l of leaves) {
+      l.y += l.fall
+      l.rot += l.spin
+      if (l.y > h + 12) {
+        l.y = -12
+        l.x = Math.random() * w
+      }
+      const x = l.x + Math.sin(t / 1400 + l.phase) * l.sway * 0.3
+      ctx.save()
+      ctx.translate(x, l.y)
+      ctx.rotate(l.rot)
+      ctx.fillStyle = 'rgba(140,230,160,0.5)'
+      ctx.beginPath()
+      ctx.ellipse(0, 0, l.size, l.size * 0.45, 0, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+    }
+  }
+
+  const frame = (t: number) => {
+    if (!running) return
+    ctx.clearRect(0, 0, w, h)
+    drawTrunks(t)
+    drawSpores(t)
+    drawLeaves(t)
+    raf = requestAnimationFrame(frame)
+  }
+
+  resize()
+  window.addEventListener('resize', resize)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      running = false
+      cancelAnimationFrame(raf)
+    } else if (!reduced) {
+      running = true
+      raf = requestAnimationFrame(frame)
+    }
+  })
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      const visible = entries[0]?.isIntersecting ?? true
+      if (visible && !reduced && !running) {
+        running = true
+        raf = requestAnimationFrame(frame)
+      } else if (!visible) {
+        running = false
+        cancelAnimationFrame(raf)
+      }
+    }).observe(hero)
+  }
+
+  if (reduced) {
+    // Static single frame for reduced motion
+    ctx.clearRect(0, 0, w, h)
+    drawTrunks(0)
+    drawSpores(0)
+    return
+  }
+  raf = requestAnimationFrame(frame)
+}
+
 function boot() {
   initWalletState()
+  initHeroCardTilt()
+  initHeroTreeCanvas()
   initBitstringMatrix()
   renderBatchCandidatesList()
   wire()
@@ -2393,4 +2620,3 @@ function boot() {
 }
 
 boot()
-
