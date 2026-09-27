@@ -154,15 +154,78 @@ settlement transaction hash. When the server is unreachable, print "server tidak
 `SETTLED`. The asset is the demo ERC-20 priced by `X402_PRICE` (`signer/src/server.js:39`), not `tBNB`
 (OI-7); the route is `/verify`, not `/api/v1/verify/batch` (OI-2).
 
+## OI-12 · Dua dokumen yang ditampilkan halaman ini berbentuk yang **ditolak** validator
+
+**Apa yang terlihat.** Panel "dokumen kredensial" di `web/src/render.ts:273-287` dan modal ijazah di
+`web/src/main.ts:2085-2099` sama-sama mencetak `credentialStatus` sebagai **array dua entri**
+(revocation + suspension), dan keduanya mengarang `statusListIndex: '14'`.
+
+**Kenapa sekarang jadi bug, bukan sekadar hiasan.** Pada 27 Sep `vc.1ed.tech` menolak dokumen kita
+dengan pesan `$.credentialStatus: array found, object expected` — skema AchievementCredential OB 3.0
+memberi branch array ke `proof`, `credentialSchema`, `termsOfUse` dan `evidence`, dan dengan tegas tidak
+ke `credentialStatus` (`type: object`; tabel data: **[0..1]**). Signer sudah diperbaiki dan kredensial
+yang terbit sesudahnya lolos dengan 0 error (`npm run validator`). Artinya: **halaman yang kita kirim ke
+juri sekarang menunjukkan bentuk yang berbeda dari bentuk yang kita klaim lolos.** Yang dibaca juri dari
+halaman itu tidak akan lolos validator yang sama.
+
+**Perbaikan terkecil — salin-tempel, sudah cocok dengan bentuk yang diverifikasi:**
+
+```diff
+-    credentialStatus: [
+-      {
+-        id: `${baseUrl}/credentials/status/revocation#${uid.slice(2, 10)}`,
+-        type: 'BitstringStatusListEntry',
+-        statusPurpose: 'revocation',
+-        statusListIndex: '14',
+-        statusListCredential: `${baseUrl}/credentials/status/revocation`,
+-      },
+-      {
+-        id: `${baseUrl}/credentials/status/suspension#${uid.slice(2, 10)}`,
+-        type: 'BitstringStatusListEntry',
+-        statusPurpose: 'suspension',
+-        statusListIndex: '14',
+-        statusListCredential: `${baseUrl}/credentials/status/suspension`,
+-      },
+-    ],
++    // SATU objek. Skema OB 3.0 menolak array; `npm run validator` adalah buktinya.
++    // Indeks dan URL daftar dibaca dari dokumen yang disajikan signer, bukan ditulis di sini:
++    // kredensial yang benar punya satu `revocation` entry, dan penangguhan penerbit dibaca
++    // dari chain (`statusOf().issuerDelisted`), bukan dari kertas.
++    credentialStatus: c.status ?? {
++      id: `${baseUrl}/credentials/status/revocation`,
++      type: 'BitstringStatusListEntry',
++      statusPurpose: 'revocation',
++      statusListIndex: String(c.statusListIndex ?? 0),
++      statusListCredential: `${baseUrl}/credentials/status/revocation`,
++    },
+```
+
+Dan untuk `main.ts` (modal ijazah, OI-1): dokumen yang diketik tangan di sana sebaiknya hilang dan
+diganti satu `fetch(`${BASE_URL}/credentials/${hash}`)` — bentuknya otomatis benar karena itu berkas
+yang sama yang diunggah ke validator. Kalau modalnya tetap ingin ada, tempelkan respons `/credentials/0x…`
+apa adanya; jangan meniru bentuknya.
+
+**Batas yang harus ikut ditulis.** Menyatukan status jadi satu entri tidak menghapus daftar suspension —
+daftar itu tetap disajikan (`/credentials/status/suspension`) dan tetap di-anchor; yang berubah adalah
+kertasnya tidak lagi menunjuk dua tempat. Jangan tulis "dua status list di dalam kredensial"; tulis
+"dua status list, dan kredensial menunjuk pencabutan".
+
+**Cara membuktikannya sendiri (2 menit):** `cd app/signer && npm run validator` — 10 pemeriksaan,
+lalu `outcome: VALID`. Kalau seseorang mengembalikan array di `credential.js`, pemeriksaan
+`credentialStatus satu objek` di `check.js` dan `serve-probe.js` langsung merah.
+
 ## Re-run before you push
 
 ```powershell
 cd app/web && npx tsc --noEmit && npm run build && npx tsx scripts/probe.ts   # clean, clean, 59 checks (26 Sep)
-cd app/signer && node scripts/check.js && node scripts/serve-probe.js         # 53 checks, 20 checks
+cd app/signer && node scripts/check.js && node scripts/serve-probe.js         # 63 checks, 37 checks (27 Sep)
+cd app/signer && npm run validator                                            # 10 checks + verdict vc.1ed.tech
+cd app/signer && node scripts/anchor.js --dry-run                               # watched set + kedua hash daftar
 cd app && forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com   # 97 passed
 ```
 Numbers and what each one does *not* prove: [[09-Testing/00 - Hub Testing]]. Sentences we have banned
-for ourselves, including "1EdTech compatible": [[08-Results/01 - Evidence and Limits]]. Depth on the
+for ourselves, including "1EdTech compatible" (yang boleh dikatakan sejak 27 Sep: "lolos validator
+OB 3.0 milik 1EdTech, 0 error" — bukan "certified"): [[08-Results/01 - Evidence and Limits]]. Depth on the
 page itself: [[03-Frontend/FE6 - Quirks and open defects]].
 
 **Related:** [[03-Frontend/01 - Frontend]] · [[10-Contributors/00 - Hub Contributors]] · [[Index]]
