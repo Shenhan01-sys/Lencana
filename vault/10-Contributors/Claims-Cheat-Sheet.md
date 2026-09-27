@@ -14,7 +14,7 @@ says otherwise. This is the short form; the long reasoning lives in [[08-Results
 
 | ❌ jangan ditulis | ✅ tulis ini saja | yang membuktikannya |
 |---|---|---|
-| "kompatibel 1EdTech" / "OB 3.0 tervalidasi eksternal" | "dibangun mengikuti Open Badges 3.0 / W3C VC 2.0; validator milik 1EdTech **belum kami jalankan**" | `09-Testing` — halaman verifier ada dan bisa diakses, tapi verdict belum pernah didapat |
+| "kompatibel 1EdTech" / "OB 3.0 tervalidasi eksternal" | "dibangun mengikuti Open Badges 3.0 / W3C VC 2.0; validator milik 1EdTech sudah kami jalankan **dan hasilnya 2 error**, jadi belum lolos" | [[09-Testing/T15 - 1EdTech validator]] — verdict verbatim, lengkap dengan cara menjalankan ulang |
 | "verifikasi berbayar dipakai orang" | "jalur pembayaran agen-ke-agen berjalan on-chain; **kami sendiri yang jadi fasilitatornya**" | `cd signer && npm run x402` → 20 pemeriksaan |
 | "penerbit nyata memakai ini" | "satu penerbit demo, **fiktif dan diberi label fiktif**" | `web/src/courses/*` + manifest penerbit demo |
 | "AI menilai pekerjaan peserta" (tanpa batas) | "penilai model dengan rubrik penerbit; angkanya **berentang**, keputusan lulus/tidaknya yang stabil" | `npm run judge` (7/7) + `judge-variance` (91-100 pada satu esai yang sama) |

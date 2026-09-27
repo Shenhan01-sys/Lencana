@@ -139,9 +139,7 @@ to *issuance*, paid by whoever broadcasts, never as a percentage cut taken out o
 
 ## 7. Limits (read this before believing section 6)
 
-- The 1EdTech validator at `vc.1ed.tech` has **never been run** against our document. We say *built to
-  the specification*, not *compatible*. The blocker is issuer identity (the agent record was created
-  with a localhost `verificationMethod`), not the routes.
+- The 1EdTech validator at `vc.1ed.tech` has been run, and **the document does not pass it yet**: 14 checks, 2 errors, 0 warnings — our two status lists do not fit the OB 3.0 `credentialStatus` shape, and the bitstring declares no capacity. We say *built to the specification*, not *compatible*, and we publish the failing verdict rather than the untested claim.
 - No real institution and no real learner: the publisher is fictitious and labelled so; graded essays in
   the demo are fixtures.
 - No external payer: on the paid path **we are the facilitator**. No SLA, no third party.

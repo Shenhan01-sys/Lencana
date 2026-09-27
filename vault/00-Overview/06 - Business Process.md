@@ -56,7 +56,7 @@ flowchart TD
 | Peserta mengumpulkan pekerjaan dan melihat nilainya per bagian | peserta | **sebagian** | pengumpulan jalan di sisi kami, tapi di layar hasilnya membingungkan dan peserta tidak melihat dari mana angka datang |
 | Penilai menilai terhadap aturan penerbit, dan **bisa menjatuhkan** | penerbit | **sudah** | — (sudah diuji dengan contoh yang seharusnya gagal, dan gagal) |
 | Kelulusan dihitung, bukan dinyatakan | peserta | **sudah** | — |
-| Bukti belajar diterbitkan atas nama peserta | peserta | **sebagian** | terbit dan terbaca; tapi bukti itu belum pernah **dibaca oleh pemeriksa asing**, jadi klaim luarnya masih milik kami sendiri |
+| Bukti belajar diterbitkan atas nama peserta | peserta | **sebagian** | terbit dan terbaca; sejak 27 Sep bukti itu **sudah dibaca pemeriksa asing** — `vc.1ed.tech` mengembalikan 2 error bentuk dokumen dan 0 warning, jadi klaim kita sekarang diuji, bukan dijanjikan |
 | Orang luar memeriksa keaslian tanpa menghubungi kami | perekrut, penerima peserta | **sebagian** | mesin periksanya jalan dan gratis; yang belum adalah pemeriksaan oleh pihak ketiga yang bukan kami |
 | Uang dibagi: penerbit dapat bagian terbesar, platform bagian tetap | penerbit ↔ kami | **sebagian** | pembagian berjalan dan aturannya tidak bisa kami naikkan diam-diam; yang belum adalah **pembayar nyata** |
 | Penerbit baru bisa bergabung sendiri tanpa dilibatkan | penerbit | ❌ **belum** | semua penerbit di demo ini adalah kami sendiri, dan itu tertulis sebagai fiktif |

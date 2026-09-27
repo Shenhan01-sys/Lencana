@@ -51,7 +51,7 @@ warning line.
 ## What this does NOT prove
 
 - It signs and verifies against **our own** Ed25519 key. It does not prove another organisation's
-  validator accepts the document — that is P7 and it has never been run.
+    validator accepts the document — that is P7: run on 27 Sep, 2 errors, both about document shape → [[09-Testing/T15 - 1EdTech validator]].
 - `verificationMethod` being an HTTP URL is checked for *shape*. Whether that URL resolves outside
   this machine is exactly what it cannot check, and today it does not (`BASE_URL` is a localhost).
 

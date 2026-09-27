@@ -363,10 +363,14 @@ institution" — on chain its minter is us, and that is publicly visible.
 ## ✅ D24.1 — DECIDED 19 Sep: option A, a bitstring status list derived from chain state
 
 > Taken by the builder on 19 Sep. `signer/` is the implementation; the numbers below are its
-> measured state, not a plan. Two things are still open inside A and are named as tasks, not hidden
-> in prose: the hash of each served bitstring is **not yet** recorded on BAS via `timestamp()`, and
-> the document has **not yet** passed `https://vc.1ed.tech`. Until the second one happens, the word
-> to use is "built to the specification", never "interoperable".
+> measured state, not a plan. Both things that were open inside A have since been closed **halfway**,
+> and that is the honest description: the hash of each served bitstring **is** recorded on BAS via
+> `timestamp()` and re-anchored idempotently (`signer/scripts/anchor.js`; the 27 Sep run wrote one new
+> revocation anchor at 45.869 gas and printed *"sudah ter-anchor"* for the other), while the document was
+> submitted to `https://vc.1ed.tech` on 27 Sep and **did not pass** — 14 checks, 2 errors, both about
+> document shape ([[09-Testing/T15 - 1EdTech validator]], tracked as **B46**/**B47**). So the word to
+> use is still "built to the specification", never "interoperable" — now because a third party read our
+> paper and marked two places on it, not because nobody has looked.
 
 An Open Badges verifier **does not read the chain**. Status checking is defined for exactly one type:
 

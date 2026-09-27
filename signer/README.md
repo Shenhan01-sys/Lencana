@@ -176,15 +176,18 @@ disagree.
 
 ## What this does *not* claim yet
 
-- **Not yet tested against `https://vc.1ed.tech`.** The document is built to the specification and
-  to the terms that actually exist in the published contexts, but interoperability is only claimed
-  after it passes someone else's validator. That test is still open, and it is the single most
-  valuable thing left in this package.
+- **Tested on 27 Sep: it does not pass yet.** 14 checks, **2 errors**, 0 warnings — `credentialStatus`
+  must be one object, not our two-entry array, and the status list declares no capacity. Verdict verbatim
+  in `vault/09-Testing/T15 - 1EdTech validator.md`. Nothing about the chain layer failed: signature,
+  issuer document, status lists and the anchored hashes were all read by the validator over HTTP. What
+  failed is the shape of the paper — see **B46**/**B47** in `vault/07-Backlog/03`.
 - **Everything in this package has now run against the public BSC testnet (chain 97)**, not a fork:
   `issue.js` attested and anchored, `check.js` and `serve-probe.js` read live chain state, and
   `delegate.js` published lesson-level attestations through both delegation entry points
-  (21–22 Sep). The addresses are in `../vault/04-technical-reference.md` §D. What still has no
-  public endpoint is this server itself — which is the precondition for the bullet above.
+  (21–22 Sep). The addresses are in `../vault/04-technical-reference.md` §D. The server has since been
+  reached from the public internet through a quick tunnel (27 Sep), which is what made the bullet above
+  possible — but a tunnel domain dies with the process, so an identity minted under one is not
+  something to show a recruiter. Durable hosting is `vault/11-Refactoring/RF6`.
 - **The anchor's precision is stated, not oversold.** `timestamp()` stores `uint64` per `bytes32`
   and keeps no content, so it proves *"this bitstring hash existed at this time"*, not *"we always
   serve this list"*. And two empty lists hash identically (see above), so a hash for an

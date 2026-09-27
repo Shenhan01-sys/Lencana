@@ -312,7 +312,7 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
   - Features an interactive **"Run Spec Compliance Audit"** action with sequential green pulsing row animations.
   - Features a live **Canonical Signed OpenBadgeCredential 3.0 Document (JSON-LD)** inspector with 1-click **Copy JSON-LD** and **Download .jsonld** actions.
   - Prominent **Formal Boundary & Certification Target Disclosure** adhering strictly to `vault/03-evidence-and-limits.md`:
-    *"Target: Built strictly to W3C VC 2.0 Recommendation and Open Badges 3.0 specification. Official third-party 1EdTech validator run (vc.1ed.tech) remains a roadmap target pending public URL testnet deployment. Content limits: Verifies cryptographic validity, Ed25519 multikey signature, and immutable block timestamp; does not evaluate subjective real-world truth of learner essay claims."*
+    *"Target: Built strictly to W3C VC 2.0 Recommendation and Open Badges 3.0 specification. The official third-party 1EdTech validator (vc.1ed.tech) WAS run on 27 Sep and returned 2 errors about document shape, so the UI must still say "built to the specification" and never "1EdTech compatible". Content limits: Verifies cryptographic validity, Ed25519 multikey signature, and immutable block timestamp; does not evaluate subjective real-world truth of learner essay claims."*
 - Full bilingual i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
 - Verified with TypeScript typecheck (`tsc --noEmit`) and Vite production build (`0` errors, `dist/` built in 2.16s).
 

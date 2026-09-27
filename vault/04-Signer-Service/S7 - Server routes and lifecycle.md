@@ -17,46 +17,63 @@ chain state on every request, and the process holds no credential state of its o
 
 | route | code | returns |
 |---|---|---|
-| `GET /issuers/<slug>`, `GET /issuers` | `server.js:268` | the issuer document, i.e. the `assertionMethod` list verifiers resolve keys from |
-| `GET /credentials/status/revocation` | `server.js:269` | signed `BitstringStatusListCredential`, rebuilt from chain per request |
-| `GET /credentials/status/suspension` | `server.js:270` | same, other purpose — see [[S3 - Two status lists]] |
-| `POST /verify` | `server.js:273` | the **only** route that asks for money → [[S6 - x402 paid verification]] |
-| `GET /credentials/0x…` | `server.js:276-280` | the stored signed document, or 404 `belum diterbitkan lewat backend ini` |
-| `GET /healthz` | `server.js:281-310` | the operational witness (below) |
-| any other path | `server.js:311` | 404 plus a hint listing the real routes |
-| any thrown error | `server.js:312-315` | 500 carrying `err.message`, so a config failure reads as a config failure |
+| `GET /issuers/<slug>`, `GET /issuers` | `server.js:270` | the issuer document, i.e. the `assertionMethod` list verifiers resolve keys from — **for the one slug this process serves** (see the trap below) |
+| `GET /criteria/<courseId>` | `server.js:275-286` | the issuer's assessment policy: weights, pass mark, `validDays`, prerequisite, essay prompt + per-criterion maxima, `rubricHash` and the 12-hex `rubricRef`, **no quiz answer keys** → [[S8 - Criteria document]] |
+| `GET /credentials/status/revocation` | `server.js:288` | signed `BitstringStatusListCredential`, rebuilt from chain per request |
+| `GET /credentials/status/suspension` | `server.js:289` | same, other purpose — see [[S3 - Two status lists]] |
+| `POST /verify` | `server.js:292` | the **only** route that asks for money → [[S6 - x402 paid verification]] |
+| `GET /credentials/<hash>` | `server.js:297-311` | **the signed Verifiable Credential** — this URL *is* the document's `id`. `?format=record` gives the internal record (evidence, rubric, judge); a credential adopted from chain that has no document of ours gets **409**, and an unknown hash gets the 404 that says so |
+| `GET /healthz` | `server.js:313-341` | the operational witness (below) |
+| any other path | `server.js:342-345` | 404 plus a hint listing the real routes |
+| any thrown error | `server.js:346-349` | 500 carrying `err.message`, so a config failure reads as a config failure |
+
+⚠️ **What this table used to say, and why it was wrong.** Until 27 Sep the `GET /credentials/…` row read
+*"the stored signed document"*. It was not: `getCredentialByHash()` returns the **store row**, and
+`send(res, 200, found)` returned that row with the real document nested one key down. Nothing tested the
+route, so the claim survived a full harness — see [[Notes/Session-2026-09-27-B41-validator]]. Two guards
+now keep it honest: `serve-probe` fetches the route and requires a credential-shaped body, and it requires
+`"answer"` to appear nowhere in `/criteria`.
+
+⚠️ **One slug, orphaned identities.** `issuerDoc` is built once at start-up from `AGENT_SLUG`, so
+`/issuers/<other>` answers 404 even though `.keys/<other>.json` exists. With `AGENT_SLUG=agent-b41` live,
+the four seeded demo credentials' `verificationMethod` (…`/issuers/agent-demo`) does not resolve on this
+instance — switching identity for one run silently breaks the documents of the previous one. Tracked as
+**B48**; until then, pick one slug per demo session and know which documents you can prove.
 
 - `/healthz` reports `ok`, `baseUrl`, `resolver`, `rpc`, `watched`, then per purpose
   `flagged` / `bitstringHash` / `unallocated` / `slots`, plus `sha256OfEncodedList` and
-  `payment: {route, priceAtomic, network, token, split, payee, configured}` (`server.js:284-309`).
+  `payment: {route, priceAtomic, network, token, split, payee, configured}` (`server.js:316-341`).
   Payment terms are published so anyone can open the paid route and discover them, rather than reading
   a price out of our documentation.
 - It is also the **only** place the uid → bit-slot map is published, which is why
   `scripts/serve-probe.js:77` reads the map instead of inferring it from allocation order: if slots
   ever move, the harness stays correct.
-- Every response sets `access-control-allow-origin: *` and `cache-control: no-store` (`server.js:91-101`):
+- Every response sets `access-control-allow-origin: *` and `cache-control: no-store` (`server.js:94-102`):
   a verifier fetches from a browser, and a cached list is a list staler than the chain.
-- `readJsonBody()` caps the request at 64 000 characters (`server.js:103-119`); without that, one large
-  POST is enough to exhaust the process.
+- `readJsonBody()` caps the request at 64 000 characters (`server.js:105-121`, the test is at `:111`);
+  without that, one large POST is enough to exhaust the process.
 - `buildList()` refuses rather than faking: with no `RESOLVER_ADDRESS`, no `RPC_URL`, or an empty watched
-  set it throws (`server.js:62-66`) instead of serving a valid-looking all-zero list.
-- `BASE_URL` defaults to `http://127.0.0.1:8787` (`server.js:31-33`) and is the prefix of every URL
-  written *into* a document (`credential.js:67,82`, `statusList.js:90,94`). The credentials issued here
-  today therefore carry loopback URLs, and an outside verifier cannot resolve `verificationMethod` or a
-  status list — the blocker in front of the interoperability test, a deployment fact, not a code defect.
+  set it throws (`server.js:64-68`) instead of serving a valid-looking all-zero list.
+- `BASE_URL` defaults to `http://127.0.0.1:8787` (`server.js:33-37`) and is the prefix of every URL
+  written *into* a document — and, because `credential.js` stamps them at **issuance**, into the store too.
+  That is the whole reason **B41** needed a new agent identity instead of a new host: the four seeded demo
+  credentials still point at loopback, while the credential issued 27 Sep under a tunnel host contains
+  `127.0.0.1` **zero** times and the public host twelve. A deployment fact with an immutable consequence —
+  re-issue, do not patch.
 
 **Detail:**
-- `jsonBody()` (`server.js:83-89`) exists because of a specific failure: the `report` from
+- `jsonBody()` (`server.js:85-90`) exists because of a specific failure: the `report` from
   `web/src/verify.ts` carries `bigint` values, `JSON.stringify` throws on a BigInt, and the first
   version of this file died **mid-request on the paid route — after the settlement had already
   succeeded**. Money moved, the client received no proof: the worst shape a payment system can have.
   The single bigint-safe serialiser emits bigints as decimal strings, and the `try/catch` guarantees an
   explanatory 500 instead of a dropped connection (**D39**).
 - It must run under `tsx`: `npm run serve` is `tsx src/server.js` (`signer/package.json`) because
-  `server.js:28` imports `verify`/`defaultEndpoint` from `web/src/verify.ts` and `chainStatus.js:19`
-  imports `web/src/abi.ts` — those files use extensionless imports. `engines.node` is `>=22.18`; if the
-  server dies with `Unknown file extension ".ts"`, check the runner and the Node version before the code.
-- Boot loads one agent key: `loadKey(AGENT_SLUG)` (`server.js:48`). `.keys/` is gitignored and testnet
+  `server.js:31` imports `verify`/`defaultEndpoint` from `web/src/verify.ts`, `server.js:29` imports
+  `manifestOf` from `web/src/manifest.ts`, and `chainStatus.js:19` imports `web/src/abi.ts` — those files
+  use extensionless imports. `engines.node` is `>=22.18`; if the server dies with
+  `Unknown file extension ".ts"`, check the runner and the Node version before the code.
+- Boot loads one agent key: `loadKey(AGENT_SLUG)` (`server.js:50`). `.keys/` is gitignored and testnet
   only. `scripts/agent.js` creates it as an explicit command on purpose — a key minted silently by a
   running process is a key nobody knows to back up (`scripts/agent.js:8-11`).
 - `scripts/serve-probe.js` is the HTTP twin of `check.js`: the document loader is built **from HTTP

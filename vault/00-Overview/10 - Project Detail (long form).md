@@ -366,9 +366,7 @@ seeding one first).
 
 We would rather you read this than discover it.
 
-- **The 1EdTech validator has never been run against our document.** We say *built to the
-  specification*, never *compatible*. The blocker is issuer identity, not the routes — §22 lists the
-  steps that remain, and the verdict will be pasted here whichever way it lands.
+- **The 1EdTech validator has been run, and the document does not pass it yet**: 14 checks, **2 errors**, 0 warnings — `credentialStatus` must be one object where we emit two, and our bitstring declares no capacity. We say *built to the specification*, never *compatible*, and the failing verdict is published verbatim in `09-Testing/T15`. What did **not** fail is the part the pitch rests on: the validator read our issuer document, both status lists and the signature over HTTP; the chain layer was never in question.
 - **No real institution, no real learner.** The publisher is fictitious and labelled so; the graded
   essays in the demo are our own fixtures.
 - **We are the facilitator on the paid path.** No third-party facilitator, no outside payer, no SLA,
