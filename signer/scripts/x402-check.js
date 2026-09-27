@@ -18,7 +18,7 @@
  * Butuh server hidup: `npm run serve` di terminal lain.
  */
 import { readFile } from 'node:fs/promises'
-import { createPublicClient, http, keccak256, toBytes } from 'viem'
+import { createPublicClient, createWalletClient, http, keccak256, toBytes } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { buildClientPayment, encodePaymentHeader } from '../src/x402.js'
 
@@ -86,6 +86,38 @@ const platformAddr = await public_.readContract({
   address: SPLIT,
   abi: [{ type: 'function', name: 'platform', stateMutability: 'view', inputs: [], outputs: [{ type: 'address' }] }],
 })
+// Dana klien. Sebelum 28 Sep ini adalah LANGKAH MANUAL di luar test: saldo klien datang dari mint
+// yang dilakukan sekali pada sesi 24 Sep terhadap token lama — jadi harness ini hijau "di mesin itu"
+// dan pecah begitu DEMO_TOKEN_ADDRESS berganti, persis yang terjadi ketika token 18-desimal digantikan
+// (Permit2 membalas TransferFromFailed() tanpa alasan, karena yang gagal adalah transfer di sisi token).
+// Test yang butuh langkah di luar dirinya sendiri bukan test. `mint()` memang terbuka di kontrak demo
+// ini — dan kontrak ini tidak akan pernah ada di produksi — jadi pendanaannya masuk ke sini.
+const NEED = price * 3n
+if ((await bal(client.address)) < NEED) {
+  const funder = privateKeyToAccount(env.DEPLOYER_PRIVATE_KEY)
+  const wallet = createWalletClient({
+    account: funder,
+    chain: {
+      id: CHAIN_ID,
+      name: 'BNB Smart Chain Testnet',
+      nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+      rpcUrls: { default: { http: [RPC] }, public: { http: [RPC] } },
+    },
+    transport: http(RPC),
+  })
+  const mintTx = await wallet.writeContract({
+    address: TOKEN,
+    abi: [{
+      type: 'function', name: 'mint', stateMutability: 'nonpayable',
+      inputs: [{ name: 'to', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [],
+    }],
+    functionName: 'mint',
+    args: [client.address, NEED],
+  })
+  await public_.waitForTransactionReceipt({ hash: mintTx })
+  console.log(`  dana klien : mint ${NEED} atomic (tx ${mintTx.slice(0, 18)}...) — test membiayai dirinya sendiri`)
+}
+
 const clientBefore = await bal(client.address)
 const before = { payee: await bal(PAYEE), platform: await bal(platformAddr) }
 

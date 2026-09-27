@@ -73,6 +73,20 @@ contract SettlementSplitOnBscForkTest is Test {
         _;
     }
 
+    /// @dev Kunci yang hilang sampai 28 Sep. Test di berkas ini memakai `10_000e6` dan `PRICE = 1000`
+    /// seolah tokennya 6 desimal — dan memang lolos kalau tokennya 18 desimal, karena arithmetic-nya
+    /// buta satuan. Yang tidak diuji: apakah `decimals()` benar-benar 6, yaitu klaim yang kita tulis di
+    /// `DemoCourseToken.sol:29`, `signer/src/server.js:41`, `script/PaidVerificationDemo.s.sol:42` dan
+    /// di kalimat "$0,001 per verifikasi" pada materi submission. `npm run verify:deploy` menangkapnya
+    /// di chain yang sudah ter-deploy; assertion ini menangkapnya sebelum sempat ter-deploy.
+    function test_TokenDemoBenarBenEnamDesimal() public {
+        DemoCourseToken t = new DemoCourseToken();
+        // uint256 eksplisit: assertEq(uint8,uint8,string) dan varian int256 ambigu untuk literal kecil.
+        assertEq(uint256(t.decimals()), uint256(6), "decimals() harus 6: kalau 18, PRICE=1000 bukan $0,001 melainkan 1e-15 unit");
+        assertEq(t.totalSupply(), 1_000_000e6, "supply dicetak dalam bentuk 6 desimal; harus sepadan dengan decimals()");
+        assertEq(t.balanceOf(address(this)), 1_000_000e6);
+    }
+
     function setUp() public {
         payerKey = uint256(keccak256("lencana-fork-payer"));
         payer = vm.addr(payerKey);

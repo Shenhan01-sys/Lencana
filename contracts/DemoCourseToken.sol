@@ -25,6 +25,16 @@ import { ERC20Permit } from "@openzeppelin/contracts/token/ERC20/extensions/ERC2
 ///      pernah ada di token apa pun yang dipakai di produksi — dan kalau suatu hari kontrak ini
 ///      mendarat di chain 56, itu kesalahan, bukan fitur.
 contract DemoCourseToken is ERC20, ERC20Permit {
+    /// @dev 6 desimal, bukan 18. Ini bukan hiasan: constructor di bawah mencetak supply dalam bentuk
+    /// 6 desimal (`1_000_000e6`), komentar di berkas ini dan di `SettlementSplitOnBsc.fork.t.sol:54`
+    /// menyebut "0,001 pada 6 desimal", dan harga x402 kita (`PRICE = 1000`) hanya berarti "$0,001"
+    /// kalau desimalnya 6. Tanpa override ini kontrak yang ter-deploy melaporkan 18 — dan 1000 atomic
+    /// yang kita sebut harga verifikasi sebenarnya bernilai 1e-15 unit. Diketemukan 28 Sep oleh
+    /// `npm run verify:deploy`, yang membandingkan klaim dokumentasi dengan `decimals()` sungguhan.
+    function decimals() public pure override returns (uint8) {
+        return 6;
+    }
+
     /// @param to   penerima
     /// @param amount jumlah dalam satuan terkecil (6 desimal seperti USDT di BSC)
     function mint(address to, uint256 amount) external {
