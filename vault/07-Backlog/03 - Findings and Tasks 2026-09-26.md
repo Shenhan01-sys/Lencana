@@ -21,10 +21,12 @@ counts as proof — no task here is "polish X".
 | **B43** | Documentation debt: `09-Testing/T6`, `T9`–`T14` unwritten; `08-Results/00 - Hub Results`, `10-Contributors/00 - Hub Contributors`, `07-Backlog/02 - Plan`, `Glossary`, `Quick-Reference` missing; 69 unresolved vault links; 13 Module-Guides still `_TODO` | every number quoted in submission material should have a home page with its date | `scripts\sync-vault.ps1` then `check-links.ps1` → `Broken: 0` |
 | **B44** | The grading **method never reaches the credential**. `issue.js:249-256` builds `method` / `comment` (rubric ref, judge model, temperature) and `credential.js` does not emit them: OB 3.0's `Result` admits only `{achievedLevel, resultDescription, status, value}`, and an out-of-context term is dropped in canonicalisation. Verified 26 Sep against `signer/.store/state.json` — `result[0]` has four keys | the artefact answers *"which rubric"* but not *"who ran it"*, so "an agent graded this" is checkable only against our own logs | a standards-compliant home for the method (served `/criteria/<slug>` document — see B45 — or `Result.achievedLevel`), plus a `check.js` assertion that a model-graded document reports the model |
 | **B45** | Nothing under `/criteria/`, `/achievements/`, `/learners/` is **served**, although every issued document points at those URLs (`resultDescription`, `achievement.id`, `credentialSubject.id`) | a strict validator or a recruiter following `resultDescription` lands on our 404-with-hint. Same root cause as B44: the credential references documents that exist only as strings | `GET /criteria/<slug>` serves the issuer's rubric document (criteria text, weights, rubric items, full `rubricHash`) and `serve-probe.js` asserts it resolves |
-| **B46** | `credentialStatus` kita adalah **array berisi dua entri**; skema JSON OB 3.0 yang dipakai validator (`ob_v3p0_achievementcredential_schema.json`) mengharapkan **satu object**. Validator menolak dokumen kita persis di sini | ini bukan cacat sintaks — ini tabrakan antara fitur yang kita jual (revocation permanen + suspension pulih) dengan bentuk yang diizinkan standar. Memutuskan salah satu berarti menulis ulang klaim, bukan memperbaiki typo | keputusan tertulis di [[00-Overview/03 - Decisions]], dokumen diterbitkan ulang di bawah identitas publik, lalu upload ulang: error #1 hilang tanpa memalsukan status |
-| **B47** | Bitstring kita **tidak menyatakan kapasitasnya**. Pesan validator: "revocation bitstring length is less than minimumNumberOfEntries" — padahal yang kita hidangkan terkurus 2048 byte = 16.384 bit, 2 bit terpasang, indeks tertinggi 25 | jadi keluhan itu bukan "daftarnya pendek", tapi "daftarnya tidak bilang sepanjang apa". Field `credentialSubject.size` kita tidak tulis, dan pembaca yang tidak tahu harus menebak | kapasitas dinyatakan di dalam list credential, dan `serve-probe` membacanya balik; error #2 hilang |
+| **B46** ✅ 27 Sep | `credentialStatus` kita adalah **array berisi dua entri**; skema JSON OB 3.0 yang dipakai validator (`ob_v3p0_achievementcredential_schema.json`) mengharapkan **satu object**. Validator menolak dokumen kita persis di sini | ini bukan cacat sintaks — ini tabrakan antara fitur yang kita jual (revocation permanen + suspension pulih) dengan bentuk yang diizinkan standar. Memutuskan salah satu berarti menulis ulang klaim, bukan memperbaiki typo | keputusan tertulis di [[00-Overview/03 - Decisions]], dokumen diterbitkan ulang di bawah identitas publik, lalu upload ulang: error #1 hilang tanpa memalsukan status |
+| **B47** ✅ 27 Sep | Bitstring kita **tidak menyatakan kapasitasnya**. Pesan validator: "revocation bitstring length is less than minimumNumberOfEntries" — padahal yang kita hidangkan terkurus 2048 byte = 16.384 bit, 2 bit terpasang, indeks tertinggi 25 | jadi keluhan itu bukan "daftarnya pendek", tapi "daftarnya tidak bilang sepanjang apa". Field `credentialSubject.size` kita tidak tulis, dan pembaca yang tidak tahu harus menebak | kapasitas dinyatakan di dalam list credential, dan `serve-probe` membacanya balik; error #2 hilang |
 | **B48** | **Satu `AGENT_SLUG` per proses, dan itu menjanda identitas sebelumnya.** `issuerDoc` dibangun sekali saat start (`server.js:50`), jadi `…/issuers/agent-demo` menjawab **404** begitu slug diganti ke `agent-b41` — padahal `.keys/agent-demo.json` ada | empat kredensial demo yang sudah terbit tidak bisa diverifikasi orang asing di instance itu: `verificationMethod` mereka menunjuk dokumen yang tidak kita sajikan. Untuk video, ini jebakan yang kelihatan seperti chain rusak | setiap key di `.keys/` disajikan di URL-nya masing-masing (rute membaca slug), atau satu slug tetap untuk seluruh demo dan itu ditulis di `05 - Demo Scenes` |
 | **B49** | **Aturanku sendiri, dilanggar olehku:** alamat peserta kuketik ulang (`0x518bD439…`) alih-alih memakai yang kuturunkan (`0xc7B8D9C3…`). Kredensial pertama jadi milik alamat yang tidak bisa dijelaskan asal-usulnya | artefak publik tanpa provenance adalah persis hal yang kita kritik dari orang lain. Beres dengan `bas.revoke()` (75.532 gas) + re-anchor (45.869 gas), dan `EXPECT_REVOKED` disinkronkan supaya harness menghitung bit yang benar-benar ada | tidak ada address yang diketik tangan di perintah apa pun: parse dari `.env`/`broadcast`, atau turunkan di kode dan cetak alamatnya |
+| **B50** | **Dua tempat masih menerbitkan `credentialStatus` sebagai array dua entri**, yaitu yang dibaca orang: `web/src/render.ts:273` dan dokumen demo di `web/src/main.ts:2085`. Bentuk itu persis yang ditolak `JsonSchemaProbe` kita sampai 27 Sep | kredensial yang TERSAJE di halaman kita sekarang tidak sama bentuknya dengan kredensial yang LOLOS validator. Untuk juri yang membuka "lihat dokumen", yang ia salin/unggah adalah yang gagal skema | kedua tempat itu jadi satu objek `revocation`; `check.js` menambahkan satu assertion bahwa tidak ada `credentialStatus` array yang tersisa di repo (grep `credentialStatus: [`) |
+| **B51** | **Yang lolos validator itu hidup di domain sementara.** Host yang diikuti `vc.1ed.tech` adalah quick tunnel; mati prosesnya, mati semua URL di dokumen — `verificationMethod`, kedua list, `/criteria` | klaim "pihak ketiga bisa memeriksa" jadi benar tapi tidak bertahan: artefak untuk rekruter/video menuntut host yang tidak ikut mati | satu host tetap untuk `/issuers`, `/credentials/<hash>`, `/credentials/status/*`, `/criteria/<slug>` (setengahnya sudah ada di [[11-Refactoring/RF6 - Core System, Backend and Contracts]]), plus satu baris di `05 - Demo Scenes` yang menyebut host mana yang akan diklik juri |
 
 ## Status 27 Sep — B41 dijalankan, dan hasilnya dua error
 
@@ -35,10 +37,35 @@ publik, satu kredensial terbit dengan esai yang **benar-benar dinilai model** (9
 
 | # | status | catatan |
 |---|---|---|
-| **B41** | **run DONE, claim still banned** | blocker "URL loopback tidak pernah sampai ke identitas penerbit" hilang (dokumen baru: `127.0.0.1` **0** kali, host publik 12 kali). Yang menahan kata "compatible" sekarang bukan akses, tapi dua error bentuk dokumen → **B46** dan **B47** |
+| **B41** | **DONE — `outcome: VALID`** | Run pertama: 2 error bentuk dokumen. Setelah keduanya dibetulkan (satu entri `credentialStatus`; bitstring 131.072 bit), kredensial yang terbit sesudahnya lolos dengan 0 error / 0 warning. Yang tersisa bukan "belum diuji" lagi, tapi "host tempat ia diuji sementara" → **B51** |
 | **B44** | still open, **and now published where it can be checked** | `GET /criteria/<slug>` menjawab pertanyaan "aturan yang mana"; "penilai yang mana" masih belum ada di dokumen |
 | **B45** | **DONE** (criteria half) | rute + 5 pemeriksaan di `serve-probe`, termasuk penjaga supaya kunci jawaban kuis tidak ikut tersaji → [[04-Signer-Service/S8 - Criteria document]]. `/learners/<addr>` dan `/achievements/<slug>` tetap identifier — disengaja, dan alasannya tercatat di S8 |
 | harness | `check.js` **61/0** (naik dari 53 seiring himpunan pantau), `probe:serve` **35/0** (dari 20) | keduanya lewat tunnel publik, 27 Sep |
+
+
+## Facta terkunci 27 Sep (supaya tidak diturunkan ulang oleh agen berikutnya)
+
+- **OB 3.0 mempersempit VC 2.0 pada dua titik yang kita tabrak.** `credentialStatus` di skema
+  AchievementCredential adalah `type: object` ([0..1] di tabel data) — branch array sengaja diberikan ke
+  `proof`/`credentialSchema`/`termsOfUse`/`evidence` dan TIDAK ke `credentialStatus`. Dan satu entri =
+  satu purpose (`statusPurpose` "MUST be a string" di §2.1 Entry, sementara di §2.2 List boleh
+  "one or more strings"). Jadi "revocation + suspension di dalam satu kertas" tidak mungkin conform;
+  keduanya tetap ada sebagai dua list, hanya satu yang dirujuk dokumen.
+- **"16KB" di BSL adalah byte.** §2.2 *"the uncompressed bitstring MUST be at least 16KB in size"*;
+  §6.1 *"a minimum revocation bitstring length of 131,072, or 16KB uncompressed"*; §3.2 langkah 9
+  membandingkan `panjang(bitstring)/statusSize` dengan `minimumNumberOfEntries = 131.072`. 2.048 byte
+  = 16.384 bit kita lolos 25 bit tertinggi tapi GAGAL sebagai list. `size`/`totalPages`/`expires`
+  TIDAK ADA di BSL v1.0 — tidak ada field yang bisa menambahi kapasitas selain panjangnya sendiri.
+- **Verdict validator dibaca dari `/api/validate`, bukan dari HTML.** Halaman `/validate` memuat
+  "This content is eligible…" dan badge "No errors found." sebagai string template; satu-satunya angka
+  ada di `GET /api/validate?validatorId=OB30Inspector&uploadId=…` (POST-nya menolak JSON dan
+  form-urlencoded). `curl -X POST` + `-L` menghasilkan 411 di /validate — jangan pakai `-X POST`.
+- **Run yang sah hari ini:** `outcome: VALID`, 14 checks, 0 errors/0 warnings/0 fatals/0 exceptions,
+  dokumen `0xfe4f7161…3a8a`, uploadId `val1362183288355196627.json`. `valids: []` dan `valid: 0` di
+  body yang sama berarti ia tidak merinci pemeriksaan mana yang lulus — klaim kita "tidak ada error".
+- **Harness sesudah perubahan:** `check.js` **63/0**, `serve-probe.js` **37/0** — keduanya terhadap
+  host publik, dan `serve-probe` kini membuktikan dua hal yang dulu tidak diuji sama sekali: bentuk
+  `credentialStatus` dan panjang bitstring yang sungguh disajikan.
 
 ## Frontend owner (Dave) — see [[10-Contributors/Open-Items-for-Dave]]
 

@@ -366,7 +366,7 @@ seeding one first).
 
 We would rather you read this than discover it.
 
-- **The 1EdTech validator has been run, and the document does not pass it yet**: 14 checks, **2 errors**, 0 warnings — `credentialStatus` must be one object where we emit two, and our bitstring declares no capacity. We say *built to the specification*, never *compatible*, and the failing verdict is published verbatim in `09-Testing/T15`. What did **not** fail is the part the pitch rests on: the validator read our issuer document, both status lists and the signature over HTTP; the chain layer was never in question.
+- **The 1EdTech validator was run twice on 27 Sep.** First document: 2 errors — `credentialStatus` must be one object (OB 3.0 admits [0..1]) and the bitstring was below BSL's 131.072-entry minimum; both were our own bugs, one of them a unit confusion in a comment of ours. The credential issued after the fixes: **`outcome: VALID`, 14 checks, 0 errors, 0 warnings** ([[09-Testing/T15 - 1EdTech validator]]). What we do not say: "certified" (member validator, not certification), nor "each of 14 checks confirmed" (the response reports no errors, not a list).
 - **No real institution, no real learner.** The publisher is fictitious and labelled so; the graded
   essays in the demo are our own fixtures.
 - **We are the facilitator on the paid path.** No third-party facilitator, no outside payer, no SLA,
@@ -649,7 +649,7 @@ a human typing a flag: composite **94** against the issuer's `passMark` **70**. 
 | `validUntil` = `validFrom` + **730 days** | the *issuer's* `validDays` reached the document | 730 is the number in `web3-dasar.ts:44`, not a constant in the signer |
 | `criteria.narrative` … `[rubrik 2a45d0d00bc4]` | **the rules are sealed with the result** — the 12-hex prefix of `rubricHash` | `rubric-check.ts` proves the hash moves only with policy; the string is composed at `issue.js:241` |
 | `result[0].value: "94"` (a **string**) | the number is the composite of evidence against the policy | `computeScore()` + `formatScore()`; no `--score` flag exists to type it |
-| two `credentialStatus` entries | revocation **and** suspension are separate facts with separate owners | slots 20 and 21 in two different lists; `statusListIndex` is a decimal *string*, and the entry `id` differs from the list URL by its `#uid` fragment |
+| `credentialStatus` | revocation is a fact a stranger can check without asking us | a decimal *string* index, and an `id` differing from the list URL by its `#uid` fragment. This 24 Sep document carries **two** entries; OB 3.0 admits one, so since 27 Sep the paper carries `revocation` and delisting is read from chain — the suspension list is still served and still anchored |
 | `proof.verificationMethod` → the issuer document | the verifier reads the key from the issuer's published `assertionMethod`, we never hand it one | `sign.js` passes **no** key to the verifier; emptying `assertionMethod` makes verification fail (`check.js:121`) |
 | `proof.proofValue` (multibase base58btc, leading `z`) | one flipped byte kills it | `check.js:104-107` edits `result[0].value` `87 → 100` and requires `verified === false` |
 
@@ -841,7 +841,7 @@ sequenceDiagram
   Note over AN,BA: idempotent: an unchanged list costs no gas
 ```
 
-Mechanics with teeth: `LIST_BITS = 16384` makes a fixed **2048-byte** array; index 0 is the leftmost bit
+Mechanics with teeth: `LIST_BITS = 131_072` makes a fixed **16.384-byte** array (it was 2048 bytes — a unit error that BSL §3.2 step 9 caught on 27 Sep); index 0 is the leftmost bit
 (`0x80 >> (index % 8)`), and a `decodeBit()` mirror exists so the harness can *prove* bit semantics
 instead of assuming them. Determinism is a tested property: re-rendering the same input gives the same
 hash, and reversing the input order must **not** change it — otherwise the index written into every older

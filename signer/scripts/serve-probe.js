@@ -10,7 +10,8 @@
  * Perlu: server jalan (`npm run serve`) dengan RPC_URL + RESOLVER_ADDRESS + STATUS_HASHES terisi.
  */
 import { makeDocumentLoader, verifyDocument } from '../src/sign.js'
-import { REVOCATION, SUSPENSION, decodeBit } from '../src/statusList.js'
+import { gunzipSync } from 'node:zlib'
+import { LIST_BITS, REVOCATION, SUSPENSION, decodeBit } from '../src/statusList.js'
 
 const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:8787'
 const SLUG = process.env.AGENT_SLUG ?? 'agent-demo'
@@ -58,6 +59,16 @@ for (const purpose of [REVOCATION, SUSPENSION]) {
     list.credentialSubject?.statusPurpose === purpose)
   check(`list ${purpose}: encodedList multibase base64url (u…)`,
     typeof list.credentialSubject?.encodedList === 'string' && list.credentialSubject.encodedList.startsWith('u'))
+
+  // Panjang yang DISAJIKAN, bukan konstanta di source: inilah yang dibaca langkah 9 algoritme
+  // validasi BSL, dan persis di sinilah `vc.1ed.tech` menolak kita pada 27 Sep.
+  try {
+    const inflated = gunzipSync(Buffer.from(String(list.credentialSubject.encodedList).slice(1), 'base64url'))
+    check(`list ${purpose}: bitstring ${inflated.length} byte ≥ 16.384 (minimum BSL)`,
+      inflated.length >= LIST_BITS / 8, `dapat ${inflated.length} byte`)
+  } catch (e) {
+    check(`list ${purpose}: encodedList bisa di-inflate`, false, e.message)
+  }
 
   const verified = await verifyDocument(list, { controllerDocument: issuerDoc, documentLoader: loader })
   check(`list ${purpose}: tanda tangannya SAH terhadap dokumen issuer yang disajikan`, verified.verified,
@@ -137,10 +148,12 @@ if (!docHash) {
     (doc?.type ?? []).includes('VerifiableCredential') && (doc?.type ?? []).includes('OpenBadgeCredential'))
   check('rute dokumen: id adalah URL rute ini juga',
     String(doc?.id ?? '').toLowerCase().endsWith(`/credentials/${String(docHash).toLowerCase()}`), doc?.id ?? '')
-  check('rute dokumen: dua entri credentialStatus, revocation dan suspension',
-    (doc?.credentialStatus ?? []).length === 2
-    && (doc?.credentialStatus ?? []).some((c) => c.statusPurpose === 'revocation')
-    && (doc?.credentialStatus ?? []).some((c) => c.statusPurpose === 'suspension'))
+  check('rute dokumen: credentialStatus SATU objek purpose revocation',
+    !Array.isArray(doc?.credentialStatus)
+    && doc?.credentialStatus?.type === 'BitstringStatusListEntry'
+    && doc?.credentialStatus?.statusPurpose === 'revocation',
+    Array.isArray(doc?.credentialStatus) ? 'masih array — skema OB 3.0 menolaknya'
+      : JSON.stringify(doc?.credentialStatus?.statusPurpose))
   check('rute dokumen: verificationMethod berada di bawah dokumen issuer yang tersaji',
     typeof doc?.proof?.verificationMethod === 'string'
     && doc.proof.verificationMethod.startsWith(vmId.split('#')[0]), doc?.proof?.verificationMethod ?? '')

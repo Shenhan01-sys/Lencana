@@ -64,6 +64,36 @@ returned two errors. The numbers exist only in the JSON above.
    generator BitstringStatusListProbe
 ```
 
+## Run kedua hari yang sama: `outcome: VALID`
+
+Koreksinya diambil dari kutipan primer, bukan dari menebak apa yang diinginkan probe:
+
+| yang salah | bunyi sumbernya | yang diubah |
+|---|---|---|
+| `credentialStatus` array | `ob_v3p0_achievementcredential_schema.json` memberi branch array untuk `proof`, `credentialSchema`, `termsOfUse`, `evidence` — dan **tidak** untuk `credentialStatus` (`$defs`: `type: object`; tabel data: **[0..1]**). VC 2.0 boleh himpunan; OB 3.0 mempersempit, dan yang menguji kita adalah OB 3.0 | `credential.js` menempel SATU entri `revocation`. Daftar suspension tetap disajikan, tetap dibangun dari state chain, tetap di-anchor — yang berhenti hanyalah rujukan di dalam kertas |
+| panjang bitstring | BSL §3.2 langkah 9 memakai `minimumNumberOfEntries` = **131.072**; §2.2 dan §6.1 menulis *"the uncompressed bitstring MUST be at least 16KB"* — **16.384 byte**, bukan 16.384 bit. §1.1: ukuran itu memberi *"adequate amount of group privacy"* | `LIST_BITS` 16.384 → **131.072**. Yang salah adalah satuan dalam komentar kita sendiri |
+
+```json
+"summary": { "outcome": "VALID", "fatals": 0, "errors": 0, "warnings": 0,
+             "exceptions": 0, "notRun": 0, "totalRun": 14 }
+```
+
+```
+dokumen  : 0xfe4f71615855ac4f24fdfef921937d64e23dfc048e371a96e04cf4f508173a8a
+uploadId : val1362183288355196627.json · generated 2026-09-27T07:10:34
+peserta  : 0xc20e89599C275da327D8c12229f76974EFBcE541  (diturunkan dari konstanta — lihat B49)
+nilai    : 92 vs passMark 70 · esai dinilai model (mekanis 60 = 3 dari 5 tanda) · attest 333.496 gas
+```
+
+Yang membuat run ini bernilai bukan stempelnya, melainkan **apa yang ia ikuti sendiri**: validator membuka
+`verificationMethod` kami, mengambil kedua status list lewat HTTPS, dan memeriksa tanda tangan terhadap
+kunci yang ia ambil dari URL kami.
+
+Dua batas yang tetap kita sebut. `valids: []` dan `"valid": 0` pada ringkasan yang sama berarti respons
+**tidak merinci pemeriksaan mana yang lulus** — klaim kita adalah "tidak ada error", bukan "empat belas
+hal dikonfirmasi". Dan host yang ia ikuti adalah tunnel sementara: run ulang menuntut host yang sama
+hidup, yang persis poin [[11-Refactoring/RF6 - Core System, Backend and Contracts]].
+
 ## What each one means, with our measurements next to it
 
 | error | what we checked before interpreting it | where that leaves the design |
@@ -78,8 +108,8 @@ signature all validated. What failed is the **shape of the paper**, not the mach
 
 | we may say | we may not say |
 |---|---|
-| "submitted to the 1EdTech OB 3.0 validator on 27 Sep; 14 checks run, 2 errors, both about document shape" | "validated", "conformant", "1EdTech compatible" |
-| "the chain layer passed the checks the validator could perform" | anything implying a clean run |
+| "a credential from this backend passes the 1EdTech OB 3.0 validator — 0 errors, 0 warnings" (run 27 Sep) | "certified", "conformant", "1EdTech compatible", or "14 checks were each confirmed" |
+| "it resolved our issuer document, both status lists and the signature over HTTPS" | bahwa validator memeriksa lapis chain — ia tidak membaca chain |
 | "we publish the failing verdict, with the two defects and the fixes" | dropping the earlier "never been run" sentence and replacing it with silence |
 
 The last line of [[08-Results/01 - Evidence and Limits]] and the limits block of every submission page now

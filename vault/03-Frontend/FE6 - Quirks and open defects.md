@@ -31,7 +31,7 @@ open item tracking it (cites read in the current tree, 2026-09-25).
   [[10-Contributors/Open-Items/OI-2 - Payment console shows a route that does not exist]]
 - **Bitstring panel.** Headed "computed directly from live smart contract storage"
   (`web/index.html:1826-1829`) at a stated 256 bits (`:1847`), drawn as 256 cells in 16 columns
-  (`web/src/main.ts:816`, `web/src/style.css:6134`). The real list is `LIST_BITS = 16384`
+  (`web/src/main.ts:816`, `web/src/style.css:6134`). The real list is `LIST_BITS = 131.072`
   (`signer/src/statusList.js:34`). "Simulate State Flip" (`web/index.html:1832-1834`) calls
   `toggleBitstringState()` (`web/src/main.ts:877`), which writes three entries of an in-memory array
   (`:880-886`) and a multibase string computed from the counters (`:873`). →

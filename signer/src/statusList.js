@@ -30,8 +30,23 @@ import { VC_V2_CONTEXT } from './context.js'
 export const REVOCATION = 'revocation'
 export const SUSPENSION = 'suspension'
 
-/** Ukuran bitstring default BSL = 16384 bit. List kedua dibuat kalau penuh, tidak diam-diam. */
-export const LIST_BITS = 16384
+/**
+ * Panjang bitstring, dalam BIT.
+ *
+ * ❌ 16384 — itu yang dulu kita tulis, dan salah bacaan. BSL §2.2 menyebut *"The uncompressed
+ * bitstring MUST be at least 16KB in size"*, dan §6.1 mengulangnya sebagai *"a minimum revocation
+ * bitstring length of 131,072, or 16KB uncompressed"*. 16KB = 16.384 **byte** = **131.072 bit**.
+ * Algoritma validasinya (§3.2 langkah 9) membagi panjang bitstring dengan `statusSize` dan
+ * membandingkannya dengan `minimumNumberOfEntries = 131.072` — persis pesan yang dikembalikan
+ * `vc.1ed.tech` pada 27 Sep terhadap list 2.048 byte kita:
+ * *"revocation bitstring length is less than minimumNumberOfEntries"*.
+ *
+ * Ini bukan angka yang kita pilih untuk estetika: ukuran ini adalah privasi kelompok. List 16 KB
+ * membuat "siapa saja yang punya kredensial di rentang ini" tetap kabur; list sepanjang jumlah
+ * kredensial kita akan menyisakan satu bit per peserta. Jadi yang gagal waktu itu bukan formatnya,
+ * tapi niatnya.
+ */
+export const LIST_BITS = 131_072
 
 const B64URL = (buf) => buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 

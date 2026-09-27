@@ -25,7 +25,7 @@ supposed to type.
 ## Parts
 
 - [[S1 - The credential document]] — field order, the `id` XOR `identifier` rule, `result[].value`, `verificationMethod` as an HTTP URL, multibase proof value
-- [[S2 - Status lists from chain state]] — `LIST_BITS = 16384`, slot allocation, `servedHashes()` as the single source, and what an anchor does **not** prove
+- [[S2 - Status lists from chain state]] — `LIST_BITS = 131.072`, slot allocation, `servedHashes()` as the single source, and what an anchor does **not** prove
 - [[S3 - Two status lists]] — why one bit cannot hold both a permanent revocation and a recoverable delisting
 - [[S4 - Delegated issuance]] — the EIP-712 domain read from the contract, `ATTEST_TYPEHASH`, single vs batch request shapes, the recover-guard, agent balance unchanged to the wei
 - [[S5 - Grading and the model judge]] — `grade.js` (mechanical, refuses) vs `judge.js` (model, fail-closed), the negative control, measured spread

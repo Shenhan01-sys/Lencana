@@ -14,7 +14,7 @@ says otherwise. This is the short form; the long reasoning lives in [[08-Results
 
 | ❌ jangan ditulis | ✅ tulis ini saja | yang membuktikannya |
 |---|---|---|
-| "kompatibel 1EdTech" / "OB 3.0 tervalidasi eksternal" | "dibangun mengikuti Open Badges 3.0 / W3C VC 2.0; validator milik 1EdTech sudah kami jalankan **dan hasilnya 2 error**, jadi belum lolos" | [[09-Testing/T15 - 1EdTech validator]] — verdict verbatim, lengkap dengan cara menjalankan ulang |
+| "kompatibel 1EdTech" / "bersertifikat 1EdTech" | "kredensial dari backend ini **lolos** validator OB 3.0 milik 1EdTech (`vc.1ed.tech`): 0 error, 0 warning, 27 Sep" — jangan naik jadi "certified" | [[09-Testing/T15 - 1EdTech validator]] — dua run, verdict verbatim, dan batasnya (validator anggota; respons tidak merinci pemeriksaan yang lulus; host uji sementara) |
 | "verifikasi berbayar dipakai orang" | "jalur pembayaran agen-ke-agen berjalan on-chain; **kami sendiri yang jadi fasilitatornya**" | `cd signer && npm run x402` → 20 pemeriksaan |
 | "penerbit nyata memakai ini" | "satu penerbit demo, **fiktif dan diberi label fiktif**" | `web/src/courses/*` + manifest penerbit demo |
 | "AI menilai pekerjaan peserta" (tanpa batas) | "penilai model dengan rubrik penerbit; angkanya **berentang**, keputusan lulus/tidaknya yang stabil" | `npm run judge` (7/7) + `judge-variance` (91-100 pada satu esai yang sama) |
@@ -36,7 +36,7 @@ Semua di bawah **diukur ulang pada 26 Sep 2026** di `HEAD = 42f6342`, bukan diku
 | materi: 2 kursus · 7 modul · 24 lesson · 34 halaman · 412 menit · 28 soal · 2 esai | `npx tsx scripts/inventory.ts` |
 | 11 kredensial dipantau, 1 revoked, 1 suspended | `cd signer && npm run anchor` (dry-run) |
 | `platformBps() = 1000` (10%), plafon `MAX_BPS = 2500` | `cast call 0xcB00E62B… platformBps()` |
-| bitstring 16384 bit / 2048 byte | `LIST_BITS` di `signer/src/statusList.js:34` |
+| bitstring 131.072 bit / 16.384 byte | `LIST_BITS` di `signer/src/statusList.js:49` — angka lama (16.384 *bit*) salah satuan dan ditolak validator |
 | dokumen kredensial **200, 3202 byte** terbaca dari internet | cloudflared quick tunnel, 26 Sep |
 
 Kalau angkamu tidak ada di tabel ini, ia belum diukur — jalankan perintahnya dulu, baru tulis.

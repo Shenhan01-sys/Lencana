@@ -109,10 +109,21 @@ export function buildOpenBadgeCredential (input) {
             : {}),
         }],
       },
-      credentialStatus: [
-        statusEntry({ baseUrl, purpose: REVOCATION, index: revocationIndex, uid }),
-        statusEntry({ baseUrl, purpose: SUSPENSION, index: suspensionIndex, uid }),
-      ],
+      // SATU objek, bukan dua. Ini koreksi dari hasil `vc.1ed.tech` 27 Sep
+      // (`$.credentialStatus: array found, object expected`), dan kita membacanya langsung dari
+      // sumbeinya: skema AchievementCredential OB 3.0 memberi branch array untuk `proof`,
+      // `credentialSchema`, `termsOfUse` dan `evidence` — tapi TIDAK untuk `credentialStatus`,
+      // yang `$defs`-nya `"type": "object"`; tabel datanya menulis [0..1]. VC Data Model 2.0
+      // memang mengizinkan himpunan; OB 3.0 mempersempitnya, dan yang memeriksa dokumen kita
+      // adalah OB 3.0.
+      //
+      // Jadi daftar suspension TETAP ada, tetap dibangun dari state chain dan tetap di-anchor —
+      // yang berhenti adalah rujukan di dalam kertasnya. Konsekuensinya harus disebut jujur:
+      // verifier pihak ketiga yang hanya membaca dokumen tidak akan melihat "agen ini sedang
+      // di-delisting"; mereka melihatnya lewat `statusOf` kita (rantai) atau tidak sama sekali.
+      // Klaim "dua status list" di halaman mana pun tidak boleh dibaca sebagai "dua entri di
+      // dalam kredensial".
+      credentialStatus: statusEntry({ baseUrl, purpose: REVOCATION, index: revocationIndex, uid }),
     },
     credentialHash,
     indices: { revocation: revocationIndex, suspension: suspensionIndex },

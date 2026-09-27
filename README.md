@@ -61,9 +61,10 @@ Every number below is the output of a command that was run, not a plan.
 The fork tests call **BAS (BNB Attestation Service, a fork of EAS 1.3.0) exactly as deployed on
 chain** — not a copy we deployed ourselves. Those are also the addresses a judge can open.
 
-**What is not proven, and must not be claimed:** the 1EdTech validator has been run on 27 Sep and it did
-NOT pass: 14 checks, **2 errors**, 0 warnings — `credentialStatus` must be one object, not our
-two-entry array, and the status list declares no capacity. Verdict verbatim in
+**What is not proven, and must not be claimed:** the 1EdTech OB 3.0 validator was run twice on 27 Sep: the first document returned **2 errors**
+(`credentialStatus` must be one object; the bitstring was 8× shorter than BSL's minimum), we fixed
+both, and the credential re-issued afterwards came back **`outcome: VALID` — 0 errors, 0 warnings,
+14 checks**. Verdict verbatim in
 [`vault/09-Testing/T15 - 1EdTech validator.md`](vault/09-Testing/T15%20-%201EdTech%20validator.md). So
 the sentence we allow is *built to the specification*; "1EdTech compatible" is not, and now for a better
 reason than before — we have a failing result to publish instead of an untested claim. Also unproven: the

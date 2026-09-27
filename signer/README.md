@@ -176,11 +176,12 @@ disagree.
 
 ## What this does *not* claim yet
 
-- **Tested on 27 Sep: it does not pass yet.** 14 checks, **2 errors**, 0 warnings — `credentialStatus`
-  must be one object, not our two-entry array, and the status list declares no capacity. Verdict verbatim
-  in `vault/09-Testing/T15 - 1EdTech validator.md`. Nothing about the chain layer failed: signature,
-  issuer document, status lists and the anchored hashes were all read by the validator over HTTP. What
-  failed is the shape of the paper — see **B46**/**B47** in `vault/07-Backlog/03`.
+- **Tested on 27 Sep: `outcome: VALID`.** The first document failed with 2 errors — `credentialStatus`
+  must be one object, and the bitstring was below BSL's 131.072-entry minimum — both were fixed and the
+  credential issued afterwards passed: 14 checks, 0 errors, 0 warnings, 0 exceptions. Both verdicts are
+  kept verbatim in `vault/09-Testing/T15`.
+  What the validator followed was not a paste: it resolved our `verificationMethod`, fetched both status
+  lists over HTTPS and checked the signature — which is the whole design, judged by a stranger.
 - **Everything in this package has now run against the public BSC testnet (chain 97)**, not a fork:
   `issue.js` attested and anchored, `check.js` and `serve-probe.js` read live chain state, and
   `delegate.js` published lesson-level attestations through both delegation entry points

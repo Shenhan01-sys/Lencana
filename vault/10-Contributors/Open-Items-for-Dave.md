@@ -59,8 +59,8 @@ per payment (`:33`). A reader who copies the URL from our own UI gets a 404.
 
 `web/src/main.ts:816` builds 256 cells and `style.css:6134` lays them out 16-wide, with a
 **Simulate State Flip** button (`main.ts:877`); the caption in `FRONTEND_ITERATION.md:219-232` says the
-matrix is derived from chain storage. `signer/src/statusList.js:34` sets `LIST_BITS = 16384` and the
-served list is 2048 bytes of gzipped base64url (`:104`). A teaching animation is fine — say it is one,
+matrix is derived from chain storage. `signer/src/statusList.js:49` sets `LIST_BITS = 131_072`, so the
+served list is 16.384 bytes uncompressed (gzipped, then base64url with a `u` prefix). A teaching animation is fine — say it is one,
 or read the real thing with one `fetch` of `/credentials/status/revocation` and decode
 `…statusList.encodedList` the way `check.js` does.
 

@@ -4,8 +4,9 @@
 
 **What it is.** A micro-course platform whose output is a credential that keeps working after the issuer's
 website is gone. The institution publishes the course and **its own rubric**; its **own agent** grades and
-signs; Lencana relays it onto BNB Chain and pays the gas. Anyone can check it — no account, no wallet,
-no trust in our database. Repo `github.com/Shenhan01-sys/Lencana` · **BNB testnet, chain 97**.
+signs; Lencana relays it onto BNB Chain and pays the gas. Anyone can check it — no account, no wallet, no
+trust in our database  A third party agrees: our credential **passes 1EdTech's OB 3.0
+validator** (`vc.1ed.tech`): 0 errors, 0 warnings. Repo `github.com/Shenhan01-sys/Lencana` · **BNB testnet, chain 97**.
 
 ## The problem we want to solve
 
@@ -48,10 +49,10 @@ sequenceDiagram
 3. **The verdict is one call:** `statusOf(credentialHash)` → `exists / revoked / expired / issuerDelisted /
    issuer / issuedAt / expiresAt`, and our harness runs that same module against the public testnet, four
    verdicts. **Only identifiers are on chain** — credential, course and lesson hashes, the issuer whitelist, the two
-   status lists, the artefact; no name, no email, no grade, no course text. The credential document
+   status lists, the artefact; no name, email, grade or course text. The credential document
    itself — built to Open Badges 3.0 / VC 2.0, signed `eddsa-rdfc-2022` — is served off chain.
-4. **Two status lists, not one bit.** Revocation is permanent, delisting recoverable; a credential must
-   not vanish because its issuer fell out of favour.
+4. **Two status lists, not one bit.** Revocation is permanent, delisting recoverable, and a paused
+   issuer does not erase its graduates — the paper points at revocation, the rest is read from chain.
 5. **The artefact is display, not the credential:** an ERC-721 + ERC-5192 soulbound token per credential,
    mintable only while it is live, never transferable.
 6. **Work is scored, not typed.** A mechanical scorer plus an optional model judge, neither allowed to
@@ -66,10 +67,10 @@ flowchart LR
   IS[("Issuer")] -->|"course + its rubric"| PF["Lencana signer"]
   LRN[("Learner")] -->|"answers, essay"| PF
   PF -->|policy| RH["rubricHash"]
-  RH -->|"printed into"| DOC["Credential document: OB 3.0, signed by the issuer's agent"]
+  RH -->|"printed into"| DOC["Credential document (OB 3.0, agent-signed)"]
   DOC -->|credentialHash| CH[("Chain 97")]
   CH --> ST["statusOf - exists, revoked, expired, issuerDelisted"]
-  CH --> SL["two Bitstring Status Lists, hashes timestamped"]
+  CH --> SL["two status lists, hashes anchored"]
   CH --> SB["soulbound artefact"]
   VT{{"Verifier"}} -->|"eth_call"| ST
   VT -->|reads| SL
@@ -83,9 +84,10 @@ flowchart LR
 
 | contract | address |
 |---|---|
-| CredentialResolver — admission, status, prerequisites | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` |
-| SoulboundCert — the artefact | `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` |
-| SettlementSplit — platform share 10%, only lowerable | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` |
-| DemoCourseToken — demo ERC-20, open `mint` | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` |
+| CredentialResolver — admission and status | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` |
+| SoulboundCert — artefact | `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` |
+| SettlementSplit — 10% platform, only lowerable | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` |
+| DemoCourseToken — demo fee token, open `mint` | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` |
 
-Not ours: BAS `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` · Permit2 `0x000000000022D473030F116dDEE9F6B43aC78BA3` · x402 proxy `0x402085c248EeA27D92E8b30b2C58ed07f9E20001`. Settlement + split measured **190,659 gas**; at a $0.001 fee break-even is ≈ **$5.24** BNB — so verification is sold **in batches**, not per lookup.
+Not ours: BAS `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` (our anchor target) · x402 proxy
+`0x402085c248EeA27D92E8b30b2C58ed07f9E20001` · Permit2 `0x0000…8BA3`. Settlement + split = **190,659 gas**; at a $0.001 fee, break-even ≈ **$5.24** BNB — so verification is sold **in batches**.

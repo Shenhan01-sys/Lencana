@@ -15,9 +15,11 @@ one list would delete the distinction, because every verifier that does not know
 set bit as revoked. `expired` is in neither list on purpose.
 
 **Key points:**
-- Both lists come from the same renderer with a different `purpose`, and every credential carries two
-  `credentialStatus` entries (`credential.js:112`, `statusList.js:86`). BSL allows more than one entry
-  per credential, so nothing forces compression.
+- Both lists come from the same renderer with a different `purpose`, and since 27 Sep they live in
+  different places: the **credential** references one entry (`revocation`, `credential.js:126`), while the
+  suspension list is still served, still built from chain state and still anchored. BSL allows several
+  entries per credential; **OB 3.0's schema does not** (`credentialStatus` is `[0..1]`/`type: object`) —
+  that narrowing is what `vc.1ed.tech` caught, see [[09-Testing/T15 - 1EdTech validator]].
 - `revocation` ← `statusOf().revoked`, which is `attestation.revocationTime != 0` in
   `contracts/CredentialResolver.sol:303` — written only by the attester through BAS `revoke()`. BSL's
   wording for this purpose is "cancel the validity … not reversible", which is exactly EAS semantics.
@@ -57,7 +59,7 @@ set bit as revoked. `expired` is in neither list on purpose.
   `serve-probe.js:71-72` and by `npm run anchor -- --dry-run`).
 - Neither list carries a reason string: `statusSize` is left at its implicit `1` and `statusMessage`
   is not written (`statusList.js:24-25`). A bit answers "flagged or not"; *why* stays on chain.
-- Two lists means two 2048-byte bitstrings — and while both are empty they hash identically, which is
+- Two lists means two 16.384-byte bitstrings — and while both are empty they hash identically, which is
   a limit on what an anchor can show, not a bug in this section (`signer/README.md`).
 
 **Related:** [[S2 - Status lists from chain state]] · [[S1 - The credential document]] ·

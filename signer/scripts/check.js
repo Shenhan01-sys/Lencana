@@ -11,7 +11,8 @@
  * mengubah sini (atau sebaliknya), berkas ini yang berteriak — bukan demonya.
  */
 import { buildOpenBadgeCredential, credentialHashOf, sha256Hex } from '../src/credential.js'
-import { IndexAllocator, REVOCATION, SUSPENSION, encodeList, decodeBit, statusListCredential } from '../src/statusList.js'
+import { IndexAllocator, LIST_BITS, REVOCATION, SUSPENSION, encodeList, decodeBit, statusListCredential } from '../src/statusList.js'
+import { gunzipSync } from 'node:zlib'
 import { createIssuerKey, issuerDocument } from '../src/issuer.js'
 import { makeDocumentLoader, signDocument, verifyDocument, CRYPTOSUITE_NAME } from '../src/sign.js'
 
@@ -76,13 +77,29 @@ check('result[] membawa nilai lewat `value` (bukan resultScore ala OB 2.0)',
 check('kadaluarsa dokumen berasal dari SATU angka dengan attestation',
   Date.parse(unsigned.validUntil) / 1000 === expiresAt)
 check('statusListIndex string basis 10 (bukan angka)',
-  unsigned.credentialStatus.every((e) => typeof e.statusListIndex === 'string' && /^\d+$/.test(e.statusListIndex)),
-  JSON.stringify(unsigned.credentialStatus.map((e) => typeof e.statusListIndex)))
-check('dua entri status, dua purpose berbeda (revocation + suspension)',
-  unsigned.credentialStatus.length === 2
-  && new Set(unsigned.credentialStatus.map((e) => e.statusPurpose)).size === 2)
+  typeof unsigned.credentialStatus.statusListIndex === 'string'
+  && /^\d+$/.test(unsigned.credentialStatus.statusListIndex),
+  JSON.stringify(typeof unsigned.credentialStatus.statusListIndex))
+// Bentuk ini hasil langsung dari `vc.1ed.tech` 27 Sep: `$.credentialStatus: array found, object
+// expected`. Skema OB 3.0 memberi branch array untuk `proof`, `credentialSchema`, `termsOfUse` dan
+// `evidence` — dan dengan tegas tidak untuk `credentialStatus` ($defs `type: object`, tabel data
+// menulis [0..1]). VC 2.0 boleh himpunan; yang memeriksa dokumen kita adalah OB 3.0.
+check('credentialStatus SATU objek, purpose revocation (skema OB 3.0 menolak array)',
+  !Array.isArray(unsigned.credentialStatus)
+  && unsigned.credentialStatus?.type === 'BitstringStatusListEntry'
+  && unsigned.credentialStatus?.statusPurpose === REVOCATION)
 check('id entri status BUKAN URL list-nya sendiri',
-  unsigned.credentialStatus.every((e) => e.id !== e.statusListCredential))
+  unsigned.credentialStatus.id !== unsigned.credentialStatus.statusListCredential)
+// BSL §3.2 langkah 9: panjang(bitstring)/statusSize ≥ 131.072. "16KB" di §2.2/§6.1 adalah
+// 16.384 BYTE. Komentar lama kita menulis "16384 bit" — satuan yang tertukar, dan validator
+// menangkapnya: "revocation bitstring length is less than minimumNumberOfEntries".
+check('panjang bitstring = 131.072 entri (minimum algoritme validasi BSL)',
+  LIST_BITS === 131_072, `${LIST_BITS} bit`)
+{
+  const inflated = gunzipSync(Buffer.from(encodeList({ slots: new Map(), flagged: new Set() }).slice(1), 'base64url'))
+  check('yang benar-benar ter-encode: 16.384 byte uncompressed',
+    inflated.length === LIST_BITS / 8, `dapat ${inflated.length} byte`)
+}
 
 // --- 3. tanda tangan ----------------------------------------------------------
 const issuerDoc = issuerDocument({ ...issuer })
@@ -260,7 +277,13 @@ if (!rpc || !resolverAddress || watched.length === 0) {
     for (const rec of issued) {
       const s = [...statuses.values()].find((x) => x.hash.toLowerCase() === rec.credentialHash.toLowerCase())
       if (!s) { skipped.push(`${rec.course} tidak termasuk hash yang diawasi`); continue }
-      for (const entry of rec.document.credentialStatus) {
+      // Korpus lama terbit sebelum koreksi skema dan dokumennya tidak bisa diedit: di sana
+      // `credentialStatus` masih array dua entri. Harness membaca KEDUA bentuk — kalau tidak,
+      // yang merah adalah pemeriksaannya, bukan faktanya.
+      const statusEntries = Array.isArray(rec.document.credentialStatus)
+        ? rec.document.credentialStatus
+        : [rec.document.credentialStatus].filter(Boolean)
+      for (const entry of statusEntries) {
         const purpose = entry.statusPurpose
         const rendered = await renderList({
           purpose, baseUrl: BASE, rpcUrl: rpc, resolverAddress, hashes: served,

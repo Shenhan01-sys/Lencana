@@ -19,8 +19,9 @@ bitstring, and it proves less than it sounds like: bits, not membership.
   chain, and it cannot lag behind a delisting that was later reversed.
 - Two reads per hash — `attestationOf()` (`chainStatus.js:29`) then `statusOf()` (`chainStatus.js:34`).
   A hash with an empty UID or `exists == false` is **dropped**, not defaulted to zero.
-- `LIST_BITS = 16384` (`statusList.js:34`) and `new Uint8Array(LIST_BITS / 8)` (`statusList.js:104`)
-  make the bitstring a fixed **2048 bytes**. Index 0 is the leftmost bit
+- `LIST_BITS = 131_072` (`statusList.js:49`) and `new Uint8Array(LIST_BITS / 8)` make the bitstring a
+  fixed **16.384 byte**. The number used to be 16384 — a unit confusion in our own comment: BSL §2.2/§6.1
+  say *16KB*, which is 16.384 **byte** = 131.072 **bit**, and `vc.1ed.tech` rejected us for it on 27 Sep. Index 0 is the leftmost bit
   (`0x80 >> (index % 8)`, `statusList.js:109`), mirrored by `decodeBit()` (`statusList.js:149-152`) so
   `check.js` can prove bit semantics instead of assuming them.
 - `encodedList` is multibase `u` + base64url without padding, of the gzip of those bytes
@@ -48,7 +49,7 @@ bitstring, and it proves less than it sounds like: bits, not membership.
 - 🔴 The measured limit (`scripts/anchor.js:10-13`): adopting three lesson credentials moved the list
   from 5 to 8 members and **both hashes stayed the same** — revocation `0x1c27a74cbd081a51…`,
   suspension `0x1c6997d2a2a6032a…` — because new members with zero bits change no byte of a fixed
-  2048-byte array. So an anchor witnesses *which bits are set*, never *who is in the list*; the server
+  16.384-byte array. So an anchor witnesses *which bits are set*, never *who is in the list*; the server
   is still trusted for the watched set. See [[Concepts/Anchored Bits not Membership]].
 - The command that witnesses the served list is `npm run anchor` (`signer/package.json` →
   `node scripts/anchor.js`). It renders both lists, compares each hash with `getTimestamp()`, and

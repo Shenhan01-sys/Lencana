@@ -139,7 +139,7 @@ to *issuance*, paid by whoever broadcasts, never as a percentage cut taken out o
 
 ## 7. Limits (read this before believing section 6)
 
-- The 1EdTech validator at `vc.1ed.tech` has been run, and **the document does not pass it yet**: 14 checks, 2 errors, 0 warnings — our two status lists do not fit the OB 3.0 `credentialStatus` shape, and the bitstring declares no capacity. We say *built to the specification*, not *compatible*, and we publish the failing verdict rather than the untested claim.
+- The 1EdTech validator at `vc.1ed.tech` was run twice on 27 Sep: the first document returned 2 errors (one `credentialStatus` too many; bitstring under BSL's 131.072-entry minimum — our own unit error), and the credential re-issued after the fixes came back **`outcome: VALID` — 14 checks, 0 errors, 0 warnings**. We still say *built to the specification*, not *certified*: it is a member validator, and its response reports the absence of errors without itemising them. Both verdicts are kept verbatim.
 - No real institution and no real learner: the publisher is fictitious and labelled so; graded essays in
   the demo are fixtures.
 - No external payer: on the paid path **we are the facilitator**. No SLA, no third party.

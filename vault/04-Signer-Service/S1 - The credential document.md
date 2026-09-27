@@ -37,7 +37,10 @@ learner name and no DID, and it holds no score of its own: that arrives from
   rubric URL. The OB 2.0 shapes (`resultScore`, `achievementId`, `identity`, `statement`) are not
   terms in context 3.0.3: jsonld 9 in safe mode drops unknown properties and then fails as "did not
   expand into an absolute IRI" — a message that points at the wrong file entirely.
-- `credentialStatus` is two entries (`credential.js:112`); `statusListIndex` is a base-10 integer
+- `credentialStatus` is ONE object, purpose `revocation` (`credential.js:126`) — OB 3.0's schema gives
+  `proof`/`credentialSchema`/`termsOfUse`/`evidence` an array branch and pointedly does not give it to
+  `credentialStatus`; the suspension list is still served and anchored, but the paper references one entry.
+  `statusListIndex` is a base-10 integer
   expressed as a string (`statusList.js:93`), and the entry's `id` must differ from the list URL, so
   it carries a `#uid` fragment (`statusList.js:88-90`; `check.js:78`, `:84`).
 - Proof shape: `DataIntegrityProof`, `cryptosuite: eddsa-rdfc-2022`, `proofPurpose:
