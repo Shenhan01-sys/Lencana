@@ -113,6 +113,76 @@ if (EXPECT.length === 0) {
     `server: ${health.revocation.flagged}/${health.suspension.flagged}, diharapkan: ${EXPECT_REVOKED.length}/${EXPECT_SUSPENDED.length}`)
 }
 
+// `id` di dalam dokumen menunjuk ke rute ini. Kalau yang dipulangkan bukan sebuah Verifiable
+// Credential, verifier standar berhenti di sini — dan dulu memang begitu: yang keluar adalah
+// rekaman store kita, dan tidak satu pun pemeriksaan di bawah ini melihatnya karena rute dokumen
+// memang tidak pernah diuji. Jadi blok ini bukan hiasan: ia menjaga bentuk jawaban.
+//
+// `DOC_HASH` = kredensial yang DITERBITKAN OLEH `AGENT_SLUG` yang disajikan server ini. Kunci
+// penerbit lain tidak akan bisa membuktikannya, jadi isi itu kalau menjalankan ini dengan slug
+// baru; tanpa itu ia jatuh ke `DEMO_HASH` (kredensial demo, diterbitkan `agent-demo`).
+const docHash = process.env.DOC_HASH || process.env.DEMO_HASH
+if (!docHash) {
+  skipped.push('rute dokumen /credentials/<hash> (DOC_HASH dan DEMO_HASH kosong — bentuk dokumen tidak diuji lewat HTTP)')
+} else {
+  let doc = null
+  try { doc = await getJson(`/credentials/${docHash}`) } catch (e) { console.log(`  (rute dokumen: ${e.message})`) }
+  check('rute dokumen memulangkan Verifiable Credential, bukan rekaman store',
+    Array.isArray(doc?.['@context']) && Array.isArray(doc?.type) && !!doc?.proof && !!doc?.credentialSubject,
+    `key teratas: ${Object.keys(doc ?? {}).slice(0, 8).join(', ') || 'tidak ada respons'}`)
+  check('rute dokumen: @context = VC 2.0 lalu OB 3.0.3, berurutan',
+    doc?.['@context']?.[0] === 'https://www.w3.org/ns/credentials/v2'
+    && doc?.['@context']?.[1] === 'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json')
+  check('rute dokumen: type memuat VerifiableCredential + OpenBadgeCredential',
+    (doc?.type ?? []).includes('VerifiableCredential') && (doc?.type ?? []).includes('OpenBadgeCredential'))
+  check('rute dokumen: id adalah URL rute ini juga',
+    String(doc?.id ?? '').toLowerCase().endsWith(`/credentials/${String(docHash).toLowerCase()}`), doc?.id ?? '')
+  check('rute dokumen: dua entri credentialStatus, revocation dan suspension',
+    (doc?.credentialStatus ?? []).length === 2
+    && (doc?.credentialStatus ?? []).some((c) => c.statusPurpose === 'revocation')
+    && (doc?.credentialStatus ?? []).some((c) => c.statusPurpose === 'suspension'))
+  check('rute dokumen: verificationMethod berada di bawah dokumen issuer yang tersaji',
+    typeof doc?.proof?.verificationMethod === 'string'
+    && doc.proof.verificationMethod.startsWith(vmId.split('#')[0]), doc?.proof?.verificationMethod ?? '')
+
+  // Tanda tangan diperiksa terhadap kunci yang DATANG DARI HTTP, sama seperti verifier nyata.
+  let docOk = null
+  try {
+    docOk = await verifyDocument(doc, { controllerDocument: issuerDoc, documentLoader: loader })
+  } catch (e) {
+    docOk = { verified: false, error: e.message }
+  }
+  check('rute dokumen: tanda tangannya SAH terhadap kunci yang disajikan HTTP',
+    docOk?.verified === true, docOk?.error ?? JSON.stringify(docOk?.results ?? '').slice(0, 120))
+
+  // Rekaman internal tetap bisa diambil — hanya tidak lagi menyamar sebagai dokumen.
+  let rec = null
+  try { rec = await getJson(`/credentials/${docHash}?format=record`) } catch (e) { console.log(`  (?format=record: ${e.message})`) }
+  check('?format=record memulangkan rekaman (asal-usul angka: bukti, rubrik, penilai)',
+    String(rec?.credentialHash ?? '').toLowerCase() === String(docHash).toLowerCase() && !!rec?.document)
+
+  // Setiap kredensial menunjuk `criteria.id` dan `resultDescription` ke rute /criteria. Kalau rute
+  // itu tidak menjawab, dokumen kita berbohong secara halus: ia menunjuk aturan yang tidak ada.
+  const critUrl = doc?.credentialSubject?.achievement?.criteria?.id
+  if (!critUrl) {
+    skipped.push('dokumen tanpa criteria.id — rute /criteria tidak ikut diuji')
+  } else {
+    let crit = null
+    try { crit = await getJson(new URL(critUrl).pathname) } catch (e) { console.log(`  (rute kriteria: ${e.message})`) }
+    check('rute kriteria: URL yang dirujuk dokumen membalas 200', typeof crit?.id === 'string', critUrl)
+    check('rute kriteria: ada #scale, karena resultDescription menunjuk ke sana',
+      crit?.scale?.id === `${critUrl}#scale`, crit?.scale?.id ?? '(tanpa scale)')
+    check('rute kriteria: memuat bobot dan pass mark penerbit',
+      !!crit?.policy?.weights && Number.isFinite(Number(crit?.policy?.passMark)))
+    check('rute kriteria: TIDAK memuat kunci jawaban kuis',
+      !JSON.stringify(crit ?? {}).includes('"answer"'), 'field `answer` ditemukan di dokumen kriteria')
+    const inCred = String(doc?.credentialSubject?.achievement?.criteria?.narrative ?? '')
+      .match(/\[rubrik ([0-9a-f]{12})\]/)
+    check('rute kriteria: rubricRef sama dengan yang tercetak di kredensial',
+      !!inCred && crit?.rubricRef === inCred[1], `${crit?.rubricRef} vs ${inCred?.[1]}`)
+  }
+}
+
 console.log(`\n${failures === 0 ? 'PROBE SERVE HIJAU' : 'PROBE SERVE MERAH'} — ${ran} pemeriksaan, ${failures} gagal`)
 if (skipped.length) {
   console.log(`\n--grup yang DILEWATI (${skipped.length})— angka di atas bukan cakupan penuh--`)

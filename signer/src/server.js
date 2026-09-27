@@ -25,6 +25,8 @@ import { REVOCATION, SUSPENSION, renderList, servedHashes } from './lists.js'
 import { sha256Hex } from './credential.js'
 import { makeDocumentLoader } from './sign.js'
 import { getCredentialByHash } from './store.js'
+import { criteriaDocument } from './criteria.js'
+import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
 
@@ -266,6 +268,23 @@ const server = createServer(async (req, res) => {
   const path = new URL(req.url, BASE_URL).pathname
   try {
     if (path === `/issuers/${AGENT_SLUG}` || path === '/issuers') return send(res, 200, issuerDoc)
+    // `achievement.criteria.id` dan `result[].resultDescription` di setiap kredensial menunjuk ke
+    // sini. Sampai hari ini keduanya hanya identifier — sah menurut spesifikasi, tapi pertanyaan
+    // "dinilai pakai aturan apa" tidak dijawab oleh dokumen mana pun yang bisa dibuka orang lain.
+    // Yang keluar di sini adalah kebijakan penerbit, TANPA kunci jawaban (lihat src/criteria.js).
+    if (path.startsWith('/criteria/')) {
+      const slug = decodeURIComponent(path.slice('/criteria/'.length))
+      const manifest = manifestOf(slug)
+      if (!manifest) {
+        return send(res, 404, { error: 'tidak ada manifest penerbit dengan id itu', slug, known: Object.keys(MANIFESTS) })
+      }
+      return send(res, 200, criteriaDocument({
+        baseUrl: BASE_URL,
+        manifest,
+        rubricHash: rubricHashOf(manifest),
+        manifestHash: manifestHashOf(manifest),
+      }))
+    }
     if (path === `/credentials/status/${REVOCATION}`) return send(res, 200, (await buildList(REVOCATION)).signed)
     if (path === `/credentials/status/${SUSPENSION}`) return send(res, 200, (await buildList(SUSPENSION)).signed)
     // Satu-satunya rute yang meminta bayaran. Verifikasi itu sendiri tetap gratis di halaman;
@@ -278,7 +297,18 @@ const server = createServer(async (req, res) => {
     if (path.startsWith('/credentials/0x')) {
       const found = await getCredentialByHash(path.slice('/credentials/'.length))
       if (!found) return send(res, 404, { error: 'belum diterbitkan lewat backend ini', path })
-      return send(res, 200, found)
+      // Yang dijanjikan `id` adalah sebuah Verifiable Credential, jadi itulah yang keluar — bukan
+      // rekaman internal kita. Bentuknya dijaga `probe:serve`, karena verifier standar berhenti di
+      // sini kalau yang tersaji bukan dokumen: dulu rute ini memulangkan rekaman store dan tidak
+      // ada satu pun pemeriksaan yang melihatnya.
+      if (!found.document) {
+        return send(res, 409, {
+          error: 'kredensial ini dikenal dari chain tetapi tidak punya dokumen dari kita',
+          credentialHash: found.credentialHash, uid: found.uid,
+        })
+      }
+      if (new URL(req.url, BASE_URL).searchParams.get('format') === 'record') return send(res, 200, found)
+      return send(res, 200, found.document)
     }
     if (path === '/healthz') {
       const r = await buildList(REVOCATION)
