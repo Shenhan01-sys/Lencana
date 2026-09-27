@@ -4,10 +4,11 @@ pragma solidity ^0.8.20;
 import { Test } from "forge-std/Test.sol";
 import { SoulboundCert, IERC5192 } from "../contracts/SoulboundCert.sol";
 import { ICredentialRegistry } from "../contracts/interfaces/ICredentialRegistry.sol";
+import { JsonText } from "./support/JsonText.sol";
 
 /// @dev Stub registry: hanya meniru APA YANG DIBACA SoulboundCert, supaya mekanika
 /// soulbound bisa diuji cepat dan offline. Jalur nyata (BAS + CredentialResolver) diuji
-/// terpisah di test/SoulboundCertOnBsc.fork.t.sol terhadap deployment sungguhan — jadi
+/// terpisah di test/CredentialEndToEndOnBsc.fork.t.sol terhadap deployment sungguhan — jadi
 /// stub ini tidak pernah berdiri sebagai bukti bahwa integrasinya bekerja.
 contract StubCredentialRegistry is ICredentialRegistry {
     bool public exists;
@@ -105,8 +106,47 @@ contract SoulboundCertTest is Test {
         assertEq(cert.ownerOf(id), learner);
         assertEq(cert.credentialOf(id), credHash);
         assertEq(cert.tokenOfCredential(credHash), id);
-        assertEq(cert.tokenURI(id), uri);
+        // `external_url` beku (memang alamat dokumen), TAPI metadatanya dirakit ulang setiap
+        // panggilan — lihat test_MetadataMengikutiStatus di bawah, dan B38 di vault.
+        string memory meta = cert.tokenURI(id);
+        assertTrue(JsonText.contains(meta, '"external_url":"https://example.org/vc/1.json"'), meta);
+        assertTrue(JsonText.contains(meta, '"value":"VALID"'), meta);
+        assertTrue(JsonText.contains(meta, vm.toString(credHash)), "hash kredensial harus terbaca di metadata");
         assertEq(cert.balanceOf(learner), 1);
+    }
+
+    /// @dev B38, bagian lokal: sebelum 27 Sep string ini disimpan saat mint, jadi artefak dari
+    /// kredensial yang dicabut SELAMANYA terlihat sah di wallet. Yang diuji di sini bukan bentuk
+    /// JSON-nya, tapi hubungan sebab-akibat antara chain dan apa yang dilihat orang.
+    function test_MetadataMengikutiStatusSetelahDicabut() public {
+        uint256 id = _mintCert(learner, credHash, uri);
+        assertTrue(JsonText.contains(cert.tokenURI(id), "VALID"));
+        assertFalse(JsonText.contains(cert.tokenURI(id), "REVOKED"), "baru mint, belum dicabut");
+
+        registry.setRevoked(true);
+        string memory pascaCabut = cert.tokenURI(id);
+        assertTrue(JsonText.contains(pascaCabut, '"value":"REVOKED"'), pascaCabut);
+        assertFalse(JsonText.contains(pascaCabut, '"value":"VALID"'), "masih melaporkan VALID setelah dicabut");
+        // Judul yang dibaca wallet berubah (em dash sesudahnya sengaja tidak diuji: Solidity
+        // menolak non-ASCII di literal biasa, dan `unicode"…"` di test hanya akan menyamarkan
+        // hal yang sebenarnya kita pastikan di atas — bahwa status masuk ke `name`.)
+        assertTrue(JsonText.contains(pascaCabut, '"name":"Sertifikat Kursus '), pascaCabut);
+
+        registry.setRevoked(false);
+        registry.setDelisted(true);
+        assertTrue(JsonText.contains(cert.tokenURI(id), "ISSUER_DELISTED"), "delisting harus terbaca beda");
+
+        registry.setDelisted(false);
+        registry.setExpired(true);
+        assertTrue(JsonText.contains(cert.tokenURI(id), "EXPIRED"));
+    }
+
+    /// @dev Metadata dibangun dengan menyisipkan `uri` mentah. Satu tanda kutip di dalam URI
+    /// akan merusak JSON untuk SELURUH koleksi, jadi ia ditolak di pintu, bukan dikoreksi diam-diam.
+    function test_UriBerbayaDitolakSaatMint() public {
+        vm.prank(platform);
+        vm.expectRevert(abi.encodeWithSelector(SoulboundCert.UnsafeUri.selector, 18));
+        cert.mint(learner, keccak256("berbahaya"), "https://a.example/\"\"); ");
     }
 
     function test_LockedSentiasaTrueUntukTokenAda() public {

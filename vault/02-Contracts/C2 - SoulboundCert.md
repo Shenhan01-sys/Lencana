@@ -12,6 +12,8 @@ tags: [contract, "C2"]
 `OpenBadgeCredential` JSON and the source of truth stays the BAS attestation. What this contract adds is one guarantee, that the artifact cannot
 exist unless the credential is live and cannot move once it exists. `mint()` admits exactly one caller, `owner()`, which since D30 is the
 platform and not the issuing agent.
+> **Alamat ini menggantikan `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c`** (27 Sep). Yang lama tidak rusuh — ia hanya tidak pernah bisa memberitahu wallet bahwa kredensialnya dicabut: `tokenURI` mengembalikan string yang dibekukan saat mint (B38). Lihat jejak deploy di `broadcast/DeployCertOnly.s.sol/97/run-latest.json`; artefaknya sudah diikat dan metadatanya dibaca ulang dari RPC publik.
+
 
 **Key points:**
 - `mint(address learner, bytes32 credentialHash, string calldata uri) external returns (uint256)` (`:107`) opens with
@@ -62,7 +64,7 @@ platform and not the issuing agent.
 - Coverage: 21 offline tests in `test/SoulboundCert.t.sol` run against a **stub** registry, proving token mechanics and nothing about BAS. The
   live path is `test/CredentialEndToEndOnBsc.fork.t.sol` (9 fork tests). Stale pointer while reading: `test/SoulboundCert.t.sol:10` names
   `test/SoulboundCertOnBsc.fork.t.sol`, a file that does not exist in `test/`.
-- Deployed on chain 97 at `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c`; `script/DeployCredentials.s.sol:70` passes
+- Deployed on chain 97 at `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd`; `script/DeployCredentials.s.sol:70` passes
   `("Lencana", "LNC", deployer)`, so the platform address is `owner()`. `script/SeedDemo.s.sol:306` mints only when
   `tokenOfCredential(hash) == 0`, which is what keeps the demo script re-runnable against `AlreadyBound`.
 

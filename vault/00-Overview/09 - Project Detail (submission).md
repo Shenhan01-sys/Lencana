@@ -98,7 +98,7 @@ issuer falls out of favour.
 | contract | address | what it is responsible for |
 |---|---|---|
 | **CredentialResolver** | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` | the brain: who may issue, a 7-field status read (`exists / revoked / expired / delisted / …`), and the prerequisite rule EAS itself does not enforce |
-| **SoulboundCert** | `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` | the artefact: ERC-721 + ERC-5192, `tokenId = uint256(credentialHash)`, mint refuses a credential that is not live, transfers always revert |
+| **SoulboundCert** | `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` | the artefact: ERC-721 + ERC-5192, `tokenId = uint256(credentialHash)`, mint refuses a credential that is not live, transfers always revert |
 | **SettlementSplit** | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` | receives one payment, divides it, **keeps nothing**; `platformBps()` can only be lowered, cap `MAX_BPS = 2500` |
 | **DemoCourseToken** | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` | the demo ERC-20 the settlement is paid in. **Open `mint`, clearly a demo, never intended for mainnet** |
 

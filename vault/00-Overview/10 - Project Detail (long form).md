@@ -278,11 +278,15 @@ and refuses loudly (table above) unless the credential is live and belongs to th
 "One credential, one artefact" is enforced by the key layout itself — `bytes32` and `uint256` are the
 same 256 bits reinterpreted, not a bookkeeping convention.
 
-Two things we record here rather than hide, because they are open work in our own backlog:
+Two things we record here rather than hide — one was open until 27 Sep and is now closed, the other is
+still a decision waiting to be made:
 
 - **There is no burn.** Revocation happens to the *status*, not the token. So an artefact can outlive
   its own validity, which is exactly why the verifier page — not the wallet — is the correct place to
-  check a claim. Fixing the presentation half (metadata that resolves to live status) is task **B38**.
+  check a claim. Since 27 Sep the presentation half is fixed too: `tokenURI` is **composed on every
+  call** from `registry.statusOf()`, so a revoked credential's artefact reports `REVOKED` in the wallet
+  (B38 — `test_Adegan2_CabutDiTengah…` proves it on chains 97 and 56, and the same string was read back
+  from a public RPC after deploy). What stays frozen is `external_url`, which is an address, not a state.
 - **Granularity is undecided** (**B39**). Lesson-level credentials exist; if every lesson minted a
   token, one learner would carry ~24 artefacts per course and the portfolio becomes noise. This is a
   product decision, and we would rather state it than let a default decide it.
@@ -335,19 +339,20 @@ Nothing in this document is a claim without a command behind it. From a clone of
 
 | command | what it proves | result | date |
 |---|---|---|---|
-| `forge build` + `forge test --evm-version cancun --fork-url <97>` | the whole on-chain layer against **real** BAS on a fork of the public testnet | **97 passed / 0 failed** | 26 Sep |
-| `forge test … --fork-url <56>` | same suite against **mainnet** state (interfaces and constants match production) | 97 / 0, identical gas | 23 Sep |
+| `forge build` + `forge test --evm-version cancun --fork-url <97>` | the whole on-chain layer against **real** BAS on a fork of the public testnet | **99 passed / 0 failed** | 27 Sep |
+| `forge test … --fork-url <56>` | same suite against **mainnet** state (interfaces and constants match production) | 99 / 0, identical gas | 27 Sep |
 | `cd web && npx tsc --noEmit && npm run build` | the page compiles | clean | 26 Sep |
 | `cd web && npx tsx scripts/probe.ts` | the **page's own** `verify.ts` reading chain 97 for four verdicts; the seeder's `credentialHash` recomputed from course data equals the on-chain attestation | **59 / 0** | 26 Sep |
 | `cd web && npx tsx scripts/rubric-check.ts` | the pass mark is computed; policy and material hash separately | **17 / 0** | 26 Sep |
 | `cd web && npx tsx scripts/inventory.ts` | the size of the learning surface, printed from the data | 2 · 7 · 24 · **34 pages** · 412 min · 28 · 2 | 26 Sep |
-| `cd signer && node scripts/check.js` | document shape, `eddsa-rdfc-2022` round-trip, list bits equal to `statusOf()` | **53 / 0** | 26 Sep |
-| `cd signer && node scripts/serve-probe.js` | the same over HTTP against the running server | **20 / 0** | 26 Sep |
+| `cd signer && node scripts/check.js` | document shape, `eddsa-rdfc-2022` round-trip, list bits equal to `statusOf()`, one-object `credentialStatus`, 131.072-entry minimum | **63 / 0** | 27 Sep |
+| `cd signer && node scripts/serve-probe.js` | the same over HTTP against the running server — including the document route and the served bitstring's real length | **37 / 0** | 27 Sep |
+| `cd signer && npm run validator` | our document read back over HTTP, its own URLs followed, then uploaded: verdict from `/api/validate`, not from the page's template strings | **10 / 0**, `outcome: VALID` | 27 Sep |
 | `cd signer && npm run x402` | `402` → pay → settle → **split** → report; balances read back **from the chain** | **20 / 0** | 24 Sep |
 | `cd signer && npm run delegate` | the agent signs, the platform broadcasts; agent balance unchanged to the wei | 8 / 0 | 23–25 Sep |
 | `cd signer && npm run judge` | **negative control** — a fluent but empty essay is failed, not passed | **7 / 0** (8/100) | 24 Sep |
 | `cd signer && npm run judge-variance` | how much a model score moves at `temperature 0` | substantive essay **91–100**; verdict stable in 5 runs | 24 Sep |
-| `cd signer && node scripts/anchor.js --dry-run` | what is being anchored, and that re-anchoring is idempotent | 11 watched, both list hashes unchanged | 26 Sep |
+| `cd signer && node scripts/anchor.js --dry-run` | what is being anchored, and that re-anchoring is idempotent | 14 watched; hash daftar yang **sekarang** tersaji (`0x168c327e1ef3cf81…` / `0x6256f66398be99a7…`) keduanya sudah ter-anchor sejak jam 1790492833 / 1790492842, dan dijalankan ulang hari ini melaporkan **"0 anchor baru ditulis"** | 27 Sep |
 
 The verdicts the page can return. The first four are the cases `probe.ts` asserts against the public
 network; `EXPIRED` is implemented in `verify.ts` and covered by tests, but **no seeded demo credential is
@@ -1075,8 +1080,8 @@ Not a wishlist — the holes a reviewer would find in a week, named before they 
 | # | hole | why it is first on the list |
 |---|---|---|
 | **B44** | the grading **method** never reaches the credential (§16) | the artefact answers "which rubric" but not "which judge" |
-| **B41** | the validator run (§22) | our only remaining strong claim, and it needs no new code |
-| **B38** | `tokenURI` is **frozen at mint** (`_uris[tokenId] = uri`, no burn path) | the wallet view is the one place our story is currently false: a revoked credential keeps an artefact whose metadata still looks valid |
+| **~~B41~~ SELESAI 27 Sep** | validator dijalankan dua kali: run pertama 2 error bentuk dokumen, run kedua **`outcome: VALID`**, 0 error / 0 warning (§22, T15) | klaim terkuat kita sekarang punya bukti pihak ketiga — yang tersisa bukan "belum diuji" tapi "host-nya sementara" (**B51**) |
+| **~~B38~~ SELESAI 27 Sep** | `tokenURI` tidak lagi beku saat mint: metadatanya dirakit dari `registry.statusOf()` setiap panggilan, `external_url` satu-satunya yang beku (dan itu alamat, bukan keadaan) | yang tadinya satu-satunya tempat cerita kita bohong — wallet melihat artefak kredensial tercabut sebagai sah — sekarang terbaca `REVOKED`; dibuktikan fork test di 97 dan 56 lalu dibaca ulang dari RPC publik |
 | **B39** | artefact granularity undecided | lesson-level credentials exist; ~24 artefacts per learner per course would turn a portfolio into noise |
 | **B40** | no batch mint | issuance gas scales per credential while settlement already batches ≤25 |
 | **B42** | no cold-store probe | exactly how a "green 20/20" once hid a real path failure |

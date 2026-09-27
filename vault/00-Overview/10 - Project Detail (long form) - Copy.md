@@ -80,12 +80,12 @@ flowchart LR
   IS -.->|revokes| SL
 ```
 
-## Contracts (chain 97, from `broadcast/…/97/run-latest.json`)
+## Contracts (chain 97 — each address below read back from the chain)
 
 | contract | address |
 |---|---|
 | CredentialResolver — admission and status | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` |
-| SoulboundCert — artefact | `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` |
+| SoulboundCert — artefact | `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` |
 | SettlementSplit — 10% platform, only lowerable | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` |
 | DemoCourseToken — demo fee token, open `mint` | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` |
 

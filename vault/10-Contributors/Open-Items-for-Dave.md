@@ -131,7 +131,7 @@ a wallet, `main.ts:184`.)
 `web/src/config.ts:23-24` and `:34-35` set resolver `0xe01a16e50fd9d8c0ff4230874f8d8c086e811627` /
 artifact `0x021356a0e3b9ab440a571d4af62b215841a7c891`. What is deployed and used by every harness is
 `CredentialResolver 0x7CA624caFDe5cA3A27b33d26be56F73a90792065` / `SoulboundCert
-0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` (chain 97). If those two entries are meant to be *local
+0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` (chain 97). If those two entries are meant to be *local
 anvil* presets, say so in the label; if either is presented as the public testnet, a reader selecting it
 sees "not found" for credentials that are live. Your call — I have not touched the file.
 

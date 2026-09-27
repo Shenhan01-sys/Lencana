@@ -50,9 +50,10 @@ interface IERC5192 {
 ///   yang terikat adalah sebuah alamat. (ERC-721 sendiri memperingatkan privasi gagal
 ///   begitu `ownerOf` bisa diquery lintas tokenId; karena itu data pribadi tidak pernah
 ///   menyentuh kontrak ini.)
-/// - Sertifikat yang dicabut tetap tampil sebagai koleksi; yang berubah adalah statusnya
-///   di halaman verifikasi. Artefak yang sudah dicabut adalah catatan sejarah, bukan
-///   bukti keberlakuan.
+/// - `tokenURI()` bukan string yang disimpan lalu dilupakan. Metadatanya DIRAKIT setiap
+///   panggilan dan statusnya dibaca dari `CredentialResolver`, jadi "koleksi" di wallet
+///   ikut berubah bersama kenyataannya — see B38 in the vault. Yang beku hanyalah
+///   `external_url`, dan itu memang alamat dokumen, bukan isinya.
 contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
     /// @dev interfaceId ERC-5192 = selector `locked(uint256)` = 0xb45a3c0e.
     bytes4 private constant ERC5192_INTERFACE_ID = 0xb45a3c0e;
@@ -83,6 +84,9 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
     error ZeroAddress();
     error ZeroCredential();
     error EmptyURI();
+    /// @dev `uri` disisipkan apa adanya ke dalam JSON yang kita rakit di `tokenURI()`. Satu tanda
+    /// kutip atau backslash di dalamnya bukan sekadar jelek: itu merusak metadata semua koleksi.
+    error UnsafeUri(uint256 byteAt);
 
     constructor(ICredentialRegistry registry_, string memory name_, string memory symbol_, address owner_)
         ERC721(name_, symbol_)
@@ -108,6 +112,7 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
         if (msg.sender != owner()) revert NotIssuer(msg.sender);
         if (learner == address(0)) revert ZeroAddress();
         if (bytes(uri).length == 0) revert EmptyURI();
+        _requireJsonSafe(uri);
         if (credentialHash == bytes32(0)) revert ZeroCredential();
 
         // Lossless: bytes32 <-> uint256 adalah reinterpretasi 256 bit yang sama, bukan
@@ -150,9 +155,71 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
         return true;
     }
 
+    /// @dev Metadata koleksi, DIRAKIT setiap panggilan — bukan string yang beku saat mint.
+    ///
+    /// Alasannya konkret dan pernah jadi bohong di repo ini: wallet dan marketplace hanya melihat
+    /// `tokenURI`. Selama metadata berisi apa yang ditulis saat mint, sebuah kredensial yang
+    /// dicabut tetap tampil "lulus" selamanya, dan tempat itu satu-satunya tempat cerita kita
+    /// tidak benar (B38). Sekarang status datang dari `CredentialResolver` pada saat dibaca,
+    /// jadi mencabut kredensial ikut mengubah artefaknya — tanpa burn, karena sejarah tidak
+    /// boleh bisa dihapus (lihat `_update`).
+    ///
+    /// Urutan kata mengikuti halaman verifier: revoked → expired → issuerDelisted → VALID.
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         _requireOwned(tokenId);
-        return _uris[tokenId];
+        bytes32 hash = credentialOf[tokenId];
+        (, bool revoked, bool expired, bool delisted,,,) = registry.statusOf(hash);
+        string memory status = _statusWord(revoked, expired, delisted);
+
+        return string(
+            abi.encodePacked(
+                '{"name":"',
+                name(),
+                // `unicode` wajib: Solidity menolak karakter non-ASCII di string literal biasa,
+                // dan em dash ini memang bagian dari teks yang dibaca orang.
+                unicode" — ",
+                status,
+                '","description":"Soulbound artefact issued by Lencana. The credential itself is a signed Open Badges 3.0 document served off chain; the status in this metadata is read live from the CredentialResolver, so a revoked credential never presents itself as valid.","external_url":"',
+                _uris[tokenId],
+                '","attributes":[{"trait_type":"Credential status","value":"',
+                status,
+                '"},{"trait_type":"Credential hash","value":"',
+                _toHex(hash),
+                '"}]}'
+            )
+        );
+    }
+
+    /// @dev Kata status yang sama dengan yang dibaca orang di halaman verifikasi.
+    function _statusWord(bool revoked, bool expired, bool delisted) internal pure returns (string memory) {
+        if (revoked) return "REVOKED";
+        if (expired) return "EXPIRED";
+        if (delisted) return "ISSUER_DELISTED";
+        return "VALID";
+    }
+
+    /// @dev `uri` masuk apa adanya ke JSON, jadi karakter yang butuh escaping kita tolak di depan
+    /// pintu: lebih baik satu mint gagal daripada seluruh koleksi menghasilkan metadata rusak.
+    function _requireJsonSafe(string memory s) internal pure {
+        bytes memory b = bytes(s);
+        for (uint256 i = 0; i < b.length; i++) {
+            uint8 c = uint8(b[i]);
+            if (c == 0x22 || c == 0x5c || c < 0x20) revert UnsafeUri(i);
+        }
+    }
+
+    bytes16 private constant HEX = "0123456789abcdef";
+
+    function _toHex(bytes32 v) internal pure returns (string memory) {
+        bytes memory out = new bytes(66);
+        out[0] = "0";
+        out[1] = "x";
+        for (uint256 i = 0; i < 32; i++) {
+            uint8 b = uint8(v[i]);
+            out[2 + i * 2] = HEX[b >> 4];
+            out[3 + i * 2] = HEX[b & 0x0f];
+        }
+        return string(out);
     }
 
     function supportsInterface(bytes4 interfaceId) public view override returns (bool) {

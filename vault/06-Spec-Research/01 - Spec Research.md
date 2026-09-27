@@ -145,7 +145,7 @@ Deployed 21 Sep, and re-read from the chain afterwards rather than trusted from 
 | item | address |
 |---|---|
 | `CredentialResolver` (our layer) | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` |
-| `SoulboundCert` (artifact layer, owned by the platform) | `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` |
+| `SoulboundCert` (artifact layer, owned by the platform) | `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` |
 | our schema UID, registered in the **public** BAS schema registry | `0x70a8c3a3ade3d7595422313112fb24f32e2dd8a65c7609574341a8ac6091a051` |
 | BAS core used (not deployed by us) | `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` |
 | BAS schema registry reached through it | `0x08C8b8417313fF130526862f90cd822B55002D72` |

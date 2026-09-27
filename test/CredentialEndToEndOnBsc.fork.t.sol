@@ -5,6 +5,7 @@ import { Test } from "forge-std/Test.sol";
 import { CredentialResolver } from "../contracts/CredentialResolver.sol";
 import { SoulboundCert, IERC5192 } from "../contracts/SoulboundCert.sol";
 import { ICredentialRegistry } from "../contracts/interfaces/ICredentialRegistry.sol";
+import { JsonText } from "./support/JsonText.sol";
 import {
     IEAS,
     AttestationRequest,
@@ -244,6 +245,16 @@ contract CredentialEndToEndOnBscForkTest is Test {
         // 3. artefaknya tetap ada, tetap terkunci, tetap milik peserta
         assertEq(certs.ownerOf(baseToken), learner);
         assertTrue(certs.locked(baseToken));
+
+        // 3b. tapi metadata artefaknya TIDAK lagi mengaku sah. Inilah B38: dulu `tokenURI`
+        // mengembalikan string yang dibekukan saat mint, jadi wallet dan marketplace tetap
+        // menampilkan "lulus" untuk kredensial yang sudah dicabut — satu-satunya tempat di mana
+        // cerita kita bohong. Sekarang statusnya dibaca dari CredentialResolver saat dipanggil,
+        // di jalur BAS sungguhan, tanpa burn (sejarah tidak boleh bisa dihapus).
+        string memory meta = certs.tokenURI(baseToken);
+        assertTrue(JsonText.contains(meta, '"value":"REVOKED"'), meta);
+        assertFalse(JsonText.contains(meta, '"value":"VALID"'), "metadata artefak masih mengaku VALID");
+        assertTrue(JsonText.contains(meta, vm.toString(baseH)), "hash kredensial harus terbaca");
         vm.prank(learner);
         vm.expectRevert(SoulboundCert.NotTransferable.selector);
         certs.transferFrom(learner, recruiter, baseToken);
