@@ -20,7 +20,8 @@
     "issue": "tsx scripts/issue.js",
     "delegate": "tsx scripts/delegate.js",
     "anchor": "node scripts/anchor.js",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "validator": "node scripts/validator-check.js"
   },
   "dependencies": {
     "@digitalbazaar/data-integrity": "^2.5.0",

@@ -15,6 +15,23 @@ pass or fail, because the whole point of this project is that a number we do not
 `ob_v3p0_achievementcredential_schema.json`. It is not a certification and we never call it one; it is the
 closest thing to a neutral third party reading our document the way someone else's software would.
 
+## Runnya sekarang satu perintah
+
+```bash
+cd signer && npm run validator -- --record     # DOC_HASH dari .env, atau --hash 0x…
+```
+
+`scripts/validator-check.js` melakukan seluruh rantai: membaca dokumen lewat HTTP (jadi yang diuji
+adalah apa yang diterima verifier, bukan salinan di disk), **mengikuti URL yang ada di dalamnya**
+— dokumen issuer dan kedua status list — memeriksa panjang bitstring yang sungguh disajikan,
+mengunggah, lalu mengambil verdict dari `/api/validate`. Keluar merah kalau `outcome` bukan VALID.
+Dengan `--record` tiap run ditambahkan ke `vault/09-Testing/validator-runs.jsonl` (hash, uploadId,
+`baseUrl`, ringkasan angka) — supaya klaim ini punya buku besar, bukan tangkapan layar.
+
+Ini bukan hiasan: dokumen kita menunjuk URL milik kita sendiri. **Matikan hostnya, dan run berikutnya
+jadi merah** — persis yang membuat `B51` (host tetap) bukan kosmetik. Run 27 Sep 07:2x UTC:
+**10/10 hijau, `outcome VALID`, 14 checks, 0 error, 0 warning.**
+
 ## How to run it (all of this was executed on 27 Sep)
 
 ```bash
