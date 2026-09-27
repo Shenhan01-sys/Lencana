@@ -4,7 +4,7 @@ tags: [module, 02]
 
 # 02 - Contracts
 
-**Purpose:** _TODO one sentence: what a reader gets from this module._
+**Purpose:** The four contracts on BNB Chain testnet, what each refuses, and the command that proves the addresses we quote are real.
 
 ## Files in this module
 - [[02-Contracts/01 - Contracts]]
@@ -14,4 +14,6 @@ tags: [module, 02]
 - [[02-Contracts/C4 - DemoCourseToken and the x402 interface]]
 
 ## Key facts
-- _TODO_
+- `cd signer && npm run verify:deploy` compares our documented claims with chain 97: 15 checks, 0 mismatch on 28 Sep.
+- `--evm-version cancun` is mandatory on `forge test` AND `forge script`; the repo records why.
+- Revocation is permanent and delisting is recoverable, and the two are different admin actions - see [[02-Contracts/C1 - CredentialResolver]].

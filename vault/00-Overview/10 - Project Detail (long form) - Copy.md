@@ -87,7 +87,7 @@ flowchart LR
 | CredentialResolver — admission and status | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` |
 | SoulboundCert — artefact | `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` |
 | SettlementSplit — 10% platform, only lowerable | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` |
-| DemoCourseToken — demo fee token, open `mint` | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` |
+| DemoCourseToken — demo fee token, open `mint` | `0x0B2fA5050912F4CdB5f7C47A5FAd6A8F9398CBaf` |
 
 Not ours: BAS `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` (our anchor target) · x402 proxy
 `0x402085c248EeA27D92E8b30b2C58ed07f9E20001` · Permit2 `0x0000…8BA3`. Settlement + split = **190,659 gas**; at a $0.001 fee, break-even ≈ **$5.24** BNB — so verification is sold **in batches**.

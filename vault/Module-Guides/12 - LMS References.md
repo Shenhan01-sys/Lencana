@@ -4,7 +4,7 @@ tags: [module, 12]
 
 # 12 - LMS References
 
-**Purpose:** _TODO one sentence: what a reader gets from this module._
+**Purpose:** Six learning platforms read at pinned commits, so our differentiation is a fact about their code and not a claim about their marketing.
 
 ## Files in this module
 - [[12-LMS-References/00 - Hub LMS References]]
@@ -18,4 +18,6 @@ tags: [module, 12]
 - [[12-LMS-References/L8 - Lencana vs LMS]]
 
 ## Key facts
-- _TODO_
+- Read the comparison first: [[12-LMS-References/L8 - Lencana vs LMS]].
+- These repos are reference material: their UI is explicitly NOT a design source ([[11-Refactoring/RF4 - Learning Surface Target Shape]]); Lencana keeps its own design.
+- Every claim names file and line, and sparse-checkout limits are stated as limits.

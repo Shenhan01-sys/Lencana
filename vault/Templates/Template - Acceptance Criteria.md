@@ -14,7 +14,7 @@ tags: [acceptance, "AC-P3"]
 
 # AC-P3 — <title>
 
-**Backlog:** [[07-Backlog/01 - Backlog]] entry **P3** · **Plan:** [[07-Backlog/02 - Plan to the Deadline]] ·
+**Backlog:** [[07-Backlog/01 - Backlog]] entry **P3** · **Plan:** [[00-Overview/02 - Roadmap to the Deadline]] ·
 **Testing:** [[09-Testing/T6 - x402]] · **Summary:** [[08-Results/P3 - Executive Summary]]
 
 ## a — <criterion group>

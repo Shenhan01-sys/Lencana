@@ -12,8 +12,7 @@ holds the pages themselves (`web/src/courses/*.ts`, Indonesian because the learn
 types are strict and the module is DOM-free, which is what lets `npx tsx scripts/probe.ts` audit the
 material from Node rather than trust what the browser shows. The auditors refuse specific things; a
 broken answer key, a duplicate slug or a rubric that does not sum to 100 turns the harness red
-instead of turning up as a wrong grade later. Nothing here decides a verdict — see [[K4 - Scoring
-without the platform deciding]].
+instead of turning up as a wrong grade later. Nothing here decides a verdict — see [[K4 - Scoring without the platform deciding]].
 
 **Key points:**
 - `LessonKind` is a **closed set of six**: `bacaan · kuis · esai · praktik · kasus · referensi`

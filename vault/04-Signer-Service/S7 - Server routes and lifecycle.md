@@ -84,8 +84,7 @@ instance — switching identity for one run silently breaks the documents of the
   skipped instead of printing a smaller silent green (`:93`).
 - `server.js:325` exports `server` and `buildList`, so a harness can drive it in-process without exposing a port.
 - What is deliberately **not** here: no authentication, no rate limiting, no cache, no database. State is
-  `.store/state.json` (slot allocations, issued-credential records — [[S2 - Status lists from chain
-  state]]); everything else is read from chain per request. Third-party JSON-LD contexts are still
+  `.store/state.json` (slot allocations, issued-credential records — [[S2 - Status lists from chain state]]); everything else is read from chain per request. Third-party JSON-LD contexts are still
   fetched over the network during verification, so a w3.org outage is a demo outage.
 
 **Related:** [[S1 - The credential document]] · [[S2 - Status lists from chain state]] ·

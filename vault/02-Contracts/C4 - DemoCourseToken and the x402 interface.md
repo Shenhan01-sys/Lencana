@@ -52,7 +52,7 @@ visible.
 - Stated on the page rather than buried: an open `mint()` is acceptable on 97 and a mistake on 56 (`contracts/DemoCourseToken.sol:24-26`).
   Nothing of ours is deployed on mainnet; chain 56 appears only as a cross-check, and these tests `vm.skip` unless the chain is 97 or 56
   (`test/SettlementSplitOnBsc.fork.t.sol:71`).
-- Deployed on chain 97 at `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` by `script/PaidVerificationDemo.s.sol:82`, which constructs the split
+- Deployed on chain 97 at `0x0B2fA5050912F4CdB5f7C47A5FAd6A8F9398CBaf` by `script/PaidVerificationDemo.s.sol:82`, which constructs the split
   (`:83`), settles once through the canonical proxy with `settleWithPermit` (`:118`) and calls `splitErc20` (`:121`). The HTTP side has its own
   harness: `npm run x402` (`signer/package.json:19`).
 - Trap: a balance of this token is not money. The script mints to the test client and the fork tests mint to the split contract to simulate

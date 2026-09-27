@@ -34,9 +34,9 @@ readers are judges, a frontend maintainer, and AI agents.
 |---|---|
 | `01-briefing.md` | [[00-Overview/01 - Briefing]] |
 | `02-architecture.md` | [[01-Architecture/01 - Architecture]] + parts `A1…` |
-| `03-evidence-and-limits.md` | [[08-Results/00 - Hub Evidence and Limits]] + [[10-Contributors/Claims-Cheat-Sheet]] |
+| `03-evidence-and-limits.md` | [[08-Results/00 - Hub Results]] + [[10-Contributors/Claims-Cheat-Sheet]] |
 | `04-technical-reference.md` | [[06-Spec-Research/01 - Spec Research]] + parts `R1…` |
-| `05-status-and-tasks.md` | [[07-Backlog/01 - Backlog]] + [[Notes/Status-2026-09-25]] |
+| `05-status-and-tasks.md` | [[07-Backlog/01 - Backlog]] + [[07-Backlog/03 - Findings and Tasks 2026-09-26|status dan tugas terbaru]] |
 
 ## Structure
 

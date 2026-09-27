@@ -14,7 +14,7 @@ tags: [exec-summary, "P3"]
 
 # P3 — Executive Summary (<title>)
 
-**Backlog:** [[07-Backlog/01 - Backlog]] entry P3 · **Plan:** [[07-Backlog/02 - Plan to the Deadline]] ·
+**Backlog:** [[07-Backlog/01 - Backlog]] entry P3 · **Plan:** [[00-Overview/02 - Roadmap to the Deadline]] ·
 **AC:** [[07-Backlog/Acceptance-Criteria/AC-P3 - Paid verification]] · **Testing:** [[09-Testing/T6 - x402]]
 
 ## 1. What changed

@@ -4,7 +4,7 @@ tags: [module, 09]
 
 # 09 - Testing
 
-**Purpose:** _TODO one sentence: what a reader gets from this module._
+**Purpose:** One note per harness, each stating the command, the date it last ran, the number it printed and the group it skipped - so a green line is never read as full coverage.
 
 ## Files in this module
 - [[09-Testing/00 - Hub Testing]]
@@ -17,4 +17,6 @@ tags: [module, 09]
 - [[09-Testing/T8 - signer serve-probe.js]]
 
 ## Key facts
-- _TODO_
+- The vault has its own guards: `scripts/sync-vault.ps1`, then `check-links.ps1`, `check-mermaid.ps1` and `check-lang.ps1`; all four are required after an edit (see [[Conventions]]).
+- Counts grow with the watched set on purpose: the run prints them, the page does not decide them ([[09-Testing/00 - Hub Testing]]).
+- Interoperability is a run, not a belief: [[09-Testing/T15 - 1EdTech validator]].

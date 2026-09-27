@@ -15,7 +15,7 @@ product still stands, which is the point (verification is free → [[00-Overview
 | `CredentialResolver.sol` | `0x7CA624caFDe5cA3A27b33d26be56F73a90792065` | registry of allowed issuers + the EAS/BAS hook that decides whether an attestation is admissible, and the 7-field status read that every verdict comes from |
 | `SoulboundCert.sol` | `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` | the artifact: ERC-721 + ERC-5192, minting refuses a credential that is not live, transfers always revert |
 | `SettlementSplit.sol` | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` | receives one payment, divides it, keeps nothing, cannot raise its own fee |
-| `DemoCourseToken.sol` | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` | the ERC-20 the demo is paid in. **Open `mint`, never mainnet** — labelled as a demo everywhere it appears |
+| `DemoCourseToken.sol` | `0x0B2fA5050912F4CdB5f7C47A5FAd6A8F9398CBaf` | the ERC-20 the demo is paid in. **Open `mint`, never mainnet** — labelled as a demo everywhere it appears |
 
 Plus `contracts/interfaces/IX402ExactPermit2Proxy.sol`, which is a **mirror of a contract we did not
 deploy** — the canonical proxy. Fork tests identify it by its own constants rather than trusting an

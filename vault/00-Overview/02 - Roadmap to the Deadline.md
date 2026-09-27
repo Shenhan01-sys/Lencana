@@ -13,7 +13,7 @@ each day is worth.
 | day | work | why here |
 |---|---|---|
 | **25 Sep** (today) | vault restructure + contributor layer (this folder); front-end open items written up with evidence; refresh `../README.md`, which still says "no contract has been broadcast to a public testnet" | the repository's face contradicts the code; judges read the face first |
-| **26 Sep** | **public URL for `signer/`** → re-issue one credential with a real `BASE_URL` → run `https://vc.1ed.tech` and record the result verbatim | our strongest missing proof, and it needs almost no new code. Full plan: [[07-Backlog/Acceptance-Criteria/AC-P7 - Public URL and validator run]] |
+| **26 Sep** | **public URL for `signer/`** → re-issue one credential with a real `BASE_URL` → run `https://vc.1ed.tech` and record the result verbatim | our strongest missing proof, and it needs almost no new code. Full plan: [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria|AC-P7]] |
 | **27 Sep** | paid path on the hosted service (rate limit, batch log), and one **real** essay (not a fixture) scored by the judge | monetisation + the AI track claim; today every grade the model produced was on our own fixture text |
 | **28-29 Sep** | video ≤ 5 min (the four scenes in [[00-Overview/05 - Demo Scenes]]), final README, submission form, market evidence for impact/viability | the artefacts already exist on chain; this is assembly |
 | **30 Sep** | submit **in the morning**, not at 23:00 | portal risk, not code risk |

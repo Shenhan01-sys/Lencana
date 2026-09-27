@@ -150,7 +150,7 @@ Deployed 21 Sep, and re-read from the chain afterwards rather than trusted from 
 | BAS core used (not deployed by us) | `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` |
 | BAS schema registry reached through it | `0x08C8b8417313fF130526862f90cd822B55002D72` |
 | `SettlementSplit` (revenue split, 10% platform) | `0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE` |
-| `DemoCourseToken` — labelled demo coin used to pay it | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` |
+| `DemoCourseToken` — labelled demo coin used to pay it | `0x0B2fA5050912F4CdB5f7C47A5FAd6A8F9398CBaf` |
 | Permit2 / x402 exact proxy called by the payment test | `0x000000000022D473030F116dDEE9F6B43aC78BA3` / `0x402085c248EeA27D92E8b30b2C58ed07f9E20001` (neither is ours) |
 
 The last two rows exist because a payment demo is only worth showing if the reader can check which

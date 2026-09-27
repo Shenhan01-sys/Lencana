@@ -15,7 +15,7 @@ Structural entry point: every layer, one line each. For orientation and the coun
 - [[08-Results/01 - Evidence and Limits]] — proven vs not proven
 - [[10-Contributors/Claims-Cheat-Sheet]] — sentences we forbid ourselves
 - [[07-Backlog/01 - Backlog]] — what is left
-- [[Notes/Status-2026-09-25]] — the current snapshot
+- [[07-Backlog/03 - Findings and Tasks 2026-09-26|status dan tugas terbaru]] — the current snapshot
 
 ## 🗂️ Layers
 
