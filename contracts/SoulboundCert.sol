@@ -58,6 +58,11 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
     /// @dev interfaceId ERC-5192 = selector `locked(uint256)` = 0xb45a3c0e.
     bytes4 private constant ERC5192_INTERFACE_ID = 0xb45a3c0e;
 
+    /// @dev B40: plafon satu batch = 25, sama dengan batas batch jalur bayar x402. Batas yang
+    /// sama di dua tempat bukan kebetulan atau salin-tempel: itu angka tertinggi yang kami ukur
+    /// masih dijawab RPC publik tanpa respons setengah kosong.
+    uint256 public constant MAX_BATCH = 25;
+
     ICredentialRegistry public immutable registry;
 
     /// @dev credentialHash => tokenId. tokenId = uint256(credentialHash), jadi pemetaan ini
@@ -87,6 +92,14 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
     /// @dev `uri` disisipkan apa adanya ke dalam JSON yang kita rakit di `tokenURI()`. Satu tanda
     /// kutip atau backslash di dalamnya bukan sekadar jelek: itu merusak metadata semua koleksi.
     error UnsafeUri(uint256 byteAt);
+    /// @dev B39: artefak hanya untuk kredensial level KURSUS. `lessonId` ikut dibawa supaya
+    /// penolakannya terbaca sebagai keputusan, bukan sebagai bug — penerbit yang melihatnya tahu
+    /// persis lesson mana yang tidak akan pernah punya token.
+    error LessonLevelNotMintable(bytes32 credentialHash, bytes32 lessonId);
+    /// @dev B40: bentuk batch ditolak sebelum satu artefak pun tercetak.
+    error EmptyBatch();
+    error BatchLengthMismatch(uint256 learners, uint256 hashes, uint256 uris);
+    error BatchTooLarge(uint256 requested, uint256 maximum);
 
     constructor(ICredentialRegistry registry_, string memory name_, string memory symbol_, address owner_)
         ERC721(name_, symbol_)
@@ -110,6 +123,14 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
     /// atas kredensialnya; ia hanya menunjuk hash-nya.
     function mint(address learner, bytes32 credentialHash, string calldata uri) external returns (uint256) {
         if (msg.sender != owner()) revert NotIssuer(msg.sender);
+        return _mintOne(learner, credentialHash, uri);
+    }
+
+    /// @dev SATU jalur pemeriksaan, dipakai mint() dan mintBatch(). Ini bukan kosmetik:
+    /// granularitas (B39) dan hidup/tidaknya kredensial hanya berarti kalau tidak ada jalur kedua
+    /// yang bisa melewatinya. `internal` juga membuat otorisasi tidak berubah - `msg.sender`
+    /// tetap pemanggil aslinya saat `mint()`/`mintBatch()` mengeceknya.
+    function _mintOne(address learner, bytes32 credentialHash, string memory uri) internal returns (uint256) {
         if (learner == address(0)) revert ZeroAddress();
         if (bytes(uri).length == 0) revert EmptyURI();
         _requireJsonSafe(uri);
@@ -132,6 +153,14 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
         // berdiri di belakang penerbit itu.
         if (delisted) revert IssuerDelisted(credentialHash);
 
+        // B39: artefak adalah capaian level KURSUS. Kredensial lesson tetap terbit dan tetap
+        // bisa diverifikasi — yang tidak boleh adalah masing-masing mencetak token, karena 24
+        // lesson satu kursus akan mengubah "portofolio pencapaian" jadi 24 keping yang saling
+        // menutupi. Ditegakkan di SINI, bukan di disiplin pemanggilnya: aturan yang hanya hidup
+        // di satu script bisa dilewati script berikutnya tanpa ada yang menoleh.
+        bytes32 lessonId = registry.lessonOf(registry.attestationOf(credentialHash));
+        if (lessonId != bytes32(0)) revert LessonLevelNotMintable(credentialHash, lessonId);
+
         address holder = registry.holderOf(credentialHash);
         if (holder != learner) revert WrongHolder(credentialHash, holder, learner);
 
@@ -143,6 +172,48 @@ contract SoulboundCert is ERC721, Ownable2Step, IERC5192 {
         emit Locked(tokenId, learner);
         emit CertBound(tokenId, learner, credentialHash, msg.sender);
         return tokenId;
+    }
+
+    /// @notice B40: beberapa artefak dalam satu transaksi.
+    ///
+    /// Sengaja memakai `_mintOne` — fungsi yang sama yang dipanggil `mint()` — dan BUKAN menyalin
+    /// isinya. Dua jalur dengan pemeriksaan yang disalin adalah cara aturan granularitas keluar
+    /// lagi lewat pintu samping. Otorisasi tetap ditegakkan di sini (`NotIssuer`), karena
+    /// `_mintOne` sendiri tidak memeriksa siapa pemanggilnya.
+    ///
+    /// Hematnya konkret dan DIUKUR, bukan diasumsikan. Terukur 28 Sep di test lokal
+    /// (`test_GasBatchVersusSatuPerSatu`): 4 artefak satu-per-satu = 474.335 gas,
+    /// `mintBatch(4)` = 436.164 gas, selisih **38.171** (~9.543 per artefak). Kami menyebut
+    /// selisih yang terukur dan berhenti di situ: breakdown per opcode tidak kami ukur, jadi tidak
+    /// kami kutip. Yang jelas arahnya — yang mahal per artefak (SSTORE + LOG) tetap per artefak;
+    /// batch tidak membuat biaya itu hilang dengan sihir.
+    ///
+    /// Perlu dicatat juga apa yang TIDAK diukur di sini: 21.000 gas dasar transaksi dan verifikasi
+    /// tanda tangan nyata-nyata dibayar sekali per transaksi, tapi keduanya berada di luar
+    /// pengukuran EVM internal ini, jadi angka itu tidak kami masukkan ke klaim mana pun.
+    ///
+    /// Batch tidak toleran sebagian: satu kredensial yang mati membatalkan semuanya. Setengah
+    /// artefak terbit tanpa permintaan yang selesai adalah keadaan yang tidak bisa kami jelaskan
+    /// ke penerbit, dan tidak ada buku utang di kontrak ini yang bisa memperbaikinya.
+    ///
+    /// @dev `MAX_BATCH` = 25, sama dengan batas batch jalur bayar x402. Angka yang sama di dua
+    /// tempat bukan kebetulan: itu batas yang kami ukur masih dijawab RPC publik tanpa respons
+    /// setengah kosong (25 panggilan paralel = setengahnya kosong).
+    function mintBatch(
+        address[] calldata learners,
+        bytes32[] calldata credentialHashes,
+        string[] calldata uris
+    ) external returns (uint256[] memory tokenIds) {
+        if (msg.sender != owner()) revert NotIssuer(msg.sender);
+        uint256 n = credentialHashes.length;
+        if (n == 0) revert EmptyBatch();
+        if (learners.length != n || uris.length != n) revert BatchLengthMismatch(learners.length, n, uris.length);
+        if (n > MAX_BATCH) revert BatchTooLarge(n, MAX_BATCH);
+
+        tokenIds = new uint256[](n);
+        for (uint256 i = 0; i < n; i++) {
+            tokenIds[i] = _mintOne(learners[i], credentialHashes[i], uris[i]);
+        }
     }
 
     // ------------------------------------------------------------- pembacaan

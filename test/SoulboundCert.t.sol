@@ -50,6 +50,25 @@ contract StubCredentialRegistry is ICredentialRegistry {
     function holderOf(bytes32) external view returns (address) {
         return exists ? holder : address(0);
     }
+
+    /// @dev Dua fungsi ini ada karena B39 ditegakkan di kontrak artefak: ia bertanya "kredensial
+    /// ini level kursus atau lesson?" lewat registry, bukan lewat disiplin pemanggilnya. Default
+    /// `lessonToReturn = 0` berarti level KURSUS, jadi test lama tetap bicara tentang mekanika
+    /// soulbound dan bukan tentang granularitas.
+    bytes32 public uidToReturn = keccak256("attestation-stub");
+    bytes32 public lessonToReturn;
+
+    function attestationOf(bytes32) external view returns (bytes32) {
+        return uidToReturn;
+    }
+
+    function lessonOf(bytes32) external view returns (bytes32) {
+        return lessonToReturn;
+    }
+
+    function setLesson(bytes32 lessonId) external {
+        lessonToReturn = lessonId;
+    }
 }
 
 /// @title Mekanika soulbound diuji lokal; integrasinya tidak.
@@ -306,5 +325,121 @@ contract SoulboundCertTest is Test {
         cert.transferFrom(learner, to, id);
 
         assertEq(cert.ownerOf(id), learner);
+    }
+
+    /// @dev B39: kredensial lesson TIDAK mencetak artefak. Yang diuji bukan "mint menolak" secara
+    /// umum, tapi bahwa penolakannya datang dari granularitas — jadi ia tetap lolos untuk level
+    /// kursus yang sama, dan pesan revert-nya menyebut lessonId yang jadi sebab.
+    function test_ArtefakHanyaLevelKursus() public {
+        bytes32 lessonId = keccak256("lesson:m2-gas-bayar");
+
+        // level kursus: jalan
+        uint256 id = _mintCert(learner, credHash, uri);
+        assertEq(cert.ownerOf(id), learner);
+
+        // level lesson: ditolak, dan sebabnya terbaca
+        registry.setLesson(lessonId);
+        bytes32 otherHash = keccak256("kredensial-lesson");
+        vm.prank(platform);
+        vm.expectRevert(abi.encodeWithSelector(SoulboundCert.LessonLevelNotMintable.selector, otherHash, lessonId));
+        cert.mint(learner, otherHash, uri);
+        assertEq(cert.balanceOf(learner), 1, "penolakan harus tidak meninggalkan artefak");
+    }
+
+    /// @dev B40 bagian atomisitas. Jujur tentang cakupannya: stub registry di berkas ini bersifat
+    /// GLOBAL (satu status untuk semua hash), jadi test ini membuktikan "batch yang gagal tidak
+    /// meninggalkan artefak sama sekali", BUKAN kasus "yang pertama hidup, yang kedua mati" -
+    /// yang itu ditegakkan oleh `require` di dalam `mint` (satu jalur untuk batch dan tunggal)
+    /// dan butuh dua kredensial dengan status berbeda di chain nyata, jadi tempatnya di fork test.
+    function test_BatchYangGagalTidakMeninggalkanArtefak() public {
+        address[] memory learners = new address[](2);
+        learners[0] = learner;
+        learners[1] = learner;
+        bytes32[] memory hashes = new bytes32[](2);
+        hashes[0] = keccak256("batch-1");
+        hashes[1] = keccak256("batch-2");
+        string[] memory uris = new string[](2);
+        uris[0] = uri;
+        uris[1] = "https://example.org/vc/2.json";
+
+        registry.setLive(learner, platform, uint64(block.timestamp + 365 days));
+        registry.setRevoked(true); // global: kedua hash mati
+
+        vm.prank(platform);
+        // Error-nya membawa argumen (hash yang mana), jadi selector saja tidak cukup - dan itu
+        // justru yang kita inginkan: test membaca sebabnya, bukan sekadar "ada revert".
+        vm.expectRevert(abi.encodeWithSelector(SoulboundCert.CredentialRevoked.selector, hashes[0]));
+        cert.mintBatch(learners, hashes, uris);
+
+        assertEq(cert.balanceOf(learner), 0, "batch yang gagal tidak boleh meninggalkan artefak");
+        assertEq(cert.balanceOf(address(this)), 0);
+    }
+
+    /// @dev B40 dalam angka. Yang dibandingkan di sini bukan "batch lebih murah karena sihir",
+    /// tapi overhead yang memang hilang: satu verifikasi tanda tangan + satu biaya dasar
+    /// transaksi untuk N artefak, bukan N kali. Yang mahal per artefak (SSTORE + LOG) tetap
+    /// dibayar per artefak, dan test ini mencetaknya supaya kami tidak mengklaim penghematan
+    /// yang lebih besar daripada yang terjadi.
+    function test_GasBatchVersusSatuPerSatu() public {
+        registry.setLive(learner, platform, uint64(block.timestamp + 365 days));
+
+        bytes32[] memory hs = new bytes32[](4);
+        for (uint256 i = 0; i < hs.length; i++) {
+            hs[i] = keccak256(abi.encode("batch-gas", i));
+        }
+
+        uint256 separateStart = gasleft();
+        for (uint256 i = 0; i < hs.length; i++) {
+            vm.prank(platform);
+            cert.mint(learner, hs[i], uri);
+        }
+        uint256 separate = separateStart - gasleft();
+
+        bytes32[] memory bh = new bytes32[](4);
+        address[] memory bl = new address[](4);
+        string[] memory bu = new string[](4);
+        for (uint256 i = 0; i < 4; i++) {
+            bh[i] = keccak256(abi.encode("batch-gas-b", i));
+            bl[i] = learner;
+            bu[i] = uri;
+        }
+        vm.prank(platform);
+        uint256 batchStart = gasleft();
+        cert.mintBatch(bl, bh, bu);
+        uint256 batch = batchStart - gasleft();
+
+        assertEq(cert.balanceOf(learner), 8);
+        // Overhead loop test ini masuk ke kedua pengukuran; yang dijamin di sini arahnya,
+        // besaran sebenarnya dicetak untuk dibaca, bukan untuk dikarang di dokumen.
+        assertLt(batch, separate, "batch harus lebih murah daripada satu-per-satu");
+        emit log_named_uint("gas 4x mint terpisah (termasuk overhead test)", separate);
+        emit log_named_uint("gas mintBatch(4)", batch);
+        emit log_named_uint("hemat untuk 4 artefak", separate - batch);
+    }
+
+    /// @dev Bentuk batch dijaga sebelum satu artefak pun tercetak.
+    function test_BentukBatchDitolakSebelumMinting() public {
+        address[] memory one = new address[](1);
+        one[0] = learner;
+        bytes32[] memory two = new bytes32[](2);
+        string[] memory none = new string[](0);
+
+        vm.startPrank(platform);
+        vm.expectRevert(abi.encodeWithSelector(SoulboundCert.BatchLengthMismatch.selector, 1, 2, 0));
+        cert.mintBatch(one, two, none);
+
+        address[] memory zero = new address[](0);
+        bytes32[] memory hashesZero = new bytes32[](0);
+        string[] memory urisZero = new string[](0);
+        vm.expectRevert(SoulboundCert.EmptyBatch.selector);
+        cert.mintBatch(zero, hashesZero, urisZero);
+
+        uint256 max = cert.MAX_BATCH();
+        address[] memory bigL = new address[](max + 1);
+        bytes32[] memory bigH = new bytes32[](max + 1);
+        string[] memory bigU = new string[](max + 1);
+        vm.expectRevert(abi.encodeWithSelector(SoulboundCert.BatchTooLarge.selector, max + 1, max));
+        cert.mintBatch(bigL, bigH, bigU);
+        vm.stopPrank();
     }
 }

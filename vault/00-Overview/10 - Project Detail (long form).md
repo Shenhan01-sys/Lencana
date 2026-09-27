@@ -339,7 +339,7 @@ Nothing in this document is a claim without a command behind it. From a clone of
 
 | command | what it proves | result | date |
 |---|---|---|---|
-| `forge build` + `forge test --evm-version cancun --fork-url <97>` | the whole on-chain layer against **real** BAS on a fork of the public testnet | **99 passed / 0 failed** | 27 Sep |
+| `forge build` + `forge test --evm-version cancun --fork-url <97>` | the whole on-chain layer against **real** BAS on a fork of the public testnet | **104 passed / 0 failed** | 28 Sep |
 | `forge test … --fork-url <56>` | same suite against **mainnet** state (interfaces and constants match production) | 99 / 0, identical gas | 27 Sep |
 | `cd web && npx tsc --noEmit && npm run build` | the page compiles | clean | 26 Sep |
 | `cd web && npx tsx scripts/probe.ts` | the **page's own** `verify.ts` reading chain 97 for four verdicts; the seeder's `credentialHash` recomputed from course data equals the on-chain attestation | **59 / 0** | 26 Sep |

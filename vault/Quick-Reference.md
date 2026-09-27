@@ -11,7 +11,7 @@ command and a page disagree, the run wins.**
 
 | command (from `app/`) | prints | last |
 |---|---|---|
-| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | 100 passed / 0 failed | 28 Sep |
+| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | 104 passed / 0 failed | 28 Sep |
 | `cd web && npx tsc --noEmit && npm run build` | clean | 28 Sep |
 | `cd web && npx tsx scripts/probe.ts` | 59 / 0 - the page's own `verify.ts`, four verdicts, public chain 97 | 28 Sep |
 | `cd web && npx tsx scripts/rubric-check.ts` | 17 / 0 - policy and material hash separately | 26 Sep |

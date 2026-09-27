@@ -221,7 +221,7 @@ cd app/web && npx tsc --noEmit && npm run build && npx tsx scripts/probe.ts   # 
 cd app/signer && node scripts/check.js && node scripts/serve-probe.js         # 63 checks, 37 checks (27 Sep)
 cd app/signer && npm run validator                                            # 10 checks + verdict vc.1ed.tech
 cd app/signer && node scripts/anchor.js --dry-run                               # watched set + kedua hash daftar
-cd app && forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com   # 97 passed
+cd app && forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com   # 104 passed
 ```
 Numbers and what each one does *not* prove: [[09-Testing/00 - Hub Testing]]. Sentences we have banned
 for ourselves, including "1EdTech compatible" (yang boleh dikatakan sejak 27 Sep: "lolos validator

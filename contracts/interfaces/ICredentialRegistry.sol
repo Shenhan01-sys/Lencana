@@ -30,4 +30,13 @@ interface ICredentialRegistry {
     /// @notice Alamat peserta yang memegang kredensial ini. Tanpa cek ini, artefak
     /// soulbound bisa di-mint untuk orang yang salah.
     function holderOf(bytes32 credentialHash) external view returns (address);
+
+    /// @notice UID attestation untuk sebuah credentialHash. Dibutuhkan lapis artefak karena
+    /// "lesson atau kursus" tercatat pada UID, bukan pada hash-nya.
+    function attestationOf(bytes32 credentialHash) external view returns (bytes32 uid);
+
+    /// @notice `bytes32(0)` berarti kredensial level KURSUS; nilai lain adalah lesson yang
+    /// diturunkan dari materi kursus. Ini yang membuat keputusan B39 bisa ditegakkan di
+    /// kontrak dan bukan di disiplin pemanggilnya.
+    function lessonOf(bytes32 uid) external view returns (bytes32 lessonId);
 }

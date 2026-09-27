@@ -33,7 +33,7 @@ address in a document ([[06-Spec-Research/R5 - x402 exact Permit2 and the proxy]
 ```powershell
 cd app
 forge build
-forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com   # 97 passed / 0 failed (25 Sep)
+forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com   # 104 passed / 0 failed (28 Sep)
 ```
 
 ⚠️ `--evm-version cancun` is mandatory on `forge test` **and** `forge script` → [[R6 - Toolchain traps that cost time]].

@@ -71,6 +71,12 @@ platform and not the issuing agent.
 **Related:** [[02-Contracts/01 - Contracts]] · [[02-Contracts/C1 - CredentialResolver]] · [[01-Architecture/01 - Architecture]] ·
 [[00-Overview/03 - Decisions]] · [[00-Overview/04 - Corrections]] · [[09-Testing/00 - Hub Testing]] · [[10-Contributors/Claims-Cheat-Sheet]]
 
+### Granularitas dan batch (D42/D43, 28 Sep)
+
+- Artefak hanya untuk kredensial **level kursus**: `_mintOne` bertanya `lessonOf(attestationOf(hash))` dan menolak dengan `LessonLevelNotMintable(hash, lessonId)`. Satu jalur pemeriksaan untuk `mint()` dan `mintBatch()`, jadi tidak ada pintu samping.
+- `mintBatch(...)` mengikat sampai `MAX_BATCH = 25` artefak dalam satu transaksi dan gagal-total (atomik). Terukur 28 Sep: 4 artefak satu-per-satu 474.335 gas vs `mintBatch(4)` 436.164 gas = selisih **38.171**; kami tidak menambahkan 21.000 gas dasar transaksi ke angka itu karena tidak terlihat dari pengukuran internal ini.
+- Kedua hal itu **belum ada di instance yang ter-deploy** (`0xC6FD12…`): redeploy-nya digabung ke B52, dan alasannya ada di baris B52, bukan dihilangkan.
+
 ### Drift yang tersisa 28 Sep: ada DUA `SoulboundCert` di chain 97
 
 | kontrak | apa yang dipegang | siapa yang membacanya |

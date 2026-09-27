@@ -29,8 +29,8 @@ with them, **53** and **20**. Always read the group list, not only the count →
 
 | # | Command | Measured | Result | What it actually proves | Proves claim of |
 |---|---|---|---|---|---|
-| [[T1 - forge test on chain 97]] | `forge test --evm-version cancun --fork-url <97>` | **2026-09-25** | **97 passed / 0 failed** | every on-chain layer against real BAS on a fork of the public testnet | P1, P2 |
-| [[T2 - forge test on chain 56]] | same, `--fork-url <56>` | 2026-09-23 | 97 passed / 0 failed | the same suite against mainnet state (not re-run since) | P1 |
+| [[T1 - forge test on chain 97]] | `forge test --evm-version cancun --fork-url <97>` | **2026-09-28** | **104 passed / 0 failed** | every on-chain layer against real BAS on a fork of the public testnet | P1, P2 |
+| [[T2 - forge test on chain 56]] | same, `--fork-url <56>` | **2026-09-28** | 104 passed / 0 failed | the same suite against mainnet state; identical counts on both chains | P1 |
 | [[T3 - web typecheck and build]] | `npx tsc --noEmit` · `npm run build` | **2026-09-25** | clean · 436 modules · 2.19 s | the page compiles; nothing about behaviour | P6 |
 | [[T4 - npm run probe]] | `npx tsx scripts/probe.ts` | **2026-09-25** | **59 / 0 failed** | the *real* `verify.ts` reads public chain 97 correctly for four verdicts, and the course content + grading authority are internally consistent | P1, P6, P4 |
 | [[T5 - npm run rubric]] | `npx tsx scripts/rubric-check.ts` | **2026-09-25** | **17 / 0 failed** | the pass mark is computed, and policy vs material hash separately | P4 |

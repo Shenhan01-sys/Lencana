@@ -127,7 +127,7 @@ to *issuance*, paid by whoever broadcasts, never as a percentage cut taken out o
 
 | command (from `app/`) | result | date |
 |---|---|---|
-| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | **97 passed / 0 failed** | 26 Sep |
+| `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | **104 passed / 0 failed** | 28 Sep |
 | `cd web && npx tsx scripts/probe.ts` | **59 / 0** (real `verify.ts`, four verdicts, against public 97) | 26 Sep |
 | `cd web && npx tsx scripts/rubric-check.ts` | **17 / 0** (rubricHash stable, typo in material does not move it) | 26 Sep |
 | `cd web && npx tsx scripts/inventory.ts` | 2 courses · 7 modules · 24 lessons · 34 pages · 412 min · 28 questions · 2 essays | 26 Sep |

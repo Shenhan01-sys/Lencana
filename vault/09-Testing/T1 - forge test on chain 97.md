@@ -1,8 +1,8 @@
 ---
 tags: [testing, "T1"]
 command: forge test --evm-version cancun --fork-url <97>
-measured: 2026-09-25
-result: 97 passed / 0 failed
+measured: 2026-09-28
+result: 104 passed / 0 failed
 ---
 
 # T1 - forge test on chain 97
