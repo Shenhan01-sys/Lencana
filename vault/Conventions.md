@@ -56,7 +56,7 @@ Concepts/           atomic concept notes (#concept)
 Module-Guides/      one guide per NN- folder (auto-stubbed by sync-vault.ps1, must be filled)
 Notes/              dated session notes, status snapshots
 Templates/          the note skeletons used above
-scripts/            sync-vault.ps1, check-links.ps1, check-mermaid.ps1, new-note.ps1
+scripts/            sync-vault.ps1, check-links.ps1, check-mermaid.ps1, check-lang.ps1, new-note.ps1
 ```
 
 ## Naming
@@ -108,6 +108,7 @@ Model examples in this vault: `07-Backlog/Acceptance-Criteria/`, `09-Testing/`, 
   statement, and the whole block then silently fails to render (prose review cannot see it; the parser
   caught one in `00-Overview/10` on 26 Sep). Write `·`, `—`, or the escape `#59;` instead.
   `scripts\check-mermaid.ps1` enforces this and reports unclosed fences → target **`Hazards: 0`**.
+- **Bahasa.** `scripts\check-lang.ps1` memindai tiap catatan dari token CJK yang nyelip saat menulis cepat (tiga kali terjadi dalam sehari, semuanya oleh penulis yang sama, dan tak satu pun terlihat oleh penulisnya) → target **`CJK tokens: 0`**.
 - After adding or renaming notes: `scripts\sync-vault.ps1` then `scripts\check-links.ps1` →
   target **`Broken: 0`**.
 - Never edit `_Auto-Index.md` by hand; it is regenerated.

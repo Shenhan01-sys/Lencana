@@ -70,3 +70,16 @@ platform and not the issuing agent.
 
 **Related:** [[02-Contracts/01 - Contracts]] · [[02-Contracts/C1 - CredentialResolver]] · [[01-Architecture/01 - Architecture]] ·
 [[00-Overview/03 - Decisions]] · [[00-Overview/04 - Corrections]] · [[09-Testing/00 - Hub Testing]] · [[10-Contributors/Claims-Cheat-Sheet]]
+
+### Drift yang tersisa 28 Sep: ada DUA `SoulboundCert` di chain 97
+
+| kontrak | apa yang dipegang | siapa yang membacanya |
+|---|---|---|
+| `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` | artefak corpus demo (seed 21-22 Sep) — metadata **beku saat mint**, perilaku sebelum B38 diperbaiki | `CERT_ADDRESS` di `.env`, jadi `npm run probe` (59/0 hari ini) menguji yang LAMA |
+| `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` | artefak kredensial `0xfe4f7161…` yang lolos validator — metadata **dirakit dari `statusOf()` setiap panggilan** | belum diuji harness mana pun |
+
+Selama ini belum disatukan, kalimat "artefak ikut berubah saat kredensial dicabut" hanya benar untuk SATU
+token, bukan untuk corpus demo yang akan dibuka juri dari video. Yang perlu: pindahkan artefak demo ke
+kontrak baru (mint ulang; yang sudah dicabut harus DITOLAK — itu justru bukti mekanismenya bekerja, lihat
+§7 di [[00-Overview/10 - Project Detail (long form)]]), lalu satu `CERT_ADDRESS`, dan `probe` ikut dipindah
+supaya yang diuji adalah yang kita pamerkan.

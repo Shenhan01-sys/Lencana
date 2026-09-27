@@ -25,7 +25,7 @@ edit it from here, and do not answer from memory when a file is one `Read` away.
    "does" against [[10-Contributors/Claims-Cheat-Sheet]] — several phrasings are deliberately
    forbidden because they would overstate what was measured.
 7. After editing: `powershell -ExecutionPolicy Bypass -File scripts\sync-vault.ps1` and then
-   `scripts\check-links.ps1` → **`Broken: 0`**, and `scripts\check-mermaid.ps1` → **`Hazards: 0`**
+   `scripts\check-links.ps1` → **`Broken: 0`**, and `scripts\check-mermaid.ps1` → **`Hazards: 0`** dan `scripts\check-lang.ps1` → **`CJK tokens: 0`**
    (a literal `;` inside a `sequenceDiagram` makes the whole block fail to render, and prose review
    cannot see it). Module-Guide stubs created by the script must be filled, not left as `TODO`.
 8. Superseded files: move the content and delete the file in one commit, or keep it under an
