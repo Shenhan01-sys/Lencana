@@ -183,8 +183,15 @@ if (!docHash) {
     let crit = null
     try { crit = await getJson(new URL(critUrl).pathname) } catch (e) { console.log(`  (rute kriteria: ${e.message})`) }
     check('rute kriteria: URL yang dirujuk dokumen membalas 200', typeof crit?.id === 'string', critUrl)
+    // Diperbandingkan lewat PATH, bukan URL penuh: dokumen lama menyimpan host tempat ia terbit
+    // (tunnel yang hari ini sudah mati), sedangkan kita mengambil rute ini dari BASE yang aktif.
+    // Membandingkan keduanya akan melaporkan merah yang benar soal host tapi salah soal bentuk —
+    // dan itu membuat orang berhenti membaca baris yang penting.
+    const critPath = new URL(critUrl).pathname
     check('rute kriteria: ada #scale, karena resultDescription menunjuk ke sana',
-      crit?.scale?.id === `${critUrl}#scale`, crit?.scale?.id ?? '(tanpa scale)')
+      crit?.scale?.id === `${BASE}${critPath}#scale`, crit?.scale?.id ?? '(tanpa scale)')
+    console.log(`  info  host di dokumen (${new URL(critUrl).host}) vs host yang menyajikan (${new URL(BASE).host})`
+      + (new URL(critUrl).host === new URL(BASE).host ? ' — sama' : ' — BEDA: dokumen ini terbit di host yang lain (B51)'))
     check('rute kriteria: memuat bobot dan pass mark penerbit',
       !!crit?.policy?.weights && Number.isFinite(Number(crit?.policy?.passMark)))
     check('rute kriteria: TIDAK memuat kunci jawaban kuis',
@@ -193,6 +200,29 @@ if (!docHash) {
       .match(/\[rubrik ([0-9a-f]{12})\]/)
     check('rute kriteria: rubricRef sama dengan yang tercetak di kredensial',
       !!inCred && crit?.rubricRef === inCred[1], `${crit?.rubricRef} vs ${inCred?.[1]}`)
+  }
+
+  // `result[0].id` menunjuk rute /results. Kasus yang sama persis dengan /criteria kemarin: ijazah
+  // mencetak URL yang tidak menjawab. Di sinilah B44 dijawab untuk publik.
+  const courseId = String(doc?.credentialSubject?.achievement?.id ?? '').split('/').pop()
+  if (!courseId) {
+    skipped.push('dokumen tanpa achievement.id — rute /results tidak ikut diuji')
+  } else {
+    const rUrl = `/results/${courseId}/${docHash}`
+    let rd = null
+    try { rd = await getJson(rUrl) } catch (e) { console.log(`  (rute hasil: ${e.message})`) }
+    const rdJson = JSON.stringify(rd ?? {})
+    check('rute hasil: URL yang dirujuk result[0].id membalas 200', typeof rd?.id === 'string', rUrl)
+    check('rute hasil: nilai yang dilaporkan sama dengan yang tercetak di kertas',
+      String(rd?.result) === String(doc?.credentialSubject?.result?.[0]?.value),
+      `${rd?.result} vs ${doc?.credentialSubject?.result?.[0]?.value}`)
+    check('rute hasil: menjawab "siapa menilai, dengan aturan apa" (B44)',
+      typeof rd?.method === 'string' && rd.method.includes('rubrik') && !!rd?.rubric?.scale, rd?.method ?? '')
+    check('rute hasil: TIDAK memuat kunci jawaban maupun teks esai peserta',
+      !rdJson.includes('"answer"') && rd?.evidence?.essayTextIncluded === false
+      && rd?.evidence?.quizAnswerKeysIncluded === false)
+    check('rute hasil: courseId yang tidak cocok ditolak, bukan dilayani',
+      (await fetch(`${BASE}/results/kursus-tidak-ada/${docHash}`)).status === 404)
   }
 }
 

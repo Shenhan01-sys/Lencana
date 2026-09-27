@@ -26,6 +26,7 @@ import { sha256Hex } from './credential.js'
 import { makeDocumentLoader } from './sign.js'
 import { getCredentialByHash } from './store.js'
 import { criteriaDocument } from './criteria.js'
+import { resultDocument } from './results.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
@@ -290,6 +291,21 @@ const server = createServer(async (req, res) => {
     // Satu-satunya rute yang meminta bayaran. Verifikasi itu sendiri tetap gratis di halaman;
     // yang berbayar adalah jalur mesin-ke-mesin (agen yang memanggil kami untuk banyak kredensial).
     if (path === '/verify') return handleVerify(req, res)
+    // `result[0].id` di dalam setiap kredensial menunjuk ke sini: angka hasil + bukti apa yang
+    // menghasilkannya + perangkat mana yang menilai (B44). Tanpa rute ini, ijazah kita mencetak
+    // URL yang tidak menjawab — sama seperti `/criteria` kemarin.
+    if (path.startsWith('/results/')) {
+      const [slug, hash] = decodeURIComponent(path.slice('/results/'.length)).split('/')
+      const found = await getCredentialByHash(hash)
+      if (!found || !found.document) {
+        return send(res, 404, { error: 'belum ada hasil untuk hash itu lewat backend ini', path })
+      }
+      if (slug && found.course !== slug) {
+        return send(res, 404, { error: 'courseId tidak cocok dengan credentialHash-nya', expected: found.course, path })
+      }
+      return send(res, 200, resultDocument({ baseUrl: BASE_URL, record: found }))
+    }
+
     // kredensial yang sudah diterbitkan: `/credentials/<credentialHash>` — URL yang sama dengan
     // `id` di dalam dokumen, jadi tautan yang dicetak di ijazah memang menunjuk ke sini.
     // Rekaman tersimpan menurut hash-nya; `id` dokumen adalah URL penuh, dan permintaan masuk
@@ -341,7 +357,7 @@ const server = createServer(async (req, res) => {
     }
     return send(res, 404, {
       error: 'not found', path,
-      hint: `/issuers/${AGENT_SLUG} | /criteria/<courseId> | /credentials/<credentialHash> | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /healthz`,
+      hint: `/issuers/${AGENT_SLUG} | /criteria/<courseId> | /results/<courseId>/<credentialHash> | /credentials/<credentialHash> | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /healthz`,
     })
   } catch (err) {
     // Tidak menutupi sebabnya: kegagalan konfigurasi harus terbaca sebagai kegagalan konfigurasi.

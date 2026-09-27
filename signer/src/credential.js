@@ -90,7 +90,12 @@ export function buildOpenBadgeCredential (input) {
           criteria: {
             id: `${baseUrl}/criteria/${course.slug}`,
             type: 'Criteria',
-            narrative: course.criteria ?? `Lulus ${course.name}`,
+            // `judgeNote` adalah B44 yang jadi terbaca: sebelum ini "esai 99 dinilai model apa,
+            // pada temperature berapa" hanya hidup di log kita, padahal angka itulah yang dicetak
+            // di ijazah. Narasi ini ikut ter-canonicalise dan ikut terikat tanda tangan, jadi
+            // klaimnya tidak bisa diedit setelah terbit.
+            narrative: [course.criteria ?? `Lulus ${course.name}`, assessment?.judgeNote]
+              .filter(Boolean).join(' '),
           },
         },
         // 🔴 `Result` OB 3.0 = { achievedLevel?, resultDescription?, status?, value } — itu isi

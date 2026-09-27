@@ -17,14 +17,15 @@ chain state on every request, and the process holds no credential state of its o
 
 | route | code | returns |
 |---|---|---|
-| `GET /issuers/<slug>`, `GET /issuers` | `server.js:270` | the issuer document, i.e. the `assertionMethod` list verifiers resolve keys from — **for the one slug this process serves** (see the trap below) |
-| `GET /criteria/<courseId>` | `server.js:275-286` | the issuer's assessment policy: weights, pass mark, `validDays`, prerequisite, essay prompt + per-criterion maxima, `rubricHash` and the 12-hex `rubricRef`, **no quiz answer keys** → [[S8 - Criteria document]] |
-| `GET /credentials/status/revocation` | `server.js:288` | signed `BitstringStatusListCredential`, rebuilt from chain per request |
-| `GET /credentials/status/suspension` | `server.js:289` | same, other purpose — see [[S3 - Two status lists]] |
-| `POST /verify` | `server.js:292` | the **only** route that asks for money → [[S6 - x402 paid verification]] |
-| `GET /credentials/<hash>` | `server.js:297-311` | **the signed Verifiable Credential** — this URL *is* the document's `id`. `?format=record` gives the internal record (evidence, rubric, judge); a credential adopted from chain that has no document of ours gets **409**, and an unknown hash gets the 404 that says so |
-| `GET /healthz` | `server.js:313-341` | the operational witness (below) |
-| any other path | `server.js:342-345` | 404 plus a hint listing the real routes |
+| `GET /issuers/<slug>`, `GET /issuers` | `server.js:271` | the issuer document, i.e. the `assertionMethod` list verifiers resolve keys from — **for the one slug this process serves** (see the trap below) |
+| `GET /criteria/<courseId>` | `server.js:276-288` | the issuer's assessment policy: weights, pass mark, `validDays`, prerequisite, essay prompt + per-criterion maxima, `rubricHash` and the 12-hex `rubricRef`, **no quiz answer keys** → [[S8 - Criteria document]] |
+| `GET /credentials/status/revocation` | `server.js:289` | signed `BitstringStatusListCredential`, rebuilt from chain per request |
+| `GET /credentials/status/suspension` | `server.js:290` | same, other purpose — see [[S3 - Two status lists]] |
+| `POST /verify` | `server.js:293` | the **only** route that asks for money → [[S6 - x402 paid verification]] |
+| `GET /results/<courseId>/<credentialHash>` | `server.js:297-311` | the result document: the number, the five mechanical signs with what passed, the judge model + temperature, the rubric ref, and pointers to the credential + chain attestation — **without** quiz answer keys or the learner's essay text. A `courseId` that does not match the hash is answered 404, not served → [[S9 - Result document]] |
+| `GET /credentials/<hash>` | `server.js:313-327` | **the signed Verifiable Credential** — this URL *is* the document's `id`. `?format=record` gives the internal record (evidence, rubric, judge); a credential adopted from chain that has no document of ours gets **409**, and an unknown hash gets the 404 that says so |
+| `GET /healthz` | `server.js:329-357` | the operational witness (below) |
+| any other path | `server.js:358-361` | 404 plus a hint listing the real routes |
 | any thrown error | `server.js:346-349` | 500 carrying `err.message`, so a config failure reads as a config failure |
 
 ⚠️ **What this table used to say, and why it was wrong.** Until 27 Sep the `GET /credentials/…` row read

@@ -43,6 +43,12 @@
  */
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 export const DEFAULT_JUDGE_MODEL = 'openai/gpt-oss-120b'
+/**
+ * Satu-satunya tempat angka ini boleh ditulis. Dokumen hasil (`src/results.js`) dan narasi
+ * kredensial (`src/credential.js`) memetikkannya dari sini — menyatakan `temperature 0` di
+ * tempat lain berarti mengklaim angka yang tidak kita simpan di mana pun.
+ */
+export const JUDGE_TEMPERATURE = 0
 
 const SYSTEM = [
   'Kamu adalah penilai rubrik untuk sebuah kursus. Kamu menilai SATU tulisan terhadap rubrik yang diberikan.',
@@ -68,7 +74,7 @@ export async function judgeWithModel (text, essay, opts = {}) {
   const model = opts.model ?? DEFAULT_JUDGE_MODEL
   const body = {
     model,
-    temperature: 0,
+    temperature: JUDGE_TEMPERATURE,
     max_tokens: opts.maxTokens ?? 1500,
     response_format: { type: 'json_object' },
     messages: [

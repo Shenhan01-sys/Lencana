@@ -68,6 +68,73 @@ check('validFrom ada, issuanceDate TIDAK (VC 1.1 bukan VC 2.0)',
 check('validUntil ada, expirationDate TIDAK',
   !!unsigned.validUntil && unsigned.expirationDate === undefined)
 check('achievement.criteria wajib dan terisi', !!unsigned.credentialSubject.achievement.criteria?.narrative)
+
+// --- 2b. B44: metode penilaian harus terbaca DI KERTAS, bukan hanya di log kita --------------
+{
+  const { DEFAULT_JUDGE_MODEL, JUDGE_TEMPERATURE } = await import('../src/judge.js')
+  const { resultDocument } = await import('../src/results.js')
+  const narOf = (doc) => doc.credentialSubject.achievement.criteria.narrative
+
+  check('narasi tanpa catatan penilai tidak menampung spasi/rujuhan kosong',
+    !/\s$/.test(narOf(unsigned)) && !/ {2}/.test(narOf(unsigned)), JSON.stringify(narOf(unsigned).slice(-24)))
+
+  const judged = buildOpenBadgeCredential({
+    baseUrl: BASE, issuer, course, learner, uid: '0x' + 'cd'.repeat(32),
+    assessment: {
+      score: '92',
+      judgeNote: `· esai "esai-batas-bukti" dinilai ${DEFAULT_JUDGE_MODEL} (temperature ${JUDGE_TEMPERATURE})`,
+    },
+    issuedAtUnix: NOW, expiresAtUnix: expiresAt, allocator: new IndexAllocator(),
+  }).unsigned
+  check('narasi menyebut model penilai + temperature (B44 ditutup)',
+    narOf(judged).includes(DEFAULT_JUDGE_MODEL) && narOf(judged).includes(`temperature ${JUDGE_TEMPERATURE}`),
+    narOf(judged).slice(-86))
+
+  const rd = resultDocument({
+    baseUrl: BASE,
+    record: {
+      course: SEED_COURSE, credentialHash: SEED_HASH_ONCHAIN, uid, learner: SEED_LEARNER,
+      score: '92', verdict: 'LULUS', rubricRef: '2a45d00bc4',
+      rubricHash: '0x2a45d00bc4ffff',
+      essayGrading: {
+        lesson: 'esai-batas-bukti', judgeModel: DEFAULT_JUDGE_MODEL, temperature: JUDGE_TEMPERATURE,
+        score: 99,
+        // Bentuk ASLI seperti yang tersimpan di store: array tanda, bukan angka. Versi pertama
+        // kode ini menulis `${eg.mechanical}` dan menghasilkan "penilai mekanis [object Object]…"
+        // di URL publik — pemeriksaan di bawah ada supaya kelas bug itu tidak balik.
+        mechanical: [
+          { label: 'panjang tulisan', ok: true, detail: '451/400 kata' },
+          { label: 'menyebutkan alamat 0x…', ok: false },
+          { label: 'menyebutkan sumber yang bisa dibuka (URL)', ok: false },
+          { label: 'menyebutkan fungsi/perintah konkret', ok: true },
+          { label: 'menyatakan batas kesimpulannya sendiri', ok: true },
+        ],
+        perCriterion: [{ label: 'Kriteria contoh', score: 25, max: 25 }],
+      },
+      // `essayText` sengaja diisi di test ini: kalau suatu hari ikut terserialisasi, pemeriksaan
+      // di bawah harus merah — dokumen hasil adalah untuk publik, teks peserta bukan.
+      evidence: { quizScores: { 'kuis-gas': 100 }, praktikCompleted: true, essayScore: 99, essayText: 'TES-RAHASIA-PESERTA' },
+      document: judged,
+    },
+  })
+  const rdJson = JSON.stringify(rd)
+  check('dokumen hasil menjawab "siapa menilai, dengan aturan apa"',
+    rd.method.includes(DEFAULT_JUDGE_MODEL) && rd.grader.temperature === JUDGE_TEMPERATURE
+    && rd.rubric.criteria.length === 1, rd.method)
+  check('dokumen hasil TIDAK memuat kunci jawaban atau teks esai peserta',
+    !rdJson.includes('"answer"') && !rdJson.includes('TES-RAHASIA-PESERTA')
+    && rd.evidence.essayTextIncluded === false && rd.evidence.quizAnswerKeysIncluded === false)
+  check('dokumen hasil melaporkan nilai yang sama dengan yang tercetak di kertas',
+    String(rd.result) === String(judged.credentialSubject.result[0].value))
+  // Bug nyata 28 Sep: `${eg.mechanical}` pada array menghasilkan "penilai mekanis [object Object]…"
+  // yang akan tampil di URL publik. Penjaga ini lebih murah daripada satu tangkapan layar memalukan.
+  check('tidak ada "[object Object]" yang bocor ke dokumen hasil',
+    !rdJson.includes('[object Object]') && !rdJson.includes('[object Map]'), rd.method)
+  check('tanda mekanis dilaporkan sebagai daftar yang bisa dibaca, bukan angka kabur',
+    rd.mechanical?.passed === 3 && rd.mechanical?.total === 5
+    && rd.mechanical.signs.length === 5 && rd.mechanical.signs[1].passed === false
+    && rd.method.includes('3 dari 5'), JSON.stringify(rd.mechanical)?.slice(0, 120))
+}
 check('subject: id XOR identifier, tepat salah satu',
   (unsigned.credentialSubject.id === undefined) !== (unsigned.credentialSubject.identifier === undefined))
 check('result[] membawa nilai lewat `value` (bukan resultScore ala OB 2.0)',

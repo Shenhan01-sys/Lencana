@@ -45,8 +45,10 @@ leaves the pipeline signed by an agent's key.
   (`signer/scripts/issue.js:87-94`); `--essay-score` survives only to exercise the arithmetic, and if
   a judged essay produces a different number the script stops rather than picking one (`:135-137`); a
   judge that returns no score is an error, not a default (`:130-133`).
-- What the document then carries: `score = String(grade.total)` (`signer/scripts/issue.js:246`) — and
-  **nothing else about the method**. `issue.js` also builds `method` and `comment` naming the rubric
+- **28 Sep: metode penilaian akhirnya sampai ke kertas.** `credential.js` menempelkan `judgeNote` ke
+  `criteria.narrative` ("esai \"…\" dinilai <model> (temperature 0)") dan rute baru
+  `/results/<courseId>/<hash>` menjawab `result[0].id` dengan lima tanda mekanis + nilai per kriteria rubrik.
+  Sebelum ini kalimatnya dihitung di `issue.js` lalu dibuang (`Result` OB 3.0 tidak punya field metode). `issue.js` also builds `method` and `comment` naming the rubric
   version and the judge model (`:249-256`), but `credential.js` does not emit them: OB 3.0's `Result` is
   `{achievedLevel, resultDescription, status, value}`, and an out-of-context term is silently dropped
   during canonicalisation (`credential.js:96-108`). Verified against the stored documents on 26 Sep —

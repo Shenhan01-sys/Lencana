@@ -34,7 +34,7 @@ import { readAnchor, anchorListHash } from '../src/anchor.js'
 import { EMPTY_UID } from '../../web/src/abi.ts'
 import { manifestOf } from '../../web/src/manifest.ts'
 import { computeScore, formatScore } from '../../web/src/score.ts'
-import { DEFAULT_JUDGE_MODEL } from '../src/judge.js'
+import { DEFAULT_JUDGE_MODEL, JUDGE_TEMPERATURE } from '../src/judge.js'
 
 /** .env dibaca manual: menambah dotenv hanya untuk 8 baris adalah dependensi yang tidak perlu. */
 async function readEnv () {
@@ -248,8 +248,14 @@ const { unsigned, indices } = buildOpenBadgeCredential({
     // versi apa" hanyalah angka. Nama model + versi rubrik masuk ke sini supaya pertanyaan
     // "87 ini dari mana" dijawab dokumen itu sendiri, bukan oleh log kita.
     method: arg('method', essayGrading?.judgeModel
-      ? `dihitung dari bukti terhadap rubrik ${grade.rubricRef}; esai dinilai ${essayGrading.judgeModel} (temperature 0)`
+      ? `dihitung dari bukti terhadap rubrik ${grade.rubricRef}; esai dinilai ${essayGrading.judgeModel} (temperature ${JUDGE_TEMPERATURE})`
       : `dihitung dari bukti terhadap rubrik ${grade.rubricRef}`),
+    // Versi pendek untuk `criteria.narrative`: yang terbaca orang di ijazah. Dipasang 28 Sep —
+    // sebelum ini kalimat di atas dihitung lalu dibuang, karena `Result` OB 3.0 tidak punya
+    // field untuk metode (B44).
+    judgeNote: essayGrading?.judgeModel
+      ? `· esai "${essayGrading.lessonSlug}" dinilai ${essayGrading.judgeModel} (temperature ${JUDGE_TEMPERATURE})`
+      : null,
     comment: [
       ...grade.components.map((cp) => `${cp.name} ${cp.raw}×${cp.weight}%`),
       ...(essayGrading?.perCriterion ?? []).map((c) => `esai: ${c.label} ${c.score}/${c.max}`),
@@ -284,6 +290,9 @@ await rememberCredential({
         verdict: essayGrading.verdict,
         score: essayGrading.finalScore,
         judgeModel: essayGrading.judgeModel,
+        // Disimpan, bukan ditebak di tempat lain: dokumen hasil memetiknya untuk mengatakan
+        // "dinilai <model> pada temperature <x>" tanpa mengarang angkanya.
+        temperature: JUDGE_TEMPERATURE,
         perCriterion: essayGrading.perCriterion,
         mechanical: essayGrading.mechanical,
       }
