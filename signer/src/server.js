@@ -339,7 +339,10 @@ const server = createServer(async (req, res) => {
         },
       })
     }
-    return send(res, 404, { error: 'not found', path, hint: `/issuers/${AGENT_SLUG} | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /healthz` })
+    return send(res, 404, {
+      error: 'not found', path,
+      hint: `/issuers/${AGENT_SLUG} | /criteria/<courseId> | /credentials/<credentialHash> | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /healthz`,
+    })
   } catch (err) {
     // Tidak menutupi sebabnya: kegagalan konfigurasi harus terbaca sebagai kegagalan konfigurasi.
     return send(res, 500, { error: err.message })
