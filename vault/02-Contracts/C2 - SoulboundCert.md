@@ -83,3 +83,5 @@ token, bukan untuk corpus demo yang akan dibuka juri dari video. Yang perlu: pin
 kontrak baru (mint ulang; yang sudah dicabut harus DITOLAK — itu justru bukti mekanismenya bekerja, lihat
 §7 di [[00-Overview/10 - Project Detail (long form)]]), lalu satu `CERT_ADDRESS`, dan `probe` ikut dipindah
 supaya yang diuji adalah yang kita pamerkan.
+
+Satu koreksi yang membuat keadaan ini lebih baik daripada terlihat: test fork **tidak** membaca kontrak lama. `test/CredentialEndToEndOnBsc.fork.t.sol:76` membuat `new SoulboundCert(...)` dari source di atas fork 97/56, jadi bukti B38 berlaku untuk kontrak seperti yang kita tulis dan kita deploy — bukan untuk instance `0xA5eB80…` yang menua. Yang belum adalah memindahkan artefak corpus demo; itu sengaja menunggu host tetap (B51), karena `mint()` membekukan `external_url` dan membekukannya sekarang berarti mencetak alamat yang akan mati.
