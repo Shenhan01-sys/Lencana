@@ -105,4 +105,18 @@ private research folder. If a note says "we retry safely", that code has to move
 Nothing in this note requires touching `web/index.html`, `main.ts`, `render.ts`, `style.css` or
 `i18n.ts` — those stay with the frontend owner ([[FE4 - Mount contract with the maintainer]]).
 
+### Biaya sajian daftar status — terukur 27 Sep, bukan perkiraan
+
+`npm run measure:signing` memisahkan dua lapis yang selama ini tercampur setiap kali kita
+berbicara "render ulang tiap permintaan itu mahal":
+
+| lapisan | angka (14 kredensial dipantau) |
+|---|---|
+| render penuh sebelum paralelisasi | ~4,4 s — 28 `eth_call` **berurutan** |
+| render penuh sesudah (`RPC_CONCURRENCY = 6`) | ~2,0 s |
+| **kripto murni** (canonicalisation + Ed25519) per daftar | **133 ms** median (121–149, 5×) |
+| verifikasi daftar | 141 ms |
+
+Artinya ~2 detik yang tersisa adalah RTT RPC, bukan CPU — dan itu yang menentukan bentuk host tetap: Cloudflare Workers Free (10 ms CPU/invokasi) **tidak** sanggup melayani daftar bertanda tangan; Workers Paid (30 s CPU default, wall-time HTTP tanpa batas) sanggup, karena yang dibatasinya CPU dan kita makan 133 ms. Host Node kecil di mana pun juga sanggup — yang tidak boleh hanya satu: menyodorkan daftar yang sudah ditandatangani di muka (snapshot), karena itu memutus tepat klaim yang kita jual: daftar dibangun ulang dari state chain setiap permintaan.
+
 **Related:** [[L8 - Lencana vs LMS]] · [[04-Signer-Service/01 - Signer Service]] · [[02-Contracts/01 - Contracts]] · [[09-Testing/00 - Hub Testing]]

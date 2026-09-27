@@ -21,7 +21,8 @@
     "delegate": "tsx scripts/delegate.js",
     "anchor": "node scripts/anchor.js",
     "smoke": "node scripts/smoke.mjs",
-    "validator": "node scripts/validator-check.js"
+    "validator": "node scripts/validator-check.js",
+    "measure:signing": "node scripts/measure-signing-cost.js"
   },
   "dependencies": {
     "@digitalbazaar/data-integrity": "^2.5.0",

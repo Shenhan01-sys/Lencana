@@ -345,7 +345,7 @@ Nothing in this document is a claim without a command behind it. From a clone of
 | `cd web && npx tsx scripts/probe.ts` | the **page's own** `verify.ts` reading chain 97 for four verdicts; the seeder's `credentialHash` recomputed from course data equals the on-chain attestation | **59 / 0** | 26 Sep |
 | `cd web && npx tsx scripts/rubric-check.ts` | the pass mark is computed; policy and material hash separately | **17 / 0** | 26 Sep |
 | `cd web && npx tsx scripts/inventory.ts` | the size of the learning surface, printed from the data | 2 · 7 · 24 · **34 pages** · 412 min · 28 · 2 | 26 Sep |
-| `cd signer && node scripts/check.js` | document shape, `eddsa-rdfc-2022` round-trip, list bits equal to `statusOf()`, one-object `credentialStatus`, 131.072-entry minimum | **63 / 0** | 27 Sep |
+| `cd signer && node scripts/check.js` | document shape, `eddsa-rdfc-2022` round-trip, list bits equal to `statusOf()`, one-object `credentialStatus`, 131.072-entry minimum | **65 / 0** | 27 Sep |
 | `cd signer && node scripts/serve-probe.js` | the same over HTTP against the running server — including the document route and the served bitstring's real length | **37 / 0** | 27 Sep |
 | `cd signer && npm run validator` | our document read back over HTTP, its own URLs followed, then uploaded: verdict from `/api/validate`, not from the page's template strings | **10 / 0**, `outcome: VALID` | 27 Sep |
 | `cd signer && npm run x402` | `402` → pay → settle → **split** → report; balances read back **from the chain** | **20 / 0** | 24 Sep |

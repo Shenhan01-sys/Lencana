@@ -19,27 +19,59 @@ import { createPublicClient, http, getAddress } from 'viem'
 import { credentialResolverAbi, EMPTY_UID } from '../../web/src/abi.ts'
 
 /**
+ * Berapa banyak kredensial yang boleh DITANYAKAN bersamaan.
+ *
+ * Bukan 1 (lamban — lihat angka di bawah), dan bukan "semua sekaligus" juga. Ukurannya datang dari
+ * pelajaran jalur x402: mencoba memverifikasi 25 hash paralel terhadap RPC publik menghasilkan
+ * SETENGAH respons kosong (web/src/verify.ts membatasi batch laporan ke 4 karena itu).
+ *
+ * Terukur 27 Sep pada 14 kredensial yang dipantau (npm run measure:signing):
+ *   render penuh sebelum perubahan  ~4,4 s   (28 eth_call berurutan)
+ *   render penuh sesudahnya         ~2,0 s
+ *   kripto murni per daftar        ~133 ms  (median 5×, min 121 max 149)
+ *   verifikasi daftar              ~141 ms
+ * Jadi sisa ~2 s itu RTT RPC, bukan CPU — dan itu membedakan keputusan host mana yang cocok.
+ */
+const RPC_CONCURRENCY = 6
+
+/**
+ * Satu kredensial = dua `eth_call` (`attestationOf`, lalu `statusOf`), dan keduanya harus tetap
+ * berurutan karena yang kedua hanya berguna kalau UID-nya ada.
+ */
+async function readOne (client, resolverAddress, hash) {
+  const uid = await client.readContract({
+    address: resolverAddress, abi: credentialResolverAbi, functionName: 'attestationOf', args: [hash],
+  })
+  if (!uid || uid === EMPTY_UID) return null
+  const [exists, revoked, expired, issuerDelisted, issuer] = await client.readContract({
+    address: resolverAddress, abi: credentialResolverAbi, functionName: 'statusOf', args: [hash],
+  })
+  if (!exists) return null
+  return {
+    uid, hash, revoked, expired, issuerDelisted,
+    issuer: getAddress(issuer),
+    // Entri status hanya boleh dibuat untuk kredensial yang memang terbit di sistem kita.
+    ours: true,
+  }
+}
+
+/**
  * @param hashes bytes32[] credentialHash yang kita awasi
  * @returns Map<uid, { hash, revoked, expired, issuerDelisted, issuer, exists }>
+ *
+ * Hasil disusun ulang dalam urutan INPUT, bukan urutan penyelesaian: `encodeList` dan
+ * `unallocated` bergantung pada himpunan, bukan pada urutan, tapi `serve-probe` dan anchor
+ * membandingkan hash bitstring lintas proses — dan satu respons yang datang lebih cepat tidak
+ * boleh bisa mengubah daftar yang disajikan.
  */
 export async function readChainStatuses ({ rpcUrl, resolverAddress, hashes }) {
   const client = createPublicClient({ transport: http(rpcUrl) })
   const out = new Map()
-  for (const hash of hashes) {
-    const uid = await client.readContract({
-      address: resolverAddress, abi: credentialResolverAbi, functionName: 'attestationOf', args: [hash],
-    })
-    if (!uid || uid === EMPTY_UID) continue
-    const [exists, revoked, expired, issuerDelisted, issuer] = await client.readContract({
-      address: resolverAddress, abi: credentialResolverAbi, functionName: 'statusOf', args: [hash],
-    })
-    if (!exists) continue
-    out.set(uid, {
-      uid, hash, revoked, expired, issuerDelisted,
-      issuer: getAddress(issuer),
-      // Entri status hanya boleh dibuat untuk kredensial yang memang terbit di sistem kita.
-      ours: true,
-    })
+  for (let i = 0; i < hashes.length; i += RPC_CONCURRENCY) {
+    const settled = await Promise.all(
+      hashes.slice(i, i + RPC_CONCURRENCY).map((h) => readOne(client, resolverAddress, h)),
+    )
+    for (const s of settled) if (s) out.set(s.uid, s)
   }
   return out
 }
