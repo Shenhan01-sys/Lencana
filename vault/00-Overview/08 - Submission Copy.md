@@ -118,13 +118,21 @@ Sisanya (`SoulboundCert`, `SettlementSplit`, `DemoCourseToken`) masuk descriptio
 Dikoreksi 27 Sep saat builder mengisi form: plafonnya **5,600 karakter**, dan kami sudah menulis halaman
 sepanjang 67,345 karakter untuk itu. Teks yang ditempel sekarang:
 
-> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,448 karakter**, 82 baris, satu diagram
-> Mermaid (urutan bisnis, parse-verified di mermaid 10 dan 11), tabel kontrak, angka terukur. Tanpa
-> wikilink, tanpa jalur `vault/`, tanpa ID tiket internal (B38–B45, RF5, OI-*), tanpa data kursus.
+> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,486 karakter**, 91 baris, **dua** diagram
+> Mermaid: urutan bisnis (`sequenceDiagram`) dan aliran data + uang (`flowchart`, "Where each fact lives").
+> Tabel kontrak ikut. Tanpa wikilink, tanpa jalur `vault/`, tanpa ID tiket internal, tanpa data kursus,
+> **tanpa hasil testing**.
 
 strukturnya, sesuai permintaan builder 27 Sep: **apa Lencana itu → problem yang mau kita selesaikan →
-how it works (diagram + 7 langkah) → kontrak → terukur & batas**. Data kursus dan tabel perbandingan
-dibuang dari teks tempel — keduanya tetap ada di halaman referensi.
+how it works (diagram + 7 langkah) → di mana tiap fakta tinggal (DFD) → kontrak**.
+
+Dua keputusan builder yang kutandatangani sendiri waktu itu dan sekarang dicabut — dicatat supaya tidak
+kubantah lagi nanti: data kursus dibuang (27 Sep, "emangnya itu menceritakan lencana?"), dan bagian
+**Measured / Limits dibuang** ("juri ga perlu tahu hasil testing teknisnya kayak gimana"). Angka
+`97/0 · 59/0 · 53/0 · 20/0 · 7/0` dan batas-batasnya sekarang hidup di
+[[08-Results/01 - Evidence and Limits]] dan di halaman referensi — tetap terukur, hanya bukan di field ini.
+Yang tetap tinggal di teks submission adalah klaim yang masih bisa mereka cek sendiri: jalur perintah
+(`POST /verify`, `statusOf`), alamat kontrak, dan angka 190.659 gas yang menggerakkan keputusan batch.
 
 Aturan yang berlaku untuk field ini, supaya tidak perlu ditulis ulang tiga kali:
 
@@ -136,9 +144,9 @@ Aturan yang berlaku untuk field ini, supaya tidak perlu ditulis ulang tiga kali:
 | jalur **source** (`web/src/verify.ts`, `contracts/…`) dan **perintah** (`npm run x402`) tetap ada | inilah yang bisa mereka cek sendiri di repo publik |
 | setiap bilangan tetap disebut tanggal + perintahnya | sama seperti di [[08-Results/01 - Evidence and Limits]] |
 
-Sisa ruang tinggal **152 karakter** — satu diagram kedua butuh ±600, jadi tidak muat. Kalau ada yang mau
-ditambahkan, yang paling aman dikorbankan duluan: langkah 6 (penilai mekanis + model — angkanya sudah muncul
-di bagian "Measured") atau klausa break-even BNB di bagian uang.
+Sisa ruang tinggal **114 karakter**. Yang paling aman dikorbankan kalau perlu nambah: langkah 6
+(penilai mekanis + model) atau klausa break-even BNB di bagian kontrak — dua-duanya masih ada tempat
+lainnya di vault.
 
 Versi panjangnya tetap hidup sebagai referensi: [[00-Overview/10 - Project Detail (long form)]]. Kalau
 nanti field-nya ternyata bisa lebih panjang (mis. ada field "full documentation" terpisah), itu yang

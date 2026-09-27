@@ -43,13 +43,13 @@ sequenceDiagram
 1. **Rubric sealed with the result.** `rubricHash` covers the grading policy only: a typo in the course text
    moves the material hash, **not** the policy hash; editing the rubric moves both — a new cohort is visibly
    graded under different rules.
-2. **The issuer signs, the platform pays.** `attestByDelegation` on BNB Attestation Service
-   (public EAS 1.3.0, not ours) records the institution's agent as `attester` while Lencana broadcasts.
+2. **The issuer signs, Lencana broadcasts.** `attestByDelegation` on BNB Attestation Service (public
+   EAS 1.3.0, not ours) keeps the institution's agent as `attester`; we relay and pay the gas.
 3. **The verdict is one call:** `statusOf(credentialHash)` → `exists / revoked / expired / issuerDelisted /
    issuer / issuedAt / expiresAt`, and our harness runs that same module against the public testnet, four
    verdicts. **Only identifiers are on chain** — credential, course and lesson hashes, the issuer whitelist, the two
-   status lists, the artefact; no name, no email, no grade, no course text. The signed document (Open Badges 3.0 / VC 2.0,
-   `eddsa-rdfc-2022`) is served off chain.
+   status lists, the artefact; no name, no email, no grade, no course text. The credential document
+   itself — built to Open Badges 3.0 / VC 2.0, signed `eddsa-rdfc-2022` — is served off chain.
 4. **Two status lists, not one bit.** Revocation is permanent, delisting recoverable; a credential must
    not vanish because its issuer fell out of favour.
 5. **The artefact is display, not the credential:** an ERC-721 + ERC-5192 soulbound token per credential,
@@ -58,6 +58,26 @@ sequenceDiagram
    invent a number.
 7. **Money is machine-to-machine.** `POST /verify` answers `402`; the caller signs two EIP-712 payloads and
    sends **zero transactions**.
+
+## Where each fact lives
+
+```mermaid
+flowchart LR
+  IS[("Issuer")] -->|"course + its rubric"| PF["Lencana signer"]
+  LRN[("Learner")] -->|"answers, essay"| PF
+  PF -->|policy| RH["rubricHash"]
+  RH -->|"printed into"| DOC["Credential document: OB 3.0, signed by the issuer's agent"]
+  DOC -->|credentialHash| CH[("Chain 97")]
+  CH --> ST["statusOf - exists, revoked, expired, issuerDelisted"]
+  CH --> SL["two Bitstring Status Lists, hashes timestamped"]
+  CH --> SB["soulbound artefact"]
+  VT{{"Verifier"}} -->|"eth_call"| ST
+  VT -->|reads| SL
+  LRN -->|"x402 payment"| SP["SettlementSplit"]
+  SP -->|90 percent| IS
+  SP -->|"10 percent, only lowerable"| PF
+  IS -.->|revokes| SL
+```
 
 ## Contracts (chain 97, from `broadcast/…/97/run-latest.json`)
 
@@ -69,14 +89,3 @@ sequenceDiagram
 | DemoCourseToken — demo ERC-20, open `mint` | `0xEd19cDeB8b4Bb3355651680b089222d1140bCDDe` |
 
 Not ours: BAS `0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD` · Permit2 `0x000000000022D473030F116dDEE9F6B43aC78BA3` · x402 proxy `0x402085c248EeA27D92E8b30b2C58ed07f9E20001`. Settlement + split measured **190,659 gas**; at a $0.001 fee break-even is ≈ **$5.24** BNB — so verification is sold **in batches**, not per lookup.
-
-## Measured — and what is not true yet
-
-`forge test --evm-version cancun` **97/0** · verifier probe **59/0** · rubric **17/0** · signer **53/0**
-(one flipped byte kills the signature) · x402 **20/0** · judge **7/0** — negative control: a fluent but empty
-essay scores **8/100**.
-
-Limits, kept on purpose: the 1EdTech validator has **not** been run against our document (its agent
-record still carries a loopback URL), so we say *built to the specification*, never *compatible*; no real
-institution or learner — the publisher is fictitious and labelled so; **no enrolment record** (progress is
-`localStorage`, labelled *not evidence*); we are our own facilitator; testnet only.
