@@ -47,6 +47,7 @@ with them, **53** and **20**. Always read the group list, not only the count →
 | [[T16 - npm run publish edge]] | `npm run publish:edge` | **2026-09-28** | **26 / 27** rute (yang ke-27 = kursus yang memang tidak ada lagi di katalog), kedua daftar `matchesChainNow` | the URLs printed inside a credential answer from a host that does not die with the laptop | P1, P6 |
 | [[T17 - signer verify-live-cert.js]] | `node scripts/verify-live-cert.js` | **2026-09-28** | **17 / 0 failed** (+1 printed as `info`), dua artefak diperiksa satu per satu | the artefact layer a stranger can open in an explorer really enforces D42/D43, and every paper the ledger calls VALID on a durable host has an artefact whose `external_url` is that exact URL | P1 |
 | [[T18 - signer verify-edge.js]] | `npm run verify:edge` | **2026-09-28** | **5 / 0 failed** + terukur **2 dari 8** kertas dapat diperiksa orang sepenuhnya | nothing we issued is stranded behind a host that only this laptop can reach — and how much of it is | P1, P6 |
+| [[T19 - signer e2e.js]] | `npm run e2e` | **2026-09-28** | **42 / 0 failed** (run pertama 40 dengan 2 merah, keduanya asumsi harnessnya sendiri) | chain, daftar tersaji, URL di dalam kertas, artefak di wallet dan verdict pihak ketiga menunjuk **benda yang sama** — bukan lima lapis yang hijau sendirian-sendirian | P1, P6 |
 
 ## Conventions for this folder
 

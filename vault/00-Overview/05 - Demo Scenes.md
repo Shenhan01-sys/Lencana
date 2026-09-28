@@ -30,11 +30,16 @@ harness; there is no account system.
 ## Prep checklist before recording
 
 - [ ] chain state is what the notes claim: `npm run anchor -- --dry-run` prints the watched set
-      (14 on 27 Sep) and the two list hashes → [[09-Testing/T9 - npm run anchor]]
+      (16 on 28 Sep) and the two list hashes → [[09-Testing/T9 - npm run anchor]]
 - [ ] **no credential shown to the audience was minted on a quick tunnel.** Proved 28 Sep: yesterday's
       `outcome: VALID` artefact is now `ENOTFOUND` for everyone, because URLs are written at issuance.
       Mint on the durable host first, then `cd signer && npm run validator -- --record` must be green
       **against that host** on the day you record — a pass on a dying tunnel is not a pass a judge can repeat.
+- [ ] `cd signer && npm run e2e` is green on the day of recording → [[09-Testing/T19 - signer e2e.js]].
+      This is the one command that checks the five things the four scenes assert are the same object:
+      the chain's bit, the served list, the URL inside the paper, the artefact in the wallet, and the
+      third-party verdict. If a scene is re-shot after anything is re-issued, run it again — a green
+      harness from yesterday describes yesterday's chain.
 - [ ] the RPC you record against is the one in the notes (public 97, not a local anvil)
 - [ ] the limits panel is on screen in scene 1, not in a footnote
 - [ ] no scene depends on `_research/` or any file outside this repository
