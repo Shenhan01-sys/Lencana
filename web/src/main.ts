@@ -354,14 +354,20 @@ function setPrivacyMode(mode: 'pseudo' | 'named') {
   if (mode === 'pseudo') {
     btnPseudo?.classList.add('active')
     btnNamed?.classList.remove('active')
+    btnPseudo?.setAttribute('aria-pressed', 'true')
+    btnNamed?.setAttribute('aria-pressed', 'false')
     if (learnerName) learnerName.textContent = DICTIONARIES[currentLang].coursesSection.learnerProfileName
     if (learnerSub) learnerSub.textContent = DICTIONARIES[currentLang].coursesSection.learnerSubInfo
   } else {
     btnNamed?.classList.add('active')
     btnPseudo?.classList.remove('active')
+    btnNamed?.setAttribute('aria-pressed', 'true')
+    btnPseudo?.setAttribute('aria-pressed', 'false')
     if (learnerName) learnerName.textContent = `${DICTIONARIES[currentLang].coursesSection.learnerProfileName} ✓`
     if (learnerSub) {
-      learnerSub.textContent = 'did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B (Salted Hash #8F92)'
+      learnerSub.textContent = currentLang === 'en'
+        ? 'Named profile · your learning progress stays the same'
+        : 'Profil bernama · progres belajarmu tetap sama'
     }
   }
 }
@@ -414,8 +420,10 @@ function updateEssayWordCount() {
   const essayInput = $('essay-input') as HTMLTextAreaElement | null
   const text = essayInput?.value || ''
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
-  const astTokens = Math.round(words * 1.35)
-  setText('essay-token-count', `Words: ${words} · AST Tokens: ~${astTokens} · Rubric: 100%`)
+  setText(
+    'essay-token-count',
+    currentLang === 'en' ? `${words} words · Draft ready` : `${words} kata · Draf siap`,
+  )
   updateEditorLineNumbers()
 }
 
@@ -1164,6 +1172,7 @@ function handleRoute() {
 
   const isHome = targetPageId === 'page-home'
   document.body.classList.toggle('is-home-page', isHome)
+  document.body.classList.toggle('is-submit-page', targetPageId === 'page-submit')
   closeNexumMobileMenu()
 
   const pages = document.querySelectorAll<HTMLElement>('.page-view')
@@ -1252,10 +1261,27 @@ function updateStaticText() {
   setText('pnode-5-title', dict.visualPipeline.node5)
 
   // Interactive AI Evaluator Sandbox
-  setText('ai-eval-kicker', currentLang === 'en' ? 'LIVE NEURAL EVALUATION ENGINE' : 'ENGINE EVALUASI NEURAL REAL-TIME')
+  setText('ai-eval-kicker', currentLang === 'en' ? 'SUBMIT WITH CONFIDENCE' : 'KUMPULKAN DENGAN YAKIN')
   setText('ai-eval-title', dict.aiEvaluator.sectionTitle)
   setText('ai-eval-sub', dict.aiEvaluator.sectionSub)
-  setText('ai-input-tag', currentLang === 'en' ? 'STUDENT SUBMISSION STAGE' : 'TAHAP PENGIRIMAN ESAY PESERTA')
+  setText('ai-input-tag', currentLang === 'en' ? 'YOUR WORK' : 'HASIL KERJAMU')
+  setText('submit-step-1', currentLang === 'en' ? 'Choose your work' : 'Pilih hasil kerja')
+  setText('submit-step-2', currentLang === 'en' ? 'Get clear feedback' : 'Dapatkan umpan balik jelas')
+  setText('submit-step-3', currentLang === 'en' ? 'Carry the proof' : 'Bawa buktinya')
+  setText('submit-step-badge', currentLang === 'en' ? 'STEP 1 OF 3' : 'LANGKAH 1 DARI 3')
+  setText('submit-tech-summary', currentLang === 'en' ? 'Technical checks' : 'Pemeriksaan teknis')
+  setText('submit-tech-summary-note', currentLang === 'en' ? 'Optional details for reviewers' : 'Detail opsional untuk pemeriksa')
+  setText('submit-proof-signals', currentLang === 'en' ? 'STANDARDS AND PROOF SIGNALS' : 'STANDAR DAN SINYAL BUKTI')
+  setText('ide-filename', currentLang === 'en' ? 'Capstone response' : 'Jawaban tugas akhir')
+  setText('submit-save-status', currentLang === 'en' ? 'SAVED LOCALLY' : 'TERSIMPAN LOKAL')
+  setText('submit-review-kicker', currentLang === 'en' ? 'YOUR REVIEW' : 'HASIL TINJAUANMU')
+  setText('submit-review-title', currentLang === 'en' ? 'Know what worked—and what to improve.' : 'Ketahui yang sudah kuat—dan yang perlu diperbaiki.')
+  setText('submit-review-copy', currentLang === 'en'
+    ? 'Your answer is checked against the same visible criteria every time. The result stays readable before the technical receipt.'
+    : 'Jawabanmu diperiksa dengan kriteria terbuka yang sama setiap kali. Hasilnya tetap mudah dipahami sebelum bukti teknis.')
+  setText('submit-reviewer-note', currentLang === 'en' ? 'Uses the published course criteria' : 'Menggunakan kriteria kursus yang dipublikasikan')
+  setText('submit-receipt-summary', currentLang === 'en' ? 'How this result can be trusted' : 'Mengapa hasil ini dapat dipercaya')
+  setText('submit-receipt-note', currentLang === 'en' ? 'View reviewer activity and technical receipt' : 'Lihat aktivitas peninjau dan bukti teknis')
   setText('tab-essay-web3', dict.aiEvaluator.tabWeb3)
   setText('tab-essay-security', dict.aiEvaluator.tabSecurity)
   setText('tab-essay-custom', dict.aiEvaluator.tabCustom)
@@ -1315,13 +1341,13 @@ function updateStaticText() {
   setText('c1-badge-unlocked', dict.coursesSection.badgeUnlocked)
   setText('c1-title', dict.coursesSection.course1Title)
   setText('c1-desc', dict.coursesSection.course1Desc)
-  setText('c1-agent', `${dict.coursesSection.courseIssuerAgent}: Agent-Foundations`)
+  setText('c1-agent', `${dict.coursesSection.courseIssuerAgent}: Foundations Coach`)
   setText('btn-open-study-c1', dict.coursesSection.btnOpenStudy)
   setText('c2-badge-lvl', dict.coursesSection.badgeLevelAdvanced)
   setText('c2-badge-prereq', dict.coursesSection.badgePrereqRequired)
   setText('c2-title', dict.coursesSection.course2Title)
   setText('c2-desc', dict.coursesSection.course2Desc)
-  setText('c2-agent', `${dict.coursesSection.courseIssuerAgent}: Agent-Security`)
+  setText('c2-agent', `${dict.coursesSection.courseIssuerAgent}: Security Coach`)
   setText('btn-open-study-c2', dict.coursesSection.btnOpenStudy)
   setText('study-modal-kicker', dict.coursesSection.studyModalKicker)
   setText('btn-study-proceed-eval', dict.coursesSection.studyModalProceed)
@@ -2230,7 +2256,7 @@ function simulateAiEvaluation() {
   if (btn) btn.disabled = true
   if (flagText) {
     flagText.textContent =
-      currentLang === 'en' ? 'Evaluating essay against on-chain rubrics...' : 'Mengevaluasi esai dengan rubrik on-chain...'
+      currentLang === 'en' ? 'Reviewing your work against the published criteria...' : 'Meninjau hasil kerjamu dengan kriteria yang dipublikasikan...'
   }
 
   // Reset Token Scanner Chips
@@ -2348,7 +2374,7 @@ function simulateAiEvaluation() {
     }
     if (flagText) {
       flagText.textContent =
-        currentLang === 'en' ? 'Evaluation Complete · EIP-712 Signed' : 'Evaluasi Selesai · Bertanda Tangan EIP-712'
+        currentLang === 'en' ? 'Review complete · signed result ready' : 'Tinjauan selesai · hasil bertanda tangan siap'
     }
     if (btn) btn.disabled = false
     isEvaluating = false
