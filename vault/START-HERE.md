@@ -43,6 +43,10 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 2. [`00-Overview/02 - Roadmap to the Deadline.md`](00-Overview/02%20-%20Roadmap%20to%20the%20Deadline.md) — day by day to 30 Sep, including what only a human can do
 3. [`Quick-Reference.md`](Quick-Reference.md) — commands, addresses, env names, one place
 4. [`AGENTS.md`](AGENTS.md) — the rules that keep this folder trustworthy if you are an agent
+4b. [`WORKFLOW.md`](WORKFLOW.md) — the 5-step loop every item must pass: execute (schema first) →
+    sync AC + backlog → three-layer testing → per-item executive summary → **commit local, push only
+    on the builder's approval**. Where it disagrees with `AGENTS.md`, the disagreement is written as
+    B76–B79 in `07-Backlog/03 - Findings and Tasks 2026-09-26.md`, not left implicit.
 
 **Before you choose work** → [`00-Overview/11 - Product Bar.md`](00-Overview/11%20-%20Product%20Bar.md):
 the 12-element e-course frame comes first, our three verified differentiators second, and the storage

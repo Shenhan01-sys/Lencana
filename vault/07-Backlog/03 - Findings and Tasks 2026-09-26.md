@@ -63,6 +63,25 @@ sebagai obrolan. "Milik" = siapa yang menyunting; "biaya" = perkiraan kerja ters
 | **B74** ✅ 28 Sep | `signer/README.md` belum mencantumkan `verify:db` | dokumentasi | 1 baris | baris harness ditambahkan, termasuk kenapa `422` dan `401` dipisah dan kenapa nonce tidak boleh tinggal di memori |
 | **B75** | Jejak hari ini di 97: 2 kertas uji (satu dicabut sebagai adegan, satu `refUID` kosong) | catatan | 0 | dibiarkan + tercatat; tidak dihapus diam-diam |
 
+## `WORKFLOW.md` dipakai — dan empat hal yang harus dinyatakan, bukan diam-diam diserap
+
+Panduan 5 langkah itu sekarang resmi (`WORKFLOW.md`, sudah kupasang di peta `START-HERE`). Sebagian besar
+sudah kita jalankan tanpa menamainya: skema dulu baru kode (migrasi 0001–0004 diterapkan sebelum
+`src/db.js` membacanya), tiga lapis uji nyata (forge offline+fork / `verify:*` lawan chain & edge /
+`e2e` + `journey`), transkrip keluaran ditempel ke halaman tes bukan ringkasan ingatan, hub + satu file
+per item, ID stabil. Yang **belum** masuk baris backlog — bukan diklaim selesai:
+
+| ID | apa | status | penutup yang terukur |
+|---|---|---|---|
+| **B76** | **Gerbang push berubah.** Langkah 5: commit lokal dulu, **push hanya setelah builder menyetujui** (dia baca exec summary + laporan tes). Sepanjang 28 Sep kuanggap "gas" = izin dorong | berlaku mulai sekarang | `ahead` dilaporkan apa adanya; tidak ada push baru tanpa kata dorong darimu |
+| **B77** | **Exec summary per item.** Template ada (`Templates/Template - Executive Summary.md`), isinya baru satu (`08-Results/P2 - Executive Summary.md`). Item hari ini — tepi permanen, lapis artefak, state belajar di Postgres — belum punya | belum | satu file per item: apa yang diubah · hasil vs KPI · status (SELESAI/PARSIAL/BLOCKED/LIVE) · risiko tersisa · bukti commit/tes + baris peta di hub dan di backlog |
+| **B78** | **Artefak tes tidak dibersihkan.** Langkah 3 minta artefak berlabel `TES-` selalu dibersihkan dengan bukti query sisa = 0. `verify:db` meninggalkan baris enrollment/attempts/nonce di Postgres dan 2 kertas uji di 97 (B75) | belum | label `TES-` pada baris uji + tahap pembersihan di harness, ditutup query sisa yang tercetak `0` |
+| **B79** | **Konflik bahasa.** Aturan 9 `AGENTS.md` minta English; `WORKFLOW.md` dan isi vault hari ini (Decisions/Findings/Corrections/T18–T21) Indonesia | belum diputuskan | pilih satu: sapuan ke English, atau amandemen aturan 9 supaya mendeskripsikan vault ini apa adanya. Yang dilarang: aturan yang dilanggar diam-diam tiap sesi |
+
+Yang **tidak kunyatakan** sebagai temuan: apakah hub AC sudah punya kolom `PASS/FAIL/BLOCKED` per butir.
+Yang kubaca baru 20 baris pertama berkasnya dan kolom itu tidak muncul di potongan itu — jadi ini
+pertanyaan terbuka, bukan klaim bahwa AC kita bolong.
+
 ## Status 27 Sep — B41 dijalankan, dan hasilnya dua error
 
 Rantai lima langkah [[Notes/Session-2026-09-27-B41-validator]] sudah jalan sampai ujung: identitas agen
