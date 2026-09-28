@@ -22,7 +22,7 @@ import { dirname, resolve } from 'node:path'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
-import { computeAttemptHash, courseGates, dbConfigured, dbMissingReason } from '../src/db.js'
+import { computeAttemptHash, courseGates, dbConfigured, dbMissingReason, usedNonceExists } from '../src/db.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 await loadFileEnvReport('verify:db')
@@ -174,7 +174,36 @@ if (await waitUp()) {
   check('dan gerbang keduanya tetap terpisah: graded_attempts >= 1 tapi all_lessons_done bukan true',
     (gates?.graded_attempts ?? 0) >= 1 && gates?.all_lessons_done !== true, JSON.stringify(gates))
 
-  // 9. GET ke DB dengan publishable key tidak boleh bisa membaca (RLS menolak)
+  // 9. progres per lesson: state machine ditegakkan, dan gerbang benar-benar bergerak
+  const prog = async (lesson, status) => {
+    const m = `lencana-progress ${lesson} -> ${status} nonce=${nonce()}`
+    const s = await learner.signMessage({ message: m })
+    return post('/progress', { learner: learner.address, course: COURSE, lesson, status, position: 1, message: m, signature: s })
+  }
+  const L1 = 'web3-dasar-2026/m1/l1'
+  const jump = await prog(L1, 'completed')
+  check('lompat locked -> completed DITOLAK dengan 422 (bukan 401: orangnya benar, urutannya salah)',
+    jump.status === 422 && /tidak diizinkan/.test(jump.body?.error ?? ''), `${jump.status} ${JSON.stringify(jump.body)}`)
+  const step1 = await prog(L1, 'unlocked')
+  check('locked -> unlocked diterima', step1.status === 200 && step1.body?.to === 'unlocked', `${step1.status} ${JSON.stringify(step1.body)}`)
+  const step2 = await prog(L1, 'completed')
+  check('unlocked -> completed diterima', step2.status === 200 && step2.body?.to === 'completed', `${step2.status} ${JSON.stringify(step2.body)}`)
+  const noop = await prog(L1, 'completed')
+  check('status yang sama dikirim ulang -> noop, bukan baris progres baru',
+    noop.status === 200 && noop.body?.noop === true, JSON.stringify(noop.body))
+  const summary = await fetch(`${BASE}/progress?learner=${learner.address}&course=${COURSE}`, { signal: AbortSignal.timeout(20_000) })
+  const sum = await summary.json().catch(() => null)
+  check('GET /progress membaca dari DB: lesson itu completed',
+    (sum?.completed ?? []).includes(L1), JSON.stringify(sum).slice(0, 160))
+  // this is the bug the view had: 1 completed row out of 19 used to read as "all lessons done".
+  check('1 dari 19 lesson TIDAK dibaca sebagai selesai: lessons_total terisi dari katalog, allLessonsDone false',
+    sum?.lessonsTotal === 19 && sum?.allLessonsDone === false, JSON.stringify(sum).slice(0, 160))
+
+  // 10. nonce memang hidup di database, bukan di Set dalam proses
+  const seen = await usedNonceExists(m1.nonce)
+  check('nonce enroll pertama tercatat di used_nonces (bertahan melewati restart proses)', seen === true, `nonce=${m1.nonce}`)
+
+  // 11. GET ke DB dengan publishable key tidak boleh bisa membaca (RLS menolak)
   const publicRead = await fetch(`${process.env.SUPABASE_URL}/rest/v1/enrollments?select=*`, {
     headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY || '', authorization: `Bearer ${process.env.SUPABASE_PUBLISHABLE_KEY || ''}` },
     signal: AbortSignal.timeout(15_000),

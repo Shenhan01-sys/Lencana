@@ -31,6 +31,7 @@ import { resultDocument } from './results.js'
 import {
   dbConfigured, dbMissingReason,
   enroll as dbEnroll, recordAttempt as dbRecordAttempt,
+  setLessonProgress as dbSetProgress, progressSummary as dbProgressSummary,
 } from './db.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
@@ -320,18 +321,46 @@ const server = createServer(async (req, res) => {
     //  - secret key DB melewati RLS, jadi pemeriksaan "siapa yang boleh menulis untuk alamat ini"
     //    ada di KITA (tanda tangan nonce atas nama peserta), bukan di database;
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
-    if (path === '/enroll' || path === '/attempts') {
+    if (path === '/enroll' || path === '/attempts' || path === '/progress') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'lapisan belajar belum dipasang', missing: dbMissingReason() }))
+      }
+      // GET /progress = ringkasan milik satu peserta di satu kursus. Sengaja hanya membaca baris
+      // yang sudah dia tulis sendiri, dan hanya menjawab lewat backend kita: publishable key tidak
+      // bisa membaca tabel ini (RLS), jadi bocoran tidak datang dari jalur ini.
+      if (path === '/progress' && req.method === 'GET') {
+        const learner = new URL(req.url, BASE_URL).searchParams.get('learner')
+        const course = new URL(req.url, BASE_URL).searchParams.get('course')
+        if (!learner || !course) return send(res, 400, jsonBody({ error: 'butuh ?learner=0x…&course=<courseId>' }))
+        const sum = await dbProgressSummary(learner, course)
+        return send(res, sum ? 200 : 404, jsonBody(sum ?? { error: 'belum ada enrollment untuk peserta/kursus itu' }))
       }
       if (req.method !== 'POST') {
         return send(res, 405, jsonBody({ error: 'butuh POST', path }))
       }
       const body = await readJsonBody(req)
       if (!body || typeof body !== 'object') return send(res, 400, jsonBody({ error: 'body harus JSON objek' }))
+      if (path === '/progress') {
+        const out = await dbSetProgress({
+          learner: body.learner, courseId: body.course, lessonId: body.lesson, to: body.status,
+          position: body.position ?? 0, message: body.message, signature: body.signature,
+        })
+        if (out.ok) return send(res, 200, jsonBody({ lesson: out.enrollmentId, from: out.from, to: out.to, noop: out.noop === true }))
+        // 401 khusus untuk "siapa kamu"; lompatan status yang ditolak adalah permintaan yang
+        // sah dari orang yang benar - memberi keduanya kode yang sama membuat monitoring kita
+        // membunyikan alarm otentikasi setiap kali peserta mengirim urutan yang salah.
+        const authish = /tanda tangan|nonce|alamat/.test(out.why ?? '')
+        return send(res, authish ? 401 : 422, jsonBody({ error: out.why, from: out.from, allowed: out.allowed }))
+      }
       if (path === '/enroll') {
+        // jumlah lesson dibaca dari katalog penerbit, bukan dipercaya dari pemanggil: kalau klien
+        // boleh mengirim lessons_total, dia bisa membuat dirinya "selesai" dengan menulis 1
+        const courseManifest = manifestOf(body.course)
+        const lessonsTotal = courseManifest?.course?.modules?.reduce((n, m) => n + (m.lessons?.length ?? 0), 0) ?? 0
+        if (!courseManifest) return send(res, 400, jsonBody({ error: `kursus ${body.course} tidak ada di katalog`, known: Object.keys(MANIFESTS) }))
         const out = await dbEnroll({
-          learner: body.learner, courseId: body.course, message: body.message, signature: body.signature,
+          learner: body.learner, courseId: body.course, lessonsTotal,
+          message: body.message, signature: body.signature,
         })
         return out.ok
           ? send(res, 200, jsonBody({ enrolled: true, created: out.created, enrollmentId: out.enrollment?.id, course: out.enrollment?.course_id }))

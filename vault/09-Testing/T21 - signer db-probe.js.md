@@ -2,7 +2,7 @@
 tags: [testing, "T21"]
 command: npm run verify:db
 measured: 2026-09-28
-result: 12 checks / 0 failed
+result: 19 checks / 0 failed
 ---
 
 # T21 - signer db-probe.js (state belajar di Postgres)
@@ -71,17 +71,52 @@ tidak berpura-pura menjadi server yang punya DB.
   dengan pesan yang berbeda dari yang dikirim, jadi ia dapat 401 *karena alasan lain* — ditolak, tapi
   bukan oleh guard yang mau kita uji. Penolakan yang kebetulan benar tidak membuktikan apa pun.
 
-## Yang TIDAK dibuktikan 12/0 ini
+## Run kedua hari yang sama — 19 / 0, dan dua cacat yang hanya bisa kelihatan lewat HTTP
 
-- **Bar item 4 belum selesai.** Tabel `lesson_progress` dan state machine-nya ada; **belum ada yang
-  menulisnya**. Progres peserta masih satu kunci `localStorage` di browser.
-- **Belum ada sambungan ke dokumen.** `attempt_hash` hari ini dihitung dan disimpan, tapi belum
-  dicetak ke kredensial — itu pekerjaan `issue --from-attempts`, dan bar 7 baru benar-benar bergerak
-  setelah itu.
-- Bukan uji beban; bukan uji multi-user; nonce masih disimpan di memori proses (hilang saat restart,
-  dan tidak dibagikan antar-instance) — Replay guard satu mesin, dan itu harus jadi tabel sebelum
-  ada lebih dari satu proses.
-- Tidak menyentuh chain: tidak ada attestation baru yang dibuat oleh probe ini.
+```
+  ok    lompat locked -> completed DITOLAK dengan 422 (bukan 401: orangnya benar, urutannya salah)
+  ok    locked -> unlocked diterima
+  ok    unlocked -> completed diterima
+  ok    status yang sama dikirim ulang -> noop, bukan baris progres baru
+  ok    GET /progress membaca dari DB: lesson itu completed
+  ok    1 dari 19 lesson TIDAK dibaca sebagai selesai: lessons_total terisi dari katalog, allLessonsDone false
+  ok    nonce enroll pertama tercatat di used_nonces (bertahan melewati restart proses)
+```
+
+Dua cacat nyata yang ditemukan probe ini, keduanya punya saya, keduanya tidak akan kelihatan dari
+membaca kode saja:
+
+1. **Token Prefer salah ketik.** `resolution=merge-duplicated` (harusnya `-duplicates`) membuat
+   "upsert" saya menjadi INSERT biasa, jadi `unlocked -> completed` mati dengan `23505 duplicate key`.
+   Kenapa lolos tiga percobaan pertama: jalur enroll memendek lebih dulu (`if (existing) return`)
+   sehingga kode yang salah itu tidak pernah dieksekusi sampai ada yang menulis baris kedua.
+2. **View saya berbohong soal "selesai".** `all_lessons_done` dihitung `bool_and(...)` atas LEFT JOIN
+   ke `lesson_progress`, jadi ia hanya melihat baris yang sudah ditulis: peserta dengan **1 dari 19**
+   lesson dilaporkan `true`. Perbaikannya (migrasi `0004`): `enrollments.lessons_total` dihitung dari
+   **katalog penerbit di server** — kalau klien boleh mengirim angka ini, dia bisa lulus dengan
+   menulis 1 — dan view mengembalikan `NULL` ketika penyebutnya belum diketahui. Postgres juga menolak
+   `create or replace view` yang mengubah urutan/nama kolom (`42P16`); percobaan pertama migration itu
+   gagal tepat di situ, dan view harus dijatuhkan lebih dulu.
+
+Satu koreksi kecil yang layak dicatat sebagai keputusan, bukan gaya: lompatan status yang ilegal kini
+`422`, bukan `401`. Memberi keduanya kode yang sama membuat monitoring kita membunyikan alarm
+otentikasi setiap kali peserta mengirim urutan yang salah — dan alarm yang sering salah akan berhenti
+dibaca.
+
+## Yang TIDAK dibuktikan 19/0 ini
+
+
+- **Front-end belum terhubung.** `POST /progress` sudah menegak state machine di server, tapi
+  `web/src/progress.ts` masih membaca/menulis satu kunci `localStorage` — jadi apa yang dilihat
+  peserta dan apa yang disimpan server masih dua hal sampai halaman itu diarahkan ke mari. Ini
+  pekerjaan pemilik front-end, bukan yang bisa kita klaim selesai.
+- **`attempt_hash` belum masuk dokumen.** Ia dihitung dan disimpan, tapi `issue.js` belum
+  membacanya (`--from-attempts`). Sampai itu terjadi, bar 7 ("siapa/apa yang menghasilkan angka ini")
+  masih setengah, dan klaim "setiap angka di kertas punya alamat asal" belum boleh diucapkan.
+- `used_nonces` belum punya TTL/pembersihan, dan progres tidak punya batas staleness seperti kolom
+  yang sama di Canvas (`lock_version`).
+- Bukan uji beban, bukan uji multi-instance, dan tidak menyentuh chain: tidak ada attestation baru
+  yang dibuat probe ini.
 
 **Related:** [[09-Testing/T20 - signer journey.js]] · [[09-Testing/T19 - signer e2e.js]] ·
 [[00-Overview/11 - Product Bar]] · [[12-LMS-References/L7 - What an e-course must have]]
