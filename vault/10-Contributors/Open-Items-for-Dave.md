@@ -283,15 +283,52 @@ lalu `outcome: VALID`. Kalau seseorang mengembalikan array di `credential.js`, p
 ## Re-run before you push
 
 ```powershell
-cd app/web && npx tsc --noEmit && npm run build && npx tsx scripts/probe.ts   # clean, clean, 59 checks (26 Sep)
-cd app/signer && node scripts/check.js && node scripts/serve-probe.js         # 63 checks, 37 checks (27 Sep)
-cd app/signer && npm run validator                                            # 10 checks + verdict vc.1ed.tech
-cd app/signer && node scripts/anchor.js --dry-run                               # watched set + kedua hash daftar
-cd app && forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com   # 104 passed
+cd app/web && npx tsc --noEmit && npm run build && npm run probe   # clean, clean, 59 checks / 0 failed (28 Sep)
+cd app/signer && node scripts/check.js                              # 76 checks / 0 failed (28 Sep)
+cd app/signer && node scripts/serve-probe.js                        # 48 checks / 0 failed (28 Sep, server harus jalan)
+cd app/signer && npm run validator                                  # 10 checks + verdict `vc.1ed.tech`: outcome VALID
+cd app/signer && npm run verify:edge                                 # 5 checks + angka "berapa kertas yang bisa diperiksa orang"
+cd app/signer && npm run anchor -- --dry-run                          # watched set + kedua hash daftar
+cd app && forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com   # 104 passed / 0 failed
 ```
+
 Numbers and what each one does *not* prove: [[09-Testing/00 - Hub Testing]]. Sentences we have banned
-for ourselves, including "1EdTech compatible" (yang boleh dikatakan sejak 27 Sep: "lolos validator
-OB 3.0 milik 1EdTech, 0 error" — bukan "certified"): [[08-Results/01 - Evidence and Limits]]. Depth on the
-page itself: [[03-Frontend/FE6 - Quirks and open defects]].
+for ourselves, including "1EdTech compatible" — yang boleh ditulis sejak 28 Sep: *"a credential from
+this backend passes the 1EdTech OB 3.0 validator — 0 errors, 0 warnings"*, dan tetap bukan
+"certified"/"conformant" (validator member, bukan sertifikasi konformansi; responsnya melaporkan jumlah
+tanpa merinci pemeriksaan mana yang lulus). Yang TIDAK boleh lagi ditulis tanpa menyebut angkanya:
+"semua artefak dapat diverifikasi publik" — `verify:edge` mengukur **2 dari 8** kertas kita hari ini
+(B54). [[08-Results/01 - Evidence and Limits]]. Depth on the page itself:
+[[03-Frontend/FE6 - Quirks and open defects]].
+
+## OI-15 — halaman yang bisa dibuka pengunjung masih berkata "lapis on-chain kami belum disiarkan"
+
+Sisa dari kalimat yang sama: `web/src/i18n.ts:1266-1269` (`bannerNotDeployed`) dan
+`web/src/verify.ts` dulu ikut memakainya. `verify.ts` sudah kuperbaiki hari ini (ia berkas core
+system, dan `npm run probe` tetap 59/0 setelahnya) — tapi **banner yang benar-benar dirender ke
+layar** ada di sebelah sini: `web/src/main.ts:1567-1570` menampilkan `bannerNotDeployed` saat
+halaman diarahkan ke preset yang alamatnya kosong, dan isinya berbunyi
+
+> `title: 'Lapis on-chain kami belum disiarkan ke chain.'` / `body: '47 test lulus di fork chain 97
+> dan 56 … tapi address CredentialResolver / SoulboundCert masih kosong di preset ini.'`
+
+Dua hal salah di situ: kontrak kami disiarkan di chain 97 sejak 21 Sep, dan 47 bukan jumlah test
+hari ini (offline **49**, fork **104** per chain — `npm test`, `npm run test:chains`). Untuk juri,
+baris ini mengalahkan seluruh tabel bukti di halaman lain: mereka tidak perlu memeriksa apakah kita
+berbohong ke atas, mereka cukup membaca apa yang kita katakan sendiri.
+
+Patch yang bisa langsung ditempel (bahasa tetap dua, ID/EN, mengikuti kamus yang sudah ada):
+
+```diff
+-      title: 'Lapis on-chain kami belum disiarkan ke chain.',
+-      body: '47 test lulus di fork chain 97 dan 56 … tapi address CredentialResolver / SoulboundCert masih kosong di preset ini.',
++      title: 'Preset ini belum menunjuk deployment kami.',
++      body: 'Kontrak kami sudah disiarkan di BSC testnet (chain 97) dan 104 Foundry test lulus di fork 97 dan 56. Yang kosong di preset ini hanya address-nya — pilih preset chain 97 atau isi address di panel konfigurasi.',
+```
+
+dan padanannya di cabang `en`. Kalau kamu lebih suka membiarkan teksnya tapi tidak menampilkannya
+kecuali alamatnya benar-benar kosong, itu juga cukup: pemicunya satu `if` di `main.ts:1567`.
 
 **Related:** [[03-Frontend/01 - Frontend]] · [[10-Contributors/00 - Hub Contributors]] · [[Index]]
+
+

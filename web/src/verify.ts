@@ -360,9 +360,14 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
   }
   if (ep.resolver === ZERO_ADDR) {
     report.verdict = 'NOT_CONFIGURED'
+    // Kalimat ini pernah berbunyi "kontraknya belum disiarkan" dengan angka 47 test - keduanya
+    // salah sejak 21 Sep, dan ia tinggal di berkas yang dibaca halaman. Yang boleh dikatakan
+    // hanyalah apa yang sebuah perintah bisa cetak: `npm test` dan `npm run test:chains`.
     report.input.note =
-      'Address CredentialResolver belum diisi. Lapis on-chain sudah lulus 47 test di fork chain 97 dan 56, ' +
-      'tapi kontraknya belum disiarkan. Isi address di panel konfigurasi setelah deploy.'
+      'Address CredentialResolver belum diisi di halaman ini. Lapis on-chainnya sudah disiarkan di ' +
+      'chain 97 dan 104 Foundry test lulus di fork 97 dan 56; yang belum di halaman ini hanyalah ' +
+      'alamat yang dipakai preset tersebut. Isi resolver di panel konfigurasi, atau pilih preset ' +
+      'chain 97 yang menunjuk deployment kita.'
     return report
   }
 

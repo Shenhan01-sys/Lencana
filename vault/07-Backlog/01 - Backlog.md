@@ -1,10 +1,18 @@
 # 05 — Status and order of work
 
-**Last updated: 21 September 2026. Submission deadline: 30 September 2026, 23:59 WIB (≈9 days).**
-**Newest work queue: [[07-Backlog/03 - Findings and Tasks 2026-09-26]] (26 Sep) — B38 artefact metadata
+**Last updated: 28 September 2026. Submission deadline: 30 September 2026, 23:59 WIB (2 days).**
+**Newest work queue: [[07-Backlog/03 - Findings and Tasks 2026-09-26]] (26-28 Sep) — B38 artefact metadata
 frozen at mint, B39 artefact granularity, B40 batch mint, B41 the validator run, B42 cold-store blind
-spot in the harness, B43 documentation debt. The table below is the 21 Sep picture and is not corrected
-in place; treat that page as current where they disagree.**
+spot in the harness, B43 documentation debt, and since this morning B48 (one slug per process),
+B51 (durable host), B53-B56 (what our own guards failed to see). The table below keeps the shape it had
+on 21 Sep and is not corrected row by row; treat that page as current where they disagree.**
+
+**Tiga kalimat di tabel bawah ini sudah tidak benar dan tidak boleh dikutip dari sini:** (1) "the HTTP
+`402` side has never run" — ia berjalan 23-24 Sep dan `npm run x402` **20/0**; (2) "the validator does
+**not** pass yet — 2 shape errors" — bentuknya dibetulkan dan validator mengembalikan `outcome: VALID`
+untuk dua kredensial (28 Sep, 14 checks, 0 error/0 warning); (3) "97 tests pass on fork chain 97 and 56" —
+hari ini **104/0** di kedua chain, dan jumlah harness signer bukan 65/37 lagi (76/0 dan 48/0). Yang tetap
+benar dan masih terbuka: pendaftaran event, video, dan cold-store probe (B42).
 
 ## Where things stand
 
@@ -26,19 +34,20 @@ in place; treat that page as current where they disagree.**
 All documentation, captions and descriptions in this repository are **English**. One agreed exception:
 the verification frontend, which is user-facing, will carry a language switch.
 
-- [ ] 🔤 **Add an Indonesian / English switch to `web/`.** Not a cosmetic feature: the audience for the
-      verification page is Indonesian HR staff and learners, while the code, docs and judges' reading
-      material are English. Implementation notes, so this does not become a rewrite:
-      - keep **all UI strings in one dictionary module** (`web/src/i18n.ts`), never inline in the
-        renderer — the renderer is already a pure `report → HTML` function, so it just takes a
-        language parameter
-      - default **English**, persist the choice in `localStorage` alongside the RPC/address config,
-        and set `<html lang>` when it changes
-      - keep on-chain **data** untranslated (addresses, hashes, contract names). Only labels,
-        verdict titles, reasons and the limits panel are translated — a verdict must not read
-        differently in two languages
-      - ⚠️ The **verbatim specification quotations** in the limits panel stay in English with the UI
-        label translated. Translating a spec quote turns a citation into a paraphrase
+- [x] 🔤 **Indonesian / English switch in `web/` — built, 28 Sep.** Not a cosmetic feature: the audience for
+      the verification page is Indonesian HR staff and learners, while the code, docs and judges' reading
+      material are English. What shipped: every UI string lives in **one** dictionary module
+      (`web/src/i18n.ts`, `DICTIONARIES` + `Lang`), the toggle is wired at `web/src/main.ts:1512-1522` and
+      `:1848-1849`, the choice persists (`getSavedLanguage` / `saveLanguage`) and `?lang=` sets it
+      (`main.ts:2607`). What is *not* claimed: coverage is uneven — simulation copy inside `main.ts` is
+      still written inline in one language in places, and that is tracked in the frontend open items
+      rather than described as finished. (This row sat unchecked, and the README said "not built yet",
+      long after the switch existed — an under-claim is still a wrong claim in a document a judge reads.)
+      Two rules from the original notes remain load-bearing and are honored: on-chain **data** is never
+      translated (addresses, hashes, contract names — only labels, verdict titles, reasons and the
+      limits panel, so a verdict cannot read differently in two languages), and **verbatim specification
+      quotations** stay English with only the UI label translated, because translating a spec quote turns
+      a citation into a paraphrase
 - [ ] Solidity test names and revert messages are currently Indonesian. Converting them is cheap but
       touches every test file — decide once, before the demo video, and don't do it halfway
 - [x] ~~Redeploy the anvil fork, then re-run `npm run probe`~~ — **done 19 Sep**: fresh fork, contracts

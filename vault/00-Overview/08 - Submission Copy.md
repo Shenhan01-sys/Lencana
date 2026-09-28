@@ -118,19 +118,25 @@ Sisanya (`SoulboundCert`, `SettlementSplit`, `DemoCourseToken`) masuk descriptio
 Dikoreksi 27 Sep saat builder mengisi form: plafonnya **5,600 karakter**, dan kami sudah menulis halaman
 sepanjang 67,345 karakter untuk itu. Teks yang ditempel sekarang:
 
-> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,486 karakter**, 91 baris, **dua** diagram
+> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,565 karakter**, 93 baris, **dua** diagram
 > Mermaid: urutan bisnis (`sequenceDiagram`) dan aliran data + uang (`flowchart`, "Where each fact lives").
 > Tabel kontrak ikut. Tanpa wikilink, tanpa jalur `vault/`, tanpa ID tiket internal, tanpa data kursus,
-> **tanpa hasil testing**.
+> **tanpa hasil testing**. Sisa ruang tinggal **35 karakter** — diukur `[IO.File]::ReadAllText(...).Length`,
+> bukan dihitung dengan asumsi: angka lama di halaman ini (5,486 / "sisa 114") sudah tertinggal sejak
+> kalimat validator ditambahkan, dan kalau kita bilang "ruang tinggal sedikit" tanpa mengukurnya lagi,
+> satu kata terlalu panjang membuat seluruh tempelan tertolak saat paste.
 
 strukturnya, sesuai permintaan builder 27 Sep: **apa Lencana itu → problem yang mau kita selesaikan →
 how it works (diagram + 7 langkah) → di mana tiap fakta tinggal (DFD) → kontrak**.
 
 Dua keputusan builder yang kutandatangani sendiri waktu itu dan sekarang dicabut — dicatat supaya tidak
 kubantah lagi nanti: data kursus dibuang (27 Sep, "emangnya itu menceritakan lencana?"), dan bagian
-**Measured / Limits dibuang** ("juri ga perlu tahu hasil testing teknisnya kayak gimana"). Angka
-`97/0 · 59/0 · 53/0 · 20/0 · 7/0` dan batas-batasnya sekarang hidup di
-[[08-Results/01 - Evidence and Limits]] dan di halaman referensi — tetap terukur, hanya bukan di field ini.
+**Measured / Limits dibuang** ("juri ga perlu tahu hasil testing teknisnya kayak gimana"). Angka hari
+ini — `104/0` fork 97 **dan** 56, `49/0` offline, `76/0` check, `48/0` serve-probe, `59/0` web probe,
+`17/0` verify:live-cert, `26/27` publish:edge, `10/0 + VALID` validator — dan batas-batasnya sekarang
+hidup di [[08-Results/01 - Evidence and Limits]] dan di halaman referensi: tetap terukur, hanya bukan
+di field ini. (Daftar angka di kalimat ini sendiri pernah basi — `97/0 · 53/0 · 7/0` — dan itu
+pengingat bahwa "sudah dicatat" tidak sama dengan "masih benar".)
 Yang tetap tinggal di teks submission adalah klaim yang masih bisa mereka cek sendiri: jalur perintah
 (`POST /verify`, `statusOf`), alamat kontrak, dan angka 190.659 gas yang menggerakkan keputusan batch.
 

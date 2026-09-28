@@ -25,11 +25,13 @@ The items live in one document so Dave can read them in a single pass:
 | OI-12 | the shown document still uses the two-entry `credentialStatus` the OB 3.0 schema rejects |
 | OI-13 | a button that prints "14/14 Tests Passed (12ms)" from a `setTimeout` — an invented pass result, not just an invented flow |
 | OI-14 | `package.json` calls a tool that lives outside the repo, so `npm run probe:rpc` is dead in anyone else's clone (in-repo copy already added; one-line patch offered) |
+| OI-15 | a banner a visitor can still open says "lapis on-chain kami belum disiarkan" with a stale test count — the same false sentence I just removed from `verify.ts` |
 
-**Dua dari daftar ini membuat yang lain terlihat lebih buruk, dan itu alasannya ditutup lebih dulu:**
-OI-13 (hasil uji yang direkayasa) dan OI-12 (dokumen yang ditolak validator). Keduanya menyentuh
-kalimat penjualan kita sendiri — "klaim yang tidak bisa diperiksa adalah kenapa platform lama gagal" —
-dan keduanya ada di halaman yang akan dibuka juri.
+**Tiga dari daftar ini membuat yang lain terlihat lebih buruk, dan itu alasannya ditutup lebih dulu:**
+OI-15 (halaman berkata produknya belum disiarkan), OI-13 (hasil uji yang direkayasa) dan OI-12
+(dokumen yang ditolak validator). Ketiganya menyentuh kalimat penjualan kita sendiri — "klaim yang
+tidak bisa diperiksa adalah kenapa platform lama gagal" — dan ketiganya ada di halaman yang akan
+dibuka juri.
 
 One item per file is deliberately **not** done: each item is a section with a patch, and splitting them
 would leave seven files that a reader has to reassemble. If an item needs quoting in a pull request, the
