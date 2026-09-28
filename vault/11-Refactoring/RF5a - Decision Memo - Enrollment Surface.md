@@ -1,71 +1,70 @@
 ---
 tags: [decision-memo, enrollment, frontend, "B58"]
-status: open — needs the builder's call
+status: decided — B, 28 Sep
 updated: 2026-09-28
 ---
 
-# RF5a — Memo: permukaan enrollment sebelum FE dibangun
+# RF5a — Keputusan: enrollment masuk core (B), bukan keluar dari produk
 
-**Ringkas:** core kita tidak punya akun peserta, enrollment, atau penyimpanan jawaban (**B58**). Front-end
-yang "jadi produk" akan menyimpan state yang backend-nya tidak punya. Ini tiga opsi, biayanya, dan mana
-yang boleh kita klaim. **Kalau tidak ada keputusan sebelum video direkam, kami jalan dengan Opsi A** —
-karena itu satu-satunya yang tidak membuat submission kita mengklaim hal yang belum ada.
+**Putusan builder 28 Sep:** Lencana adalah **e-course platform** — orang ikut kursus, lulus, lalu
+menerima NFT + kredensial on-chain. Menyerahkan identitas itu supaya submission-nya mudah jujur adalah
+**bukan** kehati-hatian, itu menurunkan produknya. Jadi opsi yang dipakai adalah **B**, dan pertanyaan
+yang tersisa bukan "A atau B" melainkan **seberapa banyak B yang masuk sebelum 30 Sep** — dan apa yang
+boleh kita klaim pada masing-masing titik itu.
 
-## Fakta yang mengikat
+## Yang salah di versi memo ini sebelumnya
 
-| | |
+Versi pertama memo (commit `73e7e73`) menulis "default: A kalau tidak ada jawaban". Itu keliru dua kali:
+(1) A tidak netral — A menghapus niat produk; (2) A bahkan tidak akurat sebagai gambaran keadaan
+sekarang, karena permukaan kursusnya **sudah ada**: `web/src/lms.ts` menghidapkan `#/learn`,
+`#/course/:id`, `#/me` lewat `renderLmsRoute()`, dan katalog berisi 2 kursus · 7 modul · 24 lesson
+· 412 menit · 28 soal kuis · 2 esai (`npm run inventory`). Yang tidak ada bukan kursusnya — **sisi
+backend-nya**.
+
+## Yang benar-benar hilang, dan itu yang B kerjakan
+
+Peserta hari ini "mengerjakan" semuanya di browser: progres di `localStorage` (kita sendiri melabelinya
+**bukan bukti**, `03-Frontend`), dan nilai masuk ke kredensial lewat argumen CLI (`npm run issue
+--quiz … --essay-score …`). Artinya jejak "lulus" tidak punya sumber server-side. Karena itu:
+
+- `btnEnroll` ada labelnya tapi tidak ada handler — bukan karena tombolnya lupa dibuat, karena tidak ada
+  yang bisa dia panggil;
+- jalur x402 tidak punya objek bayar (RF5: tidak ada enrollment = tidak ada yang dibayar);
+- dan `npm run journey` harus menurunkan kunci peserta dari prosesnya sendiri, bukan memakai akun nyata.
+
+## B — permukaan core: enroll + attempts
+
+| bagian | bentuk | biaya |
+|---|---|---|
+| `POST /enroll` | `{courseId, learner}` → baris store (siapa mengambil kursus apa, kapan) | kecil |
+| `POST /attempts` | nilai kuis per soal + esai (berkas/teks) + penyelesaian praktik → **`attemptHash`** yang ikut tercetak sebagai `evidence` di dokumen | sedang |
+| `issue --from-attempts <learner> <courseId>` | menerbit dari **rekaman**, bukan dari argumen; menolak kalau usahanya belum lengkap (`BELUM_LENGKAP` sudah jadi verdict nyata di `web/src/score.ts`) | kecil |
+| `journey` lewat HTTP | journey memanggil endpoint ini alih-alih CLI — supaya yang kita rekam di video adalah **produk**, bukan skrip uji | kecil |
+| FE menyambung ke endpoint | `btnEnroll` → `/enroll`, panel nilai → `/attempts` | milik pemilik front-end |
+
+Estimasi sisi core: **sekitar setengah hari**. Yang tidak boleh dipotong kalau waktunya mepet: `attempts`
++ `--from-attempts`. `POST /enroll` boleh menyusul — enroll tanpa attempt dicatat server tetap menghasilkan
+"nilai dari operator"; sebaliknya sudah cukup membuktikan "usaha peserta tercatat di backend".
+
+## Garis klaim yang jujur (ini bagian yang perlu kamu tahu, bukan yang perlu kamu putuskan)
+
+| kondisi saat submission | kalimat yang boleh dipakai |
 |---|---|
-| Waktu | tenun kerja tersisa **2 hari** (tenggat 30 Sep 23:59 WIB) |
-| Yang sudah aman dijalankan FE nanti | seluruh jalur inti: terbit → sajian → verifikasi → artefak → cabut. Hijau hari ini: `journey 34/0`, `e2e 42/0`, `verify:edge 5/0` |
-| Yang tidak ada | `POST /enroll`, `POST /attempts`, penyimpanan peserta/progres di `signer/`. Dicek 28 Sep: satu-satunya "akun" adalah **kunci peserta yang diturunkan di dalam skrip uji** |
-| Yang sudah kita larang untuk diri sendiri | "publishers can join"; progres localStorage **diberi label bukan-bukti** di `03-Frontend`; hasil uji yang tidak dihitung (OI-13) |
+| B penuh mendarat (enroll + attempts + terbit dari rekaman) | "peserta belajar di kursus kami, pekerjaannya dicatat server, dan ijazahnya ditandatangani terhadap rubrik penerbit — bisa diperiksa siapa pun" |
+| attempts mendarat, enroll belum | tetap boleh: "usaha ujian tercatat di backend sebelum kertas diterbitkan"; jangan: "peserta mendaftar kursus" |
+| belum sempat | **jangan** tulis "kerjakan soal di sistem"; video cukup menunjukkan lapis bukti yang jalan (hari ini hijau: `journey 34/0`, `e2e 42/0`, `verify:edge 5/0` + `vc.1ed.tech` `outcome: VALID` lima kredensial) dan enrollment ditampilkan sebagai roadmap dengan bentuk endpoint yang jelas — bukan sebagai tombol yang sudah jadi |
 
-## Opsi A — "Lencana = lapis bukti, bukan LMS" (default, 0 baris kode)
+Satu aturan yang tidak berubah oleh keputusan ini: **kita tidak menampilkan apa pun di video yang belum
+bisa dijalankan dari clone.** Itu bukan rasa takut, itu isi produknya — kalau kita sendiri menempel
+klaim yang tidak bisa diulang, tidak ada bedanya dengan enam LMS yang kita audit.
 
-FE tetap seperti sekarang: permukaan verifikasi + katalog penerbit. Issuance terjadi lewat jalur nyata
-(`npm run issue` / API penerbit), bukan lewat tombol daftar.
+## Konsekuensi ke dokumen lain yang sudah tersentuh hari ini
 
-- **Boleh diklaim:** "setiap ijazah yang keluar dari sini bisa diperiksa orang tanpa menghubungi kami".
-- **Tidak boleh diklaim:** "pengajar memakai platform ini untuk menjalankan kelas".
-- **Yang harus dibersihkan supaya tidak terbaca sebagai teater:** `btnEnroll` (ada label, tanpa handler),
-  tombol "14/14 Uji Lolos (12ms)" (OI-13), dan 20 tautan `lencana.io` (OI-6). Semuanya berkas pemilik
-  front-end; patch sudah ditawarkan, bukan kami sunting.
-- **Harga:** nol. **Risiko:** nol — kecuali kita lupa menyingkirkan tombol mati itu dari layar video.
-
-## Opsi B — permukaan core minimal: enrollment + attempts (~0,5 hari)
-
-Tambah di `signer/`: `POST /enroll {courseId, learner}` → baris store; `POST /attempts` → nilai kuis
-per soal + esai + penyelesaian praktik, dengan `attemptHash`; `issue.js` bisa mengambil bukti dari
-**rekaman**, bukan dari argumen CLI (`--from-attempts`). Setelah itu FE bisa belajar melawan backend yang sungguh ada, bukan melawan localStorage.
-
-- **Ditambah yang boleh diklaim:** "peserta mengerjakan soal **di dalam sistem**, dan kertas
-  direbitkan dari rekaman itu" — dan ini **menambah** bobot klaim terkuat kita, karena bukti nilai tidak
-  lagi datang dari pengetikan operator.
-- **Mengapa ini yang benar untuk jangka panjang:** RF5 bilang tanpa enrollment tidak ada yang bisa
-  dibayar → jalur x402 hari ini tidak punya objek bayar. Enrollment adalah objek itu.
-- **Biaya nyata:** satu setengah hari kerja + harness + dokumen. Kalau dipotong, yang terjadi bukan
-  "sedikit belum selesai" melainkan **state yang cuma ada di browser** — persis kegagalan yang kita jual
-  sebagai pembeda LMS.
-- **Risiko untuk submission:** setengah jadi lebih buruk daripada tidak. Kalau memilih ini, kerjakan
-  **sebelum** video, dan `npm run journey` harus lulus lewat HTTP (bukan argumen CLI) — itu penandanya.
-
-## Opsi C — enrollment ikut di-attest di BAS
-
-Koheren paling indah ("belajar juga on-chain"), tapi biaya schema + whitelist + anchor baru, dan ia
-mengubah bentuk dokumen yang **hari ini lolos validator pihak ketiga**. Keluar jendela. Bukan sekarang.
-
-## Rekomendasiku
-
-**A untuk submission; B sebagai jalur yang sketsanya kita tulis hari ini.** Artinya: di video dan form
-kita tunjukkan lapis bukti yang jalan (bukan tombol daftar), dan di slide "roadmap" kita tunjukkan
-jahitan yang akan dijahit backend — `POST /enroll` + `POST /attempts` + `--from-attempts` — sebagai
-rencana yang bentuknya sudah jelas, bukan sebagai fitur yang sudah ada. Itu menjaga satu hal yang
-paling sulit dibangun di hackathon: **tidak ada satu kalimat pun di submission ini yang tidak bisa
-diulang hakim dari clone.**
-
-## Yang kami butuh darimu
-
-Satu kata: **A**, **B**, atau **A-sekarang-B-setelah-hackathon**. Kalau tidak ada jawaban sebelum
-rekaman, kami kunci A dan memotong semua elemen UI yang menyiratkan enrollment.
-
-**Related:** [[11-Refactoring/RF5 - Enrollment and the Paid Path]] · [[11-Refactoring/RF6 - Core System, Backend and Contracts]] · [[09-Testing/T20 - signer journey.js]] · [[07-Backlog/03 - Findings and Tasks 2026-09-26]] · [[10-Contributors/Claims-Cheat-Sheet]]
+- [[07-Backlog/03 - Findings and Tasks 2026-09-26]] **B58** — status berubah dari "menunggu keputusan"
+  menjadi "diputuskan: B", dengan sisa pekerjaan = endpoint attempts.
+- [[11-Refactoring/RF5 - Enrollment and the Paid Path]] — objek bayar sekarang punya bentuk
+  (`/enroll`, `/attempts`); klaim "rails built, counter not" tetap benar sampai B mendarat.
+- [[10-Contributors/Open-Items-for-Dave]] — OI untuk `btnEnroll` dan tombol uji palsu tidak berubah:
+  FE tetap milik pemiliknya, kami laporkan + tawarkan patch.
+- [[09-Testing/T20 - signer journey.js]] — kalau B mendarat, journey pindah ke jalur HTTP dan baris
+  "TIDAK ADA DI CORE" untuk attempts hilang. Tidak akan kuhapus sebelum hilang.
