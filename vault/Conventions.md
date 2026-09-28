@@ -98,9 +98,10 @@ Model examples in this vault: `07-Backlog/Acceptance-Criteria/`, `09-Testing/`, 
 - Tables over prose when the content is a list of things with attributes (commands, addresses,
   verdicts, criteria).
 - A note ends with `**Related:**` links.
-- **Language: English.** This folder ships inside the product repository and is read by judges and by
-  contributors who are not Indonesian. The *product UI* is Indonesian-first with an EN switch — that
-  exception belongs to `web/`, not to these notes. Keep technical terms in English either way.
+- **Language: Indonesian is fine here** (builder's decision, 28 Sep — closes B79). This folder ships
+  inside the product repository and is read by judges and by contributors; the useful constraint is not
+  which language, but that every number carries the command that printed it and every claim carries a
+  file a reader can open. Technical terms stay in English where English is the precise word.
 
 ## Maintenance
 

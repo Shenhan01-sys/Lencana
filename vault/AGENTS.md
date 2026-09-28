@@ -43,7 +43,11 @@ kita dokumentasikan untuk platform orang lain.
 8. Superseded files: move the content and delete the file in one commit, or keep it under an
    `⚠️ ARCHIVED — see <note>` banner. Corrections stay visible; do not tidy away a wrong claim that
    was already pushed.
-9. Language: **English** in here (see [[Conventions]]); UI copy in `web/` is Indonesian-first.
+9. Language: **Indonesian is fine here** — decided by the builder on 28 Sep, which also closes B79.
+   Write whatever the reader of that page needs; `web/` UI copy stays Indonesian-first. What still
+   counts as a defect is not the language but an unsourced number or a claim without a command.
+   (Former rule said English-only; keeping it would have made a rule we break every session, which is
+   how rules stop meaning anything.)
 10. Frontend files (`../web/index.html`, `../web/src/main.ts`, `render.ts`, `style.css`, `i18n.ts`)
     belong to the frontend maintainer. Read [[10-Contributors/00 - Hub Contributors]] before
     touching them; if you must, keep the mount points and run typecheck + build + probe afterwards.
