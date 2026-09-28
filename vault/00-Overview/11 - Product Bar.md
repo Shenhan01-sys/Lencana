@@ -13,18 +13,18 @@ terbaca sebagai demo, yang persis kita kritik ke enam LMS.
 
 ## Bagian 1 — bar: kerangka umum e-course (12 elemen)
 
-Daftar otoritatifnya ada di [[12-LMS-References/L7 - What an e-course must have.md]]; status di bawah
+Daftar otoritatifnya ada di [[12-LMS-References/L7 - What an e-course must have]]; status di bawah
 ini terverifikasi 28 Sep dengan **membaca kode**, bukan membaca catatan lama.
 
 | # | elemen | kita | yang perlu dibuat |
 |---|---|---|---|
 | 1 | hierarki konten dengan id stabil | ✅ `content.ts` Course/Module/Lesson | — |
 | 2 | gating sebagai data, ditegak server-side | ⚠️ prasyarat antar-kursus ditegak **chain** (`PrerequisiteRevoked`), gating per bab belum ada | aturan urutan per bab |
-| 3 | **rekaman enrollment per peserta** | ⚠️ tabel + `POST /enroll` bertanda tangan peserta, nonce di DB (bukan memori proses), idempoten, `lessons_total` dihitung dari katalog — `verify:db` 19/0 (28 Sep) | FE memanggilnya; `issue --from-attempts` membaca baris ini |
-| 4 | progres per peserta + state machine | ⚠️ `POST /progress` + mesin status ditegak server (lompat ilegal → 422, status sama → noop) + `progress_events`; dibuktikan `verify:db` 19/0 | FE masih baca-tulis `localStorage` sendiri — sambungkan ke sini |
+| 3 | **rekaman enrollment per peserta** | ✅ tabel + `POST /enroll` bertanda tangan peserta, nonce di DB (bukan memori proses), idempoten, `lessons_total` dihitung dari katalog; **halaman belajar sudah memanggilnya** (`web/src/learning.ts`) dan `issue --from-attempts` membacanya — `verify:db` 28/0 + satu alur HTTP di [[09-Testing/T22 - signer attempts-check.js]] (28 Sep) | pemulihan akun lintas perangkat (identitas hari ini = alamat penandatangan) |
+| 4 | progres per peserta + state machine | ✅ `POST /progress` + mesin status ditegak server (lompat ilegal → 422, status sama → noop) + `progress_events`; **FE tidak lagi menjadikannya satu-satunya tempat state** — `#/learn` mengirim unlocked→started→completed lewat HTTP (terukur 57 POST pada run 28 Sep), `localStorage` tinggal cache yang diberi label "di perangkat ini" | draf esai masih lokal saja (sengaja, lihat B81) |
 | 5 | rubric dengan skala eksplisit | ⚠️ `RubricItem{label,max}` itu bobot, bukan skala | skala berlabel-titik seperti ORA |
-| 6 | **dua gerbang: selesai ≠ lulus** | ⚠️ `readyForCredential = gradedWeights === 100` | pisahkan `completed` dan `passed` |
-| 7 | asal-usul nilai (siapa/apa yang menghasilkan angka) | ⚠️ `result.method` + `rubricHash` ada, learner tak pernah lihat rinciannya | gradebook + `attemptHash` |
+| 6 | **dua gerbang: selesai ≠ lulus** | ✅ view `course_gates` memisahkan `all_lessons_done` dan `best_score`, dan **penerbitan memakainya**: `issue --from-attempts` menolak kalau salah satu belum lewat (`NULL` = belum tahu = belum selesai). UI masih punya `readyForCredential` sendiri — itu tampilan, bukan keputusan | pindahkan label UI ke angka gerbang server |
+| 7 | asal-usul nilai (siapa/apa yang menghasilkan angka) | ⚠️ **per jalur.** Kuis: `POST /grade` — klien mengirim *pilihan*, server yang menghitung terhadap kunci manifest, menyimpan komponen per soal, dan `attempt_hash` ikut tercetak di dokumen hasil (`…/results/…`) yang dirujuk `result[0].id`. Esai/praktik: angkanya masih laporan klien (`POST /attempts`) | antrean penilaian penerbit untuk esai/praktik (B81) + gradebook |
 | 8 | alur penilaian (manusia/model) dengan lock/regrade | ❌ `judge.js` fail-closed + kontrol negatif, tapi tak ada antrian/kunci/regrade | antrian + event regrade |
 | 9 | hasil akhir yang bisa dicek orang asing | ✅ **pembeda kita** (bagian 2) | — |
 | 10 | harga + jalur bayar, dihitung server-side | ⚠️ x402 + `SettlementSplit` jalan **tapi menempel ke verifikasi**, bukan ke enrollment; panel browser = animasi (OI-11) | `POST /orders`, `platformBps` dihitung server |
@@ -32,8 +32,12 @@ ini terverifikasi 28 Sep dengan **membaca kode**, bukan membaca catatan lama.
 | 12 | katalog yang bukan satu topik | ⚠️ struktural netral, praktis 2 kursus web3 | authoring tooling |
 
 Urutan pengerjaan yang masuk akal terhadap bar ini = urutan yang sudah diurutkan di
-[[12-LMS-References/L8 - Lencana vs LMS.md]] §C: **1 enrollment → 2 progres server-side → 3 kuis
+[[12-LMS-References/L8 - Lencana vs LMS]] §C: **1 enrollment → 2 progres server-side → 3 kuis
 dibobot server → 4 dua gerbang → 5 panel bayar nyata → 6 guard idempotensi → 7 gradebook**.
+Keadaan 28 Sep sore: **1, 2, 3, 4, 6 selesai dan terukur** (satu alurnya lewat HTTP,
+[[09-Testing/T22 - signer attempts-check.js]]), yang tersisa **5** (panel bayar nyata, OI-11) dan
+**7** (gradebook) — ditambah angka esai/praktik yang masih laporan klien (B81). Jangan membaca daftar
+ini sebagai "kerangka umum sudah penuh": bar 2, 5, 8, 11, 12 masih ⚠️/❌ di tabel di atas.
 
 ## Bagian 2 — penyimpanan: Supabase (PostgreSQL)
 
@@ -128,6 +132,6 @@ Detail: [[10-Contributors/Claims-Cheat-Sheet]] · [[00-Overview/08 - Submission 
 ## Mekanisme "jangan lupa"
 
 Aturan ini ditulis di **empat** tempat karena satu saja tidak cukup: (1) `QWEN.md` di akar repo induk —
-terinjeksi otomatis di awal sesi; (2) halaman ini; (3) aturan 0 di [[../AGENTS|vault/AGENTS.md]] —
+terinjeksi otomatis di awal sesi; (2) halaman ini; (3) aturan 0 di [[AGENTS|vault/AGENTS.md]] —
 dibaca sebelum menyunting vault; (4) memory proyek penulis. Yang **tidak** lagi jadi tempat andalan:
 ingatan sesi, dan kalimat "sudah dicatat" tanpa penunjuk.

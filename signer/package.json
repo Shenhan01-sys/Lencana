@@ -16,6 +16,8 @@
     "journey": "tsx scripts/journey.js",
     "revoke": "node scripts/revoke.js",
     "verify:db": "node scripts/db-probe.js",
+    "verify:attempts": "tsx scripts/attempts-check.js",
+    "verify:attempts:live": "tsx scripts/attempts-check.js --live",
     "judge": "tsx scripts/judge-check.js",
     "judge-variance": "tsx scripts/judge-variance.js",
     "serve": "tsx src/server.js",

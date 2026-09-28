@@ -89,7 +89,7 @@ comparisons:
 |---|---|
 | "their badge/certificate cannot be revoked / is not anchored" | search each repo for badge, assertion, revocation, verification URL, blockchain; Chamilo and Moodle both emit Open Badges, so the version and the signer matter, not the word "badge" |
 | "their paid enrolment works like X" | Moodle `enrol/payment`, edX entitlements/verified-track, Frappe pricing fields, Canvas e-commerce — find the money path in code, not in docs |
-| "completion is computed server-side" | locate the completion/progress table or model and the code that writes it; our equivalent is `localStorage`, which is the whole gap |
+| "completion is computed server-side" | locate the completion/progress table or model and the code that writes it; ours has been the same kind of row since 28 Sep (`public.lesson_progress` + `POST /progress`, written by `web/src/learning.ts`) — what still differs from the six is *what another party can read of it*, not whether it exists |
 | "their gradebook shows which evidence produced which number" | Moodle gradebook, edX ORA rubric breakdown, Canvas gradebook — compare against our `score.ts` components |
 | anything about their UI | out of scope by rule, and the fastest way for a reviewer to catch us over-reading a template |
 

@@ -5,6 +5,13 @@
  *   npm run issue -- --course web3-dasar-2026 --learner 0x… \
  *        --quiz 80,80,90,70 --essay-score 90
  *
+ *   npm run issue -- --from-attempts --course web3-dasar-2026 --learner 0x…
+ *
+ * `--from-attempts` (B62): angkanya TIDAK datang dari perintah ini, melainkan dari rekaman usaha di
+ * Postgres (`attempts` + `attempt_components`); dua gerbang kursus (`all_lessons_done` dan
+ * `best_score >= passMark`) dibaca lebih dulu dan yang tidak lolos tidak dapat kertas. Bentuk
+ * `--quiz/--essay-score` tetap ada untuk menguji aritmetika dan menerbitkan kertas contoh.
+ *
  * Tidak ada `--score`: yang masuk adalah BUKTI, dan angkanya dihitung terhadap manifest penerbit.
  * Bukti yang belum lengkap membuat perintah ini BERHENTI sebelum gas bergerak — bukan memakai
  * angka bawaan supaya demo jalan.
@@ -18,7 +25,8 @@
  * diulang. Nomor bit ditetapkan di sini, sekali, lalu disimpan — server hanya membacanya.
  *
  * Butuh .env di akar app/: RPC_URL, RESOLVER_ADDRESS, BAS_ADDRESS, ISSUER_PRIVATE_KEY (EOA agen =
- * attester), DEPLOYER_PRIVATE_KEY (kunci platform = yang anchor), AGENT_SLUG, BASE_URL.
+ * attester), DEPLOYER_PRIVATE_KEY (kunci platform = yang anchor), AGENT_SLUG, BASE_URL;
+ * `--from-attempts` menuntut SUPABASE_URL + SUPABASE_SECRET_KEY juga.
  */
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -35,6 +43,15 @@ import { EMPTY_UID } from '../../web/src/abi.ts'
 import { manifestOf } from '../../web/src/manifest.ts'
 import { computeScore, formatScore } from '../../web/src/score.ts'
 import { DEFAULT_JUDGE_MODEL, JUDGE_TEMPERATURE } from '../src/judge.js'
+import { loadFileEnv } from '../src/env.js'
+import { dbConfigured, dbMissingReason, courseGates, attemptsFor } from '../src/db.js'
+import { evidenceFromAttempts, formatEvidence } from '../src/fromAttempts.js'
+
+// `src/db.js` membaca `process.env` — memang di situ tempat kredensial server-side — sementara skrip
+// ini dulu membaca ../../.env ke objek lokal saja. Tanpa baris ini `--from-attempts` akan bilang
+// "SUPABASE_URL belum diisi" di mesin yang jelas punya .env: kelas bug yang sama yang ditutup D45
+// untuk `check.js` dan `serve-probe.js`. Nilai dari lingkungan proses tetap menang (lihat env.js).
+await loadFileEnv()
 
 /** .env dibaca manual: menambah dotenv hanya untuk 8 baris adalah dependensi yang tidak perlu. */
 async function readEnv () {
@@ -64,12 +81,28 @@ if (!course || !learner) {
  * terhadap manifest penerbit (`web/src/score.ts`). Menerima nilai bulat dari perintah adalah satu
  * -satunya cara platform mengarang kelulusan atas nama institusi — dan itulah yang kita kritik
  * dari kompetitor, jadi tidak masuk akal kita lakukan sendiri.
+ *
+ * `--from-attempts` melangkah satu tahap lebih jauh (B62-b): bukti yang SUDAH ada di Postgres yang
+ * dipakai, dan flag angka dari perintah DITOLAK. Bukan demi kerapian CLI — kalau keduanya boleh
+ * masuk bersamaan, satu angka punya dua jalan masuk dan yang di kertas tidak bisa dibedakan lagi.
  */
-const quizScores = String(arg('quiz', '')).split(',').map((s) => s.trim()).filter(Boolean).map(Number)
+const FROM_ATTEMPTS = process.argv.includes('--from-attempts')
+const CLI_EVIDENCE_FLAGS = ['quiz', 'essay-score', 'essay', 'lesson', 'no-praktik']
+if (FROM_ATTEMPTS) {
+  const clash = CLI_EVIDENCE_FLAGS.filter((f) => arg(f) !== undefined || process.argv.includes(`--${f}`))
+  if (clash.length) {
+    console.error(`--from-attempts tidak bisa dipakai bersama ${clash.map((f) => `--${f}`).join(' ')}`)
+    console.error('satu angka tidak boleh punya dua jalan masuk: biarkan nilainya datang dari rekaman usaha saja')
+    process.exit(2)
+  }
+}
+
+let quizScores = String(arg('quiz', '')).split(',').map((s) => s.trim()).filter(Boolean).map(Number)
 const essayRaw = arg('essay-score')
 let essayScore = essayRaw === undefined ? null : Number(essayRaw)
 let essayGrading = null
-const praktikCompleted = !process.argv.includes('--no-praktik')
+let praktikCompleted = !process.argv.includes('--no-praktik')
+let fromDB = null
 
 if (quizScores.some((n) => !Number.isFinite(n))) {
   console.error('--quiz harus daftar angka 0..100 dipisah koma, tanpa nilai kosong')
@@ -139,11 +172,67 @@ if (arg('essay')) {
   essayScore = essayGrading.finalScore
 }
 
+/**
+ * `--from-attempts` (B62): bukti dan dua gerbang datang dari rekaman di Postgres.
+ *
+ * Urutannya disengaja. Gerbang dibaca SEBELUM aritmetika, dan aritmetikanya tetap `computeScore`
+ * yang sama terhadap KOMPONEN yang tersimpan — bukan terhadap kolom `score`. Kolom itu tempat kita
+ * menampilkan hasil; kalau dia yang memberi makan rubrik, angka di kertas cuma mencerminkan diri ia
+ * sendiri. `NULL` pada `all_lessons_done` berarti "penyebutnya belum diketahui" (migrasi 0004) dan
+ * diperlakukan sebagai belum selesai — bukan lolos, bukan gagal, dan bedanya harus terbaca di log.
+ */
+if (FROM_ATTEMPTS) {
+  if (!dbConfigured()) {
+    console.error(`--from-attempts berhenti: ${dbMissingReason()}`)
+    process.exit(2)
+  }
+  const gates = await courseGates(learner, course)
+  if (!gates) {
+    console.error(`tidak ada enrollment ${learner} di ${course} — gerbang tidak bisa dibaca dari baris yang tidak ada`)
+    console.error('peserta harus POST /enroll lebih dulu (tanda tangan atas nonce satu-kali)')
+    process.exit(2)
+  }
+  console.log(`gerbang 1   : lesson selesai ${gates.lessons_completed}/${gates.lessons_total} -> all_lessons_done=${gates.all_lessons_done}`)
+  console.log(`gerbang 2   : ${gates.graded_attempts} usaha dinilai, best_score=${gates.best_score}, ambang penerbit ${manifest.course.passMark}`)
+  if (gates.all_lessons_done !== true) {
+    console.error('tidak menerbitkan: gerbang "selesai" belum lewat — lihat catatan migrasi 0004 soal NULL')
+    process.exit(3)
+  }
+  if (gates.best_score === null || Number(gates.best_score) < manifest.course.passMark) {
+    console.error(`tidak menerbitkan: best_score=${gates.best_score} di bawah ambang penerbit ${manifest.course.passMark}`)
+    process.exit(3)
+  }
+  const rows = await attemptsFor(learner, course)
+  const ev = evidenceFromAttempts(manifest, rows)
+  if (!ev.ok) {
+    console.error(`tidak menerbitkan: ${ev.why}`)
+    process.exit(3)
+  }
+  quizScores = ev.evidence.quizScores
+  essayScore = ev.evidence.essayScore
+  praktikCompleted = ev.evidence.praktikCompleted
+  fromDB = { gates, stored: rows.length, provenance: ev.provenance, used: ev.used, unmapped: ev.unmapped, judges: ev.judges, notes: ev.notes }
+  console.log(`dari rekaman: ${formatEvidence(ev)}`)
+  for (const n of ev.notes) console.log(`            · ${n}`)
+}
+
 const grade = computeScore(manifest, { quizScores, praktikCompleted, essayScore })
 console.log(`penerbit    : ${issuerName}`)
 console.log(`penilaian   : ${formatScore(grade)}`)
 if (grade.verdict === 'BELUM_LENGKAP') {
   console.error('\nberhenti: bukti belum lengkap. Tidak ada angka yang dikarang supaya skrip bisa jalan.')
+  process.exit(3)
+}
+
+/**
+ * `best_score` di atas ambang TIDAK cukup untuk menerbitkan (bar 6: dua gerbang, dan gerbang kedua
+ * tetap milik rubrik). `course_gates.best_score` adalah maksimum skor usaha yang dinilai — satu kuis
+ * 92 bisa melewatinya. Yang menentukan kertas adalah verdict `computeScore` terhadap SEMUA komponen
+ * yang tersimpan, dan kalau itu tidak LULUS, tidak ada attestation yang keluar.
+ */
+if (FROM_ATTEMPTS && grade.verdict !== 'LULUS') {
+  console.error(`berhenti: rubrik penerbit bilang ${grade.verdict} atas angka yang tersimpan — ${formatScore(grade)}`)
+  console.error('gerbang best_score dilewati tapi kelulusan tidak: itu peserta yang belum selesai kursusnya, bukan yang lulus')
   process.exit(3)
 }
 
@@ -279,6 +368,23 @@ await commit()
 const agent = await loadKey(AGENT_SLUG)
 const issuerDoc = issuerDocument(agent)
 const loader = makeDocumentLoader({ [agent.controller]: issuerDoc })
+
+/**
+ * Jejak usaha yang ikut melahirkan angka (B62). Yang ditulis di dokumen adalah `attempt_hash` —
+ * bukan angkanya — karena hash itulah alamat balik ke baris `attempts` + `attempt_components`, dan
+ * baris itu yang bisa dihitung ulang orang lain. Bentuk `credentialHash` TIDAK berubah
+ * (`keccak256("vc:", learner, courseId)`), jadi kertas yang sudah terbit hari ini tidak berubah
+ * diam-diam; yang bertambah hanya satu rujukan di `assessment.method` + blok `attempts` di dokumen
+ * hasil (`/results/...`).
+ */
+const attemptHashes = [...new Set((fromDB?.used ?? []).map((u) => u.attemptHash).filter(Boolean))]
+const judgeList = (fromDB?.judges ?? []).map((j) => j.model).filter((m, i, a) => a.indexOf(m) === i)
+const methodFromDB = fromDB
+  ? `dihitung dari ${fromDB.used.length} rekaman usaha di Postgres terhadap rubrik ${grade.rubricRef}`
+    + ` (attempt_hash ${attemptHashes[0] ?? '—'}${attemptHashes.length > 1 ? ` +${attemptHashes.length - 1} lagi` : ''})`
+    + (judgeList.length ? `; penilaian model: ${judgeList.join(', ')}` : '')
+  : null
+
 const { unsigned, indices } = buildOpenBadgeCredential({
   baseUrl: BASE_URL,
   issuer: agent,
@@ -298,9 +404,9 @@ const { unsigned, indices } = buildOpenBadgeCredential({
     // Metode penilaian ikut ke dokumen: angka 96 tanpa "siapa yang menghitung dan dengan rubrik
     // versi apa" hanyalah angka. Nama model + versi rubrik masuk ke sini supaya pertanyaan
     // "87 ini dari mana" dijawab dokumen itu sendiri, bukan oleh log kita.
-    method: arg('method', essayGrading?.judgeModel
+    method: arg('method', methodFromDB ?? (essayGrading?.judgeModel
       ? `dihitung dari bukti terhadap rubrik ${grade.rubricRef}; esai dinilai ${essayGrading.judgeModel} (temperature ${JUDGE_TEMPERATURE})`
-      : `dihitung dari bukti terhadap rubrik ${grade.rubricRef}`),
+      : `dihitung dari bukti terhadap rubrik ${grade.rubricRef}`)),
     // Versi pendek untuk `criteria.narrative`: yang terbaca orang di ijazah. Dipasang 28 Sep —
     // sebelum ini kalimat di atas dihitung lalu dibuang, karena `Result` OB 3.0 tidak punya
     // field untuk metode (B44).
@@ -310,6 +416,7 @@ const { unsigned, indices } = buildOpenBadgeCredential({
     comment: [
       ...grade.components.map((cp) => `${cp.name} ${cp.raw}×${cp.weight}%`),
       ...(essayGrading?.perCriterion ?? []).map((c) => `esai: ${c.label} ${c.score}/${c.max}`),
+      ...(fromDB ? [`rekaman ${fromDB.used.length} usaha / ${fromDB.provenance.length} komponen, attempt_hash ${attemptHashes[0] ?? '—'}${attemptHashes.length > 1 ? ` +${attemptHashes.length - 1} lagi` : ''}`] : []),
     ].join(' · '),
   },
   uid,
@@ -333,6 +440,22 @@ await rememberCredential({
   score: grade.total, verdict: grade.verdict, rubricHash: grade.rubricHash, rubricRef: grade.rubricRef,
   issuer: issuerName,
   evidence: { quizScores, praktikCompleted, essayScore },
+  // B62: kalau angkanya datang dari rekaman usaha, rekamannya ikut disimpan — bukan untuk
+  // mempercantik dokumen hasil, tapi supaya `attempt_hash` yang tercetak di kertas bisa dicocokkan
+  // orang ke baris yang sama di Postgres tanpa minta sesuatu dari kita.
+  attempts: fromDB
+    ? {
+        source: 'postgres:attempts',
+        gates: {
+          lessonsTotal: fromDB.gates.lessons_total, lessonsCompleted: fromDB.gates.lessons_completed,
+          allLessonsDone: fromDB.gates.all_lessons_done, gradedAttempts: fromDB.gates.graded_attempts,
+          bestScore: fromDB.gates.best_score, passMark: manifest.course.passMark,
+        },
+        storedRows: fromDB.stored, attemptHashes,
+        used: fromDB.used, components: fromDB.provenance, unmapped: fromDB.unmapped,
+        judges: fromDB.judges, notes: fromDB.notes,
+      }
+    : { source: 'cli-flags' },
   // Angka di dokumen bisa ditelusuri dari repo: lesson mana, verdict apa, model mana, dan
   // berapa per kriteria — bukan hanya nilai akhir.
   essayGrading: essayGrading

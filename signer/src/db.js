@@ -156,14 +156,34 @@ export function computeAttemptHash ({ learner, courseId, lessonKey, kind, attemp
 }
 
 /**
- * Mencatat satu penyerahan. `score` dihitung pemanggil dari komponen yang sudah ada di DB —
- * tapi komponennya sendiri ikut ditulis, supaya gradebook bisa menampilkan rinciannya tanpa
- * memercayai angka yang dikirim.
+ * Mencatat satu penyerahan yang DATANYA dari pemanggil (`POST /attempts`). Tetap lewat otorisasi
+ * tanda tangan, dan komponennya ikut ditulis supaya gradebook bisa menampilkan rinciannya.
+ *
+ * Batas yang harus disebut: jalur ini memercayai ANGKA yang dikirim. Untuk kuis itu tidak lagi
+ * boleh — angkanya dihitung server (`POST /grade`, `src/quiz.js`), karena kalau browser yang
+ * mengirim skor, peserta menilai dirinya sendiri dan `attempt_hash` cuma membekukan angka itu.
  */
 export async function recordAttempt ({ learner, courseId, lessonKey = '-', kind, attemptNo = 1, score, verdict,
   rubricHash, judgeModel, judgeTemp, deductions, components, message, signature }) {
   const auth = await authorizeLearner({ learner, message, signature })
   if (!auth.ok) return { ok: false, why: auth.why }
+  return storeAttempt({ learner, courseId, lessonKey, kind, attemptNo, score, verdict,
+    rubricHash, judgeModel, judgeTemp, deductions, components })
+}
+
+/** Nomor usaha berikutnya untuk (lesson, kind) — server yang menghitung, bukan klien. */
+export async function nextAttemptNo (learner, courseId, lessonKey = '-', kind = 'kuis') {
+  const e = await findEnrollment(learner, courseId)
+  if (!e) return 1
+  const q = `?enrollment_id=eq.${e.id}&lesson_key=eq.${encodeURIComponent(lessonKey)}&kind=eq.${kind}&select=attempt_no`
+  const rows = await rest('attempts', { query: q })
+  const nums = (rows ?? []).map((r) => Number(r.attempt_no)).filter((n) => Number.isFinite(n))
+  return nums.length ? Math.max(...nums) + 1 : 1
+}
+
+/** Penulisan usaha SETELAH pemanggilnya sudah membuktikan dirinya (atau setelah server yang menilai). */
+export async function storeAttempt ({ learner, courseId, lessonKey = '-', kind, attemptNo = 1, score, verdict,
+  rubricHash, judgeModel, judgeTemp, deductions, components }) {
   if (!['kuis', 'esai', 'praktik', 'ujian'].includes(kind)) return { ok: false, why: `jenis usaha tidak dikenal: ${kind}` }
   if (score === null || score === undefined || Number.isNaN(Number(score))) return { ok: false, why: 'score wajib angka' }
   const s = Number(score)
@@ -209,6 +229,25 @@ export async function latestAttemptHashFor (learner, courseId, kind = 'ujian') {
   const q = `?enrollment_id=eq.${e.id}&kind=eq.${kind}&order=attempt_no.desc,created_at.desc&limit=1&select=attempt_hash,score,verdict`
   const rows = await rest('attempts', { query: q })
   return rows?.[0] ?? null
+}
+
+/**
+ * SEMUA usaha peserta di satu kursus, lengkap dengan komponennya, dalam satu permintaan.
+ *
+ * Dipakai `issue --from-attempts` (B62): yang dibutuhkan penerbit bukan "skor terbaik", melainkan
+ * baris yang bisa ditunjuk saat ada yang bertanya "87 ini dari mana". `attempt_components(...)` di
+ * sini adalah embed PostgREST melalui FK `attempt_components.attempt_id` (migrasi 0001), jadi satu
+ * round-trip, bukan N+1 query — dan yang dibaca adalah kolom aslinya, bukan turunan yang kita
+ * simpan di tempat lain.
+ */
+export async function attemptsFor (learner, courseId) {
+  const e = await findEnrollment(learner, courseId)
+  if (!e) return []
+  const q = `?enrollment_id=eq.${e.id}`
+    + '&order=kind.asc,lesson_key.asc,attempt_no.asc'
+    + '&select=id,lesson_key,kind,attempt_no,score,verdict,rubric_hash,attempt_hash,judge_model,judge_temp,created_at,'
+    + 'attempt_components(item_id,score,weight,graded_by)'
+  return (await rest('attempts', { query: q })) ?? []
 }
 
 /** Nonce disimpan di DB, dan itu harus bisa dibuktikan — bukan dipercaya dari komentar. */

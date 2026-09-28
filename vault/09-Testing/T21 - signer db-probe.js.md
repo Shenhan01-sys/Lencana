@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-28
 command: npm run verify:db
 measured: 2026-09-28
-result: 19 checks / 0 failed
+result: 28 checks / 0 failed
 ---
 
 # T21 - signer db-probe.js (state belajar di Postgres)
@@ -105,16 +105,51 @@ Satu koreksi kecil yang layak dicatat sebagai keputusan, bukan gaya: lompatan st
 otentikasi setiap kali peserta mengirim urutan yang salah — dan alarm yang sering salah akan berhenti
 dibaca.
 
-## Yang TIDAK dibuktikan 19/0 ini
+## Run ketiga hari yang sama — 28 / 0, dan yang bertambah adalah tempat penilaian berdiri
 
+```
+  ok    POST /grade tanpa tanda tangan -> DITOLAK
+  ok    /grade MENOLAK skor kiriman klien (peserta tidak menilai dirinya sendiri)
+  ok    picks bagian -> 422 dan sebabnya menyebut soal yang belum dijawab
+  ok    lesson yang bukan kuis -> 422
+  ok    /grade menilai sendiri: 0/5 benar = 0 (verdict fail, ambang 80)
+  ok    jawaban server menyebut jumlah komponen per soal (rincian tersimpan, bukan cuma angka akhir)
+  ok    attempt_hash dari /grade bisa dihitung ulang KLIEN (audit tidak butuh secret key)
+  ok    usaha kedua lesson yang sama -> attempt_no dihitung server (bukan ditimpa)
+  ok    usaha dinilai lewat /grade ikut terbaca di gerbang (graded_attempts naik)
+```
 
-- **Front-end belum terhubung.** `POST /progress` sudah menegak state machine di server, tapi
-  `web/src/progress.ts` masih membaca/menulis satu kunci `localStorage` — jadi apa yang dilihat
-  peserta dan apa yang disimpan server masih dua hal sampai halaman itu diarahkan ke mari. Ini
-  pekerjaan pemilik front-end, bukan yang bisa kita klaim selesai.
-- **`attempt_hash` belum masuk dokumen.** Ia dihitung dan disimpan, tapi `issue.js` belum
-  membacanya (`--from-attempts`). Sampai itu terjadi, bar 7 ("siapa/apa yang menghasilkan angka ini")
-  masih setengah, dan klaim "setiap angka di kertas punya alamat asal" belum boleh diucapkan.
+Sembilan pemeriksaan itu milik satu rute baru: **`POST /grade`** (`signer/src/quiz.js`). Alasan dia
+ada bukan kosmetik API. Halaman belajar selama ini menghitung nilai kuisnya sendiri
+(`web/src/lms.ts` aksi `grade`, memakai `item.answer` yang ikut terbundel ke browser) lalu
+menyimpan hasilnya. Menyambungkan halaman ke `POST /attempts` apa adanya akan berarti **peserta
+mengirim angkanya sendiri, dan `attempt_hash` membekukannya supaya terlihat sah** — tepat kegagalan
+yang kita jual sebagai pembeda LMS orang lain. Jadi yang naik ke server adalah *pilihan*, dan angka
+yang turun adalah hasil hitung penerbit:
+
+- menolak `body.score` dengan `400` (diperiksa, bukan cuma tidak dibaca);
+- `verdict` diambil dari `lesson.quiz.passPct` milik penerbit, bukan dari perasaan halaman;
+- `attempt_no` dihitung server dari baris yang ada, jadi klien tidak bisa menimpa usahanya sendiri;
+- jawabannya memuat `attemptNo` + `rubricHash` supaya **klien** bisa menghitung ulang
+  `attempt_hash` — audit tidak boleh butuh secret key.
+
+## Yang sudah ditutup sejak halaman ini ditulis pertama kali (28 Sep, sore)
+
+- ~~Front-end belum terhubung~~ → **sudah**: `web/src/learning.ts` + `#/learn` memanggil
+  `/enroll`, `/progress` (POST dan GET), `/grade`; kontraknya diuji tanpa jaringan di
+  [[09-Testing/T4 - npm run probe]] (bagian "klien belajar"), dan satu alur utuhnya lewat HTTP ada
+  di [[09-Testing/T22 - signer attempts-check.js]].
+- ~~`attempt_hash` belum masuk dokumen~~ → **sudah**: `issue --from-attempts` memetakannya ke
+  dokumen hasil di `…/results/…` (B62, [[09-Testing/T22 - signer attempts-check.js]]). Bentuk
+  `credentialHash` tidak berubah, jadi kertas yang sudah lolos validator tidak berubah diam-diam.
+
+## Yang masih TIDAK dibuktikan 28/0 ini
+
+- **Kunci jawaban tetap ada di bundel browser.** `/grade` menghapus *laporan angka oleh peserta*,
+  bukan *kemampuan membaca kunci*. Yang menjual "kuis tidak bisa dicurangi" salah — lihat
+  [[10-Contributors/Claims-Cheat-Sheet]]. (B80)
+- **Angka esai dan praktik masih datang dari klien** (`POST /attempts`) karena penerbit belum punya
+  antrean penilaian untuk keduanya. Peserta uji di atas memang memakai jalur itu. (B81)
 - `used_nonces` belum punya TTL/pembersihan, dan progres tidak punya batas staleness seperti kolom
   yang sama di Canvas (`lock_version`).
 - Bukan uji beban, bukan uji multi-instance, dan tidak menyentuh chain: tidak ada attestation baru

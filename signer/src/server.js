@@ -30,9 +30,11 @@ import { criteriaDocument } from './criteria.js'
 import { resultDocument } from './results.js'
 import {
   dbConfigured, dbMissingReason,
-  enroll as dbEnroll, recordAttempt as dbRecordAttempt,
-  setLessonProgress as dbSetProgress, progressSummary as dbProgressSummary,
+  enroll as dbEnroll, recordAttempt as dbRecordAttempt, storeAttempt as dbStoreAttempt,
+  nextAttemptNo as dbNextAttemptNo,
+  setLessonProgress as dbSetProgress, progressSummary as dbProgressSummary, authorizeLearner as dbAuthorize,
 } from './db.js'
+import { gradeQuiz } from './quiz.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
@@ -321,7 +323,7 @@ const server = createServer(async (req, res) => {
     //  - secret key DB melewati RLS, jadi pemeriksaan "siapa yang boleh menulis untuk alamat ini"
     //    ada di KITA (tanda tangan nonce atas nama peserta), bukan di database;
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
-    if (path === '/enroll' || path === '/attempts' || path === '/progress') {
+    if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'lapisan belajar belum dipasang', missing: dbMissingReason() }))
       }
@@ -365,6 +367,38 @@ const server = createServer(async (req, res) => {
         return out.ok
           ? send(res, 200, jsonBody({ enrolled: true, created: out.created, enrollmentId: out.enrollment?.id, course: out.enrollment?.course_id }))
           : send(res, 401, jsonBody({ error: out.why }))
+      }
+      if (path === '/grade') {
+        // KUIS DINILAI DI SINI. Klien mengirim PILIHAN, bukan angka; `body.score` sengaja tidak
+        // dibaca sama sekali — dan kalau ada, kita tolak, supaya tidak ada yang mengira angka
+        // kiriman browser pernah diterima lewat jalur ini (B72).
+        if (body.score !== undefined) {
+          return send(res, 400, jsonBody({ error: '/grade tidak menerima score: angkanya dihitung server dari picks' }))
+        }
+        if (!body.lesson) return send(res, 400, jsonBody({ error: 'butuh lesson (slug kuis)' }))
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'grade' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        const graded = gradeQuiz({ courseId: body.course, lessonSlug: body.lesson, picks: body.picks })
+        if (!graded.ok) return send(res, 422, jsonBody({ error: graded.why }))
+        const attemptNo = Number.isInteger(Number(body.attempt)) && Number(body.attempt) > 0
+          ? Number(body.attempt)
+          : await dbNextAttemptNo(body.learner, body.course, body.lesson, 'kuis')
+        const stored = await dbStoreAttempt({
+          learner: body.learner, courseId: body.course, lessonKey: body.lesson, kind: 'kuis',
+          attemptNo, score: graded.score, verdict: graded.verdict, rubricHash: graded.rubricHash,
+          components: graded.components, deductions: [],
+        })
+        if (!stored.ok) return send(res, 422, jsonBody({ error: stored.why }))
+        // `attemptNo` + `rubricHash` ikut dijawab supaya klien bisa menghitung ulang
+        // `attempt_hash` dari yang dikembalikan server saja — kalau tidak, "rekaman ini bisa
+        // diaudit" hanya bisa dibuktikan oleh pihak yang sudah memegang secret key.
+        return send(res, 201, jsonBody({
+          attemptHash: stored.attemptHash, attemptId: stored.attempt?.id, attemptNo,
+          lesson: body.lesson, kind: 'kuis', rubricHash: graded.rubricHash,
+          score: graded.score, correct: graded.correct, total: graded.total,
+          passPct: graded.passPct, verdict: graded.verdict, gradedBy: 'server',
+          components: graded.components.length,
+        }))
       }
       const out = await dbRecordAttempt({
         learner: body.learner, courseId: body.course, lessonKey: body.lesson ?? '-', kind: body.kind,

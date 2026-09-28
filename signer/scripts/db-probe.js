@@ -199,6 +199,52 @@ if (await waitUp()) {
   check('1 dari 19 lesson TIDAK dibaca sebagai selesai: lessons_total terisi dari katalog, allLessonsDone false',
     sum?.lessonsTotal === 19 && sum?.allLessonsDone === false, JSON.stringify(sum).slice(0, 160))
 
+  // 9b. POST /grade — ANGKA KUIS DIHITUNG SERVER (B72). Yang dikirim klien cuma pilihan; skor yang
+  // balik harus bisa direproduksi dari yang dibalikkan server sendiri.
+  const crit = await fetch(`${BASE}/criteria/${COURSE}`, { signal: AbortSignal.timeout(20_000) }).then((r) => r.json()).catch(() => null)
+  const quiz = crit?.quizzes?.[0]
+  if (!quiz?.lesson || !quiz?.questionCount) {
+    check('/criteria menyebutkan kuis yang bisa dinilai (butuh lesson + questionCount)', false, JSON.stringify(crit).slice(0, 140))
+  } else {
+    const picks = Array.from({ length: quiz.questionCount }, (_, i) => ({ itemId: `q${i + 1}`, choice: 0 }))
+    const gradePost = async (body) => {
+      const m = `lencana-grade ${COURSE} ${quiz.lesson} nonce=${nonce()}`
+      const s = await learner.signMessage({ message: m })
+      return post('/grade', { learner: learner.address, course: COURSE, lesson: quiz.lesson, picks, message: m, signature: s, ...body })
+    }
+    const noSig = await post('/grade', { learner: learner.address, course: COURSE, lesson: quiz.lesson, picks })
+    check('POST /grade tanpa tanda tangan -> DITOLAK', noSig.status === 401, `${noSig.status} ${JSON.stringify(noSig.body)}`)
+    const withScore = await gradePost({ score: 100 })
+    check('/grade MENOLAK skor kiriman klien (peserta tidak menilai dirinya sendiri)',
+      withScore.status === 400 && /dihitung server/.test(withScore.body?.error ?? ''), `${withScore.status} ${JSON.stringify(withScore.body)}`)
+    const partial = await gradePost({ picks: picks.slice(1) })
+    check('picks sebagian -> 422 dan sebabnya menyebut soal yang belum dijawab',
+      partial.status === 422 && /belum dijawab semuanya/.test(partial.body?.error ?? ''), `${partial.status} ${JSON.stringify(partial.body)}`)
+    const bogus = await gradePost({ lesson: 'bukan-lesson', picks })
+    check('lesson yang bukan kuis -> 422', bogus.status === 400 || bogus.status === 422, `${bogus.status} ${JSON.stringify(bogus.body)}`)
+    const g1 = await gradePost({})
+    const expectedScore = Math.round((Number(g1.body?.correct ?? 0) / Number(g1.body?.total ?? 1)) * 10000) / 100
+    check(`/grade menilai sendiri: ${g1.body?.correct}/${g1.body?.total} benar = ${g1.body?.score} (verdict ${g1.body?.verdict}, ambang ${g1.body?.passPct})`,
+      g1.status === 201 && g1.body?.gradedBy === 'server' && Number(g1.body?.score) === expectedScore
+      && (g1.body?.verdict === 'pass') === (Number(g1.body?.score) >= Number(g1.body?.passPct)),
+      `${g1.status} ${JSON.stringify(g1.body)}`)
+    check('jawaban server menyebut jumlah komponen per soal (rincian tersimpan, bukan cuma angka akhir)',
+      Number(g1.body?.components) === quiz.questionCount, `${g1.body?.components} vs ${quiz.questionCount}`)
+    const repro = computeAttemptHash({
+      learner: learner.address, courseId: COURSE, lessonKey: g1.body?.lesson, kind: 'kuis',
+      attemptNo: Number(g1.body?.attemptNo), score: Number(g1.body?.score), rubricHash: g1.body?.rubricHash,
+    })
+    check('attempt_hash dari /grade bisa dihitung ulang KLIEN (audit tidak butuh secret key)',
+      repro === g1.body?.attemptHash, `${repro} vs ${g1.body?.attemptHash}`)
+    const g2 = await gradePost({})
+    check('usaha kedua lesson yang sama -> attempt_no dihitung server (bukan ditimpa)',
+      g2.status === 201 && Number(g2.body?.attemptNo) === Number(g1.body?.attemptNo) + 1,
+      `${g1.body?.attemptNo} -> ${g2.body?.attemptNo}`)
+    const sum2 = await (await fetch(`${BASE}/progress?learner=${learner.address}&course=${COURSE}`, { signal: AbortSignal.timeout(20_000) })).json().catch(() => null)
+    check('usaha dinilai lewat /grade ikut terbaca di gerbang (graded_attempts naik)',
+      Number(sum2?.gradedAttempts) >= 3, JSON.stringify(sum2).slice(0, 160))
+  }
+
   // 10. nonce memang hidup di database, bukan di Set dalam proses
   const seen = await usedNonceExists(m1.nonce)
   check('nonce enroll pertama tercatat di used_nonces (bertahan melewati restart proses)', seen === true, `nonce=${m1.nonce}`)

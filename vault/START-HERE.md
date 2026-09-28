@@ -28,8 +28,10 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 | Chain | BSC **testnet 97**. Nothing on mainnet, by choice: testnet satisfies the rules |
 | On-chain layer | 4 contracts deployed · **104 Foundry tests pass / 0 fail** on forks of **both 97 and 56** (re-run 28 Sep) → [`09-Testing/`](09-Testing/) |
 | Public host | Documents we sign are served from `https://lencana-edge.hansgunawan775.workers.dev` (Cloudflare Worker + KV, never signs anything) → [`04-Signer-Service/S10 - Edge surface.md`](04-Signer-Service/S10%20-%20Edge%20surface.md) |
-| External verdict | `vc.1ed.tech` OB 3.0 validator: **`outcome: VALID`**, 14 checks, 0 errors / 0 warnings, two credentials (28 Sep) → [`09-Testing/T15 - 1EdTech validator.md`](09-Testing/T15%20-%201EdTech%20validator.md) |
-| Honest limits | [`10-Contributors/Claims-Cheat-Sheet.md`](10-Contributors/Claims-Cheat-Sheet.md) — **read this before writing any claim**, including UI copy |
+| External verdict | `vc.1ed.tech` OB 3.0 validator: **`outcome: VALID`**, 14 checks, 0 errors / 0 warnings — **6 kredensial berbeda** diukur 28 Sep, termasuk satu yang terbit **dari rekaman belajar peserta** → [`09-Testing/T15 - 1EdTech validator.md`](09-Testing/T15%20-%201EdTech%20validator.md) |
+| Learning surface | Enrollment, progres per lesson, dan nilai kuis yang **dihitung penerbit** (`POST /grade`) hidup di Postgres dan dipanggil halaman `#/learn` lewat HTTP (`web/src/learning.ts`); satu alur utuhnya terukur `npm run verify:attempts:live` **55/0** → [`09-Testing/T22 - signer attempts-check.js.md`](09-Testing/T22%20-%20signer%20attempts-check.js.md) |
+| Publicly readable | **10 dari 17** kertas yang kita pegang bisa dibuka orang tanpa mesin ini (7 sisanya loopback/tunnel mati) — diukur `npm run verify:edge` 28 Sep, dan angka jelek itu boleh dikutip |
+| Honest limits | [`10-Contributors/Claims-Cheat-Sheet.md`](10-Contributors/Claims-Cheat-Sheet.md) — **read this before writing any claim**, including UI copy. Batas yang bertambah hari ini: nilai esai/praktik masih laporan klien (B81), dan kunci jawaban kuis memang ada di bundel browser (B80) |
 
 ## 🚀 Start here, depending on who you are
 

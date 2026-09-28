@@ -8,8 +8,8 @@ edit it from here, and do not answer from memory when a file is one `Read` away.
 
 **0. Jangan balik urutannya: penuhi standar umum e-course lebih dulu, baru jual pembeda kita.**
 Baca [[00-Overview/11 - Product Bar]] sebelum memilih pekerjaan. Kerangka 12 elemennya ada di
-[[12-LMS-References/L7 - What an e-course must have.md]], kekurangan kita yang sudah diurutkan ada di
-[[12-LMS-References/L8 - Lencana vs LMS.md]] §C, dan keputusan penyimpanan (Supabase/PostgreSQL untuk
+[[12-LMS-References/L7 - What an e-course must have]], kekurangan kita yang sudah diurutkan ada di
+[[12-LMS-References/L8 - Lencana vs LMS]] §C, dan keputusan penyimpanan (Supabase/PostgreSQL untuk
 state belajar; chain tetap tempat yang dipercaya publik) ada di halaman yang sama. Menonjolkan
 kredensial sambil kerangka belajar bolong membuat produk terbaca sebagai demo — yaitu kegagalan yang
 kita dokumentasikan untuk platform orang lain.
