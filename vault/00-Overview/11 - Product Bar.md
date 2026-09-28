@@ -45,6 +45,15 @@ sebelumnya mengimplikasikan sesuatu yang tidak kita punya.
 **Diputuskan 28 Sep:** Supabase / PostgreSQL. Project ref `mdvnwepwseqsdtybtikw`. MCP:
 `https://mcp.supabase.com/mcp?project_ref=mdvnwepwseqsdtybtikw&features=docs,account,database,debugging,development,functions,branching`.
 
+**Sudah diterapkan 28 Sep** (sebelumnya nol: 0 tabel, 0 migrasi, advisory bersih) lewat
+`app/supabase/migrations/0001_learning_surface.sql` + `0002_course_gates_security_invoker.sql`. Dua
+hal yang perlu diketahui siapa pun yang melanjutkan: **API key tidak bisa membuat tabel** — PostgREST
+hanya data-plane, POST ke tabel yang belum ada menjawab `PGRST205`, jadi DDL lewat MCP/CLI/dashboard;
+dan linter menemukan lubang nyata sesudah apply — view `SECURITY DEFINER` melewati RLS tabel di
+bawahnya sementara ia terekspos sebagai `/rest/v1/course_gates`. Diperbaiki dengan
+`security_invoker = true` dan **dibuktikan dengan permintaan nyata**, bukan dengan mengira sudah beres:
+`GET course_gates` → `[]` dengan publishable key, `POST enrollments` → `42501`.
+
 Batas yang menahan diri-sendiri tetap berlaku:
 
 - **chain tetap tempat yang dipercaya publik** — attestation, bit status di dua Bitstring Status List,

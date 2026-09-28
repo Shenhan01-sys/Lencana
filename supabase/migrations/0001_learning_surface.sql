@@ -138,7 +138,13 @@ alter table public.orders             enable row level security;
 -- 2. FK `course_id` ke katalog: katalog masih hidup di kode (`web/src/manifest.ts`). Memindahkan
 --    kebenaran katalog ke DB adalah keputusan sendiri, bukan detail skema.
 -- 3. Antrian penilaian + lock (bar 8). `course_gates` sengaja tidak menyentuhnya.
--- 4. Berkas ini BELUM dijalankan ke proyek. Proyeknya masih kosong (0 tabel, 0 migrasi, advisory
---    bersih, diukur 28 Sep). Cara menerapkan yang benar: `supabase db push` lewat CLI dengan
---    kredensial di lingkungan proses, atau branch development lebih dulu - bukan SQL yang diketik
---    dari chat ke proyek produksi.
+-- 4. STATUS: berkas ini SUDAH diterapkan ke proyek `mdvnwepwseqsdtybtikw` pada 28 Sep, lewat MCP
+--    `apply_migration` (jalur DDL yang sah — REST/PostgREST hanya data-plane: POST ke tabel yang
+--    belum ada menjawab `PGRST205 Could not find the table`, jadi API key memberi akses baris,
+--    bukan akses skema). Hasil setelah apply: 5 tabel, `rls_enabled: true`, 0 baris.
+-- 5. Yang ditemukan linter setelah apply dan tidak boleh dibiarkan: `course_gates` dibuat
+--    `SECURITY DEFINER` (ERROR, lint 0010) — view definer melewati RLS tabel di bawahnya sementara
+--    view publik itu terekspos sebagai `/rest/v1/course_gates`. Diperbaiki di
+--    `0002_course_gates_security_invoker.sql`. Perbaikan ini terbukti lewat permintaan nyata, bukan
+--    asumsi: `GET /rest/v1/course_gates` dengan publishable key mengembalikan `[]`, dan
+--    `POST /rest/v1/enrollments` menolak dengan `42501 violates row-level security policy`.
