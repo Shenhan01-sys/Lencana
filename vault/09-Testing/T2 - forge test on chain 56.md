@@ -23,9 +23,35 @@ Ran 5 test suites in 6.93s (17.02s CPU time): 104 tests passed, 0 failed, 0 skip
 ```
 
 Per suite dalam run yang sama: **22** settlement split, **27** artefak, **8** split-on-56 fork,
-**9** end-to-end di fork 56, **38** resolver fork. Angka gas cocok dengan
-[[T1 - forge test on chain 97]] suite demi suite — itu memang gunanya menjalankan test yang sama
-terhadap state mainnet.
+**9** end-to-end di fork 56, **38** resolver fork — komposisi identik dengan
+[[T1 - forge test on chain 97]], dan itu memang gunanya menjalankan test yang sama terhadap state
+mainnet.
+
+## "Identical gas figures" — kalimat lama itu salah, dan ini angkasanya
+
+Halaman ini ditulis warisan: baris *"identical gas figures"* berasal dari run 23 Sep dan tidak pernah
+diuji lagi, sementara angkanya (97 test) sudah tiga hari tidak benar. 28 Sep kucocokkan dua run dari
+satu perintah yang sama, baris per baris, **104 dari 104 test terhitung di kedua sisi** — termasuk
+satu fuzz test yang tidak mencetak satu angka gas pun (`runs: 256, mean, median`) dan dulu hilang dari
+perbandingan tanpa suara.
+
+| | |
+|---|---|
+| test yang sama di kedua run | 104 · 0 hanya di satu sisi |
+| gas berbeda | **7 test**, semuanya di jalur settlement/proxy fork |
+| besar bedanya | **+13 gas, persis sama di ketujuhnya** (mis. `test_fork_pembayaran_masuk_ke_split_lalu_terbagi` 206.759 → 206.772; `test_fork_proxinya_memang_proxy_exact_x402` 19.406 → 19.419) |
+| sisanya | 97 test angka gas-nya identik byte untuk byte, fuzz test identik runs/mean/median |
+
+Yang +13 itu semuanya memanggil **proxy x402 kanonis dan BAS yang ter-deploy di chain
+masing-masing** — jadi bedanya bukan perilaku kontrak kita, melainkan state milik deployment yang
+kita fork: jumlah slot yang dibaca berbeda 13 gas di 56 dibanding 97. Itu penjelasan yang masuk akal
+dan **bukan** klaim yang sudah kumenangkan: yang terbukti di sini hanyalah "bedanya 13, selalu di
+jalur yang menyentuh pihak ketiga, dan tidak pernah membalikkan satu assertion pun". Yang tidak boleh
+lagi ditulis: "identical gas figures". Yang boleh: *komposisi dan verdict identik di kedua chain;
+7 test berbeda 13 gas karena state proxy/BAS milik deployment yang di-fork berbeda.*
+
+Cara memeriksa ulang tanpa perkakas milikku: `npm run test:chains` lalu bandingkan kolom
+`(gas: …)` antara blok 97 dan blok 56 — 104 baris tiap blok.
 
 **Riwayat yang sengaja tidak kuhapus:** halaman ini punya front-matter bertanggal 28 Sep dengan angka
 104, sementara tubuh tempelannya masih 23 Sep dengan angka 97 dan tulisan "not re-run since".
