@@ -76,8 +76,12 @@ Batas yang menahan diri-sendiri tetap berlaku:
   yang memakainya. DDL juga **bukan** ranah project key: PostgREST hanya data-plane (`PGRST205` saat
   tabel belum ada), sementara SQL dijalankan lewat Management API dengan Personal Access Token —
   kredensial yang berbeda, dan MCP memakai yang kedua ini.
-- **Kredensial tidak masuk repo**: service key / token hanya lewat lingkungan proses. Jangan pernah ke
-  `.env`, argv, commit, atau halaman ini.
+- **Kredensial: `app/.env` boleh, dan memang untuk itu dia ada.** Secret key Supabase (`sb_secret_...`)
+  tinggal di `app/.env` bersama `DEPLOYER_PRIVATE_KEY` — server-side, gitignored (`.gitignore:19`), dan
+  sudah dibuktikan tidak bisa keluar lewat bundel: `vite.config.ts` tidak menyetel `envDir`/`root`
+  (default `web/`) dan `web/` tidak memakai `import.meta.env`/`VITE_`. Yang tetap dilarang: argv, pesan
+  commit, log yang mencetak nilai, nama berawalan `VITE_`, dan `envDir` yang diarahkan ke akar `app/`.
+  Dilarang juga memakai key legacy `anon`/`service_role` untuk jalur baru (deprecated akhir 2026).
 
 ## Bagian 2b — apa produk ini sebenarnya (kerangka kalimat, 28 Sep)
 

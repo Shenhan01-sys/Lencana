@@ -22,8 +22,10 @@
 --     komponen nilai disimpan per item supaya gradebook (elemen 7) bisa ditampilkan tanpa menghitung
 --     ulang.
 --
--- RLS: AKTIF, TANPA READ POLICY PUBLIK. Akses datang dari service role lewat lingkungan proses.
--- Kredensial (service key / token) TIDAK pernah masuk repo, .env, argv, atau commit.
+-- RLS: AKTIF, TANPA READ POLICY PUBLIK. Akses sah hanya lewat service role, dan service role itu
+-- melewati RLS (BYPASSRLS) - jadi penahan akses yang sebenarnya adalah otorisasi di dalam signer.
+-- Kredensialnya tinggal di app/.env (server-side, gitignored, tidak terbaca bundel Vite). Yang
+-- dilarang: argv, pesan commit, log yang mencetak nilai, dan nama berawalan VITE_.
 
 -- ---------------------------------------------------------------- enrollment (bar 3)
 create table if not exists public.enrollments (
