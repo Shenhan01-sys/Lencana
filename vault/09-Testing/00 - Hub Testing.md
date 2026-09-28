@@ -35,14 +35,16 @@ with them, **53** and **20**. Always read the group list, not only the count →
 | [[T4 - npm run probe]] | `npx tsx scripts/probe.ts` | **2026-09-25** | **59 / 0 failed** | the *real* `verify.ts` reads public chain 97 correctly for four verdicts, and the course content + grading authority are internally consistent | P1, P6, P4 |
 | [[T5 - npm run rubric]] | `npx tsx scripts/rubric-check.ts` | **2026-09-25** | **17 / 0 failed** | the pass mark is computed, and policy vs material hash separately | P4 |
 | [[T6 - npm run x402]] | `npm run x402` in `signer/` | 2026-09-24 | **20 / 0 failed**, 190,659 gas settled | the paid handshake end-to-end on the public chain, with money read back from chain | P3 |
-| [[T7 - signer check.js]] | `node scripts/check.js` | **2026-09-25** | **53 / 0 failed** (11/11 credentials recognised on chain) | document shape, signature round-trip, list bits derived from `statusOf()` | P1, P6 |
-| [[T8 - signer serve-probe.js]] | `node scripts/serve-probe.js` | **2026-09-25** | **20 / 0 failed** | the same through HTTP against the running server | P1 |
+| [[T7 - signer check.js]] | `node scripts/check.js` | **2026-09-28** | **74 / 0 failed** (15 kredensial diawasi) | document shape, signature round-trip, list bits derived from `statusOf()` | P1, P6 |
+| [[T8 - signer serve-probe.js]] | `node scripts/serve-probe.js` | **2026-09-28** | **48 / 0 failed** | the same through HTTP against the running server, **plus** every agent in `.keys/` served at its own URL (**B48**) | P1 |
 | [[T9 - npm run anchor]] | `node scripts/anchor.js --dry-run` | **2026-09-25** | 11 watched, 1 bit each, both hashes unchanged | anchoring is idempotent; also the witness of list membership | P1 |
 | [[T10 - npm run delegate]] | `npm run delegate` | 2026-09-23 | batch 3 credentials / 1 tx; single 1 tx | the agent signs, the platform pays, agent balance unchanged | P1, P11 |
 | [[T11 - npm run judge]] | `npm run judge` | 2026-09-24 | **7 / 0 failed** | the judge can fail a fluent-but-empty essay (negative control) | P5 |
 | [[T12 - npm run judge-variance]] | `npm run judge-variance` | 2026-09-24 | substantive **91-100**, spread 9, decision stable 5/5 | the model's number has a range; the verdict does not move | P5 |
 | [[T13 - npm run inventory]] | `npx tsx scripts/inventory.ts` | **2026-09-25** | 2 · 7 · 24 · 34 pages · 412 min · 28 · 2 | the size of the learning surface, printed from the data | P6 |
 | [[T14 - verify the public deployment]] | `node scripts/verify-deploy.js` in `signer/` | see record | — | the four deployed addresses are what the notes claim, read from the RPC | P1 |
+| [[T15 - 1EdTech validator]] | `npm run validator -- --record` | **2026-09-28** | **10 / 0 failed**, validator `outcome: VALID`, 14 checks, 0 error 0 warning | a third party opens our URLs and reads our paper the way its own software would | P1, P6 |
+| [[T16 - npm run publish edge]] | `npm run publish:edge` | **2026-09-28** | **23 / 24** rute (yang ke-24 = kursus yang memang tidak ada lagi di katalog), kedua daftar `matchesChainNow` | the URLs printed inside a credential answer from a host that does not die with the laptop | P1, P6 |
 
 ## Conventions for this folder
 

@@ -31,6 +31,9 @@ supposed to type.
 - [[S5 - Grading and the model judge]] — `grade.js` (mechanical, refuses) vs `judge.js` (model, fail-closed), the negative control, measured spread
 - [[S6 - x402 paid verification]] — the handshake, the guards that refuse to pay gas for someone else's transfer, batch pricing and the break-even arithmetic
 - [[S7 - Server routes and lifecycle]] — every route, `/healthz` as the state witness, `jsonBody()` and the BigInt failure it exists for
+- [[S8 - Criteria document]] — the publisher's paper: `achievement.criteria` was a URL pointing at nothing until this existed, and what may and may not appear in it
+- [[S9 - Result document]] — where a public `value: "92"` gets its provenance, and why the answer key and the essay text are refused
+- [[S10 - Edge surface]] — the durable read layer that closes **B51**: never signs, refuses stale lists against the chain, and what that trade costs us
 
 ## Reproduce
 
@@ -39,6 +42,8 @@ cd app/signer
 npm install
 node scripts/check.js            # 53 checks / 0 failed (25 Sep) — needs ../.env values in the environment
 node scripts/serve-probe.js      # 20 checks / 0 failed (25 Sep) — in-process HTTP, no port exposure
+npm run validator -- --record    # 10 checks / 0 failed (28 Sep) — needs a reachable host, see T15
+npm run verify:deploy            # 15/15 (28 Sep) — reads expectations from the deploy script, not from notes
 ```
 
 ⚠️ The chain-reading harnesses read `process.env` directly. Without `RPC_URL`, `RESOLVER_ADDRESS`,

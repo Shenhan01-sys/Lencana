@@ -23,7 +23,8 @@
     "smoke": "node scripts/smoke.mjs",
     "validator": "node scripts/validator-check.js",
     "measure:signing": "node scripts/measure-signing-cost.js",
-    "verify:deploy": "node scripts/verify-deploy.js"
+    "verify:deploy": "node scripts/verify-deploy.js",
+    "publish:edge": "tsx scripts/publish.js"
   },
   "dependencies": {
     "@digitalbazaar/data-integrity": "^2.5.0",
