@@ -6,6 +6,14 @@ edit it from here, and do not answer from memory when a file is one `Read` away.
 
 ## Mandatory for every change you make in this vault
 
+**0. Jangan balik urutannya: penuhi standar umum e-course lebih dulu, baru jual pembeda kita.**
+Baca [[00-Overview/11 - Product Bar]] sebelum memilih pekerjaan. Kerangka 12 elemennya ada di
+[[12-LMS-References/L7 - What an e-course must have.md]], kekurangan kita yang sudah diurutkan ada di
+[[12-LMS-References/L8 - Lencana vs LMS.md]] §C, dan keputusan penyimpanan (Supabase/PostgreSQL untuk
+state belajar; chain tetap tempat yang dipercaya publik) ada di halaman yang sama. Menonjolkan
+kredensial sambil kerangka belajar bolong membuat produk terbaca sebagai demo — yaitu kegagalan yang
+kita dokumentasikan untuk platform orang lain.
+
 1. **Never state a number you have not just produced.** Test counts, check counts, gas, addresses,
    page counts, dates. Run the command (or read the run log inside `app/`) and cite it in the note.
    If you cannot run it, write `_unmeasured_` next to the figure instead of deleting the row. This is
