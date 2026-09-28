@@ -1035,51 +1035,101 @@
            PAGE 4: VERIFY (INSTANT CREDENTIAL VERIFIER SANDBOX)
            ======================================================== -->
       <div class="page-view hidden" id="page-verify">
-        <section class="section-container" id="verifier">
-          <div class="section-header">
-            <h2 class="section-title" id="verifier-title">Instant Credential Verifier Sandbox</h2>
-            <p class="section-sub" id="verifier-sub">
-              Paste any credential identifier below or click a quick sample to run live verification against BNB Smart Chain.
-            </p>
+        <section class="section-container verify-experience" id="verifier">
+          <div class="verify-hero">
+            <div class="verify-hero-grid">
+              <div class="verify-hero-copy">
+                <p class="verify-eyebrow" id="verify-kicker">CHECK PROOF WITH CONFIDENCE</p>
+                <h2 class="verify-title" id="verifier-title">Is this achievement real? Get a clear answer.</h2>
+                <p class="verify-lede" id="verifier-sub">
+                  Paste a proof code or link below — no account or wallet needed. You get a plain answer first; the
+                  technical evidence stays underneath for anyone who wants to audit it.
+                </p>
+                <ol class="verify-steps" id="verify-journey" aria-label="Verification steps">
+                  <li class="is-active"><span aria-hidden="true">1</span><strong id="verify-step-1">Paste the proof</strong></li>
+                  <li aria-hidden="true" class="steps-sep"><i></i></li>
+                  <li><span aria-hidden="true">2</span><strong id="verify-step-2">Get a clear answer</strong></li>
+                  <li aria-hidden="true" class="steps-sep"><i></i></li>
+                  <li><span aria-hidden="true">3</span><strong id="verify-step-3">Audit details if needed</strong></li>
+                </ol>
+              </div>
+              <figure class="verify-seal-stage" aria-label="Verification seal">
+                <div class="verify-seal" aria-hidden="true">
+                  <span class="seal-ambience"></span>
+                  <span class="seal-ring"></span>
+                  <span class="seal-ticks"></span>
+                  <span class="seal-disc">
+                    <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+                      <path d="M22 37.5 32.5 48 50 27" stroke="#F0B90B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                </div>
+                <figcaption class="verify-seal-caption" id="verify-seal-caption">Independently checkable · No account needed</figcaption>
+              </figure>
+            </div>
+            <div class="verify-answers" role="note" aria-label="Possible answers">
+              <span class="verify-answers-label" id="verify-meaning-tag">Possible answers</span>
+              <span class="verify-answers-title" id="verify-meaning-title">What an answer means</span>
+              <ul class="verify-answers-list">
+                <li class="verify-answer ok">
+                  <i aria-hidden="true">✓</i>
+                  <b id="verify-meaning-valid-title">Valid</b>
+                  <span id="verify-meaning-valid-desc">The achievement is genuine and still active.</span>
+                </li>
+                <li class="verify-answer bad">
+                  <i aria-hidden="true">!</i>
+                  <b id="verify-meaning-invalid-title">No longer valid</b>
+                  <span id="verify-meaning-invalid-desc">Issued once, but revoked, expired, or no longer trusted.</span>
+                </li>
+                <li class="verify-answer muted">
+                  <i aria-hidden="true">?</i>
+                  <b id="verify-meaning-unknown-title">Could not verify</b>
+                  <span id="verify-meaning-unknown-desc">Unrecognized input, or the reader cannot reach the record.</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div id="banner" class="banner hidden"></div>
 
-          <div class="ask-card">
-            <div class="ask-header">
-              <label for="input" id="lbl-input">Input Identifier</label>
-              <span class="input-hint" id="input-hint">credentialHash, attestation UID, tokenId, or address</span>
+          <div class="ask-card verify-sheet-card">
+            <div class="sheet-head">
+              <h3 class="sheet-title" id="verify-sheet-title">Check a proof</h3>
+              <p class="sheet-sub" id="verify-sheet-sub">Paste the proof below — the answer appears underneath in plain words.</p>
             </div>
 
-            <div class="input-wrapper">
-              <textarea
-                id="input"
-                rows="2"
-                spellcheck="false"
-                placeholder="0x… (credentialHash or attestation UID), decimal number (tokenId), or 0x… (address)"
-              ></textarea>
+            <label class="sheet-label" for="input" id="lbl-input">Proof to check</label>
+            <div class="sheet-input-row">
+              <div class="input-wrapper">
+                <textarea
+                  id="input"
+                  rows="2"
+                  spellcheck="false"
+                  placeholder="Paste a proof link, code, or wallet address"
+                ></textarea>
+              </div>
+              <button id="go" class="btn btn-primary sheet-go">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <span id="btn-go-text">Verify</span>
+              </button>
             </div>
 
-            <div class="actions-bar">
-              <div class="primary-actions">
-                <button id="go" class="btn btn-primary">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <span id="btn-go-text">Verify</span>
-                </button>
+            <div class="sample-pills sheet-samples">
+              <span class="sample-label" id="sample-label">Try a sample:</span>
+              <button type="button" id="sample-valid" class="sample-pill valid">Valid</button>
+              <button type="button" id="sample-revoked" class="sample-pill revoked">Revoked</button>
+              <button type="button" id="sample-delisted" class="sample-pill delisted">Delisted issuer</button>
+              <button type="button" id="fill-sample" class="sample-pill format">Format check</button>
+            </div>
+
+            <div class="sheet-meta-row">
+              <span class="input-hint" id="input-hint">Accepts credentialHash, attestation UID, tokenId, or address</span>
+              <div class="sheet-secondary">
                 <button id="clear" class="btn btn-ghost">Clear</button>
                 <button id="share" class="btn btn-ghost">Share Link</button>
-              </div>
-
-              <!-- Quick Sample Test Pills -->
-              <div class="sample-pills">
-                <span class="sample-label" id="sample-label">Quick Samples:</span>
-                <button type="button" id="sample-valid" class="sample-pill valid">Valid Credential</button>
-                <button type="button" id="sample-revoked" class="sample-pill revoked">Revoked Credential</button>
-                <button type="button" id="sample-delisted" class="sample-pill delisted">Delisted Issuer</button>
-                <button type="button" id="fill-sample" class="sample-pill format">Format Check</button>
               </div>
             </div>
 
@@ -1129,7 +1179,21 @@
           </details>
 
           <!-- Live Results Output Container -->
-          <main id="out" class="results-container"></main>
+          <p class="verify-result-hint" id="verify-result-hint">
+            The answer appears below with its meaning first — green means valid, red means no longer valid,
+            grey means it could not be verified. Technical details follow for auditors.
+          </p>
+          <main id="out" class="results-container" aria-live="polite"></main>
+
+          <!-- Deeper inspection tools for auditors -->
+          <div class="verify-inspect-intro">
+            <p class="verify-eyebrow" id="verify-inspect-kicker">DEEPER INSPECTION TOOLS</p>
+            <h3 class="verify-inspect-title" id="verify-inspect-title">For auditors who want to see everything.</h3>
+            <p class="verify-inspect-sub" id="verify-inspect-sub">
+              The checks below hold the same evidence behind every answer above — open standards,
+              attack simulations, and batch review.
+            </p>
+          </div>
 
           <!-- W3C VC 2.0 & OPEN BADGES 3.0 SPECIFICATION COMPLIANCE MATRIX -->
           <div class="spec-matrix-section" id="spec-matrix">

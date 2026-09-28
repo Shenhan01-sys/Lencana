@@ -1357,17 +1357,36 @@ function updateStaticText() {
   renderStudyModal()
 
   // Verifier Section & Input Card
+  setText('verify-kicker', dict.inputSection.kicker)
   setText('verifier-title', dict.inputSection.sectionTitle)
   setText('verifier-sub', dict.inputSection.sectionSub)
+  setText('verify-step-1', dict.inputSection.journey1)
+  setText('verify-step-2', dict.inputSection.journey2)
+  setText('verify-step-3', dict.inputSection.journey3)
+  setText('verify-meaning-tag', dict.inputSection.meaningTag)
+  setText('verify-meaning-title', dict.inputSection.meaningTitle)
+  setText('verify-meaning-valid-title', dict.inputSection.meaningValidTitle)
+  setText('verify-meaning-valid-desc', dict.inputSection.meaningValidDesc)
+  setText('verify-meaning-invalid-title', dict.inputSection.meaningInvalidTitle)
+  setText('verify-meaning-invalid-desc', dict.inputSection.meaningInvalidDesc)
+  setText('verify-meaning-unknown-title', dict.inputSection.meaningUnknownTitle)
+  setText('verify-meaning-unknown-desc', dict.inputSection.meaningUnknownDesc)
+  setText('verify-result-hint', dict.inputSection.resultHint)
+  setText('verify-sheet-title', dict.inputSection.sheetTitle)
+  setText('verify-sheet-sub', dict.inputSection.sheetSub)
+  setText('verify-seal-caption', dict.inputSection.sealCaption)
+  setText('verify-inspect-kicker', dict.inputSection.inspectKicker)
+  setText('verify-inspect-title', dict.inputSection.inspectTitle)
+  setText('verify-inspect-sub', dict.inputSection.inspectSub)
   setText('lbl-input', dict.inputSection.label)
-  setText('input-hint', currentLang === 'en' ? 'credentialHash, attestation UID, tokenId, or address' : 'credentialHash, UID atestasi, tokenId, atau address')
+  setText('input-hint', currentLang === 'en' ? 'Accepts credentialHash, attestation UID, tokenId, or address' : 'Menerima credentialHash, UID atestasi, tokenId, atau address')
   if (inputEl) inputEl.placeholder = dict.inputSection.placeholder
   setText('btn-go-text', dict.inputSection.btnVerify)
   setText('clear', dict.inputSection.btnClear)
   setText('share', dict.inputSection.btnShare)
 
   // Sample Buttons
-  setText('sample-label', currentLang === 'en' ? 'Quick Samples:' : 'Contoh Cepat:')
+  setText('sample-label', currentLang === 'en' ? 'Try a sample:' : 'Coba contoh:')
   setText('sample-valid', dict.inputSection.sampleValid)
   setText('sample-revoked', dict.inputSection.sampleRevoked)
   setText('sample-delisted', dict.inputSection.sampleDelisted)
@@ -2178,7 +2197,7 @@ function initSpecMatrix() {
       row.classList.remove('pulse-green')
       setTimeout(() => {
         row.classList.add('pulse-green')
-      }, i * 35)
+      }, i * 150)
     })
 
     setTimeout(() => {
@@ -2189,7 +2208,7 @@ function initSpecMatrix() {
           btnText.textContent = DICTIONARIES[currentLang].specCompliance.btnRunAudit
         }, 3000)
       }
-    }, 14 * 35 + 300)
+    }, 14 * 150 + 800)
   })
 
   // Global event delegation for report tab 6 (W3C Spec Matrix)

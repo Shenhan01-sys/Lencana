@@ -217,8 +217,27 @@ export interface TranslationDictionary {
     honestNote: string
   }
   inputSection: {
+    kicker: string
     sectionTitle: string
     sectionSub: string
+    journey1: string
+    journey2: string
+    journey3: string
+    meaningTag: string
+    meaningTitle: string
+    meaningValidTitle: string
+    meaningValidDesc: string
+    meaningInvalidTitle: string
+    meaningInvalidDesc: string
+    meaningUnknownTitle: string
+    meaningUnknownDesc: string
+    resultHint: string
+    sheetTitle: string
+    sheetSub: string
+    sealCaption: string
+    inspectKicker: string
+    inspectTitle: string
+    inspectSub: string
     label: string
     placeholder: string
     btnVerify: string
@@ -697,17 +716,36 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       honestNote: 'This dApp deliberately refuses mock data: fake green indicators are worse than an honest empty result.',
     },
     inputSection: {
-      sectionTitle: 'Instant Credential Verifier Sandbox',
-      sectionSub: 'Paste any credential identifier below or click a quick sample to run live verification against BNB Smart Chain.',
-      label: 'Input Identifier',
-      placeholder: '0x… (credentialHash or attestation UID), decimal number (tokenId), or 0x… (address)',
+      kicker: 'CHECK PROOF WITH CONFIDENCE',
+      sectionTitle: 'Is this achievement real? Get a clear answer.',
+      sectionSub: 'Paste a proof code or link below — no account or wallet needed. You get a plain answer first; the technical evidence stays underneath for anyone who wants to audit it.',
+      journey1: 'Paste the proof',
+      journey2: 'Get a clear answer',
+      journey3: 'Audit details if needed',
+      meaningTag: 'WHAT AN ANSWER MEANS',
+      meaningTitle: 'Three possible answers',
+      meaningValidTitle: 'Valid',
+      meaningValidDesc: 'The achievement is genuine and still active.',
+      meaningInvalidTitle: 'No longer valid',
+      meaningInvalidDesc: 'Issued once, but revoked, expired, or no longer trusted.',
+      meaningUnknownTitle: 'Could not verify',
+      meaningUnknownDesc: 'Unrecognized input, or the reader cannot reach the record.',
+      resultHint: 'The answer appears below with its meaning first — green means valid, red means no longer valid, grey means it could not be verified. Technical details follow for auditors.',
+      sheetTitle: 'Check a proof',
+      sheetSub: 'Paste the proof below — the answer appears underneath in plain words.',
+      sealCaption: 'Independently checkable · No account needed',
+      inspectKicker: 'DEEPER INSPECTION TOOLS',
+      inspectTitle: 'For auditors who want to see everything.',
+      inspectSub: 'The checks below hold the same evidence behind every answer above — open standards, attack simulations, and batch review.',
+      label: 'Proof to check',
+      placeholder: 'Paste a proof link, code, or wallet address — accepts credentialHash, attestation UID, tokenId, or address',
       btnVerify: 'Verify',
       btnClear: 'Clear',
       btnShare: 'Copy Share Link',
-      btnSample: 'Load Sample Format',
-      sampleValid: 'Valid Credential',
-      sampleRevoked: 'Revoked Credential',
-      sampleDelisted: 'Delisted Issuer',
+      btnSample: 'Format check',
+      sampleValid: 'Valid',
+      sampleRevoked: 'Revoked',
+      sampleDelisted: 'Delisted issuer',
       statusReading: 'Querying blockchain node…',
       statusFailed: 'Verification failed: ',
       statusSummary: (verdict, total, failed, ms, block) =>
@@ -715,7 +753,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       linkCopied: 'Link copied to clipboard!',
     },
     configSection: {
-      summary: 'Reader Configuration (RPC & Contract Addresses)',
+      summary: 'Advanced: reader setup (RPC & contract addresses)',
       presetLabel: 'Network Preset',
       rpcUrlLabel: 'RPC URL',
       resolverLabel: 'CredentialResolver Address',
@@ -728,42 +766,42 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     },
     verdicts: {
       VALID: {
-        title: 'VALID',
+        title: 'Valid',
         sub: 'Credential is active, whitelisted, and cryptographically verified on-chain',
         cls: 'ok',
       },
       REVOKED: {
-        title: 'REVOKED',
+        title: 'No longer valid — revoked',
         sub: 'Was once issued, but revoked by the original issuer — revocation is permanent',
         cls: 'bad',
       },
       EXPIRED: {
-        title: 'EXPIRED',
+        title: 'No longer valid — expired',
         sub: 'Validity period has elapsed on-chain without any human alteration',
         cls: 'warn',
       },
       ISSUER_DELISTED: {
-        title: 'ISSUER DELISTED',
+        title: 'No longer valid — issuer not trusted',
         sub: 'The platform revoked the issuer agent from the whitelist — attestation itself remains unrevoked on BAS',
         cls: 'bad',
       },
       NOT_FOUND: {
-        title: 'NOT FOUND',
+        title: 'Could not verify — not recognized',
         sub: 'Never issued through this credential resolver or unrecognized input',
         cls: 'bad',
       },
       WRONG_CHAIN: {
-        title: 'CHAIN ID MISMATCH',
+        title: 'Could not verify — wrong network',
         sub: 'Refusing to display results from an unexpected network',
         cls: 'bad',
       },
       NOT_CONFIGURED: {
-        title: 'NOT CONFIGURED',
+        title: 'Could not verify — reader not set up',
         sub: 'Contract addresses are missing in the active configuration preset',
         cls: 'muted',
       },
       UNREACHABLE: {
-        title: 'RPC UNREACHABLE',
+        title: 'Could not verify — network not responding',
         sub: 'Addresses are configured, but the RPC endpoint is not responding',
         cls: 'warn',
       },
@@ -1029,9 +1067,9 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnClose: 'Close Diploma',
     },
     tamperPlayground: {
-      kicker: 'CRYPTOGRAPHIC INTEGRITY & FORGERY DEFENSE PLAYGROUND',
-      title: 'Real-Time Tamper & Attack Vector Playground',
-      sub: 'Simulate adversarial attacks against Lencana’s cryptographic primitives. Watch EVM smart contract revert guards and SHA-256/Keccak digests defend the protocol live.',
+      kicker: 'FORGERY DEFENSE · TRY IT YOURSELF',
+      title: 'See what happens when someone tampers with a proof',
+      sub: 'Try four real attack simulations below. Each one is stopped by the same checks that protect every achievement — the execution trace shows exactly where the attack fails.',
       attack1Btn: 'Simulate 1-Byte Grade Tamper',
       attack1Title: 'Attack 1: Document Tampering (Grade 93 ➔ 99)',
       attack1Desc: 'Adversary modifies an essay score or name in the JSON-LD payload. Result: Keccak256 digests mismatch and ECDSA signature fails.',
@@ -1049,9 +1087,9 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       resetBtn: 'Reset Simulator',
     },
     x402Console: {
-      kicker: 'RECRUITER BULK VERIFICATION & x402 PROTOCOL',
-      title: 'B2B Recruiter Bulk Audit & x402 Micropayments',
-      sub: 'Enterprise ATS & recruiter protocol for auditing hundreds of applicant credentials in milliseconds via HTTP 402 Payment Required micropayments.',
+      kicker: 'FOR RECRUITERS & TEAMS',
+      title: 'Check many applications at once',
+      sub: 'A batch-audit demo for recruiters and hiring systems: screen ten candidate proofs in one run. Single checks above stay free forever — only this convenience layer ever carries a fee.',
       philosophyKicker: 'CORE PROTOCOL PRINCIPLE',
       philosophyText: 'We charge for convenience, never for truth. Public verification is free, wallet-free, forever. x402 micropayments directly reimburse platform issuance gas without debt ledgers.',
       btnSimulateBatch: 'Simulate 10-Candidate Batch Audit (0.0005 BNB)',
@@ -1078,9 +1116,9 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       scene4Desc: 'Check multiple candidates quickly',
     },
     specCompliance: {
-      kicker: 'W3C VC 2.0 & 1EDTECH OPEN BADGES 3.0 TEST SUITE',
-      title: 'Specification Compliance & Interoperability Matrix',
-      sub: 'Live cryptographic and semantic audit conforming to W3C Verifiable Credentials Data Model 2.0 and Open Badges 3.0 (§9.1 Bitstring Status List) standards.',
+      kicker: 'OPEN STANDARDS · AUDITOR VIEW',
+      title: 'Built on open standards, audited in the open',
+      sub: 'For juries and auditors: live checks against the W3C Verifiable Credentials 2.0 and Open Badges 3.0 rules this product follows — plus the signed document itself.',
       btnRunAudit: 'Run Spec Compliance Audit (14 Tests)',
       btnCopyJsonLd: 'Copy Canonical JSON-LD',
       btnDownloadJsonLd: 'Download .jsonld',
@@ -1270,17 +1308,36 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       honestNote: 'Halaman ini sengaja tidak memakai data contoh: angka palsu yang terlihat bagus lebih buruk daripada halaman yang kosong dan jujur.',
     },
     inputSection: {
-      sectionTitle: 'Kotak Uji Verifikasi Kredensial',
-      sectionSub: 'Tempel pengidentifikasi kredensial apa pun di bawah ini atau klik contoh cepat untuk memeriksa bukti langsung di BNB Smart Chain.',
-      label: 'Masukan',
-      placeholder: '0x… (credentialHash atau UID attestation), angka decimal (tokenId), atau 0x… (address)',
+      kicker: 'PERIKSA BUKTI DENGAN YAKIN',
+      sectionTitle: 'Pencapaian ini asli atau tidak? Dapatkan jawaban yang jelas.',
+      sectionSub: 'Tempel kode atau tautan bukti di bawah — tanpa akun, tanpa dompet. Kamu dapat jawaban sederhana dulu; bukti teknis tetap tersedia di bawahnya untuk yang ingin mengaudit.',
+      journey1: 'Tempel buktinya',
+      journey2: 'Dapatkan jawaban jelas',
+      journey3: 'Audit detail bila perlu',
+      meaningTag: 'ARTI SEBUAH JAWABAN',
+      meaningTitle: 'Tiga kemungkinan jawaban',
+      meaningValidTitle: 'Valid',
+      meaningValidDesc: 'Pencapaian ini asli dan masih berlaku.',
+      meaningInvalidTitle: 'Sudah tidak berlaku',
+      meaningInvalidDesc: 'Pernah diterbitkan, tetapi dicabut, kedaluwarsa, atau tidak lagi dipercaya.',
+      meaningUnknownTitle: 'Tidak bisa dipastikan',
+      meaningUnknownDesc: 'Masukan tidak dikenali, atau pembaca tidak dapat menjangkau catatannya.',
+      resultHint: 'Jawaban muncul di bawah beserta artinya — hijau berarti valid, merah berarti sudah tidak berlaku, abu-abu berarti tidak bisa dipastikan. Detail teknis menyusul untuk auditor.',
+      sheetTitle: 'Periksa bukti',
+      sheetSub: 'Tempel buktinya di bawah — jawabannya muncul di bawahnya dengan kata-kata sederhana.',
+      sealCaption: 'Dapat diperiksa siapa saja · Tanpa akun',
+      inspectKicker: 'PERALATAN INSPEKSI LANJUTAN',
+      inspectTitle: 'Untuk auditor yang ingin melihat semuanya.',
+      inspectSub: 'Pemeriksaan di bawah menyimpan bukti yang sama di balik setiap jawaban di atas — standar terbuka, simulasi serangan, dan pemeriksaan massal.',
+      label: 'Bukti yang diperiksa',
+      placeholder: 'Tempel tautan bukti, kode, atau address dompet — menerima credentialHash, UID atestasi, tokenId, atau address',
       btnVerify: 'Periksa',
       btnClear: 'Kosongkan',
       btnShare: 'Salin tautan',
-      btnSample: 'Isi contoh bentuk',
-      sampleValid: 'Kredensial Valid',
-      sampleRevoked: 'Kredensial Dicabut',
-      sampleDelisted: 'Penerbit Didelisting',
+      btnSample: 'Cek format',
+      sampleValid: 'Valid',
+      sampleRevoked: 'Dicabut',
+      sampleDelisted: 'Penerbit delisted',
       statusReading: 'Membaca chain…',
       statusFailed: 'Gagal total: ',
       statusSummary: (verdict, total, failed, ms, block) =>
@@ -1288,7 +1345,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       linkCopied: 'Tautan disalin ke papan klip!',
     },
     configSection: {
-      summary: 'Konfigurasi pembacaan (RPC & address kontrak)',
+      summary: 'Lanjutan: pengaturan pembaca (RPC & address kontrak)',
       presetLabel: 'Preset chain',
       rpcUrlLabel: 'URL RPC',
       resolverLabel: 'CredentialResolver',
@@ -1301,42 +1358,42 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     },
     verdicts: {
       VALID: {
-        title: 'VALID',
+        title: 'Valid',
         sub: 'Kredensial aktif dan terverifikasi di chain',
         cls: 'ok',
       },
       REVOKED: {
-        title: 'DICABUT',
+        title: 'Sudah tidak berlaku — dicabut',
         sub: 'Pernah terbit, lalu dicabut — jejaknya permanen',
         cls: 'bad',
       },
       EXPIRED: {
-        title: 'KEDALUWARSA',
+        title: 'Sudah tidak berlaku — kedaluwarsa',
         sub: 'Waktu berlakunya habis, tanpa ada yang menyentuh',
         cls: 'warn',
       },
       ISSUER_DELISTED: {
-        title: 'PENERBIT DILISTING',
+        title: 'Sudah tidak berlaku — penerbit tidak dipercaya',
         sub: 'Platform menarik dukungannya dari penerbit — attestation-nya sendiri belum dicabut',
         cls: 'bad',
       },
       NOT_FOUND: {
-        title: 'TIDAK DIKENALI',
+        title: 'Tidak bisa dipastikan — tidak dikenali',
         sub: 'Tidak pernah diterbitkan lewat sistem ini',
         cls: 'bad',
       },
       WRONG_CHAIN: {
-        title: 'CHAIN TIDAK COCOK',
+        title: 'Tidak bisa dipastikan — jaringan berbeda',
         sub: 'Kami menolak menampilkan hasil dari chain lain',
         cls: 'bad',
       },
       NOT_CONFIGURED: {
-        title: 'BELUM DIKONFIGURASI',
+        title: 'Tidak bisa dipastikan — pembaca belum disiapkan',
         sub: 'Address kontrak belum diisi',
         cls: 'muted',
       },
       UNREACHABLE: {
-        title: 'RPC TIDAK MENJAWAB',
+        title: 'Tidak bisa dipastikan — jaringan tidak menjawab',
         sub: 'Konfigurasi terisi, node-nya yang tidak terhubung',
         cls: 'warn',
       },
@@ -1602,9 +1659,9 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnClose: 'Tutup Ijazah',
     },
     tamperPlayground: {
-      kicker: 'PLAYGROUND INTEGRITAS KRIPTOGRAFIS & PERTAHANAN PEMALSUAN',
-      title: 'Playground Simulasi Serangan & Anti-Manipulasi Real-Time',
-      sub: 'Uji simulasi serangan musuh terhadap primitif kriptografi Lencana. Saksikan guard revert smart contract EVM dan digest Keccak256 mempertahankan protokol secara langsung.',
+      kicker: 'PERTAHANAN PEMALSUAN · COBA SENDIRI',
+      title: 'Lihat apa yang terjadi saat seseorang mengubah bukti',
+      sub: 'Coba empat simulasi serangan nyata di bawah. Semuanya dihentikan oleh pemeriksaan yang sama yang melindungi setiap pencapaian — jejak eksekusinya menunjukkan persis di mana serangan itu gagal.',
       attack1Btn: 'Simulasikan Modifikasi Nilai 1-Byte',
       attack1Title: 'Serangan 1: Manipulasi Dokumen (Nilai 93 ➔ 99)',
       attack1Desc: 'Penyerang mengubah nilai esai atau nama di payload JSON-LD. Hasil: Digest Keccak256 tidak cocok dan verifikasi ECDSA gagal total.',
@@ -1622,9 +1679,9 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       resetBtn: 'Reset Simulator',
     },
     x402Console: {
-      kicker: 'VERIFIKASI MASSAL PEREKRUT & PROTOKOL x402',
-      title: 'Audit Massal Perekrut B2B & Protokol Pembayaran Mikro x402',
-      sub: 'Protokol enterprise untuk HR dan sistem ATS menyaring ratusan kredensial pelamar dalam hitungan milidetik via protokol micropayment HTTP 402.',
+      kicker: 'UNTUK PEREKRUT & TIM',
+      title: 'Periksa banyak lamaran sekaligus',
+      sub: 'Demo audit massal untuk perekrut dan sistem rekrutmen: saring sepuluh bukti kandidat dalam sekali jalan. Pemeriksaan satuan di atas tetap gratis selamanya — hanya lapisan kenyamanan ini yang berbayar.',
       philosophyKicker: 'PRINSIP UTAMA PROTOKOL',
       philosophyText: 'Kami mengenakan biaya untuk kenyamanan, bukan untuk kebenaran. Verifikasi publik selalu gratis tanpa dompet selamanya. Biaya mikro x402 langsung menutupi biaya gas penerbitan tanpa buku utang.',
       btnSimulateBatch: 'Simulasikan Audit 10 Kandidat (0.0005 BNB)',
@@ -1651,9 +1708,9 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       scene4Desc: 'Tinjau beberapa kandidat dengan cepat',
     },
     specCompliance: {
-      kicker: 'UJI STANDAR W3C VC 2.0 & 1EDTECH OPEN BADGES 3.0',
-      title: 'Matriks Kepatuhan Spesifikasi & Interoperabilitas',
-      sub: 'Audit kriptografis dan semantik langsung yang mematuhi standar W3C Verifiable Credentials Data Model 2.0 dan Open Badges 3.0 (§9.1 Bitstring Status List).',
+      kicker: 'STANDAR TERBUKA · TAMPILAN AUDITOR',
+      title: 'Dibangun di atas standar terbuka, diaudit secara terbuka',
+      sub: 'Untuk juri dan auditor: pemeriksaan langsung terhadap aturan W3C Verifiable Credentials 2.0 dan Open Badges 3.0 yang dipakai produk ini — beserta dokumen bertandatangannya.',
       btnRunAudit: 'Jalankan Audit Kepatuhan (14 Uji)',
       btnCopyJsonLd: 'Salin Dokumen JSON-LD',
       btnDownloadJsonLd: 'Unduh .jsonld',
