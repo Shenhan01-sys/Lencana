@@ -55,6 +55,26 @@ Batas yang menahan diri-sendiri tetap berlaku:
 - **Kredensial tidak masuk repo**: service key / token hanya lewat lingkungan proses. Jangan pernah ke
   `.env`, argv, commit, atau halaman ini.
 
+## Bagian 2b — apa produk ini sebenarnya (kerangka kalimat, 28 Sep)
+
+Builder menamainya langsung: **"Lencana itu sama saja seperti platform e-course lainnya, tapi
+disisipkan gimmick on-chain."** Pembanding yang ia sebut sendiri: **Dicoding** (kursus lengkap +
+sertifikasi + statistik), bukan Moodle; dan Google Classroom sebagai bentuk "kelas yang inklusif".
+Konsekuensinya dua arah, dan keduanya wajib dijaga:
+
+- **Ini bukan proyek blockchain yang mencari use-case.** Yang orang datang cari adalah kursus yang
+  enak, progres yang kelihatan, sertifikat yang bisa dipamerkan. Kalau urutan ini kebalik, produknya
+  jadi demo teknologi dan bar (bagian 1) tetap bolong.
+- **Sertifikat NFT + kredensial on-chain justru bukan gimmick kecil** — itu alasan orang *membanggakan*
+  sertifikatnya, dan bagian yang tidak bisa ditiru platform biasa. Jadi ia dijual, tapi **di dalam**
+  bentuk produk ("e-course yang ijazahnya NFT + on-chain"), bukan sebagai pengganti bentuk produk.
+
+**Sumber rujukan yang diberikan builder 28 Sep, statusnya BELUM diaudit:** `github.com/dicodingacademy`
+dan `github.com/dicoding-dev`. Sebelum satu pun kalimat pembanding ditulis tentang mereka, jalankan
+audit seperti enam LMS lain (lihat [[12-LMS-References/00 - Hub LMS References]]: baca kode di commit
+yang di-pin, sebut yang tidak bisa diverifikasi). Sekarang halaman ini hanya mencatat bahwa keduanya
+**ada sebagai referensi**, bukan bahwa kita sudah membacanya.
+
 ## Bagian 3 — setelah bar terpenuhi: yang boleh dijual
 
 Tiga pembeda, masing-masing dengan perintah yang mencetak buktinya (hari ini semuanya hijau):
