@@ -32,7 +32,8 @@
     "verify:deploy": "node scripts/verify-deploy.js",
     "verify:live-cert": "node scripts/verify-live-cert.js",
     "publish:edge": "tsx scripts/publish.js",
-    "verify:edge": "node scripts/verify-edge.js"
+    "verify:edge": "node scripts/verify-edge.js",
+    "rehost": "node scripts/rehost.js"
   },
   "dependencies": {
     "@digitalbazaar/data-integrity": "^2.5.0",

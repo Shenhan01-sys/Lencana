@@ -108,6 +108,25 @@ export async function getCredentialByHash (wanted) {
   }) ?? null
 }
 
+/**
+ * Buang SATU catatan lama lewat id-nya. Dipakai `rehost` (B65-b): kunci penyimpanan adalah
+ * `document.id`, dan id itulah yang berubah ketika kertas dipindah host — tanpa pembuangan ini,
+ * store menahan dua catatan untuk satu `credentialHash` yang sama (17 jadi 18), `/credentials/<hash>`
+ * punya dua jawaban, dan `verify:edge` menghitung kertas yang sudah tidak kita akui.
+ *
+ * Tidak ada fungsi "hapus banyak" di sini dengan sengaja: yang boleh hilang hanyalah catatan yang
+ * barusan kita tulis ulang, atas nama perintah yang sama.
+ */
+export async function forgetCredential (id) {
+  const state = await read()
+  const key = String(id ?? '')
+  if (!Object.prototype.hasOwnProperty.call(state.credentials, key)) return { removed: false, reason: 'id tidak ada di store' }
+  const gone = state.credentials[key]
+  delete state.credentials[key]
+  await write(state)
+  return { removed: true, hash: gone?.credentialHash ?? null }
+}
+
 /** Kredensial yang pernah kita terbitkan sendiri. */
 export async function knownHashes () {
   const state = await read()
