@@ -16,7 +16,7 @@
  * resmi; memaksakan TS berarti menulis deklarasi tangan untuk setiap simbol yang kita pakai —
  * ceremony tanpa bukti tambahan. Yang menjaga kebenaran di paket ini adalah `npm run check`.
  */
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as Ed25519Multikey from '@digitalbazaar/ed25519-multikey'
@@ -85,4 +85,47 @@ export async function loadKey (agentSlug) {
   const raw = JSON.parse(await readFile(join(KEY_DIR, `${agentSlug}.json`), 'utf8'))
   const key = await Ed25519Multikey.from(raw)
   return { key, controller: raw.controller, name: raw.name, agentSlug: raw.agentSlug }
+}
+
+/**
+ * Identitas agen yang tersimpan di `.keys/`, tanpa kunci rahasia.
+ *
+ * Kenapa ini ada (B48): setiap kredensial mencetak `verificationMethod` miliknya sendiri, jadi
+ * server yang hanya melayani SATU slug membuat ijazah terbitan slug lain tidak bisa diverifikasi
+ * siapa pun di instance itu — gejalanya 404 atas dokumen yang kuncinya jelas-jelas ada di disk,
+ * dan dari luar itu kelihatan seperti kredensialnya rusak.
+ */
+export async function listAgents () {
+  let files = []
+  try {
+    files = await readdir(KEY_DIR)
+  } catch {
+    return []
+  }
+  const out = []
+  for (const file of files.filter((f) => f.endsWith('.json'))) {
+    try {
+      const raw = JSON.parse(await readFile(join(KEY_DIR, file), 'utf8'))
+      if (!raw.agentSlug || !raw.controller || !raw.publicKeyMultibase || !raw.id) continue
+      out.push({
+        agentSlug: raw.agentSlug, controller: raw.controller, name: raw.name, id: raw.id,
+        // Field ini yang membuat dokumen issuer bisa dipakai verifier. `serve-probe` menangkapnya
+        // waktu pertama kali dijalankan: tanpa kunci publik, dokumen yang tersaji itu sah
+        // berbentuk tapi tanda tangan siapa pun tidak akan pernah cocok melaluinya.
+        publicKeyMultibase: raw.publicKeyMultibase,
+      })
+    } catch {
+      // Berkas rusak bukan alasan mematikan seluruh server: ia tidak disajikan, titik.
+    }
+  }
+  return out.sort((a, b) => a.agentSlug.localeCompare(b.agentSlug))
+}
+
+/** Dokumen issuer dari field PUBLIK saja — menyajikan identitas tidak membutuhkan kunci rahasia. */
+export function issuerDocumentFor (agent) {
+  return issuerDocument({
+    controller: agent.controller,
+    name: agent.name,
+    key: { id: agent.id, publicKeyMultibase: agent.publicKeyMultibase },
+  })
 }

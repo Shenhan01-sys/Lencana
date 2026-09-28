@@ -17,7 +17,7 @@ chain state on every request, and the process holds no credential state of its o
 
 | route | code | returns |
 |---|---|---|
-| `GET /issuers/<slug>`, `GET /issuers` | `server.js:271` | the issuer document, i.e. the `assertionMethod` list verifiers resolve keys from — **for the one slug this process serves** (see the trap below) |
+| `GET /issuers/<slug>`, `GET /issuers` | `server.js:278-296` | the issuer document, i.e. the `assertionMethod` list verifiers resolve keys from. **Every** agent in `.keys/` answers at its own URL since 28 Sep (**B48**); `/issuers` alone still means "the slug this process signed with". An unknown slug gets 404 **with the list of known ones** |
 | `GET /criteria/<courseId>` | `server.js:276-288` | the issuer's assessment policy: weights, pass mark, `validDays`, prerequisite, essay prompt + per-criterion maxima, `rubricHash` and the 12-hex `rubricRef`, **no quiz answer keys** → [[S8 - Criteria document]] |
 | `GET /credentials/status/revocation` | `server.js:289` | signed `BitstringStatusListCredential`, rebuilt from chain per request |
 | `GET /credentials/status/suspension` | `server.js:290` | same, other purpose — see [[S3 - Two status lists]] |
@@ -35,15 +35,21 @@ route, so the claim survived a full harness — see [[Notes/Session-2026-09-27-B
 now keep it honest: `serve-probe` fetches the route and requires a credential-shaped body, and it requires
 `"answer"` to appear nowhere in `/criteria`.
 
-⚠️ **One slug, orphaned identities.** `issuerDoc` is built once at start-up from `AGENT_SLUG`, so
-`/issuers/<other>` answers 404 even though `.keys/<other>.json` exists. With `AGENT_SLUG=agent-b41` live,
-the four seeded demo credentials' `verificationMethod` (…`/issuers/agent-demo`) does not resolve on this
-instance — switching identity for one run silently breaks the documents of the previous one. Tracked as
-**B48**; until then, pick one slug per demo session and know which documents you can prove.
+⚠️ **One slug, orphaned identities — closed 28 Sep, and it closed by breaking a harness.** `issuerDoc`
+is still built once at start-up from `AGENT_SLUG`, so `/issuers/<other>` used to answer 404 even though
+`.keys/<other>.json` exists. With `AGENT_SLUG=agent-b41` live, the four seeded demo credentials'
+`verificationMethod` (…`/issuers/agent-demo`) did not resolve on that instance — switching identity for
+one run silently breaks the documents of the previous one, which is exactly the failure we sell against
+other platforms. Now every agent in `.keys/` is served at its own URL from its **public** fields only
+(`listAgents()` + `issuerDocumentFor()`), `/healthz` names the serving slug and the full slug list, and
+`serve-probe` verifies a credential against the issuer document *that credential points at* rather than
+against whichever slug happened to be started. The first run of that code caught my own omission —
+`listAgents()` did not return `publicKeyMultibase`, so the served issuer document had no key in it and
+every signature check went red on a well-shaped document → [[00-Overview/04 - Corrections]].
 
-- `/healthz` reports `ok`, `baseUrl`, `resolver`, `rpc`, `watched`, then per purpose
+- `/healthz` reports `ok`, `baseUrl`, `resolver`, `rpc`, `agent`, `agentSlugs`, `watched`, then per purpose
   `flagged` / `bitstringHash` / `unallocated` / `slots`, plus `sha256OfEncodedList` and
-  `payment: {route, priceAtomic, network, token, split, payee, configured}` (`server.js:316-341`).
+  `payment: {route, priceAtomic, network, token, split, payee, configured}`.
   Payment terms are published so anyone can open the paid route and discover them, rather than reading
   a price out of our documentation.
 - It is also the **only** place the uid → bit-slot map is published, which is why
@@ -55,12 +61,18 @@ instance — switching identity for one run silently breaks the documents of the
   without that, one large POST is enough to exhaust the process.
 - `buildList()` refuses rather than faking: with no `RESOLVER_ADDRESS`, no `RPC_URL`, or an empty watched
   set it throws (`server.js:64-68`) instead of serving a valid-looking all-zero list.
-- `BASE_URL` defaults to `http://127.0.0.1:8787` (`server.js:33-37`) and is the prefix of every URL
-  written *into* a document — and, because `credential.js` stamps them at **issuance**, into the store too.
-  That is the whole reason **B41** needed a new agent identity instead of a new host: the four seeded demo
-  credentials still point at loopback, while the credential issued 27 Sep under a tunnel host contains
-  `127.0.0.1` **zero** times and the public host twelve. A deployment fact with an immutable consequence —
-  re-issue, do not patch.
+- `BASE_URL` defaults to `http://127.0.0.1:8787` and is the prefix of every URL written *into* a document
+  — and, because `credential.js` stamps them at **issuance**, into the store too. That is the whole reason
+  **B41** needed a new agent identity instead of a new host: the seeded demo credentials still point at
+  loopback, while the credential issued 28 Sep under the edge host contains `127.0.0.1` **nol** kali dan
+  host publiknya **sepuluh** kali (dihitung dari respons rute itu sendiri, 28 Sep). A deployment fact with
+  an immutable consequence — re-issue, do not patch.
+  The durable host itself is [[S10 - Edge surface]]; **B48** is what makes the old loopback documents still
+  resolvable on any machine that has their keys.
+- `src/env.js` loads `../.env` into `process.env` before any constant is read (server, `check.js`,
+  `serve-probe.js`), and **values already in the process win**. Not a dependency-avoidance flourish:
+  without it a harness does not fail, it *skips* the chain-dependent group and still prints a smaller
+  green number — the exact failure mode we accuse other people's research notes of.
 
 **Detail:**
 - `jsonBody()` (`server.js:85-90`) exists because of a specific failure: the `report` from

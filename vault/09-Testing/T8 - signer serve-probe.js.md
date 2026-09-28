@@ -1,8 +1,8 @@
 ---
 tags: [testing, "T8"]
 command: node scripts/serve-probe.js
-measured: 2026-09-25
-result: 20 checks / 0 failed
+measured: 2026-09-28
+result: 48 checks / 0 failed
 ---
 
 # T8 - signer serve-probe.js
@@ -13,30 +13,52 @@ result: 20 checks / 0 failed
 
 ```powershell
 cd app/signer
+npm run serve                 # probe ini MEMBACA server yang sedang jalan, tidak memulai satu
 node scripts/serve-probe.js
 ```
 
-It starts the server **in-process on loopback** and asks it the same questions over HTTP that
-[[T7 - signer check.js]] asks in-memory. No port is exposed to the network.
+⚠️ Halaman ini pernah menulis bahwa probe "starts the server in-process" — tidak. Ia memanggil
+`BASE_URL` lewat HTTP dan **mati dengan `HTTP 404`/`ECONNREFUSED` kalau servernya tidak ada**; ia
+membutuhkan server yang sedang berjalan. Diketemukan 28 Sep ketika probe merah karena server yang
+tersisa dari sesi sebelumnya dijalankan dengan slug lain → **B48**, dan itu jawaban yang benar dari
+probe, bukan bug probe.
 
-## Result — 2026-09-25 (excerpt, verbatim)
+## Run 28 Sep — 48 / 0 (sebelumnya 20 / 0 pada 25 Sep)
 
 ```
+  env   : 21 dari berkas ../../.env
+  ok    /healthz menyebut identitas yang ia sajikan
   ok    dokumen issuer tersaji lewat HTTP
-  ok    verification method-nya punya publicKeyMultibase
-  ok    list revocation: adalah BitstringStatusListCredential
-  ok    list revocation: credentialSubject.statusPurpose cocok
-  ok    list revocation: encodedList multibase base64url (u…)
-  ok    list revocation: tanda tangannya SAH terhadap dokumen issuer yang disajikan
-  ok    list suspension: adalah BitstringStatusListCredential
-  ok    …
-  ok    /healthz melaporkan kedua list
-  ok    server memetakan slot untuk setiap kredensial yang diawasi
+  ok    /issuers/agent-b41: id dokumen = URL rute ini, kunci menunjuk kembali ke id
+  ok    /issuers/agent-demo: id dokumen = URL rute ini, kunci menunjuk kembali ke id
+  ok    /issuers/agent-edge: id dokumen = URL rute ini, kunci menunjuk kembali ke id
+  ok    /issuers/<slug asing> 404 dengan daftar yang dikenal, bukan dokumen agen lain
+  ok    rute dokumen: verificationMethod menunjuk dokumen issuer yang tersaji
+  ok    rute dokumen: kunci di verificationMethod ada di assertionMethod issuer-nya
+  ok    rute dokumen: tanda tangannya SAH terhadap kunci yang disajikan HTTP
+  info  host di dokumen (genres-wines-insulation-useful.trycloudflare.com) vs host yang
+        menyajikan (127.0.0.1:8787) — BEDA: dokumen ini terbit di host yang lain (B51)
 
-  chain: 11 kredensial diawasi · 1 revoked · 1 suspended · hash 0x1c27a74cbd081a…
-
-PROBE SERVE HIJAU — 20 pemeriksaan, 0 gagal
+PROBE SERVE HIJAU — 48 pemeriksaan, 0 gagal
 ```
+
+Tiga hal baru yang sekarang dijaga, dan dua di antaranya adalah bug sungguhan:
+
+| yang dijaga | kenapa ia ada di sini |
+|---|---|
+| setiap agen di `.keys/` disajikan di URL-nya sendiri (**B48**) | `verificationMethod` dicetak saat terbit; server yang cuma melayani satu slug membuat ijazah agen lain tidak bisa diverifikasi di instance itu — 404 atas dokumen yang kuncinya jelas ada di disk |
+| dokumen kunci diambil dari **URL yang ditunjuk kredensial**, bukan dari slug yang kebetulan di-start | meniru verifier nyata, dan menghapus pengerasan `agent-demo` yang membuat probe merah tanpa sebab produk |
+| `publicKeyMultibase` wajib ada di dokumen issuer yang tersaji | `listAgents()` pertama kali tidak mengembalikannya: bentuk dokumen tetap sah, tapi **tanda tangan siapa pun tidak akan pernah cocok**. Probe menemukannya dalam run pertama kode baru ini, bukan saya |
+
+Angka 20 → 48 bukan karena kita menguji hal yang sama lebih keras: sebagian besar tambahan itu
+adalah rute dokumen/kriteria/hasil yang memang belum ada tests-nya pada 25 Sep.
+
+## Yang membuatnya lebih mudah dijalankan salah dulunya
+
+Probe dan `check.js` kini memuat `../.env` sendiri (`src/env.js`), nilai lingkungan proses tetap
+menang. Alasannya bukan kenyamanan: tanpa env, keduanya **tidak gagal** — mereka melewati grup yang
+butuh chain dan tetap mencetak hijau dengan angka yang lebih kecil. Sekarang satu baris `env : 21`
+ikut tercetak di kepala log, supaya hijau bisa ditelusuri dari mana angkanya.
 
 The point of the last check: the **hash that gets anchored is the hash the server actually serves**.
 That linkage was a bug before `servedHashes()` existed (the anchor recorded a one-credential list
@@ -44,8 +66,14 @@ nobody read) → [[00-Overview/04 - Corrections]].
 
 ## What this does NOT prove
 
-- Nothing about reachability. Every URL inside the served documents is `http://127.0.0.1:8787/…`, so a
-  third-party verifier following those links finds nothing. Loopback success is the reason P7 exists.
-- No authentication, rate limit or concurrency behaviour: this is a correctness probe, not a load test.
+- Nothing about reachability. Ia menguji **bentuk dan kunci**, bukan apakah internet bisa membuka URL
+  di dalam dokumen — itu ranah [[09-Testing/T16 - npm run publish edge]] dan
+  [[09-Testing/T15 - 1EdTech validator]], yang membacanya lewat host publik. Baris `info` di atas
+  justru muncul ketika host dalam dokumen berbeda dari host yang menyajikan: probe tidak
+  menutupinya, dan tidak pula memanggilnya salah.
+- No authentication, rate limit or concurrency behaviour: ini probe kebenaran, bukan uji beban.
+- Kalau server berjalan dengan slug yang salah, sebagian besar masih hijau — karena dokumen dibaca
+  lewat HTTP, identitas datang dari yang tersaji. Yang menangkap slug bukan probe ini, tapi baris
+  `/healthz menyebut identitas yang ia sajikan`.
 
 **Related:** [[S7 - Server routes and lifecycle]] · [[T9 - npm run anchor]]

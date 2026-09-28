@@ -20,7 +20,8 @@
  *   PORT=9000 BASE_URL=https://api.example node src/server.js
  */
 import { createServer } from 'node:http'
-import { loadKey, issuerDocument } from './issuer.js'
+import { loadKey, issuerDocument, listAgents, issuerDocumentFor } from './issuer.js'
+import { loadFileEnvReport } from './env.js'
 import { REVOCATION, SUSPENSION, renderList, servedHashes } from './lists.js'
 import { sha256Hex } from './credential.js'
 import { makeDocumentLoader } from './sign.js'
@@ -30,6 +31,12 @@ import { resultDocument } from './results.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
+
+// Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
+// orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
+// server tetap hidup sambil menyajikan keadaan yang lebih sedikit daripada yang dikira pembaca.
+// Nilai dari lingkungan proses MENANG: itulah cara operator mengevaluasi konfigurasi lain.
+await loadFileEnvReport('server')
 
 const PORT = Number(process.env.PORT ?? 8787)
 const HOST = process.env.HOST ?? '127.0.0.1'
@@ -269,6 +276,19 @@ const server = createServer(async (req, res) => {
   const path = new URL(req.url, BASE_URL).pathname
   try {
     if (path === `/issuers/${AGENT_SLUG}` || path === '/issuers') return send(res, 200, issuerDoc)
+    // B48: setiap kredensial mencetak `verificationMethod` miliknya sendiri. Selama server hanya
+    // melayani slug yang kebetulan di-start, ijazah terbitan agen lain jadi 404 di instance ini —
+    // dari luar kelihatan seperti kredensialnya rusak, padahal kuncinya ada di disk. Jadi setiap
+    // agen di .keys/ disajikan di URL-nya masing-masing, dibangun dari field publik saja.
+    if (path.startsWith('/issuers/')) {
+      const slug = decodeURIComponent(path.slice('/issuers/'.length))
+      const agents = await listAgents()
+      const agent = agents.find((a) => a.agentSlug === slug)
+      if (!agent) {
+        return send(res, 404, { error: 'agen tidak dikenal', slug, known: agents.map((a) => a.agentSlug) })
+      }
+      return send(res, 200, issuerDocumentFor(agent))
+    }
     // `achievement.criteria.id` dan `result[].resultDescription` di setiap kredensial menunjuk ke
     // sini. Sampai hari ini keduanya hanya identifier — sah menurut spesifikasi, tapi pertanyaan
     // "dinilai pakai aturan apa" tidak dijawab oleh dokumen mana pun yang bisa dibuka orang lain.
@@ -331,6 +351,10 @@ const server = createServer(async (req, res) => {
       const s = await buildList(SUSPENSION)
       return send(res, 200, {
         ok: true, baseUrl: BASE_URL, resolver: RESOLVER, rpc: RPC_URL,
+        agent: AGENT_SLUG,
+        // Semua identitas yang kami sajikan, supaya "kredensial ini menunjuk ke mana" bisa
+        // dijawab dari satu permintaan, bukan dari tebakan slug.
+        agentSlugs: (await listAgents()).map((a) => a.agentSlug),
         watched: r.watched,
         // `unallocated` dilaporkan, bukan disembunyikan: kredensial yang ada di chain tapi belum
         // punya slot TIDAK ikut menentukan bit — dan itu harus kelihatan, bukan jadi daftar yang

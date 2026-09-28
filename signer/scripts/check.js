@@ -15,6 +15,13 @@ import { IndexAllocator, LIST_BITS, REVOCATION, SUSPENSION, encodeList, decodeBi
 import { gunzipSync } from 'node:zlib'
 import { createIssuerKey, issuerDocument } from '../src/issuer.js'
 import { makeDocumentLoader, signDocument, verifyDocument, CRYPTOSUITE_NAME } from '../src/sign.js'
+import { loadFileEnvReport } from '../src/env.js'
+
+// Bagian 5 membaca chain, dan bagian itu DILEWATI tanpa gagal kalau env-nya tidak ada — hijau
+// dengan angka kecil adalah cara paling mudah menyesatkan. Env berkas dibaca di sini supaya
+// "72 pemeriksaan" berarti 72 pemeriksaan di mesin mana pun, sementara lingkungan proses tetap
+// menang atas isi berkas (itu cara operator mengevaluasi hal lain).
+await loadFileEnvReport('check')
 
 let ran = 0
 let failures = 0
