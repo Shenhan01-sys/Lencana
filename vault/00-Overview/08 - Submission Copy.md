@@ -118,13 +118,19 @@ Sisanya (`SoulboundCert`, `SettlementSplit`, `DemoCourseToken`) masuk descriptio
 Dikoreksi 27 Sep saat builder mengisi form: plafonnya **5,600 karakter**, dan kami sudah menulis halaman
 sepanjang 67,345 karakter untuk itu. Teks yang ditempel sekarang:
 
-> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,565 karakter**, 93 baris, **dua** diagram
+> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,587 karakter LF**, 93 baris, **dua** diagram
 > Mermaid: urutan bisnis (`sequenceDiagram`) dan aliran data + uang (`flowchart`, "Where each fact lives").
 > Tabel kontrak ikut. Tanpa wikilink, tanpa jalur `vault/`, tanpa ID tiket internal, tanpa data kursus,
-> **tanpa hasil testing**. Sisa ruang tinggal **35 karakter** — diukur `[IO.File]::ReadAllText(...).Length`,
-> bukan dihitung dengan asumsi: angka lama di halaman ini (5,486 / "sisa 114") sudah tertinggal sejak
-> kalimat validator ditambahkan, dan kalau kita bilang "ruang tinggal sedikit" tanpa mengukurnya lagi,
-> satu kata terlalu panjang membuat seluruh tempelan tertolak saat paste.
+> **tanpa hasil testing**. Sisa ruang tinggal **13 karakter**.
+>
+> Yang menguruskannya: `powershell -File vault/scripts/check-paste.ps1` — ia menghitung **setelah
+> normalisasi LF** (working copy bisa berisi CRLF, dan ~40 byte ujung baris tidak pernah sampai ke
+> form), lalu menuntut: ≤ 5.600, nol wikilink, nol `vault/`, nol ID tiket, maksimal dua diagram, dan
+> tidak ada kalimat yang kehilangan titik karena dipangkas. Ada di ritual. Ini bukan penjaga yang
+> kita tambahkan karena indah: 28 Sep berkas ini diam-diam naik ke **5.604 — empat karakter lewat**,
+> hijau di semua gerbang lain, dan hanya ketahuan karena hari itu aku mengukur alih-alih mengingat
+> angka yang kutulis sendiri sehari sebelumnya ("sisa 35"). Satu kata terlalu panjang membuat seluruh
+> tempelan tertolak saat form menutup.
 
 strukturnya, sesuai permintaan builder 27 Sep: **apa Lencana itu → problem yang mau kita selesaikan →
 how it works (diagram + 7 langkah) → di mana tiap fakta tinggal (DFD) → kontrak**.
