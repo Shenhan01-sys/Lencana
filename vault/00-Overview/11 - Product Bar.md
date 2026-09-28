@@ -61,6 +61,21 @@ Batas yang menahan diri-sendiri tetap berlaku:
 - **Postgres memegang state belajar**: enrollment, progres, attempt, nilai per komponen, order.
 - **`attemptHash` ikut tercetak ke dokumen** (di `evidence`/`result`), supaya angka di kertas punya
   alamat asal — pola yang sama dengan `rubricHash` yang kita jual.
+- **RLS tidak melindungi dari secret key.** Supabase: *"A secret key bypasses every Row Level Security
+  policy you have"* — `service_role` membawa atribut `BYPASSRLS`, dan *"Policies never apply to a
+  secret key"*. Signer kita **akan** memakai secret key, jadi "RLS aktif" hanya berarti aman untuk
+  klien non-secret (browser, publik). Untuk jalur yang benar-benar dipakai produk, yang menahan akses
+  adalah **otorisasi di dalam signer sendiri** — dokumen resmi Supabase menyebutnya: server adalah
+  komponen yang *"run their own authorization checks"*. Kalau halaman ini suatu hari dibaca sebagai
+  "RLS = aman", kalimat itu yang harus dibetulkan, bukan policy-nya.
+- **Urutan evaluasi** (berlaku juga di atas): *"Postgres evaluates table grants first, and only then
+  applies Row Level Security."* Arti praktisnya: hasil `[]` dari `/rest/v1/...` belum tentu salah
+  policy — bisa jadi grants. Jangan menyimpulkan dari satu percobaan.
+- **Kredensial legacy** (`anon`, `service_role`) deprecated akhir 2026 dan tetap hidup berdampingan
+  dengan publishable/secret sampai dimatikan manual di Settings → API Keys: jangan menambah jalur baru
+  yang memakainya. DDL juga **bukan** ranah project key: PostgREST hanya data-plane (`PGRST205` saat
+  tabel belum ada), sementara SQL dijalankan lewat Management API dengan Personal Access Token —
+  kredensial yang berbeda, dan MCP memakai yang kedua ini.
 - **Kredensial tidak masuk repo**: service key / token hanya lewat lingkungan proses. Jangan pernah ke
   `.env`, argv, commit, atau halaman ini.
 
