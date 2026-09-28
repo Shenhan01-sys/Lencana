@@ -85,6 +85,10 @@ platform and not the issuing agent.
   Yang TIDAK bisa dibuktikan di chain ini: penolakan `LessonLevelNotMintable`, karena store tidak
   memuat kredensial level-lesson — itu tetap bukti fork test (T1/T2), dan harness mencetaknya sebagai
   `info`, bukan sebagai keberhasilan.
+- Cara memasang ulang lapis itu tanpa bergantung pada mesin siapa pun: `scripts/mint-edge-artefact.ps1`
+  (di repo ini). Ia mensimulasikan dulu, membaca ulang kertas dari URL yang akan dibekukan permanen,
+  mengambil peserta dari `holderOf`, dan mencatat alamat hasil deploy dari
+  `broadcast/DeployCertOnly.s.sol/97/run-latest.json` — tidak ada alamat yang diketik tangan (B49).
 
 ### Drift yang tersisa 28 Sep: ada TIGA `SoulboundCert` di chain 97
 
