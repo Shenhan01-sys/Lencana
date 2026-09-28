@@ -64,7 +64,7 @@ verification is free and instant and needs no account on our side or the issuer'
 
 | jangan ditulis | alasannya |
 |---|---|
-| "1EdTech compatible" / "standards-validated" | validator `vc.1ed.tech` **sudah dijalankan 27 Sep dan hasilnya 2 error** (`credentialStatus` harus satu object; bitstring tidak menyatakan kapasitas) — lihat [[09-Testing/T15 - 1EdTech validator]] |
+| "1EdTech compatible" / "standards-validated" / "certified" | **Yang boleh ditulis persis:** `outcome: VALID`, 14 checks, 0 error / 0 warning dari `vc.1ed.tech` (28 Sep, dokumen + `verificationMethod` + kedua daftar dibaca dari host tetap `lencana-edge…workers.dev`). Yang dilarang bukan angkanya tapi labelnya: itu validator **member**, bukan sertifikasi konformansi, dan responsnya melaporkan jumlah tanpa merinci per pemeriksaan — lihat [[09-Testing/T15 - 1EdTech validator]] dan [[09-Testing/T16 - npm run publish edge]] |
 | statistic pasar ("X% rekruter …", "pasar e-learning $Y") | **nol bukti** di korpus kita; ini lubang P6 yang belum tertutup |
 | "real publishers use it", "institutions onboarded" | penerbit demo kita fiktif dan diberi label fiktif |
 | "tamper-proof", "unforgeable", "secured by blockchain" | yang teruji: satu byte dibalik → tanda tangan mati |
@@ -89,8 +89,8 @@ because Lencana broadcasts and pays for it.
 Verification asks nothing of the person checking. The page reads issuer permission and credential
 status directly from BNB Chain: no account, no wallet, nothing of ours on the request path.
 Revocation is real rather than implied. Two bitstring status lists, revocation and suspension, are
-rebuilt from chain state on every call, and both list hashes are timestamped on chain, so our own
-endpoint cannot quietly rewrite what a verifier reads.
+derived from chain state at publication and re-checked against the chain on every read, and both list
+hashes are timestamped on chain, so our own endpoint cannot quietly rewrite what a verifier reads.
 
 Learners also receive a soulbound artefact: one per credential, mintable only while the credential is
 live, never transferable.
