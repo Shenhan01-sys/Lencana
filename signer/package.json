@@ -24,6 +24,7 @@
     "validator": "node scripts/validator-check.js",
     "measure:signing": "node scripts/measure-signing-cost.js",
     "verify:deploy": "node scripts/verify-deploy.js",
+    "verify:live-cert": "node scripts/verify-live-cert.js",
     "publish:edge": "tsx scripts/publish.js"
   },
   "dependencies": {

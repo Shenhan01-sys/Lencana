@@ -12,7 +12,7 @@
  * dari chain 97). Keluar merah kalau salah satu tidak cocok.
  */
 import { readFile } from 'node:fs/promises'
-import { createPublicClient, http, maxUint16 } from 'viem'
+import { createPublicClient, http, maxUint16, toFunctionSelector } from 'viem'
 
 /** .env dibaca manual seperti di issue.js: tidak perlu dotenv untuk 10 baris. */
 async function readEnv () {
@@ -105,6 +105,43 @@ await claim('cert.symbol() = yang diminta skrip deploy', certArgs[2], () => clie
   abi: [{ type: 'function', name: 'symbol', stateMutability: 'view', inputs: [], outputs: [{ type: 'string' }] }],
   functionName: 'symbol',
 }))
+
+/**
+ * --- Penegakan D42/D43: source vs yang benar-benar hidup ---
+ *
+ * Baris ini ada karena sebuah kesalahan spesifik, bukan sebagai hiasan: pada 28 Sep aku menulis di
+ * backlog bahwa `0xC6FD12…` "sudah menegakkan D42/D43" tanpa memeriksa apa pun, dan halaman
+ * `vault/02-Contracts/C2` sudah berkata sebaliknya saat itu. Rencana seharga lima penerbitan
+ * berdiri di atas satu kalimat yang tidak diverifikasi (B53).
+ *
+ * Yang dibandingkan adalah bytecode hasil build (`out/`) dengan bytecode di `CERT_ADDRESS`. Ini
+ * sengaja TIDAK membaca harapan dari chain: klaim kita hari ini adalah "penegakannya ada di source
+ * dan di fork test, BELUM di deployment 97", dan klaim itu bisa merah — artinya kalau seseorang
+ * me-redeploy kontrak yang menegakkan keduanya, pemeriksaan ini menyuruh kita menulis ulang
+ * dokumentasi, bukan membiarkan batas lama berdiri sebagai dusta.
+ */
+// Selektornya DITURUNKAN dari tanda tangan, bukan disalin sebagai heksa: harness ini ada justru
+// supaya tidak ada angka yang dikira-kira. (Dua selector error kucoba pakai sebagai penanda dan
+// keduanya tidak muncul di bytecode — penanda yang andal adalah jalur fungsi, jadi hanya itu yang
+// dipakai, dan itu pun hanya yang terbukti terpasang saat kontrolnya kujalankan.)
+const D_MARKERS = {
+  'mintBatch (D43)': toFunctionSelector('mintBatch(address[],bytes32[],string[])'),
+  'lessonOf (pintu D42)': toFunctionSelector('lessonOf(bytes32)'),
+  'attestationOf (pintu D42)': toFunctionSelector('attestationOf(bytes32)'),
+}
+const certArtifact = JSON.parse(await readFile(new URL('../../out/SoulboundCert.sol/SoulboundCert.json', import.meta.url), 'utf8'))
+const buildCode = String(certArtifact?.deployedBytecode?.object ?? certArtifact?.deployedBytecode ?? '').toLowerCase()
+if (buildCode.length < 100) {
+  console.error('out/SoulboundCert.sol tidak terbaca — jalankan `forge build` dulu; harapan tidak boleh dikira-kira')
+  process.exit(2)
+}
+const liveCode = String(await client.getBytecode({ address: addr('CERT_ADDRESS') }) ?? '').toLowerCase()
+console.log(`\n  bytecode: source ${(buildCode.length - 2) / 2} byte · CERT_ADDRESS ${(liveCode.length - 2) / 2} byte`)
+for (const [name, sel] of Object.entries(D_MARKERS)) {
+  const hex = sel.slice(2).toLowerCase()
+  await claim(`source memuat ${name} — hilangnya berarti D42/D43 keluar dari kontrak`, true, () => buildCode.includes(hex))
+  await claim(`deployment TIDAK menegakkan ${name} — sesuai batas yang kita tulis (B52)`, true, () => !liveCode.includes(hex))
+}
 
 // --- SettlementSplit: ini baris yang paling mungkin dibaca juri sebagai angka marketing ---
 const bps = () => client.readContract({

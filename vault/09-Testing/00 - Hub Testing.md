@@ -45,6 +45,7 @@ with them, **53** and **20**. Always read the group list, not only the count →
 | [[T14 - verify the public deployment]] | `node scripts/verify-deploy.js` in `signer/` | see record | — | the four deployed addresses are what the notes claim, read from the RPC | P1 |
 | [[T15 - 1EdTech validator]] | `npm run validator -- --record` | **2026-09-28** | **10 / 0 failed**, validator `outcome: VALID`, 14 checks, 0 error 0 warning | a third party opens our URLs and reads our paper the way its own software would | P1, P6 |
 | [[T16 - npm run publish edge]] | `npm run publish:edge` | **2026-09-28** | **23 / 24** rute (yang ke-24 = kursus yang memang tidak ada lagi di katalog), kedua daftar `matchesChainNow` | the URLs printed inside a credential answer from a host that does not die with the laptop | P1, P6 |
+| [[T17 - signer verify-live-cert.js]] | `node scripts/verify-live-cert.js` | **2026-09-28** | **11 / 0 failed** (+1 printed as `info`) | the artefact layer a stranger can open in an explorer really enforces D42/D43, and `external_url` is the exact URL the validator followed | P1 |
 
 ## Conventions for this folder
 
