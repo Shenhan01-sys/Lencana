@@ -331,4 +331,39 @@ kecuali alamatnya benar-benar kosong, itu juga cukup: pemicunya satu `if` di `ma
 
 **Related:** [[03-Frontend/01 - Frontend]] · [[10-Contributors/00 - Hub Contributors]] · [[Index]]
 
+---
+
+## OI-16 — halaman belajar sekarang menulis ke penerbit: berkas yang kusentuh, mount point yang kutahan, dan satu keputusan yang tetap milikmu
+
+Aturan 10 `AGENTS.md` bilang berkas `web/` milikmu. Aku menyuntingnya atas izin builder (28 Sep) untuk
+menutup **B72**, jadi ini bukan kejutan — tapi ini juga bukan sesuatu yang bisa kauanggap selesai
+dengan sendirinya, karena satu keputusannya memang belum kuambil.
+
+**Yang berubah.** Berkas baru `web/src/learning.ts` (klien HTTP + identitas penandatangan), lalu
+`web/src/lms.ts`: kotak "Rekaman di penerbit" di silabus dan tiap lesson (`serverLine()`),
+`mark-done` yang juga mengirim `unlocked → started → completed` ke `POST /progress`, dan aksi `grade`
+yang **tidak menghitung angkanya sendiri lagi** — ia mengirim `picks` ke `POST /grade` dan mencetak
+angka yang kembali dari server. `web/src/progress.ts` tidak kuhapus: ia tinggal cache, dan tiap angka
+dari sana tetap berlabel "di perangkat ini". Headernya yang lama masih berargumen "kenapa tidak
+server"; argumen itu sudah digantikan keputusan builder 28 Sep (D48/bar 3-4) — kalau kamu mau kutulis
+ulangi kepala berkas itu supaya tidak menyesatkan pembaca berikutnya, tinggal bilang.
+
+**Yang kutahan:** `#lms-mount`, nama rute (`#/learn`, `#/course/<id>`, `#/me`), seluruh `data-action`
+yang lama, dan draf esai yang tetap hanya di perangkat (teks karangan tidak dikirim ke mana-mana —
+`results.js` menulis `essayTextIncluded: false` dan itu janji yang mau kupegang).
+
+**Verifikasi setelah menyunting:** `npm run typecheck` bersih · `npm run build` 461 modul 2.39s ·
+`npm run probe` **73/0** (14 pemeriksaan baru menguji kontrak klien ini dengan `fetch` dipalsukan:
+tidak ada identitas → tidak ada permintaan; `/grade` tidak pernah membawa kata `score`; mesin state
+dilalui berurutan; penolakan `422` ditampilkan apa adanya).
+
+**Keputusan yang tetap milikmu (B80).** Kunci jawaban kuis ada di `publicManifest`
+(`web/src/manifest.ts:67`, `answer: q.answer`) jadi peserta yang membuka bundel bisa menjawab benar
+semua. memindahkan *perhitungan* ke server sudah menghapus "peserta melaporkan angkanya" — bukan
+"kuis bisa dicurangi". Pilihan yang ada di tangan pemilik front-end: (a) buang `answer` dari payload
+browser dan tampilkan alasan per soal hanya **setelah** penyerahan (server sudah mengembalikan
+`correct/total`, jadi tinggal menambah flag reveal), atau (b) terima dan tulis di UI bahwa kuis
+berbentuk latihan terbuka. Aku memilih tidak memutuskan ini diam-diam; angka submission tetap menyebut
+yang (b) sampai kamu pilih.
+
 

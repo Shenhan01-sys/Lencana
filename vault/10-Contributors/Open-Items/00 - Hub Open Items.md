@@ -26,6 +26,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-13 | a button that prints "14/14 Tests Passed (12ms)" from a `setTimeout` — an invented pass result, not just an invented flow |
 | OI-14 | `package.json` calls a tool that lives outside the repo, so `npm run probe:rpc` is dead in anyone else's clone (in-repo copy already added; one-line patch offered) |
 | OI-15 | a banner a visitor can still open says "lapis on-chain kami belum disiarkan" with a stale test count — the same false sentence I just removed from `verify.ts` |
+| OI-16 | `#/learn` sekarang menulis ke penerbit (B72, berkas `web/` disunting atas izin builder): berkas yang disentuh, mount point yang ditahan, dan satu keputusan yang tetap milik pemilik front-end — kunci kuis di bundel (B80) |
 
 **Tiga dari daftar ini membuat yang lain terlihat lebih buruk, dan itu alasannya ditutup lebih dulu:**
 OI-15 (halaman berkata produknya belum disiarkan), OI-13 (hasil uji yang direkayasa) dan OI-12
