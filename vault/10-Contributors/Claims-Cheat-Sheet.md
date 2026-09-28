@@ -34,10 +34,10 @@ sejak itu. Bukan dikutip dari dokumen lama:
 | angka | sumber perintah |
 |---|---|
 | **104 / 0** fork chain 97 **dan 104 / 0** fork chain 56 · **49 / 0** offline | `npm run test:chains` · `npm test` (tempelan per suite di [[09-Testing/T1 - forge test on chain 97]] dan [[09-Testing/T2 - forge test on chain 56]]) |
-| probe web 59/0 · signer check **76/0** · serve-probe **48/0** · verify:live-cert **17/0** · verify:edge 5/0 · publish:edge **26/27** rute · x402 20/0 (24 Sep) · judge 7/7 · rubric 17/17 (26 Sep) | halaman masing-masing di `09-Testing` — angka harness tumbuh bersama korpus, yang otoritatif adalah apa yang dicetak run |
-| **`outcome: VALID`, 14 checks, 0 error / 0 warning — dua kredensial**, keduanya di host tetap | `cd signer && npm run validator -- --record` → buku besar `09-Testing/validator-runs.jsonl` |
-| **2 dari 8** kertas yang kita pegang dapat diperiksa orang sampai tuntas tanpa mesin ini (3 loopback, 3 tunnel yang sudah `ENOTFOUND`) | `cd signer && npm run verify:edge` — angka ini **boleh** dikutip justru karena buruk: dia yang membuat klaim "semua artefak publik" salah (B54) |
-| **16** kredensial dipantau · **2** bit revocation · **1** bit suspension · kedua hash ter-anchor di BAS | `cd signer && node scripts/anchor.js --dry-run` |
+| probe web 59/0 · signer check **76/0** · serve-probe **48/0** · verify:live-cert **17/0** · verify:edge 5/0 · **e2e 42/0** · **journey 34/0** · publish:edge **44/45** rute · x402 20/0 (24 Sep) · judge 7/7 · rubric 17/17 (26 Sep) | halaman masing-masing di `09-Testing` — angka harness tumbuh bersama korpus, yang otoritatif adalah apa yang dicetak run |
+| **`outcome: VALID`, 14 checks, 0 error / 0 warning — 5 kredensial berbeda**, semuanya di host tetap (10 pemanggilan tercatat di buku besar) | `cd signer && npm run validator -- --record` → buku besar `09-Testing/validator-runs.jsonl` |
+| **8 dari 14** kertas yang kita pegang dapat diperiksa orang sampai tuntas tanpa mesin ini (6 sisanya: 3 loopback, 3 tunnel yang sudah `ENOTFOUND`) | `cd signer && npm run verify:edge` — angka ini **boleh** dikutip justru karena buruk: dia yang membuat klaim "semua artefak publik" salah (B54). Naik dari 2/8 karena journey menerbitkan kertas baru di bawah identitas tepi |
+| **22** kredensial dipantau · **5** bit revocation · **1** bit suspension · kedua hash ter-anchor di BAS | `cd signer && node scripts/anchor.js --dry-run` (28 Sep; tumbuh setiap kali journey menerbitkan kertas baru) |
 | materi: 2 kursus · 7 modul · 24 lesson · 34 halaman · 412 menit · 28 soal · 2 esai (26 Sep) | `npx tsx scripts/inventory.ts` |
 | `platformBps() = 1000` (10%), plafon `MAX_BPS = 2500` (26 Sep) | `cast call 0xcB00E62B… platformBps()` |
 | bitstring 131.072 bit / 16.384 byte | `LIST_BITS` di `signer/src/statusList.js` — angka lama (16.384 *bit*) salah satuan dan ditolak validator |

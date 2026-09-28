@@ -13,6 +13,8 @@
     "adopt": "node scripts/adopt.js --demo",
     "check": "node scripts/check.js",
     "e2e": "node scripts/e2e.js",
+    "journey": "tsx scripts/journey.js",
+    "revoke": "node scripts/revoke.js",
     "judge": "tsx scripts/judge-check.js",
     "judge-variance": "tsx scripts/judge-variance.js",
     "serve": "tsx src/server.js",
