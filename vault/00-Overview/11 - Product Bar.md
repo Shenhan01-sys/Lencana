@@ -4,7 +4,7 @@ status: active — read this before choosing work
 updated: 2026-09-28
 ---
 
-# 11 - Product Bar:enuhi standar umum dulu, baru jual pembeda kita
+# 11 - Product Bar: penuhi standar umum dulu, baru jual pembeda kita
 
 Halaman ini ada karena sebuah keputusan builder 28 Sep: **"Lencana harus masuk standar umum e-course
 terlebih dahulu, baru kita tambah unique selling point."** Bukan aspirasi — ini urutan kerja, dan

@@ -1,5 +1,7 @@
 ---
 tags: [testing, "T21"]
+status: active
+updated: 2026-09-28
 command: npm run verify:db
 measured: 2026-09-28
 result: 19 checks / 0 failed

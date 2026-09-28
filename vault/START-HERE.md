@@ -44,6 +44,10 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 3. [`Quick-Reference.md`](Quick-Reference.md) — commands, addresses, env names, one place
 4. [`AGENTS.md`](AGENTS.md) — the rules that keep this folder trustworthy if you are an agent
 
+**Before you choose work** → [`00-Overview/11 - Product Bar.md`](00-Overview/11%20-%20Product%20Bar.md):
+the 12-element e-course frame comes first, our three verified differentiators second, and the storage
+decision with it (Supabase for learning state; chain stays what the public trusts).
+
 **Frontend (`web/`) maintainer** →
 [`10-Contributors/00 - Hub Contributors.md`](10-Contributors/00%20-%20Hub%20Contributors.md) — what you own, the mount
 points that must survive a redesign, the open items raised against the current build.
