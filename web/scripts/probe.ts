@@ -13,6 +13,11 @@
  *   forge script script/SeedDemo.s.sol --rpc-url http://127.0.0.1:8545 --broadcast
  *   npm run probe
  *
+ * Atau, ini yang kita pakai sejak 21 Sep: isi `app/.env` (RPC_URL publik 97 + keempat alamat) lalu
+ * `npm run probe` tanpa anvil sama sekali. Berkas `./load-env` membaca `.env` itu sendiri — sejak
+ * 28 Sep, karena tanpa itu `npm run probe` di clone bersih diam-diam memeriksa `0x0000…` di port
+ * lokal dan keluar dengan kode 1, sementara README menjanjikan sebuah angka.
+ *
  * Kenapa SeedDemo dua kali: langkah yang memakai UID (rantai [2] + pencabutan [1]) baru sah
  * kalau uid-nya sudah benar-benar ada di chain. Alasannya ada di kepala SeedDemo.s.sol.
  *
@@ -22,8 +27,11 @@
  * sudah dicabut". Menyamakan salah satunya adalah klaim yang bisa dibantah siapa pun lewat
  * satu eth_call, jadi perbedaan itu kita periksa di sini, bukan kita klaim di deskripsi.
  */
+import { reportLoaded } from './load-env'
 import { verify, type Endpoint, type Report } from '../src/verify'
 import { renderReport } from '../src/render'
+
+reportLoaded('probe')
 
 const ZERO = '0x0000000000000000000000000000000000000000'
 

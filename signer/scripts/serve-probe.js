@@ -13,6 +13,9 @@ import { makeDocumentLoader, verifyDocument } from '../src/sign.js'
 import { gunzipSync } from 'node:zlib'
 import { LIST_BITS, REVOCATION, SUSPENSION, decodeBit } from '../src/statusList.js'
 import { loadFileEnvReport } from '../src/env.js'
+import { listCredentials } from '../src/store.js'
+import { readChainStatuses, revokedUids, suspendedUids } from '../src/chainStatus.js'
+import { servedHashes } from '../src/lists.js'
 
 // Harness ini membaca chain. Tanpa env ia TIDAK gagal — ia melewati grup yang butuh chain dan
 // tetap mencetak hijau dengan angka lebih kecil. Jadi env dibaca di sini, dan lingkungannya
@@ -148,9 +151,55 @@ if (EXPECT.length === 0) {
     check(`uid ${tag} -> bit 1 di list ${purpose}`, bitAt(purpose, uid) === 1)
     check(`uid ${tag} -> bit 0 di list ${other} (pembeda D30 bertahan)`, bitAt(other, uid) === 0)
   }
-  check('jumlah bit yang dilaporkan server sama dengan yang diharapkan',
-    health.revocation.flagged === EXPECT_REVOKED.length && health.suspension.flagged === EXPECT_SUSPENDED.length,
-    `server: ${health.revocation.flagged}/${health.suspension.flagged}, diharapkan: ${EXPECT_REVOKED.length}/${EXPECT_SUSPENDED.length}`)
+  /**
+   * Jumlah bit dibandingkan dengan KEADAAN CHAIN, bukan dengan panjang daftar di `.env`.
+   *
+   * Yang memicu perubahan ini (28 Sep): `serve-probe` merah dengan `server: 5/1, diharapkan: 2/1`.
+   * Servernya benar — journey hari ini menerbitkan dan lalu mencabut kredensial, jadi bit revocation
+   * bertambah, sementara `EXPECT_REVOKED` di `.env` masih menyebut dua uid lama. Kalau kita "perbaiki"
+   * itu dengan menghitung ulang angka di `.env`, pemeriksaan ini akan terus merah setiap kali ada yang
+   * mencabut sesuatu, sampai ada manusia ingat menyunting konfigurasi — dan kegagalan seperti itu
+   * lama-lama akan dibisukan, bukan diperbaiki.
+   *
+   * Jadi: kebenaran diambil dari chain (independen terhadap server dan terhadap `.env`), dan `.env`
+   * dilaporkan apa adanya kalau ia tertinggal. "Server salah" dan "konfigurasi kami basi" adalah dua
+   * diagnosis yang berbeda; dulu keduanya keluar sebagai satu baris merah yang sama.
+   */
+  const resolverAddr = process.env.RESOLVER_ADDRESS
+  let chainRevoked = null
+  let chainSuspended = null
+  if (resolverAddr) {
+    try {
+      // HIMPUNANNYA harus himpunan yang sama dengan yang dipakai server menyusun daftar - bukan
+      // "semua yang ada di store". Versi pertamaku mengambil hash dari store saja, lalu
+      // melaporkan server salah karena `suspension` 1 vs chain 0: yang beda bukan servernya,
+      // tapi populasi yang kuukur (server juga mengawasi hash dari STATUS_HASHES). Membandingkan
+      // dua angka dari populasi berbeda adalah cara hijau yang tidak berarti apa-apa.
+      const hashes = await servedHashes()
+      const st = await readChainStatuses({
+        rpcUrl: process.env.RPC_URL || 'https://bsc-testnet.publicnode.com',
+        resolverAddress: resolverAddr,
+        hashes,
+      })
+      const all = [...st.values()]
+      chainRevoked = revokedUids(all).length
+      chainSuspended = suspendedUids(all).length
+      console.log(`  chain   : ${hashes.length} hash diawasi · revocation ${chainRevoked} · suspension ${chainSuspended}`)
+    } catch (e) {
+      console.log(`  info  jumlah bit tidak bisa dibandingkan dengan chain (${String(e.message ?? e).slice(0, 70)}) — pemeriksaan ini DILEWATI, tidak dihitung lulus`)
+    }
+  }
+  if (chainRevoked !== null) {
+    check('jumlah bit yang dilaporkan server == keadaan chain sekarang',
+      health.revocation.flagged === chainRevoked && health.suspension.flagged === chainSuspended,
+      `server: ${health.revocation.flagged}/${health.suspension.flagged} · chain: ${chainRevoked}/${chainSuspended}`)
+    const stale = chainRevoked !== EXPECT_REVOKED.length || chainSuspended !== EXPECT_SUSPENDED.length
+    console.log(`  ${stale ? 'info ' : 'ok   '}EXPECT_* di .env ${stale ? `SUDAH TERTINGGAL (catatan ${EXPECT_REVOKED.length}/${EXPECT_SUSPENDED.length}, chain ${chainRevoked}/${chainSuspended}) — periksa baris EXPECT_ di .env; ia tidak lagi membuat pemeriksaan ini merah` : 'masih cocok dengan chain'}`)
+  } else {
+    check('jumlah bit yang dilaporkan server sama dengan yang diharapkan',
+      health.revocation.flagged === EXPECT_REVOKED.length && health.suspension.flagged === EXPECT_SUSPENDED.length,
+      `server: ${health.revocation.flagged}/${health.suspension.flagged}, diharapkan: ${EXPECT_REVOKED.length}/${EXPECT_SUSPENDED.length}`)
+  }
 }
 
 // `id` di dalam dokumen menunjuk ke rute ini. Kalau yang dipulangkan bukan sebuah Verifiable
