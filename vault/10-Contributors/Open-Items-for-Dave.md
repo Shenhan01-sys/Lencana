@@ -10,6 +10,10 @@ Raised against `web/` while the vault was being restructured, and re-checked lin
 against the files as they are now. Every row names what the product prints, what is actually true, and
 the command that shows it. Nothing here is a style opinion.
 
+**Catatan urutan:** butir ditambahkan saat diketemukan, jadi tiga paling bawah bukan urutan nomor
+(OI-11, OI-14, OI-13, OI-12). Nomor adalah anchor, bukan posisi — pakai indeks di
+[[10-Contributors/Open-Items/00 - Hub Open Items]] untuk membacanya berurutan.
+
 **Ownership:** `web/index.html`, `web/src/main.ts`, `render.ts`, `style.css`, `i18n.ts` are yours and
 your version wins on merge (`-X theirs` for those files), then the harnesses get re-run. What must not
 disappear is `#lms-mount` (`web/index.html:518`) and the `renderLmsRoute()` call (`web/src/main.ts:1180`)
@@ -153,6 +157,68 @@ batch of hashes, then render the `402` body's `accepts[]`, the `X-PAYMENT-RESPON
 settlement transaction hash. When the server is unreachable, print "server tidak terhubung" instead of
 `SETTLED`. The asset is the demo ERC-20 priced by `X402_PRICE` (`signer/src/server.js:39`), not `tBNB`
 (OI-7); the route is `/verify`, not `/api/v1/verify/batch` (OI-2).
+
+## OI-14 — `package.json` memanggil perkakas di luar repo, jadi perintah itu mati di clone orang lain
+
+`package.json:14` hari ini: `"probe:rpc": "python ../_research/find_bsc_testnet_rpc.py"`.
+`_research/` ada di luar repo publik, jadi siapa pun yang mengclone `Lencana` dan menjalankan
+`npm run probe:rpc` dapat "file not found" — dan itu bukan perkakas yang boleh dihapus begitu saja,
+karena dialah yang mengukur RPC mana yang hidup sebelum fork test dijalankan (lihat
+[[06-Spec-Research/R6 - Toolchain traps that cost time]]).
+
+Sudah kupindahkan salinannya ke dalam repo, tanpa satu pun endpoint berkunci:
+`scripts/find-bsc-testnet-rpc.py` (dua URL dengan token layanan pihak ketiga kutinggalkan di berkas
+lama — repo ini publik dan kredensial itu bukan kita yang punya). Yang tersisa hanya mengubah
+rujukannya:
+
+```diff
+-    "probe:rpc": "python ../_research/find_bsc_testnet_rpc.py"
++    "probe:rpc": "python scripts/find-bsc-testnet-rpc.py"
+```
+
+Satu baris, tanpa perubahan perilaku. Berkas ini bukan tempat kami menyunting diam-diam, jadi
+patch-nya ditawarkan di sini.
+
+## OI-13 — sebuah tombol yang mencetak "14/14 Tests Passed" tanpa menjalankan apa pun
+
+Diketemukan 28 Sep oleh audit menyeluruh, dan kukonfirmasi sendiri ke barisnya sebelum menulis ini.
+`web/src/main.ts:2144-2167`:
+
+```ts
+$('btn-run-spec-matrix')?.addEventListener('click', () => {
+  ...
+  rows.forEach((row, i) => setTimeout(() => row.classList.add('pulse-green'), i * 35))
+  setTimeout(() => { btnText.textContent = '✓ 14/14 Tests Passed (12ms)' }, 14 * 35 + 300)
+})
+```
+
+Yang terjadi: kelas hijau ditempel baris demi baris lewat `setTimeout`, lalu labelnya diganti
+menjadi hasil yang tidak dihitung dari apa pun. Tidak ada assertion, tidak ada pemanggilan
+`verify.ts`, tidak ada angka 14 dari tempat mana pun di repo — run offline kita hari ini **49**, dan
+matriks spesifikasi di tab itu punya jumlah barisnya sendiri.
+
+Kenapa ini bukan kosmetik: produk kita dijual dengan satu kalimat — "platform lama membuat klaim
+yang tidak bisa diperiksa; kami tidak". Tombol yang menghasilkan verdct hijau dari timer adalah
+klaim yang tidak bisa diperiksa, dipakai sebagai demo. Satu juri yang membuka DevTools dan melihat
+network tab kosong saat tombol itu "menjalankan 14 uji" akan membaca seluruh halaman kita seperti
+membaca tombol itu.
+
+**Yang kami punya sebagai gantinya, dan ini bukan permintaan untuk membangun baru:**
+1. ganti labelnya menjadi apa yang benar-benar terjadi — `Memeriksa bentuk dokumen terhadap
+   aturan OB 3.0` — dan hijau hanya kalau ada hasil; atau
+2. sambungkan ke data yang sudah ada: `web/src/verify.ts` diekspor dan `npm run probe` sudah
+  menjalankan 59 pemeriksaan itu lewat HTTP. Menjalankan bentuk-bentuk yang sama di sisi klien
+   (satu objek `credentialStatus`, `type` memuat `VerifiableCredential` + `OpenBadgeCredential`,
+   `@context` dua-entry berurutan, tidak ada `lencana.io` di dokumen) adalah beberapa baris dan
+   tidak butuh server; atau
+3. kalau keduanya terlalu besar untuk sisa waktu: **hapus tombolnya**. Halaman ini sudah
+   menyimpan bukti di tempat lain; hasil uji yang tidak dihitung bukan bukti, itu hiasan.
+
+Butir ini juga berlaku untuk dua tetangga yang lebih dulu masuk daftar (OI-2, OI-11): panel batch
+menjanjikan rute yang tidak dijawab server, dan simulasi x402 berjalan di atas `setTimeout`. Yang
+baru di sini hanya bahwa **angka lulus** ikut direkayasa, bukan hanya alurnya.
+
+*Aturan repo ini tetap: temuan front-end dilaporkan + patch ditawarkan, tidak disunting oleh kami.*
 
 ## OI-12 · Dua dokumen yang ditampilkan halaman ini berbentuk yang **ditolak** validator
 

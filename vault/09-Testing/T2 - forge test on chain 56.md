@@ -16,14 +16,23 @@ cd app
 forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/
 ```
 
-## Result — 2026-09-23 (not re-run since)
+## Result — 2026-09-28 (verbatim tail)
 
-`97 tests passed, 0 failed, 0 skipped`, same five suites, **identical gas figures** to
-[[T1 - forge test on chain 97]].
+```
+Ran 5 test suites in 6.93s (17.02s CPU time): 104 tests passed, 0 failed, 0 skipped (104 total tests)
+```
 
-**⚠️ Date this figure honestly.** It was measured on 23 Sep on the commit of that day. The 25 Sep
-re-run was done against chain 97 only. Writing "97 tests pass on 97 and 56" without dates implies both
-were re-measured; they were not → [[00-Overview/04 - Corrections]].
+Per suite dalam run yang sama: **22** settlement split, **27** artefak, **8** split-on-56 fork,
+**9** end-to-end di fork 56, **38** resolver fork. Angka gas cocok dengan
+[[T1 - forge test on chain 97]] suite demi suite — itu memang gunanya menjalankan test yang sama
+terhadap state mainnet.
+
+**Riwayat yang sengaja tidak kuhapus:** halaman ini punya front-matter bertanggal 28 Sep dengan angka
+104, sementara tubuh tempelannya masih 23 Sep dengan angka 97 dan tulisan "not re-run since".
+Kontradiksi dalam satu berkas itu membuat klaim "104/0 di 97 DAN 56" bertumpu pada run yang
+catatannya sendiri bilang belum diulang — persis kegagalan yang kita catat untuk catatan riset orang
+lain. Kedua chain sekarang diulang pada hari yang sama, dan tempelan yang di atas adalah run hari ini;
+run 23 Sep (97/0) tetap fakta riwayat → [[00-Overview/04 - Corrections]].
 
 ## Why run the suite against mainnet state at all
 

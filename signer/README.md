@@ -173,8 +173,17 @@ Node 22 strips TypeScript types on import by default. If `npm run check` dies wi
 | `suspension` | "temporarily prevent acceptance … reversible" | `delistIssuer()` by the platform (D30) | yes — `relistIssuer()` |
 
 Collapsing both into one list would erase the distinction D30 exists to create, and every third-party
-verifier would read a recoverable delisting as a permanent revocation. BSL allows multiple
-`credentialStatus` entries per credential, so there is no reason to compress them.
+verifier would read a recoverable delisting as a permanent revocation.
+
+⚠️ **Corrected 27 Sep — the sentence that used to sit here was wrong.** It claimed "BSL allows multiple
+`credentialStatus` entries per credential, so there is no reason to compress them." The OB 3.0
+AchievementCredential schema declares `credentialStatus` as `type: object` with cardinality `[0..1]` —
+one entry, one purpose — and `vc.1ed.tech` said so in its own words: `$.credentialStatus: array found,
+object expected`. So a credential points at **exactly one** list (`revocation`), and `suspension`
+remains built, anchored and served without being referenced by any conformant credential. The sentence
+we are allowed is *"two status lists, and a credential points at revocation"* — not "every credential
+carries both". Details: `../vault/00-Overview/04 - Corrections.md` and
+`../vault/09-Testing/T15 - 1EdTech validator.md`.
 
 `expired` is deliberately **not** in any list: the document already states `validUntil` and verifiers
 read that themselves. Encoding it twice would create two sources of truth that are allowed to

@@ -16,9 +16,20 @@ The items live in one document so Dave can read them in a single pass:
 | OI-3 | the bitstring visualizer shows a simulation and is labelled as our list |
 | OI-4 | fake EVM revert strings typed by hand |
 | OI-5 | invented metrics and an invented person |
-| OI-7 | URLs on a domain the project does not hold |
+| OI-6 | 20 URLs on `lencana.io`, a domain the project does not hold (`main.ts` 17, `render.ts` 1, `index.html` 2) |
+| OI-7 | the money the product does not actually move (tBNB pricing) |
+| OI-8 | hero claims that outrun the four scenes |
+| OI-9 | `file:///C:/Project_Dave/…` links that resolve on exactly one machine |
+| OI-10 | a preset labelled "BSC Testnet (97) — target submission" that carries addresses that are not ours |
 | OI-11 | `main.ts` contains no `fetch(`: the paid panel is timers, while the same repo settles real payments |
 | OI-12 | the shown document still uses the two-entry `credentialStatus` the OB 3.0 schema rejects |
+| OI-13 | a button that prints "14/14 Tests Passed (12ms)" from a `setTimeout` — an invented pass result, not just an invented flow |
+| OI-14 | `package.json` calls a tool that lives outside the repo, so `npm run probe:rpc` is dead in anyone else's clone (in-repo copy already added; one-line patch offered) |
+
+**Dua dari daftar ini membuat yang lain terlihat lebih buruk, dan itu alasannya ditutup lebih dulu:**
+OI-13 (hasil uji yang direkayasa) dan OI-12 (dokumen yang ditolak validator). Keduanya menyentuh
+kalimat penjualan kita sendiri — "klaim yang tidak bisa diperiksa adalah kenapa platform lama gagal" —
+dan keduanya ada di halaman yang akan dibuka juri.
 
 One item per file is deliberately **not** done: each item is a section with a patch, and splitting them
 would leave seven files that a reader has to reassemble. If an item needs quoting in a pull request, the

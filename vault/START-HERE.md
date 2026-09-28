@@ -12,18 +12,23 @@ artifact is a **soulbound token**, status is readable by anyone through two **Bi
 Lists** whose hashes are timestamped on chain, and the machine-to-machine payment path
 (**x402**) splits revenue **in a contract we wrote**.
 
-Everything above is live on the **public BSC testnet (chain 97)** and each line has a command inside
-this repository that re-runs it.
+Everything above is live on the **public BSC testnet (chain 97)**, and each line has a command inside
+this repository that re-runs it — with one caveat worth stating up front: those commands need our
+`.env`, an issuer key in `signer/.keys/` and credentials in `signer/.store/`, all three deliberately
+gitignored. A fresh clone re-runs the offline suites and `npm run rubric` / `inventory` unaided; the
+chain-facing numbers need an issuer key, a funded testnet wallet and `npm run issue` first.
 
 ## ⏳ Position
 
 | | |
 |---|---|
-| Today | **25 September 2026** |
-| Submission deadline | **30 September 2026, 23:59 WIB** — **5 days left** |
+| Today | **28 September 2026** |
+| Submission deadline | **30 September 2026, 23:59 WIB** — **2 days left** |
 | Repository | `github.com/Shenhan01-sys/Lencana` (public) |
 | Chain | BSC **testnet 97**. Nothing on mainnet, by choice: testnet satisfies the rules |
-| On-chain layer | 4 contracts deployed · **97 Foundry tests pass / 0 fail** against a fork of 97 (re-run 25 Sep) → [`09-Testing/`](09-Testing/) |
+| On-chain layer | 4 contracts deployed · **104 Foundry tests pass / 0 fail** on forks of **both 97 and 56** (re-run 28 Sep) → [`09-Testing/`](09-Testing/) |
+| Public host | Documents we sign are served from `https://lencana-edge.hansgunawan775.workers.dev` (Cloudflare Worker + KV, never signs anything) → [`04-Signer-Service/S10 - Edge surface.md`](04-Signer-Service/S10%20-%20Edge%20surface.md) |
+| External verdict | `vc.1ed.tech` OB 3.0 validator: **`outcome: VALID`**, 14 checks, 0 errors / 0 warnings, two credentials (28 Sep) → [`09-Testing/T15 - 1EdTech validator.md`](09-Testing/T15%20-%201EdTech%20validator.md) |
 | Honest limits | [`10-Contributors/Claims-Cheat-Sheet.md`](10-Contributors/Claims-Cheat-Sheet.md) — **read this before writing any claim**, including UI copy |
 
 ## 🚀 Start here, depending on who you are
@@ -35,7 +40,7 @@ this repository that re-runs it.
 
 **Continuing the work (human or agent)** →
 1. [`07-Backlog/01 - Backlog.md`](07-Backlog/01%20-%20Backlog.md) — what is left and what blocks it
-2. [`07-Backlog/02 - Plan to the Deadline.md`](07-Backlog/02%20-%20Plan%20to%20the%20Deadline.md) — day by day, 25→30 Sep
+2. [`00-Overview/02 - Roadmap to the Deadline.md`](00-Overview/02%20-%20Roadmap%20to%20the%20Deadline.md) — day by day to 30 Sep, including what only a human can do
 3. [`Quick-Reference.md`](Quick-Reference.md) — commands, addresses, env names, one place
 4. [`AGENTS.md`](AGENTS.md) — the rules that keep this folder trustworthy if you are an agent
 
