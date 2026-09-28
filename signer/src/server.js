@@ -28,6 +28,10 @@ import { makeDocumentLoader } from './sign.js'
 import { getCredentialByHash } from './store.js'
 import { criteriaDocument } from './criteria.js'
 import { resultDocument } from './results.js'
+import {
+  dbConfigured, dbMissingReason,
+  enroll as dbEnroll, recordAttempt as dbRecordAttempt,
+} from './db.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
@@ -308,6 +312,42 @@ const server = createServer(async (req, res) => {
     }
     if (path === `/credentials/status/${REVOCATION}`) return send(res, 200, (await buildList(REVOCATION)).signed)
     if (path === `/credentials/status/${SUSPENSION}`) return send(res, 200, (await buildList(SUSPENSION)).signed)
+    // --------------------------------------------------------------------------------------
+    // State belajar (bar e-course 3 & 4). Sengaja DI ATAS rute lain dan sengaja pulang-pergi
+    // ringan: ini permukaan yang akan dipanggil front-end nanti.
+    //
+    // Dua hal yang tidak boleh dilupakan di sini:
+    //  - secret key DB melewati RLS, jadi pemeriksaan "siapa yang boleh menulis untuk alamat ini"
+    //    ada di KITA (tanda tangan nonce atas nama peserta), bukan di database;
+    //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
+    if (path === '/enroll' || path === '/attempts') {
+      if (!dbConfigured()) {
+        return send(res, 503, jsonBody({ error: 'lapisan belajar belum dipasang', missing: dbMissingReason() }))
+      }
+      if (req.method !== 'POST') {
+        return send(res, 405, jsonBody({ error: 'butuh POST', path }))
+      }
+      const body = await readJsonBody(req)
+      if (!body || typeof body !== 'object') return send(res, 400, jsonBody({ error: 'body harus JSON objek' }))
+      if (path === '/enroll') {
+        const out = await dbEnroll({
+          learner: body.learner, courseId: body.course, message: body.message, signature: body.signature,
+        })
+        return out.ok
+          ? send(res, 200, jsonBody({ enrolled: true, created: out.created, enrollmentId: out.enrollment?.id, course: out.enrollment?.course_id }))
+          : send(res, 401, jsonBody({ error: out.why }))
+      }
+      const out = await dbRecordAttempt({
+        learner: body.learner, courseId: body.course, lessonKey: body.lesson ?? '-', kind: body.kind,
+        attemptNo: body.attempt ?? 1, score: body.score, verdict: body.verdict,
+        rubricHash: body.rubricHash, judgeModel: body.judgeModel, judgeTemp: body.judgeTemp,
+        deductions: body.deductions, components: body.components,
+        message: body.message, signature: body.signature,
+      })
+      return out.ok
+        ? send(res, 201, jsonBody({ attemptHash: out.attemptHash, attemptId: out.attempt?.id, score: out.attempt?.score, verdict: out.attempt?.verdict }))
+        : send(res, 401, jsonBody({ error: out.why }))
+    }
     // Satu-satunya rute yang meminta bayaran. Verifikasi itu sendiri tetap gratis di halaman;
     // yang berbayar adalah jalur mesin-ke-mesin (agen yang memanggil kami untuk banyak kredensial).
     if (path === '/verify') return handleVerify(req, res)

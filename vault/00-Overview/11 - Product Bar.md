@@ -20,8 +20,8 @@ ini terverifikasi 28 Sep dengan **membaca kode**, bukan membaca catatan lama.
 |---|---|---|---|
 | 1 | hierarki konten dengan id stabil | ✅ `content.ts` Course/Module/Lesson | — |
 | 2 | gating sebagai data, ditegak server-side | ⚠️ prasyarat antar-kursus ditegak **chain** (`PrerequisiteRevoked`), gating per bab belum ada | aturan urutan per bab |
-| 3 | **rekaman enrollment per peserta** | ❌ **tidak ada**; `btnEnroll` cuma entri kamus | `enrollments` + `POST /enroll` |
-| 4 | progres per peserta + state machine | ❌ satu kunci `localStorage` global, `wipeCourse()` menghapusnya | `progress` per alamat + status `locked/unlocked/started/completed` |
+| 3 | **rekaman enrollment per peserta** | ⚠️ tabel + `POST /enroll` bertanda tangan peserta, nonce sekali pakai, idempoten — `verify:db` 12/0 (28 Sep) | FE memanggilnya; `issue --from-attempts` membaca baris ini |
+| 4 | progres per peserta + state machine | ❌ tabel dan state machine-nya ada, **belum ada yang menulis barisnya**; progres nyata masih satu kunci `localStorage` | endpoint progres + baca dari DB; `NULL` dari view dibaca sebagai "belum selesai" |
 | 5 | rubric dengan skala eksplisit | ⚠️ `RubricItem{label,max}` itu bobot, bukan skala | skala berlabel-titik seperti ORA |
 | 6 | **dua gerbang: selesai ≠ lulus** | ⚠️ `readyForCredential = gradedWeights === 100` | pisahkan `completed` dan `passed` |
 | 7 | asal-usul nilai (siapa/apa yang menghasilkan angka) | ⚠️ `result.method` + `rubricHash` ada, learner tak pernah lihat rinciannya | gradebook + `attemptHash` |
