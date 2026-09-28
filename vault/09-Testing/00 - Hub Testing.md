@@ -46,6 +46,7 @@ with them, **53** and **20**. Always read the group list, not only the count →
 | [[T15 - 1EdTech validator]] | `npm run validator -- --record` | **2026-09-28** | **10 / 0 failed**, validator `outcome: VALID`, 14 checks, 0 error 0 warning | a third party opens our URLs and reads our paper the way its own software would | P1, P6 |
 | [[T16 - npm run publish edge]] | `npm run publish:edge` | **2026-09-28** | **23 / 24** rute (yang ke-24 = kursus yang memang tidak ada lagi di katalog), kedua daftar `matchesChainNow` | the URLs printed inside a credential answer from a host that does not die with the laptop | P1, P6 |
 | [[T17 - signer verify-live-cert.js]] | `node scripts/verify-live-cert.js` | **2026-09-28** | **11 / 0 failed** (+1 printed as `info`) | the artefact layer a stranger can open in an explorer really enforces D42/D43, and `external_url` is the exact URL the validator followed | P1 |
+| [[T18 - signer verify-edge.js]] | `npm run verify:edge` | **2026-09-28** | **5 / 0 failed** + terukur **1 dari 7** kertas dapat diperiksa orang sepenuhnya | nothing we issued is stranded behind a host that only this laptop can reach — and how much of it is | P1, P6 |
 
 ## Conventions for this folder
 
