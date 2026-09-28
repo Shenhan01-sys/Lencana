@@ -96,7 +96,7 @@ platform and not the issuing agent.
 |---|---|---|
 | `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` | artefak corpus demo (seed 21-22 Sep) — metadata **beku saat mint**, perilaku sebelum B38 diperbaiki; tidak menegakkan D42/D43 | `CERT_ADDRESS` di `.env`, jadi `npm run probe` menguji yang LAMA |
 | `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` | artefak kredensial `0xfe4f7161…` — metadata **dirakit dari `statusOf()` setiap panggilan**, tapi juga belum menegakkan D42/D43 | tidak dipakai harness mana pun (host kertasnya sudah mati; lihat B51) |
-| `0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa` | artefak kredensial `0xd0bce6f4…` yang **lolos validator di host tetap**; menegakkan D42/D43; metadata dirakit per panggilan | `LIVE_CERT_ADDRESS` di `.env` → `npm run verify:live-cert` (11/0) |
+| `0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa` | **dua** artefak: `0xd0bce6f4…` (Web3 Dasar) dan `0x44d4946e…` (Web3 Lanjut) — keduanya kertas yang lolos validator di host tetap; menegakkan D42/D43; metadata dirakit per panggilan | `LIVE_CERT_ADDRESS` di `.env` → `npm run verify:live-cert` (17/0) |
 
 **Kenapa ketiganya dibiarkan hidup, dan kenapa `CERT_ADDRESS` tidak dipindah.** Ini keputusan, bukan
 kelalaian, dan ia lahir dari membaca kode bukan dari kenyamanan: artefak demo yang hari ini

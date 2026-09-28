@@ -65,39 +65,81 @@ for (const s of LESSON_GATE) {
     code.toLowerCase().includes(s.slice(2).toLowerCase()))
 }
 
-// 2. Artefak yang terikat: pesertanya adalah holder yang dikatakan chain, dan metadata menunjuk
-//    URL yang dibaca pihak ketiga.
-const ledgerLine = (await readFile(new URL('../../vault/09-Testing/validator-runs.jsonl', import.meta.url), 'utf8'))
-  .trim().split(/\r?\n/).filter(Boolean).pop()
-const ledger = JSON.parse(ledgerLine)
-check('buku besar validator: baris terakhir outcome VALID', ledger.outcome === 'VALID', String(ledger.outcome))
-const hash = ledger.credentialHash
-const holder = await client.readContract({
-  address: RESOLVER, abi: [{ type: 'function', name: 'holderOf', stateMutability: 'view', inputs: [{ type: 'bytes32' }], outputs: [{ type: 'address' }] }],
-  functionName: 'holderOf', args: [hash],
-})
-const tokenId = await client.readContract({
-  address: CERT, abi: [{ type: 'function', name: 'tokenOfCredential', stateMutability: 'view', inputs: [{ type: 'bytes32' }], outputs: [{ type: 'uint256' }] }],
-  functionName: 'tokenOfCredential', args: [hash],
-})
-check('artefak kredensial yang divalidasi ada di lapis yang hidup', tokenId > 0n, `tokenOfCredential = ${tokenId}`)
-const owner = await client.readContract({
-  address: CERT, abi: [{ type: 'function', name: 'ownerOf', stateMutability: 'view', inputs: [{ type: 'uint256' }], outputs: [{ type: 'address' }] }],
-  functionName: 'ownerOf', args: [tokenId],
-})
-check('ownerOf == holderOf (bukan alamat yang kita karang, B49)', owner.toLowerCase() === holder.toLowerCase(), `${owner} vs ${holder}`)
-check('tokenId == uint256(credentialHash) (satu artefak per kredensial)',
-  BigInt(hash) === tokenId, `${tokenId} vs ${hash}`)
+// 2. SETIAP kertas yang buku besar katakan VALID di bawah host publik harus punya artefak di lapis
+//    yang hidup. Versi pertama harness ini hanya membaca baris terakhir - dan itu berubah makna
+//    setiap kali ada validasi baru: kertas yang tadinya terbukti bisa berhenti terbukti tanpa ada
+//    yang menyadari. Yang diuji sekarang seluruh daftar, dan daftarnya diambil dari buku besar,
+//    bukan dari angka yang kita ingat.
+const ledgerRows = (await readFile(new URL('../../vault/09-Testing/validator-runs.jsonl', import.meta.url), 'utf8'))
+  .trim().split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l))
+const durable = new Map()
+for (const r of ledgerRows) {
+  if (r.outcome !== 'VALID') continue
+  if (typeof r.docUrl !== 'string' || !r.docUrl.startsWith('https://')) continue
+  if (/127\.0\.0\.1|localhost|trycloudflare/.test(r.docUrl)) continue // host sementara bukan bukti
+  durable.set(String(r.credentialHash).toLowerCase(), r)
+}
+check('buku besar memuat setidaknya satu kertas VALID di host tetap', durable.size > 0, `${durable.size} kertas`)
 
-const uri = await client.readContract({
-  address: CERT, abi: [{ type: 'function', name: 'tokenURI', stateMutability: 'view', inputs: [{ type: 'uint256' }], outputs: [{ type: 'string' }] }],
-  functionName: 'tokenURI', args: [tokenId],
-})
-const meta = JSON.parse(uri)
-check('external_url = persis URL yang diikuti validator', meta.external_url === ledger.docUrl, `${meta.external_url}`)
-check('metadata menyebut status dari chain, bukan beku saat mint', /VALID|REVOKED|EXPIRED|ISSUER_DELISTED/.test(meta.name ?? ''), meta.name)
-check('tidak ada URL loopback atau host tunnel di metadata artefak',
-  !/127\.0\.0\.1|localhost|trycloudflare/.test(uri), uri.slice(0, 120))
+/**
+ * ABI per fungsi, DITULIS lengkap termasuk tipe outputnya. Ini bukan formalitas: versi pertama
+ * helper di bawah menyatakan semua output `address`, jadi `tokenOfCredential` (uint256) terpotong
+ * menjadi 20 byte terbawah, `ownerOf` ditanya dengan id yang salah, dan revert yang keluar
+ * disalahkan pada kontrak. Yang berubah hanyalah dekode kita.
+ */
+const fn = (name, inputs, outputs) => [{ type: 'function', name, stateMutability: 'view', inputs, outputs }]
+const B32 = { type: 'bytes32' }
+const U256 = { type: 'uint256' }
+const ADDR = { type: 'address' }
+const ABI = {
+  holderOf: fn('holderOf', [B32], [ADDR]),
+  tokenOfCredential: fn('tokenOfCredential', [B32], [U256]),
+  ownerOf: fn('ownerOf', [U256], [ADDR]),
+  tokenURI: fn('tokenURI', [U256], [{ type: 'string' }]),
+}
+/** Setiap panggilan rantai: revert adalah pemeriksaan MERAH, bukan crash yang menutup sisanya. */
+async function read (label, to, abi, functionName, args) {
+  try {
+    return { ok: true, value: await client.readContract({ address: to, abi, functionName, args }) }
+  } catch (e) {
+    const msg = String(e?.shortMessage ?? e?.message ?? e).split('\n')[0]
+    check(`${label}: panggilan chain ${functionName} berhasil`, false, msg.slice(0, 110))
+    return { ok: false, value: null }
+  }
+}
+
+let lastHash = null
+let lastHolder = null
+for (const [hash, ledger] of durable) {
+  const tag = hash.slice(0, 10)
+  const holder = await read(`${tag}… holderOf`, RESOLVER, ABI.holderOf, 'holderOf', [hash])
+  if (!holder.ok) continue
+  const tok = await read(`${tag}… tokenOfCredential`, CERT, ABI.tokenOfCredential, 'tokenOfCredential', [hash])
+  if (!tok.ok) continue
+  const tokenId = tok.value
+  check(`artefak ${tag}… ada di lapis yang hidup`, tokenId > 0n, `tokenOfCredential = ${tokenId}`)
+  if (tokenId === 0n) continue
+  lastHash = hash
+  lastHolder = holder.value
+  const own = await read(`${tag}… ownerOf`, CERT, ABI.ownerOf, 'ownerOf', [tokenId])
+  if (!own.ok) continue
+  check(`${tag}…: ownerOf == holderOf (bukan alamat yang kita karang, B49)`,
+    String(own.value).toLowerCase() === String(holder.value).toLowerCase(), `${own.value} vs ${holder.value}`)
+  check(`${tag}…: tokenId == uint256(credentialHash) (satu artefak per kredensial)`,
+    BigInt(hash) === tokenId, `${tokenId} vs ${hash}`)
+  const u = await read(`${tag}… tokenURI`, CERT, ABI.tokenURI, 'tokenURI', [tokenId])
+  if (!u.ok) continue
+  let meta = {}
+  try { meta = JSON.parse(u.value) } catch { check(`${tag}…: tokenURI adalah JSON yang terbaca`, false, String(u.value).slice(0, 90)) }
+  check(`${tag}…: external_url = persis URL yang diikuti validator`, meta.external_url === ledger.docUrl, String(meta.external_url))
+  check(`${tag}…: metadata menyebut status dari chain, bukan beku saat mint`,
+    /VALID|REVOKED|EXPIRED|ISSUER_DELISTED/.test(meta.name ?? ''), meta.name)
+  check(`${tag}…: tidak ada URL loopback atau host tunnel di metadata`,
+    !/127\.0\.0\.1|localhost|trycloudflare/.test(u.value), String(u.value).slice(0, 110))
+}
+const hash = lastHash ?? [...durable.keys()][0] ?? '0x'
+const holder = lastHolder ?? '0x0000000000000000000000000000000000000000'
+const ledger = [...durable.values()].pop() ?? {}
 
 // 3. Penolakan, diuji terhadap bytecode yang sama seperti yang akan ditemui orang lain.
 //

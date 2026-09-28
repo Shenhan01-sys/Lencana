@@ -163,6 +163,9 @@ const wallet = createWalletClient({ account: agentEoa, chain, transport: http(RP
 const ResolverAbi = parseAbi([
   'function schemaUID() view returns (bytes32)',
   'function attestationOf(bytes32) view returns (bytes32)',
+  // Dibaca balik untuk pascakondisi: apakah chain mencatat tautan prasyarat, bukan apakah kita
+  // berniat mengirimnya. Tanpa entri ini `readContract` gagal, dan kegagalan itu bukan teori.
+  'function prerequisiteOf(bytes32) view returns (bytes32)',
   'function isIssuer(address) view returns (bool)',
 ])
 // Bentuknya dibaca dari IEAS.sol, bukan dikarang: AttestationRequest = { schema, data } dan
@@ -191,6 +194,35 @@ const attestationData = encodeAbiParameters(
   [credentialHash, courseId, EMPTY_UID],
 )
 
+/**
+ * Prasyarat dirantai DI CHAIN, bukan dikarang di kertas.
+ *
+ * Kenapa ini ada: `_validatePrerequisite` (`CredentialResolver.sol:348`) hanya bisa menegakkan apa
+ * yang dikirimkan kepadanya. Selama `refUID` selalu nol, kursus yang mendefinisikan prasyarat akan
+ * terbit sebagai kertas yang criteria-nya sendiri menyebut sesuatu yang tidak bisa ditunjukkan
+ * siapa pun — persis lubang yang kita catat untuk LMS orang lain.
+ *
+ * Dan catatan jujur tentang versinya: guard pertama kubaca dari `manifest.prereqCourseId`, padahal
+ * kebijakan penerbit hidup di `manifest.course` (`web/src/manifest.ts:155-169`: `MANIFESTS` adalah
+ * `{ schema, issuer, publishedAt, course }`). `?? null` membuat field yang salah tingkat itu JATUH
+ * DIAM — attestation `0x44d4946e…` keluar tanpa tautan dan log tidak protes. Jadi yang diuji di
+ * bawah bukan niat kita, melainkan **efeknya yang terbaca di chain**: `prerequisiteOf(uid)` dibaca
+ * kembali, karena hanya itu yang bisa diperiksa orang lain.
+ */
+const prereqCourse = manifest.course?.prereqCourseId ?? manifest.prereqCourseId ?? null
+let prereqUid = EMPTY_UID
+if (prereqCourse) {
+  const prereqHash = credentialHashOf(learner, prereqCourse)
+  prereqUid = await client.readContract({ address: RESOLVER, abi: ResolverAbi, functionName: 'attestationOf', args: [prereqHash] })
+  if (prereqUid === EMPTY_UID) {
+    console.error(`prasyarat "${prereqCourse}" belum tercatat di chain untuk peserta ini (hash ${prereqHash})`)
+    console.error('tidak menerbitkan: kertas yang menyebut prasyarat tanpa tautan on-chain adalah klaim tanpa bukti')
+    console.error('urutan yang benar: terbitkan kredensial prasyaratnya lebih dulu, lalu jalankan ini lagi')
+    process.exit(2)
+  }
+  console.log(`prasyarat   : ${prereqCourse} → uid ${prereqUid}`)
+}
+
 const expiresAt = BigInt(Math.floor(Date.now() / 1000) + DAYS * 86400)
 let uid = await client.readContract({ address: RESOLVER, abi: ResolverAbi, functionName: 'attestationOf', args: [credentialHash] })
 if (uid === EMPTY_UID) {
@@ -204,7 +236,7 @@ if (uid === EMPTY_UID) {
         recipient: getAddress(learner),
         expirationTime: expiresAt,
         revocable: true,
-        refUID: EMPTY_UID,
+        refUID: prereqUid,
         data: attestationData,
         value: 0n,
       },
@@ -216,6 +248,25 @@ if (uid === EMPTY_UID) {
   console.log(`attestation : ${uid} (gas ${receipt.gasUsed})`)
 } else {
   console.log(`sudah ada   : ${uid} — tidak menerbitkan ulang`)
+}
+
+/**
+ * Pascakondisi, dibaca dari chain. `refUID` yang kita kirim tidak menjamin apa-apa sampai
+ * `prerequisiteOf(uid)` menunjukkan tautannya — dan karena BAS tidak menerima ulang attestation
+ * untuk hash yang sama, tautan yang hilang hari ini hilang permanen untuk hash itu. Satu-satunya
+ * cara menangkap kegagalan diam-diam seperti itu adalah MEMBACA HASILNYA, bukan memercayai maksud
+ * kode kita (pelajaran yang persis sama dengan B53, di level yang berbeda).
+ */
+if (uid !== EMPTY_UID) {
+  const linked = await client.readContract({
+    address: RESOLVER, abi: ResolverAbi, functionName: 'prerequisiteOf', args: [uid],
+  })
+  if (prereqCourse && linked === EMPTY_UID) {
+    console.error(`prasyarat dideklarasikan (${prereqCourse}) tapi prerequisiteOf(${uid.slice(0, 10)}…) = nol`)
+    console.error('kertas tidak diterbitkan: itu klaim yang tidak bisa ditunjukkan orang lain')
+    process.exit(1)
+  }
+  console.log(`tautan      : prerequisiteOf = ${linked === EMPTY_UID ? 'kosong (kursus ini tidak mendeklarasikan prasyarat)' : linked}`)
 }
 
 // 2. Nomor bit ditetapkan di sini SEKALI dan disimpan; server hanya membaca.

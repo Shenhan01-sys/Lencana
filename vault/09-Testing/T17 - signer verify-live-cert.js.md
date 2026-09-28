@@ -2,7 +2,7 @@
 tags: [testing, "T17"]
 command: node scripts/verify-live-cert.js
 measured: 2026-09-28
-result: 11 checks / 0 failed (1 group reported as info, not counted)
+result: 17 checks / 0 failed (1 group reported as info, not counted)
 ---
 
 # T17 - signer verify-live-cert.js
@@ -43,6 +43,40 @@ npm run verify:live-cert     # butuh LIVE_CERT_ADDRESS + RESOLVER_ADDRESS + DEPL
 LAPIS ARTEFAK HIJAU — 11 pemeriksaan, 0 gagal
 Yang dibaca: bytecode dan reaksi kontrak di RPC publik chain 97, bukan log build kami.
 ```
+
+## Run kedua hari yang sama — 17 / 0, dan harness-nya yang berubah
+
+Kertas kedua terbit di bawah identitas tepi (`0x44d4946e…`, Web3 Lanjut, LULUS 90/70, attestation
+316.384 gas, `outcome: VALID` dengan dokumen dibaca dari tepi) dan diikat sebagai artefak lewat
+`scripts/mint-showcase.ps1` → `script/MintShowcase.s.sol` (satu panggilan `mintBatch`; yang sudah
+terikat disaring keluar lebih dulu, jadi skripnya idempoten).
+
+```
+  ok    buku besar memuat setidaknya satu kertas VALID di host tetap
+  ok    artefak 0xd0bce6f4… ada di lapis yang hidup
+  ok    0xd0bce6f4…: ownerOf == holderOf (bukan alamat yang kita karang, B49)
+  ok    0xd0bce6f4…: tokenId == uint256(credentialHash) (satu artefak per kredensial)
+  ok    0xd0bce6f4…: external_url = persis URL yang diikuti validator
+  ok    0xd0bce6f4…: tidak ada URL loopback atau host tunnel di metadata
+  ok    artefak 0x44d4946e… ada di lapis yang hidup
+  …    (blok yang sama untuk kertas kedua)
+  ok    mint oleh bukan-pemilik DITOLAK (NotIssuer)
+
+LAPIS ARTEFAK HIJAU — 17 pemeriksaan, 0 gagal
+```
+
+Dua hal yang salah di harness-nya sendiri dan ikut diperbaiki, karena ini berkas yang orang baca
+untuk membuktikan sesuatu:
+
+1. **Ia hanya membaca baris terakhir buku besar.** Maknanya berubah setiap kali ada validasi baru:
+   kertas yang tadi terbukti bisa berhenti terbukti tanpa ada yang menyadari. Sekarang daftarnya
+   diambil dari seluruh baris `VALID` di host publik (baris loopback/tunnel dibuang — host sementara
+   bukan bukti) dan **setiap** item diperiksa sendiri-sendiri.
+2. **Helper ABI-nya menyatakan semua output `address`.** `tokenOfCredential` itu `uint256`, jadi id
+   terpotong ke 20 byte terbawah, `ownerOf` ditanya dengan id yang salah, dan kontrak membalas
+   `0x7e273289` — yang hampir saja kutafsirkan sebagai artefak yang hilang, padahal yang salah adalah
+   dekode kita. Sekarang setiap panggilan rantai dibungkus: revert adalah **pemeriksaan merah**, bukan
+   crash yang mematikan sisa pemeriksaan dan meninggalkan log setengah.
 
 ## Kenapa nomornya berarti, satu per satu
 
