@@ -169,3 +169,10 @@ gas. The complete sequence — deploy, seed twice, issue, anchor both lists — 
 What is *not* claimed by this section: source verification on the block explorer (BscScan V1 is
 deprecated, Etherscan V2 for BSC is paid), and any mainnet (chain 56) deployment.
 
+## E. Catatan lanjutan: apa yang berubah sejak halaman ini ditulis
+
+Halaman ini masih memuat fakta yang kami pakai setiap hari, tapi tiga hal sudah berkembang dan tidak boleh dibaca lebih tua dari kenyataannya:
+
+- **x402 v2 sudah keluar** dan kalimatnya lebih sempit dari halaman launch-nya: sesi **out of scope** di core spec, yang ada flow model `upfront` / `authorization` / **`escrow`** dan skema `exact` / `upto` / `batch-settlement`. Dibaca dari sumber: [[06-Spec-Research/R9 - x402 v2 and the deadline-escrow idea]].
+- **`SoulboundCert` yang menegakkan D42/D43 sekarang ada di `0xc338af7f…`** (`verify:live-cert`), bukan hanya `0xC6FD12B0…` di tabel D; `CERT_ADDRESS` di `.env` sengaja tidak dipindah (D46).
+- **`POST /verify` dan daftar status sudah disajikan dari tepi tetap** dan `credentialStatus` kami sudah satu objek di SEMUA rekaman store (0 array, diukur `listCredentials()` 29 Sep) — bentuk array lama tidak diedit diam-diam, ia dinormalkan dengan bendera `--fix-status-shape` (B68, [[09-Testing/T24 - signer rehost.js]]).
