@@ -217,7 +217,9 @@ function renderStepper(r: Report, lang: Lang): string {
 export function generateCanonicalJsonLd(r: Report): Record<string, unknown> {
   const c = r.credential
   const cert = r.cert
-  const baseUrl = 'https://lencana.io'
+  const baseUrl = typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'https://lencana-edge.hansgunawan775.workers.dev'
   const holderAddr = c.holder ?? c.recipient ?? cert.owner ?? '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
   const isSecurity = Boolean(c.courseId && c.courseId.includes('security'))
   const courseSlug = isSecurity ? 'bnb-security-audit' : 'web3-dasar-2026'
@@ -270,22 +272,14 @@ export function generateCanonicalJsonLd(r: Report): Record<string, unknown> {
         },
       ],
     },
-    credentialStatus: [
-      {
-        id: `${baseUrl}/credentials/status/revocation#${uid.slice(2, 10)}`,
-        type: 'BitstringStatusListEntry',
-        statusPurpose: 'revocation',
-        statusListIndex: '14',
-        statusListCredential: `${baseUrl}/credentials/status/revocation`,
-      },
-      {
-        id: `${baseUrl}/credentials/status/suspension#${uid.slice(2, 10)}`,
-        type: 'BitstringStatusListEntry',
-        statusPurpose: 'suspension',
-        statusListIndex: '14',
-        statusListCredential: `${baseUrl}/credentials/status/suspension`,
-      },
-    ],
+    // SATU objek. Skema OB 3.0 menolak array; validasi resmi 1EdTech (vc.1ed.tech) adalah buktinya.
+    credentialStatus: (c as any).status ?? {
+      id: `${baseUrl}/credentials/status/revocation#${uid.slice(2, 10)}`,
+      type: 'BitstringStatusListEntry',
+      statusPurpose: 'revocation',
+      statusListIndex: String((c as any).statusListIndex ?? 0),
+      statusListCredential: `${baseUrl}/credentials/status/revocation`,
+    },
     proof: {
       type: 'DataIntegrityProof',
       cryptosuite: 'eddsa-rdfc-2022',

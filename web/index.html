@@ -43,6 +43,7 @@
           <nav class="nav-links">
             <a href="#/" id="nav-home" class="nav-link active">Home</a>
             <a href="#/courses" id="nav-courses" class="nav-link">Courses</a>
+            <a href="#/learn" id="nav-classroom" class="nav-link">Study Room</a>
             <a href="#/submit" id="nav-submit" class="nav-link">Submit Work</a>
             <a href="#/verify" id="nav-verify" class="nav-link">Check Proof</a>
             <a href="#/portfolio" id="nav-portfolio" class="nav-link">Portfolio</a>
@@ -175,6 +176,7 @@
               <div class="nexum-desktop-nav-wrap">
                 <div class="nexum-glass-nav-cluster">
                   <a href="#/courses" class="nexum-nav-link">Courses</a>
+                  <a href="#/learn" class="nexum-nav-link">Study Room</a>
                   <a href="#/submit" class="nexum-nav-link">AI Studio</a>
                   <a href="#/verify" class="nexum-nav-link nexum-nav-link-dropdown">
                     <span>Verifier</span>
@@ -213,21 +215,24 @@
             <div class="nexum-mobile-drawer" id="nexum-mobile-drawer">
               <div class="nexum-mobile-links">
                 <a href="#/courses" class="nexum-mobile-link" style="--item-index: 1;">
-                  <span>📚 Courses &amp; LMS</span>
+                  <span>📚 Course Catalog</span>
                 </a>
-                <a href="#/submit" class="nexum-mobile-link" style="--item-index: 2;">
+                <a href="#/learn" class="nexum-mobile-link" style="--item-index: 2;">
+                  <span>🏫 Study Room (LMS)</span>
+                </a>
+                <a href="#/submit" class="nexum-mobile-link" style="--item-index: 3;">
                   <span>🧠 AI Submission Studio</span>
                 </a>
-                <a href="#/verify" class="nexum-mobile-link nexum-mobile-link-dropdown" style="--item-index: 3;">
+                <a href="#/verify" class="nexum-mobile-link nexum-mobile-link-dropdown" style="--item-index: 4;">
                   <span>⚡ Instant Verifier</span>
                   <svg class="nexum-chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m6 9 6 6 6-6"/>
                   </svg>
                 </a>
-                <a href="#/portfolio" class="nexum-mobile-link" style="--item-index: 4;">
+                <a href="#/portfolio" class="nexum-mobile-link" style="--item-index: 5;">
                   <span>🎓 Learner Portfolio</span>
                 </a>
-                <a href="#/agent-hub" class="nexum-mobile-link" style="--item-index: 5;">
+                <a href="#/agent-hub" class="nexum-mobile-link" style="--item-index: 6;">
                   <span>🛡️ Agent Governance</span>
                 </a>
               </div>
@@ -735,7 +740,8 @@
                     <span class="standard-stat">1 final essay</span>
                   </div>
                   <div class="course-actions">
-                    <button type="button" class="btn btn-primary btn-sm" id="btn-open-study-c1">Explore Course ➔</button>
+                    <a href="#/course/web3-dasar-2026" class="btn btn-secondary btn-sm" id="btn-syllabus-c1">View Syllabus</a>
+                    <button type="button" class="btn btn-primary btn-sm btn-enroll-course" data-course="web3-dasar-2026" id="btn-enroll-c1">Start Course ➔</button>
                   </div>
                 </div>
               </div>
@@ -784,7 +790,8 @@
                     <span class="standard-stat">1 audit essay</span>
                   </div>
                   <div class="course-actions">
-                    <button type="button" class="btn btn-secondary btn-sm" id="btn-open-study-c2">Explore Course ➔</button>
+                    <a href="#/course/web3-lanjut-2026" class="btn btn-secondary btn-sm" id="btn-syllabus-c2">View Syllabus</a>
+                    <button type="button" class="btn btn-primary btn-sm btn-enroll-course" data-course="web3-lanjut-2026" id="btn-enroll-c2">Start Course ➔</button>
                   </div>
                 </div>
               </div>
@@ -1407,7 +1414,7 @@
                 </div>
                 <h4 class="tcard-title" id="tcard-title-2">Attack 2: ERC-5192 Token Theft / Transfer</h4>
                 <p class="tcard-desc" id="tcard-desc-2">
-                  Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with ErrLocked(1).
+                  Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with NotTransferable().
                 </p>
                 <div class="tcard-action">
                   <button type="button" class="btn btn-secondary btn-sm btn-full" id="btn-attack-2">
@@ -1463,7 +1470,7 @@
                 <span class="tamper-revert-pill" id="tamper-revert-pill">STATUS: SYSTEM READY</span>
               </div>
               <div class="tamper-terminal-body" id="tamper-terminal-body">
-                <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0xe01a...) and SoulboundCert (0x96f6...).</div>
+                <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0x7CA6...) and SoulboundCert (0xC6FD...).</div>
                 <div class="tamper-line">[Ready] Select an attack scenario above to test on-chain cryptographic reverts.</div>
               </div>
             </div>
@@ -1480,7 +1487,7 @@
                 </p>
               </div>
               <button type="button" class="btn btn-primary btn-sm" id="btn-simulate-x402">
-                ⚡ <span id="btn-simulate-x402-text">Simulate 10-Candidate Batch Audit (0.0005 BNB)</span>
+                ⚡ <span id="btn-simulate-x402-text">Simulate 10-Candidate Batch Audit (1,000 DemoCourseToken)</span>
               </button>
             </div>
 
@@ -1501,7 +1508,7 @@
                 <div class="flow-step-num">1</div>
                 <div class="flow-step-content">
                   <strong class="flow-step-name" id="xstep-1-name">Client Batch Request</strong>
-                  <code class="flow-step-code">POST /api/v1/verify/batch [10 hashes]</code>
+                  <code class="flow-step-code">POST /verify [batch: 10 hashes]</code>
                 </div>
                 <span class="flow-status-pill done">READY</span>
               </div>
@@ -1512,7 +1519,7 @@
                 <div class="flow-step-num">2</div>
                 <div class="flow-step-content">
                   <strong class="flow-step-name" id="xstep-2-name">HTTP 402 Gateway Challenge</strong>
-                  <code class="flow-step-code">WWW-Authenticate: x402 amount=0.0005 tBNB</code>
+                  <code class="flow-step-code">WWW-Authenticate: x402 asset=DemoCourseToken amount=1000</code>
                 </div>
                 <span class="flow-status-pill" id="xstep-2-status">IDLE</span>
               </div>
@@ -2082,7 +2089,17 @@
               <span class="wallet-opt-arrow">➔</span>
             </button>
 
-            <!-- Option 2: 1-Click Demo Learner -->
+            <!-- Option 2: 1-Click Guest Key (Device Key) -->
+            <button type="button" class="wallet-option-card device" id="btn-opt-device-wallet">
+              <div class="wallet-opt-icon device">⚡</div>
+              <div class="wallet-opt-info">
+                <span class="wallet-opt-title" id="wallet-opt-device-title">1-Click Guest Key (Device Key)</span>
+                <span class="wallet-opt-desc" id="wallet-opt-device-desc">Start studying immediately without installing extensions (temporary session key)</span>
+              </div>
+              <span class="wallet-opt-arrow">➔</span>
+            </button>
+
+            <!-- Option 3: 1-Click Demo Learner -->
             <button type="button" class="wallet-option-card demo" id="btn-opt-demo-wallet">
               <div class="wallet-opt-icon demo">🎓</div>
               <div class="wallet-opt-info">

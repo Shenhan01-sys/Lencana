@@ -40,6 +40,7 @@ export interface TranslationDictionary {
   nav: {
     home: string
     courses: string
+    classroom: string
     submit: string
     verifier: string
     portfolio: string
@@ -56,6 +57,8 @@ export interface TranslationDictionary {
     modalSub: string
     browserOption: string
     browserOptionSub: string
+    deviceOption: string
+    deviceOptionSub: string
     demoOption: string
     demoOptionSub: string
     disconnect: string
@@ -547,6 +550,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     nav: {
       home: 'Home',
       courses: 'Courses',
+      classroom: 'Study Room',
       submit: 'Submit Work',
       verifier: 'Check Proof',
       portfolio: 'Portfolio',
@@ -710,8 +714,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       w3cSpec: 'W3C & OB 3.0 Spec',
     },
     bannerNotDeployed: {
-      title: 'Our on-chain layer is not yet broadcast to this public chain.',
-      body: '47 offline/fork tests pass on chain 97 and 56 against officially deployed BAS, but the CredentialResolver and SoulboundCert addresses are empty on this preset.',
+      title: 'This preset does not point to our deployment.',
+      body: 'Our contracts are deployed on BSC testnet (chain 97) and 104 Foundry tests pass on forks of 97 and 56. What is empty on this preset is only the addresses — select the chain 97 preset or fill the addresses in the configuration panel.',
       hint: 'Configure addresses in Reader Configuration once deployed.',
       honestNote: 'This dApp deliberately refuses mock data: fake green indicators are worse than an honest empty result.',
     },
@@ -1030,6 +1034,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       modalSub: 'Connect your Web3 browser wallet or use the 1-Click Demo Learner account.',
       browserOption: 'Browser Extension Wallet',
       browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
+      deviceOption: '1-Click Guest Key (Device Key)',
+      deviceOptionSub: 'Start studying immediately without installing extensions (temporary session key)',
       demoOption: '1-Click Demo Learner (rina.bnb)',
       demoOptionSub: 'Instant testing without installing extensions (0x5cA3...7c3B)',
       disconnect: 'Disconnect',
@@ -1075,7 +1081,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       attack1Desc: 'Adversary modifies an essay score or name in the JSON-LD payload. Result: Keccak256 digests mismatch and ECDSA signature fails.',
       attack2Btn: 'Simulate Soulbound Token Theft',
       attack2Title: 'Attack 2: ERC-5192 Token Theft / Transfer',
-      attack2Desc: 'Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with ErrLocked(1).',
+      attack2Desc: 'Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with NotTransferable().',
       attack3Btn: 'Simulate Rogue Agent Impersonation',
       attack3Title: 'Attack 3: Unapproved Rogue Agent Issuance',
       attack3Desc: 'Malicious bot attempts to mint or attest without whitelisting. Result: CredentialResolver reverts with NotAnIssuer(0xBadBot).',
@@ -1092,14 +1098,14 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       sub: 'A batch-audit demo for recruiters and hiring systems: screen ten candidate proofs in one run. Single checks above stay free forever — only this convenience layer ever carries a fee.',
       philosophyKicker: 'CORE PROTOCOL PRINCIPLE',
       philosophyText: 'We charge for convenience, never for truth. Public verification is free, wallet-free, forever. x402 micropayments directly reimburse platform issuance gas without debt ledgers.',
-      btnSimulateBatch: 'Simulate 10-Candidate Batch Audit (0.0005 BNB)',
+      btnSimulateBatch: 'Simulate 10-Candidate Batch Audit (1,000 DemoCourseToken)',
       batchSizeLabel: 'Batch Payload: 10 Candidate Resume Credential Hashes',
-      step1Label: '1. Client Request: POST /api/v1/verify/batch',
+      step1Label: '1. Client Request: POST /verify [batch]',
       step2Label: '2. Gateway Challenge: HTTP/1.1 402 Payment Required',
       step3Label: '3. Micropayment Authorization: PAYMENT: eip712-allowance',
       step4Label: '4. Verified Batch Report: 10/10 Candidates Processed in 118ms',
       candidatesAudited: '10 Candidates Audited: 8 VALID · 1 REVOKED · 1 DELISTED',
-      latencyLabel: 'Latency: 118ms · Fee Settled: 0.0005 tBNB',
+      latencyLabel: 'Latency: 118ms · Fee Settled: 1,000 DemoCourseToken (atomic units)',
     },
     demoMode: {
       kicker: 'GUIDED PRODUCT TOUR',
@@ -1139,6 +1145,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     nav: {
       home: 'Beranda',
       courses: 'Katalog Kursus',
+      classroom: 'Ruang Belajar',
       submit: 'Kumpulkan Tugas',
       verifier: 'Periksa Bukti',
       portfolio: 'Portofolio',
@@ -1302,8 +1309,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       w3cSpec: 'Kepatuhan Standar W3C',
     },
     bannerNotDeployed: {
-      title: 'Lapis on-chain kami belum disiarkan ke chain.',
-      body: '47 test lulus di fork chain 97 dan 56 terhadap BAS yang benar-benar ter-deploy, tapi address CredentialResolver / SoulboundCert masih kosong di preset ini.',
+      title: 'Preset ini belum menunjuk deployment kami.',
+      body: 'Kontrak kami sudah disiarkan di BSC testnet (chain 97) dan 104 Foundry test lulus di fork 97 dan 56. Yang kosong di preset ini hanya address-nya — pilih preset chain 97 atau isi address di panel konfigurasi.',
       hint: 'Isi address-nya di panel Konfigurasi pembacaan begitu kontrak selesai di-deploy.',
       honestNote: 'Halaman ini sengaja tidak memakai data contoh: angka palsu yang terlihat bagus lebih buruk daripada halaman yang kosong dan jujur.',
     },
@@ -1622,6 +1629,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       modalSub: 'Hubungkan dompet Web3 browser kamu atau gunakan Akun Demo Siswa 1-Klik.',
       browserOption: 'Ekstensi Dompet Browser',
       browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
+      deviceOption: 'Kunci Tamu Instan (Kunci Perangkat)',
+      deviceOptionSub: 'Mulai belajar langsung tanpa pasang ekstensi (kunci sesi sementara)',
       demoOption: 'Siswa Demo 1-Klik (rina.bnb)',
       demoOptionSub: 'Uji coba instan tanpa perlu install ekstensi (0x5cA3...7c3B)',
       disconnect: 'Putuskan',
@@ -1667,7 +1676,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       attack1Desc: 'Penyerang mengubah nilai esai atau nama di payload JSON-LD. Hasil: Digest Keccak256 tidak cocok dan verifikasi ECDSA gagal total.',
       attack2Btn: 'Simulasikan Pencurian Token Soulbound',
       attack2Title: 'Serangan 2: Pencurian / Transfer Token ERC-5192',
-      attack2Desc: 'Pembeli pasar sekunder mencoba memanggil safeTransferFrom(Rina, Pencuri, tokenId). Hasil: EVM menolak dengan revert ErrLocked(1).',
+      attack2Desc: 'Pembeli pasar sekunder mencoba memanggil safeTransferFrom(Rina, Pencuri, tokenId). Hasil: EVM menolak dengan revert NotTransferable().',
       attack3Btn: 'Simulasikan Agen Palsu Tak Berizin',
       attack3Title: 'Serangan 3: Penerbitan oleh Agen Liar Tanpa Whitelist',
       attack3Desc: 'Bot berbahaya mencoba membuat atestasi tanpa terdaftar di whitelist. Hasil: CredentialResolver menolak dengan NotAnIssuer(0xBadBot).',
@@ -1684,14 +1693,14 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       sub: 'Demo audit massal untuk perekrut dan sistem rekrutmen: saring sepuluh bukti kandidat dalam sekali jalan. Pemeriksaan satuan di atas tetap gratis selamanya — hanya lapisan kenyamanan ini yang berbayar.',
       philosophyKicker: 'PRINSIP UTAMA PROTOKOL',
       philosophyText: 'Kami mengenakan biaya untuk kenyamanan, bukan untuk kebenaran. Verifikasi publik selalu gratis tanpa dompet selamanya. Biaya mikro x402 langsung menutupi biaya gas penerbitan tanpa buku utang.',
-      btnSimulateBatch: 'Simulasikan Audit 10 Kandidat (0.0005 BNB)',
+      btnSimulateBatch: 'Simulasikan Audit 10 Kandidat (1.000 DemoCourseToken)',
       batchSizeLabel: 'Payload Batch: 10 Hash Kredensial Resume Pelamar',
-      step1Label: '1. Permintaan Klien: POST /api/v1/verify/batch',
+      step1Label: '1. Permintaan Klien: POST /verify [batch]',
       step2Label: '2. Gateway Challenge: HTTP/1.1 402 Payment Required',
       step3Label: '3. Otorisasi Pembayaran Mikro: PAYMENT: eip712-allowance',
       step4Label: '4. Laporan Audit Selesai: 10/10 Kandidat Diproses dalam 118ms',
       candidatesAudited: '10 Kandidat Diaudit: 8 VALID · 1 DICABUT · 1 DELISTED',
-      latencyLabel: 'Latensi: 118ms · Biaya Selesai: 0.0005 tBNB',
+      latencyLabel: 'Latensi: 118ms · Biaya Selesai: 1.000 DemoCourseToken (satuan atomik)',
     },
     demoMode: {
       kicker: 'TUR PRODUK TERPANDU',

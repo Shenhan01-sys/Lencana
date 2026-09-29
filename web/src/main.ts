@@ -3,6 +3,14 @@ import { renderEmpty, renderReport } from './render'
 import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
 import { getSavedLanguage, saveLanguage, DICTIONARIES, type Lang } from './i18n'
 import { renderLmsRoute } from './lms'
+import {
+  learnerAddress,
+  connectWalletLearner,
+  createDeviceLearner,
+  forgetLearner,
+  syncCourse,
+  snapshot,
+} from './learning'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -440,6 +448,17 @@ let walletState: WalletState = {
 }
 
 function initWalletState() {
+  const addr = learnerAddress()
+  if (addr) {
+    const s = snapshot()
+    walletState = {
+      isConnected: true,
+      address: addr,
+      isDemo: s.identity?.kind === 'perangkat',
+    }
+    renderWalletState()
+    return
+  }
   try {
     const saved = sessionStorage.getItem('lencana_wallet')
     if (saved) {
@@ -457,16 +476,18 @@ function renderWalletState() {
   const portfolioAddrEl = document.querySelector('.portfolio-wallet-addr')
   const mintReceiptAddr = $('mint-receipt-recipient')
 
-  if (walletState.isConnected && walletState.address) {
+  const effectiveAddress = learnerAddress() || (walletState.isConnected ? walletState.address : null)
+
+  if (effectiveAddress) {
     connectBtn?.classList.add('hidden')
     connectedPill?.classList.remove('hidden')
-    const short = `${walletState.address.slice(0, 6)}...${walletState.address.slice(-4)}`
+    const short = `${effectiveAddress.slice(0, 6)}...${effectiveAddress.slice(-4)}`
     if (addrDisplay) {
-      addrDisplay.textContent = walletState.isDemo ? `rina.bnb (${short})` : short
+      addrDisplay.textContent = walletState.isDemo ? `guest (${short})` : short
     }
-    if (learnerAddrEl) learnerAddrEl.textContent = walletState.address
-    if (portfolioAddrEl) portfolioAddrEl.textContent = walletState.address
-    if (mintReceiptAddr) mintReceiptAddr.textContent = walletState.address
+    if (learnerAddrEl) learnerAddrEl.textContent = effectiveAddress
+    if (portfolioAddrEl) portfolioAddrEl.textContent = effectiveAddress
+    if (mintReceiptAddr) mintReceiptAddr.textContent = effectiveAddress
   } else {
     connectBtn?.classList.remove('hidden')
     connectedPill?.classList.add('hidden')
@@ -499,40 +520,62 @@ async function connectBrowserWallet() {
     statusEl.className = 'wallet-modal-status'
   }
 
-  const eth = (window as any).ethereum
-  if (!eth) {
+  const res = await connectWalletLearner()
+  if (!res.ok || !res.identity) {
     if (statusEl) {
-      statusEl.textContent = DICTIONARIES[currentLang].wallet.noExtension
-      statusEl.className = 'wallet-modal-status warn'
+      statusEl.textContent = res.why || DICTIONARIES[currentLang].wallet.noExtension
+      statusEl.className = 'wallet-modal-status error'
     }
     return
   }
 
-  try {
-    const accounts = await eth.request({ method: 'eth_requestAccounts' })
-    if (accounts && accounts.length > 0) {
-      const addr = accounts[0]
-      try {
-        const chainIdHex = await eth.request({ method: 'eth_chainId' })
-        const chainId = parseInt(chainIdHex, 16)
-        if (chainId !== 97 && chainId !== 56) {
-          await eth.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x61' }],
-          })
-        }
-      } catch {}
+  walletState = { isConnected: true, address: res.identity.address, isDemo: false }
+  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+  renderWalletState()
+  closeWalletModal()
 
-      walletState = { isConnected: true, address: addr, isDemo: false }
-      sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
-      renderWalletState()
-      closeWalletModal()
+  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+  if (pendingTarget) {
+    sessionStorage.removeItem('lencana_enroll_target')
+    try {
+      await syncCourse(pendingTarget)
+    } catch (err) {
+      console.warn('Sync enrollment error:', err)
     }
-  } catch (err: any) {
+    window.location.hash = `#/course/${pendingTarget}`
+  }
+}
+
+async function connectDeviceWallet() {
+  const id = createDeviceLearner()
+  if (!id) {
+    const statusEl = $('wallet-modal-status')
     if (statusEl) {
-      statusEl.textContent = err?.message || 'Connection rejected'
+      statusEl.textContent = currentLang === 'en'
+        ? 'Browser storage is blocked in private mode. Please connect a Web3 wallet.'
+        : 'Penyimpanan sesi browser tidak tersedia di mode privat. Silakan gunakan dompet Web3.'
       statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
     }
+    return
+  }
+
+  walletState = { isConnected: true, address: id.address, isDemo: true }
+  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+  renderWalletState()
+  closeWalletModal()
+
+  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+  if (pendingTarget) {
+    sessionStorage.removeItem('lencana_enroll_target')
+    try {
+      await syncCourse(pendingTarget)
+    } catch (err) {
+      console.warn('Sync enrollment error:', err)
+    }
+    window.location.hash = `#/course/${pendingTarget}`
+  } else {
+    window.location.hash = '#/learn'
   }
 }
 
@@ -545,12 +588,21 @@ function connectDemoWallet() {
   sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
   renderWalletState()
   closeWalletModal()
+
+  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+  if (pendingTarget) {
+    sessionStorage.removeItem('lencana_enroll_target')
+    window.location.hash = `#/course/${pendingTarget}`
+  }
 }
 
 function disconnectWallet() {
+  forgetLearner()
   walletState = { isConnected: false, address: null, isDemo: false }
   sessionStorage.removeItem('lencana_wallet')
+  sessionStorage.removeItem('lencana_enroll_target')
   renderWalletState()
+  renderLmsRoute()
 }
 
 let confettiAnimId: number | null = null
@@ -773,12 +825,19 @@ function closeDiplomaModal() {
 // ========================================================
 // ITERATION 12: SOCIAL PROOF SHARING & EMBED BADGE
 // ========================================================
+function getBaseUrl(): string {
+  return typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : 'https://lencana-edge.hansgunawan775.workers.dev'
+}
+
 function shareOnLinkedIn() {
   const certName = encodeURIComponent('Web3 Dasar 2026: Foundations & Architecture')
   const orgName = encodeURIComponent('Lencana Decentralized Protocol')
   const issueYear = '2026'
   const issueMonth = '9'
-  const certUrl = encodeURIComponent('https://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa')
+  const origin = getBaseUrl()
+  const certUrl = encodeURIComponent(`${origin}/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa`)
   const certId = '0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa'
 
   const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${certName}&organizationName=${orgName}&issueYear=${issueYear}&issueMonth=${issueMonth}&certUrl=${certUrl}&certId=${certId}`
@@ -786,15 +845,17 @@ function shareOnLinkedIn() {
 }
 
 function shareOnX() {
+  const origin = getBaseUrl()
   const text = encodeURIComponent(
-    'Just earned my verifiable Soulbound Credential in "Web3 Dasar 2026" evaluated by autonomous AI on @BNBCHAIN! 🎓⛓️\n\nAudit cryptographic proof on-chain:\nhttps://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa\n\n#BNBChain #OpenBadges #Web3Education #Lencana'
+    `Just earned my verifiable Soulbound Credential in "Web3 Dasar 2026" evaluated by autonomous AI on @BNBCHAIN! 🎓⛓️\n\nAudit cryptographic proof on-chain:\n${origin}/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa\n\n#BNBChain #OpenBadges #Web3Education #Lencana`
   )
   const url = `https://twitter.com/intent/tweet?text=${text}`
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 function copyEmbedCode() {
-  const snippet = `<a href="https://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/BNB%20Chain-Soulbound%20Open%20Badge%203.0-F0B90B?style=for-the-badge&logo=binance&logoColor=white" alt="Lencana Web3 Dasar 2026 Verified Credential" /></a>`
+  const origin = getBaseUrl()
+  const snippet = `<a href="${origin}/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/BNB%20Chain-Soulbound%20Open%20Badge%203.0-F0B90B?style=for-the-badge&logo=binance&logoColor=white" alt="Lencana Web3 Dasar 2026 Verified Credential" /></a>`
   navigator.clipboard.writeText(snippet).then(() => {
     const btn = $('btn-portfolio-embed')
     if (btn) {
@@ -917,7 +978,7 @@ function simulateAttack(attackType: 1 | 2 | 3 | 4) {
       <div class="tamper-line trace">Original Digest: 0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</div>
       <div class="tamper-line trace">Tampered Digest: 0x7e3a1f8d92410a5b8812c9381ea5b00918c7263bda495821038b584920491823</div>
       <div class="tamper-line">[00.22s] Calling BAS.getAttestation(0x7e3a1f8d9...) on chain 97...</div>
-      <div class="tamper-line revert">[EVM REVERT] AttestationNotFound(0x7e3a1f8d9...) · Attestation does not exist on-chain!</div>
+      <div class="tamper-line revert">[EVM REVERT] NotFound() · Attestation does not exist on-chain in BAS storage!</div>
       <div class="tamper-line">[00.32s] Calling ecrecover(0x7e3a..., v: 27, r: 0x4e2..., s: 0x71b...)...</div>
       <div class="tamper-line revert">[00.40s] Recovered Signer: 0x937Fa2... != Whitelisted Agent (0x8211...7DE)</div>
       <div class="tamper-line revert">[CRITICAL FAIL] Cryptographic signature check FAILED. Any single byte tampering breaks mathematical verification!</div>
@@ -929,7 +990,7 @@ function simulateAttack(attackType: 1 | 2 | 3 | 4) {
       <div class="tamper-line">[00.14s] SoulboundCert queries internal lock registry: locked(1)...</div>
       <div class="tamper-line trace">locked(1) == true · Token was issued as immutable Soulbound Credential</div>
       <div class="tamper-line">[00.24s] Executing _beforeTokenTransfer(0x5cA3..., 0xAttacker..., 1)...</div>
-      <div class="tamper-line revert">[EVM REVERT] ErrLocked(1) - "ERC-5192: Soulbound non-transferable token"</div>
+      <div class="tamper-line revert">[EVM REVERT] NotTransferable() · SoulboundCert blocks transfer</div>
       <div class="tamper-line trace">Transaction reverted by EVM. Gas consumed: 21,418 gas.</div>
       <div class="tamper-line success">[SECURITY PASS] The credential remains locked to learner wallet 0x5cA3...7c3B. Secondary market sale impossible!</div>
     `
@@ -947,7 +1008,7 @@ function simulateAttack(attackType: 1 | 2 | 3 | 4) {
     if (pill) pill.textContent = 'REVERTED: PREREQUISITE REVOKED'
     terminal.innerHTML = `
       <div class="tamper-line system">[00.05s] Attacker attempts to claim "BNB Chain Security" requiring "Web3 Dasar 2026"</div>
-      <div class="tamper-line">[00.16s] CredentialResolver checking prerequisite tree: checkPrerequisites(refUID)</div>
+      <div class="tamper-line">[00.16s] CredentialResolver validating prerequisite hook: onAttest() -> _validatePrerequisite()</div>
       <div class="tamper-line trace">Reading BAS storage for refUID: 0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2...</div>
       <div class="tamper-line trace">Found attestation: revocationTime == 1774051200 (REVOKED ON-CHAIN)</div>
       <div class="tamper-line revert">[EVM REVERT] PrerequisiteRevoked(0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2)</div>
@@ -966,7 +1027,7 @@ function resetTamperSimulator() {
   }
   if (terminal) {
     terminal.innerHTML = `
-      <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0xe01a...) and SoulboundCert (0x96f6...).</div>
+      <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0x7CA6...) and SoulboundCert (0xC6FD...).</div>
       <div class="tamper-line">[Ready] Select an attack scenario above to test on-chain cryptographic reverts.</div>
     `
   }
@@ -1089,7 +1150,7 @@ const RINA_CREDENTIAL_JSONLD = {
     "id": "did:pkh:eip155:97:0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE",
     "type": "Profile",
     "name": "Lencana Agent-Foundations",
-    "url": "https://lencana.io"
+    "url": "https://lencana-edge.hansgunawan775.workers.dev"
   },
   "validFrom": "2026-09-21T00:00:00Z",
   "credentialSubject": {
@@ -1111,6 +1172,13 @@ const RINA_CREDENTIAL_JSONLD = {
     "schema": "0x2c4e... (BAS Attestation Schema)",
     "score": "93/100 (Honors)"
   }],
+  "credentialStatus": {
+    "id": "https://lencana-edge.hansgunawan775.workers.dev/credentials/status/revocation#0b95c83b",
+    "type": "BitstringStatusListEntry",
+    "statusPurpose": "revocation",
+    "statusListIndex": "0",
+    "statusListCredential": "https://lencana-edge.hansgunawan775.workers.dev/credentials/status/revocation"
+  },
   "proof": {
     "type": "EthereumEip712Signature2021",
     "created": "2026-09-21T00:00:00Z",
@@ -1151,6 +1219,7 @@ function handleRoute() {
   const rawHash = window.location.hash || '#/'
   const hash = rawHash.toLowerCase().split('?')[0]
 
+  const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me'
   let targetPageId = 'page-home'
   if (hash === '#/courses' || hash === '#courses') {
     targetPageId = 'page-courses'
@@ -1162,9 +1231,9 @@ function handleRoute() {
     targetPageId = 'page-portfolio'
   } else if (hash === '#/agent-hub' || hash === '#ai-agents' || hash === '#agent-hub') {
     targetPageId = 'page-agent-hub'
-  } else if (hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me') {
+  } else if (isLms) {
     // Lapisan materi (src/lms.ts) menggambar di #lms-mount milik halaman courses. Route ini
-    // sengaja dipakai awalan berbeda dari #/courses Dave: yang satu tokonya, yang satu isinya.
+    // sengaja dipakai awalan berbeda dari #/courses: yang satu tokonya, yang satu isinya.
     targetPageId = 'page-courses'
   } else {
     targetPageId = 'page-home'
@@ -1198,7 +1267,11 @@ function handleRoute() {
   }
 
   document.querySelectorAll('.nav-links .nav-link').forEach((link) => {
-    link.classList.toggle('active', link.id === routeNavMap[targetPageId])
+    if (isLms) {
+      link.classList.toggle('active', link.id === 'nav-classroom')
+    } else {
+      link.classList.toggle('active', link.id === routeNavMap[targetPageId])
+    }
   })
 
   if (hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture') {
@@ -1215,6 +1288,7 @@ function updateStaticText() {
   // Navbar
   setText('nav-home', dict.nav.home)
   setText('nav-courses', dict.nav.courses)
+  setText('nav-classroom', dict.nav.classroom)
   setText('nav-submit', dict.nav.submit)
   setText('nav-verify', dict.nav.verifier)
   setText('nav-portfolio', dict.nav.portfolio)
@@ -1342,12 +1416,16 @@ function updateStaticText() {
   setText('c1-title', dict.coursesSection.course1Title)
   setText('c1-desc', dict.coursesSection.course1Desc)
   setText('c1-agent', `${dict.coursesSection.courseIssuerAgent}: Foundations Coach`)
+  setText('btn-syllabus-c1', dict.coursesSection.btnViewSyllabus)
+  setText('btn-enroll-c1', dict.coursesSection.btnEnroll)
   setText('btn-open-study-c1', dict.coursesSection.btnOpenStudy)
   setText('c2-badge-lvl', dict.coursesSection.badgeLevelAdvanced)
   setText('c2-badge-prereq', dict.coursesSection.badgePrereqRequired)
   setText('c2-title', dict.coursesSection.course2Title)
   setText('c2-desc', dict.coursesSection.course2Desc)
   setText('c2-agent', `${dict.coursesSection.courseIssuerAgent}: Security Coach`)
+  setText('btn-syllabus-c2', dict.coursesSection.btnViewSyllabus)
+  setText('btn-enroll-c2', dict.coursesSection.btnEnroll)
   setText('btn-open-study-c2', dict.coursesSection.btnOpenStudy)
   setText('study-modal-kicker', dict.coursesSection.studyModalKicker)
   setText('btn-study-proceed-eval', dict.coursesSection.studyModalProceed)
@@ -1462,6 +1540,8 @@ function updateStaticText() {
   setText('wallet-modal-sub', dict.wallet.modalSub)
   setText('wallet-opt-browser-title', dict.wallet.browserOption)
   setText('wallet-opt-browser-desc', dict.wallet.browserOptionSub)
+  setText('wallet-opt-device-title', dict.wallet.deviceOption)
+  setText('wallet-opt-device-desc', dict.wallet.deviceOptionSub)
   setText('wallet-opt-demo-title', dict.wallet.demoOption)
   setText('wallet-opt-demo-desc', dict.wallet.demoOptionSub)
   renderWalletState()
@@ -1756,7 +1836,29 @@ function wire() {
     setTimeout(() => outEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
   })
 
-  // LMS Study Room & Course Catalog Interactions (Iteration 8)
+  // LMS Study Room & Course Catalog Interactions
+  document.querySelectorAll<HTMLButtonElement>('.btn-enroll-course').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const target = (e.currentTarget as HTMLElement).getAttribute('data-course') || 'web3-dasar-2026'
+      const addr = learnerAddress()
+      if (!addr) {
+        sessionStorage.setItem('lencana_enroll_target', target)
+        openWalletModal()
+      } else {
+        const btnEl = e.currentTarget as HTMLButtonElement
+        const orig = btnEl.textContent
+        btnEl.textContent = currentLang === 'en' ? 'Enrolling...' : 'Mendaftarkan...'
+        try {
+          await syncCourse(target)
+        } catch (err) {
+          console.warn('Sync enrollment error:', err)
+        }
+        btnEl.textContent = orig
+        window.location.hash = `#/course/${target}`
+      }
+    })
+  })
+
   $('btn-open-study-c1')?.addEventListener('click', () => {
     openStudyModal('c1', 0)
   })
@@ -1898,6 +2000,7 @@ function wire() {
   $('btn-close-wallet-modal')?.addEventListener('click', closeWalletModal)
   $('wallet-modal-backdrop')?.addEventListener('click', closeWalletModal)
   $('btn-opt-browser-wallet')?.addEventListener('click', connectBrowserWallet)
+  $('btn-opt-device-wallet')?.addEventListener('click', connectDeviceWallet)
   $('btn-opt-demo-wallet')?.addEventListener('click', connectDemoWallet)
   $('btn-disconnect-wallet')?.addEventListener('click', disconnectWallet)
 
@@ -2092,62 +2195,54 @@ const CANONICAL_DEMO_JSONLD = {
     'https://www.w3.org/ns/credentials/v2',
     'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
   ],
-  id: 'https://lencana.io/credentials/0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa',
+  id: 'https://lencana-edge.hansgunawan775.workers.dev/credentials/0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa',
   type: ['VerifiableCredential', 'OpenBadgeCredential'],
   name: 'Web3 Foundations & EAS Attestation Architecture',
   description: 'Official on-chain verified learning credential issued via Lencana CredentialResolver on BNB Smart Chain.',
   issuer: {
-    id: 'https://lencana.io/issuers/agent-foundations',
+    id: 'https://lencana-edge.hansgunawan775.workers.dev/issuers/agent-foundations',
     type: 'Profile',
     name: 'Agent-Foundations (Lencana AI Issuer)',
-    url: 'https://lencana.io/agents/agent-foundations',
+    url: 'https://lencana-edge.hansgunawan775.workers.dev/agents/agent-foundations',
   },
   validFrom: '2026-09-21T12:00:00Z',
   validUntil: '2027-09-21T12:00:00Z',
   credentialSubject: {
-    id: 'https://lencana.io/learners/0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
+    id: 'https://lencana-edge.hansgunawan775.workers.dev/learners/0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
     type: 'AchievementSubject',
     achievement: {
-      id: 'https://lencana.io/achievements/web3-dasar-2026',
+      id: 'https://lencana-edge.hansgunawan775.workers.dev/achievements/web3-dasar-2026',
       type: ['Achievement'],
       name: 'Web3 Foundations & EAS Attestation Architecture',
       criteria: {
-        id: 'https://lencana.io/criteria/web3-dasar-2026',
+        id: 'https://lencana-edge.hansgunawan775.workers.dev/criteria/web3-dasar-2026',
         type: 'Criteria',
         narrative: 'Score >= 70/100, autonomous AI agent evaluated essay rubric, live EAS schema verification.',
       },
     },
     result: [
       {
-        id: 'https://lencana.io/results/web3-dasar-2026/0x0b95c83b',
+        id: 'https://lencana-edge.hansgunawan775.workers.dev/results/web3-dasar-2026/0x0b95c83b',
         type: ['Result'],
-        resultDescription: 'https://lencana.io/criteria/web3-dasar-2026#scale',
+        resultDescription: 'https://lencana-edge.hansgunawan775.workers.dev/criteria/web3-dasar-2026#scale',
         value: '93',
         achievedLevel: 'Honors Pass',
       },
     ],
   },
-  credentialStatus: [
-    {
-      id: 'https://lencana.io/credentials/status/revocation#slot14',
-      type: 'BitstringStatusListEntry',
-      statusPurpose: 'revocation',
-      statusListIndex: '14',
-      statusListCredential: 'https://lencana.io/credentials/status/revocation',
-    },
-    {
-      id: 'https://lencana.io/credentials/status/suspension#slot14',
-      type: 'BitstringStatusListEntry',
-      statusPurpose: 'suspension',
-      statusListIndex: '14',
-      statusListCredential: 'https://lencana.io/credentials/status/suspension',
-    },
-  ],
+  // SATU objek. Skema OB 3.0 menolak array; validasi resmi 1EdTech (vc.1ed.tech) adalah buktinya.
+  credentialStatus: {
+    id: 'https://lencana-edge.hansgunawan775.workers.dev/credentials/status/revocation#0b95c83b',
+    type: 'BitstringStatusListEntry',
+    statusPurpose: 'revocation',
+    statusListIndex: '0',
+    statusListCredential: 'https://lencana-edge.hansgunawan775.workers.dev/credentials/status/revocation',
+  },
   proof: {
     type: 'DataIntegrityProof',
     cryptosuite: 'eddsa-rdfc-2022',
     created: '2026-09-21T12:00:00Z',
-    verificationMethod: 'https://lencana.io/issuers/agent-foundations#key-1',
+    verificationMethod: 'https://lencana-edge.hansgunawan775.workers.dev/issuers/agent-foundations#key-1',
     proofPurpose: 'assertionMethod',
     proofValue: 'z3h29Qkx4mJpE8X97bUvfK62wLaPnQ7xS8cT4zR91a7M0vC4e',
   },
@@ -2185,30 +2280,53 @@ function initSpecMatrix() {
     URL.revokeObjectURL(url)
   })
 
-  // Run Spec Compliance Pulse
+  // Run Spec Compliance Pulse with real schema assertions
   $('btn-run-spec-matrix')?.addEventListener('click', () => {
     const btn = $('btn-run-spec-matrix')
     const btnText = $('btn-run-spec-matrix-text')
     const rows = document.querySelectorAll('#spec-static-tbody .spec-row')
     if (btn) btn.setAttribute('disabled', 'true')
-    if (btnText) btnText.textContent = currentLang === 'en' ? 'Auditing 14 tests...' : 'Mengaudit 14 uji...'
+    if (btnText) btnText.textContent = currentLang === 'en' ? 'Checking OB 3.0 schema...' : 'Memeriksa bentuk dokumen OB 3.0...'
+
+    const doc = CANONICAL_DEMO_JSONLD as any
+    const checks = [
+      Array.isArray(doc['@context']) && doc['@context'][0] === 'https://www.w3.org/ns/credentials/v2',
+      Array.isArray(doc['@context']) && doc['@context'][1] === 'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
+      Array.isArray(doc.type) && doc.type.includes('VerifiableCredential') && doc.type.includes('OpenBadgeCredential'),
+      typeof doc.validFrom === 'string' && !doc.issuanceDate,
+      !Array.isArray(doc.credentialStatus) && typeof doc.credentialStatus === 'object',
+      doc.credentialStatus?.type === 'BitstringStatusListEntry',
+      doc.credentialStatus?.statusPurpose === 'revocation',
+      typeof doc.credentialStatus?.statusListCredential === 'string',
+      doc.issuer?.type === 'Profile' && typeof doc.issuer?.id === 'string',
+      doc.credentialSubject?.achievement?.type?.includes('Achievement'),
+      typeof doc.credentialSubject?.achievement?.criteria?.narrative === 'string' && doc.credentialSubject.achievement.criteria.narrative.length > 0,
+      doc.proof?.type === 'DataIntegrityProof',
+      doc.proof?.cryptosuite === 'eddsa-rdfc-2022',
+      typeof doc.proof?.proofValue === 'string' && doc.proof.proofValue.length > 0,
+    ]
+    const passedCount = checks.filter(Boolean).length
 
     rows.forEach((row, i) => {
       row.classList.remove('pulse-green')
-      setTimeout(() => {
-        row.classList.add('pulse-green')
-      }, i * 150)
+      if (checks[i % checks.length]) {
+        setTimeout(() => {
+          row.classList.add('pulse-green')
+        }, i * 45)
+      }
     })
 
     setTimeout(() => {
       if (btn) btn.removeAttribute('disabled')
       if (btnText) {
-        btnText.textContent = currentLang === 'en' ? '✓ 14/14 Tests Passed (12ms)' : '✓ 14/14 Uji Lolos (12ms)'
+        btnText.textContent = currentLang === 'en'
+          ? `✓ ${passedCount}/14 OB 3.0 Assertions Verified`
+          : `✓ ${passedCount}/14 Asersi OB 3.0 Terverifikasi`
         setTimeout(() => {
           btnText.textContent = DICTIONARIES[currentLang].specCompliance.btnRunAudit
         }, 3000)
       }
-    }, 14 * 150 + 800)
+    }, 14 * 45 + 300)
   })
 
   // Global event delegation for report tab 6 (W3C Spec Matrix)
