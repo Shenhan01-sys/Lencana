@@ -25,6 +25,21 @@ function renderCourseCard(c: ClassData) {
 
 export function renderLanding() {
   return h('div', { class: 'landing-page' },
+    // 0. Sticky Nav
+    h('nav', { class: 'app-navbar sticky top-0 z-50 flex items-center justify-between p-4 bg-obsidian border-b border-gray-800' },
+      h('a', { href: '#/', class: 'brand-link flex items-center gap-2' },
+        h('span', { class: 'text-gold font-bold text-xl' }, 'Lencana')
+      ),
+      h('div', { class: 'flex items-center gap-6' },
+        h('a', { href: '#/', class: 'hover:text-white' }, 'Courses'),
+        h('a', { href: '#/verify', class: 'hover:text-white' }, 'Verifier'),
+        h('a', { href: '#/agent-hub', class: 'hover:text-white' }, 'Trust & Limits'),
+        h('div', { class: 'lang-switch' }, 'ID | EN'), // Placeholder for real switcher
+        h('div', { class: 'network-pill text-xs bg-gray-800 px-2 py-1 rounded' }, 'BSC Testnet - 97'),
+        h('a', { href: '#/login', class: 'btn btn-primary text-sm px-4 py-2' }, 'Masuk (Login)')
+      )
+    ),
+
     // 1. Hero
     h('section', { class: 'hero-section py-20 text-center' },
       h('h1', { class: 'text-4xl font-bold mb-4' }, 'Pelajari Web3, Dapatkan Kredensial On-Chain.'),
