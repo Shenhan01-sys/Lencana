@@ -54,3 +54,18 @@ dipisah, `publicVerifyUrl()` memakai origin halaman dengan fallback ke Vercel, d
 diganti ke `0x06be529b…` yang terukur 200 + sah di chain. Detail: **B100**. Masih terbuka: 4 hash
 `SAMPLE_HASHES` lama belum satu-satu diverifikasi tersedia di tepi — yang dipakai di UI harus yang
 200, bukan yang cuma ada di chain.
+
+## 29 Sep 18:2x — salinan UI ikut jadi sasaran gerbang (B98/B101)
+
+Yang diubah (EN + ID, karena keduanya disajikan ke juri):
+
+| tempat | dulu | sekarang | alasan |
+|---|---|---|---|
+| `visualPipeline.sectionSub`, `learningLoop.sectionSub`, `portfolioSection.sub`, `index.html#portfolio-sub`, `FRONTEND_ITERATION.md:338` | "tamper-proof" / "anti-manipulasi" / "anti-pemalsuan" | "statusnya bisa dibaca siapa pun di BNB Smart Chain", "yang bisa kamu buktikan tanpa meminta izin kami" | yang tidak bisa dipalsukan hanyalah yang kami uji; pembeda kita adalah **status dibaca dari chain**, dan itu lebih kuat daripada kata yang tak bisa dibuktikan |
+| `agent1Stat` / `agent2Stat` / `agent3Stat` | `1,420 Essays · 99.8%`, `856 Audits · 99.9%`, `640 Badges · 100% Lock Rate` | kalimat mekanik tanpa angka ("reads the rubric from the chain", "checks the attempt record against the rubric") | tidak ada satu pun perintah yang mencetak angka-angka itu — aturan klaim: tiap angka butuh perintah + tanggal |
+
+Penjaga: `npm run audit` (A3) sekarang menyapu `web/index.html`, `web/src/i18n.ts`, `web/src/render.ts`, bukan hanya README/docs — gerbang yang buta terhadap tempat kalimat itu tinggal hanya terlihat bersih. Verifikasi: audit 8 pemeriksaan **0 TEMUAN**, `tsc --noEmit` bersih, build `✓ built in 2.65s` (29 Sep).
+
+Yang **tidak boleh balik lagi**: jangan menaruh angka di beranda yang tidak dihasilkan harness, dan jangan menaruh kata "tamper-proof"/"unforgeable" di berkas yang dibaca orang — kecuali kalimatnya berubah jadi klaim yang bisa ditunjuk alatnya.
+
+Sisa terbuka: `render.ts` menulis `status: 'PASS'` tetap untuk 14 baris dan tombol pulse tidak menguji apa pun — **B100**/OI-13.

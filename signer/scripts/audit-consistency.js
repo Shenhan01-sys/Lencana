@@ -49,6 +49,7 @@ const FORBIDDEN = [
 /** Berkas yang dibaca orang (juri membuka ini lebih dulu). */
 const SURFACE = [
   'README.md', 'FRONTEND_ITERATION.md', 'web/README.md', 'signer/README.md', 'contracts/README.md',
+  'web/index.html', 'web/src/i18n.ts', 'web/src/render.ts',
   'docs/ARCHITECTURE.md', 'docs/CONTRACTS.md', 'docs/DEPLOY.md', 'docs/CREDENTIALS.md',
   'docs/AUDIT_TRUST.md', 'docs/EIP712_CONFORMANCE.md', 'docs/OPEN_BADGES.md', 'docs/PRODUCTION_READINESS.md',
   'docs/UX_ROADMAP.md', 'docs/adr/0003-onchain-anchor-for-read-model.md', 'docs/adr/0004-x402-for-machine-verification.md',
@@ -155,7 +156,7 @@ async function collect () {
   // URL itu. `lencana.io` sendiri sudah diverifikasi tidak ada: `dns.resolve` → ENOTFOUND untuk A
   // dan AAAA, `fetch https://lencana.io` → ENOTFOUND, sementara `/healthz` tepi kita menjawab 200.
   const fake = []
-  const commentish = (line: string) => /^\s*(\/\/|\*|\/\*)/.test(line)
+  const commentish = (line) => /^\s*(\/\/|\*|\/\*|<!--)/.test(line)
   const main = await read(join(REPO, 'web', 'src', 'main.ts'))
   main.split(/\r?\n/).forEach((line, i) => { if (!commentish(line) && /lencana\.io|#key-1\b/.test(line)) fake.push(`web/src/main.ts:${i + 1} ${line.trim().slice(0, 76)}`) })
   findingsOut.push({

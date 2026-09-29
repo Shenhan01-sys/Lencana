@@ -594,22 +594,22 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       agent1Role: 'EVM Architecture & Blockchain Primitives',
       agent1Desc:
         'Grades essay submissions on cryptographic primitives, state transitions, and verifiable credentials. Authorized signer for Web3 Dasar 2026.',
-      agent1Stat: '1,420 Essays Evaluated · 99.8% Consensus',
+      agent1Stat: 'Reads the rubric from the chain · writes the number back to the ledger',
       agent2Name: 'Agent-Security',
       agent2Role: 'Smart Contract Defense & Prerequisite Integrity',
       agent2Desc:
         'Analyzes vulnerability mitigations, reentrancy guards, and prerequisite tree dependencies. Signs advanced security certifications.',
-      agent2Stat: '856 Audits Evaluated · 99.9% Consensus',
+      agent2Stat: 'Checks the attempt record against the rubric it was graded under',
       agent3Name: 'Agent-Infrastructure',
       agent3Role: 'BAS Resolvers & ERC-5192 Soulbound Locks',
       agent3Desc:
         'Validates on-chain attestation schema parameters and enforces soulbound non-transferability rules before badge minting.',
-      agent3Stat: '640 Badges Anchored · 100% Lock Rate',
+      agent3Stat: 'Anchors the credential hash · reads status back from the chain',
     },
     visualPipeline: {
       sectionTitle: 'The End-to-End Cryptographic Learning Pipeline',
       sectionSub:
-        'From raw student submission to permanent, tamper-proof career credentials anchored on BNB Smart Chain.',
+        'From raw student submission to career credentials whose status anyone can read on BNB Smart Chain.',
       node1: '1. Student Essay',
       node2: '2. AI Agent Reasoning',
       node3: '3. EIP-712 Signature',
@@ -618,7 +618,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     },
     learningLoop: {
       sectionTitle: 'How Learning on Lencana Works',
-      sectionSub: 'A seamless, trustless loop from interactive study to tamper-proof career credentials.',
+      sectionSub: 'A loop from interactive study to credentials you can prove without asking us.',
       step1Title: '1. Learn & Complete Tasks',
       step1Desc:
         'Study curated, modular micro-courses covering smart contracts, security, and decentralized infrastructure. Complete hands-on open-ended assignments.',
@@ -943,7 +943,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     portfolioSection: {
       kicker: 'LEARNER CREDENTIAL SHOWCASE',
       title: 'Decentralized Learning Portfolio',
-      sub: 'Tamper-proof career achievements verified on BNB Smart Chain. Export standard W3C JSON-LD or share directly with recruiters.',
+      sub: 'Career achievements whose status is read from BNB Smart Chain. Export the JSON-LD document or share it directly with a recruiter.',
       learnerName: 'Rina Oktaviani',
       learnerRole: 'Learner · Web3 Architecture Track · BSC Testnet 97',
       privacyTier1Label: '🔒 Tier 1: Pseudonymous (0x5cA3...7c3B)',
@@ -1167,22 +1167,22 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       agent1Role: 'Arsitektur EVM & Primitif Blockchain',
       agent1Desc:
         'Menilai kiriman esai tentang primitif kriptografi, transisi state, dan kredensial terverifikasi. Penandatangan resmi untuk Web3 Dasar 2026.',
-      agent1Stat: '1.420 Esai Dinilai · 99.8% Konsensus',
+      agent1Stat: 'Membaca rubrik dari chain · menulis angkanya kembali ke buku besar',
       agent2Name: 'Agent-Security',
       agent2Role: 'Pertahanan Smart Contract & Integritas Prasyarat',
       agent2Desc:
         'Menganalisis mitigasi kerentanan, reentrancy guards, dan rantai ketergantungan prasyarat. Menandatangani sertifikasi keamanan lanjutan.',
-      agent2Stat: '856 Audit Dinilai · 99.9% Konsensus',
+      agent2Stat: 'Mengadang rekaman attempt dengan rubrik tempat ia dinilai',
       agent3Name: 'Agent-Infrastructure',
       agent3Role: 'Resolver BAS & Kunci Soulbound ERC-5192',
       agent3Desc:
         'Memvalidasi parameter skema atestasi on-chain dan menegakkan aturan non-transferabilitas soulbound sebelum pencetakan lencana NFT.',
-      agent3Stat: '640 Lencana Tertambat · 100% Rasio Terkunci',
+      agent3Stat: 'Menambat hash kredensial · membaca statusnya kembali dari chain',
     },
     visualPipeline: {
       sectionTitle: 'Alur Pembelajaran Kriptografis End-to-End',
       sectionSub:
-        'Dari pengiriman esai mentah peserta hingga kredensial karier permanen anti-manipulasi yang tertambat di BNB Smart Chain.',
+        'Dari esai mentah peserta hingga kredensial karier yang statusnya bisa dibaca siapa pun di BNB Smart Chain.',
       node1: '1. Esai Peserta',
       node2: '2. Penalaran Agen AI',
       node3: '3. Tanda Tangan EIP-712',
@@ -1191,7 +1191,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     },
     learningLoop: {
       sectionTitle: 'Alur Belajar di Lencana',
-      sectionSub: 'Siklus mulus dari pembelajaran interaktif hingga kredensial karier yang anti-pemalsuan.',
+      sectionSub: 'Alur dari belajar hingga kredensial yang bisa kamu buktikan tanpa meminta izin kami.',
       step1Title: '1. Pelajari & Kerjakan Tugas',
       step1Desc:
         'Pelajari materi modular smart contract, keamanan, dan arsitektur Web3. Kerjakan tugas esai analisis terbuka yang menguji pemahaman mendalam.',
@@ -1516,7 +1516,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     portfolioSection: {
       kicker: 'ETALASE KREDENSIAL PESERTA',
       title: 'Portofolio Pembelajaran Terdesentralisasi',
-      sub: 'Capaian karier anti-manipulasi yang terverifikasi di BNB Smart Chain. Ekspor dokumen standar W3C JSON-LD atau bagikan langsung kepada perekrut.',
+      sub: 'Capaian karier yang statusnya dibaca dari BNB Smart Chain. Ekspor dokumen JSON-LD-nya atau bagikan langsung ke perekrut.',
       learnerName: 'Rina Oktaviani',
       learnerRole: 'Peserta · Jalur Arsitektur Web3 · BSC Testnet 97',
       privacyTier1Label: '🔒 Tingkat 1: Pseudonim (0x5cA3...7c3B)',

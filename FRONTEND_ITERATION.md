@@ -335,7 +335,7 @@ Following a rigorous analysis of [`vault/01-briefing.md`](file:///C:/Project_Dav
   - Companion recruiter verification simulator pill (`bagas-recruiter.bnb` · `btn-hero-recruiter-check`).
 - **Executive Architecture Bento Grid (3 Modules):**
   - Module 01: Autonomous AI Essay Grading (multimodal LLM evaluation with transparent on-chain rubrics).
-  - Module 02: BAS Resolver Security Hooks (tamper-proof prerequisite verification and anti-replay locks).
+  - Module 02: BAS Resolver Security Hooks (prerequisite checks read from the on-chain resolver, one-time learner nonces).
   - Module 03: Zero-Wallet Public Verification (instant direct RPC inspection without MetaMask or gas).
 - **Internationalization & Verification:**
   - Full bilingual i18n support in `web/src/i18n.ts` for English and Bahasa Indonesia.
