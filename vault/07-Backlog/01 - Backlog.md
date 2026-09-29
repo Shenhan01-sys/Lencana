@@ -155,3 +155,34 @@ in 13 days:
   agent there is no series of data to show, and presenting it as a scene only invites the answer
   "that is one example"
 - **Mainnet.** Testnet satisfies the rules; the requirement is an address that resolves on BscScan
+
+---
+
+## Urja prioritas 29 Sep malam (14 siap kerja; 7 bergembok)
+
+Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
+(TERBUKA total 21, bergembok 7). Angka apa pun di bawah harus dicetak ulang oleh perintahnya pada hari
+ia dikutip (AGENTS #1).
+
+| # | ID | apa | selesai kalau | ± |
+|---|---|---|---|---|
+| 1 | **B107** | `sync:numbers` melapor merah tanpa sebab anak | `probe:serve`/verify:edge MERAH menampilkan 8 baris terakhir anak + `needs: local signer` | 20 m |
+| 2 | **B67** | tepi tidak tahu `publish` berhenti | `verify:edge` punya pemeriksaan umur state + melewati ambang = merah | 30 m |
+| 3 | **B66** | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | migrasi + 2 pemeriksaan `verify:db` (kadaluarsa hilang, aktif utuh) | 30 m |
+| 4 | **B78** | artefak tes tidak dibersihkan | `npm run cleanup` mencetak **sisa = 0**, bukan klaim lisan | 45 m |
+| 5 | **B84** | identitas penerbit punya 3 sumber berbeda | `publish.js` + `server.js` + `.keys/` menghasilkan **hash dokumen issuer yang sama** (verifikasi tanpa transaksi) | 1 j |
+| 6 | **B102** | spesimen `delisted`/`expired` belum ada | `check:samples` melaporkan keduanya non-nol; tombol yang dicabut boleh dipasang lagi. Butuh 1 transaksi testnet → **izin builder** | 1 j |
+| 7 | **B105** | halaman penerbit + kalimat onboarding jujur | `#/publishers` baca-saja + README sesuai #5. **Tergantung #5** | 1 j |
+| 8 | **B104** | rantai D42: AI menilai → **manusia mengesahkan** → terbit | migrasi review + rute bertanda tangan + gerbang ketiga + 2 pemeriksaan `verify:attempts` | 2 j |
+| 9 | **B90** | paruh dua kontrak durasi-cahaya | deploy 97 + rute HTTP + uji yang sama tetap hijau | ½ h |
+| 10 | **B97** | relayer masih skrip | endpoint menerima permintaan agen + mengantrekan siaran (token testnet dicatat) | ½ h |
+| 11 | **B82** | identitas lintas perangkat hilang | ekspor/import terkunci frase lewat tes dua browser | ½ h |
+| 12 | **B80** | 🔴 kunci kuis terbundel ke browser | `publicManifest` tanpa `answer` + `probe.ts) tetap hijau + rute kuis teruji server | ½ h |
+| 13 | **B59** | perkakas menyimpan kebenaran sebagai salinan basi | tiap harness punya gerbang sendiri, bukan angka di berkas catatan | sisa |
+| 14 | **B87** | peran | **sudah diputuskan (D42)** → kerjanya #7 + #8; baris ini tidak punya pekerjaan sendiri | — |
+
+**Gembok builder (AGENTS #16, jangan dikerjakan tanpa permintaan):** B49, B63, B64, B65, B73, B75, B95.
+
+**Gerbang wajib sebelum menyebut apa pun "selesai":** `npm run sync:numbers` (13 harness) →
+`npm run audit` (10) → `check-links` 0 rusak + `check-lang` 0 CJK + mermaid → komit (tanpa atribusi AI)
+→ dorong **hanya** atas kata builder.
