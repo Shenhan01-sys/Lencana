@@ -38,13 +38,19 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 **Judging / reviewing** →
 1. [`08-Results/01 - Evidence and Limits.md`](08-Results/01%20-%20Evidence%20and%20Limits.md) — what is proven, what is not
 2. [`09-Testing/00 - Hub Testing.md`](09-Testing/00%20-%20Hub%20Testing.md) — every number with the command that printed it
-3. [`00-Overview/05 - Demo Scenes.md`](00-Overview/05%20-%20Demo%20Scenes.md) — the four-scene walkthrough
+3. [`00-Overview/12 - Business Process.md`](00-Overview/12%20-%20Business%20Process.md) — how the thing
+   actually works, in five diagram forms, with the limits drawn into the same page
+4. [`00-Overview/05 - Demo Scenes.md`](00-Overview/05%20-%20Demo%20Scenes.md) — the four-scene walkthrough
 
 **Continuing the work (human or agent)** →
 1. [`07-Backlog/01 - Backlog.md`](07-Backlog/01%20-%20Backlog.md) — what is left and what blocks it
 2. [`00-Overview/02 - Roadmap to the Deadline.md`](00-Overview/02%20-%20Roadmap%20to%20the%20Deadline.md) — day by day to 30 Sep, including what only a human can do
 3. [`Quick-Reference.md`](Quick-Reference.md) — commands, addresses, env names, one place
 4. [`AGENTS.md`](AGENTS.md) — the rules that keep this folder trustworthy if you are an agent
+4a. [`00-Overview/12 - Business Process.md`](00-Overview/12%20-%20Business%20Process.md) — proses bisnis
+    end-to-end dalam lima bentuk diagram (BPMN · sequence · DFD · state machine + activity · daur hidup
+    status & pembayaran), tiap panahnya bernama rute/tabel/fungsi, ditutup tabel "yang TIDAK bisa
+    dilakukan sistem ini" dan naskah 90 detik untuk video.
 4b. [`WORKFLOW.md`](WORKFLOW.md) — the 5-step loop every item must pass: execute (schema first) →
     sync AC + backlog → three-layer testing → per-item executive summary → **commit local, push only
     on the builder's approval**. Where it disagrees with `AGENTS.md`, the disagreement is written as
