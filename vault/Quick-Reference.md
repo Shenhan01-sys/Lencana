@@ -37,3 +37,15 @@ the address whose **key** is in `.env`; and addresses are read from `broadcast/`
 never retyped.
 
 **Related:** [[Glossary]] · [[09-Testing/00 - Hub Testing]] · [[08-Results/P2 - Executive Summary]]
+
+## Perintah yang ditambahkan 29 Sep (dan apa yang dibuktikannya)
+
+| perintah | apa | angka terakhir yang dicetak |
+|---|---|---|
+| `npm run verify:attempts` / `:live` | satu rantai peserta → rekaman → `issue --from-attempts` → `/results/…` (`:live` menulis 1 attestation testnet) | 31/0 offline · 67/0 live |
+| `npm run rehost [-- --apply --move-identity --fix-status-shape]` | memindah kertas ke host tetap tanpa transaksi: URL ditulis ulang + ditandatangani ulang dengan kunci Multikey yang sama | 7 kertas; `verify:edge` 19 dari 19 |
+| `npm run grade:essay` | antrean esai penerbit; angka masuk hanya lewat tanda tangan EOA penerbit (`POST /essay/judgement`) | `verify:db` 47/0 |
+| `npm run audit` | konsistensi proyek: registry tunggal, kalimat terlarang di README/docs, placeholder, dokumen karangan, blokir basi, item hilang dari backlog | 2 TEMUAN (A3 berkas Dave, A6 Vault akar) |
+| `npm run sync:numbers` / `-- --verify` | `vault/09-Testing/numbers.json` = satu sumber angka; `--verify` memarahi halaman vault yang angkanya tidak cocok | 9/9 harness terurai; ANGKA HIJAU |
+| `npm run diag:lists` | mengadili perbedaan hash daftar: render vs sajian tepi vs `getTimestamp` BAS | membuktikan B89 bukan soal data |
+| `npm run sim:deadline` | simulator B90; mengubah bentuk insentif setelah terbukti ladder refund bukan penalti | RUN 2: 5d murah hanya di dunia cepat |

@@ -35,8 +35,21 @@ const SAMPLE_HASHES = {
  */
 export const CREDENTIAL_HOST = 'https://lencana-edge.hansgunawan775.workers.dev'
 
+/**
+ * Tempat halaman ini benar-benar dibuka orang (Vercel) — diukur 29 Sep: HTTP 200.
+ * Bukan "lencana.io": domain itu tidak pernah kita pegang dan dns.resolve-nya ENOTFOUND (A dan AAAA).
+ */
+export const APP_HOST = 'https://lencana-psi.vercel.app'
+
 /** Kredensial yang dipakai tombol berbagi — hash demo yang sama dengan yang di panel verifier. */
-const SHARE_CREDENTIAL_HASH = SAMPLE_HASHES.valid
+/**
+ * Yang dibagikan harus kredensial yang bisa dibuka penerimanya.
+ *
+ * SAMPLE_HASHES.valid (0x0b95c83b…) sah di chain tapi GET /credentials/-nya di tepi menjawab 404 —
+ * dokumennya tidak pernah diterbitkan ke tepi, jadi membagikannya = mengirim orang ke NOT_FOUND.
+ * 0x06be529b… terukur: ada di chain, tidak revoked/expired/delisted, dan 200 dari tepi.
+ */
+const SHARE_CREDENTIAL_HASH = '0x06be529b10cba234c70fb7e522d2f251cc69b7527d8cf33c68f086ad5c9125a7'
 
 /**
  * URL verifikasi untuk tombol berbagi.
@@ -51,7 +64,7 @@ const SHARE_CREDENTIAL_HASH = SAMPLE_HASHES.valid
 function publicVerifyUrl (hash: string): string {
   const here = typeof window === 'undefined' ? '' : window.location.origin
   if (here && !/^(null|file:)/i.test(here)) return `${here.replace(/\/+$/, '')}/#/verify?q=${hash}`
-  return `${CREDENTIAL_HOST}/credentials/${hash}`
+  return `${APP_HOST}/#/verify?q=${hash}`
 }
 
 const ESSAY_PRESETS = {
@@ -2163,14 +2176,14 @@ function initSpecMatrix() {
     ? ''
     : '// CONTOH BENTUK — dokumen asli tidak teraih dari tepi. Ini bukan kredensial terbit,\n'
       + '// dan proof di bawah ini tidak ada yang menandatangani. Ambil yang sah dari:\n'
-      + `// ${CREDENTIAL_HOST}/credentials/${SAMPLE_HASHES.valid}\n\n`
+      + `// ${CREDENTIAL_HOST}/credentials/${SHARE_CREDENTIAL_HASH}\n\n`
   const specText = () => specLabel() + JSON.stringify(specDoc, null, 2)
 
   if (displayEl) {
     displayEl.textContent = specText()
     void (async () => {
       try {
-        const r = await fetch(`${CREDENTIAL_HOST}/credentials/${SAMPLE_HASHES.valid}`, { signal: AbortSignal.timeout(8000) })
+        const r = await fetch(`${CREDENTIAL_HOST}/credentials/${SHARE_CREDENTIAL_HASH}`, { signal: AbortSignal.timeout(8000) })
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
         specDoc = await r.json()
         specIsReal = true

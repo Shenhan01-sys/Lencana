@@ -37,3 +37,20 @@ npx tsx scripts/probe.ts                 # 59 checks / 0 failed against public c
 ```
 
 **Related:** [[05-Course-Content/01 - Course Content]] · [[04-Signer-Service/01 - Signer Service]] · [[10-Contributors/00 - Hub Contributors]]
+
+## 29 Sep — dua keputusan builder: judul e-course-dulu, dan tautan yang benar-benar hidup
+
+**Judul.** `<title>Lencana — Autonomous AI Credentials on BNB Smart Chain</title>` membalik aturan
+nomor 1 proyek ini (QWEN.md §1: standar umum dulu, baru pembeda). Produk ini **e-course**; sertifikat
+adalah **hasil** menyelesaikan kursus, bukan nama kursusnya. Diganti menjadi
+`Lencana — Online Courses with Auditable Certificates (BNB Smart Chain)`. Wording final tetap milik
+Dave — yang tidak boleh balik lagi: *course* di depan, *certificate* sebagai konsekuensi, chain sebagai sifat.
+
+**Tautan.** Halaman dibuka dari `https://lencana-psi.vercel.app` (200), dokumen disajikan dari `https://lencana-edge.hansgunawan775.workers.dev` (200, 19/19).
+Salinan FE lama menulis `lencana.io` — domain yang tidak kita pegang dan **tidak resolve**
+(`dns.resolve` ENOTFOUND untuk A maupun AAAA). Tombol berbagi juga menunjuk `0x0b95c83b…` yang
+attestation-nya sah tapi dokumennya **404** di tepi. Sekarang: `APP_HOST` dan `CREDENTIAL_HOST`
+dipisah, `publicVerifyUrl()` memakai origin halaman dengan fallback ke Vercel, dan hash berbagi
+diganti ke `0x06be529b…` yang terukur 200 + sah di chain. Detail: **B100**. Masih terbuka: 4 hash
+`SAMPLE_HASHES` lama belum satu-satu diverifikasi tersedia di tepi — yang dipakai di UI harus yang
+200, bukan yang cuma ada di chain.

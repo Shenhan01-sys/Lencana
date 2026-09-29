@@ -147,10 +147,22 @@ async function collect () {
   findingsOut.push({ id: 'A4', kind: stubs.length ? 'TEMUAN' : 'bersih', title: 'TODO/placeholder di berkas yang dibaca orang', detail: stubs.length ? stubs.slice(0, 8).join('\n      ') : '0 cocok' })
 
   // 5) Dokumen yang disimpan di berkas tapi menyebut domain yang tidak kita pegang.
+  //
+  // Komentar TIDAK dihitung, dan ini penting: setelah B94 diperbaiki, pemeriksaan ini tetap merah —
+  // yang ditandai ternyata baris komentar yang MENJELASKAN kesalahan lamanya ("Versi sebelumnya
+  // menulis https://lencana.io/…"). Alat yang menghukum dokumentasinya sendiri akan dibisukan orang
+  // dalam dua hari, dan itulah cara gerbang mati. Yang dicari di sini hanyalah KODE yang menyusun
+  // URL itu. `lencana.io` sendiri sudah diverifikasi tidak ada: `dns.resolve` → ENOTFOUND untuk A
+  // dan AAAA, `fetch https://lencana.io` → ENOTFOUND, sementara `/healthz` tepi kita menjawab 200.
   const fake = []
+  const commentish = (line: string) => /^\s*(\/\/|\*|\/\*)/.test(line)
   const main = await read(join(REPO, 'web', 'src', 'main.ts'))
-  main.split(/\r?\n/).forEach((line, i) => { if (/lencana\.io|#key-1\b/.test(line)) fake.push(`web/src/main.ts:${i + 1} ${line.trim().slice(0, 76)}`) })
-  findingsOut.push({ id: 'A5', kind: fake.length ? 'TEMUAN' : 'bersih', title: 'dokumen OB3.0 tulisan-tangan dengan URL yang bukan milik kita (R1a)', detail: fake.length ? `${fake.length} baris; contoh:\n      ${fake.slice(0, 5).join('\n      ')}` : 'tidak ada' })
+  main.split(/\r?\n/).forEach((line, i) => { if (!commentish(line) && /lencana\.io|#key-1\b/.test(line)) fake.push(`web/src/main.ts:${i + 1} ${line.trim().slice(0, 76)}`) })
+  findingsOut.push({
+    id: 'A5', kind: fake.length ? 'TEMUAN' : 'bersih',
+    title: 'dokumen OB3.0 tulisan-tangan dengan URL yang bukan milik kita (R1a)',
+    detail: fake.length ? `${fake.length} baris KODE; contoh:\n      ${fake.slice(0, 5).join('\n      ')}` : '0 baris kode (komentar sejarah diabaikan supaya gerbang tidak menghukum dokumentasinya sendiri)',
+  })
 
   // 6) Berkas catatan yang mengklaim sebuah blokir masih hidup padahal sudah selesai.
   const stale = []
