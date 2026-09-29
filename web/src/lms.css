@@ -14,9 +14,15 @@
    Bukan display:none permanen — begitu keluar dari #/learn, tokonya muncul lagi utuh. */
 body[data-lms-route] #page-courses > .section-container:not(#lms-mount) { display: none; }
 
-#lms-mount { color: inherit; font-size: 15px; line-height: 1.62; max-width: 1100px; margin: 0 auto; padding: 18px 0 40px; }
-#lms-mount .card { margin: 0 0 16px; padding: 16px; border: 1px solid rgba(128,128,128,.45); border-radius: 8px; }
-#lms-mount .card h2 { font-size: 20px; margin: 0 0 6px; }
+/* Poles 29 Sep (jalur integrasi): tautan emas + kartu + target sentuh ikut sistem visual
+   Lencana (gelap, emas #F0B90B, restraint). Semua selector tetap dikunci di #lms-mount. */
+
+#lms-mount { color: inherit; font-size: 15px; line-height: 1.62; max-width: 1100px; margin: 0 auto; padding: 18px 0 40px; overflow-x: clip; }
+#lms-mount pre { max-width: 100%; }
+#lms-mount a { color: #F0B90B; text-decoration: none; }
+#lms-mount a:hover { text-decoration: underline; }
+#lms-mount .card { margin: 0 0 16px; padding: 22px; border: 1px solid rgba(240,185,11,.18); border-radius: 14px; background: rgba(255,255,255,.025); overflow-x: auto; }
+#lms-mount .card h2 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 8px; }
 #lms-mount .card h3 { font-size: 16px; margin: 14px 0 4px; }
 #lms-mount p { max-width: 78ch; }
 #lms-mount .lede { opacity: .92; }
@@ -62,18 +68,34 @@ body[data-lms-route] #page-courses > .section-container:not(#lms-mount) { displa
 
 #lms-mount .question { margin: 12px 0; padding-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,.22); }
 #lms-mount .question .q { font-size: 13.5px; margin: 0 0 4px; }
-#lms-mount .opt { display: block; font-size: 13.5px; padding: 3px 0; }
+#lms-mount .opt { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; padding: 10px 12px; margin: 6px 0; border: 1px solid rgba(128,128,128,.3); border-radius: 10px; cursor: pointer; }
+#lms-mount .opt:hover { border-color: rgba(240,185,11,.55); }
+#lms-mount .opt input { margin-top: 3px; min-width: 16px; min-height: 16px; accent-color: #F0B90B; }
 #lms-mount .why { font-size: 12.5px; margin: 6px 0 0; padding: 6px 8px; background: rgba(128,128,128,.12); border-radius: 6px; }
-#lms-mount textarea { width: 100%; padding: 8px; border: 1px solid rgba(128,128,128,.5); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
-#lms-mount #me-address { padding: 6px; border: 1px solid rgba(128,128,128,.5); border-radius: 6px; background: transparent; color: inherit; font-family: ui-monospace, monospace; }
+#lms-mount textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid rgba(128,128,128,.5); border-radius: 10px; background: rgba(255,255,255,.03); color: inherit; font: inherit; }
+#lms-mount #me-address { padding: 8px 10px; border: 1px solid rgba(128,128,128,.5); border-radius: 8px; background: rgba(255,255,255,.03); color: inherit; font-family: ui-monospace, monospace; max-width: 100%; box-sizing: border-box; }
+#lms-mount input.ep { padding: 6px 10px; border: 1px solid rgba(128,128,128,.5); border-radius: 8px; background: rgba(255,255,255,.03); color: inherit; font-family: ui-monospace, monospace; font-size: 12px; max-width: 100%; box-sizing: border-box; }
 
 #lms-mount table { border-collapse: collapse; font-size: 13px; width: 100%; }
 #lms-mount th, #lms-mount td { text-align: left; padding: 5px 8px; border-bottom: 1px solid rgba(128,128,128,.22); vertical-align: top; }
 
 #lms-mount .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-#lms-mount .btn, #lms-mount button { font: inherit; font-size: 13.5px; padding: 7px 12px; border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+#lms-mount .btn, #lms-mount button { font: inherit; font-size: 13.5px; padding: 9px 14px; border: 1px solid rgba(128,128,128,.55); border-radius: 10px; background: transparent; color: inherit; cursor: pointer; transition: border-color .15s, background .15s; }
 #lms-mount .btn { text-decoration: none; display: inline-block; }
-#lms-mount button.primary { font-weight: 600; }
+#lms-mount .btn:hover, #lms-mount button:hover { border-color: rgba(240,185,11,.6); }
+#lms-mount button.primary { font-weight: 700; border-color: rgba(240,185,11,.65); color: #F0B90B; }
+#lms-mount button.primary:hover { background: rgba(240,185,11,.12); }
+#lms-mount button.link { border: 0; padding: 2px 4px; color: #F0B90B; }
 #lms-mount .status { font-size: 13.5px; min-height: 20px; margin: 8px 0 0; }
 #lms-mount .ids { margin-top: 14px; font-size: 12.5px; }
+#lms-mount .ids summary { cursor: pointer; color: #F0B90B; }
 #lms-mount .pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(128,128,128,.35); font-size: 13px; }
+
+/* 390px: kartu lebih ramping, tabel boleh geser horizontal di dalam kartu (tidak di halaman). */
+@media (max-width: 480px) {
+  #lms-mount { padding: 12px 0 28px; font-size: 14px; }
+  #lms-mount .card { padding: 16px; border-radius: 12px; }
+  #lms-mount .card h2 { font-size: 20px; }
+  #lms-mount .actions .btn, #lms-mount .actions button { flex: 1 1 100%; text-align: center; }
+  #lms-mount .pager { flex-direction: column; }
+}
