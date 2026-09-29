@@ -14322,4 +14322,106 @@ body.is-submit-page #page-submit::before {
 .mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
 .opacity-50 { opacity: 0.5; }
 
-.force-hidden { display: none !important; }
+body.is-home-page header.app-navbar.force-hidden, header.app-navbar.force-hidden, .demo-dock.force-hidden, .force-hidden { display: none !important; }
+
+/* --- Polished LMS & Landing Page Styles --- */
+.landing-page {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  color: var(--text-main);
+}
+.landing-page h1 {
+  font-family: var(--font-display, 'Geist', sans-serif);
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+.landing-page .hero-section {
+  padding: 48px 0 36px;
+  text-align: center;
+}
+.landing-page .hero-ctas {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 24px;
+}
+.card-surface {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 24px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card-surface:hover {
+  border-color: rgba(240, 185, 11, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px var(--bnb-gold-glow);
+}
+.course-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.course-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.course-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+.course-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  flex-grow: 1;
+}
+.course-card .card-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  padding: 12px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+}
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.level-badge.badge-dasar {
+  background: rgba(14, 203, 129, 0.15);
+  color: #0ecb81;
+  border: 1px solid rgba(14, 203, 129, 0.3);
+}
+.level-badge.badge-lanjutan {
+  background: rgba(240, 185, 11, 0.15);
+  color: #f0b90b;
+  border: 1px solid rgba(240, 185, 11, 0.3);
+}
+.prereq-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  background: rgba(255, 142, 29, 0.15);
+  color: #ff8e1d;
+  border: 1px solid rgba(255, 142, 29, 0.3);
+}

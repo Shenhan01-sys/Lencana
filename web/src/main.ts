@@ -1487,15 +1487,16 @@ function handleRoute() {
     }
   })
 
+  const isClassRoute = hash.startsWith('#/class/')
   const globalHeader = document.querySelector('header.app-navbar') as HTMLElement;
   const globalDock = document.querySelector('.demo-dock') as HTMLElement;
-  if (targetPageId === 'page-new-app') {
+  if (isClassRoute) {
     if (globalHeader) globalHeader.classList.add('force-hidden');
-    if (globalDock) globalDock.classList.add('force-hidden');
   } else {
     if (globalHeader) globalHeader.classList.remove('force-hidden');
-    if (globalDock) globalDock.classList.remove('force-hidden');
   }
+  // Demote demo dock to collapsed state unless specifically triggered
+  if (globalDock) globalDock.classList.add('force-hidden');
 
   // Legacy LMS route is now handled by new router
 
