@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-28
 command: npm run verify:db
 measured: 2026-09-28
-result: 47 checks / 0 failed
+result: 48 checks / 0 failed
 ---
 
 # T21 - signer db-probe.js (state belajar di Postgres)

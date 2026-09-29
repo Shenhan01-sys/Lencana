@@ -107,7 +107,7 @@ diisi dari kolom `score`, satu nilai punya dua asal dan kertasnya tetap terlihat
 Kertas itu lalu diperiksa pihak ketiga: `npm run validator -- --hash 0xd1dcb1ff… --record` →
 **10/10, `outcome VALID`, 14 pemeriksaan, 0 error / 0 warning** (28 Sep, tercatat di
 `09-Testing/validator-runs.jsonl`). Regresi yang dijalankan hari yang sama: `check.js` **94/0**,
-`verify:db` **47/0**, `probe:serve` **49/0**, `npm run probe` (web) **73/0** — segarkan dari `npm run sync:numbers`.
+`verify:db` **48/0**, `probe:serve` **49/0**, `npm run probe` (web) **73/0** — segarkan dari `npm run sync:numbers`.
 
 ## Yang dibuktikan, dalam satu kalimat per baris
 

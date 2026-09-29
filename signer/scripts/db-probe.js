@@ -62,7 +62,10 @@ async function post (path, body) {
 
 const child = spawn('npm', ['run', 'serve'], {
   cwd: resolve(HERE, '..'),
-  env: { ...process.env, PORT: String(PORT), BASE_URL: BASE },
+  // B78: server yang DINYALAKAN probe ini memperkenalkan dirinya sebagai test. Tanpa ini, baris yang
+  // ia tulis jatuh ke default 'unknown' dan 'sisa = 0' tetap tidak bisa dibuktikan — klaimku
+  // sebelumnya bahwa probe "menumpang server 8787" salah: ia spawn server sendiri di 8792.
+  env: { ...process.env, PORT: String(PORT), BASE_URL: BASE, LANCENA_ORIGIN: 'test' },
   // stdout ikut di-pipe, bukan diabaikan. Versi pertama mengabaikan stdout dan meninggalkan
   // errBuf kosong saat server anak gagal — akibatnya "server tidak naik" tidak bisa diagnosis,
   // padahal npm/tsx kerap menulis masalahnya ke stdout lewat cangkang shell.
@@ -391,6 +394,22 @@ if (await waitUp()) {
   // 10. nonce memang hidup di database, bukan di Set dalam proses
   const seen = await usedNonceExists(m1.nonce)
   check('nonce enroll pertama tercatat di used_nonces (bertahan melewati restart proses)', seen === true, `nonce=${m1.nonce}`)
+
+  // 10b. B78 — baris yang DITULIS probe ini harus membawa penandanya sendiri.
+  // Bukan hiasan: klaim "artefak tes bisa dibersihkan dengan bukti sisa = 0" hanya benar kalau
+  // baris tes memang terbedakan. Kita baca balik lewat REST (secret key), jadi yang diuji adalah
+  // apa yang ada di DB, bukan apa yang dikira kode kita.
+  const originRead = await fetch(
+    `${process.env.SUPABASE_URL}/rest/v1/enrollments?select=origin,learner,course_id&learner=eq.${learner.address}&course_id=eq.${COURSE}`,
+    { headers: { apikey: process.env.SUPABASE_SECRET_KEY || '', authorization: `Bearer ${process.env.SUPABASE_SECRET_KEY || ''}` }, signal: AbortSignal.timeout(15_000) },
+  ).then(async (r) => ({ status: r.status, body: await r.json().catch(() => null) })).catch((e) => ({ status: 0, body: null, err: String(e.message) }))
+  if (process.env.SUPABASE_SECRET_KEY) {
+    check('enrollment buatan probe tercatat origin=test (penanda B78 ditulis sampai ke DB)',
+      originRead.status === 200 && Array.isArray(originRead.body) && originRead.body.length === 1 && originRead.body[0].origin === 'test',
+      `${originRead.status} ${JSON.stringify(originRead.body ?? originRead.err ?? '').slice(0, 120)}`)
+  } else {
+    console.log('  info  SUPABASE_SECRET_KEY tidak diisi — penanda origin TIDAK bisa dibaca balik di run ini')
+  }
 
   // 11. GET ke DB dengan publishable key tidak boleh bisa membaca (RLS menolak)
   const publicRead = await fetch(`${process.env.SUPABASE_URL}/rest/v1/enrollments?select=*`, {
