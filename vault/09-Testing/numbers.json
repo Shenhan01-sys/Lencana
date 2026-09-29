@@ -1,0 +1,64 @@
+{
+  "capturedAt": "2026-09-29T10:03:36.347Z",
+  "note": "Dihasilkan npm run sync:numbers. Halaman vault yang mengutip angka harness wajib cocok dengan berkas ini (verify: npm run sync:numbers -- --verify).",
+  "items": {
+    "check": {
+      "total": 88,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 88
+    },
+    "verifyDb": {
+      "total": 47,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 47
+    },
+    "serveProbe": {
+      "total": 49,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 49
+    },
+    "e2e": {
+      "total": 46,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 46
+    },
+    "liveCert": {
+      "total": 35,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 35
+    },
+    "attempts": {
+      "total": 0,
+      "pass": 0,
+      "fail": 0,
+      "error": "pola keluaran tidak ketemu — angka TIDAK dikarang"
+    },
+    "edge": {
+      "total": 8,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 8,
+      "ratio": {
+        "a": 19,
+        "b": 19
+      }
+    },
+    "forgeOffline": {
+      "total": 66,
+      "fail": 0,
+      "skipped": 9,
+      "pass": 66
+    },
+    "webProbe": {
+      "total": 73,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 73
+    }
+  }
+}

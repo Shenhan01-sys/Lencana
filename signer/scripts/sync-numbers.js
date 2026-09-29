@@ -44,13 +44,13 @@ const HARNESS = [
   { id: 'serveProbe', label: 'serve-probe', cwd: SIGNER, cmd: ['npm', ['run', 'probe:serve']], re: /PROBE SERVE HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'e2e', label: 'e2e', cwd: SIGNER, cmd: ['npm', ['run', 'e2e']], re: /E2E HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'liveCert', label: 'verify:live-cert', cwd: SIGNER, cmd: ['npm', ['run', 'verify:live-cert']], re: /LAPIS ARTEFAK HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
-  { id: 'attempts', label: 'verify:attempts (offline)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/ },
+  { id: 'attempts', label: 'verify:attempts (offline)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m },
   { id: 'edge', label: 'verify:edge', cwd: SIGNER, cmd: ['npm', ['run', 'verify:edge']], re: /TEPI HIJAU — (\d+) pemeriksaan, (\d+) gagal/, also: /terukur : (\d+) dari (\d+)/ },
   { id: 'forgeOffline', label: 'forge test (offline)', cwd: REPO, cmd: ['forge', ['test']], re: /(\d+) tests passed, (\d+) failed, (\d+) skipped/ },
   { id: 'webProbe', label: 'probe (web)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'probe']], re: /PROBE HIJAU \((\d+) pemeriksaan, (\d+) gagal\)/ },
 ]
 if (EXPENSIVE) {
-  HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/ })
+  HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
   HARNESS.push({ id: 'publishEdge', label: 'publish:edge', cwd: SIGNER, cmd: ['npm', ['run', 'publish:edge']], re: /PUBLISH HIJAU — (\d+)\/(\d+)/ })
 }
 
