@@ -22,7 +22,7 @@ import { dirname, resolve } from 'node:path'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
-import { computeAttemptHash, courseGates, dbConfigured, dbMissingReason, usedNonceExists } from '../src/db.js'
+import { attemptsFor, computeAttemptHash, courseGates, dbConfigured, dbMissingReason, usedNonceExists } from '../src/db.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 await loadFileEnvReport('verify:db')
@@ -243,6 +243,149 @@ if (await waitUp()) {
     const sum2 = await (await fetch(`${BASE}/progress?learner=${learner.address}&course=${COURSE}`, { signal: AbortSignal.timeout(20_000) })).json().catch(() => null)
     check('usaha dinilai lewat /grade ikut terbaca di gerbang (graded_attempts naik)',
       Number(sum2?.gradedAttempts) >= 3, JSON.stringify(sum2).slice(0, 160))
+  }
+
+  // 9c. POST /essay + /essay/judgement — penyerahan esai dan penilaiannya oleh PEMERBIT (B81).
+  // Yang diuji di mari bukan "rutenya menjawab 200", tapi tiga batas yang bikin klaim bar 7 masih
+  // berdiri: teks masuk TANPA angka, angka hanya bisa ditulis oleh kunci penerbit, dan rubrik yang
+  // dipakai menilai diambil dari manifest server — bukan dari yang dikirim pemanggil.
+  const crit2 = await fetch(`${BASE}/criteria/${COURSE}`, { signal: AbortSignal.timeout(20_000) }).then((r) => r.json()).catch(() => null)
+  const es = crit2?.essays?.[0]
+  if (!es?.lesson || !es?.rubric?.length) {
+    check('/criteria memuat esai + rubrik (sumber label penilaian)', false, JSON.stringify(crit2).slice(0, 120))
+  } else {
+    const rubricTotal = es.rubric.reduce((n, r) => n + Number(r.maximumScore), 0)
+    check(`/criteria: ${es.rubric.length} kriteria, total max ${rubricTotal}, label terbaca publik`,
+      rubricTotal === 100 && es.rubric.every((r) => r.label && Number(r.maximumScore) > 0),
+      JSON.stringify(es.rubric).slice(0, 140))
+    // Teks ini sengaja memenuhi tanda mekanis (>= minWords, 0x…, URL, fungsi, pernyataan batas) —
+    // kalau salah satunya tidak terpenuhi, jalur yang diuji jadi "insufficient", bukan antrean.
+    const filler = Array.from({ length: 430 }, (_, i) => `kata${i}`).join(' ')
+    const essayText = `Verifikasi on-chain terbatas pada klaim yang bisa saya periksa sendiri. Alamat 0x1234abcd5678ef90 dan fungsi attestationOf dipakai lewat https://docs.bnbchain.org/bnb-smart-chain/developer/rpc/ ; sisanya belum bisa saya simpulkan dari data publik.` + ' ' + filler
+    const essayPost = async (extra) => {
+      const m = `lencana-essay ${es.lesson} nonce=${nonce()}`
+      const s = await learner.signMessage({ message: m })
+      return post('/essay', { learner: learner.address, course: COURSE, lesson: es.lesson, text: essayText, message: m, signature: s, ...extra })
+    }
+    const noSig = await post('/essay', { learner: learner.address, course: COURSE, lesson: es.lesson, text: essayText })
+    check('POST /essay tanpa tanda tangan -> DITOLAK', noSig.status === 401, `${noSig.status} ${JSON.stringify(noSig.body)}`)
+    const withScore = await essayPost({ score: 100 })
+    check('/essay MENOLAK angka kiriman klien (yang masuk hanya teks)',
+      withScore.status === 400 && /tidak menerima score/.test(withScore.body?.error ?? ''), `${withScore.status} ${JSON.stringify(withScore.body)}`)
+    const withRubric = await essayPost({ rubric: [{ label: 'kemudahan', max: 100 }] })
+    check('/essay MENOLAK rubrik kiriman klien (kriteria milik penerbit)',
+      withRubric.status === 400 && /tidak menerima rubric/.test(withRubric.body?.error ?? ''), `${withRubric.status} ${JSON.stringify(withRubric.body)}`)
+    const notEssay = await post('/essay', { learner: learner.address, course: COURSE, lesson: 'bukan-esai', text: essayText })
+    check('lesson tanpa rubrik esai -> 400, bukan 201 kosong', notEssay.status === 400, `${notEssay.status} ${JSON.stringify(notEssay.body)}`)
+
+    // Keadaan SEBELUM menyerahkan, supaya "tidak menambah usaha dinilai" bisa dibandingkan dengan
+    // baris yang sama — bukan dengan angka yang saya ingat dari bagian probe di atas.
+    const gatesPre = await courseGates(learner.address, COURSE)
+    const submitted = await essayPost({})
+    check(`POST /essay -> 201 state ${submitted.body?.state}, skor NULL, verdict incomplete`,
+      submitted.status === 201 && submitted.body?.state === 'awaiting_judge' && submitted.body?.score === null
+      && submitted.body?.verdict === 'incomplete' && Number(submitted.body?.mechanicalPassed) >= 1,
+      `${submitted.status} ${JSON.stringify(submitted.body).slice(0, 170)}`)
+    const attemptId = Number(submitted.body?.attemptId)
+    const preHash = String(submitted.body?.attemptHash ?? '')
+    const gatesMid = await courseGates(learner.address, COURSE)
+    check('esai yang belum dinilai TIDAK menambah usaha dinilai (ungraded ≠ 0, bar 6)',
+      Number(gatesMid?.graded_attempts) === Number(gatesPre?.graded_attempts)
+      && String(gatesMid?.best_score) === String(gatesPre?.best_score),
+      JSON.stringify({ sebelum: gatesPre?.graded_attempts, sesudah: gatesMid?.graded_attempts, best: gatesMid?.best_score }))
+
+    const issuerKey = process.env.ISSUER_PRIVATE_KEY
+    const issuerAddr = process.env.ISSUER_ADDRESS
+    if (!issuerKey || !issuerAddr) {
+      check('ISSUER_PRIVATE_KEY + ISSUER_ADDRESS tersedia (jalur penilaian penerbit tidak bisa diuji tanpa itu)', false,
+        `ISSUER_ADDRESS=${issuerAddr ?? '(kosong)'}`)
+    } else {
+      const issuer = privateKeyToAccount(issuerKey)
+      check('kunci penerbit di .env cocok dengan ISSUER_ADDRESS', issuer.address.toLowerCase() === String(issuerAddr).toLowerCase(),
+        `${issuer.address} vs ${issuerAddr}`)
+      const judgePost = async (acct, body) => {
+        const m = `lencana-essay-judge ${preHash} nonce=${nonce()}`
+        const s = await acct.signMessage({ message: m })
+        return post('/essay/judgement', {
+          issuer: acct.address, course: COURSE, lesson: es.lesson, attemptId,
+          scores: es.rubric.map((r) => ({ label: r.label, score: r.maximumScore })), message: m, signature: s, ...body,
+        })
+      }
+      const stranger = privateKeyToAccount(generatePrivateKey())
+      const byStranger = await judgePost(stranger, {})
+      check('penilaian dengan kunci selisih -> DITOLAK 401', byStranger.status === 401, `${byStranger.status} ${JSON.stringify(byStranger.body)}`)
+      const byWrongIssuer = await judgePost(issuer, { issuer: stranger.address })
+      check('penilaian atas nama alamat selain penerbit yang dikonfigurasi -> DITOLAK', byWrongIssuer.status === 401,
+        `${byWrongIssuer.status} ${JSON.stringify(byWrongIssuer.body)}`)
+      const wrongLabels = await post('/essay/judgement', {
+        issuer: issuer.address, course: COURSE, lesson: es.lesson, attemptId,
+        scores: [{ label: 'kemudahan memberi nilai', score: 100 }],
+        message: `lencana-essay-judge ${preHash} nonce=${nonce()}`,
+        signature: await issuer.signMessage({ message: 'x' }),
+      })
+      // (pesan di atas sengaja tidak cocok dengan nonce-nya -> 401 lebih dulu; kriteria asing diuji
+      // terpisah lewat jalur yang sah di bawah ini supaya sebabnya tidak tertukar.)
+      check('penilaian dengan pesan tidak sah -> DITOLAK (sebab otentikasi, bukan kriteria)', wrongLabels.status === 401,
+        `${wrongLabels.status} ${JSON.stringify(wrongLabels.body)}`)
+      const asingMsg = `lencana-essay-judge ${preHash} nonce=${nonce()}`
+      const asing = await post('/essay/judgement', {
+        issuer: issuer.address, course: COURSE, lesson: es.lesson, attemptId,
+        scores: [{ label: 'kemudahan memberi nilai', score: 100 }],
+        message: asingMsg, signature: await issuer.signMessage({ message: asingMsg }),
+      })
+      check('kriteria yang bukan milik rubrik penerbit -> 422 dan disebut namanya',
+        asing.status === 422 && /kriteria asing/.test(asing.body?.error ?? ''), `${asing.status} ${JSON.stringify(asing.body)}`)
+      const partialMsg = `lencana-essay-judge ${preHash} nonce=${nonce()}`
+      const partial = await post('/essay/judgement', {
+        issuer: issuer.address, course: COURSE, lesson: es.lesson, attemptId,
+        scores: es.rubric.slice(1).map((r) => ({ label: r.label, score: r.maximumScore })),
+        message: partialMsg, signature: await issuer.signMessage({ message: partialMsg }),
+      })
+      check('rubrik yang hanya sebagian dinilai -> DITOLAK (sebagian ≠ angka akhir)', partial.status === 422,
+        `${partial.status} ${JSON.stringify(partial.body)}`)
+
+      const fullMsg = `lencana-essay-judge ${preHash} nonce=${nonce()}`
+      const judged = await post('/essay/judgement', {
+        issuer: issuer.address, course: COURSE, lesson: es.lesson, attemptId,
+        scores: es.rubric.map((r) => ({ label: r.label, score: r.maximumScore })),
+        message: fullMsg, signature: await issuer.signMessage({ message: fullMsg }),
+      })
+      check('penilaian sah oleh kunci penerbit -> 200, skor 100, verdict pass',
+        judged.status === 200 && Number(judged.body?.score) === 100 && judged.body?.verdict === 'pass'
+        && Number(judged.body?.components) === es.rubric.length, `${judged.status} ${JSON.stringify(judged.body)}`)
+      const newHash = String(judged.body?.attemptHash ?? '')
+      check('hash baru = hasil hitung ulang baris yang sudah dinilai, dan hash lama dilaporkan tergantikan',
+        newHash !== preHash && computeAttemptHash({
+          learner: learner.address, courseId: COURSE, lessonKey: es.lesson, kind: 'esai',
+          attemptNo: Number(submitted.body?.attemptNo), score: 100, rubricHash: crit2.rubricHash,
+        }) === newHash && judged.body?.replacedHash === preHash, `${preHash.slice(0, 12)}… -> ${newHash.slice(0, 12)}…`)
+      const gatesAfter = await courseGates(learner.address, COURSE)
+      check('setelah dinilai, usaha esai ikut terbaca gerbang (best_score naik ke 100)',
+        Number(gatesAfter?.best_score) === 100 && Number(gatesAfter?.graded_attempts) >= 2,
+        JSON.stringify({ graded: gatesAfter?.graded_attempts, best: gatesAfter?.best_score }))
+      const replay = await post('/essay/judgement', {
+        issuer: issuer.address, course: COURSE, lesson: es.lesson, attemptId,
+        scores: es.rubric.map((r) => ({ label: r.label, score: 1 })),
+        message: fullMsg, signature: await issuer.signMessage({ message: fullMsg }),
+      })
+      check('pesan penilaian yang sama tidak bisa dipakai ulang (nonce satu-kali juga mengunci jalur penerbit)',
+        replay.status === 401, `${replay.status} ${JSON.stringify(replay.body)}`)
+    }
+  }
+
+  // 9d. Penjaga bentuk view: `course_gates` pernah menghitung Cartesian product dan tetap hijau
+  // karena kolom yang MEMUTUSKAN (max/bool_and) tidak berubah oleh duplikasi baris — yang salah
+  // angka yang dibaca peserta (19 × 6 = "114 dari 19 lesson selesai"). Diperbaiki di migrasi 0006;
+  // dua pemeriksaan di bawah ini yang membuatnya tidak bisa kembali diam-diam.
+  {
+    const g = await courseGates(learner.address, COURSE)
+    const rows = await attemptsFor(learner.address, COURSE)
+    const gradedReal = rows.filter((r) => String(r.verdict ?? 'incomplete') !== 'incomplete').length
+    check('lessons_completed TIDAK pernah melampaui lessons_total (penjaga fan-out view)',
+      Number(g?.lessons_completed) <= Number(g?.lessons_total),
+      JSON.stringify({ completed: g?.lessons_completed, total: g?.lessons_total }))
+    check('graded_attempts == jumlah baris attempts yang benar-benar dinilai',
+      Number(g?.graded_attempts) === gradedReal, `${g?.graded_attempts} vs ${gradedReal} baris`)
   }
 
   // 10. nonce memang hidup di database, bukan di Set dalam proses

@@ -72,6 +72,8 @@ export type LearningSnapshot = {
   lastSync: number | null
   /** Hasil kuis terakhir dari SERVER, supaya halaman bisa mencetak angka yang bukan hitungannya sendiri. */
   lastGrade: GradeResult | null
+  /** Tanda terima penyerahan esai dari SERVER: tanpa angka, dan halaman tidak boleh membuatnya tampak ada. */
+  lastEssay: EssayReceipt | null
 }
 
 let state: LearningSnapshot = {
@@ -83,6 +85,7 @@ let state: LearningSnapshot = {
   error: null,
   lastSync: null,
   lastGrade: null,
+  lastEssay: null,
 }
 
 /**
@@ -348,3 +351,53 @@ export async function submitQuiz (courseId: string, lessonSlug: string, picks: {
   state.pending = false
   return g
 }
+
+/** Tanda terima penyerahan esai: TIDAK ada angka di dalamnya, dan itu memang isinya. */
+export type EssayReceipt = {
+  attemptHash: string, attemptId: number, state: string, words: number,
+  mechanicalPassed: number, mechanicalTotal: number, note: string, lesson: string
+}
+
+/**
+ * Kirim TEKS esai ke penerbit (B81). Yang dikirim hanya tulisan — tidak ada skor, tidak ada rubrik;
+ * kalau ada `score` di badan permintaan, server menolak dengan 400 dan kita tampilkan alasannya.
+ *
+ * Baris yang lahir dari sini ber-`score NULL` + `verdict incomplete` dan `submissions.state =
+ * awaiting_judge`: ia terlihat di antrean penerbit, TIDAK dihitung sebagai nilai, dan tidak akan
+ * membuat siapa pun lulus. Angka masuk nanti lewat `POST /essay/judgement` yang ditandatangani
+ * EOA penerbit — bukan oleh halaman ini.
+ *
+ * Teks karangan mendarat di tabel yang tidak dibaca rute publik mana pun. Yang suatu hari bisa
+ * dilihat verifier adalah `attempt_hash`-nya, bukan isinya — itu janji yang ditulis `results.js`
+ * (`essayTextIncluded: false`) dan ditegakkan di pilihan skema ini.
+ */
+export async function submitEssay (courseId: string, lessonSlug: string, text: string): Promise<EssayReceipt | null> {
+  const addr = learnerAddress()
+  if (!addr) return fail('Belum ada identitas peserta — tanpa tanda tangan, karangan tidak bisa diserahkan atas nama alamatmu.')
+  if (!text.trim()) return fail('Karangan kosong tidak diserahkan: tidak ada yang bisa dinilai.')
+  state.pending = true
+  const n = newNonce()
+  const message = `lencana-essay ${lessonSlug} nonce=${n}`
+  const s = await signMessage(message)
+  if (!s.signature) return fail(s.why ?? 'tidak bisa menandatangani')
+  const r = await call('/essay', {
+    method: 'POST',
+    body: { learner: addr, course: courseId, lesson: lessonSlug, text, message, signature: s.signature },
+  })
+  state.pending = false
+  if (r.status !== 201 || !r.json) return fail((r.json?.error as string) ?? r.why ?? `server menjawab ${r.status}`)
+  const rec: EssayReceipt = {
+    attemptHash: String(r.json.attemptHash ?? ''), attemptId: Number(r.json.attemptId ?? 0),
+    state: String(r.json.state ?? 'awaiting_judge'), words: Number(r.json.words ?? 0),
+    mechanicalPassed: Number(r.json.mechanicalPassed ?? 0), mechanicalTotal: Number(r.json.mechanicalTotal ?? 0),
+    note: String(r.json.note ?? ''), lesson: lessonSlug,
+  }
+  state.lastEssay = rec
+  state.error = null
+  await syncCourse(courseId)
+  state.pending = false
+  return rec
+}
+
+/** Tanda terima esai terakhir, untuk dicetak halaman tanpa menyimpannya di mana pun. */
+export function lastEssay (): EssayReceipt | null { return state.lastEssay }

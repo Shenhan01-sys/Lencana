@@ -339,3 +339,176 @@ export async function progressSummary (learner, courseId) {
     allLessonsDone: gates.all_lessons_done === true,
   }
 }
+
+/* ------------------------------------------------------------------ penyerahan esai (bar 5, 7, 8 — B81)
+ *
+ * Kenapa fungsi ini ada: sampai 29 Sep, angka esai masuk lewat `POST /attempts`, yaitu angka yang
+ * dilaporkan klien. Itu satu-satunya jalan masuk angka yang masih di luar kendali penerbit — dan
+ * `attempt_hash` justru membekukannya supaya terlihat sah. Sekarang urutannya:
+ *
+ *   peserta menyerahkan TEKS (`submitEssay`) → usaha tersimpan TANPA skor, `verdict='incomplete'`,
+ *   gerbang mekanis `grade.js` dihitung server → penerbit mengirim PENILAIAN yang ditandatangani
+ *   EOA-nya sendiri (`judgeEssay`) → skor + komponen per kriteria masuk → hash dihitung ulang.
+ *
+ * Yang menahan tulis tetap tanda tangan, bukan RLS: secret key punya `BYPASSRLS`. Bedanya, pihak yang
+ * boleh menulis angka bukan lagi peserta — `judgeEssay` menuntut tanda tangan dari alamat yang juga
+ * (diperiksa di pemanggil) tercatat sebagai penerbit di chain (`isIssuer`).
+ */
+
+/** Alamat + kursus dari baris enrollment: `attempts` menyimpan id-nya, bukan alamatnya. */
+async function enrollmentOf (enrollmentId) {
+  const rows = await rest('enrollments', { query: `?id=eq.${Number(enrollmentId)}&select=learner,course_id` })
+  return rows?.[0] ?? null
+}
+
+/** Satu penyerahan esai. Tidak ada angka dari klien: yang masuk teks, angkanya milik penerbit nanti. */
+export async function submitEssay ({ learner, courseId, lessonKey, text, words, mechanical, state, rubricHash, message, signature }) {
+  const auth = await authorizeLearner({ learner, message, signature, scope: 'essay' })
+  if (!auth.ok) return { ok: false, kind: 'auth', why: auth.why }
+  if (typeof lessonKey !== 'string' || !lessonKey.length) return { ok: false, why: 'lesson wajib diisi' }
+  if (typeof text !== 'string' || !text.trim()) return { ok: false, why: 'teks karangan kosong — tidak ada yang bisa dinilai' }
+  if (!['awaiting_judge', 'insufficient'].includes(state)) {
+    return { ok: false, why: `state penyerahan tidak dikenal: ${state}` }
+  }
+
+  const enrollment = await findEnrollment(learner, courseId)
+  if (!enrollment) return { ok: false, why: 'peserta belum enroll di kursus ini — tidak ada baris untuk menempelkan penyerahan' }
+
+  const attemptNo = await nextAttemptNo(learner, courseId, lessonKey, 'esai')
+  // Hash dihitung dari baris sebagaimana adanya: TANPA skor. Sesudah dinilai, `judgeEssay`
+  // menghitungnya ulang — itu benar, karena hash ini sidik jari rekaman, bukan identitas permanen.
+  const attemptHash = computeAttemptHash({
+    learner, courseId, lessonKey, kind: 'esai', attemptNo, score: null, rubricHash,
+  })
+  const rows = await rest('attempts', {
+    method: 'POST',
+    prefer: 'return=representation',
+    body: [{
+      enrollment_id: enrollment.id, lesson_key: lessonKey, kind: 'esai', attempt_no: attemptNo,
+      score: null, verdict: 'incomplete', rubric_hash: rubricHash ?? null, attempt_hash: attemptHash,
+    }],
+  })
+  const attempt = rows?.[0] ?? null
+  if (!attempt) return { ok: false, why: 'gagal menulis baris attempts untuk esai' }
+
+  // Tanda mekanis disimpan sebagai komponen supaya bisa dihitung ulang: 100 bila terpenuhi, 0 bila
+  // tidak, `weight` 0 karena dia BUKAN bagian bobot rubrik — dia syarat sebelum boleh menilai.
+  if (Array.isArray(mechanical) && mechanical.length) {
+    await rest('attempt_components', {
+      method: 'POST',
+      body: mechanical.map((m) => ({
+        attempt_id: attempt.id, item_id: `mech:${m.label}`, score: m.ok ? 100 : 0,
+        weight: 0, graded_by: 'mechanical',
+      })),
+    })
+  }
+
+  await rest('submissions', {
+    method: 'POST',
+    prefer: 'return=representation',
+    body: [{
+      attempt_id: attempt.id, learner: getAddress(learner), course_id: courseId, lesson_key: lessonKey,
+      body: text, words: Number(words) || 0, mechanical: mechanical ?? [], state,
+    }],
+  })
+
+  return { ok: true, attemptId: attempt.id, attemptHash, attemptNo, state, words: Number(words) || 0 }
+}
+
+/** Antrean penilaian penerbit: yang menunggu, paling lama lebih dulu. */
+export async function queuePendingEssays (courseId, limit = 20) {
+  const q = `?state=eq.awaiting_judge${courseId ? `&course_id=eq.${encodeURIComponent(courseId)}` : ''}`
+    + `&order=awaiting_since.asc&limit=${Number(limit) || 20}`
+    + '&select=id,attempt_id,learner,course_id,lesson_key,body,words,mechanical,awaiting_since,'
+    + 'attempts(lesson_key,attempt_no,rubric_hash,attempt_hash,kind,verdict,score)'
+  return (await rest('submissions', { query: q })) ?? []
+}
+
+/**
+ * Penilaian oleh PEMERBIT atas nama kunci EOA-nya sendiri.
+ *
+ * @param scores  `[{ label, score }]` — harus menutup SELURUH kriteria rubrik penerbit
+ * @param essay   `Lesson.essay` dari manifest penerbit; sumber `max` per kriteria, BUKAN dari klien
+ */
+export async function judgeEssay ({ attemptId, issuer, message, signature, scores, essay, passMark, judgeModel, judgeTemp }) {
+  if (!essay?.rubric?.length) return { ok: false, why: 'rubrik esai penerbit tidak terbaca — tidak ada yang bisa dinilai' }
+  if (typeof message !== 'string' || typeof signature !== 'string') return { ok: false, why: 'butuh message + signature penerbit' }
+  const nonce = /nonce=([0-9a-f]{12,})/.exec(message)?.[1]
+  if (!nonce) return { ok: false, why: 'pesan penilaian tidak memuat nonce' }
+  let verified = false
+  try {
+    verified = await verifyMessage({ address: getAddress(issuer), message, signature })
+  } catch (e) {
+    return { ok: false, kind: 'auth', why: `verifikasi tanda tangan gagal: ${String(e.message ?? e).slice(0, 80)}` }
+  }
+  if (!verified) return { ok: false, kind: 'auth', why: 'tanda tangan bukan dari alamat penandatangan yang diklaim' }
+  const consumed = await consumeNonce({ nonce, learner: issuer, scope: 'essay-judge' })
+  if (!consumed.ok) return { ok: false, kind: 'auth', why: consumed.why }
+
+  const rows = await rest('attempts', { query: `?id=eq.${Number(attemptId)}&select=*` })
+  const attempt = rows?.[0]
+  if (!attempt) return { ok: false, why: `usaha ${attemptId} tidak ada` }
+  if (attempt.kind !== 'esai') return { ok: false, why: `usaha ${attemptId} bukan esai (${attempt.kind}) — tidak ada teks yang bisa dinilai` }
+  const holder = await enrollmentOf(attempt.enrollment_id)
+  if (!holder) return { ok: false, why: `baris enrollment ${attempt.enrollment_id} tidak ada — usaha ini yatim` }
+
+  const known = new Map(essay.rubric.map((r) => [String(r.label), r]))
+  const given = new Map((scores ?? []).map((s) => [String(s.label), s]))
+  const asing = [...given.keys()].filter((k) => !known.has(k))
+  if (asing.length) return { ok: false, why: `kriteria asing ditolak: ${asing.join(', ')} bukan bagian dari rubrik penerbit` }
+
+  /**
+   * KOLOM `score` DI `attempt_components` PUNYA SATU ARTI: persen 0..100.
+   *
+   * Ini jebakan yang saya temukan sambil menulis fungsi ini. Kuis sudah memakai arti itu (setiap soal
+   * dinilai 0/100, `weight` 1). Rubrik esai penerbit memakai `{label, max}` dengan max 25/25/25/
+   * 15/10 — kalau angka mentah 0..max yang disimpan, `fromAttempts` (rata-rata berbobot) akan
+   * menghitung karangan yang nilainya penuh jadi **22 dari 100**, dan kertasnya tercetak sah. Angka
+   * yang salah tanpa satu pun baris merah adalah kegagalan terburuk yang bisa kita produksi.
+   *
+   * Jadi yang disimpan adalah persen (`v / max * 100`), `weight` = max penerbit. Dengan begitu
+   * penjumlahan berbobot di sisi pembaca kembali persis sama dengan total yang kami simpan:
+   * Σ(persen_i × max_i) / Σ max_i = Σ v_i · 100 / 100 = Σ v_i.
+   */
+  const components = []
+  let total = 0
+  for (const r of essay.rubric) {
+    const v0 = given.get(String(r.label))
+    if (!v0 || !Number.isFinite(Number(v0.score))) {
+      return { ok: false, why: `kriteria "${r.label}" tidak dinilai — sebagian rubrik tidak boleh menghasilkan angka akhir` }
+    }
+    const max = Number(r.max)
+    if (!Number.isFinite(max) || max <= 0) {
+      return { ok: false, why: `kriteria "${r.label}" tidak punya max yang sah di manifest penerbit — tidak bisa dinormalisasi ke persen` }
+    }
+    const v = Math.max(0, Math.min(max, Math.round(Number(v0.score))))
+    components.push({
+      attempt_id: attempt.id, item_id: `crit:${r.label}`,
+      score: Math.round((v / max) * 10000) / 100,
+      weight: max, graded_by: judgeModel ? 'model' : 'human',
+    })
+    total += v
+  }
+
+  const score = Math.round(total * 100) / 100
+  const verdict = Number.isFinite(Number(passMark)) ? (score >= Number(passMark) ? 'pass' : 'fail') : 'graded'
+  const attemptHash = computeAttemptHash({
+    learner: holder.learner, courseId: holder.course_id, lessonKey: attempt.lesson_key, kind: 'esai',
+    attemptNo: attempt.attempt_no, score, rubricHash: attempt.rubric_hash,
+  })
+
+  // Regrade harus idempoten: komponen model/manusia lama dibuang lebih dulu. Kalau tidak, dua
+  // penilaian bertumpuk dan angka yang dibaca `fromAttempts` adalah hasil penjumlahan dua sesi.
+  await rest('attempt_components', { method: 'DELETE', query: `?attempt_id=eq.${attempt.id}&graded_by=in.(model,human)` })
+  await rest('attempt_components', { method: 'POST', body: components })
+  await rest('attempts', {
+    method: 'PATCH', query: `?id=eq.${attempt.id}`, prefer: 'return=minimal',
+    body: [{ score, verdict, attempt_hash: attemptHash, judge_model: judgeModel ?? null, judge_temp: judgeTemp ?? null }],
+  })
+  await rest('submissions', {
+    method: 'PATCH', query: `?attempt_id=eq.${attempt.id}`, prefer: 'return=minimal',
+    body: [{ state: 'judged', judged_at: new Date().toISOString() }],
+  })
+
+  return { ok: true, attemptId: attempt.id, attemptHash, score, verdict, components: components.length, replacedHash: attempt.attempt_hash }
+}

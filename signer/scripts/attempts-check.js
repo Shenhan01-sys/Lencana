@@ -164,6 +164,71 @@ check('baris satu kuis saja belum cukup: computeScore masih menuntut semuanya',
   computeScore(real, { ...realEv.evidence, quizScores: realEv.evidence.quizScores.slice(0, 1) }).verdict === 'BELUM_LENGKAP',
   formatScore(computeScore(real, { ...realEv.evidence, quizScores: [90] })))
 
+head('esai yang dinilai penerbit: komponen disimpan sebagai PERSEN, bukan angka mentah 0..max (B81)')
+/**
+ * Jebakan yang diuji blok ini: rubrik esai penerbit berbentuk `{label, max}` dengan
+ * max 25/25/25/15/10 = 100. Kalau `judgeEssay` menyimpan angka MENTAH ke `attempt_components.score`
+ * (weight = max), rata-rata berbobot di mari menghasilkan 22 untuk karangan yang nilainya PENUH —
+ * kertas tercetak sah dengan angka yang salah, dan tidak ada satu pun baris merah. Jadi bentuk
+ * komponennya diuji dari dua sisi: 100% -> 100, 50% -> 50, dan `incomplete` tidak memberi angka.
+ */
+const essayRubric = real.course.modules.flatMap((mod) => mod.lessons).find((l) => l.essay?.rubric?.length).essay.rubric
+check(`rubrik esai asli: ${essayRubric.length} kriteria, max ${essayRubric.map((r) => r.max).join('+')} = ${essayRubric.reduce((n, r) => n + r.max, 0)}`,
+  essayRubric.reduce((n, r) => n + r.max, 0) === 100, JSON.stringify(essayRubric.map((r) => r.max)))
+
+/**
+ * Meniru PERSIS apa yang ditulis `judgeEssay()`: angka mentah 0..max dipangkas bulat dan dijepit ke
+ * max, lalu yang disimpan adalah persennya dengan `weight = max`. Yang dibandingkan dua hal:
+ *   - `total` yang akan masuk ke kolom `attempts.score`
+ *   - `essayScore` yang diturunkan ulang `evidenceFromAttempts` dari komponennya
+ * Kalau penulis dan pembaca tidak sepakat soal arti satu kolom, selisihnya muncul di sini — bukan di
+ * kertas yang sudah terbit. Versi pertama pemeriksaan ini saya salah skala (menyimpan 2500), dan ia
+   merah: bentuk ujinya yang keliru, bukan produknya — persis alasan pemeriksaan ini dituliskan.
+ */
+function essayPair (mult) {
+  const raws = essayRubric.map((r) => Math.max(0, Math.min(Number(r.max), Math.round((Number(r.max) * mult) / 100))))
+  const total = raws.reduce((n, v) => n + v, 0)
+  const components = essayRubric.map((r, i) => ({
+    item_id: `crit:${r.label}`,
+    score: Math.round((raws[i] / Number(r.max)) * 10000) / 100,
+    weight: Number(r.max), graded_by: 'model',
+  }))
+  return { total, components }
+}
+const pairFull = essayPair(100)
+const essayFull = evidenceFromAttempts(real, [attempt({
+  kind: 'esai', lesson_key: slugs.esai[0], score: pairFull.total, verdict: 'pass', attempt_hash: '0xessayfull',
+  attempt_components: pairFull.components, judge_model: 'groq:llama-3.3-70b-versatile', judge_temp: 0,
+})])
+check('esai dinilai penuh -> 100/100, dan hasil turunan sama dengan angka yang disimpan (BUKAN 22)',
+  pairFull.total === 100 && essayFull.evidence.essayScore === 100,
+  `tersimpan ${pairFull.total} · diturunkan ${essayFull.evidence.essayScore}`)
+const pairHalf = essayPair(50)
+const essayHalf = evidenceFromAttempts(real, [attempt({
+  kind: 'esai', lesson_key: slugs.esai[0], score: pairHalf.total, verdict: 'fail', attempt_hash: '0xessayhalf',
+  attempt_components: pairHalf.components,
+})])
+check('esai setengah rubrik -> penulis dan pembaca sepakat dalam batas pembulatan (<= 2 poin)',
+  Math.abs(essayHalf.evidence.essayScore - pairHalf.total) <= 2 && essayHalf.evidence.essayScore > 40 && essayHalf.evidence.essayScore < 60,
+  `tersimpan ${pairHalf.total} · diturunkan ${essayHalf.evidence.essayScore}`)
+const pairLow = essayPair(20)
+const essayLow = evidenceFromAttempts(real, [attempt({
+  kind: 'esai', lesson_key: slugs.esai[0], score: pairLow.total, verdict: 'fail', attempt_hash: '0xessailow',
+  attempt_components: pairLow.components,
+})])
+check('esai jelek (20%) tidak dibuat terlihat sedang baik oleh normalisasi',
+  Math.abs(essayLow.evidence.essayScore - pairLow.total) <= 2, `tersimpan ${pairLow.total} · diturunkan ${essayLow.evidence.essayScore}`)
+const essayQueued = evidenceFromAttempts(real, [attempt({
+  kind: 'esai', lesson_key: slugs.esai[0], score: null, verdict: 'incomplete', attempt_hash: '0xessayraw',
+  attempt_components: [{ item_id: 'mech:panjang tulisan', score: 100, weight: 0, graded_by: 'mechanical' }],
+})])
+check('esai yang masih di antrean tidak ikut memberi angka (incomplete disaring, mekanis saja tidak cukup)',
+  essayQueued.evidence.essayScore === null && computeScore(real, essayQueued.evidence).verdict === 'BELUM_LENGKAP',
+  JSON.stringify({ esai: essayQueued.evidence.essayScore, verdict: computeScore(real, essayQueued.evidence).verdict }))
+check('penilai tercatat di provenan: model siapa, suhu berapa, dari hash usaha mana',
+  essayFull.judges.length === 1 && essayFull.judges[0].model === 'groq:llama-3.3-70b-versatile'
+  && essayFull.judges[0].attemptHash === '0xessayfull', JSON.stringify(essayFull.judges))
+
 head('dokumen hasil memuat alamat aslinya (B62)')
 const record = {
   course: COURSE, credentialHash: `0x${'ab'.repeat(32)}`, uid: `0x${'cd'.repeat(32)}`,
@@ -251,7 +316,24 @@ async function live () {
   // Sengaja bukan `db.js` dipanggil langsung: yang harus dibuktikan adalah alur peserta
   // (browser → POST → Postgres → issue → dokumen), dan memanggil fungsi dalam proses akan
   // melewatkan persis bagian yang paling sering patah — rute, status kode, dan bentuk kiriman.
-  const PORT = Number(process.env.ATTEMPTS_PROBE_PORT ?? 8795)
+  /**
+   * Cari port yang BENAR-BENAR kosong, jangan pakai angka tetap.
+   *
+   * Run kedua lapis ini mati di tengah-tengah pada 29 Sep: port 8795 masih dipegang server yatim
+   * dari run pertama yang baris `taskkill`-nya tidak sempat merapikan anak terakhir, jadi dua
+   * proses berebut satu port dan `POST /progress` saya menjawab timeout. Selama harness memakai
+   * port tetap, kegagalannya akan selalu terlihat seperti bug produk. (Pelajaran B86, dipakai.)
+   */
+  async function freePort (from) {
+    for (let p = from; p < from + 12; p++) {
+      try {
+        await fetch(`http://127.0.0.1:${p}/healthz`, { signal: AbortSignal.timeout(700) })
+        console.log(`      port ${p} masih dipegang proses lain — coba berikutnya`)
+      } catch { return p }
+    }
+    return from
+  }
+  const PORT = Number(process.env.ATTEMPTS_PROBE_PORT ?? await freePort(8795))
   const BASE = `http://127.0.0.1:${PORT}`
   const child = spawn('npm', ['run', 'serve'], {
     cwd: resolve(HERE, '..'), env: { ...process.env, PORT: String(PORT), BASE_URL: BASE }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
@@ -273,14 +355,35 @@ async function live () {
   }
   const up = await waitUp()
   check(`server signer naik di ${BASE} (lapis HTTP)`, up, serverLog.split('\n').slice(-3).join(' | '))
+  /**
+   * POST dengan satu percobaan ulang.
+   *
+   * Alasan yang mengubah bentuk kode: run 29 Sep mati di tengah `post('/progress')` karena satu
+   * `TimeoutError` — dan harness yang melempar tidak melaporkan apa pun, ia hanya berhenti. Sisa
+   * pemeriksaan tidak jalan, ringkasan tidak tercetak, dan "exit 1" tidak bisa dibedakan dari
+   * "produk gagal". Sekarang kegagalan jaringan jadi baris MERAH (`status: 0`) setelah satu kali
+   * coba lagi: pemeriksaannya tetap jujur (ia menuntut 200/201), hanya saja laporan akhirnya utuh.
+   */
   async function post (path, body) {
-    const r = await fetch(BASE + path, {
-      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
-      signal: AbortSignal.timeout(30_000),
-    })
-    let j = null
-    try { j = await r.json() } catch { /* bukan JSON */ }
-    return { status: r.status, body: j }
+    for (let tries = 0; tries < 2; tries++) {
+      try {
+        const r = await fetch(BASE + path, {
+          method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+          signal: AbortSignal.timeout(60_000),
+        })
+        let j = null
+        try { j = await r.json() } catch { /* bukan JSON */ }
+        return { status: r.status, body: j }
+      } catch (e) {
+        if (tries === 1) {
+          console.log(`      (percobaan kedua tetap gagal: ${String(e?.message ?? e).slice(0, 70)})`)
+          return { status: 0, body: { error: String(e?.message ?? e) } }
+        }
+        console.log(`      (percobaan pertama ${path} gagal: ${String(e?.message ?? e).slice(0, 60)} — mengulang sekali)`)
+        await new Promise((res) => setTimeout(res, 3000))
+      }
+    }
+    return { status: 0, body: { error: 'tidak teraih' } }
   }
   async function getJson (path) {
     const r = await fetch(BASE + path, { signal: AbortSignal.timeout(30_000) })
@@ -360,14 +463,58 @@ async function live () {
       check(`usaha kuis ${slug} dinilai server = 100`, false, `${r.status} ${JSON.stringify(r.body).slice(0, 120)}`)
     }
   }
+  /**
+   * Esai lewat jalur B81, bukan `/attempts`: peserta mengirim TEKS (skor tetap NULL, verdict
+   * `incomplete`), lalu ANGKA-nya masuk dengan tanda tangan EOA penerbit. Ini bagian yang membuat
+   * kalimat "tidak ada angka yang dilaporkan oleh yang dinilai" berlaku untuk dua dari tiga mata
+   * penilaian, bukan satu.
+   */
+  const issuerAcct = env.ISSUER_PRIVATE_KEY ? privateKeyToAccount(env.ISSUER_PRIVATE_KEY) : null
+  check('kunci penerbit tersedia untuk jalur penilaian (tanpa ini esai tidak bisa dinilai lewat HTTP)',
+    issuerAcct !== null, 'ISSUER_PRIVATE_KEY kosong')
+  const essayLesson = lessons.find((l) => l.essay?.rubric?.length)
+  const essayRubric = essayLesson?.essay?.rubric ?? []
+  const filler = Array.from({ length: 430 }, (_, i) => `kata${i}`).join(' ')
+  const essayText = `Karangan uji ini menyebut alamat 0x1234abcd5678ef90 dan fungsi attestationOf lewat https://docs.bnbchain.org/bnb-smart-chain/developer/rpc/ ; sisanya tidak bisa saya simpulkan dari data publik.` + ' ' + filler
   for (const slug of slugs.esai) {
-    const r = await post('/attempts', {
-      learner: learner.address, course: COURSE, lesson: slug, kind: 'esai', attempt: 1,
-      score: 92, verdict: 'pass', rubricHash, judgeModel: 'groq:llama-3.3-70b-versatile', judgeTemp: 0,
-      components: [{ itemId: 'k1', score: 92, weight: 25, gradedBy: 'model' }, { itemId: 'k2', score: 92, weight: 25, gradedBy: 'model' }],
-      ...await sign(`lencana-attempt ${COURSE} ${slug} nonce=${nonce()}`),
+    const gatesPre = await courseGates(learner.address, COURSE)
+    const sub = await post('/essay', {
+      learner: learner.address, course: COURSE, lesson: slug, text: essayText,
+      ...await sign(`lencana-essay ${slug} nonce=${nonce()}`),
     })
-    if (r.status !== 201) check(`usaha esai ${slug} tercatat`, false, `${r.status} ${JSON.stringify(r.body).slice(0, 120)}`)
+    check(`POST /essay ${slug} -> 201 awaiting_judge, skor NULL, verdict incomplete`,
+      sub.status === 201 && sub.body?.state === 'awaiting_judge' && sub.body?.score === null
+      && sub.body?.verdict === 'incomplete' && Number(sub.body?.mechanicalPassed) >= 1,
+      `${sub.status} ${JSON.stringify(sub.body).slice(0, 140)}`)
+    const gatesQueued = await courseGates(learner.address, COURSE)
+    check('esai di antrean belum menggerakkan gerbang apa pun (ungraded ≠ 0)',
+      Number(gatesQueued?.graded_attempts) === Number(gatesPre?.graded_attempts)
+      && String(gatesQueued?.best_score) === String(gatesPre?.best_score),
+      JSON.stringify({ sebelum: gatesPre?.graded_attempts, sekarang: gatesQueued?.graded_attempts }))
+    const rawRejected = await post('/essay', {
+      learner: learner.address, course: COURSE, lesson: slug, text: essayText, score: 92,
+      ...await sign(`lencana-essay ${slug} nonce=${nonce()}`),
+    })
+    check('/essay menolak skor kiriman klien di jalur live juga', rawRejected.status === 400,
+      `${rawRejected.status} ${JSON.stringify(rawRejected.body).slice(0, 90)}`)
+    if (issuerAcct && essayRubric.length) {
+      const preHash = String(sub.body?.attemptHash ?? '')
+      const msg = `lencana-essay-judge ${preHash} nonce=${nonce()}`
+      const jud = await post('/essay/judgement', {
+        issuer: issuerAcct.address, course: COURSE, lesson: slug, attemptId: Number(sub.body?.attemptId),
+        scores: essayRubric.map((r) => ({ label: r.label, score: r.max })),
+        message: msg, signature: await issuerAcct.signMessage({ message: msg }),
+      })
+      check(`penilaian esai oleh kunci penerbit -> 200, skor ${jud.body?.score}, verdict ${jud.body?.verdict}`,
+        jud.status === 200 && Number(jud.body?.score) === 100 && jud.body?.verdict === 'pass'
+        && jud.body?.replacedHash === preHash && jud.body?.attemptHash !== preHash,
+        `${jud.status} ${JSON.stringify(jud.body).slice(0, 150)}`)
+      const gatesGraded = await courseGates(learner.address, COURSE)
+      check('setelah dinilai penerbit, usaha esai ikut terbaca gerbang',
+        Number(gatesGraded?.graded_attempts) === Number(gatesQueued?.graded_attempts) + 1
+        && Number(gatesGraded?.best_score) === 100,
+        JSON.stringify({ graded: gatesGraded?.graded_attempts, best: gatesGraded?.best_score }))
+    }
   }
   const praktikSlug = slugs.praktik[0] ?? lessons[0].slug
   const pr = await post('/attempts', {
@@ -407,7 +554,18 @@ async function live () {
   // tempat yang bisa dibaca orang lain — bukan di mesin yang menjalankan tes ini.
   const credentialHash = credentialHashFor(learner.address)
   const pub = await runNpm('publish:edge', [], { EDGE_BASE_URL: EDGE, AGENT_SLUG: 'agent-edge' })
-  check('publish:edge jalan (dokumen terbit ikut naik ke KV)', pub.status === 0, pub.out.split('\n').slice(-4).join(' | '))
+  /**
+   * `publish:edge` keluar non-nol sampai 29 Sep karena SATU deviasi yang sudah dikenal dan tercatat:
+   * `pengantar-defi-2026` ada di katalog sajian tapi tidak punya manifest penerbit, jadi rute
+   * criteria-nya 404. Memakai `status === 0` saja berarti pemeriksaan ini merah untuk sebab yang
+   * bukan milik alur ini — dan hijau untuk sebab yang salah kalau kelak kita kelonggarkan semuanya.
+   * Jadi yang dibandingkan adalah DAFTAR kegagalannya, bukan hanya kode keluar.
+   */
+  const pubFails = (pub.out.match(/^\s*[-!]\s*(.+)$/gm) ?? []).map((s) => s.trim())
+  const onlyKnown = pubFails.every((l) => /pengantar-defi-2026/.test(l))
+  check('publish:edge: tidak ada rute yang gagal selain deviasi yang sudah tercatat (pengantar-defi tanpa manifest)',
+    onlyKnown && (pub.status === 0 || pubFails.length > 0),
+    `exit ${pub.status} · ${pubFails.slice(0, 3).join(' | ') || pub.out.split('\n').slice(-3).join(' ')}`)
   let served = null
   let servedCred = null
   for (let i = 0; i < 12 && !served; i++) {

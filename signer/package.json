@@ -33,7 +33,8 @@
     "verify:live-cert": "node scripts/verify-live-cert.js",
     "publish:edge": "tsx scripts/publish.js",
     "verify:edge": "node scripts/verify-edge.js",
-    "rehost": "node scripts/rehost.js"
+    "rehost": "node scripts/rehost.js",
+    "grade:essay": "tsx scripts/grade-essay.js"
   },
   "dependencies": {
     "@digitalbazaar/data-integrity": "^2.5.0",

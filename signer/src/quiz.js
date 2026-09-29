@@ -28,6 +28,23 @@ export function quizLesson (courseId, lessonSlug) {
 }
 
 /**
+ * Lesson esai milik penerbit: rubrik + ambang panjang yang dipakai `grade.js`.
+ *
+ * Alasannya sama dengan `quizLesson`: kriteria penilaian adalah milik penerbit dan harus dibaca dari
+ * manifest di sisi SERVER. Kalau rute penyerahan esai menerima `max` per kriteria dari klien, peserta
+ * bisa mengirim rubrik yang lebih mudah dan angka akhirnya tetap tercetak sah — itu persis kegagalan
+ * yang sedang kita tutup (B81).
+ */
+export function essayLesson (courseId, lessonSlug) {
+  const m = manifestOf(courseId)
+  if (!m) return { error: `kursus "${courseId}" tidak ada di katalog penerbit` }
+  const lesson = m.course.modules.flatMap((mod) => mod.lessons).find((l) => l.slug === lessonSlug)
+  if (!lesson) return { error: `lesson "${lessonSlug}" tidak ada di kursus "${courseId}"` }
+  if (!lesson.essay?.rubric?.length) return { error: `lesson "${lessonSlug}" bukan esai (rubriknya kosong)` }
+  return { manifest: m, lesson }
+}
+
+/**
  * @param {{courseId:string, lessonSlug:string, picks?:Array<{itemId:string, choice:number}>}} input
  *        `picks` = pilihan peserta per soal. TIDAK ada `score` di sini, dan tidak akan ada.
  */

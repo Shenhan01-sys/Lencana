@@ -199,271 +199,289 @@ karangan di perangkat peserta.** Angka apa pun yang tercetak di kertas bisa dite
 dari tiga tempat itu — itu isi blok `attempts` pada `GET /results/<course>/<hash>`.
 
 ---
-
 ## 4b. DFD level 2 — tiap proses dibedah sampai nama fungsi, tabel, dan kolom
 
-Delapan diagram di bawah ini level-2 dari kotak `P1`–`P6` di atas, ditambah dua proses yang di level 1
-terlihat sebagai satu panah (`/verify` berbayar) dan satu proses yang **belum ada** (esai) supaya tidak
-ada yang mengira kotak kosong itu bagian dari sistem. Konvensi sama di semua gambar: `{{ }}` proses,
-`[( )]` tempat data, `(( ))` aktor, dan panah diberi nama isinya.
+Konvensi di semua gambar bawah: `{{ }}` proses, `[( )]` tempat data, `([ ])` aktor. Setiap anak panah
+diberi nama isinya, dan setiap kotak proses menyebut **nama fungsi yang benar-benar ada di repo** —
+kalau suatu hari namanya berubah, gambarnya ikut salah, dan itu memang gunanya.
 
-### DFD-2 · P1 Enrollment — dari tanda tangan ke baris peserta
-
-```mermaid
-flowchart LR
-  PE([Peserta])
-  RR{{"1.1 verifikasi tanda tangan<br/>db.js:authorizeLearner"}}
-  NN{{"1.2 consume nonce<br/>db.js:consumeNonce"}}
-  LT{{"1.3 lessons_total dari katalog<br/>server, BUKAN dari klien"}}
-  UP{{"1.4 upsert enrollment<br/>on_conflict learner,course_id"}}
-  S1[("used_nonces<br/>learner · nonce · used_at")]
-  S2[("enrollments<br/>learner · course_id · lessons_total<br/>· completed_at · status")]
-  CAT[("katalog penerbit<br/>web/src/manifest.ts")]
-
-  PE -->|POST /enroll · learner · course · message · signature| RR
-  S1 -.->|cek belum pernah dipakai| RR
-  RR -->|pesan tersahihkan| NN
-  NN -->|nonce ditutup| S1
-  RR --> LT
-  CAT -.->|jumlah lesson dihitung di sini| LT
-  LT --> UP
-  UP -->|INSERT ... ON CONFLICT DO NOTHING| S2
-  UP -->|200 enrollmentId · created| PE
-```
-
-Yang ditegak di proses ini, dan itu yang membuatnya bukan "form pendaftaran biasa": **satu-satunya
-bukti bahwa yang menulis adalah peserta adalah tanda tangan EIP-191-nya**, dan nonce-nya hidup di DB
-sehingga dua proses signer tidak bisa memakai nonce yang sama.
-
-### DFD-2 · P2 Progres belajar — mesin status di server
+### DFD-2 · P1 Enrollment — `POST /enroll`
 
 ```mermaid
 flowchart LR
   PE([Peserta])
-  AU{{"2.1 authorize<br/>tanda tangan + nonce"}}
-  SM{{"2.2 uji pindah status<br/>db.js:ALLOWED_MOVE"}}
-  WR{{"2.3 tulis lesson_progress<br/>upsert per enrollment+lesson"}}
-  EV{{"2.4 event-log perpindahan<br/>selalu append, noop tidak ditulis"}}
-  RU{{"2.5 roll-up<br/>semua completed → enrollments.completed_at"}}
-  CL([Kursus / katalog])
-  A1[("lesson_progress<br/>enrollment_id · lesson_id · status<br/>· position · updated_at")]
-  A2[("progress_events<br/>from_status · to_status · at")]
-  A3[("enrollments<br/>completed_at")]
+  A1{{"authorizeLearner<br/>verifyMessage + consumeNonce"}}
+  A2{{"enroll()<br/>lessonsTotal dari katalog"}}
+  A3{{"findEnrollment<br/>cek baris yang sudah ada"}}
+  N1[("used_nonces<br/>nonce unique")]
+  T1[("enrollments<br/>unique(learner,course_id)<br/>lessons_total, status, completed_at")]
+  MF[("manifest penerbit<br/>web/src/manifest.ts")]
 
-  PE -->|POST /progress · lesson · status · position| AU
-  AU --> SM
-  SM -->|ditolak 422 kalau lompat| PE
-  SM --> WR
-  WR --> A1
-  WR --> EV
-  EV --> A2
-  RU --> A3
-  A1 -.->|bool_and status = completed| RU
-  CL -.->|posisi lesson| WR
+  PE -->|"POST /enroll {learner, course, message, signature}"| A1
+  A1 -->|"nonce dipakai sekali"| N1
+  A1 -->|sah| A2
+  MF -.->|"jumlah lesson, bukan angka kiriman klien"| A2
+  A2 --> A3
+  A3 -->|"upsert on_conflict=learner,course_id"| T1
+  A2 -->|"200 {enrollmentId, created:false} kalau sudah ada"| PE
 ```
 
-### DFD-2 · P3 Penilaian kuis — angka masuk lewat server, bukan lewat peserta
+Dua hal yang ditegak di mari: tanda tangan EIP-191 atas nonce yang **hidup di DB** (bukan `Set` dalam
+proses), dan penyebut "selesai" dihitung server. `created:false` pada enroll kedua itu hasil yang
+benar, bukan kegagalan.
+
+### DFD-2 · P2 Progres belajar — `POST /progress`, `GET /progress`
+
+```mermaid
+flowchart LR
+  PE([Peserta])
+  B1{{"authorizeLearner(scope progress)"}}
+  B2{{"ALLOWED_MOVE<br/>locked → unlocked → started → completed"}}
+  B3{{"tulis lesson_progress<br/>upsert (enrollment_id, lesson_id)"}}
+  B4{{"tulis progress_events<br/>from_status, to_status"}}
+  B5{{"roll-up: semua completed → enrollments.status"}}
+  S1{{"progressSummary()<br/>+ courseGates() untuk GET"}}
+  D1[("lesson_progress")]
+  D2[("progress_events")]
+  D3[("enrollments")]
+
+  PE -->|"POST /progress {lesson, status, position, tanda tangan}"| B1
+  B1 --> B2
+  B2 -->|"422 kalau lompat (locked → completed)"| PE
+  B2 --> B3
+  B3 --> D1
+  B3 --> B4
+  B4 --> D2
+  B5 --> D3
+  D1 -.-> B5
+  D1 -.-> S1
+  D2 -.-> S1
+  S1 -->|"200 {lessonsTotal, lessonsCompleted, allLessonsDone, completed[]}"| PE
+```
+
+`allLessonsDone` di jawaban adalah hasil `bool_and` atas `lesson_progress` — dan `NULL` (belum ada
+baris sama sekali) **diterjemahkan jadi `false`** di `progressSummary`, bukan dihamburkan apa adanya.
+
+### DFD-2 · P3 Penilaian kuis — `POST /grade`
 
 ```mermaid
 flowchart LR
   BR([Browser #/learn])
-  GR{{"3.0 tolak badan yang memuat score<br/>400 · satu angka satu jalan masuk"}}
-  AU{{"3.1 authorize tanda tangan + nonce"}}
-  KEY{{"3.2 baca kunci soal<br/>quiz.js:quizLesson · manifest sisi server"}}
-  SC{{"3.3 hitung per soal + verdict<br/>passPct milik penerbit"}}
-  NO{{"3.4 attempt_no dihitung server<br/>db.js:nextAttemptNo"}}
-  HA{{"3.5 attempt_hash<br/>db.js:computeAttemptHash · keccak256 atas 7 string"}}
-  W1{{"3.6 INSERT attempts"}}
-  W2{{"3.7 INSERT attempt_components per soal"}}
-  K1[("attempts<br/>kind · attempt_no · score · verdict<br/>· rubric_hash · attempt_hash")]
-  K2[("attempt_components<br/>item_id · score · weight · graded_by")]
-  CAT[("manifest penerbit<br/>kunci jawaban ada di sini, di server")]
+  G0{{"tolak body.score → 400<br/>satu angka satu jalan masuk"}}
+  G1{{"authorizeLearner(scope grade)"}}
+  G2{{"gradeQuiz()<br/>kunci dibaca dari manifest di server"}}
+  G3{{"nextAttemptNo()<br/>server yang menghitung, bukan klien"}}
+  G4{{"computeAttemptHash()<br/>keccak256(7 string)"}}
+  G5{{"storeAttempt()"}}
+  K1[("attempts<br/>attempt_hash unique, verdict, score")]
+  K2[("attempt_components<br/>item_id, score, weight, graded_by")]
+  KB[("kunci jawaban<br/>HANYA di manifest sisi server")]
 
-  BR -->|POST /grade · lesson · picks itemId+choice| GR
-  GR --> AU
-  AU --> SC
-  CAT -.->|kunci| KEY
-  KEY -.-> SC
-  SC --> NO
-  NO --> HA
-  HA --> W1
-  W1 --> K1
-  W2 --> K2
-  W1 --> W2
-  SC -->|201 score · correct · total · attemptHash · attemptNo · rubricHash| BR
-  K1 -.->|dihitung ulang oleh klien tanpa secret key| BR
+  BR -->|"POST /grade {lesson, picks:[{itemId, choice}], tanda tangan}"| G0
+  G0 --> G1
+  KB -.-> G2
+  G1 --> G2
+  G2 -->|"picks sebagian / soal asing /Choice di luar options → 422"| BR
+  G2 --> G3
+  G3 --> G4
+  G4 --> G5
+  G5 --> K1
+  G5 --> K2
+  G2 -->|"201 {score, correct, total, passPct, verdict, attemptNo, rubricHash, attemptHash}"| BR
 ```
 
-### DFD-2 · P4 Penerbitan dari rekaman — tiga gerbang, satu attestation, nol karangan angka
+Yang membuat rute ini berarti: `verdict` dihitung dari `lesson.quiz.passPct` **milik penerbit**, dan
+jawaban memuat `attemptNo` + `rubricHash` supaya klien bisa menghitung ulang hash tanpa secret key.
+Batas yang jujur: kunci tetap terbundel ke browser (B80) — yang dihapus adalah *laporan angka oleh
+peserta*, bukan *keterbukaan soal*.
+
+### DFD-2 · P4 Penerbitan dari rekaman — `issue --from-attempts`
 
 ```mermaid
 flowchart TB
-  PB([Penerbit · npm run issue -- --from-attempts])
-  G1{{"4.1 gerbang selesai<br/>courseGates.all_lessons_done · NULL = belum tahu"}}
-  G2{{"4.2 gerbang lulus<br/>best_score >= passMark penerbit"}}
-  RD{{"4.3 baca rekaman<br/>db.js:attemptsFor embed attempt_components"}}
-  MP{{"4.4 komponen → masukan computeScore<br/>src/fromAttempts.js · tanpa komponen = ditolak"}}
-  CS{{"4.5 computeScore + rubricHash<br/>web/src/score.ts · verdict harus LULUS"}}
-  PR{{"4.6 prasyarat on-chain<br/>attestationOf prereqHash → refUID"}}
-  AT{{"4.7 BAS attest(schema, data)<br/>attester = kunci AGEN, bukan platform"}}
-  AL{{"4.8 alokasi nomor bit<br/>store.js:loadAllocator · slot REVOCATION + SUSPENSION"}}
-  BD{{"4.9 susun dokumen OB 3.0<br/>credential.js:buildOpenBadgeCredential"}}
-  SG{{"4.10 tanda tangani<br/>sign.js:signDocument · Ed25519 Multikey penerbit"}}
-  VF{{"4.11 verifikasi sendiri sebelum disimpan<br/>sign.js:verifyDocument"}}
-  ST{{"4.12 simpan rekaman<br/>store.js:rememberCredential · evidence + attempts"}}
-  AN{{"4.13 anchor hash daftar<br/>anchor.js:anchorListHash oleh platform · readAnchor"}}
-  PU{{"4.14 publish ke tepi"}}
-  D1[("course_gates view")]
-  D2[("attempts + attempt_components")]
-  D3[("BAS · attestation uid<br/>statusOf · prerequisiteOf")]
-  D4[("store .store/state.json<br/>uid · bit index · dokumen · jejak")]
-  D5[("resolver · schemaUID · isIssuer")]
+  PB([Penerbit: npm run issue -- --from-attempts])
+  C1{{"courseGates()<br/>gerbang 1: all_lessons_done · gerbang 2: best_score >= passMark"}}
+  C2{{"attemptsFor()<br/>attempts + attempt_components dalam 1 panggilan"}}
+  C3{{"evidenceFromAttempts()<br/>komponen → masukan computeScore"}}
+  C4{{"computeScore() + rubricHashOf()<br/>verdict harus LULUS"}}
+  C5{{"cek prasyarat: attestationOf(prereqHash)<br/>refUID dikirim kalau ada"}}
+  C6{{"BAS attest(schemaUID, data)<br/>attester = EOA agen penerbit"}}
+  C7{{"allocator.slot(REVOCATION|SUSPENSION, uid)<br/>nomor sekali jadi, disimpan di store"}}
+  C8{{"buildOpenBadgeCredential + signDocument<br/>kunci Multikey penerbit"}}
+  C9{{"verifyDocument() sebelum disimpan<br/>+ prerequisiteOf(uid) dibaca ulang"}}
+  C10{{"anchorListHash() oleh kunci platform<br/>hash atas SEMUA yang dipantau"}}
+  C11{{"publish:edge → KV"}}
+  V1[("course_gates view")]
+  V2[("attempts · attempt_components")]
+  V3[("BAS: attestation, uid")]
+  V4[("store: uid, bit index, dokumen, attempts")]
+  V5[("BAS: hash daftar ter-anchor")]
 
-  PB --> G1
-  D1 -.-> G1
-  G1 --> G2
-  G2 --> RD
-  D2 -.-> RD
-  RD --> MP
-  MP --> CS
-  CS --> PR
-  D5 -.-> PR
-  PR --> AT
-  AT --> D3
-  D3 --> AL
-  AL --> BD
-  BD --> SG
-  SG --> VF
-  VF --> ST
-  ST --> AN
-  D4 -.->|servedHashes atas SEMUA yang dipantau| AN
-  ST --> PU
-  AT -.->|pascakondisi: prerequisiteOf != 0| PB
+  PB --> C1
+  V1 -.-> C1
+  C1 -->|"keluar exit 3 SEBELUM gas"| PB
+  C1 --> C2
+  V2 -.-> C2
+  C2 --> C3
+  C3 --> C4
+  C4 --> C5
+  C5 --> C6
+  C6 --> V3
+  C6 --> C7
+  C7 --> C8
+  C8 --> C9
+  C9 --> V4
+  C9 --> C10
+  C10 --> V5
+  C10 --> C11
 ```
 
-Tiga penolakan di kiri atas (`G1`, `G2`, `CS`) **berhenti sebelum `4.7`** — itu yang diukur
-`verify:attempts:live` dengan menuntut `attestationOf(hash)` tetap nol setelah penolakan.
+Empat penolakan (gerbang 1, gerbang 2, `BELUM_LENGKAP`, `TIDAK_LULUS`) semuanya terjadi **sebelum**
+kotak `C6`. Itulah yang diukur `verify:attempts:live`: penolakannya exit non-nol, dan
+`attestationOf(hash)` tetap nol — artinya tidak ada satu pun transaksi yang lahir dari percobaan
+menembus gerbang.
 
-### DFD-2 · P5 Penyajian publik — tepi tidak pernah menandatangani
+### DFD-2 · P5 Penyajian publik — `publish:edge` lalu Worker
 
 ```mermaid
 flowchart LR
-  OP([Operator · npm run publish:edge])
-  WH{{"5.1 himpun yang dipantau<br/>lists.js:servedHashes + store.js:watchedHashes"}}
-  RL{{"5.2 render dua Bitstring Status List<br/>lists.js:renderList · tanda tangan di Node"}}
-  DOC{{"5.3 kumpulkan dokumen<br/>credential · results · criteria · issuers"}}
-  KV{{"5.4 tulis KV per kunci<br/>lencana-docs"}}
-  WKR{{"5.5 Worker melayani<br/>rute → lookup KV · tanpa kunci di tepi"}}
-  K1[("KV credentials/0x…")]
-  K2[("KV results/course/hash")]
-  K3[("KV credentials/status/revocation · suspension")]
-  K4[("KV issuers/slug · criteria/course")]
-  PU([Verifier publik · browser · validator 1EdTech])
+  OP([Operator: npm run publish:edge])
+  E1{{"servedHashes() + watchedHashes()<br/>korpus yang dipantau, bukan yang lagi diuji"}}
+  E2{{"renderList(REVOCATION|SUSPENSION)<br/>ditandatangani di Node, bukan di tepi"}}
+  E3{{"credential doc · results doc · criteria · issuer doc"}}
+  E4{{"kvPut per kunci ke lencana-docs"}}
+  W1{{"Worker: rute → lookup KV<br/>TIDAK pernah menandatangani"}}
+  KV[("KV: credentials/0x…, results/<course>/<hash>,<br/>credentials/status/<purpose>, issuers/<slug>, criteria/<course>")]
+  PU([Verifier: browser · vc.1ed.tech · dompet])
 
-  OP --> WH
-  WH --> RL
-  RL --> DOC
-  DOC --> KV
-  KV --> K1
-  KV --> K2
-  KV --> K3
-  KV --> K4
-  PU -->|GET tanpa kredensial apa pun| WKR
-  WKR --> K1
-  WKR --> K2
-  WKR --> K3
-  WKR --> K4
-  WKR -->|x-lencana-stale saat chain-diverged| PU
+  OP --> E1
+  E1 --> E2
+  E2 --> E3
+  E3 --> E4
+  E4 --> KV
+  PU -->|"GET tanpa kredensial"| W1
+  W1 --> KV
+  W1 -->|"x-lencana-stale: chain-diverged + 503<br/>kalau hash daftar != yang ter-anchor"| PU
 ```
 
-### DFD-2 · P6 Pencabutan & penangguhan — cabut permanen, dan itu dijaga tes
+Fungsi P5 yang sering salah dimengerti: tepi adalah **cache yang bisa dibaca orang**, bukan sumber
+kebenaran. Kalau ia menyimpulkan hash daftar tidak cocok dengan chain, ia menjawab 503 — jujur, bukan
+menyajikan status yang mungkin basi.
+
+### DFD-2 · P6 Pencabutan & penangguhan — `npm run revoke`
 
 ```mermaid
 flowchart LR
-  PB([Penerbit · npm run revoke -- --hash])
-  RD{{"6.1 baca state sekarang<br/>resolver:statusOf → exists · revoked · expired · delisted · issuer"}}
-  RF{{"6.2 menolak kalau sudah tercabut<br/>EAS tidak punya unrevoke · dijaga test_fork_TidakAdaJalurUnrevoke"}}
-  RV{{"6.3 BAS revoke(schema, uid) oleh kunci AGEN"}}
-  RB{{"6.4 baca ulang dari chain<br/>after[1] harus true, kalau tidak: merah"}}
-  AN{{"6.5 re-anchor hash daftar yang berubah"}}
-  PU{{"6.6 publish:edge supaya daftar tersaji ikut bergerak"}}
-  C1[("BAS · uid tercabut")]
-  C2[("store bit index REVOCATION")]
-  C3[("KV daftar status")]
-  CH([Chain 97])
+  PB([Penerbit: npm run revoke -- --hash])
+  R1{{"statusOf(hash) dulu<br/>exists, revoked, expired, issuerDelisted, issuer"}}
+  R2{{"tolak: hash tidak dikenal / sudah tercabut<br/>EAS tidak punya jalur unrevoke"}}
+  R3{{"BAS revoke(schema, uid) oleh KUNCI AGEN<br/>bukan kunci platform"}}
+  R4{{"allocator: bit REVOCATION untuk uid ini = 1"}}
+  R5{{"anchorListHash() ulang kedua daftar"}}
+  R6{{"publish:edge supaya daftar tersaji ikut bergerak"}}
+  R7{{"baca ulang revoked dari chain<br/>kalau tidak true: merah, bukan kuning"}}
+  X1[("BAS: uid revoked")]
+  X2[("store: daftar bit + hash")]
+  X3[("KV: daftar status tersaji")]
 
-  PB --> RD
-  CH -.-> RD
-  RD --> RF
-  RF --> RV
-  RV --> C1
-  C1 --> RB
-  RB --> AN
-  C2 -.->|hash atas SEMUA yang dipantau| AN
-  AN --> PU
-  PU --> C3
+  PB --> R1
+  R1 --> R2
+  R2 --> R3
+  R3 --> X1
+  R3 --> R4
+  R4 --> X2
+  R4 --> R5
+  R5 --> R6
+  R6 --> X3
+  X1 -.->|dibaca ulang| R7
 ```
 
-### DFD-2 · P7 Verifikasi berbayar antar-mesin (x402) — satu-satunya proses yang menghasilkan uang
+`revoke` dijalankan dengan kunci **agen penerbit**, karena pencabutan adalah pernyataan institusi itu,
+bukan pernyataan platform. Kalau `--publish` tidak dipakai, skrip **mencetak** bahwa daftar belum
+bergerak — keadaan setengah jadi tidak dibuat terlihat selesai.
+
+### DFD-2 · P7 Verifikasi berbayar mesin-ke-mesin — `POST /verify` (x402)
 
 ```mermaid
 flowchart LR
-  MA([Klien berbayar / agen])
-  OF{{"7.1 tawarkan syarat bayar<br/>x402.js:paymentRequirements · 402 + accepts"}}
-  DE{{"7.2 decode X-Payment"}}
-  GU{{"7.3 penjaga: token · payTo = SPLIT kita · jumlah · EIP-2612 + witness"}}
-  SE{{"7.4 settle sebagai fasilitator<br/>x402.js:settlePayment"}}
-  SP{{"7.5 split di kontrak kita<br/>SettlementSplit · platformBps = 1000 = 10%"}}
-  HE{{"7.6 header X-PAYMENT-RESPONSE<br/>settleTx · splitTx · splitRef"}}
-  RE{{"7.7 laporan verifikasi<br/>statusOf per hash · batch diukur gas-nya"}}
-  M1[("chain 97 · token demo + SettlementSplit")]
-  M2[("chain 97 · resolver statusOf")]
+  MA([Klien berbayar: agen, otomasi])
+  Y1{{"paymentRequirements()<br/>token, payTo = SPLIT, amount, network"}}
+  Y2{{"402 + accepts[] + WWW-Authenticate"}}
+  Y3{{"decodePaymentHeader + checkPayment()<br/>token benar? payTo ke split kita? jumlah? tanda tangan?"}}
+  Y4{{"settlePayment() sebagai fasilitator<br/>settle → SettlementSplit.splitErc20"}}
+  Y5{{"X-PAYMENT-RESPONSE: settleTx, splitTx, splitRef"}}
+  Y6{{"laporan verifikasi: statusOf per hash<br/>batch = 190.659 gas per settlement terukur"}}
+  Z1[("chain: SettlementSplit<br/>platformBps = 1000 = 10%, plafon 2500")]
+  Z2[("chain: resolver statusOf")]
 
-  MA -->|POST /verify tanpa X-Payment| OF
-  OF -->|402 accepts| MA
-  MA -->|POST /verify + X-Payment| DE
-  DE --> GU
-  GU -->|ditolak kalau payTo bukan split kita| MA
-  GU --> SE
-  SE --> SP
-  SP --> M1
-  RE --> M2
-  SE --> HE
-  HE --> MA
-  M2 -.-> RE
-  RE --> MA
+  MA -->|"POST /verify tanpa X-Payment"| Y1
+  Y1 --> Y2
+  Y2 --> MA
+  MA -->|"POST /verify + X-Payment"| Y3
+  Y3 -->|ditolak kalau payTo bukan kontrak kita| MA
+  Y3 --> Y4
+  Y4 --> Z1
+  Y4 --> Y5
+  Y5 --> MA
+  Z2 -.-> Y6
+  Y6 --> MA
 ```
 
-### DFD-2 · P8 Yang BELUM ada — penyerahan esai + antrean penilaian (B81)
+Uangnya mengalir di sini, dan ini satu-satunya proses yang menyebut angka pembagian: 10% platform,
+sisanya ke penerbit, **dieksekusi kontrak yang kita tulis** — bukan oleh kode Node kita. Karena itu
+kalimat "pembagiannya bisa diaudit" benar, dan kalimat "kami menarik biaya kursus" belum (bar 10,
+OI-11: enrollment belum menempel ke harga).
 
-Kotak ini sengaja digambar sebagai rencana, bukan realitas, supaya tidak dibaca dari diagram sebagai
-fitur. **Bagian penilainya sudah ada** (`grade.js:gradeAgainstRubric` + juri model, dan `verdict`
-`incomplete` + `graded_by` `human` sudah sah di skema); yang belum adalah permukaan penyerahan dan
-antreannya.
+### DFD-2 · P8 Penyerahan esai + antrean penilaian — `POST /essay`, `POST /essay/judgement`
 
 ```mermaid
 flowchart LR
-  PE([Peserta]):::rencana
-  SU{{"9.1 POST /essay menyimpan TEKS<br/>butuh kolom/tabel + kebijakan retensi"}}:::rencana
-  IN{{"9.2 attempts verdict=incomplete<br/>score NULL · belum dinilai bukan nol"}}:::sudahada
-  Q[("antrean penilaian<br/>BELUM ADA")]:::rencana
-  JD{{"9.3 gradeAgainstRubric · mechanical gates + model<br/>SUDAH ADA, dipakai jalur CLI"}}:::sudahada
-  HB{{"9.4 reviewer manusia menulis ulang komponen<br/>graded_by=human · tabel per-penerbit BELUM ADA"}}:::rencana
-  GA{{"9.5 gerbang terbit menolak incomplete<br/>SUDAH ditegak computeScore → BELUM_LENGKAP"}}:::sudahada
-  TX[(teks karangan<br/>hari ini hanya di perangkat peserta)]:::rencana
+  PE([Peserta])
+  IN([Penerbit: npm run grade:essay])
+  F1{{"essayLesson() dari manifest<br/>rubrik + max per kriteria"}}
+  F2{{"gradeAgainstRubric() tanpa judge<br/>5 tanda mekanis, TIDAK ada angka akhir"}}
+  F3{{"submitEssay()<br/>attempts(score NULL, verdict incomplete)<br/>+ komponen mech:* weight 0<br/>+ submissions(state awaiting_judge)"}}
+  F4{{"authorizeLearner<br/>tanda tangan peserta"}}
+  Q1[("attempts · attempt_components")]
+  Q2[("submissions<br/>body teks, state, judged_at")]
+  H1{{"judgeEssay()<br/>tuntutan: tanda tangan EOA penerbit<br/>+ nonce + semua kriteria terisi<br/>+ label asing ditolak + max>0"}}
+  H2{{"komponen crit:* disimpan sebagai PERSEN 0..100<br/>weight = max penerbit"}}
+  H3{{"hash dihitung ulang (skor berubah)<br/>hash lama dilaporkan sebagai replacedHash"}}
+  GT{{"courseGates: graded_attempts/best_score<br/>baru bergerak sesudah dinilai"}}
+  PUB([Dokumen hasil /results/…<br/>menunjuk attempt_hash yang baru])
 
-  PE -.->|BELUM ada rute ini| SU
-  SU -.-> TX
-  SU -.-> IN
-  IN -.-> Q
-  Q -.-> JD
-  Q -.-> HB
-  JD -->|komponen graded_by=model| GA
-  HB -->|komponen graded_by=human| GA
-
-  classDef rencana stroke-dasharray:5 5,color:#888
-  classDef sudahada stroke:#2e7d32
+  PE -->|"POST /essay {lesson, teks, message, signature}"| F4
+  F4 --> F1
+  F1 --> F2
+  F2 -->|INSUFFICIENT_EVIDENCE → state insufficient| F3
+  F2 -->|AWAITING_JUDGE| F3
+  F3 --> Q1
+  F3 --> Q2
+  IN -->|"queuePendingEssays() lalu tanda tangani penilaian"| H1
+  Q2 -.->|teks dibaca penerbit, TIDAK ada rute anonim untuk mengambil antrean| H1
+  F1 -.->|rubrik: sumber max yang sah| H1
+  H1 --> H2
+  H2 --> Q1
+  H2 --> H3
+  H3 --> Q1
+  H3 -->|state judged| Q2
+  Q1 -.-> GT
+  Q1 -.-> PUB
 ```
+
+Yang membedakan proses ini dari `POST /attempts`: **angka masuk lewat kunci penerbit**, bukan lewat
+peserta. Peserta hanya mengirim teks; `verdict`-nya `incomplete`; `score`-nya `NULL`; dan selagi
+begitu, `issue --from-attempts` menolak terbit (bar 6: belum dinilai ≠ nol, dan `ungraded` tidak
+dianggap lulus).
+
+**Satu jebakan yang harus tercatat di sini, karena dia mengubah angka tanpa membuat satu pun baris
+merah.** `attempts.score` dan `attempt_components.score` sama-sama persen 0..100, tapi kriteria rubrik
+esai penerbit berbentuk `{label, max}` dengan max 25/25/25/15/10 = 100. Kalau komponen disimpan apa
+adanya (`score = 25`, `weight = 25`), rata-rata berbobot di `fromAttempts` menghasilkan
+`(25·25+25·25+25·25+15·15+10·10)/100 = 22` untuk karangan yang **nilainya penuh** — kertas tercetak
+sah dengan angka yang salah. Karena itu `judgeEssay` menyimpan persen (`v/max·100`) dengan `weight =
+max`, dan dijaga dua sisi: `attempts-check.js` menguji 100% → 100 dan 50% → 50, `verify:db` menguji
+esai penuh menghasilkan `score 100` lewat HTTP.
 
 ---
 
@@ -578,6 +596,7 @@ ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **84/0** (2
 | 9 | pencabutan | `npm run revoke` di dalam repo; cabut permanen; status dibaca dari chain | `e2e` 46/0 · `check.js` 84/0 |
 | 10 | jejak angka | `attempt_hash` tercetak di `/results/<course>/<hash>` dan bisa dihitung ulang dari baris Postgres | `verify:attempts` 25/0 |
 | 11 | uang | pembayaran harus menunjuk kontrak pembagian kita; 10% platform di on-chain | `verify:x402` 20/0 (24 Sep) |
+| 12 | **esai: penyerahan + antrean + penilaian penerbit** | teks masuk TANPA angka (`score NULL`, `verdict incomplete`); angka hanya bisa ditulis oleh tanda tangan EOA penerbit atas nonce; kriteria asing/sebagian ditolak; `attempt_hash` dihitung ulang dan hash lama dilaporkan | `verify:db` **45/0** (17 pemeriksaan esai) — 29 Sep |
 
 ---
 
@@ -585,7 +604,7 @@ ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **84/0** (2
 
 | batasan | keadaan sebenarnya | kalimat yang boleh dipakai |
 |---|---|---|
-| **B81 — esai/praktik masih laporan klien** | `POST /attempts` menerima `score`; yang sudah server-authoritative baru **kuis** (`/grade`). Yang kurang cuma tiga hal dan mesin penilainya sudah ada (`grade.js:gradeAgainstRubric`, `verdict='incomplete'`, `graded_by='model'|'human'` sudah sah di skema): tempat menyimpan teks, rute penyerahan, panggilan judge dari server. **±3 jam, bukan mustahil** — lihat DFD-2 **P8** di halaman ini | "angka kuis dihitung penerbit dan bisa ditunjuk barisnya; esai saat ini dinilai lewat jalur penerbit (`issue --essay --judge`) dan penyerahannya dari halaman belum kami bangun" |
+| **B81 sudah ditutup untuk esai — sisanya **praktik**** | Esai: `POST /essay` + `POST /essay/judgement` + `npm run grade:essay` (29 Sep). Praktik: belum punya rute sendiri — kalau suatu hari butuh bukti berupa berkas/tautan, itu tabel + rute baru, bukan kolom tambahan di `attempts` | "esai diserahkan ke penerbit dan dinilai dengan kunci penerbit; praktik belum punya permukaan penyerahan" |
 | **B80 — kunci kuis ada di bundel browser** | `web/src/manifest.ts` menyalin `answer`; `/grade` menghapus **laporan angka oleh peserta**, bukan keterbukaan soalnya | "peserta tidak bisa melaporkan nilainya sendiri" — bukan "kuis tidak bisa dicurangi" |
 | **B82 — tidak ada pemulihan akun** | identitas = alamat penandatangan; "kunci perangkat" viem di `sessionStorage` hangus bersama tab | "identitas peserta hari ini adalah alamat EVM-nya; dompet = akun" + sebut bahwa ini tahap awal |
 | **Tidak ada peran learner/publisher/mentor sebagai produk** | Yang SUDAH ada: `publisher` punya padanan on-chain berupa **allowlist** (`addIssuer`/`delistIssuer`/`isIssuer` di `CredentialResolver.sol`). Yang belum: identitas **staf** (signer hanya mengenali tanda tangan peserta), tabel peran, dan custodia kunci agen (hari ini di `signer/.keys/` mesin ini). Tiga jalur + biayanya ada di **B87** — termasuk jalur mentor yang tidak menyentuh chain dan hanya ±½ hari | jangan sebut multi-institusi, onboarding self-service, atau peran mentor. Yang boleh: "penerbit terdaftar di allowlist on-chain; otoritas menilai tetap di sisi penerbit" |
@@ -620,3 +639,4 @@ lalu `npm run e2e` (menyatukan chain · daftar · URL di dalam kertas · artefak
 - [[04-Signer-Service/S10 - Edge surface]] — kenapa tepi tidak pernah menandatangani
 - [[12-LMS-References/L7 - What an e-course must have]] — kerangka umum yang jadi pembanding
 - [[09-Testing/00 - Hub Testing]] — setiap angka di halaman ini dengan keluaran aslinya
+

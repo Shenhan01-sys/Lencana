@@ -37,7 +37,9 @@ import {
   nextAttemptNo as dbNextAttemptNo,
   setLessonProgress as dbSetProgress, progressSummary as dbProgressSummary, authorizeLearner as dbAuthorize,
 } from './db.js'
-import { gradeQuiz } from './quiz.js'
+import { essayLesson, gradeQuiz } from './quiz.js'
+import { gradeAgainstRubric } from './grade.js'
+import { submitEssay as dbSubmitEssay, judgeEssay as dbJudgeEssay } from './db.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
@@ -359,7 +361,8 @@ const server = createServer(async (req, res) => {
     //  - secret key DB melewati RLS, jadi pemeriksaan "siapa yang boleh menulis untuk alamat ini"
     //    ada di KITA (tanda tangan nonce atas nama peserta), bukan di database;
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
-    if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade') {
+    if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade'
+      || path === '/essay' || path === '/essay/judgement') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'lapisan belajar belum dipasang', missing: dbMissingReason() }))
       }
@@ -436,6 +439,89 @@ const server = createServer(async (req, res) => {
           components: graded.components.length,
         }))
       }
+      if (path === '/essay') {
+        /**
+         * Penyerahan esai (B81). Yang datang dari klien adalah TEKS; tidak ada angka, tidak ada
+         * rubrik. `body.score`/`body.rubric`/`body.max` ditolak dengan nama, supaya tidak ada yang
+         * mengira jalur ini pernah menerima nilai kiriman browser.
+         *
+         * Teks disimpan di `submissions`, dan TIDAK disajikan lewat rute mana pun yang bisa dibaca
+         * publik — `results.js` menulis `essayTextIncluded: false` dan janji itu dijaga di sini:
+         * antrean dibaca penerbit lewat CLI (`npm run grade:essay`) yang memegang secret key, bukan
+         * lewat GET anonim.
+         */
+        for (const banned of ['score', 'rubric', 'max', 'finalScore', 'verdict']) {
+          if (body[banned] !== undefined) {
+            return send(res, 400, jsonBody({ error: `/essay tidak menerima ${banned}: teks saja, angkanya milik penerbit` }))
+          }
+        }
+        if (!body.lesson) return send(res, 400, jsonBody({ error: 'butuh lesson (slug esai)' }))
+        const found = essayLesson(body.course, body.lesson)
+        if (found.error) return send(res, 400, jsonBody({ error: found.error }))
+        const graded = await gradeAgainstRubric({ text: body.text, essay: found.lesson.essay })
+        if (graded.verdict === 'NOT_AN_ESSAY_LESSON') return send(res, 400, jsonBody({ error: `lesson ${body.lesson} tidak punya rubrik` }))
+        const state = graded.verdict === 'INSUFFICIENT_EVIDENCE' ? 'insufficient' : 'awaiting_judge'
+        const out = await dbSubmitEssay({
+          learner: body.learner, courseId: body.course, lessonKey: body.lesson, text: body.text,
+          words: graded.words, mechanical: graded.mechanical, state,
+          rubricHash: rubricHashOf(found.manifest), message: body.message, signature: body.signature,
+        })
+        if (!out.ok) {
+          // "siapa kamu" (401) dan "permintaanmu tidak sah" (422) dipisah, seperti di /progress.
+          // Yang berubah di sini: keputusannya lewat KODE (`out.kind`), bukan lewat membaca pesan
+          // error dengan regex. Versi pertama saya menyandikan `penerbit` di kedua macam sebab, dan
+          // hasilnya validasi "kriteria asing" dilaporkan sebagai kegagalan otentikasi — merah yang
+          // menyalahkan pihak yang benar, persis kelas yang kita catat di B59/`serve-probe`.
+          return send(res, out.kind === 'auth' ? 401 : 422, jsonBody({ error: out.why }))
+        }
+        return send(res, 201, jsonBody({
+          attemptHash: out.attemptHash, attemptId: out.attemptId, attemptNo: out.attemptNo,
+          state: out.state, words: out.words, score: null, verdict: 'incomplete',
+          mechanicalPassed: (graded.mechanical ?? []).filter((m) => m.ok).length,
+          mechanicalTotal: (graded.mechanical ?? []).length,
+          note: graded.note ?? 'Menunggu penilaian penerbit — belum ada angka, dan itu bukan nol.',
+        }))
+      }
+
+      if (path === '/essay/judgement') {
+        /**
+         * Penilaian oleh penerbit, atas nama EOA-nya sendiri (B81). Bukan peserta, dan bukan kami:
+         * `dbJudgeEssay` menuntut tanda tangan EIP-191 atas nonce yang beralamat sama dengan
+         * `ISSUER_ADDRESS` konfigurasi. Kenapa perbandingan alamat dan bukan `isIssuer()` di chain:
+         * `isIssuer` sudah dituntut `issue.js` SEBELUM attestation bergerak, jadi penerbit yang tidak
+         * terdaftar boleh menilai tapi tidak akan pernah bisa menerbitkan — dan rute ini tidak perlu
+         * memegang klien chain untuk menolak angka yang salah.
+         */
+        if (!PAY_PAYEE) {
+          return send(res, 500, jsonBody({ error: 'ISSUER_ADDRESS belum diisi — tidak ada alamat penerbit yang bisa dituntut' }))
+        }
+        // Perbandingan sama seperti penjaga pembayaran di `checkPayment`: huruf kecil, tanpa checksum.
+        if (String(body.issuer ?? '').toLowerCase() !== PAY_PAYEE.toLowerCase()) {
+          return send(res, 401, jsonBody({ error: `penilaian harus atas nama penerbit yang dikonfigurasi (${PAY_PAYEE})` }))
+        }
+        if (!Number.isInteger(Number(body.attemptId))) return send(res, 400, jsonBody({ error: 'butuh attemptId' }))
+        if (!body.course || !body.lesson) return send(res, 400, jsonBody({ error: 'butuh course + lesson (rubrik dibaca dari manifest penerbit)' }))
+        const found = essayLesson(body.course, body.lesson)
+        if (found.error) return send(res, 400, jsonBody({ error: found.error }))
+        const out = await dbJudgeEssay({
+          attemptId: body.attemptId, issuer: body.issuer, message: body.message, signature: body.signature,
+          scores: body.scores, essay: found.lesson.essay, passMark: found.manifest.course.passMark,
+          judgeModel: body.judgeModel ?? null, judgeTemp: body.judgeTemp ?? null,
+        })
+        if (!out.ok) {
+          // Kode (`out.kind`) yang memutuskan; regex di bawah hanya jaring cadangan dan sengaja tidak
+          // lagi memuat kata "penerbit" — kata itu muncul di pesan VALIDASI ("rubrik penerbit"), jadi
+          // memakainya membuat kriteria asing dilaporkan sebagai kegagalan otentikasi (401).
+          const authish = /tanda tangan|penandatangan/.test(out.why ?? '')
+          return send(res, out.kind === 'auth' || authish ? 401 : 422, jsonBody({ error: out.why }))
+        }
+        return send(res, 200, jsonBody({
+          attemptId: out.attemptId, attemptHash: out.attemptHash, replacedHash: out.replacedHash,
+          score: out.score, verdict: out.verdict, components: out.components,
+          gradedBy: body.judgeModel ? 'model' : 'human',
+        }))
+      }
+
       const out = await dbRecordAttempt({
         learner: body.learner, courseId: body.course, lessonKey: body.lesson ?? '-', kind: body.kind,
         attemptNo: body.attempt ?? 1, score: body.score, verdict: body.verdict,

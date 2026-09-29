@@ -22,7 +22,7 @@ import { manifestOf, rubricHashOf, shortHash } from './manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse, type CourseSummary } from './progress'
 import {
   completeLesson, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner, learnerAddress,
-  setEndpoint, snapshot, submitQuiz, syncCourse,
+  setEndpoint, snapshot, submitEssay, submitQuiz, syncCourse,
 } from './learning'
 
 /**
@@ -735,9 +735,27 @@ export function bindLms(root: HTMLElement): void {
         if (s) s.innerHTML = `<span class="bad">Baru ${words} kata, syarat ${min}. Batas ini ada supaya jawabannya tidak selesai dalam tiga kalimat.</span>`
         return
       }
+      // B81: karangan DISERAHKAN ke penerbit, bukan cuma dicentang di perangkat. Yang balik dari
+      // server tidak ada angkanya — `state: awaiting_judge`, dan itu harus terbaca sebagai antrean,
+      // bukan sebagai kelulusan maupun kegagalan.
+      if (learnerAddress()) {
+        const ep = root.querySelector('[data-role="signer-endpoint"]') as HTMLInputElement | null
+        if (ep?.value) setEndpoint(ep.value)
+        if (s) s.innerHTML = '<span class="muted">Mengirim karangan ke penerbit…</span>'
+        const rec = await submitEssay(courseId, slug, ta.value)
+        if (rec) {
+          recordLesson(courseId, slug, 'esai', { done: true, draft: ta.value })
+          if (s) s.innerHTML = `<span class="ok">Terkirim ke penerbit</span> ${rec.mechanicalPassed}/${rec.mechanicalTotal} tanda mekanis terpenuhi · ${rec.words} kata · <code>${esc(rec.attemptHash.slice(0, 14))}…</code><br><span class="muted">${esc(rec.note || 'Menunggu penilaian penerbit — belum ada angka, dan itu bukan nol.')}</span>`
+          rerender()
+          return
+        }
+        const why = snapshot().error ?? 'penerbit tidak menjawab'
+        if (s) s.innerHTML = `<span class="bad">Karangan TIDAK sampai ke penerbit: ${esc(why)}</span><br><span class="muted">Drafmu tetap disimpan di perangkat ini; tanpa baris penyerahan, tidak ada yang bisa dinilai — dan tidak ada angka yang kami karang sendiri.</span>`
+        recordLesson(courseId, slug, 'esai', { done: false, draft: ta.value })
+        return
+      }
       recordLesson(courseId, slug, 'esai', { done: true, draft: ta.value })
-      if (s) s.textContent = 'Dicatat di perangkat ini: selesai menulis. Nilai resmi tetap dari penerbit.'
-      return
+      if (s) s.textContent = 'Dicatat di perangkat ini saja: belum ada identitas peserta, jadi karangan tidak diserahkan ke penerbit dan tidak akan ikut dinilai.'
     }
 
     if (action === 'wipe') {

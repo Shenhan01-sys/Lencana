@@ -52,6 +52,19 @@ kita dokumentasikan untuk platform orang lain.
     belong to the frontend maintainer. Read [[10-Contributors/00 - Hub Contributors]] before
     touching them; if you must, keep the mount points and run typecheck + build + probe afterwards.
 
+11. **Jangan berhenti karena memperkirakan ruang konteks — dan jangan menunda pencatatan.**
+    Sesi ini bisa dipangkas otomatis kapan saja; itu tidak masalah **asal** state penting sudah
+    tertulis di vault sebelum pemangkasan terjadi. Jadi: (a) kerjakan item sampai gerbang hijaunya,
+    jangan berhenti di tengah karena menebak sisa ruang; (b) begitu menemukan keputusan, blocker, atau
+    angka yang belum tercatat, tulis ke vault **saat itu juga** (baris backlog + halaman terkait dalam
+    suntingan yang sama), bukan "nanti"; (c) kalau memang harus berhenti, alasannya ditulis sebagai
+    baris `⏸️` dengan sebab + perintah yang tersisa, bukan "konteks hampir penuh"; (d) angka yang
+    dikutip wajib dari run hari itu — kalau pemangkasan membuat angka lama tak terverifikasi, jalankan
+    ulang perintahnya, jangan kutip dari ingatan.
+    (Aturan ini lahir 29 Sep: saya menolak mengerjakan B81 dengan alasan ruang, padahal pemakaian
+    konteks baru 46,7% dan tenggat masih 21 jam. Kesalahan jenisnya sama dengan B43/B53/B56 — menyimpulkan
+    tanpa mengukur, lalu bertindak berdasarkan kesimpulan itu.)
+
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:
 [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · [[09-Testing/00 - Hub Testing]] ·
 [[08-Results/00 - Hub Results]] · [[10-Contributors/Open-Items/00 - Hub Open Items]]
