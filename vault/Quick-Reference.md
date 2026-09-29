@@ -47,6 +47,7 @@ never retyped.
 | `npm run grade:essay` | antrean esai penerbit; angka masuk hanya lewat tanda tangan EOA penerbit (`POST /essay/judgement`) | `verify:db` 47/0 |
 | `npm run audit` | konsistensi proyek: registry tunggal, kalimat terlarang di README/docs, placeholder, dokumen karangan, blokir basi, item hilang dari backlog | 2 TEMUAN (A3 berkas Dave, A6 Vault akar) |
 | `npm run sync:numbers` / `-- --verify` | `vault/09-Testing/numbers.json` = satu sumber angka; `--verify` memarahi halaman vault yang angkanya tidak cocok | 9/9 harness terurai; ANGKA HIJAU |
+| `npm run sync:numbers -- --only=<id>` | ulang SATU harness saja untuk mendiagnosis merah (mis. `--only=serveProbe`); angka sebagian tidak masuk JSON — ia menolak menulis `numbers.json` | 1 harness, tanpa menulis JSON |
 | `npm run diag:lists` | mengadili perbedaan hash daftar: render vs sajian tepi vs `getTimestamp` BAS | membuktikan B89 bukan soal data |
 | `npm run probe:serve` | mengadili server signer yang SEDANG BERJALAN (49 pemeriksaan) — ia TIDAK menyalakan server: `npm run serve` dulu, kalau tidak ia bilang "nyalakan dulu" + cara melepas port per-PID | PROBE SERVE HIJAU — 49, 0 gagal |
 | `npm run check:samples` | mengadili tiap nilai `SAMPLE_HASHES` di FE: 200 di tepi DAN status di chain cocok dengan labelnya | CONTOH UI HIJAU — 5 pemeriksaan, 0 gagal |

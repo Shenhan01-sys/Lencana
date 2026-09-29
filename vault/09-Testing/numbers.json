@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-09-29T14:30:19.811Z",
+  "capturedAt": "2026-09-29T15:13:01.598Z",
   "note": "Dihasilkan npm run sync:numbers. Halaman vault yang mengutip angka harness wajib cocok dengan berkas ini (verify: npm run sync:numbers -- --verify).",
   "items": {
     "check": {
@@ -15,10 +15,10 @@
       "pass": 47
     },
     "serveProbe": {
-      "total": 0,
+      "total": 49,
       "fail": 0,
-      "pass": 0,
-      "error": "Command failed: npm run probe:serve\n  GAGAL server signer tidak menjawab di http://127.0.0.1:8787\n        sebab: fetch f"
+      "skipped": 0,
+      "pass": 49
     },
     "e2e": {
       "total": 46,
@@ -39,10 +39,14 @@
       "pass": 31
     },
     "edge": {
-      "total": 0,
+      "total": 8,
       "fail": 0,
-      "pass": 0,
-      "error": "Command failed: npm run verify:edge\n"
+      "skipped": 0,
+      "pass": 8,
+      "ratio": {
+        "a": 19,
+        "b": 19
+      }
     },
     "forgeOffline": {
       "total": 66,

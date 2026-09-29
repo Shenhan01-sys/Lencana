@@ -36,12 +36,18 @@ const REPO = resolve(SIGNER, '..')
 const OUT = join(REPO, 'vault', '09-Testing', 'numbers.json')
 const VERIFY = process.argv.includes('--verify')
 const EXPENSIVE = process.argv.includes('--expensive')
+const _oi = process.argv.indexOf('--only')
+const ONLY = (_oi > -1 ? process.argv[_oi + 1] : (process.argv.find((a) => a.startsWith('--only=')) ?? '').split('=')[1]) || null
+// B107: keluaran anak disimpan supaya merah mana pun bisa dibaca penyebabnya, bukan sekadar
+// "Command failed". Merah tanpa sebab membuat orang menonaktifkan gerbangnya, bukan harnessnya.
+const texts = new Map()
+const tailOf = (id, n = 12) => (texts.get(id) ?? '').split(/\r?\n/).filter((s) => s.trim()).slice(-n)
 
 /** Harness yang jadi sumber angka. `re` wajib menangkap "lulus / gagal". */
 const HARNESS = [
   { id: 'check', label: 'check.js', cwd: SIGNER, cmd: ['npm', ['run', 'check']], re: /CHECK HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'verifyDb', label: 'verify:db', cwd: SIGNER, cmd: ['npm', ['run', 'verify:db']], re: /DB HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
-  { id: 'serveProbe', label: 'serve-probe', cwd: SIGNER, cmd: ['npm', ['run', 'probe:serve']], re: /PROBE SERVE HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'serveProbe', label: 'serve-probe', needs: 'signer lokal hidup — jalankan npm run serve lebih dulu (probe ini menguji proses yang sedang berjalan, bukan menyalakannya)', cwd: SIGNER, cmd: ['npm', ['run', 'probe:serve']], re: /PROBE SERVE HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'e2e', label: 'e2e', cwd: SIGNER, cmd: ['npm', ['run', 'e2e']], re: /E2E HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'liveCert', label: 'verify:live-cert', cwd: SIGNER, cmd: ['npm', ['run', 'verify:live-cert']], re: /LAPIS ARTEFAK HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'attempts', label: 'verify:attempts (offline)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m },
@@ -61,10 +67,11 @@ const fmt = (m) => (m == null ? '?' : m.pass === 0 && m.total === 0 ? '—' : `$
 
 async function collect () {
   const out = {}
-  for (const h of HARNESS) {
+  for (const h of HARNESS.filter((x) => !ONLY || x.id === ONLY || x.label === ONLY)) {
     try {
       const { stdout, stderr } = await run(h.cmd[0], h.cmd[1], { cwd: h.cwd, maxBuffer: 24 * 1024 * 1024, shell: true })
       const text = `${stdout}\n${stderr}`
+      texts.set(h.id, text)
       const m = h.re.exec(text)
       if (!m) { out[h.id] = { total: 0, pass: 0, fail: 0, error: 'pola keluaran tidak ketemu — angka TIDAK dikarang' }; console.log(`  MERAH  ${h.label}: tidak terbaca`); continue }
       const g = m.slice(1).map(Number)
@@ -79,6 +86,7 @@ async function collect () {
       console.log(`  ${fail === 0 ? 'ok    ' : 'MERAH '} ${h.label}: ${total} total, ${fail} gagal${skipped ? `, ${skipped} di-skip` : ''}`)
     } catch (e) {
       const text = `${e.stdout ?? ''}\n${e.stderr ?? ''}`
+      texts.set(h.id, text)
       const m = h.re.exec(text)
       if (m) {
         const g = m.slice(1).map(Number)
@@ -90,6 +98,25 @@ async function collect () {
       }
     }
   }
+  const merah = Object.entries(out).filter(([, m]) => m && m.error)
+  if (merah.length) {
+    console.log('\n  DIAGONOSA (B107) — harness yang tidak hijau, dengan sebab dan cara mengulanginya:')
+    for (const [id, m] of merah) {
+      const h = HARNESS.find((x) => x.id === id)
+      const lines = tailOf(id)
+      console.log('  · ' + (h?.label ?? id) + ': ' + m.error)
+      if (h?.needs) console.log('      prasyarat : ' + h.needs)
+      if (/ECONNREFUSED|fetch failed|tidak menjawab|server .* tidak|connect/i.test(lines.join('\n'))) {
+        console.log('      penyelamat: npm run serve   (lalu ulangi harness ini saja)')
+      }
+      if (lines.length) {
+        console.log('      12 baris terakhir keluaran anak:')
+        for (const s of lines) console.log('        | ' + s.slice(0, 150))
+      } else console.log('      (anak tidak mencetak apa pun — keluaran hilang, BUKAN nol)')
+    }
+    console.log('  Ulangi satu harness: npm run sync:numbers -- --only=<id>   (mis. --only=serveProbe)')
+  }
+  if (ONLY) console.log('\n  (--only=' + ONLY + ': ' + Object.keys(out).length + ' harness saja dijalankan — angka ini SEBAGIAN, tidak layak untuk numbers.json)')
   return out
 }
 
@@ -154,6 +181,11 @@ if (VERIFY) {
 console.log('\nsync:numbers — menjalankan harness (yang murah saja; --expensive untuk yang berbiaya)\n')
 const items = await collect()
 const ratio = items.edge?.ratio ?? null
+// B107: run sebagian TIDAK boleh menimpa keadaan utuh.
+if (ONLY) {
+  console.log('\n  numbers.json TIDAK ditulis (--only=' + ONLY + ' = angka sebagian; 11 metrik lain akan tertulis "tidak dijalankan")')
+  process.exit(0)
+}
 await writeFile(OUT, JSON.stringify({
   capturedAt: new Date().toISOString(),
   note: 'Dihasilkan npm run sync:numbers. Halaman vault yang mengutip angka harness wajib cocok dengan berkas ini (verify: npm run sync:numbers -- --verify).',
