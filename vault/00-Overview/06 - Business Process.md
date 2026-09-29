@@ -118,3 +118,41 @@ akan kelihatan sebagai 503, bukan sebagai daftar lama yang masih sah ([[04-Signe
 
 **Related:** [[00-Overview/01 - Briefing]] · [[05-Course-Content/01 - Course Content]] ·
 [[11-Refactoring/00 - Hub Refactoring]] · [[08-Results/01 - Evidence and Limits]] · [[Index]]
+
+### 4d. Rantai tanda tangan sesudah D42 — TUJUAN, belum dibangun (dipilih 29 Sep)
+
+Keputusan builder: AI agen sewaan menilai, **manusia mengesahkan** (mentor/rekan, tidak harus penerbit),
+penerbit yang menerbitkan. Hari ini yang sudah ada: `graded_by` = `model`/`human` di skema, dan
+penilaian esai sudah ditandatangani EOA **penerbit** lewat `judgeEssay`. Lapis pengesah manusia **belum**
+ada — gambar di bawah adalah sasaran, bukan keadaan, dan tidak boleh dikutip sebagai yang ketiga.
+
+```mermaid
+sequenceDiagram
+    participant P as Peserta
+    participant S as Signer
+    participant A as AI agen penilai
+    participant M as Pengesah (mentor/rekan)
+    participant I as Penerbit
+    participant C as BNB Chain
+    P->>S: POST /essay (teks saja, tanpa angka)
+    S->>A: nilai terhadap rubrik penerbit
+    A-->>S: proposal angka + nama model + temperatur
+    S->>M: antrean menunggu pengesahan
+    M->>S: POST /essay/review (EIP-191 atas nonce sekali pakai, decision)
+    S->>I: issue --from-attempts (tiga gerbang: lessons, passMark, review)
+    I->>C: attest ke BAS oleh EOA penerbit
+    C->>I: token artefak di-mint ke alamat peserta
+```
+
+Tiga hal yang membuat gambar ini jujur:
+
+1. **Angka model adalah proposal.** Tidak ada jalur dari A ke C. Yang sah masuk kertas hanya angka yang
+   sudah melewati M dan I.
+2. **Pengesahan dibuktikan tanda tangan, bukan akun.** Karena itu lapis ini bisa diuji dari luar: tanpa
+   tanda tangan EIP-191 atas nonce sekali pakai, review tidak masuk — mekanisme yang sama sudah berjalan
+   di `judgeEssay`.
+3. **Gerbang ketiga fail-closed.** Esai tanpa pengesahan = tidak ada kredensial, bukan kredensial dengan
+   catatan; kalau `decision` = `adjusted`, angka di kertas adalah angka pengesah.
+
+Pekerjaan dipecah supaya tiap potong bisa diselesaikan utuh: **B104** (migrasi + rute + gerbang + dua
+pemeriksaan harness) dan **B105** (halaman penerbit + kalimat onboarding yang benar; tergantung **B84/B41**).

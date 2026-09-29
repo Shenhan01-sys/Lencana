@@ -112,8 +112,14 @@ const CODE_STAMP = (() => {
  */
 async function buildList (purpose) {
   const hashes = await servedHashes()
-  if (!RESOLVER || !RPC_URL || hashes.length === 0) {
-    throw new Error('RESOLVER_ADDRESS / RPC_URL not set (and the store holds neither issued nor adopted credentials)')
+  // Dua sebab yang BERBEDA, dan dulu keduanya dibuang lewat satu kalimat. "Belum ada kertas"
+  // (store dingin — keadaan setiap orang yang datang dari `git clone`) bukan kegagalan konfigurasi:
+  // `renderList` atas hashes kosong menghasilkan bitstring kosong yang tetap bertanda tangan sah.
+  // Menolaknya dengan 500 + pesan "RESOLVER_ADDRESS / RPC_URL not set" membuat clone baru membuka
+  // /healthz dengan tangan kosong, dan yang dibaca orang adalah bug kami. Terdeteksi 29 Sep oleh
+  // `npm run probe:cold` (B106, turunan B42).
+  if (!RESOLVER || !RPC_URL) {
+    throw new Error('RESOLVER_ADDRESS / RPC_URL not set — there is no chain to read the bit states from')
   }
   return renderList({
     purpose, baseUrl: BASE_URL, rpcUrl: RPC_URL, resolverAddress: RESOLVER, hashes,

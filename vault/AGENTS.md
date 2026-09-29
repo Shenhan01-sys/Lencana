@@ -101,6 +101,19 @@ kita dokumentasikan untuk platform orang lain.
     keadaannya, tulis kejadiannya (commit + vault), dan minta keputusan sebelum `--force-push`.
     Commit yang sudah pernah dilihat orang dibiarkan apa adanya kecuali builder memerintahkan
     sebaliknya — termasuk typo di badan commit: itu jejak, bukan aib yang layak menghapus riwayat.
+16. **Golongan A dan B tidak boleh dikerjakan tanpa permintaan eksplisit.** Putusan builder
+    29 Sep: *"A dan B nanti, kerjakan jika saya minta itu dikerjakan."* Isinya, per golongan:
+    - **A — aksi manusia:** B63 (daftar event), B64 (isi form submission dari artefak tempel),
+      B65 (rekam video ≤5 menit). Ini bukan tugas yang bisa kuambil alih; menyentuhnya berarti
+      memakai identitas builder di tempat yang salah.
+    - **B — catatan/riset:** B73 (audit Dicoding — belum dibaca sama sekali), B95 (riset pasar /
+      model bisnis / kompetitor credentialing), B75 (catatan tertanggal, bukan pekerjaan),
+      B49 (utang provenance: alamat peserta kuketik ulang alih-alih diturunkan).
+    Aturan mainnya: barisnya **tetap terbuka dan tidak berpindah**, tapi agent tidak mulai
+    mengerjakannya, tidak menutupnya, dan tidak mengutipnya sebagai "sedang dikerjakan". Kalau
+    agent sedang tidak punya pekerjaan lain yang sah, ia bertanya — bukan mengisi waktu dengan
+    golongan ini. (Pelanggarannya sudah ada polanya: pekerjaan orang lain dikerjakan tanpa diminta
+    lalu jadi temuan baru di halaman yang salah.)
 
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:
 [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · [[09-Testing/00 - Hub Testing]] ·

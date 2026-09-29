@@ -50,6 +50,7 @@ const HARNESS = [
   { id: 'webProbe', label: 'probe (web)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'probe']], re: /PROBE HIJAU \((\d+) pemeriksaan, (\d+) gagal\)/ },
   { id: 'samples', label: 'check:samples (contoh UI × tepi × chain)', cwd: SIGNER, cmd: ['npm', ['run', 'check:samples']], re: /CONTOH UI (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'spec', label: 'check:spec (14 asersi dinilai)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'check:spec']], re: /hasil: (\d+) lulus · (\d+) gagal/ },
+  { id: 'coldProbe', label: 'probe:cold (store dingin dari clone)', cwd: SIGNER, cmd: ['npm', ['run', 'probe:cold']], re: /PROBE COLD (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
