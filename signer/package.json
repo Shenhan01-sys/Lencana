@@ -34,6 +34,7 @@
     "publish:edge": "tsx scripts/publish.js",
     "verify:edge": "node scripts/verify-edge.js",
     "diag:lists": "node scripts/diag-lists.js",
+    "sim:deadline": "node scripts/deadline-sim.js",
     "rehost": "node scripts/rehost.js",
     "grade:essay": "tsx scripts/grade-essay.js"
   },
