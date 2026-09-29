@@ -48,9 +48,11 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 3. [`Quick-Reference.md`](Quick-Reference.md) — commands, addresses, env names, one place
 4. [`AGENTS.md`](AGENTS.md) — the rules that keep this folder trustworthy if you are an agent
 4a. [`00-Overview/12 - Business Process.md`](00-Overview/12%20-%20Business%20Process.md) — proses bisnis
-    end-to-end dalam lima bentuk diagram (BPMN · sequence · DFD · state machine + activity · daur hidup
-    status & pembayaran), tiap panahnya bernama rute/tabel/fungsi, ditutup tabel "yang TIDAK bisa
-    dilakukan sistem ini" dan naskah 90 detik untuk video.
+    end-to-end dalam enam bentuk diagram (BPMN swimlane · sequence · **DFD level 1 + level 2, delapan
+    diagram: enrollment, progres, penilaian kuis, penerbitan, penyajian, pencabutan, pembayaran x402,
+    dan satu kotak "belum ada" untuk esai** · state machine · activity · daur hidup status), tiap panahnya
+    bernama rute/tabel/kolom/fungsi kontrak, ditutup tabel "yang TIDAK bisa dilakukan sistem ini" dan
+    naskah 90 detik untuk video.
 4b. [`WORKFLOW.md`](WORKFLOW.md) — the 5-step loop every item must pass: execute (schema first) →
     sync AC + backlog → three-layer testing → per-item executive summary → **commit local, push only
     on the builder's approval**. Where it disagrees with `AGENTS.md`, the disagreement is written as
