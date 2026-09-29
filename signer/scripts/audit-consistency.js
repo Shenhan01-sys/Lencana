@@ -46,14 +46,40 @@ const FORBIDDEN = [
   { re: /semua (?:artefak|kertas) (?:kami )?(?:selalu )?publik/i, why: 'ukur dengan verify:edge, jangan klaim tanpa angka' },
 ]
 
-/** Berkas yang dibaca orang (juri membuka ini lebih dulu). */
+/**
+ * Berkas yang dibaca orang (juri membuka ini lebih dulu) — dan sekarang hanya yang **benar-benar ada**.
+ *
+ * `docs/*` yang dulu ada di daftar ini tidak pernah ada di repo: dokumen teknis hidup di `vault/`
+ * (lihat `vault/11-Refactoring/RF6`). Vault sengaja TIDAK disapu pemeriksaan ini:
+ * `vault/10-Contributors/Claims-Cheat-Sheet.md` justru memuat daftar frasa terlarang untuk
+ * melarangnya, sama seperti komentar sejarah di `main.ts` (lihat A5). Gerbang yang menghukum
+ * dokumentasinya sendiri akan dibisukan orang dalam dua hari.
+ */
 const SURFACE = [
-  'README.md', 'FRONTEND_ITERATION.md', 'web/README.md', 'signer/README.md', 'contracts/README.md',
+  'README.md', 'FRONTEND_ITERATION.md', 'signer/README.md',
   'web/index.html', 'web/src/i18n.ts', 'web/src/render.ts',
-  'docs/ARCHITECTURE.md', 'docs/CONTRACTS.md', 'docs/DEPLOY.md', 'docs/CREDENTIALS.md',
-  'docs/AUDIT_TRUST.md', 'docs/EIP712_CONFORMANCE.md', 'docs/OPEN_BADGES.md', 'docs/PRODUCTION_READINESS.md',
-  'docs/UX_ROADMAP.md', 'docs/adr/0003-onchain-anchor-for-read-model.md', 'docs/adr/0004-x402-for-machine-verification.md',
 ]
+
+/**
+ * Baca daftar jalur dan LAPORKAN yang tidak ada.
+ *
+ * Kenapa (29 Sep malam): `SURFACE` mendaftarkan 19 jalur, `app/docs/` **tidak pernah ada di repo** —
+ * 13 di antaranya mengembalikan string kosong, `if (!t) continue` melompat diam-diam, dan detail-nya
+ * mencetak `SURFACE.length`: "19 berkas disapu, 0 cocok". Angka itu kukutip sebagai cakupan. Gerbang
+ * yang hijau karena tidak melihat lebih berbahaya daripada tidak ada gerbang — ia berhenti membuat
+ * orang memeriksa. Bagian yang hilang sekarang menjadi temuan, dan hitungan yang dicetak adalah
+ * berkas yang benar-benar dibaca.
+ */
+async function readSurface (list) {
+  const texts = []
+  const absent = []
+  for (const f of list) {
+    const t = await read(join(REPO, f))
+    if (t) texts.push({ f, t })
+    else absent.push(f)
+  }
+  return { texts, absent }
+}
 
 /** Tempat penampung yang tidak boleh masuk salinan halaman/publik. */
 const STUBS = [/TODO:|FIXME:|TBD\b|XXX\b/, /lorem\s+ipsum/i, /placeholder text/i, /\bpayeeAddress\b\s*=\s*address\(0\)/, /your[-_ ]?api[-_ ]?key/i]
@@ -129,23 +155,32 @@ async function collect () {
 
   // 3) Klaim terlarang di salinan yang dibaca orang.
   const bad = []
-  for (const f of SURFACE) {
-    const t = await read(join(REPO, f))
-    if (!t) continue
+  const surface = await readSurface(SURFACE)
+  for (const { f, t } of surface.texts) {
     t.split(/\r?\n/).forEach((line, i) => {
       for (const c of FORBIDDEN) if (c.re.test(line)) bad.push(`${f}:${i + 1} [${c.why}] ${line.trim().slice(0, 90)}`)
     })
   }
-  findingsOut.push({ id: 'A3', kind: bad.length ? 'TEMUAN' : 'bersih', title: 'kalimat terlarang Claims-Cheat-Sheet di README/docs', detail: bad.length ? bad.slice(0, 8).join('\n      ') : `${SURFACE.length} berkas disapu, 0 cocok` })
+  findingsOut.push({
+    id: 'A3', kind: bad.length || surface.absent.length ? 'TEMUAN' : 'bersih',
+    title: 'kalimat terlarang Claims-Cheat-Sheet di README/docs (dan daftar berkas yang benar-benar terbaca)',
+    detail: bad.length ? bad.slice(0, 8).join('\n      ')
+      : `${surface.texts.length} berkas disapu, 0 cocok` + (surface.absent.length ? `\n      TIDAK ADA di repo (daftarnya basi — perbarui SURFACE atau pulangkan berkasnya): ${surface.absent.join(', ')}` : ''),
+  })
 
   // 4) Tempat penampung yang tertinggal di kode yang dilihat publik.
+  const PUB_CODE = ['web/src/main.ts', 'web/src/verify.ts', 'web/src/lms.ts', 'web/src/learning.ts', 'web/src/specAudit.ts', 'signer/src/server.js', 'signer/src/db.js', 'signer/src/credential.js', 'contracts/SoulboundCert.sol', 'contracts/CredentialResolver.sol', 'contracts/CourseDeposit.sol']
   const stubs = []
-  for (const f of ['web/src/main.ts', 'web/src/verify.ts', 'web/src/lms.ts', 'web/src/learning.ts', 'signer/src/server.js', 'signer/src/db.js', 'signer/src/credential.js', 'contracts/SoulboundCert.sol', 'contracts/CredentialResolver.sol', 'contracts/CourseDeposit.sol']) {
-    const t = await read(join(REPO, f))
-    if (!t) continue
+  const pub = await readSurface(PUB_CODE)
+  for (const { f, t } of pub.texts) {
     t.split(/\r?\n/).forEach((line, i) => { for (const re of STUBS) if (re.test(line)) stubs.push(`${f}:${i + 1} ${line.trim().slice(0, 80)}`) })
   }
-  findingsOut.push({ id: 'A4', kind: stubs.length ? 'TEMUAN' : 'bersih', title: 'TODO/placeholder di berkas yang dibaca orang', detail: stubs.length ? stubs.slice(0, 8).join('\n      ') : '0 cocok' })
+  findingsOut.push({
+    id: 'A4', kind: stubs.length || pub.absent.length ? 'TEMUAN' : 'bersih',
+    title: 'TODO/placeholder di berkas yang dibaca orang',
+    detail: stubs.length ? stubs.slice(0, 8).join('\n      ')
+      : `${pub.texts.length} berkas, 0 cocok` + (pub.absent.length ? `\n      TIDAK ADA di repo: ${pub.absent.join(', ')}` : ''),
+  })
 
   // 5) Dokumen yang disimpan di berkas tapi menyebut domain yang tidak kita pegang.
   //
