@@ -13763,3 +13763,153 @@ body.is-submit-page #page-submit::before {
     animation: none;
   }
 }
+
+/* ============================================================
+   COURSES POLISH — sibling-grade refinement (CSS only).
+   No markup, copy, or handler changes: atmosphere, medallions,
+   hairlines, hover clarity, click affordance.
+   ============================================================ */
+
+#page-courses .courses-journey-card {
+  box-shadow:
+    0 2.5rem 7rem rgba(0, 0, 0, 0.48),
+    0 0 80px rgba(240, 185, 11, 0.05);
+}
+
+#page-courses .courses-journey-card .prereq-node-box {
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+#page-courses .courses-journey-card .prereq-node-box.unlocked {
+  border-left: 3px solid #f0b90b;
+}
+
+#page-courses .courses-journey-card .prereq-node-box.locked {
+  border-left: 3px solid rgba(255, 255, 255, 0.14);
+}
+
+#page-courses .prereq-lvl {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+#page-courses .prereq-node-box.unlocked .prereq-lvl::before {
+  align-items: center;
+  background: #f0b90b;
+  border-radius: 50%;
+  color: #211a05;
+  content: "1";
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 800;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+#page-courses .prereq-node-box.locked .prereq-lvl::before {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.5);
+  content: "2";
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 800;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+#page-courses .courses-learner-band {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+#page-courses .lms-metric-card {
+  border-radius: 16px;
+  position: relative;
+}
+
+#page-courses .lms-metric-card + .lms-metric-card {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+#page-courses .metric-icon-badge {
+  font-variant-numeric: tabular-nums;
+}
+
+#page-courses .course-bento-card {
+  border-radius: 20px;
+  overflow: hidden;
+  transition: border-color 0.2s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#page-courses .course-bento-card:hover {
+  border-color: rgba(240, 185, 11, 0.35);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  transform: translateY(-3px);
+}
+
+#page-courses .course-thumb-column {
+  overflow: hidden;
+}
+
+#page-courses .course-bento-thumb {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#page-courses .course-bento-card:hover .course-bento-thumb {
+  transform: scale(1.045);
+}
+
+#page-courses .course-bento-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+#page-courses .course-actions .btn {
+  cursor: pointer;
+  min-height: 44px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#page-courses .course-actions .btn-secondary:hover {
+  border-color: #f0b90b;
+  color: #f0b90b;
+}
+
+#page-courses .btn-privacy {
+  cursor: pointer;
+  min-height: 40px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#page-courses :focus-visible {
+  outline: 2px solid #f0b90b;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #page-courses .course-bento-card,
+  #page-courses .course-bento-thumb,
+  #page-courses .course-actions .btn,
+  #page-courses .btn-privacy,
+  #page-courses .courses-journey-card .prereq-node-box {
+    transform: none;
+    transition: none;
+  }
+
+  #page-courses .course-bento-card:hover {
+    transform: none;
+  }
+
+  #page-courses .course-bento-card:hover .course-bento-thumb {
+    transform: none;
+  }
+}
