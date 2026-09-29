@@ -48,6 +48,8 @@ const HARNESS = [
   { id: 'edge', label: 'verify:edge', cwd: SIGNER, cmd: ['npm', ['run', 'verify:edge']], re: /TEPI HIJAU — (\d+) pemeriksaan, (\d+) gagal/, also: /terukur : (\d+) dari (\d+)/ },
   { id: 'forgeOffline', label: 'forge test (offline)', cwd: REPO, cmd: ['forge', ['test']], re: /(\d+) tests passed, (\d+) failed, (\d+) skipped/ },
   { id: 'webProbe', label: 'probe (web)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'probe']], re: /PROBE HIJAU \((\d+) pemeriksaan, (\d+) gagal\)/ },
+  { id: 'samples', label: 'check:samples (contoh UI × tepi × chain)', cwd: SIGNER, cmd: ['npm', ['run', 'check:samples']], re: /CONTOH UI (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'spec', label: 'check:spec (14 asersi dinilai)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'check:spec']], re: /hasil: (\d+) lulus · (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -100,6 +102,10 @@ const DOC_CLAIMS = [
   { file: '09-Testing/T22 - signer attempts-check.js.md', metric: 'verifyDb', want: (m) => `\`verify:db\` **${m.pass}/${m.fail}**`, note: 'baris regresi T22' },
   { file: '09-Testing/T24 - signer rehost.js.md', metric: 'verifyDb', want: (m) => `\`verify:db\` **${m.pass}/${m.fail}**`, note: 'baris regresi T24' },
   { file: '09-Testing/T24 - signer rehost.js.md', metric: 'check', want: (m) => `\`check.js\` **${m.pass}/${m.fail}**`, note: 'baris regresi T24' },
+  { file: '09-Testing/T25 - web spec-audit-check.ts.md', metric: 'spec', want: (m) => `**${m.pass}/${m.fail}** lulus`, note: 'front matter T25 (14 asersi dinilai)' },
+  { file: '09-Testing/T25 - web spec-audit-check.ts.md', metric: 'spec', want: (m) => `hasil: ${m.pass} lulus · ${m.fail} gagal`, note: 'blok angka T25' },
+  { file: '09-Testing/T26 - signer sample-check.js.md', metric: 'samples', want: (m) => `check:samples **${m.pass}/${m.fail}**`, note: 'front matter T26 (contoh UI × tepi × chain)' },
+  { file: '09-Testing/T26 - signer sample-check.js.md', metric: 'samples', want: (m) => `HIJAU — ${m.pass} pemeriksaan, ${m.fail} gagal`, note: 'blok angka T26' },
   { file: '00-Overview/12 - Business Process.md', metric: 'verifyDb', want: (m) => `\`npm run verify:db\` **${m.pass}/${m.fail}**`, note: 'tabel §7 baris 1' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'check', want: (m) => `signer check **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness' },
   // Catatan matcher: halaman ini menulis `verify:edge **8/0 · 19 dari 19**`, jadi polanya sengaja

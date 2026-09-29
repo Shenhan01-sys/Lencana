@@ -69,3 +69,28 @@ Penjaga: `npm run audit` (A3) sekarang menyapu `web/index.html`, `web/src/i18n.t
 Yang **tidak boleh balik lagi**: jangan menaruh angka di beranda yang tidak dihasilkan harness, dan jangan menaruh kata "tamper-proof"/"unforgeable" di berkas yang dibaca orang — kecuali kalimatnya berubah jadi klaim yang bisa ditunjuk alatnya.
 
 Sisa terbuka: `render.ts` menulis `status: 'PASS'` tetap untuk 14 baris dan tombol pulse tidak menguji apa pun — **B100**/OI-13.
+## 29 Sep malam — tab kepatuhan tidak lagi menulis PASS (B100/B102)
+
+Tiga hal berubah di FE, semuanya karena diukur, bukan karena terasa bagus:
+
+1. **Matriks 14 asersi jadi perhitungan.** `render.ts` menulis `status: 'PASS'` sebagai teks dan
+   menilainya terhadap `generateCanonicalJsonLd()` — dokumen yang dikarang browser, lengkap dengan
+   `proofValue` yang tidak pernah ditandatangani siapa pun, `statusListIndex: "14"` yang bukan milik
+   kredensial mana pun, dan nilai `"93"` tulis-tangan. Sekarang satu implementasi
+   (`web/src/specAudit.ts`) mengambil kertas asli dari tepi lalu menjalankan predikat per baris; tab
+   laporan dan tabel statis di `index.html` memakai markup yang sama, jadi tidak ada lagi hijau yang
+   tertulis di HTML. Detail: [[09-Testing/T25 - web spec-audit-check.ts]].
+2. **Tombol yang meniru uji dicabut.** "Re-run Spec Verification" dulu menyalakan kelas CSS baris demi
+   baris lalu menulis `✓ 14/14 Uji Lolos (12ms)` — tidak ada uji yang berjalan dan 12 ms itu karangan.
+   Tombol dengan label yang sama sekarang memanggil `runSpecAudit()` dan menulis hasil sebenarnya
+   berikut durasi yang terukur (±4 detik lewat jaringan).
+3. **Dua keadaan tanpa spesimen dicabut, bukan diisi.** `npm run check:samples` mengukur: 19 dokumen,
+   13 valid, 6 revoked, 0 expired dan 0 delisted. Tombol "Penerbit Didelisting" tidak bisa menunjuk
+   kertas yang cocok dengan labelnya, jadi ia hilang dari UI sampai spesimen yang jujur dibuat
+   (**B102**). `SAMPLE_HASHES.valid` pindah ke `0xd0bce6f4…` yang terukur 200 + sah (yang lama,
+   `0x0b95c83b…`, 404 di tepi), dan `format` sekarang benar-benar rusak bentuknya (`0x123`) — hash 32
+   byte yang sah memicu "tidak ditemukan", bukan "format salah".
+
+Aturan yang tidak boleh balik lagi: **tidak ada angka di FE yang tidak dicetak sebuah perintah**, dan
+penghitung harus terbukti bisa salah — self-test `check:spec` merusak dokumen yang sama dan menuntut
+11 baris merah. Hijau di halaman berarti ada yang memang memeriksa.

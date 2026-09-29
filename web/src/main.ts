@@ -1,5 +1,6 @@
 import { verify, type Endpoint, type Report } from './verify'
 import { renderEmpty, renderReport } from './render'
+import { runSpecAudit, specRowsHtml } from './specAudit'
 import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
 import { getSavedLanguage, saveLanguage, DICTIONARIES, type Lang } from './i18n'
 import { renderLmsRoute } from './lms'
@@ -21,11 +22,24 @@ let lastReport: Report | null = null
 let ep: Endpoint = loadEndpoint()
 
 // Constant demo hashes for fast interactive testing in UI
+/**
+ * Contoh cepat di halaman verifier. Setiap nilai di sini **diukur**, bukan diingat:
+ * `npm run check:samples` (29 Sep) menyodok tepi untuk tiap dokumen yang kita terbitkan dan
+ * membandingkannya dengan `statusOf` di resolver. Hasilnya: 19 dokumen, semuanya 200 di tepi,
+ * 13 valid, 6 revoked — dan NOL yang expired atau delisted.
+ *
+ * Yang dibuang karena itu:
+ *  - `valid` lama (0x0b95c83b…) sah di chain tapi dokumennya 404 di tepi: tombol "contoh sah"
+ *    mengirim orang ke NOT_FOUND;
+ *  - `delisted` (0x4d0ffdf3…) — tidak ada satu pun kredensial delisted yang bisa ditunjukkan,
+ *    jadi tombolnya dicabut, bukan diisi dokumen yang tidak cocok dengan labelnya (B102).
+ * `format` sekarang benar-benar rusak bentuknya; dulu ia hash 32 byte yang sah, jadi demo
+ * "format salah" justru menghasilkan "tidak ditemukan".
+ */
 const SAMPLE_HASHES = {
-  valid: '0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa',
+  valid: '0xd0bce6f402e437e4bcc32ddc3d305c5b6b7079b7c4473f6c5625a8183bf7930e',
   revoked: '0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2',
-  delisted: '0x4d0ffdf32d174796a2c8bbe38e739c26ec6e205e6cdf48409f7240d28552df1c',
-  format: '0x' + '11'.repeat(32),
+  format: '0x123',
 }
 
 /**
@@ -1389,7 +1403,6 @@ function updateStaticText() {
   setText('sample-label', currentLang === 'en' ? 'Quick Samples:' : 'Contoh Cepat:')
   setText('sample-valid', dict.inputSection.sampleValid)
   setText('sample-revoked', dict.inputSection.sampleRevoked)
-  setText('sample-delisted', dict.inputSection.sampleDelisted)
   setText('fill-sample', dict.inputSection.btnSample)
 
   // Config Drawer
@@ -1567,12 +1580,27 @@ function setLanguage(lang: Lang) {
   currentLang = lang
   saveLanguage(lang)
   updateStaticText()
+  mountStaticSpec()
   paintBanner()
   if (lastReport) {
     outEl.innerHTML = renderReport(lastReport, currentLang)
+    void runSpecAudit(outEl, { hash: lastReport.credential.hash, cred: lastReport.credential, edgeBase: CREDENTIAL_HOST, lang: currentLang })
   } else {
     outEl.innerHTML = renderEmpty(currentLang)
   }
+}
+
+/**
+ * Tabel statis di halaman depan diisi dari kode yang sama dengan tab laporan, lalu dinilai.
+ * Dulu 14 barisnya tertulis di HTML dengan `✓ PASS` di tiap sel — klaim yang tidak dihasilkan
+ * apa pun, dan tetap hijau meski jaringannya mati.
+ */
+function mountStaticSpec() {
+  const tbody = $('spec-static-tbody')
+  if (!tbody) return
+  tbody.innerHTML = specRowsHtml(currentLang)
+  const scope = $('spec-static-table')
+  if (scope) void runSpecAudit(scope, { hash: SHARE_CREDENTIAL_HASH, cred: null, edgeBase: CREDENTIAL_HOST, lang: currentLang })
 }
 
 function paintConfig() {
@@ -1661,6 +1689,7 @@ async function run() {
     String(report.chain?.blockNumber ?? '?')
   )
   outEl.innerHTML = renderReport(report, currentLang)
+  void runSpecAudit(outEl, { hash: report.credential.hash, cred: report.credential, edgeBase: CREDENTIAL_HOST, lang: currentLang })
   goBtn.disabled = false
 }
 
@@ -1728,11 +1757,6 @@ function wire() {
 
   $('sample-revoked')?.addEventListener('click', () => {
     inputEl.value = SAMPLE_HASHES.revoked
-    run()
-  })
-
-  $('sample-delisted')?.addEventListener('click', () => {
-    inputEl.value = SAMPLE_HASHES.delisted
     run()
   })
 
@@ -1853,12 +1877,6 @@ function wire() {
   $('btn-hub-test-revoke')?.addEventListener('click', () => {
     window.location.hash = '#/verify'
     inputEl.value = SAMPLE_HASHES.revoked
-    run()
-  })
-
-  $('btn-hub-test-delist')?.addEventListener('click', () => {
-    window.location.hash = '#/verify'
-    inputEl.value = SAMPLE_HASHES.delisted
     run()
   })
 
@@ -2221,30 +2239,25 @@ function initSpecMatrix() {
     URL.revokeObjectURL(url)
   })
 
-  // Run Spec Compliance Pulse
-  $('btn-run-spec-matrix')?.addEventListener('click', () => {
+  /**
+   * Tombol audit kepatuhan. Dulu: menyalakan kelas CSS baris demi baris dengan setTimeout lalu
+   * menulis "14/14 Uji Lolos (12ms)" — angka 12ms itu karangan, tidak ada satu pun uji yang jalan.
+   * Sekarang tombol yang sama memanggil penghitung betulan dan menulis hasil yang sebenarnya,
+   * termasuk kalau hasilnya bukan 14.
+   */
+  $('btn-run-spec-matrix')?.addEventListener('click', async () => {
     const btn = $('btn-run-spec-matrix')
     const btnText = $('btn-run-spec-matrix-text')
-    const rows = document.querySelectorAll('#spec-static-tbody .spec-row')
+    const scope = $('spec-static-table') ?? document
     if (btn) btn.setAttribute('disabled', 'true')
-    if (btnText) btnText.textContent = currentLang === 'en' ? 'Auditing 14 tests...' : 'Mengaudit 14 uji...'
-
-    rows.forEach((row, i) => {
-      row.classList.remove('pulse-green')
-      setTimeout(() => {
-        row.classList.add('pulse-green')
-      }, i * 35)
-    })
-
-    setTimeout(() => {
-      if (btn) btn.removeAttribute('disabled')
-      if (btnText) {
-        btnText.textContent = currentLang === 'en' ? '✓ 14/14 Tests Passed (12ms)' : '✓ 14/14 Uji Lolos (12ms)'
-        setTimeout(() => {
-          btnText.textContent = DICTIONARIES[currentLang].specCompliance.btnRunAudit
-        }, 3000)
-      }
-    }, 14 * 35 + 300)
+    if (btnText) btnText.textContent = currentLang === 'en' ? 'Fetching document and evaluating…' : 'Mengambil dokumen dan menghitung…'
+    const res = await runSpecAudit(scope, { hash: SHARE_CREDENTIAL_HASH, cred: null, edgeBase: CREDENTIAL_HOST, lang: currentLang })
+    if (btn) btn.removeAttribute('disabled')
+    if (btnText) {
+      btnText.textContent = currentLang === 'en'
+        ? `${res.passed}/${res.passed + res.failed + res.unknown} satisfied · ${res.failed} failed · ${res.unknown} not readable (${res.ms} ms)`
+        : `${res.passed}/${res.passed + res.failed + res.unknown} terpenuhi · ${res.failed} gagal · ${res.unknown} tidak terbaca (${res.ms} ms)`
+    }
   })
 
   // Global event delegation for report tab 6 (W3C Spec Matrix)
@@ -2288,14 +2301,9 @@ function initSpecMatrix() {
     // Pulse test in report tab
     const pulseReportBtn = target.closest<HTMLButtonElement>('.btn-pulse-spec-test')
     if (pulseReportBtn) {
-      const pane = pulseReportBtn.closest('.spec-matrix-wrapper')
-      const rows = pane?.querySelectorAll('.spec-row')
-      if (rows) {
-        rows.forEach((row, i) => {
-          row.classList.remove('pulse-green')
-          setTimeout(() => { row.classList.add('pulse-green') }, i * 30)
-        })
-      }
+      const scope = pulseReportBtn.closest('.spec-matrix-wrapper') ?? document
+      const hash = scope === document ? SHARE_CREDENTIAL_HASH : (lastReport?.credential.hash ?? SHARE_CREDENTIAL_HASH)
+      await runSpecAudit(scope, { hash, cred: lastReport?.credential ?? null, edgeBase: CREDENTIAL_HOST, lang: currentLang })
     }
   })
 }
@@ -2673,6 +2681,7 @@ function boot() {
   wire()
   updateStaticText()
   paintConfig()
+  mountStaticSpec()
   paintBanner()
 
   // Initialize default essay text & token counters
