@@ -37,13 +37,14 @@ const EP_KEY = 'lencana-signer-url'
 const ID_KEY = 'lencana-learner-v1'
 const DEFAULT_EP = 'http://127.0.0.1:8787'
 
-export type LearnerKind = 'dompet' | 'perangkat'
+export type LearnerKind = 'dompet' | 'perangkat' | 'privy'
 
 type StoredIdentity = {
   address: string
   kind: LearnerKind
-  /** Hanya ada untuk kind 'perangkat'; sessionStorage, hilang bersama tab. */
+  /** Ada untuk kind 'perangkat' dan 'privy'; sessionStorage, hilang bersama tab. */
   pk?: Hex
+  email?: string
 }
 
 export type ServerSummary = {
@@ -119,7 +120,7 @@ function readIdentity (): { address: string, kind: LearnerKind } | null {
     if (!raw) return null
     const p = JSON.parse(raw) as StoredIdentity
     if (!p?.address) return null
-    return { address: p.address, kind: p.kind === 'dompet' ? 'dompet' : 'perangkat' }
+    return { address: p.address, kind: p.kind === 'dompet' ? 'dompet' : p.kind === 'privy' ? 'privy' : 'perangkat' }
   } catch { return null }
 }
 
@@ -147,6 +148,26 @@ export function createDeviceLearner (): { address: string, kind: LearnerKind } |
   const saved = writeSession(ID_KEY, JSON.stringify({ address: account.address, kind: 'perangkat', pk } satisfies StoredIdentity))
   if (!saved) return null
   state.identity = { address: account.address, kind: 'perangkat' }
+  state.summary = null
+  return state.identity
+}
+
+/**
+ * Embedded wallet peserta lewat Privy / auth email — alamat EVM dibuatkan tanpa seed phrase,
+ * dapat menandatangani pesan personal_sign untuk /enroll dan /progress, dan kunci dapat diekspor.
+ */
+export function createPrivyLearner (email?: string, address?: string, pk?: Hex): { address: string, kind: LearnerKind } | null {
+  const finalPk = pk || generatePrivateKey()
+  const account = privateKeyToAccount(finalPk)
+  const finalAddr = address || account.address
+  const saved = writeSession(ID_KEY, JSON.stringify({
+    address: finalAddr,
+    kind: 'privy',
+    pk: finalPk,
+    email: email || undefined,
+  } satisfies StoredIdentity))
+  if (!saved) return null
+  state.identity = { address: finalAddr, kind: 'privy' }
   state.summary = null
   return state.identity
 }
@@ -183,9 +204,9 @@ function newNonce (): string {
 async function signMessage (message: string): Promise<{ signature?: string, why?: string }> {
   const id = state.identity
   if (!id) return { why: 'Belum ada identitas peserta — tanpa tanda tangan, tidak ada yang bisa ditulis atas nama alamatmu.' }
-  if (id.kind === 'perangkat') {
+  if (id.kind === 'perangkat' || id.kind === 'privy') {
     const raw = (() => { try { return JSON.parse(readSession(ID_KEY) ?? '{}') as StoredIdentity } catch { return null } })()
-    if (!raw?.pk) return { why: 'Kunci perangkat tidak ada di sesi ini (tab baru?). Buat lagi identitasnya.' }
+    if (!raw?.pk) return { why: 'Kunci sesi tidak ada di sesi ini (tab baru?). Buat lagi identitasnya.' }
     return { signature: await privateKeyToAccount(raw.pk).signMessage({ message }) }
   }
   const eth = (window as unknown as { ethereum?: { request: (a: { method: string, params?: unknown[] }) => Promise<string> } }).ethereum

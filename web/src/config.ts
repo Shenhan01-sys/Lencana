@@ -31,10 +31,10 @@ export const PRESETS: Preset[] = [
     label: 'BSC Testnet (97) — target submission',
     endpoint: {
       ...defaultEndpoint(),
-      resolver: '0xe01a16e50fd9d8c0ff4230874f8d8c086e811627',
-      cert: '0x021356a0e3b9ab440a571d4af62b215841a7c891',
+      resolver: '0x7CA624caFDe5cA3A27b33d26be56F73a90792065',
+      cert: '0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd',
     },
-    note: 'Address BAS diverifikasi 16 Sep 2026 lewat eth_getCode + eth_call getSchemaRegistry().',
+    note: 'Kontrak CredentialResolver & SoulboundCert aktif di BSC testnet (chain 97).',
   },
   {
     id: 'bsc56',

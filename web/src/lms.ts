@@ -24,6 +24,7 @@ import {
   completeLesson, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner, learnerAddress,
   setEndpoint, snapshot, submitEssay, submitQuiz, syncCourse,
 } from './learning'
+import { isRealPrivyConfigured } from './privy'
 
 /**
  * Baris state yang DIPERCAYAI: milik penerbit di Postgres, bukan milik browser.
@@ -38,19 +39,29 @@ function serverLine (courseId: string): string {
   const addr = learnerAddress()
   const ep = `<input id="signer-endpoint" class="ep" data-role="signer-endpoint" value="${esc(endpoint())}" aria-label="URL penerbit">`
   if (!addr) {
+    const privyLabel = isRealPrivyConfigured()
+      ? 'Masuk dengan Privy (Email/Google)'
+      : 'Masuk demo (kunci lokal — bukan Privy sungguhan)'
     return `<aside class="note learn-id">
       <strong>Rekaman belajar belum dimulai</strong>
       <p>Progres di halaman ini masih catatan lokal. Supaya nilainya bisa dibaca penerbit, identitas
       peserta harus bisa menandatangani — satu alamat, satu nonce, satu kali pakai.</p>
       <div class="actions">
-        <button class="primary" data-action="learner-device">Pakai kunci perangkat (sementara)</button>
+        <button class="primary" data-action="learner-privy">${privyLabel}</button>
+        <button data-action="learner-device">Pakai kunci perangkat (sementara)</button>
         <button data-action="learner-wallet">Sambungkan dompet</button>
       </div>
       <p class="muted">${ep} · ubah kalau penerbitmu berjalan di tempat lain, lalu muat ulang.</p>
     </aside>`
   }
   const sum = s.summary && s.courseId === courseId ? s.summary : null
-  const kind = s.identity?.kind === 'dompet' ? 'dompet' : 'kunci perangkat (hangus bersama tab ini)'
+  // 'privy' tanpa App ID sungguhan = kunci lokal sesi ini, bukan dompet Privy. Labelnya
+  // harus berkata begitu supaya "Rekaman di penerbit" tidak mengklaim kustodi yang tidak ada.
+  const kind = s.identity?.kind === 'dompet'
+    ? 'dompet'
+    : s.identity?.kind === 'privy'
+      ? (isRealPrivyConfigured() ? 'embedded wallet (Privy)' : 'kunci demo lokal — BUKAN dompet Privy (hangus bersama tab ini)')
+      : 'kunci perangkat (hangus bersama tab ini)'
   if (!sum) {
     return `<aside class="note learn-id"><strong>Peserta:</strong> <code>${esc(addr)}</code> · ${esc(kind)}
       <p class="muted">${s.pending ? 'Menghubungi penerbit…' : esc(s.error ?? 'Rekaman di penerbit belum dibaca untuk kursus ini.')}</p>
@@ -616,6 +627,11 @@ export function bindLms(root: HTMLElement): void {
       learnStatus(root, `Identitas perangkat dibuat: ${id.address.slice(0, 10)}… — kunci ini hangus bersama tab, bukan identitas tahan lama.`)
       if (courseId) await syncCourse(courseId)
       rerender()
+      return
+    }
+
+    if (action === 'learner-privy') {
+      window.dispatchEvent(new CustomEvent('lencana:open-privy', { detail: { courseId: courseId || COURSES[0]?.id || '' } }))
       return
     }
 
