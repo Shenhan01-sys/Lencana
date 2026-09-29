@@ -9,6 +9,8 @@ import {
   connectWalletLearner,
   createDeviceLearner,
   forgetLearner,
+  hasExplicitLearnerSession,
+  startDemoLearnerSession,
   syncCourse,
   snapshot,
 } from './learning'
@@ -523,6 +525,14 @@ let walletState: WalletState = {
 }
 
 function initWalletState() {
+  if (!hasExplicitLearnerSession()) {
+    // Old session data without the explicit marker is not an authenticated learner session.
+    if (learnerAddress()) forgetLearner()
+    try { sessionStorage.removeItem('lencana_wallet') } catch { /* storage may be unavailable */ }
+    walletState = { isConnected: false, address: null, isDemo: false }
+    renderWalletState()
+    return
+  }
   const addr = learnerAddress()
   if (addr) {
     const s = snapshot()
@@ -552,7 +562,9 @@ function renderWalletState() {
   const portfolioAddrEl = document.querySelector('.portfolio-wallet-addr')
   const mintReceiptAddr = $('mint-receipt-recipient')
 
-  const effectiveAddress = learnerAddress() || (walletState.isConnected ? walletState.address : null)
+  const effectiveAddress = hasExplicitLearnerSession()
+    ? learnerAddress() || (walletState.isConnected ? walletState.address : null)
+    : null
 
   if (effectiveAddress) {
     connectBtn?.classList.add('hidden')
@@ -583,6 +595,53 @@ function renderWalletState() {
     if (portfolioAddrEl) portfolioAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
     if (mintReceiptAddr) mintReceiptAddr.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
   }
+  updateLearnerNavigation()
+}
+
+const learnerRouteLinkState = new WeakMap<HTMLAnchorElement, {
+  hidden: boolean
+  ariaHidden: string | null
+  tabIndex: string | null
+}>()
+
+function isProtectedRouteHref(href: string): boolean {
+  const marker = href.indexOf('#')
+  if (marker < 0) return false
+  const hash = href.slice(marker).toLowerCase().split('?')[0]
+  if (hash === '#/' || hash === '#') return false
+  if (hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login') return false
+  if (hash.startsWith('#/')) return true
+  return ['#courses', '#learn', '#course', '#submit', '#ai-evaluator', '#verifier', '#verify',
+    '#portfolio', '#ai-agents', '#agent-hub'].includes(hash)
+}
+
+/** Navigation follows the same explicit session signal as the route guard. */
+function updateLearnerNavigation(): void {
+  const authenticated = hasExplicitLearnerSession()
+  document.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((anchor) => {
+    if (!isProtectedRouteHref(anchor.getAttribute('href') ?? '')) return
+    if (!learnerRouteLinkState.has(anchor)) {
+      learnerRouteLinkState.set(anchor, {
+        hidden: anchor.classList.contains('hidden') || anchor.hidden,
+        ariaHidden: anchor.getAttribute('aria-hidden'),
+        tabIndex: anchor.getAttribute('tabindex'),
+      })
+    }
+    const original = learnerRouteLinkState.get(anchor)!
+    if (!authenticated) {
+      anchor.classList.add('hidden')
+      anchor.hidden = true
+      anchor.setAttribute('aria-hidden', 'true')
+      anchor.tabIndex = -1
+    } else {
+      anchor.classList.toggle('hidden', original.hidden)
+      anchor.hidden = original.hidden
+      if (original.ariaHidden === null) anchor.removeAttribute('aria-hidden')
+      else anchor.setAttribute('aria-hidden', original.ariaHidden)
+      if (original.tabIndex === null) anchor.removeAttribute('tabindex')
+      else anchor.setAttribute('tabindex', original.tabIndex)
+    }
+  })
 }
 
 function openWalletModal(startWithPrivy = false) {
@@ -920,6 +979,7 @@ async function connectDeviceWallet() {
 }
 
 function connectDemoWallet() {
+  startDemoLearnerSession()
   walletState = {
     isConnected: true,
     address: '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
@@ -942,7 +1002,7 @@ function disconnectWallet() {
   sessionStorage.removeItem('lencana_wallet')
   sessionStorage.removeItem('lencana_enroll_target')
   renderWalletState()
-  renderLmsRoute()
+  handleRoute()
 }
 
 let confettiAnimId: number | null = null
@@ -1554,10 +1614,19 @@ function copyJsonLd() {
 
 function handleRoute() {
   const rawHash = window.location.hash || '#/'
-  const hash = rawHash.toLowerCase().split('?')[0]
+  let hash = rawHash.toLowerCase().split('?')[0]
+
+  const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
+  const isHomeAnchor = hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture'
+  const isHomeRoute = hash === '#/' || hash === '#'
+  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isPrivyOnboard) {
+    // Replace the attempted route before rendering so protected HTML never becomes visible.
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#/`)
+    hash = '#/'
+  }
+  updateLearnerNavigation()
 
   const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me'
-  const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
   let targetPageId = 'page-home'
   if (hash === '#/courses' || hash === '#courses') {
     targetPageId = 'page-courses'
@@ -2328,6 +2397,20 @@ function wire() {
 
   // Client-side Hash Router Listener
   window.addEventListener('hashchange', handleRoute)
+  window.addEventListener('lencana:learner-session-change', () => {
+    const identity = snapshot().identity
+    if (!hasExplicitLearnerSession()) {
+      walletState = { isConnected: false, address: null, isDemo: false }
+    } else if (identity) {
+      walletState = {
+        isConnected: true,
+        address: identity.address,
+        isDemo: identity.kind === 'perangkat' || (identity.kind === 'privy' && !isRealPrivyConfigured()),
+      }
+    }
+    renderWalletState()
+    if (!hasExplicitLearnerSession()) handleRoute()
+  })
 
   // Tab switching delegation on results container
   outEl.addEventListener('click', (e) => {

@@ -23,6 +23,7 @@ import { courseProgress, recordLesson, summarize, wipeCourse, type CourseSummary
 import {
   completeLesson, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner, learnerAddress,
   setEndpoint, snapshot, submitEssay, submitQuiz, syncCourse,
+  hasExplicitLearnerSession,
 } from './learning'
 import { isRealPrivyConfigured } from './privy'
 
@@ -554,6 +555,12 @@ export function renderLmsRoute (): boolean {
   if (!mount) return false
 
   const hash = (location.hash || '#/').toLowerCase().split('?')[0]
+  if (isLmsRoute(hash) && !hasExplicitLearnerSession()) {
+    mount.innerHTML = ''
+    delete document.body.dataset.lmsRoute
+    window.history.replaceState(window.history.state, '', `${location.pathname}${location.search}#/`)
+    return true
+  }
   if (!isLmsRoute(hash)) {
     mount.innerHTML = ''
     delete document.body.dataset.lmsRoute
