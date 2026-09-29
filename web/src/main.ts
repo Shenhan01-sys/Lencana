@@ -482,9 +482,12 @@ function renderWalletState() {
 
   const effectiveAddress = learnerAddress() || (walletState.isConnected ? walletState.address : null)
 
+  const studentLinks = document.querySelectorAll('.student-only')
+
   if (effectiveAddress) {
     connectBtn?.classList.add('hidden')
     connectedPill?.classList.remove('hidden')
+    studentLinks.forEach(el => el.classList.remove('hidden'))
     const short = `${effectiveAddress.slice(0, 6)}...${effectiveAddress.slice(-4)}`
     if (addrDisplay) {
       addrDisplay.textContent = walletState.isDemo ? `guest (${short})` : short
@@ -495,6 +498,7 @@ function renderWalletState() {
   } else {
     connectBtn?.classList.remove('hidden')
     connectedPill?.classList.add('hidden')
+    studentLinks.forEach(el => el.classList.add('hidden'))
     if (learnerAddrEl) learnerAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
     if (portfolioAddrEl) portfolioAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
     if (mintReceiptAddr) mintReceiptAddr.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
@@ -1443,17 +1447,49 @@ import { mountNewApp } from './new-app'
 function handleRoute() {
   const rawHash = window.location.hash || '#/'
   const hash = rawHash.toLowerCase().split('?')[0]
+  let targetPageId = 'page-new-app'
+  const isLms = hash.startsWith('#/class/')
 
-  const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me' || hash.startsWith('#/class/')
+  // 1. Alias redirects
+  if (hash.startsWith('#/course/')) {
+    const courseId = hash.replace('#/course/', '')
+    window.location.hash = `#/class/${courseId}`
+    return
+  }
+  if (hash === '#/learn') {
+    window.location.hash = '#/class/web3-dasar-2026'
+    return
+  }
+
+  // 2. Authentication Check for Protected Routes (LMS Student Area)
+  const effectiveAddress = learnerAddress() || (walletState.isConnected ? walletState.address : null)
+  const isProtected = hash.startsWith('#/class/') || 
+                      hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit' ||
+                      hash === '#/portfolio' || hash === '#portfolio';
+
   const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
+
+  if (isProtected && !effectiveAddress) {
+    sessionStorage.setItem('lencana_enroll_target', hash)
+    targetPageId = 'page-new-app'
+    window.location.hash = '#/'
+    mountNewApp('#/')
+    openWalletModal(true)
+    return
+  }
   
-  let targetPageId = 'page-home'
   if (hash === '#/' || hash === '' || hash.startsWith('#/class/')) {
     targetPageId = 'page-new-app'
-  } else if (hash === '#/courses' || hash === '#courses') {
-    targetPageId = 'page-courses'
+  } else if (hash === '#/courses' || hash === '#courses' || hash === '#catalog') {
+    // If not logged in, show landing page catalog; if logged in, direct to study room
+    if (effectiveAddress) {
+      window.location.hash = '#/class/web3-dasar-2026'
+      return
+    } else {
+      targetPageId = 'page-new-app'
+    }
   } else if (isPrivyOnboard) {
-    targetPageId = 'page-home'
+    targetPageId = 'page-new-app'
     openWalletModal(true)
   } else if (hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit') {
     targetPageId = 'page-submit'
@@ -1463,10 +1499,8 @@ function handleRoute() {
     targetPageId = 'page-portfolio'
   } else if (hash === '#/agent-hub' || hash === '#ai-agents' || hash === '#agent-hub') {
     targetPageId = 'page-agent-hub'
-  } else if (isLms) {
-    targetPageId = 'page-courses'
   } else {
-    targetPageId = 'page-home'
+    targetPageId = 'page-new-app'
   }
 
   if (targetPageId === 'page-new-app') {

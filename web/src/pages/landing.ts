@@ -32,13 +32,13 @@ export function renderLanding() {
         'Kursus mendalam yang diakhiri dengan ijazah Soulbound ERC-5192. Dapat dibuktikan tanpa harus mempercayai kami.'
       ),
       h('div', { class: 'hero-ctas flex gap-4 justify-center' },
-        h('a', { href: '#/courses', class: 'btn btn-primary' }, 'Mulai Belajar'),
+        h('a', { href: '#catalog', class: 'btn btn-primary' }, 'Mulai Belajar'),
         h('a', { href: '#/verify', class: 'btn btn-secondary' }, 'Verifikasi Kredensial')
       )
     ),
     
     // 2. Course Catalog
-    h('section', { class: 'catalog-section py-12 max-w-5xl mx-auto' },
+    h('section', { id: 'catalog', class: 'catalog-section py-12 max-w-5xl mx-auto' },
       h('h2', { class: 'text-2xl font-bold mb-8' }, 'Katalog Kursus'),
       h('div', { class: 'grid md:grid-cols-2 gap-6' },
         ...COURSES.map(renderCourseCard)

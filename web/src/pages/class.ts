@@ -59,6 +59,17 @@ function renderClassOverview(c: ClassData) {
   );
 }
 
+import { learnerAddress } from '../learning';
+
+function isAuthed(): boolean {
+  if (learnerAddress()) return true;
+  try {
+    const s = sessionStorage.getItem('lencana_wallet');
+    if (s && JSON.parse(s)?.isConnected) return true;
+  } catch {}
+  return false;
+}
+
 export function renderClass(routeHash: string) {
   // routeHash is like #/class/web3-dasar-2026/m1/l1
   const parts = routeHash.split('/').slice(2);
@@ -67,6 +78,21 @@ export function renderClass(routeHash: string) {
   const c = COURSES.find(x => x.id === classId);
   if (!c) {
     return h('div', { class: 'p-8 text-center' }, 'Kelas tidak ditemukan.');
+  }
+
+  if (!isAuthed()) {
+    return h('div', { class: 'class-shell flex flex-col items-center justify-center min-h-screen bg-obsidian text-gray-100 p-6' },
+      h('div', { class: 'max-w-md w-full card-surface p-8 text-center border border-gray-800 rounded-xl' },
+        h('div', { class: 'text-5xl mb-4' }, '🔒'),
+        h('h2', { class: 'text-2xl font-bold mb-2 text-white' }, 'Akses Kelas Terkunci'),
+        h('p', { class: 'text-muted text-sm mb-6' }, `Anda harus masuk (login) terlebih dahulu untuk mengakses materi dan kurikulum "${c.title}".`),
+        h('a', { 
+          href: '#/login', 
+          class: 'btn btn-primary w-full py-3 block text-center font-bold mb-3' 
+        }, 'Masuk Sekarang (Sign In) ➔'),
+        h('a', { href: '#/', class: 'text-sm text-muted hover:text-white block text-center' }, '← Kembali ke Katalog')
+      )
+    );
   }
 
   let mainContent;
