@@ -134,7 +134,7 @@ kita dokumentasikan untuk platform orang lain.
     diubah lagi". Bukan komentar "done!" (busuk dalam tiga hari), tapi baris yang bisa dicek silang:
     `// [B67] SELESAI 2026-09-29 — <apa yang dijaga>. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.``
     Bagian yang belum selesai tapi baru disentuh diberi ``[B102] TERBUKA`` — menandai separuh kerja
-    sebagai selesai membuat kode dan catatan saling membantah. Ditegakkan **A9** di `npm run audit`:
+    sebagai selesai membuat kode dan catatan saling membantah. Ditegakkan dua penjaga: **A9** di `npm run audit` (konsistensi) dan **`npm run check:labels`** ([[09-Testing/T29 - signer label-coverage.js]], kelengkapan):
     tag `SELESAI` tanpa baris tertutup = TEMUAN; baris tertutup yang ditandai `TERBUKA` di kode = TEMUAN.
     Kerjakan **satu ID lalu telusuri → tag → verify**, bukan massal: 26 tag sekaligus yang kupasang tanpa
     telusur menghasilkan satu tag menempel ke ID yang masih terbuka (B102) dan dua baris backlog

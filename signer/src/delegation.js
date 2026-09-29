@@ -19,7 +19,9 @@
  * di `lib/bas/src/IEAS.sol`.
  */
 
-// [B52] SELESAI 2026-09-29 — primitif attestByDelegation + allowance EIP-712 terbukti di chain publik. Buktikan ulang: npm run delegate. JANGAN dibalik/diulang tanpa membuka kembali baris B52 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// [B52] TERBUKA — primitif `attestByDelegation` + allowance EIP-712 sudah terbukti di chain publik (itu yang
+// dikerjakan berkas ini). Barisnya tetap 🟡: sisanya (dua `SoulboundCert` di 97, mana yang jadi tujuan) bukan
+// lagi tujuan kita — lihat D46. Tag `SELESAI` di sini tadinya salah, diluruskan 30 Sep oleh check:labels.
 import {
   createPublicClient, createWalletClient, http,
   encodeAbiParameters, keccak256, concat, recoverAddress,

@@ -300,7 +300,7 @@ async function collect () {
     for (const l of (await read(findings)).split(/\r?\n/)) {
       const m = /^\|\s*\*\*(B\d+)\*\*/.exec(l)
       if (m) {
-        const tertutup = /✅|DITUTUP|SELESAI|\bDONE\b/.test(l)
+        const tertutup = /✅|DITUTUP|\bDONE\b/.test(l.split('|')[1] || '')
         // Halaman ini punya DUA tabel (kerja 29 Sep + tabel lama 21 Sep) dan ID yang sama bisa muncul
         // di keduanya. Yang menang adalah TERBUKA: duplikat basi tidak boleh bersembunyi di balik
         // baris baru yang sudah tertutup — itu persis kelas yang dijaga aturan #1.
