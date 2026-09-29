@@ -14425,3 +14425,145 @@ body.is-home-page header.app-navbar.force-hidden, header.app-navbar.force-hidden
   color: #ff8e1d;
   border: 1px solid rgba(255, 142, 29, 0.3);
 }
+
+/* --- Taste Skill: Advanced LMS Classroom Styles --- */
+.lms-prose {
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #c9d1d9;
+}
+.lms-heading-1 {
+  font-family: var(--font-display, 'Geist', sans-serif);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 32px 0 16px;
+  letter-spacing: -0.02em;
+}
+.lms-heading-2 {
+  font-family: var(--font-display, 'Geist', sans-serif);
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 28px 0 14px;
+  letter-spacing: -0.015em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1f2937;
+}
+.lms-heading-3 {
+  font-family: var(--font-display, 'Geist', sans-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  margin: 24px 0 10px;
+}
+.lms-paragraph {
+  margin-bottom: 1.35rem;
+}
+.lms-list {
+  margin-bottom: 1.35rem;
+  padding-left: 1.5rem;
+  list-style-type: disc;
+}
+.lms-list li {
+  margin-bottom: 0.5rem;
+}
+.inline-code {
+  background: #181d24;
+  border: 1px solid #2b333f;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--bnb-gold);
+  font-size: 0.88em;
+}
+.code-block-wrapper {
+  background: #0d1117;
+  border: 1px solid #252d38;
+  border-radius: 10px;
+  margin: 24px 0;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #161b22;
+  border-bottom: 1px solid #252d38;
+}
+.code-lang {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #8b949e;
+  letter-spacing: 0.08em;
+}
+.btn-copy-code {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #8b949e;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-copy-code:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.btn-copy-code.copied {
+  color: #10b981;
+}
+.code-block-wrapper pre {
+  padding: 16px 20px;
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #e6edf3;
+}
+.lms-callout {
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 22px 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+.callout-note {
+  background: rgba(240, 185, 11, 0.08);
+  border-left: 4px solid var(--bnb-gold);
+  color: #eaecef;
+}
+.callout-exercise {
+  background: rgba(14, 203, 129, 0.08);
+  border-left: 4px solid #10b981;
+  color: #eaecef;
+}
+.callout-quote {
+  background: #161b22;
+  border-left: 4px solid #3b82f6;
+  color: #d1d5db;
+}
+.class-sidebar::-webkit-scrollbar,
+.class-shell main::-webkit-scrollbar {
+  width: 6px;
+}
+.class-sidebar::-webkit-scrollbar-thumb,
+.class-shell main::-webkit-scrollbar-thumb {
+  background: #2b313a;
+  border-radius: 3px;
+}
+.class-sidebar::-webkit-scrollbar-thumb:hover,
+.class-shell main::-webkit-scrollbar-thumb:hover {
+  background: #3b434f;
+}
