@@ -1,11 +1,11 @@
 # Lencana — course credentials that stand on their own
 
-> Finish the course, get the credential, rubric signed, status on BNB Chain, nothing rewritten quietly.
+> Finish the course, get the credential, rubric signed, status on chain, no quiet rewrites.
 
 **What it is.** A micro-course platform whose output is a credential that keeps working after the issuer's
 website is gone. The institution publishes the course and **its own rubric**; its **own agent** grades and
 signs; Lencana relays it onto BNB Chain and pays the gas. Anyone can check it — no account, no wallet, no
-trust in our database  A third party agrees: our credential **passes 1EdTech's OB 3.0
+trust in our database. A third party agrees: our credential **passes 1EdTech's OB 3.0
 validator** (`vc.1ed.tech`): 0 errors, 0 warnings. Repo `github.com/Shenhan01-sys/Lencana` · **BNB testnet, chain 97**.
 
 ## The problem we want to solve
@@ -14,7 +14,7 @@ validator** (`vc.1ed.tech`): 0 errors, 0 warnings. Repo `github.com/Shenhan01-sy
 |---|---|---|
 | Proof depends on asking the issuer | a recruiter cannot check a small academy's certificate without emailing them; a dead site buries it | status is read from a public chain — free, by anyone |
 | The record underneath is editable | rubric, weights and grade sit in the issuer's database and can change **after** it exists | the grading policy is hashed (`rubricHash`) and printed inside the credential at issuance |
-| Revocation is invisible to a stranger | six open-source platforms read at pinned commits (Moodle, Open edX, Canvas, Chamilo, Frappe, LearnHouse) let no outsider tell valid from withdrawn — Moodle's exporter says it: *"Signed is not implemented yet"* | two on-chain Bitstring Status Lists, rebuilt from chain state per request |
+| Revocation is invisible to a stranger | six open-source LMSs read at pinned commits (Moodle, Open edX, Canvas, Chamilo, Frappe, LearnHouse) let no outsider tell valid from withdrawn — Moodle's exporter says it: *"Signed is not implemented yet"* | two on-chain Bitstring Status Lists, verified against chain state per request |
 | Issuing costs sit with the wrong party | a wallet and gas asked of the institution | the agent signs; **Lencana broadcasts and pays** |
 
 ## How it works

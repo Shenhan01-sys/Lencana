@@ -12,6 +12,12 @@
     "agent": "node scripts/agent.js",
     "adopt": "node scripts/adopt.js --demo",
     "check": "node scripts/check.js",
+    "e2e": "node scripts/e2e.js",
+    "journey": "tsx scripts/journey.js",
+    "revoke": "node scripts/revoke.js",
+    "verify:db": "node scripts/db-probe.js",
+    "verify:attempts": "tsx scripts/attempts-check.js",
+    "verify:attempts:live": "tsx scripts/attempts-check.js --live",
     "judge": "tsx scripts/judge-check.js",
     "judge-variance": "tsx scripts/judge-variance.js",
     "serve": "tsx src/server.js",
@@ -23,7 +29,13 @@
     "smoke": "node scripts/smoke.mjs",
     "validator": "node scripts/validator-check.js",
     "measure:signing": "node scripts/measure-signing-cost.js",
-    "verify:deploy": "node scripts/verify-deploy.js"
+    "verify:deploy": "node scripts/verify-deploy.js",
+    "verify:live-cert": "node scripts/verify-live-cert.js",
+    "publish:edge": "tsx scripts/publish.js",
+    "verify:edge": "node scripts/verify-edge.js",
+    "diag:lists": "node scripts/diag-lists.js",
+    "rehost": "node scripts/rehost.js",
+    "grade:essay": "tsx scripts/grade-essay.js"
   },
   "dependencies": {
     "@digitalbazaar/data-integrity": "^2.5.0",

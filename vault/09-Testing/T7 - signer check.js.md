@@ -1,8 +1,8 @@
 ---
 tags: [testing, "T7"]
 command: node scripts/check.js
-measured: 2026-09-25
-result: 53 checks / 0 failed
+measured: 2026-09-28
+result: 74 checks / 0 failed
 ---
 
 # T7 - signer check.js
@@ -13,7 +13,7 @@ result: 53 checks / 0 failed
 
 ```powershell
 cd app/signer
-node scripts/check.js        # reads RPC_URL / RESOLVER_ADDRESS / BAS_ADDRESS / DEMO_HASH* / EXPECT_* from the environment
+node scripts/check.js        # memuat ../.env sendiri (src/env.js); lingkungan proses menang
 ```
 
 ## Result — 2026-09-25
@@ -43,16 +43,22 @@ node scripts/check.js        # reads RPC_URL / RESOLVER_ADDRESS / BAS_ADDRESS / 
 CHECK HIJAU — 53 pemeriksaan, 0 gagal
 ```
 
-The count **grows with the watched set**: it was 45 on 21 Sep, 53 since the lesson-level credentials
-joined. A count is not a score — read the group list, and note that the count collapses to **28** when
-the chain variables are missing, because the chain-dependent group is skipped silently apart from its
-warning line.
+The count **grows with the watched set**: 45 on 21 Sep, 53 when the lesson-level credentials joined,
+**74 on 28 Sep** (korpus 15 hash, dokumen yang tersimpan bertambah). A count is not a score — read the
+group list, and note that the count collapsed to **28** whenever the chain variables were missing,
+because the chain-dependent group was skipped silently apart from its warning line. Sejak 28 Sep
+`check.js` memuat `../.env` sendiri lewat `src/env.js` dan mencetak berapa variabel yang masuk, jadi
+"28 hijau" tidak bisa lagi terjadi tanpa sengaja.
 
 ## What this does NOT prove
 
 - It signs and verifies against **our own** Ed25519 key. It does not prove another organisation's
     validator accepts the document — that is P7: run on 27 Sep, 2 errors, both about document shape → [[09-Testing/T15 - 1EdTech validator]].
 - `verificationMethod` being an HTTP URL is checked for *shape*. Whether that URL resolves outside
-  this machine is exactly what it cannot check, and today it does not (`BASE_URL` is a localhost).
+  this machine adalah pemeriksaan yang **berbeda**, dan dulu jawabannya "tidak": yang tersaji hanyalah
+  loopback. Sekarang ada dua lapis: [[09-Testing/T16 - npm run publish edge]] membuktikan URL-nya
+  menjawab dari host tetap, dan **B48** menutup lubang yang tersisa — server lokal pun wajib
+  menyajikan setiap agen di `.keys/`, karena dokumen lama menunjuk slug tempat ia terbit, bukan slug
+  yang kebetulan di-start hari ini.
 
 **Related:** [[S1 - The credential document]] · [[S2 - Status lists from chain state]] · [[00-Overview/04 - Corrections]]

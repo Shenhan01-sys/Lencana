@@ -34,6 +34,14 @@ import { REVOCATION, SUSPENSION, renderList, servedHashes } from '../src/lists.j
 import { loadKey, issuerDocument } from '../src/issuer.js'
 import { makeDocumentLoader } from '../src/sign.js'
 import { anchorListHash, readAnchor } from '../src/anchor.js'
+import { loadFileEnvReport } from '../src/env.js'
+
+// Sama seperti perkakas lain di paket ini (D45): tanpa ini `anchor.js` tidak gagal melainkan
+// minta env "dari luar" — dan perintah yang diumumkan README jadi hanya bisa dijalankan mesin
+// yang punya pembungkus privat. Itu ketahuan 28 Sep saat `npm run anchor -- --dry-run` keluar
+// dengan pesan "lihat _research/run_with_env.ps1": rujukan ke berkas di luar repo, di perkakas
+// yang justru dipakai untuk membuktikan klaim on-chain.
+await loadFileEnvReport('anchor')
 
 const RPC_URL = process.env.RPC_URL
 const RESOLVER = process.env.RESOLVER_ADDRESS
@@ -44,7 +52,7 @@ const PLATFORM_PK = process.env.DEPLOYER_PRIVATE_KEY
 const DRY = process.argv.includes('--dry-run')
 
 if (!RPC_URL || !RESOLVER || !BAS) {
-  console.error('butuh RPC_URL + RESOLVER_ADDRESS + BAS_ADDRESS di lingkungan (lihat _research/run_with_env.ps1)')
+  console.error('butuh RPC_URL + RESOLVER_ADDRESS + BAS_ADDRESS — isi app/.env atau lingkungan proses')
   process.exit(2)
 }
 

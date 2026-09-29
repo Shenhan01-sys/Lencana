@@ -64,7 +64,7 @@ verification is free and instant and needs no account on our side or the issuer'
 
 | jangan ditulis | alasannya |
 |---|---|
-| "1EdTech compatible" / "standards-validated" | validator `vc.1ed.tech` **sudah dijalankan 27 Sep dan hasilnya 2 error** (`credentialStatus` harus satu object; bitstring tidak menyatakan kapasitas) — lihat [[09-Testing/T15 - 1EdTech validator]] |
+| "1EdTech compatible" / "standards-validated" / "certified" | **Yang boleh ditulis persis:** `outcome: VALID`, 14 checks, 0 error / 0 warning dari `vc.1ed.tech` (28 Sep, dokumen + `verificationMethod` + kedua daftar dibaca dari host tetap `lencana-edge…workers.dev`). Yang dilarang bukan angkanya tapi labelnya: itu validator **member**, bukan sertifikasi konformansi, dan responsnya melaporkan jumlah tanpa merinci per pemeriksaan — lihat [[09-Testing/T15 - 1EdTech validator]] dan [[09-Testing/T16 - npm run publish edge]] |
 | statistic pasar ("X% rekruter …", "pasar e-learning $Y") | **nol bukti** di korpus kita; ini lubang P6 yang belum tertutup |
 | "real publishers use it", "institutions onboarded" | penerbit demo kita fiktif dan diberi label fiktif |
 | "tamper-proof", "unforgeable", "secured by blockchain" | yang teruji: satu byte dibalik → tanda tangan mati |
@@ -89,8 +89,8 @@ because Lencana broadcasts and pays for it.
 Verification asks nothing of the person checking. The page reads issuer permission and credential
 status directly from BNB Chain: no account, no wallet, nothing of ours on the request path.
 Revocation is real rather than implied. Two bitstring status lists, revocation and suspension, are
-rebuilt from chain state on every call, and both list hashes are timestamped on chain, so our own
-endpoint cannot quietly rewrite what a verifier reads.
+derived from chain state at publication and re-checked against the chain on every read, and both list
+hashes are timestamped on chain, so our own endpoint cannot quietly rewrite what a verifier reads.
 
 Learners also receive a soulbound artefact: one per credential, mintable only while the credential is
 live, never transferable.
@@ -118,19 +118,31 @@ Sisanya (`SoulboundCert`, `SettlementSplit`, `DemoCourseToken`) masuk descriptio
 Dikoreksi 27 Sep saat builder mengisi form: plafonnya **5,600 karakter**, dan kami sudah menulis halaman
 sepanjang 67,345 karakter untuk itu. Teks yang ditempel sekarang:
 
-> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,486 karakter**, 91 baris, **dua** diagram
+> `00-Overview/10 - Project Detail (long form) - Copy.md` — **5,587 karakter LF**, 93 baris, **dua** diagram
 > Mermaid: urutan bisnis (`sequenceDiagram`) dan aliran data + uang (`flowchart`, "Where each fact lives").
 > Tabel kontrak ikut. Tanpa wikilink, tanpa jalur `vault/`, tanpa ID tiket internal, tanpa data kursus,
-> **tanpa hasil testing**.
+> **tanpa hasil testing**. Sisa ruang tinggal **13 karakter**.
+>
+> Yang menguruskannya: `powershell -File vault/scripts/check-paste.ps1` — ia menghitung **setelah
+> normalisasi LF** (working copy bisa berisi CRLF, dan ~40 byte ujung baris tidak pernah sampai ke
+> form), lalu menuntut: ≤ 5.600, nol wikilink, nol `vault/`, nol ID tiket, maksimal dua diagram, dan
+> tidak ada kalimat yang kehilangan titik karena dipangkas. Ada di ritual. Ini bukan penjaga yang
+> kita tambahkan karena indah: 28 Sep berkas ini diam-diam naik ke **5.604 — empat karakter lewat**,
+> hijau di semua gerbang lain, dan hanya ketahuan karena hari itu aku mengukur alih-alih mengingat
+> angka yang kutulis sendiri sehari sebelumnya ("sisa 35"). Satu kata terlalu panjang membuat seluruh
+> tempelan tertolak saat form menutup.
 
 strukturnya, sesuai permintaan builder 27 Sep: **apa Lencana itu → problem yang mau kita selesaikan →
 how it works (diagram + 7 langkah) → di mana tiap fakta tinggal (DFD) → kontrak**.
 
 Dua keputusan builder yang kutandatangani sendiri waktu itu dan sekarang dicabut — dicatat supaya tidak
 kubantah lagi nanti: data kursus dibuang (27 Sep, "emangnya itu menceritakan lencana?"), dan bagian
-**Measured / Limits dibuang** ("juri ga perlu tahu hasil testing teknisnya kayak gimana"). Angka
-`97/0 · 59/0 · 53/0 · 20/0 · 7/0` dan batas-batasnya sekarang hidup di
-[[08-Results/01 - Evidence and Limits]] dan di halaman referensi — tetap terukur, hanya bukan di field ini.
+**Measured / Limits dibuang** ("juri ga perlu tahu hasil testing teknisnya kayak gimana"). Angka hari
+ini — `104/0` fork 97 **dan** 56, `49/0` offline, `76/0` check, `48/0` serve-probe, `59/0` web probe,
+`17/0` verify:live-cert, `26/27` publish:edge, `10/0 + VALID` validator — dan batas-batasnya sekarang
+hidup di [[08-Results/01 - Evidence and Limits]] dan di halaman referensi: tetap terukur, hanya bukan
+di field ini. (Daftar angka di kalimat ini sendiri pernah basi — `97/0 · 53/0 · 7/0` — dan itu
+pengingat bahwa "sudah dicatat" tidak sama dengan "masih benar".)
 Yang tetap tinggal di teks submission adalah klaim yang masih bisa mereka cek sendiri: jalur perintah
 (`POST /verify`, `statusOf`), alamat kontrak, dan angka 190.659 gas yang menggerakkan keputusan batch.
 

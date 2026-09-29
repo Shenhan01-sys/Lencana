@@ -10,7 +10,7 @@
     "test:fork:testnet": "forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com -vv",
     "test:fork:mainnet": "forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/ -vv",
     "test:chains": "npm run test:fork:testnet && npm run test:fork:mainnet",
-    "probe:rpc": "python ../_research/find_bsc_testnet_rpc.py"
+    "probe:rpc": "python scripts/find-bsc-testnet-rpc.py"
   },
   "devDependencies": {
     "@openzeppelin/contracts": "5.1.0"

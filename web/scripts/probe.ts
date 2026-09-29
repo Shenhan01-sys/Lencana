@@ -13,6 +13,11 @@
  *   forge script script/SeedDemo.s.sol --rpc-url http://127.0.0.1:8545 --broadcast
  *   npm run probe
  *
+ * Atau, ini yang kita pakai sejak 21 Sep: isi `app/.env` (RPC_URL publik 97 + keempat alamat) lalu
+ * `npm run probe` tanpa anvil sama sekali. Berkas `./load-env` membaca `.env` itu sendiri — sejak
+ * 28 Sep, karena tanpa itu `npm run probe` di clone bersih diam-diam memeriksa `0x0000…` di port
+ * lokal dan keluar dengan kode 1, sementara README menjanjikan sebuah angka.
+ *
  * Kenapa SeedDemo dua kali: langkah yang memakai UID (rantai [2] + pencabutan [1]) baru sah
  * kalau uid-nya sudah benar-benar ada di chain. Alasannya ada di kepala SeedDemo.s.sol.
  *
@@ -22,8 +27,11 @@
  * sudah dicabut". Menyamakan salah satunya adalah klaim yang bisa dibantah siapa pun lewat
  * satu eth_call, jadi perbedaan itu kita periksa di sini, bukan kita klaim di deskripsi.
  */
+import { reportLoaded } from './load-env'
 import { verify, type Endpoint, type Report } from '../src/verify'
 import { renderReport } from '../src/render'
+
+reportLoaded('probe')
 
 const ZERO = '0x0000000000000000000000000000000000000000'
 
@@ -240,6 +248,148 @@ async function main() {
       full.verdict !== 'BELUM_LENGKAP' && full.total !== null, `${full.verdict} ${full.total} vs ambang ${full.passMark}`)
     const none = computeScore(mf, { quizScores: [], praktikCompleted: false, essayScore: null })
     check(`  tanpa bukti -> menolak, BUKAN nol`, none.verdict === 'BELUM_LENGKAP' && none.total === null, String(none.total))
+  }
+
+  // ---------------------------------------------------------------- klien belajar (B72)
+  // Yang diuji di sini KONTRAK antara browser dan penerbit, dengan `fetch` dan `sessionStorage`
+  // dipalsukan. Sengaja tidak memanggil penerbit sungguhan: itu sudah dikerjakan
+  // `npm run verify:db` di sisi signer, dan probe wajib bisa jalan tanpa jaringan supaya clone
+  // orang lain tidak lebih merah dari punyanya sendiri.
+  console.log('\n--klien belajar: apa yang boleh (dan tidak boleh) dikirim browser (B72)--')
+  const { isAddress } = await import('viem')
+  const { verifyMessage } = await import('viem/utils')
+  const {
+    completeLesson, createDeviceLearner, endpoint, forgetLearner, learnerAddress, markLesson,
+    setEndpoint, snapshot, submitQuiz, syncCourse,
+  } = await import('../src/learning')
+  const g = globalThis as unknown as Record<string, unknown>
+  const session = new Map<string, string>()
+  g.sessionStorage = {
+    getItem: (k: string) => session.get(k) ?? null,
+    setItem: (k: string, v: string) => { session.set(k, v) },
+    removeItem: (k: string) => { session.delete(k) },
+  }
+  const sent: { url: string, method: string, body: Record<string, unknown> | null }[] = []
+  let progressMode: 'none' | 'ok' | 'reject' = 'none'
+  // Klien mengirim URL penuh (`endpoint + path`), jadi stub mencocokkan path-nya saja — kalau tidak,
+  // semuanya jatuh ke cabang "rute tidak dikenal" dan kegagalan yang keluar adalah kegagalan stub,
+  // bukan perilaku halaman.
+  const asPath = (u: string): string => {
+    const i = u.indexOf('/', u.indexOf('://') + 3)
+    return i === -1 ? '/' : u.slice(i)
+  }
+  const stub = async (url: string, init?: { method?: string, body?: string }) => {
+    const method = (init?.method ?? 'GET').toUpperCase()
+    let body: Record<string, unknown> | null = null
+    try { body = init?.body ? JSON.parse(init.body as string) as Record<string, unknown> : null } catch { body = null }
+    const u = asPath(url as string)
+    sent.push({ url: u, method, body })
+    const json = (obj: unknown, status = 200) => ({ status, ok: status < 400, json: async () => obj })
+    if (u.startsWith('/progress?')) {
+      if (progressMode === 'none') return json({ error: 'belum ada enrollment untuk peserta/kursus itu' }, 404)
+      return json({
+        enrollmentId: 7, lessonsTotal: 19, lessonsCompleted: progressMode === 'ok' ? 1 : 0,
+        allLessonsDone: false, completed: ['m1/l1'], lessons: [{ lessonId: 'm1/l1', status: 'completed' }],
+        gradedAttempts: 1, bestScore: 80,
+      })
+    }
+    // Stub yang jujur atas urutannya: SETELAH enroll barisnya memang ada, jadi pembacaan
+    // berikutnya tidak boleh 404 lagi. Versi pertama lupa ini dan pemeriksaan "404 → enroll → baca
+    // lagi" merah karena stub-nya, bukan karena halamannya.
+    if (u === '/enroll') {
+      if (progressMode === 'none') progressMode = 'ok'
+      return json({ enrolled: true, created: true, enrollmentId: 7, course: 'web3-dasar-2026' })
+    }
+    if (u === '/progress') {
+      if (progressMode === 'reject') {
+        return json({ error: 'pindah status locked -> completed tidak diizinkan (mesin: locked -> unlocked -> started -> completed)' }, 422)
+      }
+      return json({ lesson: 7, from: 'locked', to: body?.status, noop: false })
+    }
+    if (u === '/grade') {
+      return json({
+        attemptHash: `0x${'ab'.repeat(32)}`, attemptId: 11, attemptNo: 1, lesson: body?.lesson, kind: 'kuis',
+        rubricHash: `0x${'cd'.repeat(32)}`, score: 60, correct: 3, total: 5, passPct: 80, verdict: 'fail',
+        gradedBy: 'server', components: 5,
+      }, 201)
+    }
+    return json({ error: 'stub: rute tidak dikenal' }, 500)
+  }
+  const realFetch = globalThis.fetch
+  g.fetch = stub
+  try {
+    forgetLearner()
+    const before = await submitQuiz('web3-dasar-2026', 'm1/l2', [{ itemId: 'q1', choice: 0 }])
+    check('tanpa identitas, submitQuiz menolak dan TIDAK mengirim apa pun',
+      before === null && sent.length === 0, `${sent.length} permintaan terkirim`)
+    const noId = await completeLesson('web3-dasar-2026', 'm1/l1', 0)
+    check('tanpa identitas, completeLesson menolak (tidak ada tulis diam-diam)',
+      noId.ok === false && /identitas/i.test(noId.why ?? ''), JSON.stringify(noId))
+
+    const id = createDeviceLearner()
+    check('identitas perangkat dibuat di browser (storage tersedia)', id !== null && isAddress(id.address), JSON.stringify(id))
+    setEndpoint('http://127.0.0.1:8787/')
+    check('endpoint dinormalisasi (tanpa / di ujung)', endpoint() === 'http://127.0.0.1:8787', endpoint())
+
+    progressMode = 'none'
+    const sum = await syncCourse('web3-dasar-2026')
+    const enrollCall = sent.find((s) => s.url === '/enroll')
+    check('GET /progress 404 -> klien enroll lebih dulu, lalu membaca lagi',
+      sum !== null && Boolean(enrollCall) && sent.filter((s) => s.url.startsWith('/progress?')).length >= 2,
+      `${sum?.lessonsTotal}/${sum?.lessonsCompleted}`)
+    const msg = String(enrollCall?.body?.message ?? '')
+    check('kiriman enroll membawa pesan bertanda tangan + nonce satu-kali',
+      /lencana-enroll web3-dasar-2026 nonce=[0-9a-f]{12,}/.test(msg), msg)
+    const sig = String(enrollCall?.body?.signature ?? '')
+    // Dibungkus: verifikasi dengan string kosong MELEMPAR (viem menolak panjangnya), dan satu
+    // lemparan di sini akan membunuh seluruh probe sebelum sisa pemeriksaan berjalan.
+    let verified = false
+    try {
+      verified = id ? await verifyMessage({ address: id.address as `0x${string}`, message: msg, signature: sig as `0x${string}` }) : false
+    } catch (e) {
+      verified = false
+      console.log(`      (verifyMessage melempar: ${String((e as Error)?.message ?? e).slice(0, 60)})`)
+    }
+    check('tanda tangan enroll sah untuk alamat pesertanya (bentuk yang diterima authorizeLearner)',
+      verified === true && /^0x[0-9a-f]{130}$/.test(sig), `${verified} ${sig.slice(0, 12)}… (${sig.length} char)`)
+    check('klien TIDAK mengirim lessons_total (penyebut "selesai" milik server)',
+      enrollCall ? !('lessonsTotal' in (enrollCall.body ?? {})) && !('lessons_total' in (enrollCall.body ?? {})) : false,
+      JSON.stringify(Object.keys(enrollCall?.body ?? {})))
+
+    const beforeGrade = sent.length
+    const graded = await submitQuiz('web3-dasar-2026', 'm1/l2', [{ itemId: 'q1', choice: 2 }, { itemId: 'q2', choice: 1 }])
+    const gradeCall = sent.slice(beforeGrade).find((s) => s.url === '/grade')
+    check('/grade dikirim dengan picks, dan jawabannya yang jadi angka di halaman',
+      graded !== null && graded.score === 60 && graded.gradedBy === 'server' && String(gradeCall?.body?.picks ?? '').length > 0,
+      JSON.stringify(graded))
+    check('ISI /grade tidak memuat kata "score" sama sekali (browser tidak melaporkan nilai)',
+      gradeCall ? !JSON.stringify(gradeCall.body).includes('score') : false,
+      gradeCall ? JSON.stringify(Object.keys(gradeCall.body ?? {})) : 'tidak ada panggilan /grade')
+    check('verdict datang dari ambang penerbit, bukan dari perasaan halaman',
+      graded?.verdict === 'fail' && graded.passPct === 80, JSON.stringify(graded))
+
+    sent.length = 0
+    progressMode = 'ok'
+    const walk = await completeLesson('web3-dasar-2026', 'm9/l9', 4)
+    const order = sent.filter((s) => s.url === '/progress').map((s) => s.body?.status)
+    check('completeLesson berjalan sesuai mesin state: unlocked → started → completed',
+      walk.ok === true && JSON.stringify(order) === JSON.stringify(['unlocked', 'started', 'completed']), JSON.stringify(order))
+
+    sent.length = 0
+    progressMode = 'reject'
+    const jumped = await markLesson('web3-dasar-2026', 'm9/l9', 'completed', 4)
+    check('kalau server menolak lompatan, alasannya ditampilkan apa adanya (bukan ditelan)',
+      jumped.ok === false && /tidak diizinkan/.test(snapshot().error ?? ''), JSON.stringify({ jumped, err: snapshot().error }))
+
+    progressMode = 'ok'
+    forgetLearner()
+    sent.length = 0
+    const afterForget = await syncCourse('web3-dasar-2026')
+    check('ganti identitas menghapus alamat dan berhenti mengirim', afterForget === null && learnerAddress() === null && sent.length === 0,
+      `${sent.length} permintaan`)
+  } finally {
+    g.fetch = realFetch
+    delete g.sessionStorage
   }
 
   // Diagnosa: tanpa blok ini, probe hanya melaporkan "panggilan X gagal" dan kita tetap

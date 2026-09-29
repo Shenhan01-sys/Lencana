@@ -11,12 +11,23 @@ recruiter verifies a certificate by opening a URL in a browser — that is the w
 Built for the **Indonesia Web3 Hackathon 2026** — *Consumer Apps* track (· *AI Agents*), on BNB
 Chain.
 
-> ⚠️ **Pre-release status.** No contract has been broadcast to a public testnet yet. The
-> credential-signing backend exists (`signer/`) and one command now runs score → attestation →
-> signed document → status lists → `timestamp()` anchor, green against a fork. What is still
-> unproven: a third-party validator has never seen our document, and no URL in any credential we
-> issue is publicly reachable yet. The table below draws a hard line between what is proven and
-> what merely compiles.
+> **Status 28 Sep.** The on-chain layer is deployed on BNB Chain testnet (chain 97) and every number
+> below is printed by a command that ran. What changed this week is availability, not features: the
+> credential-signing backend now publishes its documents to a **durable public host**
+> (`https://lencana-edge.hansgunawan775.workers.dev`), and a third-party validator — 1EdTech's
+> `vc.1ed.tech` OB 3.0 inspector — returned **`outcome: VALID`, 14 checks, 0 errors, 0 warnings** for
+> a credential issued under it, with the document, its `verificationMethod` and both status lists all
+> read over the public internet (`npm run validator -- --record`, ledger:
+> [`vault/09-Testing/T15%20-%201EdTech%20validator.md`](vault/09-Testing/T15%20-%201EdTech%20validator.md)).
+>
+> What we still forbid ourselves from saying, and why, is written next to the evidence rather than
+> footnoted: that validator is a member tool, not a conformance certification; **2 of the 8 papers we
+> hold** are currently checkable end-to-end by a stranger — the other six print hosts that are
+> loopback or a dead tunnel, and `publish` cannot fix a URL that is already inside a signed document
+> ([`vault/07-Backlog/03%20-%20Findings%20and%20Tasks%202026-09-26.md`](vault/07-Backlog/03%20-%20Findings%20and%20Tasks%202026-09-26.md)
+> B51/B54); and the demo corpus's artefacts live on a contract deployed **before** our own
+> course-granularity and batching rules existed, so those rules are proven in source, in fork tests
+> and on one live instance — not on the old one (decision D46).
 
 ---
 
@@ -42,34 +53,45 @@ Every number below is the output of a command that was run, not a plan.
 
 | command | result |
 |---|---|
-| `forge test --no-match-path "*.fork.t.sol"` | **43 passed / 0 failed** (offline: 21 artifact + 22 settlement split) |
-| `forge test --evm-version cancun --fork-url <anvil fork of 97>` | **97 passed / 0 failed** on **chain 97** (23 Sep) |
-| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **97 passed / 0 failed** on **chain 56** (23 Sep), identical gas figures |
-| `npm run probe` in `web/` | **59 checks / 0 failed** against **public chain 97** (23 Sep) — four verdicts exercised (`VALID`, `REVOKED`, `ISSUER_DELISTED`, "valid but its prerequisite is revoked") **plus an audit of the course content and of who holds grading authority**: every lesson slug unique, every quiz answer inside the option range, every rubric summing to 100, the demo learner's `credentialHash` **recomputed from the course data** and asserted equal to the attestation on chain, and every course required to have an issuer manifest whose `rubricHash` a credential can point at. Earlier runs: 51 (22 Sep), 41 on a fork (19 Sep) |
+| `forge test --no-match-path "*.fork.t.sol"` | **49 passed / 0 failed** (offline, 28 Sep: 27 artefact + 22 settlement split) |
+| `forge test --evm-version cancun --fork-url <public chain 97>` | **104 passed / 0 failed** on **chain 97** (28 Sep; 5 suites — 27 artefact, 22 settlement, 8 split-on-97, 9 end-to-end, 38 resolver) |
+| `forge test --evm-version cancun --fork-url https://bsc-dataseed1.bnbchain.org/` | **104 passed / 0 failed** on **chain 56** (28 Sep), same suites, same composition |
+| `npm run probe` in `web/` | **59 checks / 0 failed** against **public chain 97** (28 Sep, re-run today) — four verdicts exercised (`VALID`, `REVOKED`, `ISSUER_DELISTED`, "valid but its prerequisite is revoked") **plus an audit of the course content and of who holds grading authority**: every lesson slug unique, every quiz answer inside the option range, every rubric summing to 100, the demo learner's `credentialHash` **recomputed from the course data** and asserted equal to the attestation on chain, and every course required to have an issuer manifest whose `rubricHash` a credential can point at. Earlier runs: 51 (22 Sep), 41 on a fork (19 Sep) |
 | `npm run rubric` in `web/` | **17 checks / 0 failed** — the grading rule as arithmetic: both sides of the pass mark (69.6 → 70 passes, 68.8 → 69 does not), refusal to score an incomplete submission, refusal to score a manifest whose weights sum to 90, and `rubricHash` sensitivity: flipping an answer key changes it, fixing a typo in the reading material does not |
 | `npm run inventory` in `web/` | **2 courses · 7 modules · 24 lessons · 34 pages · 412 minutes · 28 quiz questions · 2 rubric-scored essays**, all six lesson kinds used. Printed from the data, not typed into a document — which is the only reason a page count may appear in this README |
-| `npm run check` in `signer/` | **53 checks / 0 failed** against **public chain 97** (24 Sep; it grows with the watched set — the authoritative number is whatever the run prints) — OpenBadgeCredential 3.0 built and signed with `DataIntegrityProof` + `eddsa-rdfc-2022`; tampering, a swapped verification method and an unlisted key all fail to verify; served bits are read **from `statusOf()` on the deployed resolver**, every credential's bit is checked **at the index the document itself claims**, and rendering the watched set twice (or in a different order) must produce the **same** bitstring hash |
+| `npm run check` in `signer/` | **76 checks / 0 failed** against **public chain 97** (28 Sep; it grows with the watched set — the authoritative number is whatever the run prints) — OpenBadgeCredential 3.0 built and signed with `DataIntegrityProof` + `eddsa-rdfc-2022`; tampering, a swapped verification method and an unlisted key all fail to verify; served bits are read **from `statusOf()` on the deployed resolver**, every credential's bit is checked **at the index the document itself claims**, and rendering the watched set twice (or in a different order) must produce the **same** bitstring hash |
 | `npm run delegate` in `signer/` | green on public 97 (22–23 Sep): batch `tx 0xe31a917e…` (3 lesson credentials, 1,024,813 gas) and single `tx 0xbe44e128…` (370,131 gas). Read back from chain: `attester` is the **agent**, the agent's balance is **unchanged to the wei**, `lessonOf(uid)` equals the lesson id derived from the course material, and the attester nonce advanced once per request |
-| `SettlementSplit` fork tests | 7 passed on **97 and 56** against canonical Permit2 + canonical `x402ExactPermit2Proxy` (not our copies): settlement lands in the split and divides 90/10, with the client's transaction count never moving |
+| `SettlementSplit` fork tests | 8 passed on **97 and 56** (28 Sep) against canonical Permit2 + canonical `x402ExactPermit2Proxy` (not our copies): settlement lands in the split and divides 90/10, with the client's transaction count never moving |
 | `forge script script/PaidVerificationDemo.s.sol --broadcast` | executed on public 97 (23 Sep): 2,806,675 gas **paid by the platform**, settlement `tx 0x32fb6fc0…` status 1, and RPC read-back shows issuer `900` / platform `+100` / split `0` / `splitDone(ref)=true`. The demo client held no BNB and sent no transaction |
 | `npm run x402` in `signer/` | **20 checks / 0 failed** against the running server, paying on public chain 97 (24 Sep) | the paid handshake happens, and what it sells is **batch**, not data: `402` + `accepts[]` when unpaid; then one settlement (`settleTx 0x3486ff75…` 114,728 gas + `splitTx 0xb2f045d0…` 75,931 gas = **190,659 gas = 0.0000190659 BNB, measured from receipts**) serves `credentialHashes: [a, b]` and returns two reports with **different verdicts** (`REVOKED`, `VALID`) — proof it isn't one result copied twice — while issuer revenue rises by exactly **one** price (900), not two. On chain, not per the response: issuer +900, platform +100, client −1000 holding **0 BNB, 0 transactions** |
 | `node scripts/issue.js` in `signer/` | **one command, green on public 97** (21 Sep): score → attestation under the **agent's own key** (gas 316,384) → signed document → both status lists → each list's bitstring hash anchored to BAS via `timestamp()` and **read back** (gas ≈45,900). The anchored hash is the hash of the list the server actually serves — that property was broken until it was measured |
-| `npm run probe:serve` in `signer/` | **20 checks / 0 failed** against the running server — same assertions, everything over HTTP, so the issuer document and the two status lists are verified the way a third-party tool would verify them |
+| `npm run probe:serve` in `signer/` | **48 checks / 0 failed** (28 Sep) against the running server — same assertions, everything over HTTP, so the issuer document and the two status lists are verified the way a third-party tool would verify them. Since B48 it also requires **every** agent in `.keys/` to answer at its own URL and verifies a credential against the issuer document *that credential points at* |
 | `forge script … --broadcast` on **public chain 97** | deploy succeeded (21 Sep) · 4,191,202 gas · **≈0.00042 BNB** at the 0.1 gwei the testnet quoted. Re-verified independently from the RPC by a separate script (**13/13**), because a build log saying "SUCCESSFUL" is not evidence |
-| files in the repo | **92 tracked** (`git ls-files`, 23 Sep; the GitHub API on the previous commit returned 88 blobs, +4 files from this one — the two counts agree, which is the point of measuring them both ways). No `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env`, `signer/.keys/`, `signer/.store/` |
+| `npm run validator` in `signer/` | **10 checks / 0 failed**, and the third party's own verdict: **`outcome: VALID` · 14 checks · 0 errors · 0 warnings** (28 Sep, two credentials: `0xd0bce6f4…` and `0x44d4946e…`). The harness reads the document back over HTTP, follows the URLs inside it, uploads it, and polls `/api/validate` — it does not read the verdict off the HTML page, which prints a conformance sentence as a template for *any* upload |
+| `npm run publish:edge` in `signer/` | **26 / 27 routes read correctly back through the worker** (28 Sep; the 27th is a course that no longer exists in the catalogue and is reported as such, not counted green), both status lists `matchesChainNow`. Signs in Node, writes Workers KV, then verifies over the URLs a stranger would click |
+| `npm run verify:edge` in `signer/` | **5 / 0 failed**, plus the measurement we print rather than hide: **2 of 8 papers** in the store are currently checkable end-to-end by someone else (3 print `127.0.0.1`, 3 print a tunnel host that now returns `ENOTFOUND`) |
+| `npm run verify:live-cert` in `signer/` | **17 / 0 failed** on the artefact layer a stranger can open in an explorer: code length equals our build artifact, `mintBatch`/`lessonOf`/`attestationOf` present, `ownerOf == holderOf`, `tokenId == uint256(credentialHash)`, `external_url` byte-for-byte the URL the validator followed, non-owner `mint` rejected with `NotIssuer` |
+| `npm run verify:deploy` in `signer/` | green (28 Sep) — every quoted address re-read from chain, with expectations parsed from our own source; it also asserts the *limit*: the deployed demo certificate does **not** contain the D42/D43 markers, so if that ever changes the documents have to change in the same commit |
+| files in the repo | **250 tracked** (`git ls-files`, 28 Sep). No `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env`, `signer/.keys/`, `signer/.store/` — which means the numbers above are re-runnable **with our `.env`, our keys and our credential store**; a fresh clone needs its own issuer key, a funded wallet and `npm run issue` before any of it prints |
 
 The fork tests call **BAS (BNB Attestation Service, a fork of EAS 1.3.0) exactly as deployed on
 chain** — not a copy we deployed ourselves. Those are also the addresses a judge can open.
 
-**What is not proven, and must not be claimed:** the 1EdTech OB 3.0 validator was run twice on 27 Sep: the first document returned **2 errors**
-(`credentialStatus` must be one object; the bitstring was 8× shorter than BSL's minimum), we fixed
-both, and the credential re-issued afterwards came back **`outcome: VALID` — 0 errors, 0 warnings,
-14 checks**. Verdict verbatim in
-[`vault/09-Testing/T15 - 1EdTech validator.md`](vault/09-Testing/T15%20-%201EdTech%20validator.md). So
-the sentence we allow is *built to the specification*; "1EdTech compatible" is not, and now for a better
-reason than before — we have a failing result to publish instead of an untested claim. Also unproven: the
-paid path has no third-party facilitator and no outside payer; the graded essays in the demo are
-fixtures, not real learners. Details: [`vault/10-Contributors/Claims-Cheat-Sheet.md`](vault/10-Contributors/Claims-Cheat-Sheet.md).
+**What we still forbid ourselves from saying.** The 1EdTech OB 3.0 validator was first run on 27 Sep
+and the document came back with **2 errors** (`credentialStatus` must be one object; the bitstring was
+8× shorter than BSL's minimum). Both were real and ours. Since then, two credentials issued under the
+durable host have come back **`outcome: VALID` — 14 checks, 0 errors, 0 warnings** (28 Sep), with the
+document, the `verificationMethod` and both status lists fetched over the public internet. So the
+sentence we allow is *"a credential from this backend passes the 1EdTech OB 3.0 validator"*;
+**not** "certified", **not** "conformant", **not** "1EdTech compatible" — that tool is a member
+validator, not a conformance certification, and its response reports counts without itemising which
+checks passed. Also unproven, and said out loud: only **2 of the 8 papers** we hold are currently
+checkable end-to-end by someone else (B54); the paid path has no third-party facilitator and no
+outside payer; the graded essays are fixtures judged by a model at temperature 0, not real learners;
+and the demo corpus's artefacts sit on a contract deployed before our own granularity/batching rules,
+so those rules are proven in source, in fork tests and on one live instance — not on that one (D46).
+Details: [`vault/10-Contributors/Claims-Cheat-Sheet.md`](vault/10-Contributors/Claims-Cheat-Sheet.md)
+and [`vault/08-Results/01%20-%20Evidence%20and%20Limits.md`](vault/08-Results/01%20-%20Evidence%20and%20Limits.md).
 
 ## How it works
 
@@ -126,9 +148,9 @@ verification scripts.
 npm install                                  # OpenZeppelin 5.1.0
 forge install foundry-rs/forge-std --no-git  # --no-git is required while the folder is not a git repo
 
-npm test                                     # 21 tests, offline, ~25 ms
-npm run test:fork:testnet                    # 90 tests on chain 97
-npm run test:fork:mainnet                    # 90 tests on chain 56
+npm test                                     # 49 tests, offline, ~35 ms
+npm run test:fork:testnet                    # 104 tests against public chain 97
+npm run test:fork:mainnet                    # 104 tests against public chain 56
 ```
 
 > ⚠️ **`--evm-version cancun` is mandatory for fork tests**, not decoration. Without it, calls that
@@ -182,7 +204,7 @@ data**: a fake number that looks convincing is worse than an empty page that is 
 `npm run probe` runs **the same file** the page uses (`web/src/verify.ts`) against the same RPC. So
 "the page reads the right data" is **testable**, rather than inferred from how it renders — and that
 is exactly how the probe caught bugs invisible to `tsc` and `vite build`
-([`vault/04-technical-reference.md`](vault/04-technical-reference.md)).
+([`vault/06-Spec-Research/R6 - Toolchain traps that cost time.md`](vault/06-Spec-Research/R6%20-%20Toolchain%20traps%20that%20cost%20time.md)).
 
 ## What is in this repo
 
@@ -192,7 +214,7 @@ contracts/
   SoulboundCert.sol          ERC-721 + ERC-5192; mint refuses a dead credential; no transfer/burn
   interfaces/ICredentialRegistry.sol
 lib/bas/src/                 verbatim copy of the BAS interface — auditable, not invented
-test/                        21 offline · 38 resolver fork · 9 end-to-end fork
+test/                        49 offline · 104 fork per chain (27 artefact + 22 settlement + 8 split + 9 end-to-end + 38 resolver)
 script/                      DeployCredentials.s.sol · SeedDemo.s.sol
 web/                         verification page (Vite + vanilla TS + viem, static)
 signer/                      OpenBadgeCredential 3.0 signing + BitstringStatusList derived from chain
@@ -227,19 +249,24 @@ Stating the limits is what makes the remaining claims worth anything.
 | file | about |
 |---|---|
 | [README](vault/README.md) | index + how to read these notes |
-| [01-briefing](vault/01-briefing.md) | what the product is, who uses it, the flow from zero to verified, the demo scenes |
-| [02-architecture](vault/02-architecture.md) | four layers, why BAS instead of hand-rolled, the EAS gap, agent roles, who pays, decisions with dates |
-| [03-evidence-and-limits](vault/03-evidence-and-limits.md) | what is proven, what is not, and the claims we forbid ourselves |
-| [04-technical-reference](vault/04-technical-reference.md) | Open Badges 3.0 facts from the raw specification + toolchain traps |
-| [05-status-and-tasks](vault/05-status-and-tasks.md) | where it stands, blockers, order of work to the deadline |
+| [01 - Briefing](vault/00-Overview/01%20-%20Briefing.md) | what the product is, who uses it, the flow from zero to verified, the demo scenes |
+| [01 - Architecture](vault/01-Architecture/01%20-%20Architecture.md) | four layers, why BAS instead of hand-rolled, the EAS gap, agent roles, who pays |
+| [03 - Decisions](vault/00-Overview/03%20-%20Decisions.md) · [04 - Corrections](vault/00-Overview/04%20-%20Corrections.md) | every decision with its date and what it cost, and the claims we retracted ourselves |
+| [01 - Evidence and Limits](vault/08-Results/01%20-%20Evidence%20and%20Limits.md) | what is proven, what is not, and the claims we forbid ourselves |
+| [01 - Spec Research](vault/06-Spec-Research/01%20-%20Spec%20Research.md) · [R6 - Toolchain traps](vault/06-Spec-Research/R6%20-%20Toolchain%20traps%20that%20cost%20time.md) | Open Badges 3.0 facts from the raw specification + the traps that cost hours |
+| [01 - Backlog](vault/07-Backlog/01%20-%20Backlog.md) · [03 - Findings and Tasks](vault/07-Backlog/03%20-%20Findings%20and%20Tasks%202026-09-26.md) | where it stands, blockers, order of work to the deadline |
+| [00 - Hub Testing](vault/09-Testing/00%20-%20Hub%20Testing.md) | one record per command: what was run, when, with the output pasted |
 
 > These notes are **only** about Lencana. No other product, track or plan appears in them.
 
 ## Language policy
 
 Documentation, captions and descriptions in this repository are **English**. The verification
-frontend is the agreed exception: it will ship an **Indonesian / English switch** — tracked as a
-task in [`vault/05-status-and-tasks.md`](vault/05-status-and-tasks.md), not built yet.
+frontend is the agreed exception and it is **built**: an Indonesian / English switch lives in
+`web/src/i18n.ts` with the strings as one dictionary, wired at `web/src/main.ts:1512-1522` and
+`:1848-1849`, remembered per visitor (`getSavedLanguage` / `saveLanguage`) and settable from the URL
+(`?lang=`). What is still uneven is coverage: some simulation copy in `web/src/main.ts` is written
+inline in one language only, and that is tracked as an open item rather than claimed as finished.
 
 ## License
 

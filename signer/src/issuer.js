@@ -16,7 +16,7 @@
  * resmi; memaksakan TS berarti menulis deklarasi tangan untuk setiap simbol yang kita pakai —
  * ceremony tanpa bukti tambahan. Yang menjaga kebenaran di paket ini adalah `npm run check`.
  */
-import { readFile, writeFile, mkdir } from 'node:fs/promises'
+import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as Ed25519Multikey from '@digitalbazaar/ed25519-multikey'
@@ -85,4 +85,102 @@ export async function loadKey (agentSlug) {
   const raw = JSON.parse(await readFile(join(KEY_DIR, `${agentSlug}.json`), 'utf8'))
   const key = await Ed25519Multikey.from(raw)
   return { key, controller: raw.controller, name: raw.name, agentSlug: raw.agentSlug }
+}
+
+/**
+ * Identitas agen yang tersimpan di `.keys/`, tanpa kunci rahasia.
+ *
+ * Kenapa ini ada (B48): setiap kredensial mencetak `verificationMethod` miliknya sendiri, jadi
+ * server yang hanya melayani SATU slug membuat ijazah terbitan slug lain tidak bisa diverifikasi
+ * siapa pun di instance itu — gejalanya 404 atas dokumen yang kuncinya jelas-jelas ada di disk,
+ * dan dari luar itu kelihatan seperti kredensialnya rusak.
+ */
+export async function listAgents () {
+  let files = []
+  try {
+    files = await readdir(KEY_DIR)
+  } catch {
+    return []
+  }
+  const out = []
+  for (const file of files.filter((f) => f.endsWith('.json'))) {
+    try {
+      const raw = JSON.parse(await readFile(join(KEY_DIR, file), 'utf8'))
+      if (!raw.agentSlug || !raw.controller || !raw.publicKeyMultibase || !raw.id) continue
+      out.push({
+        agentSlug: raw.agentSlug, controller: raw.controller, name: raw.name, id: raw.id,
+        // Field ini yang membuat dokumen issuer bisa dipakai verifier. `serve-probe` menangkapnya
+        // waktu pertama kali dijalankan: tanpa kunci publik, dokumen yang tersaji itu sah
+        // berbentuk tapi tanda tangan siapa pun tidak akan pernah cocok melaluinya.
+        publicKeyMultibase: raw.publicKeyMultibase,
+      })
+    } catch {
+      // Berkas rusak bukan alasan mematikan seluruh server: ia tidak disajikan, titik.
+    }
+  }
+  return out.sort((a, b) => a.agentSlug.localeCompare(b.agentSlug))
+}
+
+/**
+ * Agen yang SAMA di URL yang baru (B65-b/B83).
+ *
+ * Kenapa perlu dan kenapa satu tempat: `controller` agen mengandung BASE_URL
+ * (`http://127.0.0.1:8787/issuers/agent-demo`), jadi kertas yang penerbitnya lahir di host sementara
+ * tidak bisa dibuat terbaca publik tanpa memindahkan URL identitasnya. Pemindahan itu sah di dunia
+ * DID — identitas yang dipakai verifier adalah **kunci** di `assertionMethod`, dan itu tidak
+ * berubah sepribinya — tapi hanya sah kalau semua pihak memakai konstruksi yang sama. Kalau
+ * `publish.js` dan `rehost.js` masing-masing merakit string URL, yang satu akan menulis
+ * `/issuers/agent-demo#z6Mk…` dan yang satu `/issuers/agent-demo#z6Mk…` dengan selisih slash, dan
+ * kegagalannya muncul sebagai "tanda tangan tidak cocok" di tempat orang lain, bukan di tempat
+ * kesalahannya.
+ *
+ * Fungsi ini TIDAK menulis apa pun ke `.keys/`. Berkas kunci tetap menyimpan controller aslinya;
+ * turunan ini dipakai saat menyajikan/menandatangani, supaya perintah `agent` (identitas permanen)
+ * dan tempat tayang (host tepi) tetap dua hal yang berbeda.
+ */
+export function agentAt (agent, baseUrl) {
+  const base = String(baseUrl ?? '').replace(/\/+$/, '')
+  if (!base) throw new Error('agentAt: baseUrl kosong')
+  if (!agent?.agentSlug) throw new Error('agentAt: agen tanpa agentSlug')
+  const pub = String(agent.publicKeyMultibase ?? '').split('#').pop()
+  if (!pub) throw new Error(`agentAt: agen ${agent.agentSlug} tidak punya publicKeyMultibase`)
+  const controller = `${base}/issuers/${agent.agentSlug}`
+  return { ...agent, controller, publicKeyMultibase: pub, id: `${controller}#${pub}` }
+}
+
+/**
+ * SATU tempat tinggal identitas untuk semua penyaji (B65-b).
+ *
+ * Kenapa ini harus satu fungsi: setelah kertas terbitan `agent-demo`/`agent-b41` dipindah ke host
+ * tepi, kredensialnya mencetak `issuer.id = https://lencana-edge…/issuers/agent-demo`. Sementara itu
+ * server lokal kita — yang juga menyajikan `/issuers/<slug>` — masih merakit dokumennya dari controller
+ * di berkas kunci, yaitu `http://127.0.0.1:8787/…`. Hasilnya dua penyaji untuk satu agen dengan
+ * `assertionMethod[].id` yang berbeda, dan verifier yang lewat server kita sendiri akan bilang
+ * "verification method tidak terdaftar" pada tanda tangan yang sah. `serve-probe` menangkapnya di
+ * 29 Sep; penyebabnya bukan rehost-nya, tapi fakta bahwa "identitas" tidak pernah punya satu sumber.
+ *
+ * Aturan turunannya: `EDGE_BASE_URL` adalah tempat tinggal identitas kalau diisi; tanpa itu kita
+ * jatuh ke `BASE_URL` (mesin pengembangan / journey pakai host sementara secara sadar). Berkas
+ * `.keys/*.json` TIDAK diubah: ia tetap catatan tempat agen itu LAHIR, dan `listAgents()` membacanya
+ * apa adanya — yang menormalkan ke tempat tayang adalah fungsi ini.
+ */
+export function identityBase (env = process.env) {
+  const raw = (env.EDGE_BASE_URL && env.EDGE_BASE_URL.trim()) || (env.BASE_URL ?? '').trim()
+  return raw.replace(/\/+$/, '')
+}
+
+/** Agen + tempat tayang kanonik — dipakai setiap rute yang menyajikan dokumen penerbit. */
+export function agentIdentity (agent, env = process.env) {
+  const base = identityBase(env)
+  return base ? agentAt(agent, base) : agent
+}
+
+/** Dokumen issuer dari field PUBLIK saja — menyajikan identitas tidak membutuhkan kunci rahasia. */
+export function issuerDocumentFor (agent) {
+  const derived = agent.id === `${agent.controller}#${agent.publicKeyMultibase}` ? agent : agentAt(agent, agent.controller)
+  return issuerDocument({
+    controller: derived.controller,
+    name: derived.name,
+    key: { id: derived.id, publicKeyMultibase: derived.publicKeyMultibase },
+  })
 }

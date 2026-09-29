@@ -93,13 +93,17 @@ Tiga keputusan bisnis yang sudah dipaku, dan tidak boleh berubah diam-diam:
 | kalimat yang boleh dipakai sekarang | kalimat yang **belum** boleh dipakai |
 |---|---|
 | "Peserta belajar, hasilnya dinilai terhadap aturan penerbit itu sendiri." | "Penerbit nyata sudah memakai platform ini." |
-| "Bukti belajar bisa diperiksa siapa pun tanpa menghubungi kami." | "Bukti kami lolos validator standar pihak ketiga." |
-| "Status bukti bisa dicabut atau ditangguhkan, dan aturannya tertulis." | "Sistem ini berjalan sebagai layanan yang selalu aktif." |
-| "Bagian platform tetap dan hanya bisa diturunkan." | "Ada pasar kursus tempat penerbit berlomba." |
-| "Penilai otomatis bisa menjatuhkan pekerjaan yang tidak layak." | "Penilaian otomatis persis sama dengan penilaian manusia." |
+| "Bukti belajar bisa diperiksa siapa pun tanpa menghubungi kami." | "Kami tersertifikasi 1EdTech" / "conformant" / "compatible" — yang terbukti adalah satu dokumen `outcome: VALID` di validator **member**, dan itu bukan sertifikasi |
+| **Sejak 28 Sep:** "Bukti kami lolos validator standar pihak ketiga." — `vc.1ed.tech`, 14 checks, 0 error / 0 warning, dengan dokumen dan seluruh URL di dalamnya dibaca dari host tetap | "Sistem ini berjalan sebagai layanan yang selalu aktif." — tepi sajian memang permanen, tapi **penerbitannya** masih perintah yang dijalankan manusia (lihat baris layanan di bawah) |
+| "Status bukti bisa dicabut atau ditangguhkan, dan aturannya tertulis." | "Ada pasar kursus tempat penerbit berlomba." |
+| "Bagian platform tetap dan hanya bisa diturunkan." | "Penilai otomatis setara penilaian manusia." |
+| "Penilai otomatis bisa menjatuhkan pekerjaan yang tidak layak." — terukur: esai lancar-kosong 4-8/100, esai berisi 91-100 | |
 
-Satu kalimat yang merangkum semuanya: **mesinnya berjalan dan bisa diperagakan dari awal ke akhir; yang
-belum berjalan adalah bagian tempat seseorang membayar dan bagian tempat orang asing mengiyakan.**
+Satu kalimat yang merangkum semuanya: **mesinnya berjalan dan bisa diperagakan dari awal ke akhir, dan
+orang asing sudah mengiyakan bentuk dokumennya; yang belum berjalan adalah bagian tempat seseorang
+membayar.** Kalau tepi sajian ikut dinamai di depan juri, sebut juga batasnya yang jujur: ia memeriksa
+chain setiap permintaan dan **menolak** menyajikan kalau bitnya tidak cocok — artinya berhenti menerbitkan
+akan kelihatan sebagai 503, bukan sebagai daftar lama yang masih sah ([[04-Signer-Service/S10 - Edge surface]]).
 
 ## Langkah bisnis berikutnya, berurutan
 

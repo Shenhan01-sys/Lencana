@@ -75,19 +75,43 @@ platform and not the issuing agent.
 
 - Artefak hanya untuk kredensial **level kursus**: `_mintOne` bertanya `lessonOf(attestationOf(hash))` dan menolak dengan `LessonLevelNotMintable(hash, lessonId)`. Satu jalur pemeriksaan untuk `mint()` dan `mintBatch()`, jadi tidak ada pintu samping.
 - `mintBatch(...)` mengikat sampai `MAX_BATCH = 25` artefak dalam satu transaksi dan gagal-total (atomik). Terukur 28 Sep: 4 artefak satu-per-satu 474.335 gas vs `mintBatch(4)` 436.164 gas = selisih **38.171**; kami tidak menambahkan 21.000 gas dasar transaksi ke angka itu karena tidak terlihat dari pengukuran internal ini.
-- Kedua hal itu **belum ada di instance yang ter-deploy** (`0xC6FD12…`): redeploy-nya digabung ke B52, dan alasannya ada di baris B52, bukan dihilangkan.
+- **Status penegakan per instance, diukur dari bytecode (28 Sep), bukan dari catatan:** `0xA5eB80…`
+  (5.102 byte) dan `0xC6FD12…` (6.729 byte) **tidak memuat** satu pun penanda D42/D43 — keduanya
+  ter-deploy sebelum aturan itu masuk. Yang menegakkannya adalah `0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa`
+  (7.968 byte = persis panjang artefak build `out/SoulboundCert.sol`), di-deploy 28 Sep dari source
+  lewat `_research/mint_edge_artefact.ps1`, dan mengikat artefak kredensial yang `outcome: VALID`
+  di validator. Dibuktikan ulang dengan `npm run verify:live-cert` (11/0): penanda fungsi ada,
+  `mint` oleh bukan-pemilik ditolak `NotIssuer`, `external_url` = persis URL yang diikuti pihak ketiga.
+  Yang TIDAK bisa dibuktikan di chain ini: penolakan `LessonLevelNotMintable`, karena store tidak
+  memuat kredensial level-lesson — itu tetap bukti fork test (T1/T2), dan harness mencetaknya sebagai
+  `info`, bukan sebagai keberhasilan.
+- Cara memasang ulang lapis itu tanpa bergantung pada mesin siapa pun: `scripts/mint-edge-artefact.ps1`
+  (di repo ini). Ia mensimulasikan dulu, membaca ulang kertas dari URL yang akan dibekukan permanen,
+  mengambil peserta dari `holderOf`, dan mencatat alamat hasil deploy dari
+  `broadcast/DeployCertOnly.s.sol/97/run-latest.json` — tidak ada alamat yang diketik tangan (B49).
 
-### Drift yang tersisa 28 Sep: ada DUA `SoulboundCert` di chain 97
+### Drift yang tersisa 28 Sep: ada TIGA `SoulboundCert` di chain 97
 
 | kontrak | apa yang dipegang | siapa yang membacanya |
 |---|---|---|
-| `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` | artefak corpus demo (seed 21-22 Sep) — metadata **beku saat mint**, perilaku sebelum B38 diperbaiki | `CERT_ADDRESS` di `.env`, jadi `npm run probe` (59/0 hari ini) menguji yang LAMA |
-| `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` | artefak kredensial `0xfe4f7161…` yang lolos validator — metadata **dirakit dari `statusOf()` setiap panggilan** | belum diuji harness mana pun |
+| `0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c` | artefak corpus demo (seed 21-22 Sep) — metadata **beku saat mint**, perilaku sebelum B38 diperbaiki; tidak menegakkan D42/D43 | `CERT_ADDRESS` di `.env`, jadi `npm run probe` menguji yang LAMA |
+| `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` | artefak kredensial `0xfe4f7161…` — metadata **dirakit dari `statusOf()` setiap panggilan**, tapi juga belum menegakkan D42/D43 | tidak dipakai harness mana pun (host kertasnya sudah mati; lihat B51) |
+| `0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa` | **dua** artefak: `0xd0bce6f4…` (Web3 Dasar) dan `0x44d4946e…` (Web3 Lanjut) — keduanya kertas yang lolos validator di host tetap; menegakkan D42/D43; metadata dirakit per panggilan | `LIVE_CERT_ADDRESS` di `.env` → `npm run verify:live-cert` (17/0) |
 
-Selama ini belum disatukan, kalimat "artefak ikut berubah saat kredensial dicabut" hanya benar untuk SATU
-token, bukan untuk corpus demo yang akan dibuka juri dari video. Yang perlu: pindahkan artefak demo ke
-kontrak baru (mint ulang; yang sudah dicabut harus DITOLAK — itu justru bukti mekanismenya bekerja, lihat
-§7 di [[00-Overview/10 - Project Detail (long form)]]), lalu satu `CERT_ADDRESS`, dan `probe` ikut dipindah
-supaya yang diuji adalah yang kita pamerkan.
+**Kenapa ketiganya dibiarkan hidup, dan kenapa `CERT_ADDRESS` tidak dipindah.** Ini keputusan, bukan
+kelalaian, dan ia lahir dari membaca kode bukan dari kenyamanan: artefak demo yang hari ini
+`REVOKED`/`ISSUER_DELISTED` **tidak bisa dibuat ulang di kontrak lain** — `mint()` menolak state itu
+(`CredentialRevoked`), dan justru penolakan itulah yang ingin kita peragakan. Satu-satunya cara
+memiliki artefak bersejarah itu di kontrak baru adalah menerbitannya dari awal, dan hash kredensial
+adalah `keccak256("vc:", peserta, kursus)` dengan peserta = **akun yang menandatangani**
+(`signer/scripts/issue.js`), jadi "pindah kontrak" berubah makna menjadi "korpus baru". Karena itu
+`CERT_ADDRESS` tetap di tempat artefak itu benar-benar hidup, dan lapis baru yang menegakkan aturan
+dipakai untuk kredensial yang terbit sesudahnya. Konsekuensinya disebut terang-terangan: kalimat
+"artefak ikut berubah saat kredensial dicabut" berlaku untuk `0xC6FD12…` dan `0xc338AF7F…`, **tidak**
+untuk corpus demo di `0xA5eB80…` yang metadata-nya beku.
 
-Satu koreksi yang membuat keadaan ini lebih baik daripada terlihat: test fork **tidak** membaca kontrak lama. `test/CredentialEndToEndOnBsc.fork.t.sol:76` membuat `new SoulboundCert(...)` dari source di atas fork 97/56, jadi bukti B38 berlaku untuk kontrak seperti yang kita tulis dan kita deploy — bukan untuk instance `0xA5eB80…` yang menua. Yang belum adalah memindahkan artefak corpus demo; itu sengaja menunggu host tetap (B51), karena `mint()` membekukan `external_url` dan membekukannya sekarang berarti mencetak alamat yang akan mati.
+Satu koreksi yang membuat keadaan ini lebih baik daripada terlihat: test fork **tidak** membaca
+kontrak lama. `test/CredentialEndToEndOnBsc.fork.t.sol:76` membuat `new SoulboundCert(...)` dari
+source di atas fork 97/56, jadi bukti B38 dan D42/D43 berlaku untuk kontrak seperti yang kita tulis —
+dan sejak 28 Sep ada satu instance yang benar-benar memuat source itu di chain, yang bisa dibaca
+siapa pun lewat `npm run verify:live-cert`.

@@ -15,6 +15,13 @@ import { IndexAllocator, LIST_BITS, REVOCATION, SUSPENSION, encodeList, decodeBi
 import { gunzipSync } from 'node:zlib'
 import { createIssuerKey, issuerDocument } from '../src/issuer.js'
 import { makeDocumentLoader, signDocument, verifyDocument, CRYPTOSUITE_NAME } from '../src/sign.js'
+import { loadFileEnvReport } from '../src/env.js'
+
+// Bagian 5 membaca chain, dan bagian itu DILEWATI tanpa gagal kalau env-nya tidak ada — hijau
+// dengan angka kecil adalah cara paling mudah menyesatkan. Env berkas dibaca di sini supaya
+// "72 pemeriksaan" berarti 72 pemeriksaan di mesin mana pun, sementara lingkungan proses tetap
+// menang atas isi berkas (itu cara operator mengevaluasi hal lain).
+await loadFileEnvReport('check')
 
 let ran = 0
 let failures = 0
@@ -341,6 +348,16 @@ if (!rpc || !resolverAddress || watched.length === 0) {
     skipped.push('store belum punya kredensial terbitan (jalankan scripts/issue.js untuk mengisinya)')
   } else {
     check('store melaporkan kredensial yang pernah diterbitkan', issued.length > 0, `${issued.length} butir`)
+    /**
+     * Angka ini dicetak karena jumlah PEMERIKSAAN harness ini bergantung pada banyak ENTRI status,
+     * bukan pada jumlah rekaman. 29 Sep: total pemeriksaan turun 94 → 84 dan tidak ada yang bisa
+     * menjelaskan kenapa — padahal sebabnya adalah bentuk cacat yang hilang (5 dokumen masih
+     * `credentialStatus` array dua entri → 22 entri; setelah B65-b dinormalkan jadi satu objek →
+     * 17 entri; 22−17 = 5 entri × 2 pemeriksaan = tepat 10). Tanpa baris ini, "suite mengecil"
+     * terbaca seperti regresi; dengan baris ini, angkanya bisa direkonstruksi dari keadaan korpus.
+     */
+    const entryCount = issued.reduce((n, r) => n + (Array.isArray(r.document?.credentialStatus) ? r.document.credentialStatus.length : (r.document?.credentialStatus ? 1 : 0)), 0)
+    console.log(`  info  : ${issued.length} rekaman · ${entryCount} entri status × 2 = ${entryCount * 2} pemeriksaan daftar sajian`)
     for (const rec of issued) {
       const s = [...statuses.values()].find((x) => x.hash.toLowerCase() === rec.credentialHash.toLowerCase())
       if (!s) { skipped.push(`${rec.course} tidak termasuk hash yang diawasi`); continue }

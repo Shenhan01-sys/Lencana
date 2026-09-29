@@ -348,6 +348,8 @@ Nothing in this document is a claim without a command behind it. From a clone of
 | `cd signer && node scripts/check.js` | document shape, `eddsa-rdfc-2022` round-trip, list bits equal to `statusOf()`, one-object `credentialStatus`, 131.072-entry minimum | **65 / 0** | 27 Sep |
 | `cd signer && node scripts/serve-probe.js` | the same over HTTP against the running server — including the document route and the served bitstring's real length | **37 / 0** | 27 Sep |
 | `cd signer && npm run validator` | our document read back over HTTP, its own URLs followed, then uploaded: verdict from `/api/validate`, not from the page's template strings | **10 / 0**, `outcome: VALID` | 27 Sep |
+| `cd signer && npm run validator` | same harness, same verdict — but the document, the `verificationMethod` and both status lists were read from the **durable** host, so a judge can repeat it after our laptop is off | **10 / 0**, `outcome: VALID` | 28 Sep |
+| `cd signer && npm run publish:edge` | signs in Node, writes to Workers KV, then **reads every route back through the worker** and requires each served list to still match chain | **23 / 24** (the 24th is a course no longer in the catalog, reported as such) | 28 Sep |
 | `cd signer && npm run x402` | `402` → pay → settle → **split** → report; balances read back **from the chain** | **20 / 0** | 24 Sep |
 | `cd signer && npm run delegate` | the agent signs, the platform broadcasts; agent balance unchanged to the wei | 8 / 0 | 23–25 Sep |
 | `cd signer && npm run judge` | **negative control** — a fluent but empty essay is failed, not passed | **7 / 0** (8/100) | 24 Sep |
@@ -1080,7 +1082,7 @@ Not a wishlist — the holes a reviewer would find in a week, named before they 
 | # | hole | why it is first on the list |
 |---|---|---|
 | **B44** | the grading **method** never reaches the credential (§16) | the artefact answers "which rubric" but not "which judge" |
-| **~~B41~~ SELESAI 27 Sep** | validator dijalankan dua kali: run pertama 2 error bentuk dokumen, run kedua **`outcome: VALID`**, 0 error / 0 warning (§22, T15) | klaim terkuat kita sekarang punya bukti pihak ketiga — yang tersisa bukan "belum diuji" tapi "host-nya sementara" (**B51**) |
+| **~~B41~~ SELESAI 27 Sep** | validator dijalankan dua kali: run pertama 2 error bentuk dokumen, run kedua **`outcome: VALID`**, 0 error / 0 warning (§22, T15) | klaim terkuat kita sekarang punya bukti pihak ketiga — dan sejak 28 Sep host yang membuktikannya **tidak ikut mati bersama laptop**: `npm run publish:edge` hijau di atas Cloudflare Workers + KV, dan tepi itu menolak menyajikan daftar yang bitnya tidak lagi sama dengan chain (**B51** ✅) |
 | **~~B38~~ SELESAI 27 Sep** | `tokenURI` tidak lagi beku saat mint: metadatanya dirakit dari `registry.statusOf()` setiap panggilan, `external_url` satu-satunya yang beku (dan itu alamat, bukan keadaan) | yang tadinya satu-satunya tempat cerita kita bohong — wallet melihat artefak kredensial tercabut sebagai sah — sekarang terbaca `REVOKED`; dibuktikan fork test di 97 dan 56 lalu dibaca ulang dari RPC publik |
 | **B39** | artefact granularity undecided | lesson-level credentials exist; ~24 artefacts per learner per course would turn a portfolio into noise |
 | **B40** | no batch mint | issuance gas scales per credential while settlement already batches ≤25 |

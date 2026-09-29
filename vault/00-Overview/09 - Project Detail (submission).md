@@ -88,10 +88,12 @@ Revocation is expressed with **two** lists because one bit cannot hold both mean
 permanent, delisting an issuer is reversible, and an existing credential does not disappear when its
 issuer falls out of favour.
 
-![Verifier showing a VALID credential](IMG-03)
-![The same verifier showing REVOKED](IMG-04)
-![x402: 402 Payment Required, then a real settlement](IMG-05)
-![BscScan: one splitErc20 transaction, two payouts](IMG-06)
+> **Gambar yang belum dipasang — disebut, bukan disamarkan.** Empat tangkapan layar masih dibutuhkan
+> halaman ini dan belum ada satu pun berkasnya di repo: `IMG-03` verifier showing a VALID credential,
+> `IMG-04` the same verifier showing REVOKED, `IMG-05` x402: `402 Payment Required` then a real
+> settlement, `IMG-06` BscScan: one `splitErc20` transaction, two payouts. Semuanya bisa dibuat dari
+> perintah yang sudah ada di [`05 - Demo Scenes.md`](05%20-%20Demo%20Scenes.md); selama belum dipasang,
+> klaim di halaman ini bertumpu pada angka harness, bukan pada gambar.
 
 ## 4. Smart contracts (BNB Smart Chain **testnet, chain 97**)
 

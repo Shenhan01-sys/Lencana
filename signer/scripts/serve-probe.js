@@ -10,11 +10,20 @@
  * Perlu: server jalan (`npm run serve`) dengan RPC_URL + RESOLVER_ADDRESS + STATUS_HASHES terisi.
  */
 import { makeDocumentLoader, verifyDocument } from '../src/sign.js'
+import { readdirSync, statSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { LIST_BITS, REVOCATION, SUSPENSION, decodeBit } from '../src/statusList.js'
+import { loadFileEnvReport } from '../src/env.js'
+import { listCredentials } from '../src/store.js'
+import { readChainStatuses, revokedUids, suspendedUids } from '../src/chainStatus.js'
+import { servedHashes } from '../src/lists.js'
+
+// Harness ini membaca chain. Tanpa env ia TIDAK gagal — ia melewati grup yang butuh chain dan
+// tetap mencetak hijau dengan angka lebih kecil. Jadi env dibaca di sini, dan lingkungannya
+// sendiri yang menang atas isi berkas.
+await loadFileEnvReport('serve-probe')
 
 const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:8787'
-const SLUG = process.env.AGENT_SLUG ?? 'agent-demo'
 const EXPECT_REVOKED = (process.env.EXPECT_REVOKED ?? '').split(',').filter(Boolean)
 const EXPECT_SUSPENDED = (process.env.EXPECT_SUSPENDED ?? '').split(',').filter(Boolean)
 const EXPECT_CLEAN = (process.env.EXPECT_CLEAN ?? '').split(',').filter(Boolean)
@@ -37,10 +46,74 @@ async function getJson (path) {
   return res.json()
 }
 
+// Identitas dibaca dari server, bukan ditebak dari konstanta: dulu probe ini mengeras ke
+// `agent-demo`, jadi begitu `.env` berisi slug lain ia merah dengan 404 yang lebih mirip
+// "dokumennya hilang" daripada "probe-nya yang salah".
+const health = await getJson('/healthz')
+
+/**
+ * GUARD: server yang diuji harus lebih muda daripada kode di disk.
+ *
+ * Kenapa ini bukan formalitas: 29 Sep, `probe:serve` merah 2 pemeriksaan tepat setelah dokumen
+ * penerbit dinormalisasi — dan yang merah bukan kodenya, melainkan **server yatim dari run
+ * sehari sebelumnya** yang masih memegang 127.0.0.1:8787. Probe berbicara dengan proses lama
+ * sambil menyimpulkan kode baru salah. Setelah itu, setiap hasil probe tanpa cap waktu adalah
+ * klaim tentang proses mana pun yang kebetulan hold port itu.
+ *
+ * Perbandingan sengaja longgar (mtime src terbaru vs `startedAt` + `codeStamp` proses) dan
+ * kegagalannya NAMA, bukan diam: kita tidak mau ganti jadi merah hanya karena jam mesin meleset.
+ */
+{
+  const started = Date.parse(health?.startedAt ?? '')
+  const stampMs = Number(health?.codeStamp?.newestSrcMtime ?? 0)
+  const diskNewest = (() => {
+    try {
+      const here = new URL('../src/', import.meta.url)
+      let m = 0
+      for (const f of readdirSync(here)) {
+        if (!f.endsWith('.js')) continue
+        m = Math.max(m, statSync(new URL(f, here)).mtimeMs)
+      }
+      return m
+    } catch { return 0 }
+  })()
+  if (!health?.startedAt || !stampMs) {
+    check('server melaporkan startedAt + codeStamp (probe tidak menguji proses yang buta versi)', false,
+      JSON.stringify({ startedAt: health?.startedAt ?? null, codeStamp: health?.codeStamp ?? null }))
+  } else if (diskNewest && stampMs < diskNewest) {
+    const age = Math.round((diskNewest - stampMs) / 60_000)
+    check('server berjalan dari kode terbaru (startedAt + cap src >= mtime src di disk)', false,
+      `proses memuat src per ${new Date(stampMs).toISOString()}, disk terbaru ${new Date(diskNewest).toISOString()} (${age} menit lebih baru) — MATIKAN server lama, jalankan ulang npm run serve`)
+  } else {
+    check('server berjalan dari kode terbaru (startedAt + cap src >= mtime src di disk)', true,
+      `started ${new Date(started).toISOString()} · src ${health.codeStamp.srcFiles} berkas`)
+  }
+}
+check('/healthz menyebut identitas yang ia sajikan', typeof health.agent === 'string' && Array.isArray(health.agentSlugs),
+  JSON.stringify({ agent: health.agent, agentSlugs: health.agentSlugs }))
+const SLUG = process.env.AGENT_SLUG ?? health.agent
+
 const issuerDoc = await getJson(`/issuers/${SLUG}`)
 check('dokumen issuer tersaji lewat HTTP', Array.isArray(issuerDoc.assertionMethod) && issuerDoc.assertionMethod.length === 1)
 const vmId = issuerDoc.assertionMethod[0].id
 check('verification method-nya punya publicKeyMultibase', typeof issuerDoc.assertionMethod[0].publicKeyMultibase === 'string')
+
+// B48: setiap kredensial mencetak `verificationMethod`-nya sendiri, jadi semua agen yang ada di
+// `.keys/` harus menjawab di URL-nya masing-masing — bukan cuma slug yang kebetulan di-start.
+for (const slug of health.agentSlugs ?? []) {
+  const doc = await getJson(`/issuers/${slug}`)
+  const keyId = doc.assertionMethod?.[0] ?? {}
+  check(`/issuers/${slug}: id dokumen = URL rute ini, kunci menunjuk kembali ke id`,
+    String(doc.id ?? '').endsWith(`/issuers/${slug}`)
+    && keyId.controller === doc.id
+    && typeof keyId.publicKeyMultibase === 'string',
+    `id=${doc.id} controller=${keyId.controller}`)
+}
+const unknownRes = await fetch(`${BASE}/issuers/agen-yang-tidak-ada`)
+const unknownBody = await unknownRes.json().catch(() => null)
+check('/issuers/<slug asing> 404 dengan daftar yang dikenal, bukan dokumen agen lain',
+  unknownRes.status === 404 && Array.isArray(unknownBody?.known) && unknownBody.known.length > 0,
+  `${unknownRes.status} ${JSON.stringify(unknownBody ?? '').slice(0, 90)}`)
 
 // Loader dibangun DARI HASIL HTTP. Pemanggil tidak menyodorkan kunci apa pun ke verify().
 const loader = makeDocumentLoader({
@@ -76,7 +149,6 @@ for (const purpose of [REVOCATION, SUSPENSION]) {
 }
 
 // Yang disajikan harus cocok dengan keadaan chain — bukan dengan perkiraan kita.
-const health = await getJson('/healthz')
 check('/healthz melaporkan kedua list', typeof health?.revocation?.flagged === 'number'
   && typeof health?.suspension?.flagged === 'number')
 console.log(`\n  chain: ${health.watched} kredensial diawasi · ${health.revocation.flagged} revoked · `
@@ -119,9 +191,55 @@ if (EXPECT.length === 0) {
     check(`uid ${tag} -> bit 1 di list ${purpose}`, bitAt(purpose, uid) === 1)
     check(`uid ${tag} -> bit 0 di list ${other} (pembeda D30 bertahan)`, bitAt(other, uid) === 0)
   }
-  check('jumlah bit yang dilaporkan server sama dengan yang diharapkan',
-    health.revocation.flagged === EXPECT_REVOKED.length && health.suspension.flagged === EXPECT_SUSPENDED.length,
-    `server: ${health.revocation.flagged}/${health.suspension.flagged}, diharapkan: ${EXPECT_REVOKED.length}/${EXPECT_SUSPENDED.length}`)
+  /**
+   * Jumlah bit dibandingkan dengan KEADAAN CHAIN, bukan dengan panjang daftar di `.env`.
+   *
+   * Yang memicu perubahan ini (28 Sep): `serve-probe` merah dengan `server: 5/1, diharapkan: 2/1`.
+   * Servernya benar — journey hari ini menerbitkan dan lalu mencabut kredensial, jadi bit revocation
+   * bertambah, sementara `EXPECT_REVOKED` di `.env` masih menyebut dua uid lama. Kalau kita "perbaiki"
+   * itu dengan menghitung ulang angka di `.env`, pemeriksaan ini akan terus merah setiap kali ada yang
+   * mencabut sesuatu, sampai ada manusia ingat menyunting konfigurasi — dan kegagalan seperti itu
+   * lama-lama akan dibisukan, bukan diperbaiki.
+   *
+   * Jadi: kebenaran diambil dari chain (independen terhadap server dan terhadap `.env`), dan `.env`
+   * dilaporkan apa adanya kalau ia tertinggal. "Server salah" dan "konfigurasi kami basi" adalah dua
+   * diagnosis yang berbeda; dulu keduanya keluar sebagai satu baris merah yang sama.
+   */
+  const resolverAddr = process.env.RESOLVER_ADDRESS
+  let chainRevoked = null
+  let chainSuspended = null
+  if (resolverAddr) {
+    try {
+      // HIMPUNANNYA harus himpunan yang sama dengan yang dipakai server menyusun daftar - bukan
+      // "semua yang ada di store". Versi pertamaku mengambil hash dari store saja, lalu
+      // melaporkan server salah karena `suspension` 1 vs chain 0: yang beda bukan servernya,
+      // tapi populasi yang kuukur (server juga mengawasi hash dari STATUS_HASHES). Membandingkan
+      // dua angka dari populasi berbeda adalah cara hijau yang tidak berarti apa-apa.
+      const hashes = await servedHashes()
+      const st = await readChainStatuses({
+        rpcUrl: process.env.RPC_URL || 'https://bsc-testnet.publicnode.com',
+        resolverAddress: resolverAddr,
+        hashes,
+      })
+      const all = [...st.values()]
+      chainRevoked = revokedUids(all).length
+      chainSuspended = suspendedUids(all).length
+      console.log(`  chain   : ${hashes.length} hash diawasi · revocation ${chainRevoked} · suspension ${chainSuspended}`)
+    } catch (e) {
+      console.log(`  info  jumlah bit tidak bisa dibandingkan dengan chain (${String(e.message ?? e).slice(0, 70)}) — pemeriksaan ini DILEWATI, tidak dihitung lulus`)
+    }
+  }
+  if (chainRevoked !== null) {
+    check('jumlah bit yang dilaporkan server == keadaan chain sekarang',
+      health.revocation.flagged === chainRevoked && health.suspension.flagged === chainSuspended,
+      `server: ${health.revocation.flagged}/${health.suspension.flagged} · chain: ${chainRevoked}/${chainSuspended}`)
+    const stale = chainRevoked !== EXPECT_REVOKED.length || chainSuspended !== EXPECT_SUSPENDED.length
+    console.log(`  ${stale ? 'info ' : 'ok   '}EXPECT_* di .env ${stale ? `SUDAH TERTINGGAL (catatan ${EXPECT_REVOKED.length}/${EXPECT_SUSPENDED.length}, chain ${chainRevoked}/${chainSuspended}) — periksa baris EXPECT_ di .env; ia tidak lagi membuat pemeriksaan ini merah` : 'masih cocok dengan chain'}`)
+  } else {
+    check('jumlah bit yang dilaporkan server sama dengan yang diharapkan',
+      health.revocation.flagged === EXPECT_REVOKED.length && health.suspension.flagged === EXPECT_SUSPENDED.length,
+      `server: ${health.revocation.flagged}/${health.suspension.flagged}, diharapkan: ${EXPECT_REVOKED.length}/${EXPECT_SUSPENDED.length}`)
+  }
 }
 
 // `id` di dalam dokumen menunjuk ke rute ini. Kalau yang dipulangkan bukan sebuah Verifiable
@@ -154,14 +272,31 @@ if (!docHash) {
     && doc?.credentialStatus?.statusPurpose === 'revocation',
     Array.isArray(doc?.credentialStatus) ? 'masih array — skema OB 3.0 menolaknya'
       : JSON.stringify(doc?.credentialStatus?.statusPurpose))
-  check('rute dokumen: verificationMethod berada di bawah dokumen issuer yang tersaji',
-    typeof doc?.proof?.verificationMethod === 'string'
-    && doc.proof.verificationMethod.startsWith(vmId.split('#')[0]), doc?.proof?.verificationMethod ?? '')
+  // Verifier nyata tidak bertanya "slug apa yang di-start server ini" — ia membuka URL yang
+  // tercetak di dalam kertas. Jadi kita melakukan hal yang sama: kunci diambil dari dokumen
+  // issuer yang menunjuk sendiri, bukan dari default proses. Ini juga yang membuat DOC_HASH boleh
+  // berisi kredensial terbitan agen mana pun (B48), selama slug-nya ada di .keys/.
+  const vmUrl = String(doc?.proof?.verificationMethod ?? '').split('#')[0]
+  check('rute dokumen: verificationMethod menunjuk dokumen issuer yang tersaji',
+    vmUrl.startsWith(`${BASE}/issuers/`) || /^https?:\/\//.test(vmUrl), vmUrl || '(tanpa verificationMethod)')
+  let docIssuer = null
+  if (vmUrl) {
+    try { docIssuer = await getJson(new URL(vmUrl).pathname) } catch (e) { console.log(`  (issuer dokumen: ${e.message})`) }
+  }
+  check('rute dokumen: kunci di verificationMethod ada di assertionMethod issuer-nya',
+    (docIssuer?.assertionMethod ?? []).some((m) => m.id === doc?.proof?.verificationMethod),
+    `${vmUrl} -> ${JSON.stringify((docIssuer?.assertionMethod ?? []).map((m) => m.id)).slice(0, 120)}`)
 
   // Tanda tangan diperiksa terhadap kunci yang DATANG DARI HTTP, sama seperti verifier nyata.
+  const docLoader = makeDocumentLoader({
+    [issuerDoc.id]: issuerDoc,
+    [docIssuer?.id ?? vmUrl]: docIssuer ?? issuerDoc,
+    [doc?.proof?.verificationMethod ?? vmId]: docIssuer?.assertionMethod?.find((m) => m.id === doc?.proof?.verificationMethod)
+      ?? issuerDoc.assertionMethod[0],
+  })
   let docOk = null
   try {
-    docOk = await verifyDocument(doc, { controllerDocument: issuerDoc, documentLoader: loader })
+    docOk = await verifyDocument(doc, { controllerDocument: docIssuer ?? issuerDoc, documentLoader: docLoader })
   } catch (e) {
     docOk = { verified: false, error: e.message }
   }

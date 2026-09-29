@@ -6,6 +6,14 @@ edit it from here, and do not answer from memory when a file is one `Read` away.
 
 ## Mandatory for every change you make in this vault
 
+**0. Jangan balik urutannya: penuhi standar umum e-course lebih dulu, baru jual pembeda kita.**
+Baca [[00-Overview/11 - Product Bar]] sebelum memilih pekerjaan. Kerangka 12 elemennya ada di
+[[12-LMS-References/L7 - What an e-course must have]], kekurangan kita yang sudah diurutkan ada di
+[[12-LMS-References/L8 - Lencana vs LMS]] §C, dan keputusan penyimpanan (Supabase/PostgreSQL untuk
+state belajar; chain tetap tempat yang dipercaya publik) ada di halaman yang sama. Menonjolkan
+kredensial sambil kerangka belajar bolong membuat produk terbaca sebagai demo — yaitu kegagalan yang
+kita dokumentasikan untuk platform orang lain.
+
 1. **Never state a number you have not just produced.** Test counts, check counts, gas, addresses,
    page counts, dates. Run the command (or read the run log inside `app/`) and cite it in the note.
    If you cannot run it, write `_unmeasured_` next to the figure instead of deleting the row. This is
@@ -25,16 +33,37 @@ edit it from here, and do not answer from memory when a file is one `Read` away.
    "does" against [[10-Contributors/Claims-Cheat-Sheet]] — several phrasings are deliberately
    forbidden because they would overstate what was measured.
 7. After editing: `powershell -ExecutionPolicy Bypass -File scripts\sync-vault.ps1` and then
-   `scripts\check-links.ps1` → **`Broken: 0`**, and `scripts\check-mermaid.ps1` → **`Hazards: 0`** dan `scripts\check-lang.ps1` → **`CJK tokens: 0`**
+   `scripts\check-links.ps1` → **`Broken: 0`** (both kinds now: `[[wikilinks]]` **and** relative
+   markdown links across every `.md` in the repo — a guard that only knows one syntax reports green
+   over half the corpus), `scripts\check-mermaid.ps1` → **`Hazards: 0`**, `scripts\check-lang.ps1` →
+   **`CJK tokens: 0`**, and `scripts\check-paste.ps1` → **`PASTE HIJAU`** (the submission field holds
+   5,600 characters; the artifact crept four past that on 28 Sep while every other gate was green).
    (a literal `;` inside a `sequenceDiagram` makes the whole block fail to render, and prose review
    cannot see it). Module-Guide stubs created by the script must be filled, not left as `TODO`.
 8. Superseded files: move the content and delete the file in one commit, or keep it under an
    `⚠️ ARCHIVED — see <note>` banner. Corrections stay visible; do not tidy away a wrong claim that
    was already pushed.
-9. Language: **English** in here (see [[Conventions]]); UI copy in `web/` is Indonesian-first.
+9. Language: **Indonesian is fine here** — decided by the builder on 28 Sep, which also closes B79.
+   Write whatever the reader of that page needs; `web/` UI copy stays Indonesian-first. What still
+   counts as a defect is not the language but an unsourced number or a claim without a command.
+   (Former rule said English-only; keeping it would have made a rule we break every session, which is
+   how rules stop meaning anything.)
 10. Frontend files (`../web/index.html`, `../web/src/main.ts`, `render.ts`, `style.css`, `i18n.ts`)
     belong to the frontend maintainer. Read [[10-Contributors/00 - Hub Contributors]] before
     touching them; if you must, keep the mount points and run typecheck + build + probe afterwards.
+
+11. **Jangan berhenti karena memperkirakan ruang konteks — dan jangan menunda pencatatan.**
+    Sesi ini bisa dipangkas otomatis kapan saja; itu tidak masalah **asal** state penting sudah
+    tertulis di vault sebelum pemangkasan terjadi. Jadi: (a) kerjakan item sampai gerbang hijaunya,
+    jangan berhenti di tengah karena menebak sisa ruang; (b) begitu menemukan keputusan, blocker, atau
+    angka yang belum tercatat, tulis ke vault **saat itu juga** (baris backlog + halaman terkait dalam
+    suntingan yang sama), bukan "nanti"; (c) kalau memang harus berhenti, alasannya ditulis sebagai
+    baris `⏸️` dengan sebab + perintah yang tersisa, bukan "konteks hampir penuh"; (d) angka yang
+    dikutip wajib dari run hari itu — kalau pemangkasan membuat angka lama tak terverifikasi, jalankan
+    ulang perintahnya, jangan kutip dari ingatan.
+    (Aturan ini lahir 29 Sep: saya menolak mengerjakan B81 dengan alasan ruang, padahal pemakaian
+    konteks baru 46,7% dan tenggat masih 21 jam. Kesalahan jenisnya sama dengan B43/B53/B56 — menyimpulkan
+    tanpa mengukur, lalu bertindak berdasarkan kesimpulan itu.)
 
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:
 [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · [[09-Testing/00 - Hub Testing]] ·

@@ -1,7 +1,7 @@
 ---
 tags: [testing, validator, open-badges]
 status: active
-updated: 2026-09-27
+updated: 2026-09-28
 ---
 
 # T15 - The 1EdTech validator, run for real
@@ -108,8 +108,38 @@ kunci yang ia ambil dari URL kami.
 
 Dua batas yang tetap kita sebut. `valids: []` dan `"valid": 0` pada ringkasan yang sama berarti respons
 **tidak merinci pemeriksaan mana yang lulus** — klaim kita adalah "tidak ada error", bukan "empat belas
-hal dikonfirmasi". Dan host yang ia ikuti adalah tunnel sementara: run ulang menuntut host yang sama
-hidup, yang persis poin [[11-Refactoring/RF6 - Core System, Backend and Contracts]].
+hal dikonfirmasi". Dan host yang ia ikuti waktu itu adalah tunnel sementara: halaman ini pernah menulis
+"run ulang menuntut host yang sama hidup", dan 28 Sep sekitar pukul 07:00 host itu benar-benar hilang
+(`ENOTFOUND` pada `genres-wines-insulation-useful.trycloudflare.com`, origin di 8787 masih hidup). Run
+di atas tetap fakta riwayat — ada `uploadId`-nya di buku besar — tapi kertasnya tidak bisa diperiksa
+siapa pun lagi. Itu bukan alasan untuk menghapus barisnya, itu alasannya
+[[07-Backlog/03 - Findings and Tasks 2026-09-26|B51]] ada, dan sudah ditutup di bawah.
+
+## Run 28 Sep: VALID di host yang tidak ikut mati bersama laptop
+
+Kredensial baru diterbitkan di bawah tepi sajian permanen
+([[04-Signer-Service/S10 - Edge surface]]), agen `agent-edge`, lalu divalidasi **dengan dokumen dibaca
+dari tepi itu juga**:
+
+```
+dokumen  : 0xd0bce6f402e437e4bcc32ddc3d305c5b6b7079b7c4473f6c5625a8183bf7930e
+uploadId : val18368571955412434375.json
+baseUrl  : https://lencana-edge.hansgunawan775.workers.dev
+outcome  : VALID · totalRun 14 · 0 error · 0 warning · 0 fatal · 0 exception
+harness  : 10/10 pemeriksaan hijau
+peserta  : 0x0B2fA5050912F4CdB5f7C47A5FAd6A8F9398CBaF (token) · LULUS 92 vs passMark 70 · attest 333.496 gas
+```
+
+Yang berubah bukan angkanya, angkanya identik dengan 27 Sep. Yang berubah adalah **siapa yang bisa
+membuat angka itu ulang**: verifier yang membuka URL di dalam kertas sekarang menemukan host yang
+tidak bergantung pada proses apa pun di laptop ini, dan tepi itu sendiri menolak menyajikan daftar
+status kalau bitnya tidak cocok dengan chain saat permintaan masuk.
+
+Perintahnya tetap satu: `cd signer && npm run validator -- --hash 0x… --record`, dengan `BASE_URL`
+menunjuk ke tepi. Buku besar `09-Testing/validator-runs.jsonl` menyimpan kedua run — yang hostnya sudah
+mati dan yang hostnya hidup — supaya perbedaan antara "pernah lolos" dan "masih bisa dibuka" tetap
+terbaca, bukan kita timbun.
+
 
 ## What each one means, with our measurements next to it
 
@@ -133,4 +163,4 @@ The last line of [[08-Results/01 - Evidence and Limits]] and the limits block of
 point **here** instead of saying "never run" — that sentence became false the moment this page was written,
 and a page that is out of date about its own worst result is worse than no page.
 
-**Related:** [[Notes/Session-2026-09-27-B41-validator]] · [[09-Testing/T4 - npm run probe]] · [[09-Testing/T8 - signer serve-probe.js]] · [[04-Signer-Service/S8 - Criteria document]]
+**Related:** [[Notes/Session-2026-09-27-B41-validator]] · [[09-Testing/T4 - npm run probe]] · [[09-Testing/T8 - signer serve-probe.js]] · [[04-Signer-Service/S8 - Criteria document]] · [[09-Testing/T16 - npm run publish edge]] · [[04-Signer-Service/S10 - Edge surface]]

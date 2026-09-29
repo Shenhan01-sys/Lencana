@@ -1,0 +1,15 @@
+# Pengecualian untuk check-links.ps1 — setiap baris bernama DAN beralasan.
+# Format:  <nama-berkas>|<target-tautan>|<alasan>
+#
+# Aturan proyek: temuan pada berkas milik kontributor lain dilaporkan, tidak disunting
+# (vault/10-Contributors/00 - Hub Contributors.md). Daftar ini ada supaya penjaga tetap bisa
+# bilang "hijau" tanpa berbohong: yang dikecualikan dicetak sebagai DIKECUALIKAN beserta alasannya,
+# jadi ia terlihat di log, bukan hilang. Kalau daftar ini tumbuh tanpa nama pemilik, itu tanda
+# kita sedang menyembunyikan kerusakan.
+#
+# OI-9: tautan `file:///C:/Project_Dave/...` di dokumen tracker front-end. Berkasnya milik pemilik
+# front-end dan alamatnya adalah mesin orang lain — untuk pembaca mana pun tautan itu mati.
+# Sudah dilaporkan sebagai OI-9 dengan saran pengganti (path relatif ke vault); menunggu dia.
+frontend_iteration.md|file:///C:/Project_Dave/lencana/vault/01-briefing.md|OI-9, berkas pemilik front-end — dilaporkan, tidak disunting
+frontend_iteration.md|file:///C:/Project_Dave/lencana/vault/02-architecture.md|OI-9, berkas pemilik front-end — dilaporkan, tidak disunting
+frontend_iteration.md|file:///C:/Project_Dave/lencana/vault/05-status-and-tasks.md|OI-9, berkas pemilik front-end — dilaporkan, tidak disunting
