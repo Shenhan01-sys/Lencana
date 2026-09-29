@@ -14321,3 +14321,5 @@ body.is-submit-page #page-submit::before {
 .mr-2 { margin-right: 0.5rem; }
 .mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
 .opacity-50 { opacity: 0.5; }
+
+.force-hidden { display: none !important; }

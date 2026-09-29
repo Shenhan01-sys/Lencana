@@ -1487,14 +1487,14 @@ function handleRoute() {
     }
   })
 
-  const globalHeader = document.querySelector('.app-navbar') as HTMLElement;
+  const globalHeader = document.querySelector('header.app-navbar') as HTMLElement;
   const globalDock = document.querySelector('.demo-dock') as HTMLElement;
   if (targetPageId === 'page-new-app') {
-    if (globalHeader) globalHeader.style.display = 'none';
-    if (globalDock) globalDock.style.display = 'none';
+    if (globalHeader) globalHeader.classList.add('force-hidden');
+    if (globalDock) globalDock.classList.add('force-hidden');
   } else {
-    if (globalHeader) globalHeader.style.display = '';
-    if (globalDock) globalDock.style.display = '';
+    if (globalHeader) globalHeader.classList.remove('force-hidden');
+    if (globalDock) globalDock.classList.remove('force-hidden');
   }
 
   // Legacy LMS route is now handled by new router

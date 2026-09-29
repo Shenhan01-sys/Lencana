@@ -26,7 +26,7 @@ function renderCourseCard(c: ClassData) {
 export function renderLanding() {
   return h('div', { class: 'landing-page' },
     // 0. Sticky Nav
-    h('nav', { class: 'app-navbar sticky top-0 z-50 flex items-center justify-between p-4 bg-obsidian border-b border-gray-800' },
+    h('nav', { class: 'new-app-navbar sticky top-0 z-50 flex items-center justify-between p-4 bg-obsidian border-b border-gray-800' },
       h('a', { href: '#/', class: 'brand-link flex items-center gap-2' },
         h('span', { class: 'text-gold font-bold text-xl' }, 'Lencana')
       ),
