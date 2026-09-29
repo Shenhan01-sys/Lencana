@@ -24,6 +24,8 @@
  * satu perubahan itu mengirim secret server-side ke browser setiap pengunjung.
  */
 
+// [B81] SELESAI 2026-09-29 — esai/praktik masuk sebagai rekaman + antrean penilaian penerbit; angka tidak diterima dari klien. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B81 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 // [B72] SELESAI 2026-09-29 — state belajar hidup di Postgres (server-side), bukan localStorage browser. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { keccak256, encodeAbiParameters, getAddress } from 'viem'
 import { verifyMessage } from 'viem/utils'

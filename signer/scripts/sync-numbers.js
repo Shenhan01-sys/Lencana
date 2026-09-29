@@ -23,6 +23,8 @@
  *     pola eksplisit di DOC_CLAIMS, bukan lewat menebak-nebak.
  */
 
+// [B93] SELESAI 2026-09-29 — satu sumber angka + --verify memarahi halaman yang basi. Buktikan ulang: npm run sync:numbers -- --verify. JANGAN dibalik/diulang tanpa membuka kembali baris B93 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 // [B107] SELESAI 2026-09-29 — merah harness wajib cetak prasyarat + 12 baris keluaran anak; --only menolak menulis numbers.json. Buktikan ulang: npm run sync:numbers -- --only=serveProbe. JANGAN dibalik/diulang tanpa membuka kembali baris B107 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { execFile } from 'node:child_process'
 import { readFile, writeFile } from 'node:fs/promises'

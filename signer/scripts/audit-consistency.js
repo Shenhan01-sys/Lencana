@@ -14,6 +14,8 @@
  * kalau belum ada ID-nya (idempoten — menjalankan dua kali tidak menghasilkan dua baris).
  */
 
+// [B101] SELESAI 2026-09-29 — SURFACE termasuk salinan UI dan berkas yang hilang = TEMUAN. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B101 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 // [B96] SELESAI 2026-09-29 — A8/A8b menjaga bahasa identifier, pesan keluaran, dan pola assertion harness. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // [B103] SELESAI 2026-09-29 — SURFACE hanya berkas yang ada; berkas yang hilang = TEMUAN, bukan dilewati diam-diam. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B103 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
@@ -290,7 +292,7 @@ async function collect () {
         if (skipTag.has(e.name)) continue
         const p = join(d, e.name)
         if (e.isDirectory()) walkTag(p)
-        else if (/\.(ts|js|mjs|sol|sql|yml)$/.test(e.name)) berkas.push(p)
+        else if (/\.(ts|js|mjs|sol|sql|yml|ps1)$/.test(e.name)) berkas.push(p)
       }
     }
     walkTag(REPO)

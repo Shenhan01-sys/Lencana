@@ -25,6 +25,10 @@
  * bukan karena origin, kertas itu tidak ditulis.
  */
 
+// [B54] SELESAI 2026-09-29 — Riwayat angkanya sengaja dibiarkan terbaca, karena "tidak pernah ada kertas yang menganggur" adalah kalimat yang tidak boleh kita ucapkan. Ini bukan kosmetik: klaim ter Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B54 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B46] SELESAI 2026-09-29 — --fix-status-shape menormalkan kertas lama ke bentuk satu-objek tanpa menyentuh chain (hash/uid/expiry tetap). Buktikan ulang: npm run rehost. JANGAN dibalik/diulang tanpa membuka kembali baris B46 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 // [B51] SELESAI 2026-09-29 — kertas pindah ke host tetap tanpa transaksi; identitas issuer ikut dipindah, host sementara ditolak. Buktikan ulang: npm run rehost. JANGAN dibalik/diulang tanpa membuka kembali baris B51 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, http, getAddress, parseAbi } from 'viem'
 

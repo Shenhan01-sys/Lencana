@@ -20,6 +20,10 @@
  * Keduanya di sini ditulis dari satu angka yang sama, supaya "kredensial membusuk" tidak
  * pernah berbunyi berbeda di halaman verifikasi dan di validator pihak ketiga.
  */
+
+// [B46] SELESAI 2026-09-29 — credentialStatus diterbitkan sebagai SATU objek (bukan array dua entri) karena skema OB 3.0 validator mengharapkan objek; dua daftar status tetap hidup di URL masing-masing. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B46 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B44] SELESAI 2026-09-29 — the artefact answers "which rubric" but not "who ran it", so "an agent graded this" is checkable only against our own logs Buktikan ulang: lihat baris B44 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B44 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createHash } from 'node:crypto'
 import { keccak256, encodePacked, getAddress } from 'viem'
 import {

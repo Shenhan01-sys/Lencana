@@ -1,3 +1,5 @@
+
+# [B56] SELESAI 2026-09-29 — penjaga tautan memeriksa dua lintasan (wikilink + md) atas seluruh korpus. Buktikan ulang: powershell -File vault/scripts/check-links.ps1. JANGAN dibalik/diulang tanpa membuka kembali baris B56 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 # check-links.ps1
 # Verify that links resolve to real files. It now covers BOTH kinds we ship:
 #   1. [[wikilinks]] inside this vault

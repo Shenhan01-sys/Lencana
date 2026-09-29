@@ -160,6 +160,8 @@ in 13 days:
 
 ## Urja prioritas 29 Sep malam (13 siap kerja; B67+B107+B42 selesai malam ini; 7 bergembok)
 
+**Status loop label (aturan #18) — selesai 30 Sep:** 46 ID tertutup → **40 bertanda di kode**, 72 tag dicocokkan dua arah oleh A9; 6 ID kunyatakan TANPA TAG KODE (B43 B71 B74 B76 B77 B99) karena perbaikannya hidup di dokumen vault, bukan di berkas kode. A9 diperluas ikut mengadili berkas PowerShell, jadi penjaga vault juga barang bukti (B56 check-links, B79 check-lang).
+
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 (TERBUKA total 21, bergembok 7). Angka apa pun di bawah harus dicetak ulang oleh perintahnya pada hari
 ia dikutip (AGENTS #1).

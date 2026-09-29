@@ -10,6 +10,14 @@
  * BSC testnet hasil `SeedDemo`. Kalau nanti ada yang mengubah `_vcHash()` di Solidity tanpa
  * mengubah sini (atau sebaliknya), berkas ini yang berteriak — bukan demonya.
  */
+
+// [B85] SELESAI 2026-09-29 — perubahan jumlah pemeriksaan harus punya sebab yang dicetak, bukan diam-diam. Buktikan ulang: npm run check. JANGAN dibalik/diulang tanpa membuka kembali baris B85 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B68] SELESAI 2026-09-29 — front-end (builder mengizinkan penyuntingan 28 Sep) Buktikan ulang: lihat baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B50] SELESAI 2026-09-29 — kredensial yang TERSAJE di halaman kita sekarang tidak sama bentuknya dengan kredensial yang LOLOS validator. Untuk juri yang membuka "lihat dokumen", yang ia salin/ung Buktikan ulang: lihat baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B44] SELESAI 2026-09-29 — the artefact answers "which rubric" but not "who ran it", so "an agent graded this" is checkable only against our own logs Buktikan ulang: lihat baris B44 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B44 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { buildOpenBadgeCredential, credentialHashOf, sha256Hex } from '../src/credential.js'
 import { IndexAllocator, LIST_BITS, REVOCATION, SUSPENSION, encodeList, decodeBit, statusListCredential } from '../src/statusList.js'
 import { gunzipSync } from 'node:zlib'

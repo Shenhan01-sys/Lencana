@@ -22,6 +22,8 @@
  * Dua pihak yang ingin saling menguji harus memakai fungsi ini, dan itu wajar karena keduanya
  * memang membaca dokumen kita.
  */
+
+// [B55] SELESAI 2026-09-29 — Kertas Web3 Lanjut pertama kita (0x44d4946e…) menyebut prasyarat di criteria-nya tanpa tautan on-chain. Peserta itu memang memegang Web3 Dasarnya di chain (holderOf sam Buktikan ulang: lihat baris B55 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B55 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { keccak256, toBytes, type Address, type Hex } from 'viem'
 import type { Course } from './content'
 

@@ -29,6 +29,8 @@
  * Biaya nyata: 2 attestation + 1 mintBatch + 1 revoke (+ re-anchor). Testnet 97; setiap nilai dibaca
  * ulang dari chain sesudahnya.
  */
+
+// [B57] SELESAI 2026-09-29 — Klaim "coba sendiri cabut dan lihat bit-nya menyala" tidak bisa diulang siapa pun; dan journey yang butuh langkah itu harus memalsukannya atau lewatkan Buktikan ulang: npm run revoke. JANGAN dibalik/diulang tanpa membuka kembali baris B57 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'

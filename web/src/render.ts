@@ -7,6 +7,10 @@
  * kelihatan "terverifikasi".
  */
 
+// [B68] SELESAI 2026-09-29 — front-end (builder mengizinkan penyuntingan 28 Sep) Buktikan ulang: lihat baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B50] SELESAI 2026-09-29 — kredensial yang TERSAJE di halaman kita sekarang tidak sama bentuknya dengan kredensial yang LOLOS validator. Untuk juri yang membuka "lihat dokumen", yang ia salin/ung Buktikan ulang: lihat baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 // [B100] SELESAI 2026-09-29 — generateCanonicalJsonLd + proofValue karangan dibuang; tab kepatuhan pakai sampul specAudit. Buktikan ulang: npm run check:spec. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { Report } from './verify'
 import { EMPTY_UID } from './abi'

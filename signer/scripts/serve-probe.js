@@ -9,6 +9,14 @@
  *
  * Perlu: server jalan (`npm run serve`) dengan RPC_URL + RESOLVER_ADDRESS + STATUS_HASHES terisi.
  */
+
+// [B86] SELESAI 2026-09-29 — probe menolak menguji proses yang lebih tua daripada kode di disk. Buktikan ulang: npm run probe:serve. JANGAN dibalik/diulang tanpa membuka kembali baris B86 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B47] SELESAI 2026-09-29 — probe membaca kapasitas itu balik dari HTTP, bukan mempercayai angka di memori proses. Buktikan ulang: npm run probe:serve. JANGAN dibalik/diulang tanpa membuka kembali baris B47 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B48] SELESAI 2026-09-29 — empat kredensial demo yang sudah terbit tidak bisa diverifikasi orang asing di instance itu: verificationMethod mereka menunjuk dokumen yang tidak kita sajikan. Untuk v Buktikan ulang: lihat baris B48 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B48 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B45] SELESAI 2026-09-29 — a strict validator or a recruiter following resultDescription lands on our 404-with-hint. Same root cause as B44: the credential references documents that exist only as Buktikan ulang: lihat baris B45 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B45 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { makeDocumentLoader, verifyDocument } from '../src/sign.js'
 import { readdirSync, statSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
