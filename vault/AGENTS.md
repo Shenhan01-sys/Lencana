@@ -65,6 +65,16 @@ kita dokumentasikan untuk platform orang lain.
     konteks baru 46,7% dan tenggat masih 21 jam. Kesalahan jenisnya sama dengan B43/B53/B56 — menyimpulkan
     tanpa mengukur, lalu bertindak berdasarkan kesimpulan itu.)
 
+12. **Selesai berarti vault ikut selesai — bukan kode saja.** Setiap item (develop, refactor,
+    bugfix, angka baru) yang kunyatakan beres wajib menutup loop di [[WORKFLOW]] sampai gerbangnya
+    hijau: angka dari run hari itu → halaman harness/hasil + baris backlog dalam SUNTINGAN yang sama
+    → kekunoan ditulis sebagai koreksi terlihat, bukan ditimpa → commit lokal (dorong hanya atas kata
+    builder). Alasannya diukur: 29 Sep vault tertinggal dari angkanya sendiri di enam berkas
+    (`START-HERE`, `01 - Backlog`, `T21`, `T22`, `T24`, `Quick-Reference`)
+    dan baru ketahuan karena digrep setelah ditanyakan — lihat baris **B93** di
+    [[07-Backlog/03 - Findings and Tasks 2026-09-26]]. Kalau ruang sesi tinggal sedikit: tulis dulu
+    keadaan penting ke vault, baru berhenti (aturan 11). Kekunoan vault adalah klaim yang salah
+    pelan-pelan.
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:
 [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · [[09-Testing/00 - Hub Testing]] ·
 [[08-Results/00 - Hub Results]] · [[10-Contributors/Open-Items/00 - Hub Open Items]]

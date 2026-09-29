@@ -1,4 +1,9 @@
 ---
+
+> **Hook (aturan 12 `AGENTS.md`):** langkah 5 belum selesai sampai vault menampilkan angka
+> run hari itu. Setiap item yang dianggap beres wajib menutup loop ini — bukan cuma kodenya.
+> Kekunoan vault = klaim yang salah pelan-pelan; ukuran terakhirnya ada di baris **B93**
+> [[07-Backlog/03 - Findings and Tasks 2026-09-26|status dan tugas terbaru]].
 tags: [workflow, concept, global]
 ---
 
