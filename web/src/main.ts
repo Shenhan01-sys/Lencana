@@ -1487,6 +1487,16 @@ function handleRoute() {
     }
   })
 
+  const globalHeader = document.querySelector('.app-navbar') as HTMLElement;
+  const globalDock = document.querySelector('.demo-dock') as HTMLElement;
+  if (targetPageId === 'page-new-app') {
+    if (globalHeader) globalHeader.style.display = 'none';
+    if (globalDock) globalDock.style.display = 'none';
+  } else {
+    if (globalHeader) globalHeader.style.display = '';
+    if (globalDock) globalDock.style.display = '';
+  }
+
   // Legacy LMS route is now handled by new router
 
   const routeNavMap: Record<string, string> = {
