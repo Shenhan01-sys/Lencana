@@ -17,6 +17,12 @@ import { readFile } from 'node:fs/promises'
 import { findCourse, findLesson } from '../../web/src/courses/index.ts'
 import { gradeAgainstRubric, formatVerdict } from '../src/grade.js'
 import { groqJudge, DEFAULT_JUDGE_MODEL } from '../src/judge.js'
+import { loadFileEnvReport } from '../src/env.js'
+
+// Semua harness lain memuat app/.env sendiri; judge-check adalah satu-satunya yang tidak, jadi
+// kunci yang sudah ada di .env terbaca "tidak ada di lingkungan" dan orang disuruh memakai perkakas
+// di luar repo. 30 Sep: ini yang membuat `npm run judge` tidak bisa direproduksi dari clone.
+await loadFileEnvReport('judge')
 
 const course = findCourse('web3-dasar-2026')
 const lesson = findLesson(course, 'esai-batas-bukti').lesson
@@ -35,7 +41,7 @@ console.log(`model penilai : ${process.env.JUDGE_MODEL ?? DEFAULT_JUDGE_MODEL}`)
 console.log(`rubrik        : ${lesson.essay.rubric.length} kriteria, ambang lulus kursus ${course.passMark}\n`)
 
 if (!process.env.GROQ_API_KEY) {
-  console.error('GROQ_API_KEY tidak ada di lingkungan. Jalankan lewat _research/run_with_env.ps1.')
+  console.error('GROQ_API_KEY tidak ada di lingkungan dan tidak ditemukan di app/.env — isi di sana (berkas ini memuatnya sendiri).')
   process.exit(2)
 }
 

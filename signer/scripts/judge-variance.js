@@ -13,6 +13,11 @@ import { readFile } from 'node:fs/promises'
 import { findCourse, findLesson } from '../../web/src/courses/index.ts'
 import { gradeAgainstRubric } from '../src/grade.js'
 import { groqJudge, DEFAULT_JUDGE_MODEL } from '../src/judge.js'
+import { loadFileEnvReport } from '../src/env.js'
+
+// 30 Sep: berkas ini, seperti judge-check, tidak pernah memuat app/.env — jadi `npm run
+// judge-variance` gagal dengan "GROQ_API_KEY missing" meski kuncinya ada di repo sendiri.
+await loadFileEnvReport('judge-variance')
 
 const RUNS = Number(process.env.JUDGE_RUNS ?? 5)
 const course = findCourse('web3-dasar-2026')
