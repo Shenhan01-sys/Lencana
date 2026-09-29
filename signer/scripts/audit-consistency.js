@@ -237,10 +237,12 @@ async function collect () {
   // Kenapa ini ada: sampai 29 Sep, `forge test` mencetak **87 dari 120** nama fungsi uji dalam
   // bahasa Indonesia (perkiraan pertama kita "5", lalu "41" — dua-duanya salah, dan itu pelajaran:
   // cakupan harus keluar dari alat + diff, bukan dari ingatan). Malam ini 87-nya dipindah ke Inggris
-  // dan tiap pasangan kunomori dari diff; `forge test` offline tetap 66/0. Yang BELUM: string pesan
-  // yang dikirim signer ke klien —
-  // 53 di antaranya masih Indonesia per baseline. Yang Indonesia dibiarkan hidup: komentar kode,
-  // log operator di `scripts/`, dan seluruh `vault/` (bahasa kerja kita; `Claims-Cheat-Sheet`
+  // dan tiap pasangan kunomori dari diff; `forge test` offline tetap 66/0. Lanjutannya 29 Sep
+  // ~13:0xZ: **69** literal `error`/`why`/`reason`/`detail` yang sampai ke klien ikut dipindah ke
+  // Inggris, dan `web/scripts/probe.ts` — yang mengassert satu pesan Indonesia apa adanya — dibetulkan
+  // pada lintasan yang sama. Baseline turun ke NOL: satu pesan Indonesia baru pun langsung merah.
+  // Yang Indonesia dibiarkan hidup: komentar kode, log operator di `scripts/`, dan seluruh `vault/`
+  // (bahasa kerja kita; `Claims-Cheat-Sheet`
   // bahkan memuat daftar frasa terlarang untuk melarangnya).
   const ID_WORDS = /\b(tidak|belum|sudah|hanya|dengan|untuk|atas|milik|di luar|butuh|harus|peserta|kursus|penerbit|kredensial|arteofak|artefak|rantai|cabut|dicabut|setelah|karena|verifikasi|kedaluwarsa|prasyarat|prasarat|delegasi|pencabutan|saldo|kosong|nol|sisa|terbagi|ditolak|terdaftar|enumerasi|tanpa|jejak|adegan|ganti|berlaku|berhasil|memegang|orang|siapa|pun|bisa|jalan|lagi|kirimi|kirim|langsung|menyimpan|membagi|plafon|turun|kecil|potongan|pembulatan)\b/i
   const ID_IDENT = /(Tidak|Belum|Sudah|Hanya|Ditolak|Dicabut|Setelah|Karena|Untuk|Dengan|Atas|Milik|Orang|Saldo|Kosong|Nol|Sama|Terdaftar|Enumerasi|Tanpa|Terbagi|Penerbit|Artefak|Kursus|Peserta|Rantai|Adegan|Verifikasi|Kedaluwarsa|Delegasi|Prasarat|Prasyarat|Pencabutan|Menyimpan|Membagi|Plafon|Potongan|Pembulatan|Ganti|Berlaku|Berhasil|Pemegang|Jalan|Lagi|Langsung|Kecil|Sisa|Sentiasa|Dipulihkan|Menandai|Tanpa)/
@@ -267,17 +269,43 @@ async function collect () {
   for (const f of jsSrc) {
     const t = await readFile(f, 'utf8')
     t.split(/\r?\n/).forEach((l, i) => {
-      const m = /(?:error|why|reason|detail):\s*[`'"]([^`'"\n]{8,})/.exec(l)
+      const m = /(?:error|why|reason|detail):\s*[`'"]([^`'"\n]{8,})/.exec(l) ?? /new Error\(\s*[`'"]([^`'"\n]{8,})/.exec(l)
       if (m && ID_WORDS.test(m[1])) idMsgs.push(`${f.replace(REPO, '')}:${i + 1}`)
     })
   }
-  const MSG_BASELINE = 56
+  const MSG_BASELINE = 0
   findingsOut.push({
     id: 'A8', kind: idNames.length || idMsgs.length > MSG_BASELINE ? 'TEMUAN' : 'bersih',
-    title: 'bahasa identifier & pesan keluaran (D27/D28) — nol nama test Indonesia, pesan klien boleh menyusut tapi tidak bertambah',
+    title: 'bahasa identifier & pesan keluaran (D27/D28) — nol nama test Indonesia dan nol pesan klien Indonesia',
     detail: `${testNames} nama fungsi uji, ${idNames.length} masih Indonesia`
-      + `\n      pesan signer ke klien yang masih Indonesia: ${idMsgs.length} (baseline keputusan 29 Sep: ${MSG_BASELINE}) — ini pekerjaan B96 yang tersisa, disengaja, bukan luput`,
+      + `\n      pesan signer ke klien yang masih Indonesia: ${idMsgs.length} (baseline 29 Sep: ${MSG_BASELINE})`
+      + (idMsgs.length ? ` — B96 belum selesai: ${idMsgs.slice(0, 6).join(', ')}${idMsgs.length > 6 ? ', …' : ''}` : ' — B96 tertutup untuk kedua lapisan'),
   })
+
+// 8b)Harness: pola yang dicocokkan ke pesan (body.error / why) wajib Inggris.
+  //
+  // Dua kali hari ini terjemahan membuat gerbang merah bukan karena produknya salah, tapi karena
+  // `db-probe.js` mengassert potongan Indonesia (`/tidak diizinkan/`, `/kriteria asing/`).
+  // Yang benar: pesan Inggris + assertion Inggris; penomoran label boleh tetap Indonesia karena
+  // itu log operator. Pemeriksaan ini menghitung polanya, supaya tidak perlu ditemukan lagi.
+  const polaAsli = []
+  {
+    const dir = join(SIGNER, 'scripts')
+    if (existsSync(dir)) for (const e of readdirSync(dir)) {
+      if (!/\.js$/.test(e)) continue
+      const t = await readFile(join(dir, e), 'utf8')
+      t.split(/\r?\n/).forEach((l, i) => {
+        const m = /\/([^/*\n][^\n]{3,70}?)\/[a-z]*\.test\(([^)]*(?:error|why)[^)]*)\)/.exec(l)
+        if (m && ID_WORDS.test(m[1])) polaAsli.push(`${e}:${i + 1} /${m[1]}/`)
+      })
+    }
+  }
+  findingsOut.push({
+    id: 'A8b', kind: polaAsli.length ? 'TEMUAN' : 'bersih',
+    title: 'pola assertion harness atas pesan (harus Inggris — label Indonesia boleh)',
+    detail: polaAsli.length ? `${polaAsli.length} pola masih berbahasa Indonesia: ${polaAsli.slice(0, 6).join(', ')}` : 'tidak ada pola Indonesia yang dicocokkan ke body.error/why',
+  })
+
 
   if (LOG && missingRows.length && t) {
     const anchor = '| **B73** | Audit Dicoding'

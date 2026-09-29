@@ -20,10 +20,10 @@ import { manifestOf, rubricHashOf } from '../../web/src/manifest.ts'
 /** Lesson mana saja yang merupakan kuis, dengan soalnya — dibaca dari katalog penerbit. */
 export function quizLesson (courseId, lessonSlug) {
   const m = manifestOf(courseId)
-  if (!m) return { error: `kursus "${courseId}" tidak ada di katalog penerbit` }
+  if (!m) return { error: `course "${courseId}" is not in the publisher catalogue` }
   const lesson = m.course.modules.flatMap((mod) => mod.lessons).find((l) => l.slug === lessonSlug)
-  if (!lesson) return { error: `lesson "${lessonSlug}" tidak ada di kursus "${courseId}"` }
-  if (!lesson.quiz?.questions?.length) return { error: `lesson "${lessonSlug}" bukan kuis (tidak punya soal)` }
+  if (!lesson) return { error: `lesson "${lessonSlug}" does not exist in course "${courseId}"` }
+  if (!lesson.quiz?.questions?.length) return { error: `lesson "${lessonSlug}" is not a quiz (it has no questions)` }
   return { manifest: m, lesson }
 }
 
@@ -37,10 +37,10 @@ export function quizLesson (courseId, lessonSlug) {
  */
 export function essayLesson (courseId, lessonSlug) {
   const m = manifestOf(courseId)
-  if (!m) return { error: `kursus "${courseId}" tidak ada di katalog penerbit` }
+  if (!m) return { error: `course "${courseId}" is not in the publisher catalogue` }
   const lesson = m.course.modules.flatMap((mod) => mod.lessons).find((l) => l.slug === lessonSlug)
-  if (!lesson) return { error: `lesson "${lessonSlug}" tidak ada di kursus "${courseId}"` }
-  if (!lesson.essay?.rubric?.length) return { error: `lesson "${lessonSlug}" bukan esai (rubriknya kosong)` }
+  if (!lesson) return { error: `lesson "${lessonSlug}" does not exist in course "${courseId}"` }
+  if (!lesson.essay?.rubric?.length) return { error: `lesson "${lessonSlug}" is not an essay (its rubric is empty)` }
   return { manifest: m, lesson }
 }
 
@@ -55,23 +55,23 @@ export function gradeQuiz ({ courseId, lessonSlug, picks }) {
   const questions = lesson.quiz.questions
 
   if (!Array.isArray(picks) || picks.length === 0) {
-    return { ok: false, why: 'butuh picks: daftar { itemId, choice } — kosong berarti belum mengerjakan' }
+    return { ok: false, why: 'requires picks: a list of { itemId, choice } — empty means nothing was answered' }
   }
   const known = new Map(questions.map((q) => [q.id, q]))
   const chosen = new Map()
   for (const p of picks) {
     const id = String(p?.itemId ?? '')
-    if (!known.has(id)) return { ok: false, why: `soal "${id}" bukan bagian dari kuis "${lessonSlug}"` }
+    if (!known.has(id)) return { ok: false, why: `item "${id}" is not part of quiz "${lessonSlug}"` }
     if (chosen.has(id)) return { ok: false, why: `soal "${id}" dikirim dua kali` }
     const c = Number(p?.choice)
     if (!Number.isInteger(c) || c < 0 || c >= known.get(id).options.length) {
-      return { ok: false, why: `pilihan untuk soal "${id}" tidak sah: ${p?.choice}` }
+      return { ok: false, why: `choice for item "${id}" is invalid: ${p?.choice}` }
     }
     chosen.set(id, c)
   }
   const unanswered = questions.filter((q) => !chosen.has(q.id)).map((q) => q.id)
   if (unanswered.length) {
-    return { ok: false, why: `soal belum dijawab semuanya: ${unanswered.join(', ')} — yang kosong TIDAK dihitung nol, penyerahan ditolak` }
+    return { ok: false, why: `unanswered items: ${unanswered.join(', ')} — blanks are NOT scored as zero; the submission is rejected` }
   }
 
   const components = questions.map((q) => ({

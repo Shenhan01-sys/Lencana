@@ -64,6 +64,9 @@ state". Both readings were wrong, and the actual facts are:
 2. **`watchCredential` is deliberately separate from `rememberCredential`** (`store.js:104-108`): adopted
    credentials get status visibility only, and have no OB 3.0 document of ours to serve. The 404 body
    ("belum diterbitkan lewat backend ini") is the honest answer for those, not a defect.
+   *(koreksi terlihat 29 Sep: teks 404 itu kini `"not issued through this backend"` — pesan signer
+   dipindah ke Inggris bersama 68 literal lain di bawah B96/D28; kalimat di atas dibiarkan karena ia
+   mencatat apa yang dilihat sesi ini pada 26 Sep.)*
 3. **The real blocker is the identity URLs, and it is precise.** The served document contains
    **zero** occurrences of the tunnel host, because `verificationMethod` and the issuer id come from the
    stored agent record, written with `http://127.0.0.1:8787/…` at creation. `npm run agent` is

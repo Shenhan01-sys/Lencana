@@ -120,7 +120,7 @@ export async function getCredentialByHash (wanted) {
 export async function forgetCredential (id) {
   const state = await read()
   const key = String(id ?? '')
-  if (!Object.prototype.hasOwnProperty.call(state.credentials, key)) return { removed: false, reason: 'id tidak ada di store' }
+  if (!Object.prototype.hasOwnProperty.call(state.credentials, key)) return { removed: false, reason: 'id not present in the store' }
   const gone = state.credentials[key]
   delete state.credentials[key]
   await write(state)

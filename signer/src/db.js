@@ -54,7 +54,7 @@ async function rest (table, { method = 'GET', query = '', body, prefer } = {}) {
   if (!r.ok) {
     // Tanpa mencetak isi: pesan PostgREST kadang memuat bagian dari query, dan query bisa memuat
     // data peserta. Yang kita butuh untuk debugging adalah kode + path-nya.
-    throw new Error(`DB menolak ${method} ${table}: HTTP ${r.status} ${text.slice(0, 180)}`)
+    throw new Error(`database rejected ${method} ${table}: HTTP ${r.status} ${text.slice(0, 180)}`)
   }
   return text ? JSON.parse(text) : null
 }
@@ -81,8 +81,8 @@ async function consumeNonce ({ nonce, learner, scope }) {
   } catch (e) {
     const msg = String(e.message ?? e)
     // PostgREST membalas 409 untuk unique violation. Yang kita butuhkan hanya: "sudah ada".
-    if (/duplicate|already exists|409/i.test(msg)) return { ok: false, why: 'nonce sudah dipakai (replay)' }
-    return { ok: false, why: `gagal memakai nonce: ${msg.slice(0, 90)}` }
+    if (/duplicate|already exists|409/i.test(msg)) return { ok: false, why: 'nonce already used (replay)' }
+    return { ok: false, why: `could not consume nonce: ${msg.slice(0, 90)}` }
   }
 }
 
@@ -94,23 +94,23 @@ async function consumeNonce ({ nonce, learner, scope }) {
  */
 export async function authorizeLearner ({ learner, message, signature, scope = 'default' }) {
   if (typeof learner !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(learner)) {
-    return { ok: false, why: 'alamat peserta tidak valid' }
+    return { ok: false, why: 'invalid learner address' }
   }
   if (typeof signature !== 'string' || !/^0x[0-9a-fA-F]+$/.test(signature)) {
-    return { ok: false, why: 'tanda tangan tidak valid' }
+    return { ok: false, why: 'invalid signature' }
   }
   if (typeof message !== 'string' || message.length < 16) {
     return { ok: false, why: 'pesan tanda tangan terlalu pendek' }
   }
   const nonce = /nonce=([0-9a-f]{12,})/.exec(message)?.[1]
-  if (!nonce) return { ok: false, why: 'pesan tidak memuat nonce' }
+  if (!nonce) return { ok: false, why: 'message carries no nonce' }
   let verified = false
   try {
     verified = await verifyMessage({ address: getAddress(learner), message, signature })
   } catch (e) {
-    return { ok: false, why: `verifikasi gagal: ${String(e.message ?? e).slice(0, 90)}` }
+    return { ok: false, why: `verification failed: ${String(e.message ?? e).slice(0, 90)}` }
   }
-  if (!verified) return { ok: false, why: 'tanda tangan bukan dari alamat peserta ini' }
+  if (!verified) return { ok: false, why: 'signature does not belong to this learner' }
   const consumed = await consumeNonce({ nonce, learner, scope })
   if (!consumed.ok) return { ok: false, why: consumed.why }
   return { ok: true }
@@ -128,7 +128,7 @@ export async function enroll ({ learner, courseId, lessonsTotal = 0, message, si
   const auth = await authorizeLearner({ learner, message, signature, scope: 'enroll' })
   if (!auth.ok) return { ok: false, why: auth.why }
   const total = Number(lessonsTotal)
-  if (!Number.isInteger(total) || total < 0) return { ok: false, why: `lessons_total tidak valid: ${lessonsTotal}` }
+  if (!Number.isInteger(total) || total < 0) return { ok: false, why: `lessons_total invalid: ${lessonsTotal}` }
   const existing = await findEnrollment(learner, courseId)
   if (existing) return { ok: true, enrollment: existing, created: false }
   const rows = await rest('enrollments', {
@@ -184,12 +184,12 @@ export async function nextAttemptNo (learner, courseId, lessonKey = '-', kind = 
 /** Penulisan usaha SETELAH pemanggilnya sudah membuktikan dirinya (atau setelah server yang menilai). */
 export async function storeAttempt ({ learner, courseId, lessonKey = '-', kind, attemptNo = 1, score, verdict,
   rubricHash, judgeModel, judgeTemp, deductions, components }) {
-  if (!['kuis', 'esai', 'praktik', 'ujian'].includes(kind)) return { ok: false, why: `jenis usaha tidak dikenal: ${kind}` }
-  if (score === null || score === undefined || Number.isNaN(Number(score))) return { ok: false, why: 'score wajib angka' }
+  if (!['kuis', 'esai', 'praktik', 'ujian'].includes(kind)) return { ok: false, why: `unknown attempt kind: ${kind}` }
+  if (score === null || score === undefined || Number.isNaN(Number(score))) return { ok: false, why: 'score must be a number' }
   const s = Number(score)
-  if (s < 0 || s > 100) return { ok: false, why: `score di luar 0..100: ${s}` }
+  if (s < 0 || s > 100) return { ok: false, why: `score outside 0..100: ${s}` }
   const enrollment = await findEnrollment(learner, courseId)
-  if (!enrollment) return { ok: false, why: 'peserta belum enroll di kursus ini — tidak ada baris untuk menempelkan usaha' }
+  if (!enrollment) return { ok: false, why: 'learner not enrolled in this course — no row to attach the attempt to' }
 
   const attemptHash = computeAttemptHash({ learner, courseId, lessonKey, kind, attemptNo, score: s, rubricHash })
   const rows = await rest('attempts', {
@@ -276,11 +276,11 @@ const ALLOWED_MOVE = {
 export async function setLessonProgress ({ learner, courseId, lessonId, to, position = 0, message, signature }) {
   const auth = await authorizeLearner({ learner, message, signature, scope: 'progress' })
   if (!auth.ok) return { ok: false, why: auth.why }
-  if (typeof lessonId !== 'string' || !lessonId.length) return { ok: false, why: 'lesson wajib diisi' }
-  if (!PROGRESS_STATES.includes(to)) return { ok: false, why: `status tidak dikenal: ${to}` }
+  if (typeof lessonId !== 'string' || !lessonId.length) return { ok: false, why: 'lesson required' }
+  if (!PROGRESS_STATES.includes(to)) return { ok: false, why: `unknown status: ${to}` }
 
   const enrollment = await findEnrollment(learner, courseId)
-  if (!enrollment) return { ok: false, why: 'peserta belum enroll di kursus ini — progres tidak bisa menggantung ke baris yang tidak ada' }
+  if (!enrollment) return { ok: false, why: 'learner not enrolled in this course — progress cannot hang on a row that does not exist' }
 
   const rows = await rest('lesson_progress', {
     query: `?enrollment_id=eq.${enrollment.id}&lesson_id=eq.${encodeURIComponent(lessonId)}&select=status`,
@@ -288,7 +288,7 @@ export async function setLessonProgress ({ learner, courseId, lessonId, to, posi
   const current = rows?.[0]?.status ?? 'locked'
   if (current === to) return { ok: true, enrollmentId: enrollment.id, from: current, to, noop: true }
   if (!ALLOWED_MOVE[current].includes(to)) {
-    return { ok: false, why: `pindah status ${current} -> ${to} tidak diizinkan (mesin: ${PROGRESS_STATES.join(' -> ')})` }
+    return { ok: false, why: `status transition ${current} -> ${to} not allowed (state machine: ${PROGRESS_STATES.join(' -> ')})` }
   }
 
   const upserted = await rest('lesson_progress', {
@@ -365,14 +365,14 @@ async function enrollmentOf (enrollmentId) {
 export async function submitEssay ({ learner, courseId, lessonKey, text, words, mechanical, state, rubricHash, message, signature }) {
   const auth = await authorizeLearner({ learner, message, signature, scope: 'essay' })
   if (!auth.ok) return { ok: false, kind: 'auth', why: auth.why }
-  if (typeof lessonKey !== 'string' || !lessonKey.length) return { ok: false, why: 'lesson wajib diisi' }
-  if (typeof text !== 'string' || !text.trim()) return { ok: false, why: 'teks karangan kosong — tidak ada yang bisa dinilai' }
+  if (typeof lessonKey !== 'string' || !lessonKey.length) return { ok: false, why: 'lesson required' }
+  if (typeof text !== 'string' || !text.trim()) return { ok: false, why: 'empty essay text — nothing to grade' }
   if (!['awaiting_judge', 'insufficient'].includes(state)) {
-    return { ok: false, why: `state penyerahan tidak dikenal: ${state}` }
+    return { ok: false, why: `unknown submission state: ${state}` }
   }
 
   const enrollment = await findEnrollment(learner, courseId)
-  if (!enrollment) return { ok: false, why: 'peserta belum enroll di kursus ini — tidak ada baris untuk menempelkan penyerahan' }
+  if (!enrollment) return { ok: false, why: 'learner not enrolled in this course — no row to attach the submission to' }
 
   const attemptNo = await nextAttemptNo(learner, courseId, lessonKey, 'esai')
   // Hash dihitung dari baris sebagaimana adanya: TANPA skor. Sesudah dinilai, `judgeEssay`
@@ -389,7 +389,7 @@ export async function submitEssay ({ learner, courseId, lessonKey, text, words, 
     }],
   })
   const attempt = rows?.[0] ?? null
-  if (!attempt) return { ok: false, why: 'gagal menulis baris attempts untuk esai' }
+  if (!attempt) return { ok: false, why: 'failed to write the attempts row for the essay' }
 
   // Tanda mekanis disimpan sebagai komponen supaya bisa dihitung ulang: 100 bila terpenuhi, 0 bila
   // tidak, `weight` 0 karena dia BUKAN bagian bobot rubrik — dia syarat sebelum boleh menilai.
@@ -431,31 +431,31 @@ export async function queuePendingEssays (courseId, limit = 20) {
  * @param essay   `Lesson.essay` dari manifest penerbit; sumber `max` per kriteria, BUKAN dari klien
  */
 export async function judgeEssay ({ attemptId, issuer, message, signature, scores, essay, passMark, judgeModel, judgeTemp }) {
-  if (!essay?.rubric?.length) return { ok: false, why: 'rubrik esai penerbit tidak terbaca — tidak ada yang bisa dinilai' }
-  if (typeof message !== 'string' || typeof signature !== 'string') return { ok: false, why: 'butuh message + signature penerbit' }
+  if (!essay?.rubric?.length) return { ok: false, why: 'essay rubric from the publisher is unreadable — nothing to grade' }
+  if (typeof message !== 'string' || typeof signature !== 'string') return { ok: false, why: 'requires message + signature from the publisher' }
   const nonce = /nonce=([0-9a-f]{12,})/.exec(message)?.[1]
-  if (!nonce) return { ok: false, why: 'pesan penilaian tidak memuat nonce' }
+  if (!nonce) return { ok: false, why: 'judgement message carries no nonce' }
   let verified = false
   try {
     verified = await verifyMessage({ address: getAddress(issuer), message, signature })
   } catch (e) {
-    return { ok: false, kind: 'auth', why: `verifikasi tanda tangan gagal: ${String(e.message ?? e).slice(0, 80)}` }
+    return { ok: false, kind: 'auth', why: `signature verification failed: ${String(e.message ?? e).slice(0, 80)}` }
   }
-  if (!verified) return { ok: false, kind: 'auth', why: 'tanda tangan bukan dari alamat penandatangan yang diklaim' }
+  if (!verified) return { ok: false, kind: 'auth', why: 'signature does not belong to the claimed signer address' }
   const consumed = await consumeNonce({ nonce, learner: issuer, scope: 'essay-judge' })
   if (!consumed.ok) return { ok: false, kind: 'auth', why: consumed.why }
 
   const rows = await rest('attempts', { query: `?id=eq.${Number(attemptId)}&select=*` })
   const attempt = rows?.[0]
-  if (!attempt) return { ok: false, why: `usaha ${attemptId} tidak ada` }
-  if (attempt.kind !== 'esai') return { ok: false, why: `usaha ${attemptId} bukan esai (${attempt.kind}) — tidak ada teks yang bisa dinilai` }
+  if (!attempt) return { ok: false, why: `attempt ${attemptId} does not exist` }
+  if (attempt.kind !== 'esai') return { ok: false, why: `attempt ${attemptId} is not an essay (${attempt.kind}) — no text to grade` }
   const holder = await enrollmentOf(attempt.enrollment_id)
-  if (!holder) return { ok: false, why: `baris enrollment ${attempt.enrollment_id} tidak ada — usaha ini yatim` }
+  if (!holder) return { ok: false, why: `enrollment row ${attempt.enrollment_id} missing — this attempt is orphaned` }
 
   const known = new Map(essay.rubric.map((r) => [String(r.label), r]))
   const given = new Map((scores ?? []).map((s) => [String(s.label), s]))
   const asing = [...given.keys()].filter((k) => !known.has(k))
-  if (asing.length) return { ok: false, why: `kriteria asing ditolak: ${asing.join(', ')} bukan bagian dari rubrik penerbit` }
+  if (asing.length) return { ok: false, why: `foreign criteria rejected: ${asing.join(', ')} are not part of the publisher's rubric` }
 
   /**
    * KOLOM `score` DI `attempt_components` PUNYA SATU ARTI: persen 0..100.
@@ -475,11 +475,11 @@ export async function judgeEssay ({ attemptId, issuer, message, signature, score
   for (const r of essay.rubric) {
     const v0 = given.get(String(r.label))
     if (!v0 || !Number.isFinite(Number(v0.score))) {
-      return { ok: false, why: `kriteria "${r.label}" tidak dinilai — sebagian rubrik tidak boleh menghasilkan angka akhir` }
+      return { ok: false, why: `criterion "${r.label}" not graded — a partial rubric must not produce a final score` }
     }
     const max = Number(r.max)
     if (!Number.isFinite(max) || max <= 0) {
-      return { ok: false, why: `kriteria "${r.label}" tidak punya max yang sah di manifest penerbit — tidak bisa dinormalisasi ke persen` }
+      return { ok: false, why: `criterion "${r.label}" has no valid max in the publisher manifest — cannot normalise to a percentage` }
     }
     const v = Math.max(0, Math.min(max, Math.round(Number(v0.score))))
     components.push({

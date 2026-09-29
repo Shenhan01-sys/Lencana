@@ -68,8 +68,8 @@ const SYSTEM = [
  */
 export async function judgeWithModel (text, essay, opts = {}) {
   const key = process.env.GROQ_API_KEY
-  if (!key) throw new Error('GROQ_API_KEY tidak ada di lingkungan — penilai tidak bisa dijalankan')
-  if (!essay?.rubric?.length) throw new Error('rubrik kosong: tidak ada yang bisa dinilai')
+  if (!key) throw new Error('GROQ_API_KEY missing from the environment - the judge cannot run')
+  if (!essay?.rubric?.length) throw new Error('empty rubric: nothing to grade')
 
   const model = opts.model ?? DEFAULT_JUDGE_MODEL
   const body = {
@@ -118,7 +118,7 @@ export async function judgeWithModel (text, essay, opts = {}) {
     const retryAfter = Number(res.headers.get('retry-after'))
     const pause = rateLimited ? (Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 15_000) : 0
     if (!rateLimited || waited + pause > maxWaitMs) {
-      throw new Error(`penilaian gagal: HTTP ${res.status} ${detail}${rateLimited ? ` (sudah menunggu ${waited / 1000}s)` : ''}`)
+      throw new Error(`grading failed: HTTP ${res.status} ${detail}${rateLimited ? ` (waited ${waited / 1000}s)` : ''}`)
     }
     console.log(`  … kuota model habis (HTTP 429), menunggu ${Math.round(pause / 1000)}s — percobaan berikutnya`)
     await new Promise((r) => setTimeout(r, pause))

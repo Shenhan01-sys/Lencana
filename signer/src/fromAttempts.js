@@ -112,7 +112,7 @@ export function evidenceFromAttempts (manifest, attempts) {
 
   if (!rows.length) {
     return {
-      ok: false, why: 'tidak ada satu pun usaha tersimpan untuk peserta+kursus ini — tidak ada angka yang bisa diturunkan',
+      ok: false, why: 'no stored attempts for this learner+course — there is no number to derive',
       evidence: { quizScores: [], praktikCompleted: false, essayScore: null }, provenance, unmapped: [], judges, notes, used: [],
     }
   }
@@ -179,8 +179,8 @@ export function evidenceFromAttempts (manifest, attempts) {
 
   if (!quizScores.length && essayVals.length === 0 && !praktikCompleted) {
     return {
-      ok: false, why: `tidak ada usaha pada tiga slot rubrik (kuis/esai/praktik); yang tersimpan: `
-        + Object.keys(unmappedKinds).join(', ') + ' — tidak ada angka yang diturunkan dari itu',
+      ok: false, why: `no attempts in the three rubric slots (quiz/essay/practice); stored: `
+        + Object.keys(unmappedKinds).join(', ') + ' — no number can be derived from that',
       evidence: { quizScores: [], praktikCompleted: false, essayScore: null }, provenance, unmapped, judges, notes, used: [],
     }
   }

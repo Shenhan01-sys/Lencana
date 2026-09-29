@@ -121,7 +121,7 @@ export async function signDelegatedAttestation ({ agentPrivateKey, domain, schem
   // tanpa menyebut salah satunya. Lebih murah berhenti di sini.
   const recovered = await recoverAddress({ hash: digest, signature: `${signature.r}${signature.s.slice(2)}${Number(signature.v - 27).toString(16).padStart(2, '0')}` })
   if (recovered.toLowerCase() !== account.address.toLowerCase()) {
-    throw new Error(`tanda tangan tidak recover ke alamat agen: ${recovered} != ${account.address}`)
+    throw new Error(`signature does not recover to the agent address: ${recovered} != ${account.address}`)
   }
 
   return {
@@ -158,7 +158,7 @@ function normalizeSignature (sig) {
 
 /** Satu `AttestationRequestData`. Nama field, bukan posisi: viem menyusun tuple per komponen. */
 function toDataStruct (e) {
-  if (!e.signature) throw new Error('entri tanpa tanda tangan: tanda tangani dulu dengan signDelegatedAttestation')
+  if (!e.signature) throw new Error('entry without a signature: sign it first with signDelegatedAttestation')
   return {
     recipient: e.recipient,
     expirationTime: BigInt(e.expirationTime),
@@ -227,7 +227,7 @@ export async function relayDelegated ({
       args: [[toMultiRequest({ schema, attester, deadline, entries })]],
     })
   } else {
-    if (entries.length !== 1) throw new Error(`jalur tunggal butuh tepat 1 entri, dapat ${entries.length}`)
+    if (entries.length !== 1) throw new Error(`single-credential path requires exactly 1 entry, got ${entries.length}`)
     txHash = await wallet.writeContract({
       address: basAddress, abi: basAbi, functionName: 'attestByDelegation',
       args: [toSingleRequest({ schema, attester, deadline, entry: entries[0] })],
@@ -235,6 +235,6 @@ export async function relayDelegated ({
   }
 
   const receipt = await client.waitForTransactionReceipt({ hash: txHash })
-  if (receipt.status !== 'success') throw new Error(`delegasi revert: ${txHash}`)
+  if (receipt.status !== 'success') throw new Error(`delegation reverted: ${txHash}`)
   return { txHash, gasUsed: receipt.gasUsed, batch, from: account.address, blockNumber: receipt.blockNumber }
 }

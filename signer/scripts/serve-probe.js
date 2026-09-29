@@ -49,7 +49,22 @@ async function getJson (path) {
 // Identitas dibaca dari server, bukan ditebak dari konstanta: dulu probe ini mengeras ke
 // `agent-demo`, jadi begitu `.env` berisi slug lain ia merah dengan 404 yang lebih mirip
 // "dokumennya hilang" daripada "probe-nya yang salah".
-const health = await getJson('/healthz')
+//
+// Probe ini TIDAK menyalakan server — ia menguji yang sedang berjalan. 29 Sep malam ia mati dengan
+// `TypeError: fetch failed / ECONNREFUSED 127.0.0.1:8787` dan tidak bilang apa-apa selain tumpukan
+// panggilan; yang dibutuhkankan satu baris: servernya belum nyala. Kegagalan harus menyebut perintah
+// penyelamatnya, bukan hanya sebabnya.
+let health
+try {
+  health = await getJson('/healthz')
+} catch (e) {
+  console.error(`  GAGAL server signer tidak menjawab di ${BASE}`)
+  console.error(`        sebab: ${String(e?.message ?? e).slice(0, 90)}`)
+  console.error('        probe:serve menguji server yang SEDANG BERJALAN — nyalakan dulu:  npm run serve')
+  console.error('        (lalu ulangi:  npm run probe:serve)  Kalau portnya dipegang proses lama, lihat PID-nya:')
+  console.error('          windows: netstat -ano | findstr :8787   lalu taskkill /PID <pid> /T /F  — JANGAN killall node')
+  process.exit(1)
+}
 
 /**
  * GUARD: server yang diuji harus lebih muda daripada kode di disk.

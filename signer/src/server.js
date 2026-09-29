@@ -113,7 +113,7 @@ const CODE_STAMP = (() => {
 async function buildList (purpose) {
   const hashes = await servedHashes()
   if (!RESOLVER || !RPC_URL || hashes.length === 0) {
-    throw new Error('RESOLVER_ADDRESS / RPC_URL belum diisi (dan store belum punya kredensial terbit maupun adopsi)')
+    throw new Error('RESOLVER_ADDRESS / RPC_URL not set (and the store holds neither issued nor adopted credentials)')
   }
   return renderList({
     purpose, baseUrl: BASE_URL, rpcUrl: RPC_URL, resolverAddress: RESOLVER, hashes,
@@ -196,7 +196,7 @@ function notPaid (res, why) {
  */
 async function handleVerify (req, res) {
   if (!PAY_TOKEN || !PAY_SPLIT || !PAY_PAYEE) {
-    return send(res, 500, { error: 'DEMO_TOKEN_ADDRESS / SPLIT_ADDRESS / ISSUER_ADDRESS belum diisi — jalur berbayar tidak bisa melayani tanpa itu' })
+    return send(res, 500, { error: 'DEMO_TOKEN_ADDRESS / SPLIT_ADDRESS / ISSUER_ADDRESS not set — the paid path cannot be served without them' })
   }
 
   const header = req.headers['x-payment']
@@ -287,13 +287,13 @@ function pickHashes (body) {
   for (const item of raw) {
     const h = String(item ?? '').trim()
     if (!/^0x[0-9a-fA-F]{64}$/.test(h)) {
-      return { error: `setiap item harus hash 32 byte (0x…64 heks); dapat "${String(item).slice(0, 20)}"` }
+      return { error: `each item must be a 32-byte hash (0x…64 hex); got "${String(item).slice(0, 20)}"` }
     }
     seen.add(h.toLowerCase())
   }
   const list = [...seen]
-  if (!list.length) return { error: 'butuh body JSON {credentialHash: "0x…"} atau {credentialHashes: ["0x…"]}' }
-  if (list.length > BATCH_MAX) return { error: `batch maksimum ${BATCH_MAX} kredensial per pembayaran` }
+  if (!list.length) return { error: 'requires a JSON body {credentialHash: "0x…"} or {credentialHashes: ["0x…"]}' }
+  if (list.length > BATCH_MAX) return { error: `batch maximum ${BATCH_MAX} credentials per payment` }
   return { list }
 }
 
@@ -326,7 +326,7 @@ const server = createServer(async (req, res) => {
       const agents = await listAgents()
       const agent = agents.find((a) => a.agentSlug === slug)
       if (!agent) {
-        return send(res, 404, { error: 'agen tidak dikenal', slug, known: agents.map((a) => a.agentSlug) })
+        return send(res, 404, { error: 'unknown agent', slug, known: agents.map((a) => a.agentSlug) })
       }
       // Identitas disajikan dari `agentIdentity`, bukan dari controller di berkas kunci: kredensial
       // yang sudah dipindah ke host tepi mencetak `issuer.id` di host itu, dan kalau server ini
@@ -342,7 +342,7 @@ const server = createServer(async (req, res) => {
       const slug = decodeURIComponent(path.slice('/criteria/'.length))
       const manifest = manifestOf(slug)
       if (!manifest) {
-        return send(res, 404, { error: 'tidak ada manifest penerbit dengan id itu', slug, known: Object.keys(MANIFESTS) })
+        return send(res, 404, { error: 'no publisher manifest with that id', slug, known: Object.keys(MANIFESTS) })
       }
       return send(res, 200, criteriaDocument({
         baseUrl: BASE_URL,
@@ -364,7 +364,7 @@ const server = createServer(async (req, res) => {
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade'
       || path === '/essay' || path === '/essay/judgement') {
       if (!dbConfigured()) {
-        return send(res, 503, jsonBody({ error: 'lapisan belajar belum dipasang', missing: dbMissingReason() }))
+        return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
       // GET /progress = ringkasan milik satu peserta di satu kursus. Sengaja hanya membaca baris
       // yang sudah dia tulis sendiri, dan hanya menjawab lewat backend kita: publishable key tidak
@@ -372,15 +372,15 @@ const server = createServer(async (req, res) => {
       if (path === '/progress' && req.method === 'GET') {
         const learner = new URL(req.url, BASE_URL).searchParams.get('learner')
         const course = new URL(req.url, BASE_URL).searchParams.get('course')
-        if (!learner || !course) return send(res, 400, jsonBody({ error: 'butuh ?learner=0x…&course=<courseId>' }))
+        if (!learner || !course) return send(res, 400, jsonBody({ error: 'requires ?learner=0x…&course=<courseId>' }))
         const sum = await dbProgressSummary(learner, course)
-        return send(res, sum ? 200 : 404, jsonBody(sum ?? { error: 'belum ada enrollment untuk peserta/kursus itu' }))
+        return send(res, sum ? 200 : 404, jsonBody(sum ?? { error: 'no enrollment yet for this learner/course' }))
       }
       if (req.method !== 'POST') {
-        return send(res, 405, jsonBody({ error: 'butuh POST', path }))
+        return send(res, 405, jsonBody({ error: 'POST required', path }))
       }
       const body = await readJsonBody(req)
-      if (!body || typeof body !== 'object') return send(res, 400, jsonBody({ error: 'body harus JSON objek' }))
+      if (!body || typeof body !== 'object') return send(res, 400, jsonBody({ error: 'body must be a JSON object' }))
       if (path === '/progress') {
         const out = await dbSetProgress({
           learner: body.learner, courseId: body.course, lessonId: body.lesson, to: body.status,
@@ -398,7 +398,7 @@ const server = createServer(async (req, res) => {
         // boleh mengirim lessons_total, dia bisa membuat dirinya "selesai" dengan menulis 1
         const courseManifest = manifestOf(body.course)
         const lessonsTotal = courseManifest?.course?.modules?.reduce((n, m) => n + (m.lessons?.length ?? 0), 0) ?? 0
-        if (!courseManifest) return send(res, 400, jsonBody({ error: `kursus ${body.course} tidak ada di katalog`, known: Object.keys(MANIFESTS) }))
+        if (!courseManifest) return send(res, 400, jsonBody({ error: `course ${body.course} is not in the catalogue`, known: Object.keys(MANIFESTS) }))
         const out = await dbEnroll({
           learner: body.learner, courseId: body.course, lessonsTotal,
           message: body.message, signature: body.signature,
@@ -412,9 +412,9 @@ const server = createServer(async (req, res) => {
         // dibaca sama sekali — dan kalau ada, kita tolak, supaya tidak ada yang mengira angka
         // kiriman browser pernah diterima lewat jalur ini (B72).
         if (body.score !== undefined) {
-          return send(res, 400, jsonBody({ error: '/grade tidak menerima score: angkanya dihitung server dari picks' }))
+          return send(res, 400, jsonBody({ error: '/grade does not accept score: the server computes it from picks' }))
         }
-        if (!body.lesson) return send(res, 400, jsonBody({ error: 'butuh lesson (slug kuis)' }))
+        if (!body.lesson) return send(res, 400, jsonBody({ error: 'requires lesson (quiz slug)' }))
         const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'grade' })
         if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
         const graded = gradeQuiz({ courseId: body.course, lessonSlug: body.lesson, picks: body.picks })
@@ -452,14 +452,14 @@ const server = createServer(async (req, res) => {
          */
         for (const banned of ['score', 'rubric', 'max', 'finalScore', 'verdict']) {
           if (body[banned] !== undefined) {
-            return send(res, 400, jsonBody({ error: `/essay tidak menerima ${banned}: teks saja, angkanya milik penerbit` }))
+            return send(res, 400, jsonBody({ error: `/essay does not accept ${banned}: text only, the numbers belong to the publisher` }))
           }
         }
-        if (!body.lesson) return send(res, 400, jsonBody({ error: 'butuh lesson (slug esai)' }))
+        if (!body.lesson) return send(res, 400, jsonBody({ error: 'requires lesson (essay slug)' }))
         const found = essayLesson(body.course, body.lesson)
         if (found.error) return send(res, 400, jsonBody({ error: found.error }))
         const graded = await gradeAgainstRubric({ text: body.text, essay: found.lesson.essay })
-        if (graded.verdict === 'NOT_AN_ESSAY_LESSON') return send(res, 400, jsonBody({ error: `lesson ${body.lesson} tidak punya rubrik` }))
+        if (graded.verdict === 'NOT_AN_ESSAY_LESSON') return send(res, 400, jsonBody({ error: `lesson ${body.lesson} has no rubric` }))
         const state = graded.verdict === 'INSUFFICIENT_EVIDENCE' ? 'insufficient' : 'awaiting_judge'
         const out = await dbSubmitEssay({
           learner: body.learner, courseId: body.course, lessonKey: body.lesson, text: body.text,
@@ -493,14 +493,14 @@ const server = createServer(async (req, res) => {
          * memegang klien chain untuk menolak angka yang salah.
          */
         if (!PAY_PAYEE) {
-          return send(res, 500, jsonBody({ error: 'ISSUER_ADDRESS belum diisi — tidak ada alamat penerbit yang bisa dituntut' }))
+          return send(res, 500, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher address to require' }))
         }
         // Perbandingan sama seperti penjaga pembayaran di `checkPayment`: huruf kecil, tanpa checksum.
         if (String(body.issuer ?? '').toLowerCase() !== PAY_PAYEE.toLowerCase()) {
-          return send(res, 401, jsonBody({ error: `penilaian harus atas nama penerbit yang dikonfigurasi (${PAY_PAYEE})` }))
+          return send(res, 401, jsonBody({ error: `judgements must be signed by the configured publisher (${PAY_PAYEE})` }))
         }
-        if (!Number.isInteger(Number(body.attemptId))) return send(res, 400, jsonBody({ error: 'butuh attemptId' }))
-        if (!body.course || !body.lesson) return send(res, 400, jsonBody({ error: 'butuh course + lesson (rubrik dibaca dari manifest penerbit)' }))
+        if (!Number.isInteger(Number(body.attemptId))) return send(res, 400, jsonBody({ error: 'requires attemptId' }))
+        if (!body.course || !body.lesson) return send(res, 400, jsonBody({ error: 'requires course + lesson (the rubric is read from the publisher manifest)' }))
         const found = essayLesson(body.course, body.lesson)
         if (found.error) return send(res, 400, jsonBody({ error: found.error }))
         const out = await dbJudgeEssay({
@@ -543,10 +543,10 @@ const server = createServer(async (req, res) => {
       const [slug, hash] = decodeURIComponent(path.slice('/results/'.length)).split('/')
       const found = await getCredentialByHash(hash)
       if (!found || !found.document) {
-        return send(res, 404, { error: 'belum ada hasil untuk hash itu lewat backend ini', path })
+        return send(res, 404, { error: 'no result for that hash through this backend', path })
       }
       if (slug && found.course !== slug) {
-        return send(res, 404, { error: 'courseId tidak cocok dengan credentialHash-nya', expected: found.course, path })
+        return send(res, 404, { error: 'courseId does not match its credentialHash', expected: found.course, path })
       }
       return send(res, 200, resultDocument({ baseUrl: BASE_URL, record: found }))
     }
@@ -557,14 +557,14 @@ const server = createServer(async (req, res) => {
     // sebagai pathname — jadi keduanya tidak pernah string-cocok.
     if (path.startsWith('/credentials/0x')) {
       const found = await getCredentialByHash(path.slice('/credentials/'.length))
-      if (!found) return send(res, 404, { error: 'belum diterbitkan lewat backend ini', path })
+      if (!found) return send(res, 404, { error: 'not issued through this backend', path })
       // Yang dijanjikan `id` adalah sebuah Verifiable Credential, jadi itulah yang keluar — bukan
       // rekaman internal kita. Bentuknya dijaga `probe:serve`, karena verifier standar berhenti di
       // sini kalau yang tersaji bukan dokumen: dulu rute ini memulangkan rekaman store dan tidak
       // ada satu pun pemeriksaan yang melihatnya.
       if (!found.document) {
         return send(res, 409, {
-          error: 'kredensial ini dikenal dari chain tetapi tidak punya dokumen dari kita',
+          error: 'this credential is known from the chain but has no document from us',
           credentialHash: found.credentialHash, uid: found.uid,
         })
       }

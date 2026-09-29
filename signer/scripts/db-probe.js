@@ -119,7 +119,7 @@ if (await waitUp()) {
   const m3 = enrollMessage()
   const forged = await attacker.signMessage({ message: m3.message })
   const wrong = await post('/enroll', { learner: learner.address, course: COURSE, message: m3.message, signature: forged })
-  check('tanda tangan bukan dari alamat peserta -> DITOLAK', wrong.status === 401 && /bukan dari alamat/.test(wrong.body?.error ?? ''),
+  check('tanda tangan bukan dari alamat peserta -> DITOLAK', wrong.status === 401 && /does not belong/.test(wrong.body?.error ?? ''),
     `${wrong.status} ${JSON.stringify(wrong.body)}`)
 
   // 5. tanpa tanda tangan sama sekali
@@ -183,7 +183,7 @@ if (await waitUp()) {
   const L1 = 'web3-dasar-2026/m1/l1'
   const jump = await prog(L1, 'completed')
   check('lompat locked -> completed DITOLAK dengan 422 (bukan 401: orangnya benar, urutannya salah)',
-    jump.status === 422 && /tidak diizinkan/.test(jump.body?.error ?? ''), `${jump.status} ${JSON.stringify(jump.body)}`)
+    jump.status === 422 && /not allowed/.test(jump.body?.error ?? ''), `${jump.status} ${JSON.stringify(jump.body)}`)
   const step1 = await prog(L1, 'unlocked')
   check('locked -> unlocked diterima', step1.status === 200 && step1.body?.to === 'unlocked', `${step1.status} ${JSON.stringify(step1.body)}`)
   const step2 = await prog(L1, 'completed')
@@ -216,10 +216,10 @@ if (await waitUp()) {
     check('POST /grade tanpa tanda tangan -> DITOLAK', noSig.status === 401, `${noSig.status} ${JSON.stringify(noSig.body)}`)
     const withScore = await gradePost({ score: 100 })
     check('/grade MENOLAK skor kiriman klien (peserta tidak menilai dirinya sendiri)',
-      withScore.status === 400 && /dihitung server/.test(withScore.body?.error ?? ''), `${withScore.status} ${JSON.stringify(withScore.body)}`)
+      withScore.status === 400 && /server computes/.test(withScore.body?.error ?? ''), `${withScore.status} ${JSON.stringify(withScore.body)}`)
     const partial = await gradePost({ picks: picks.slice(1) })
     check('picks sebagian -> 422 dan sebabnya menyebut soal yang belum dijawab',
-      partial.status === 422 && /belum dijawab semuanya/.test(partial.body?.error ?? ''), `${partial.status} ${JSON.stringify(partial.body)}`)
+      partial.status === 422 && /unanswered items/.test(partial.body?.error ?? ''), `${partial.status} ${JSON.stringify(partial.body)}`)
     const bogus = await gradePost({ lesson: 'bukan-lesson', picks })
     check('lesson yang bukan kuis -> 422', bogus.status === 400 || bogus.status === 422, `${bogus.status} ${JSON.stringify(bogus.body)}`)
     const g1 = await gradePost({})
@@ -271,10 +271,10 @@ if (await waitUp()) {
     check('POST /essay tanpa tanda tangan -> DITOLAK', noSig.status === 401, `${noSig.status} ${JSON.stringify(noSig.body)}`)
     const withScore = await essayPost({ score: 100 })
     check('/essay MENOLAK angka kiriman klien (yang masuk hanya teks)',
-      withScore.status === 400 && /tidak menerima score/.test(withScore.body?.error ?? ''), `${withScore.status} ${JSON.stringify(withScore.body)}`)
+      withScore.status === 400 && /does not accept score/.test(withScore.body?.error ?? ''), `${withScore.status} ${JSON.stringify(withScore.body)}`)
     const withRubric = await essayPost({ rubric: [{ label: 'kemudahan', max: 100 }] })
     check('/essay MENOLAK rubrik kiriman klien (kriteria milik penerbit)',
-      withRubric.status === 400 && /tidak menerima rubric/.test(withRubric.body?.error ?? ''), `${withRubric.status} ${JSON.stringify(withRubric.body)}`)
+      withRubric.status === 400 && /does not accept rubric/.test(withRubric.body?.error ?? ''), `${withRubric.status} ${JSON.stringify(withRubric.body)}`)
     const notEssay = await post('/essay', { learner: learner.address, course: COURSE, lesson: 'bukan-esai', text: essayText })
     check('lesson tanpa rubrik esai -> 400, bukan 201 kosong', notEssay.status === 400, `${notEssay.status} ${JSON.stringify(notEssay.body)}`)
 
@@ -334,7 +334,7 @@ if (await waitUp()) {
         message: asingMsg, signature: await issuer.signMessage({ message: asingMsg }),
       })
       check('kriteria yang bukan milik rubrik penerbit -> 422 dan disebut namanya',
-        asing.status === 422 && /kriteria asing/.test(asing.body?.error ?? ''), `${asing.status} ${JSON.stringify(asing.body)}`)
+        asing.status === 422 && /foreign criteria/.test(asing.body?.error ?? ''), `${asing.status} ${JSON.stringify(asing.body)}`)
       const partialMsg = `lencana-essay-judge ${preHash} nonce=${nonce()}`
       const partial = await post('/essay/judgement', {
         issuer: issuer.address, course: COURSE, lesson: es.lesson, attemptId,

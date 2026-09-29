@@ -140,10 +140,10 @@ export async function listAgents () {
  */
 export function agentAt (agent, baseUrl) {
   const base = String(baseUrl ?? '').replace(/\/+$/, '')
-  if (!base) throw new Error('agentAt: baseUrl kosong')
-  if (!agent?.agentSlug) throw new Error('agentAt: agen tanpa agentSlug')
+  if (!base) throw new Error('agentAt: empty baseUrl')
+  if (!agent?.agentSlug) throw new Error('agentAt: agent without agentSlug')
   const pub = String(agent.publicKeyMultibase ?? '').split('#').pop()
-  if (!pub) throw new Error(`agentAt: agen ${agent.agentSlug} tidak punya publicKeyMultibase`)
+  if (!pub) throw new Error(`agentAt: agent ${agent.agentSlug} has no publicKeyMultibase`)
   const controller = `${base}/issuers/${agent.agentSlug}`
   return { ...agent, controller, publicKeyMultibase: pub, id: `${controller}#${pub}` }
 }

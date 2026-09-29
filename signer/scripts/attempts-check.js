@@ -73,7 +73,7 @@ const attempt = (o) => ({
 head('evidenceFromAttempts — tiga slot rubrik, satu jalan masuk')
 
 const empty = evidenceFromAttempts(fakeManifest(), [])
-check('tidak ada usaha -> ditolak, bukan angka 0', empty.ok === false && /tidak ada satu pun usaha/.test(empty.why), empty.why)
+check('tidak ada usaha -> ditolak, bukan angka 0', empty.ok === false && /no stored attempts/.test(empty.why), empty.why)
 
 const noComp = evidenceFromAttempts(fakeManifest(), [attempt({ kind: 'kuis', lesson_key: 'kuis-satu', attempt_components: [] })])
 check('kuis tanpa attempt_components DITOLAK (kolom score tidak boleh jadi masukan rubrik)',
@@ -424,7 +424,7 @@ async function live () {
     ...await sign(`lencana-progress ${lessons[0].slug} -> completed nonce=${nonce()}`),
   })
   check('POST /progress lompat locked -> completed ditolak 422 lewat HTTP',
-    jumpEarly.status === 422 && /tidak diizinkan/.test(jumpEarly.body?.error ?? ''), `${jumpEarly.status} ${JSON.stringify(jumpEarly.body)}`)
+    jumpEarly.status === 422 && /not allowed/.test(jumpEarly.body?.error ?? ''), `${jumpEarly.status} ${JSON.stringify(jumpEarly.body)}`)
   let walkFails = 0
   for (const l of lessons) {
     for (const to of ['unlocked', 'started', 'completed']) {

@@ -52,9 +52,9 @@ export function buildOpenBadgeCredential (input) {
 
   if (!course?.slug || !course?.name) throw new Error('course.slug dan course.name wajib')
   if (!learner?.address) throw new Error('learner.address wajib (menentukan credentialHash)')
-  if (!uid) throw new Error('uid attestation wajib — tanpa itu entri status tidak bisa ditunjuk')
+  if (!uid) throw new Error('attestation uid required — without it a status entry cannot be pointed to')
   if (!issuer?.controller) throw new Error('issuer.controller wajib')
-  if (expiresAtUnix <= issuedAtUnix) throw new Error('kadaluarsa dokumen harus sesudah terbit')
+  if (expiresAtUnix <= issuedAtUnix) throw new Error('document expiry must be after issuance')
 
   const credentialHash = credentialHashOf(learner.address, course.slug)
   const achievementId = `${baseUrl}/achievements/${course.slug}`

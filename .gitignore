@@ -7,6 +7,12 @@ cache/
 broadcast/
 verify/
 
+# 🔴 Export sesi (qwen-code `/export`) yang pernah jatuh ke dalam folder ini: 38 MB transkrip,
+# berisi path lokal + perintah + keluaran. Repo ini publik — tidak ada alasan satu `git add -A`
+# bisa menyeretnya ke `origin/main`. Berkasnya tetap di disk kalau-kalau dibutuhkan; yang dicegah
+# cuma masuk ke riwayat git.
+qwen-code-export-*.md
+
 # Dependensi yang dipasang ulang
 node_modules/
 lib/forge-std/

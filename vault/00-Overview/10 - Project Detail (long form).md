@@ -1003,7 +1003,7 @@ validator opens, and it is deliberately boring about everything else.
 | `GET /issuers/<slug>` | the issuer document — the `assertionMethod` key list | this is where a verifier gets the key; we never hand one over |
 | `GET /credentials/status/revocation` | signed `BitstringStatusListCredential` | rebuilt from chain state per request |
 | `GET /credentials/status/suspension` | same renderer, other purpose | `issuerDelisted && !revoked` |
-| `GET /credentials/0x…` | the stored signed document, or a 404 that says *"belum diterbitkan lewat backend ini"* | the route takes a **credentialHash**; `GET` by UIDs 404s and that is correct |
+| `GET /credentials/0x…` | the stored signed document, or a 404 that says *"belum diterbitkan lewat backend ini"* — **pesan itu sejak 29 Sep berbahasa Inggris: `"not issued through this backend"`** (B96/D28; kutipan lama ditinggalkan terlihat karena halaman ini adalah catatan kerja, bukan salinan UI) | the route takes a **credentialHash**; `GET` by UIDs 404s and that is correct |
 | `POST /verify` | `402` until paid, then reports | the only route that asks for money |
 | `GET /healthz` | `ok`, `baseUrl`, `resolver`, `rpc`, `watched`, and per purpose `flagged` / `bitstringHash` / `unallocated` / `slots`, plus `sha256OfEncodedList` and the whole `payment` block | the uid → bit-slot map is published **only** here, so a harness can read it instead of inferring it |
 | anything else | 404 **listing the real routes** | a bad URL should tell you where to go |

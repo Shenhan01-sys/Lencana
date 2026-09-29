@@ -88,7 +88,7 @@ export async function signDocument (document, { key, controllerDocument, documen
   // Guard terhadap salah-ejaan yang paling mungkin terjadi dan paling sepi: cryptosuite lain
   // tetap "berhasil" secara teknis tapi ditolak validator.
   if (proof?.type !== 'DataIntegrityProof' || proof?.cryptosuite !== CRYPTOSUITE_NAME) {
-    throw new Error(`suite menghasilkan proof.type=${proof?.type} cryptosuite=${proof?.cryptosuite}`)
+    throw new Error(`the suite produced proof.type=${proof?.type} cryptosuite=${proof?.cryptosuite}`)
   }
   return signed
 }

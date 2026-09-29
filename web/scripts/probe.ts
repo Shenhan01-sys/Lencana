@@ -286,7 +286,7 @@ async function main() {
     sent.push({ url: u, method, body })
     const json = (obj: unknown, status = 200) => ({ status, ok: status < 400, json: async () => obj })
     if (u.startsWith('/progress?')) {
-      if (progressMode === 'none') return json({ error: 'belum ada enrollment untuk peserta/kursus itu' }, 404)
+      if (progressMode === 'none') return json({ error: 'no enrollment yet for this learner/course' }, 404)
       return json({
         enrollmentId: 7, lessonsTotal: 19, lessonsCompleted: progressMode === 'ok' ? 1 : 0,
         allLessonsDone: false, completed: ['m1/l1'], lessons: [{ lessonId: 'm1/l1', status: 'completed' }],
