@@ -18,7 +18,7 @@ const KEY = 'lencana-progress-v1'
 
 export type LessonRecord = {
   done: boolean
-  kind: LessonKind
+  type: LessonKind
   /** Nilai kuis 0..100. Hanya ada untuk lesson ber-kuis. */
   score?: number
   attempts: number
@@ -62,13 +62,13 @@ export function lessonRecord(courseId: string, slug: string): LessonRecord | und
 export function recordLesson(
   courseId: string,
   slug: string,
-  kind: LessonKind,
+  type: LessonKind,
   patch: Partial<LessonRecord>,
 ): LessonRecord {
   const all = read()
   const cp = all[courseId] ?? {}
-  const prev: LessonRecord = cp[slug] ?? { done: false, kind, attempts: 0, at: 0 }
-  const next: LessonRecord = { ...prev, ...patch, kind, at: Date.now() }
+  const prev: LessonRecord = cp[slug] ?? { done: false, type, attempts: 0, at: 0 }
+  const next: LessonRecord = { ...prev, ...patch, type, at: Date.now() }
   cp[slug] = next
   all[courseId] = cp
   write(all)
@@ -96,7 +96,7 @@ export type CourseSummary = {
 
 export function summarize(
   courseId: string,
-  lessons: { slug: string; kind: LessonKind }[],
+  lessons: { slug: string; type: LessonKind }[],
   weights: { kuis: number; esai: number; praktik: number },
 ): CourseSummary {
   const cp = courseProgress(courseId)
@@ -113,13 +113,13 @@ export function summarize(
       kindsDone[l.type] += 1
     }
     if (typeof r?.score === 'number') scores.push(r.score)
-    if (l.type === 'esai' && r?.draft?.trim()) essayDrafted = true
+    if (l.type === 'essay' && r?.draft?.trim()) essayDrafted = true
   }
 
   const quizAvg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
   if (quizAvg !== null) gradedWeights += weights.kuis
   if (essayDrafted) gradedWeights += weights.esai
-  if (kindsDone.lab > 0) gradedWeights += weights.lab
+  if (kindsDone.lab > 0) gradedWeights += weights.praktik
 
   const total = lessons.length || 1
   return {

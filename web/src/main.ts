@@ -2,7 +2,6 @@ import { verify, type Endpoint, type Report } from './verify'
 import { renderEmpty, renderReport } from './render'
 import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
 import { getSavedLanguage, saveLanguage, DICTIONARIES, type Lang } from './i18n'
-import { renderLmsRoute } from './lms'
 import {
   learnerAddress,
   connectWalletLearner,
@@ -826,7 +825,7 @@ function disconnectWallet() {
   sessionStorage.removeItem('lencana_wallet')
   sessionStorage.removeItem('lencana_enroll_target')
   renderWalletState()
-  renderLmsRoute()
+  
 }
 
 let confettiAnimId: number | null = null
@@ -1439,14 +1438,19 @@ function copyJsonLd() {
   })
 }
 
+import { mountNewApp } from './new-app'
+
 function handleRoute() {
   const rawHash = window.location.hash || '#/'
   const hash = rawHash.toLowerCase().split('?')[0]
 
-  const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me'
+  const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me' || hash.startsWith('#/class/')
   const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
+  
   let targetPageId = 'page-home'
-  if (hash === '#/courses' || hash === '#courses') {
+  if (hash === '#/' || hash === '' || hash.startsWith('#/class/')) {
+    targetPageId = 'page-new-app'
+  } else if (hash === '#/courses' || hash === '#courses') {
     targetPageId = 'page-courses'
   } else if (isPrivyOnboard) {
     targetPageId = 'page-home'
@@ -1460,14 +1464,16 @@ function handleRoute() {
   } else if (hash === '#/agent-hub' || hash === '#ai-agents' || hash === '#agent-hub') {
     targetPageId = 'page-agent-hub'
   } else if (isLms) {
-    // Lapisan materi (src/lms.ts) menggambar di #lms-mount milik halaman courses. Route ini
-    // sengaja dipakai awalan berbeda dari #/courses: yang satu tokonya, yang satu isinya.
     targetPageId = 'page-courses'
   } else {
     targetPageId = 'page-home'
   }
 
-  const isHome = targetPageId === 'page-home'
+  if (targetPageId === 'page-new-app') {
+    mountNewApp(hash)
+  }
+
+  const isHome = targetPageId === 'page-home' || targetPageId === 'page-new-app'
   document.body.classList.toggle('is-home-page', isHome)
   document.body.classList.toggle('is-submit-page', targetPageId === 'page-submit')
   closeNexumMobileMenu()
@@ -1481,12 +1487,11 @@ function handleRoute() {
     }
   })
 
-  // Gambar (atau bersihkan) lapisan materi di halaman courses. Fungsi ini tahu sendiri apakah
-  // route-nya miliknya, jadi memanggilnya pada setiap route tidak akan menimpa apa pun.
-  renderLmsRoute()
+  // Legacy LMS route is now handled by new router
 
   const routeNavMap: Record<string, string> = {
     'page-home': 'nav-home',
+    'page-new-app': 'nav-home',
     'page-courses': 'nav-courses',
     'page-submit': 'nav-submit',
     'page-verify': 'nav-verify',

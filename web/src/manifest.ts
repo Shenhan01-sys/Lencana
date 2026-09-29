@@ -92,7 +92,7 @@ export function canonicalPolicy(m: CourseManifest): string {
     weights: { kuis: c.weights.kuis, esai: c.weights.esai, praktik: c.weights.praktik },
     passMark: c.passMark,
     validDays: c.validDays,
-    prereqCourseId: c.prereqCourseId ?? null,
+    prereqCourseId: c.prerequisites[0] ?? null,
     quizzes,
     essays,
   })
@@ -116,7 +116,7 @@ export function manifestHashOf (m: CourseManifest): Hex {
     publishedAt: m.publishedAt,
     modules: m.course.modules.map((mod) => ({
       id: mod.id,
-      lessons: mod.lessons.map((l) => ({ slug: l.slug, title: l.title, kind: l.type, summary: l.summary, blocks: l.body })),
+      lessons: mod.lessons.map((l) => ({ slug: l.slug, title: l.title, kind: l.type, summary: l.body.slice(0, 100), blocks: l.body })),
     })),
   })
   return keccak256(toBytes(body))

@@ -1,0 +1,34 @@
+# Dipakai oleh forge script + probe. JANGAN commit (.gitignore sudah mengecualikan .env).
+# Dibangkitkan _research/make_lencana_env.ps1 pada 2026-09-19 19:11
+
+# Kunci yang menyiarkan deploy + memiliki CredentialResolver (lapis platform).
+DEPLOYER_PRIVATE_KEY=0xca145299eb660f7e0b96be5387ddcdd4df62bcf6bc54f7b866eea57a6f671fc3
+
+# Kunci penerbit. Dalam rencana produk: kunci AGEN MILIK PIHAK KETIGA (D30),
+# bukan kunci kami. Di sini ia burner testnet yang mewakili agen itu.
+ISSUER_PRIVATE_KEY=0xd27a0965840c665023eaba0d183070e60eb265e13541f1d7944d0d197df3c282
+ISSUER_ADDRESS=0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE
+
+# Target chain. Fork lokal dan testnet publik memakai chain id yang sama (97).
+CHAIN_ID=97
+RPC_URL=http://127.0.0.1:8545
+BAS_ADDRESS=0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD
+
+# BACKUP: kunci di atas adalah satu-satunya cara mengendalikan alamat ini. Import private
+# key-nya ke wallet apa pun untuk memulihkan. Kedua kunci adalah BURNER TESTNET (0 koin
+# sungguhan). Kalau alamat publik yang dipakai juri harus jadi milik tim, deploy dengan
+# burner ini lalu `transferOwnership` ke wallet browser tim -- tidak perlu menyerahkan
+# kunci ke skrip.
+
+# Ditulis sync_env_addresses.ps1 dari broadcast/DeployCredentials.s.sol/97
+RESOLVER_ADDRESS=0xe01a16e50fd9d8c0ff4230874f8d8c086e811627
+
+# Ditulis sync_env_addresses.ps1 dari broadcast/DeployCredentials.s.sol/97
+CERT_ADDRESS=0x021356a0e3b9ab440a571d4af62b215841a7c891
+
+DEPLOYER_ADDRESS=0xAEc63F6cEbBfacdC3516992b6ec396147c9c8361
+
+# agen penerbit #2, pihak ketiga lain. Khusus adegan delisting D30: platform menjatuhkan satu agen sementara agennya yang lain tetap sehat. -- alamat di ISSUER_B_ADDRESS
+ISSUER_B_PRIVATE_KEY=0xe831e14f6e6e09e44d36f4856e9a7208b83b5ef36c6d2cd9e4f04c34f6a1cf49
+
+ISSUER_B_ADDRESS=0xdC54005Ab34EB71a1a5FD613D94e66256D7A3855
