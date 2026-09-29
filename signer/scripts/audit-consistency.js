@@ -14,7 +14,7 @@
  * kalau belum ada ID-nya (idempoten — menjalankan dua kali tidak menghasilkan dua baris).
  */
 import { readFile, writeFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { execFile } from 'node:child_process'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -230,6 +230,53 @@ async function collect () {
     id: 'A7', kind: missingRows.length ? 'TEMUAN' : 'bersih',
     title: 'item vault akar yang belum jadi baris backlog app/',
     detail: missingRows.length ? missingRows.map((m) => `${m.id} ${m.title}`).join('\n      ') : 'semuanya sudah punya baris',
+  })
+
+  // 8) BAHASA — keputusan D27/D28: identifier dan pesan yang keluar dari proses = Inggris.
+  //
+  // Kenapa ini ada: sampai 29 Sep, `forge test` mencetak **87 dari 120** nama fungsi uji dalam
+  // bahasa Indonesia (perkiraan pertama kita "5", lalu "41" — dua-duanya salah, dan itu pelajaran:
+  // cakupan harus keluar dari alat + diff, bukan dari ingatan). Malam ini 87-nya dipindah ke Inggris
+  // dan tiap pasangan kunomori dari diff; `forge test` offline tetap 66/0. Yang BELUM: string pesan
+  // yang dikirim signer ke klien —
+  // 53 di antaranya masih Indonesia per baseline. Yang Indonesia dibiarkan hidup: komentar kode,
+  // log operator di `scripts/`, dan seluruh `vault/` (bahasa kerja kita; `Claims-Cheat-Sheet`
+  // bahkan memuat daftar frasa terlarang untuk melarangnya).
+  const ID_WORDS = /\b(tidak|belum|sudah|hanya|dengan|untuk|atas|milik|di luar|butuh|harus|peserta|kursus|penerbit|kredensial|arteofak|artefak|rantai|cabut|dicabut|setelah|karena|verifikasi|kedaluwarsa|prasyarat|prasarat|delegasi|pencabutan|saldo|kosong|nol|sisa|terbagi|ditolak|terdaftar|enumerasi|tanpa|jejak|adegan|ganti|berlaku|berhasil|memegang|orang|siapa|pun|bisa|jalan|lagi|kirimi|kirim|langsung|menyimpan|membagi|plafon|turun|kecil|potongan|pembulatan)\b/i
+  const ID_IDENT = /(Tidak|Belum|Sudah|Hanya|Ditolak|Dicabut|Setelah|Karena|Untuk|Dengan|Atas|Milik|Orang|Saldo|Kosong|Nol|Sama|Terdaftar|Enumerasi|Tanpa|Terbagi|Penerbit|Artefak|Kursus|Peserta|Rantai|Adegan|Verifikasi|Kedaluwarsa|Delegasi|Prasarat|Prasyarat|Pencabutan|Menyimpan|Membagi|Plafon|Potongan|Pembulatan|Ganti|Berlaku|Berhasil|Pemegang|Jalan|Lagi|Langsung|Kecil|Sisa|Sentiasa|Dipulihkan|Menandai|Tanpa)/
+  const solFiles = []
+  for (const dir of ['test', 'contracts']) {
+    const abs = join(REPO, dir)
+    if (!existsSync(abs)) continue
+    for (const e of readdirSync(abs)) if (e.endsWith('.sol')) solFiles.push(join(abs, e))
+  }
+  const idNames = []
+  let testNames = 0
+  for (const f of solFiles) {
+    const t = await readFile(f, 'utf8')
+    t.split(/\r?\n/).forEach((l) => {
+      const m = /function\s+(test\w*|check\w*|invariant\w*)/.exec(l)
+      if (!m) return
+      testNames++
+      if (ID_IDENT.test(m[1])) idNames.push(`${f.replace(REPO, '')}: ${m[1]}`)
+    })
+  }
+  const jsSrc = []
+  if (existsSync(join(SIGNER, 'src'))) for (const e of readdirSync(join(SIGNER, 'src'))) if (e.endsWith('.js')) jsSrc.push(join(SIGNER, 'src', e))
+  const idMsgs = []
+  for (const f of jsSrc) {
+    const t = await readFile(f, 'utf8')
+    t.split(/\r?\n/).forEach((l, i) => {
+      const m = /(?:error|why|reason|detail):\s*[`'"]([^`'"\n]{8,})/.exec(l)
+      if (m && ID_WORDS.test(m[1])) idMsgs.push(`${f.replace(REPO, '')}:${i + 1}`)
+    })
+  }
+  const MSG_BASELINE = 56
+  findingsOut.push({
+    id: 'A8', kind: idNames.length || idMsgs.length > MSG_BASELINE ? 'TEMUAN' : 'bersih',
+    title: 'bahasa identifier & pesan keluaran (D27/D28) — nol nama test Indonesia, pesan klien boleh menyusut tapi tidak bertambah',
+    detail: `${testNames} nama fungsi uji, ${idNames.length} masih Indonesia`
+      + `\n      pesan signer ke klien yang masih Indonesia: ${idMsgs.length} (baseline keputusan 29 Sep: ${MSG_BASELINE}) — ini pekerjaan B96 yang tersisa, disengaja, bukan luput`,
   })
 
   if (LOG && missingRows.length && t) {

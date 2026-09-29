@@ -194,7 +194,7 @@ contract CredentialResolverForkTest is Test {
 
     // --------------------------------------- 0. primitifnya memang ada dan cocok
 
-    function test_fork_SchemaKitaTerdaftarDiRegistryLive() public view {
+    function test_fork_OurSchemaRegisteredInLiveRegistry() public view {
         SchemaRecord memory rec = bas.getSchemaRegistry().getSchema(resolver.schemaUID());
         assertEq(rec.uid, resolver.schemaUID(), "schema tidak terdaftar di registry BAS 97");
         assertEq(address(rec.resolver), address(resolver), "resolver pada schema salah");
@@ -204,7 +204,7 @@ contract CredentialResolverForkTest is Test {
 
     // ------------------------------------------- 1. whitelist penerbit (pertanyaan a)
 
-    function test_fork_PenerbitTerdaftarBerhasilMenerbitkan() public {
+    function test_fork_RegisteredIssuer_IssuesSuccessfully() public {
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
         assertTrue(resolver.issuedHere(uid), "attestation tidak ditandai issuedHere");
 
@@ -217,7 +217,7 @@ contract CredentialResolverForkTest is Test {
         assertEq(who, issuer, "penerbit yang tercatat salah");
     }
 
-    function test_fork_BukanPenerbit_DitolakOnChain() public {
+    function test_fork_NotIssuer_RejectedOnChain() public {
         AttestationRequestData memory d = AttestationRequestData({
             recipient: scholar,
             expirationTime: uint64(block.timestamp + YEAR),
@@ -233,13 +233,13 @@ contract CredentialResolverForkTest is Test {
         assertFalse(resolver.isIssuer(stranger));
     }
 
-    function test_fork_IzinDicabut_PenerbitanBaruDitolak() public {
+    function test_fork_DelistedIssuer_NewIssuanceRejected() public {
         resolver.removeIssuer(issuer);
         vm.expectRevert(abi.encodeWithSelector(CredentialResolver.NotAnIssuer.selector, issuer));
         _attemptNextYear(scholar, COURSE, EMPTY_UID);
     }
 
-    function test_fork_IzinDicabut_KredensialLamaTetapBerlaku() public {
+    function test_fork_DelistedIssuer_ExistingCredentialStaysValid() public {
         // Pencabutan izin penerbit BUKAN pembatalan massal. Kalau tidak begitu, mencabut
         // satu penerbit nakal ikut memusnahkan hak semua peserta yang benar.
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
@@ -254,7 +254,7 @@ contract CredentialResolverForkTest is Test {
         assertTrue(bas.isAttestationValid(uid));
     }
 
-    function test_fork_KredensialSamaTidakBisaDuaKali() public {
+    function test_fork_SameCredentialCannotBeIssuedTwice() public {
         _issue(scholar, COURSE, EMPTY_UID);
         bytes32 dup = _hashOf(scholar, COURSE);
         vm.expectRevert(abi.encodeWithSelector(CredentialResolver.AlreadyIssued.selector, dup));
@@ -268,13 +268,13 @@ contract CredentialResolverForkTest is Test {
     // `isAttestationValid` hanya membaca `_db[uid].uid != EMPTY_UID`. Tanpa resolver ini,
     // keempat kasus di bawah LOLOS — yaitu celah pemalsuan yang nyata.
 
-    function test_fork_PrasaratHidup_MenerbitkanLanjutanBerhasil() public {
+    function test_fork_LivingPrerequisite_ChainIssuanceSucceeds() public {
         bytes32 base = _issue(scholar, COURSE, EMPTY_UID);
         bytes32 adv = _issue(scholar, ADV, base);
         assertEq(resolver.prerequisiteOf(adv), base, "rantai tidak tersimpan");
     }
 
-    function test_fork_PrasaratDicabut_PenerbitanLanjutanDitolak() public {
+    function test_fork_RevokedPrerequisite_ChainIssuanceRejected() public {
         bytes32 base = _issue(scholar, COURSE, EMPTY_UID);
         _revoke(base, issuer);
 
@@ -282,7 +282,7 @@ contract CredentialResolverForkTest is Test {
         _attemptNextYear(scholar, ADV, base);
     }
 
-    function test_fork_PrasaratKedaluwarsa_PenerbitanLanjutanDitolak() public {
+    function test_fork_ExpiredPrerequisite_ChainIssuanceRejected() public {
         uint64 exp = uint64(block.timestamp + 1 days);
         bytes32 base = _issueExpiring(scholar, COURSE, EMPTY_UID, exp);
         vm.warp(exp + 1);
@@ -291,13 +291,13 @@ contract CredentialResolverForkTest is Test {
         _attemptNextYear(scholar, ADV, base);
     }
 
-    function test_fork_PrasaratMilikOrangLain_Ditolak() public {
+    function test_fork_PrerequisiteOwnedBySomeoneElse_Rejected() public {
         bytes32 baseOfOther = _issue(other, COURSE, EMPTY_UID);
         vm.expectRevert(abi.encodeWithSelector(CredentialResolver.PrerequisiteWrongHolder.selector, baseOfOther));
         _attemptNextYear(scholar, ADV, baseOfOther);
     }
 
-    function test_fork_PrasaratBukanKredensialKita_Ditolak() public {
+    function test_fork_PrerequisiteNotOurCredential_Rejected() public {
         // attestation lain yang ADA di chain 97 tidak otomatis jadi prasyarat sah.
         bytes32 ghost = keccak256("uid tidak pernah diterbitkan");
         vm.expectRevert(NotFound.selector); // EAS menahan lebih dulu
@@ -309,7 +309,7 @@ contract CredentialResolverForkTest is Test {
     /// `isAttestationValid()` milik EAS meloloskan ini, jadi hanya guard `issuedHere`
     /// kami yang menolaknya. Tanpa guard itu siapa pun bisa membangun "rantai prasyarat"
     /// di atas attestation orang lain yang tidak ada hubungannya dengan kursus kita.
-    function test_fork_PrasaratSahTapiTerbitDiResolverLain_Ditolak() public {
+    function test_fork_PrerequisiteValidButIssuedOnAnotherResolver_Rejected() public {
         CredentialResolver foreign = new CredentialResolver(bas, address(this));
         foreign.registerSchema();
         foreign.addIssuer(issuer);
@@ -338,7 +338,7 @@ contract CredentialResolverForkTest is Test {
         _attemptNextYear(scholar, ADV, foreignUid);
     }
 
-    function test_fork_RantaiTigaTingkat_DicabutDiTengahMemblokYangDiAtasnya() public {
+    function test_fork_ThreeLevelChain_MidRevocationBlocksAbove() public {
         bytes32 l1 = _issue(scholar, COURSE, EMPTY_UID);
         bytes32 l2 = _issue(scholar, ADV, l1);
         assertEq(resolver.prerequisiteOf(l2), l1);
@@ -350,7 +350,7 @@ contract CredentialResolverForkTest is Test {
 
     // ------------------------------ 3. pencabutan permanen (pertanyaan d — klaim pembeda)
 
-    function test_fork_StatusBerubahSetelahDicabut() public {
+    function test_fork_StatusChangesAfterRevocation() public {
         bytes32 h = _hashOf(scholar, COURSE);
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
 
@@ -365,7 +365,7 @@ contract CredentialResolverForkTest is Test {
 
     /// @dev Inti klaim "non-repudiable": setelah dicabut TIDAK ADA jalur kembali.
     /// Dibuktikan dua arah — perilaku (cabut ulang revert) dan jejak (rekordnya tetap ada).
-    function test_fork_TidakAdaJalurUnrevoke() public {
+    function test_fork_NoUnrevokePath() public {
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
         _revoke(uid, issuer);
 
@@ -377,7 +377,7 @@ contract CredentialResolverForkTest is Test {
         assertTrue(bas.isAttestationValid(uid), "rekordnya tidak boleh bisa dihapus dari chain");
     }
 
-    function test_fork_PencabutanOlehBukanPenerbit_Ditolak() public {
+    function test_fork_RevocationByNonIssuer_Rejected() public {
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
         vm.expectRevert(AccessDenied.selector);
         _revoke(uid, stranger);
@@ -394,7 +394,7 @@ contract CredentialResolverForkTest is Test {
     /// (`_revoke`: `attestation.attester != revoker -> AccessDenied`), jadi terhadap agen
     /// pihak ketiga platform tidak punya daya cabut sama sekali. Kalau suatu hari test ini
     /// gagal, artinya EAS berubah dan model delisting kita harus ditulis ulang.
-    function test_fork_PlatformTidakBisaMencabutKredensialAgen() public {
+    function test_fork_PlatformCannotRevokeAgentsCredential() public {
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
 
         vm.expectRevert(AccessDenied.selector);
@@ -408,7 +408,7 @@ contract CredentialResolverForkTest is Test {
     /// Delisting MENANDAI, bukan mencabut: `revoked` tetap false dan attestation di BAS tetap
     /// valid, karena kita memang tidak punya daya mengubahnya. Mengaku sebaliknya di halaman
     /// verifikasi adalah kebohongan yang bisa diuji siapa pun dalam satu eth_call.
-    function test_fork_Delisting_MenandaiTanpaMencabut() public {
+    function test_fork_Delisting_MarksWithoutRevoking() public {
         bytes32 uid = _issue(scholar, COURSE, EMPTY_UID);
 
         vm.expectEmit(true, true, true, true);
@@ -426,7 +426,7 @@ contract CredentialResolverForkTest is Test {
         assertTrue(resolver.isDelisted(issuer));
     }
 
-    function test_fork_Delisting_PenerbitanBaruDitolak() public {
+    function test_fork_Delisting_NewIssuanceRejected() public {
         resolver.delistIssuer(issuer);
         vm.expectRevert(abi.encodeWithSelector(CredentialResolver.NotAnIssuer.selector, issuer));
         _attemptNextYear(scholar, COURSE, EMPTY_UID);
@@ -435,7 +435,7 @@ contract CredentialResolverForkTest is Test {
     /// @dev Skenario nyata marketplace: peserta mulai dengan agen A, lalu pindah ke agen B
     /// sesudah A didelisting. Tanpa cek ini, delisting jadi kosmetik — kredensial agen
     /// bermasalah tetap bisa dipakai membuka kredensial lanjutan lewat agen yang sehat.
-    function test_fork_PrasyaratDariAgenDelisted_Ditolak() public {
+    function test_fork_PrerequisiteFromDelistedAgent_Rejected() public {
         address agenKedua = makeAddr("agen-kedua");
         resolver.addIssuer(agenKedua);
         vm.deal(agenKedua, 10 ether);
@@ -481,14 +481,14 @@ contract CredentialResolverForkTest is Test {
     /// @dev Re-admission lewat pintu belakang harus tertutup. Kalau `addIssuer` bisa
     /// memulihkan agen yang didelisting, pemulihan jadi efek samping yang tidak ber-event
     /// dan jejak governance-nya hilang.
-    function test_fork_AgenDelisted_TidakBisaLewatAddIssuer() public {
+    function test_fork_DelistedAgent_CannotReturnViaAddIssuer() public {
         resolver.delistIssuer(issuer);
         vm.expectRevert(abi.encodeWithSelector(CredentialResolver.DelistedCannotBeReadmitted.selector, issuer));
         resolver.addIssuer(issuer);
         assertFalse(resolver.isIssuer(issuer), "addIssuer diam-diam memulihkan agen delisted");
     }
 
-    function test_fork_DelistingHanyaOlehOwner() public {
+    function test_fork_DelistingOnlyByOwner() public {
         vm.prank(stranger);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, stranger));
         resolver.delistIssuer(issuer);
@@ -572,7 +572,7 @@ contract CredentialResolverForkTest is Test {
         return bas.attestByDelegation(req);
     }
 
-    function test_fork_Delegasi_PenerbitTetapAgen_BukanYangMenyiarkan() public {
+    function test_fork_Delegation_IssuerStaysTheAgent_NotTheBroadcaster() public {
         AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
         uint256 nonce = _nonceOf(agent);
         DelegatedAttestationRequest memory req = _signedRequest(AGENT_PK, agent, d, nonce, uint64(block.timestamp + 1 hours));
@@ -595,7 +595,7 @@ contract CredentialResolverForkTest is Test {
         assertEq(iss, agent);
     }
 
-    function test_fork_Delegasi_TandaTanganBukanMilikAgen_Ditolak() public {
+    function test_fork_Delegation_SignatureNotTheAgents_Rejected() public {
         AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
         // Ditandatangani kunci asing, diklaim atas nama `agent`: tepat seperti upaya
         // memalsukan "agen kami yang menerbitkan".
@@ -607,7 +607,7 @@ contract CredentialResolverForkTest is Test {
         bas.attestByDelegation(req);
     }
 
-    function test_fork_Delegasi_AgenBelumDiizinkan_DitolakResolverKita() public {
+    function test_fork_Delegation_AgentNotAllowlisted_RejectedByOurResolver() public {
         // Tanda tangan SAH, tapi atas nama agen yang tidak kita akui. Ini membuktikan guard
         // kita membaca `attestation.attester`, bukan `msg.sender` — tanpa itu, relayer pihak
         // ketiga bisa menyamar jadi agen mana pun.
@@ -623,7 +623,7 @@ contract CredentialResolverForkTest is Test {
         assertEq(resolver.attestationOf(_hashOf(scholar, COURSE)), EMPTY_UID, "kredensial tertolak malah tercatat");
     }
 
-    function test_fork_Delegasi_DeadlineLewat_Ditolak() public {
+    function test_fork_Delegation_DeadlinePassed_Rejected() public {
         AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
         DelegatedAttestationRequest memory req = _signedRequest(AGENT_PK, agent, d, _nonceOf(agent), uint64(block.timestamp - 1));
 
@@ -632,7 +632,7 @@ contract CredentialResolverForkTest is Test {
         bas.attestByDelegation(req);
     }
 
-    function test_fork_Delegasi_NonceSalah_Ditolak() public {
+    function test_fork_Delegation_WrongNonce_Rejected() public {
         AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
         // Menandatangani nonce yang akan datang = membuat tanda tangan yang tidak akan pernah
         // cocok, kecuali nonce kontrak digeser. Sekalian membuktikan nonce BUKAN hiasan.
@@ -644,7 +644,7 @@ contract CredentialResolverForkTest is Test {
         bas.attestByDelegation(req);
     }
 
-    function test_fork_Delegasi_DibatalkanAgen_SendiriTetapBisaMenerbitkan() public {
+    function test_fork_DelegationRevokedByAgent_CanStillIssueDirectly() public {
         AttestationRequestData memory d = _dataFor(scholar, COURSE, EMPTY_UID);
         uint256 nonce = _nonceOf(agent);
         DelegatedAttestationRequest memory req = _signedRequest(AGENT_PK, agent, d, nonce, uint64(block.timestamp + 1 hours));
@@ -667,7 +667,7 @@ contract CredentialResolverForkTest is Test {
         assertEq(bas.getAttestation(uid).attester, agent);
     }
 
-    function test_fork_BatchDelegasi_TigaKredensialSatuPanggilan() public {
+    function test_fork_BatchDelegation_ThreeCredentialsOneCall() public {
         // Yang membuat jalur delegasi layak dipakai produksi: satu kursus bisa diterbitkan
         // lesson-per-lesson dalam SATU transaksi, dengan nonce menaik, tanpa dompet agen.
         bytes32[3] memory courses = [COURSE, ADV, keccak256("web3-dasar-2026-b")];
@@ -702,7 +702,7 @@ contract CredentialResolverForkTest is Test {
         }
     }
 
-    function test_fork_Delegasi_TidakJadiJalanTikus_PrasyaratTercabutTetapDitolak() public {
+    function test_fork_DelegationIsNoBackdoor_RevokedPrerequisiteStillRejected() public {
         // Jalur delegasi tidak boleh melewati guard kita sendiri. Kalau iya, agen bermasalah
         // tinggal menyewa relayer untuk menembus aturan yang sama.
         bytes32 baseUid = _issue(scholar, COURSE, EMPTY_UID);
@@ -736,7 +736,7 @@ contract CredentialResolverForkTest is Test {
 
     /// @dev Kunci pencabutan off-chain adalah pasangan (pencabut, hash) — jadi satu
     /// kredensial bisa punya status dari beberapa penerbit tanpa saling menimpa.
-    function test_fork_PencabutanOffchainTerkikatKePencabutnya() public {
+    function test_fork_OffchainRevocationBoundToItsRevoker() public {
         bytes32 vcHash = keccak256("vc-off-chain");
         assertEq(bas.getRevokeOffchain(issuer, vcHash), 0, "seharusnya belum ada jejak");
 
@@ -756,7 +756,7 @@ contract CredentialResolverForkTest is Test {
 
     // -------------------------------------------- 5. kedaluwarsa tanpa aksi siapa pun
 
-    function test_fork_KedaluwarsaTerdeteksiTanpaAksiDanBedaDariPencabutan() public {
+    function test_fork_ExpiryDetectedWithoutActionAndDiffersFromRevocation() public {
         bytes32 h = _hashOf(scholar, COURSE);
         uint64 exp = uint64(block.timestamp + 1 days);
         _issueExpiring(scholar, COURSE, EMPTY_UID, exp);
@@ -810,7 +810,7 @@ contract CredentialResolverForkTest is Test {
     /// @dev Cerita produk yang sebenarnya: lesson 1 -> lesson 2 -> sertifikat kursus.
     /// Rantai ini memakai mekanisme prerequisiteOf yang SUDAH ada, jadi "lesson 2 tidak bisa
     /// terbit kalau lesson 1 dicabut" datang gratis dari kode yang sudah lulus test.
-    function test_fork_RantaiLesson_Sampai_SertifikatKursus() public {
+    function test_fork_LessonChainToCourseCertificate() public {
         bytes32 l1 = _issueLesson(scholar, COURSE, LESSON1, EMPTY_UID);
         bytes32 l2 = _issueLesson(scholar, COURSE, LESSON2, l1);
         bytes32 cert = _issue(scholar, COURSE, l2); // tingkat kursus: lessonId = EMPTY_UID
@@ -823,7 +823,7 @@ contract CredentialResolverForkTest is Test {
     }
 
     /// @dev Ini adegan demo terkuat: cabut lesson 1, lalu sertifikat kursus tidak bisa terbit.
-    function test_fork_LessonDicabut_SertifikatKursusDitolak() public {
+    function test_fork_LessonRevoked_CourseCertificateRejected() public {
         bytes32 l1 = _issueLesson(scholar, COURSE, LESSON1, EMPTY_UID);
         _issueLesson(scholar, COURSE, LESSON2, l1);
 
@@ -845,7 +845,7 @@ contract CredentialResolverForkTest is Test {
 
     /// @dev Enumerasi per pemegang: satu-satunya cara membangun "daftar sertifikat saya" dari
     /// chain, karena BAS tidak punya Indexer untuk BSC.
-    function test_fork_EnumerasiPerPemegang_TanpaIndexer() public {
+    function test_fork_EnumerationPerHolder_NoIndexer() public {
         assertEq(resolver.credentialCount(scholar), 0, "harus kosong di awal");
 
         bytes32 l1 = _issueLesson(scholar, COURSE, LESSON1, EMPTY_UID);
@@ -866,7 +866,7 @@ contract CredentialResolverForkTest is Test {
 
     /// @dev Schema 3 field berarti 96 byte. Data 64 byte (bentuk lama) harus ditolak keras,
     /// bukan didecode senyap dengan field bergeser.
-    function test_fork_DataPanjangSalah_Ditolak() public {
+    function test_fork_WrongDataLength_Rejected() public {
         AttestationRequestData memory d = AttestationRequestData({
             recipient: scholar,
             expirationTime: uint64(block.timestamp + YEAR),

@@ -161,7 +161,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
     /// @dev Inilah yang dilihat rekruter: SATU eth_call, tanpa wallet, tanpa indexer, dan
     /// tanpa menyentuh backend kita. Indexer BAS hanya ada untuk opBNB, bukan BSC, jadi
     /// jalur verifikasi rzeczywnya harus berupa pembacaan langsung seperti ini.
-    function test_Adegan1_VerifikasiLewatSatuEthCall() public {
+    function test_Scene1_VerifyWithOneEthCall() public {
         bytes32 h = _vcHash(learner, COURSE);
         bytes32 uid = _attest(issuer, learner, COURSE, EMPTY_UID, _nextYear());
 
@@ -182,7 +182,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
 
     // =========================================== adegan demo 3: pemalsuan yang gagal
 
-    function test_Adegan3_ArtefakTerikatDanTakBisaDipindah() public {
+    function test_Scene3_ArtifactBoundAndNonTransferable() public {
         bytes32 h = _vcHash(learner, COURSE);
         _attest(agent, learner, COURSE, EMPTY_UID, _nextYear());
 
@@ -199,13 +199,13 @@ contract CredentialEndToEndOnBscForkTest is Test {
 
     /// @dev Artefak tidak bisa dicetak untuk kredensial yang belum ada. Ini yang membuat
     /// "SBT sertifikat" kami bukan NFT tempelan.
-    function test_Adegan3_TidakBisaMintArtefakKosong() public {
+    function test_Scene3_CannotMintEmptyArtifact() public {
         bytes32 fake = _vcHash(recruiter, COURSE);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.CredentialNotFound.selector, fake));
         _mint(fake, recruiter);
     }
 
-    function test_Adegan3_TidakBisaMintUntukOrangLain() public {
+    function test_Scene3_CannotMintForSomeoneElse() public {
         bytes32 h = _vcHash(learner, COURSE);
         _attest(agent, learner, COURSE, EMPTY_UID, _nextYear());
 
@@ -215,7 +215,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
 
     /// @dev VC yang diedit satu byte berubah hash-nya, jadi ia tidak dikenali sama sekali —
     /// bukan "valid dengan isi berbeda".
-    function test_Adegan3_VcDieditSatuByteTidakDikenal() public {
+    function test_Scene3_VcEditedOneByteNotRecognized() public {
         bytes32 h = _vcHash(learner, COURSE);
         _attest(agent, learner, COURSE, EMPTY_UID, _nextYear());
 
@@ -225,7 +225,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
 
     // =========================================== adegan demo 2: pencabutan non-repudiable
 
-    function test_Adegan2_CabutDiTengah_RantaiTertutupArtefakTetapAda() public {
+    function test_Scene2_RevokeMidFlight_StatusChainClosedArtifactPersists() public {
         bytes32 baseH = _vcHash(learner, COURSE);
         bytes32 base = _attest(agent, learner, COURSE, EMPTY_UID, _nextYear());
         uint256 baseToken = _mint(baseH, learner);
@@ -261,7 +261,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
     }
 
     /// @dev Pencabutan meninggalkan jejak yang tidak bisa dihapus dan tidak bisa diulang.
-    function test_Adegan2_JejakPencabutanTidakBisaDihapusAtauDiulang() public {
+    function test_Scene2_RevocationTrailImmutable() public {
         bytes32 uid = _attest(agent, learner, COURSE, EMPTY_UID, _nextYear());
         _revoke(uid);
 
@@ -278,7 +278,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
     /// @dev Setelah kedaluwarsa, artefak TIDAK berubah dan tidak bisa dipindah; yang
     /// berubah hanya keputusan verifikasi. Test ini mengingatkan bahwa artefak bukan bukti
     /// keberlakuan — kalimat itu harus muncul di UI, bukan disembunyikan.
-    function test_BatasKlaim_KedaluwarsaTidakMenghapusArtefak() public {
+    function test_ClaimWindow_ExpiryDoesNotEraseArtifact() public {
         bytes32 h = _vcHash(learner, COURSE);
         uint64 exp = uint64(block.timestamp + 1 days);
         _attest(agent, learner, COURSE, EMPTY_UID, exp);
@@ -293,7 +293,7 @@ contract CredentialEndToEndOnBscForkTest is Test {
     }
 
     /// @dev Kontrol negatif: hash yang tidak pernah ada harus menjawab "tidak ada".
-    function test_KontrolNegatif_KredensialTidakDikenal() public view {
+    function test_NegativeControl_UnknownCredentialRejected() public view {
         bytes32 ghost = keccak256("vc yang tidak pernah ada");
         assertFalse(_exists(ghost));
         assertFalse(_isRevoked(ghost));

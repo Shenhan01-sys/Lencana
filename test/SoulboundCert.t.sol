@@ -119,7 +119,7 @@ contract SoulboundCertTest is Test {
 
     // ------------------------------------------------------------------- mint
 
-    function test_MenghasilkanArtefakUntukPemegangYangBenar() public {
+    function test_ProducesArtifactForTheRightHolder() public {
         uint256 id = _mintCert(learner, credHash, uri);
         assertEq(id, uint256(credHash), "tokenId tidak diturunkan dari hash kredensial");
         assertEq(cert.ownerOf(id), learner);
@@ -137,7 +137,7 @@ contract SoulboundCertTest is Test {
     /// @dev B38, bagian lokal: sebelum 27 Sep string ini disimpan saat mint, jadi artefak dari
     /// kredensial yang dicabut SELAMANYA terlihat sah di wallet. Yang diuji di sini bukan bentuk
     /// JSON-nya, tapi hubungan sebab-akibat antara chain dan apa yang dilihat orang.
-    function test_MetadataMengikutiStatusSetelahDicabut() public {
+    function test_MetadataFollowsStatusAfterRevocation() public {
         uint256 id = _mintCert(learner, credHash, uri);
         assertTrue(JsonText.contains(cert.tokenURI(id), "VALID"));
         assertFalse(JsonText.contains(cert.tokenURI(id), "REVOKED"), "baru mint, belum dicabut");
@@ -162,23 +162,23 @@ contract SoulboundCertTest is Test {
 
     /// @dev Metadata dibangun dengan menyisipkan `uri` mentah. Satu tanda kutip di dalam URI
     /// akan merusak JSON untuk SELURUH koleksi, jadi ia ditolak di pintu, bukan dikoreksi diam-diam.
-    function test_UriBerbayaDitolakSaatMint() public {
+    function test_PaidUriRejectedWhenMinting() public {
         vm.prank(platform);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.UnsafeUri.selector, 18));
         cert.mint(learner, keccak256("berbahaya"), "https://a.example/\"\"); ");
     }
 
-    function test_LockedSentiasaTrueUntukTokenAda() public {
+    function test_LockedAlwaysTrueForExistingToken() public {
         uint256 id = _mintCert(learner, credHash, uri);
         assertTrue(cert.locked(id));
     }
 
-    function test_LockedMenolakTokenTidakAda() public {
+    function test_LockedRejectsUnknownToken() public {
         vm.expectRevert();
         cert.locked(12345);
     }
 
-    function test_MintOlehBukanPenerbit_Ditolak() public {
+    function test_MintByNonIssuer_Rejected() public {
         vm.prank(attacker);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.NotIssuer.selector, attacker));
         cert.mint(learner, credHash, uri);
@@ -186,7 +186,7 @@ contract SoulboundCertTest is Test {
 
     // ------------------------------- artefak tidak boleh ada tanpa kredensial hidup
 
-    function test_KredensialBelumAda_MintDitolak() public {
+    function test_CredentialMissing_MintRejected() public {
         StubCredentialRegistry empty = new StubCredentialRegistry();
         SoulboundCert c = new SoulboundCert(ICredentialRegistry(address(empty)), "S", "S", platform);
         vm.prank(platform);
@@ -194,13 +194,13 @@ contract SoulboundCertTest is Test {
         c.mint(learner, credHash, uri);
     }
 
-    function test_KredensialDicabut_MintDitolak() public {
+    function test_CredentialRevoked_MintRejected() public {
         registry.setRevoked(true);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.CredentialRevoked.selector, credHash));
         _mintCert(learner, credHash, uri);
     }
 
-    function test_KredensialKedaluwarsa_MintDitolak() public {
+    function test_CredentialExpired_MintRejected() public {
         registry.setExpired(true);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.CredentialExpired.selector, credHash));
         _mintCert(learner, credHash, uri);
@@ -209,7 +209,7 @@ contract SoulboundCertTest is Test {
     /// @dev Penerbit yang didelisting tidak mendapat artefak. Perhatikan apa yang TIDAK
     /// terjadi di sini: `revoked` tetap false. Jadi ini penahanan artefak, bukan pembatalan
     /// sertifikat — dan halaman verifikasi harus menampilkannya sebagai verdict sendiri.
-    function test_PenerbitDelisted_MintDitolak() public {
+    function test_DelistedIssuer_MintRejected() public {
         registry.setDelisted(true);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.IssuerDelisted.selector, credHash));
         _mintCert(learner, credHash, uri);
@@ -218,7 +218,7 @@ contract SoulboundCertTest is Test {
     /// @dev Klaim "bisa dipulihkan" harus diuji, bukan cuma dinyatakan di komentar.
     /// Sesudah flag dilepas, mint yang sama harus berhasil tanpa perubahan apa pun pada
     /// kredensialnya — itu bukti bahwa delisting menekan artefak baru, bukan menghapusnya.
-    function test_PenerbitDipulihkan_MintJalanLagi() public {
+    function test_IssuerRestored_MintingWorksAgain() public {
         registry.setDelisted(true);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.IssuerDelisted.selector, credHash));
         _mintCert(learner, credHash, uri);
@@ -228,28 +228,28 @@ contract SoulboundCertTest is Test {
         assertEq(cert.ownerOf(tokenId), learner, "artefak tidak sampai ke peserta sesudah pemulihan");
     }
 
-    function test_MintUntukOrangSalah_Ditolak() public {
+    function test_MintToWrongPerson_Rejected() public {
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.WrongHolder.selector, credHash, learner, attacker));
         _mintCert(attacker, credHash, uri);
     }
 
-    function test_SatuKredensialSatuArtefak() public {
+    function test_OneCredentialOneArtifact() public {
         _mintCert(learner, credHash, uri);
         vm.expectRevert(abi.encodeWithSelector(SoulboundCert.AlreadyBound.selector, credHash));
         _mintCert(learner, credHash, uri);
     }
 
-    function test_HashNolDitolak() public {
+    function test_ZeroHashRejected() public {
         vm.expectRevert(SoulboundCert.ZeroCredential.selector);
         _mintCert(learner, bytes32(0), uri);
     }
 
-    function test_UriKosongDitolak() public {
+    function test_EmptyUriRejected() public {
         vm.expectRevert(SoulboundCert.EmptyURI.selector);
         _mintCert(learner, keccak256("kredensial lain"), "");
     }
 
-    function test_MintKeAddressNolDitolak() public {
+    function test_MintToZeroAddressRejected() public {
         registry.setLive(address(0), platform, uint64(block.timestamp + 365 days));
         vm.expectRevert(SoulboundCert.ZeroAddress.selector);
         vm.prank(platform);
@@ -258,7 +258,7 @@ contract SoulboundCertTest is Test {
 
     // -------------------------------------------------- tak bisa pindah, tak bisa jual
 
-    function test_TransferFrom_DitolakBahkanOlehPemegangSendiri() public {
+    function test_TransferFrom_RejectedEvenByHolder() public {
         uint256 id = _mintCert(learner, credHash, uri);
 
         vm.prank(learner);
@@ -266,7 +266,7 @@ contract SoulboundCertTest is Test {
         cert.transferFrom(learner, attacker, id);
     }
 
-    function test_SafeTransferFrom_DitolakDuaDuaVarian() public {
+    function test_SafeTransferFrom_RejectedInBothVariants() public {
         uint256 id = _mintCert(learner, credHash, uri);
 
         vm.startPrank(learner);
@@ -282,7 +282,7 @@ contract SoulboundCertTest is Test {
         vm.stopPrank();
     }
 
-    function test_PendelegasianDitolak() public {
+    function test_ApprovalRejected() public {
         uint256 id = _mintCert(learner, credHash, uri);
 
         vm.startPrank(learner);
@@ -297,7 +297,7 @@ contract SoulboundCertTest is Test {
     }
 
     /// @dev Upaya dari pihak yang bukan pemegang pun tidak mengubah apa pun.
-    function test_KredensialTetapUtuhSetelahSemuaUpayaPemindahan() public {
+    function test_CredentialIntactAfterEveryTransferAttempt() public {
         uint256 id = _mintCert(learner, credHash, uri);
 
         vm.expectRevert(SoulboundCert.NotTransferable.selector);
@@ -316,7 +316,7 @@ contract SoulboundCertTest is Test {
     }
 
     /// @dev Tidak ada alamat penerima yang membuat pemindahan lolos.
-    function testFuzz_TidakAdaPemindahanYangLolos(address to) public {
+    function testFuzz_NoTransferEverPasses(address to) public {
         uint256 id = _mintCert(learner, credHash, uri);
         vm.assume(to != address(0));
 
@@ -330,7 +330,7 @@ contract SoulboundCertTest is Test {
     /// @dev B39: kredensial lesson TIDAK mencetak artefak. Yang diuji bukan "mint menolak" secara
     /// umum, tapi bahwa penolakannya datang dari granularitas — jadi ia tetap lolos untuk level
     /// kursus yang sama, dan pesan revert-nya menyebut lessonId yang jadi sebab.
-    function test_ArtefakHanyaLevelKursus() public {
+    function test_ArtifactOnlyAtCourseLevel() public {
         bytes32 lessonId = keccak256("lesson:m2-gas-bayar");
 
         // level kursus: jalan
@@ -351,7 +351,7 @@ contract SoulboundCertTest is Test {
     /// meninggalkan artefak sama sekali", BUKAN kasus "yang pertama hidup, yang kedua mati" -
     /// yang itu ditegakkan oleh `require` di dalam `mint` (satu jalur untuk batch dan tunggal)
     /// dan butuh dua kredensial dengan status berbeda di chain nyata, jadi tempatnya di fork test.
-    function test_BatchYangGagalTidakMeninggalkanArtefak() public {
+    function test_FailedBatchLeavesNoArtifact() public {
         address[] memory learners = new address[](2);
         learners[0] = learner;
         learners[1] = learner;
@@ -380,7 +380,7 @@ contract SoulboundCertTest is Test {
     /// transaksi untuk N artefak, bukan N kali. Yang mahal per artefak (SSTORE + LOG) tetap
     /// dibayar per artefak, dan test ini mencetaknya supaya kami tidak mengklaim penghematan
     /// yang lebih besar daripada yang terjadi.
-    function test_GasBatchVersusSatuPerSatu() public {
+    function test_GasOfBatchVersusOneByOne() public {
         registry.setLive(learner, platform, uint64(block.timestamp + 365 days));
 
         bytes32[] memory hs = new bytes32[](4);
@@ -418,7 +418,7 @@ contract SoulboundCertTest is Test {
     }
 
     /// @dev Bentuk batch dijaga sebelum satu artefak pun tercetak.
-    function test_BentukBatchDitolakSebelumMinting() public {
+    function test_BatchShapeRejectedBeforeMinting() public {
         address[] memory one = new address[](1);
         one[0] = learner;
         bytes32[] memory two = new bytes32[](2);

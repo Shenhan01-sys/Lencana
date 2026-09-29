@@ -140,7 +140,7 @@ contract SettlementSplitTest is Test {
 
     /// Sisa pembagian TIDAK boleh jatuh ke platform: 999 x 1000/10000 = 99,9 -> platform 99 dan
     /// satu unit sisanya sampai ke penerbit, bukan menguap.
-    function test_sisaPembulatanKepadaPenerbit() public {
+    function test_roundingRemainderGoesToIssuer() public {
         _arrived(999);
         _split(issuer, 999, ref1);
         (uint256 p, uint256 i) = split.sharesOf(999);
@@ -153,14 +153,14 @@ contract SettlementSplitTest is Test {
 
     /// Jumlah yang potongan platform-nya membulat ke nol tetap sah dibagikan: pembayaran kecil
     /// tetap pembayaran, dan ini tidak boleh revert.
-    function test_potonganNolUntukJumlahKecilTetapTerbagi() public {
+    function test_zeroShareOnSmallAmountStillSplits() public {
         _arrived(9);
         _split(issuer, 9, ref1);
         assertEq(token.balanceOf(issuer), 9);
         assertEq(token.balanceOf(platform), 0);
     }
 
-    function test_jumlahTidakBolehMelebihiSaldo() public {
+    function test_amountMustNotExceedBalance() public {
         _arrived(100);
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(SettlementSplit.InsufficientBalance.selector, 101, 100));
@@ -170,7 +170,7 @@ contract SettlementSplitTest is Test {
 
     // ------------------------------------------------------------------ penjaga
 
-    function test_refSamaDitolak() public {
+    function test_sameRefRejected() public {
         _arrived(200);
         _split(issuer, 100, ref1);
         vm.prank(owner);
@@ -178,7 +178,7 @@ contract SettlementSplitTest is Test {
         split.splitErc20(IERC20(address(token)), issuer, 100, ref1);
     }
 
-    function test_refBerbedaKeduanyaJalan() public {
+    function test_differentRefsBothProceed() public {
         _arrived(200);
         vm.startPrank(owner);
         split.splitErc20(IERC20(address(token)), issuer, 100, ref1);
@@ -197,34 +197,34 @@ contract SettlementSplitTest is Test {
         split.splitErc20(IERC20(address(token)), issuer, 100, ref1);
     }
 
-    function test_jumlahNolDitolak() public {
+    function test_zeroAmountRejected() public {
         _arrived(100);
         vm.prank(owner);
         vm.expectRevert(SettlementSplit.ZeroAmount.selector);
         split.splitErc20(IERC20(address(token)), issuer, 0, ref1);
     }
 
-    function test_penerimaNolDitolak() public {
+    function test_zeroRecipientRejected() public {
         _arrived(100);
         vm.prank(owner);
         vm.expectRevert(SettlementSplit.ZeroAddress.selector);
         split.splitErc20(IERC20(address(token)), address(0), 100, ref1);
     }
 
-    function test_konstruksiDiAtasPlafonDitolak() public {
+    function test_constructionAboveCeilingRejected() public {
         vm.expectRevert(
             abi.encodeWithSelector(SettlementSplit.BpsTooHigh.selector, uint16(2501), uint16(2500))
         );
         new SettlementSplit(payable(platform), 2501, owner);
     }
 
-    function test_konstruksiPlatformNolDitolak() public {
+    function test_constructionWithZeroPlatformRejected() public {
         vm.expectRevert(SettlementSplit.ZeroAddress.selector);
         new SettlementSplit(payable(address(0)), BPS10, owner);
     }
 
     /// Arah ratchet: platform boleh berkorban, tidak boleh memperbesar dirinya sendiri.
-    function test_bpsHanyaBolehTurun() public {
+    function test_bpsMayOnlyDecrease() public {
         vm.startPrank(owner);
         vm.expectRevert(abi.encodeWithSelector(SettlementSplit.BpsMayOnlyDecrease.selector, BPS10, uint16(2000)));
         split.decreasePlatformBps(2000);
@@ -239,7 +239,7 @@ contract SettlementSplitTest is Test {
     }
 
     /// "Tidak ada buku utang" diuji sebagai keadaan, bukan sebagai niat.
-    function test_setelahSplitKontrakTidakMenyimpanSaldo() public {
+    function test_afterSplitContractHoldsNoBalance() public {
         _arrived(12_345);
         _split(issuer, 12_345, ref1);
         assertEq(token.balanceOf(address(split)), 0);
@@ -255,7 +255,7 @@ contract SettlementSplitTest is Test {
 
     // ------------------------------------------------------------------ token kasar
 
-    function test_tokenYangBalikFalseTidakLolos() public {
+    function test_tokenReturningFalseDoesNotPass() public {
         FalseToken bad = new FalseToken();
         bad.mint(address(split), 100);
         vm.prank(owner);
@@ -265,7 +265,7 @@ contract SettlementSplitTest is Test {
         assertEq(bad.balanceOf(address(split)), 100, "dan dana tidak boleh hilang separuh");
     }
 
-    function test_reentrancyDenganRefSamaDitolak() public {
+    function test_reentrancyWithSameRefRejected() public {
         ReentrantToken evil = new ReentrantToken();
         evil.mint(address(split), 100);
         evil.setAttacker(split, issuer, ref1);
@@ -280,7 +280,7 @@ contract SettlementSplitTest is Test {
 
     // ------------------------------------------------------------------ jalur native
 
-    function test_nativeTerbagi() public {
+    function test_nativeIsSplit() public {
         vm.deal(address(split), 1 ether);
         vm.prank(owner);
         split.splitNative(payable(issuer), 1 ether, ref1);
@@ -306,7 +306,7 @@ contract SettlementSplitTest is Test {
         assertEq(address(split).balance, 1 ether, "dana tidak boleh hilang separuh");
     }
 
-    function test_nativeSaldoKurangDitolak() public {
+    function test_nativeInsufficientBalanceRejected() public {
         vm.deal(address(split), 10);
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(SettlementSplit.InsufficientBalance.selector, 100, 10));
@@ -324,7 +324,7 @@ contract SettlementSplitTest is Test {
         assertEq(token.balanceOf(address(split)), 0);
     }
 
-    function test_gantiPlatformBerlakuUntukPembagianBerikutnya() public {
+    function test_setPlatformAppliesToNextSplit() public {
         address newPlatform = makeAddr("multisig");
         vm.prank(owner);
         split.setPlatform(payable(newPlatform));
@@ -335,7 +335,7 @@ contract SettlementSplitTest is Test {
         assertEq(split.platformBps(), BPS10, "ganti alamat tidak boleh mengubah potongan");
     }
 
-    function test_kirimLangsungKeKontrakTidakMembagiSiapaPun() public {
+    function test_directSendToContractSharesWithNoOne() public {
         (bool ok, ) = address(split).call{ value: 1 ether }("");
         assertTrue(ok);
         assertEq(platform.balance, 0);
