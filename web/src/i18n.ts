@@ -55,6 +55,19 @@ export interface TranslationDictionary {
     connectedAs: string
     modalTitle: string
     modalSub: string
+    privyOption: string
+    privyOptionSub: string
+    privyBadgeRecommended: string
+    privyEmailPlaceholder: string
+    privySendOtpBtn: string
+    privyGoogleBtn: string
+    privyOrFastLogin: string
+    privyStepOtpHelp: string
+    privyOtpPlaceholder: string
+    privyVerifyOtpBtn: string
+    privyOtpNotice: string
+    privyCustodyNotice: string
+    btnBack: string
     browserOption: string
     browserOptionSub: string
     deviceOption: string
@@ -1031,7 +1044,20 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       connectBtn: 'Sign in with Browser',
       connectedAs: 'Connected:',
       modalTitle: 'Sign in with Browser / Wallet',
-      modalSub: 'Connect your Web3 browser wallet or use the 1-Click Demo Learner account.',
+      modalSub: 'Sign in with Privy embedded wallet or connect your existing Web3 browser wallet.',
+      privyOption: 'Sign in with Privy (Email / Google)',
+      privyOptionSub: 'Embedded wallet created for you without seed phrases, exportable anytime',
+      privyBadgeRecommended: 'Recommended',
+      privyEmailPlaceholder: 'Enter your email (e.g. learner@gmail.com)',
+      privySendOtpBtn: 'Send OTP Code ➔',
+      privyGoogleBtn: 'Continue with Google Account',
+      privyOrFastLogin: 'or sign in with',
+      privyStepOtpHelp: 'Verification code sent. Enter the 6-digit code to activate your learning address:',
+      privyOtpPlaceholder: '123456',
+      privyVerifyOtpBtn: 'Verify & Enter Classroom ➔',
+      privyOtpNotice: '💡 Fast testing: Default demo OTP code is 123456',
+      privyCustodyNotice: 'Key Custody: Your wallet is provisioned for you by Privy infrastructure and can be exported at any time. This EVM address records your course progress and receives your soulbound credentials.',
+      btnBack: '← Back',
       browserOption: 'Browser Extension Wallet',
       browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
       deviceOption: '1-Click Guest Key (Device Key)',
@@ -1626,7 +1652,20 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       connectBtn: 'Masuk dengan Browser',
       connectedAs: 'Terhubung:',
       modalTitle: 'Masuk dengan Browser / Dompet',
-      modalSub: 'Hubungkan dompet Web3 browser kamu atau gunakan Akun Demo Siswa 1-Klik.',
+      modalSub: 'Masuk dengan dompet embedded Privy atau hubungkan dompet Web3 browser kamu.',
+      privyOption: 'Masuk dengan Privy (Email / Google)',
+      privyOptionSub: 'Dompet otomatis tanpa seed phrase, dapat diekspor kapan saja',
+      privyBadgeRecommended: 'Disarankan',
+      privyEmailPlaceholder: 'Masukkan email kamu (contoh: peserta@gmail.com)',
+      privySendOtpBtn: 'Kirim Kode OTP ➔',
+      privyGoogleBtn: 'Lanjutkan dengan Akun Google',
+      privyOrFastLogin: 'atau masuk cepat dengan',
+      privyStepOtpHelp: 'Kode verifikasi telah dikirim. Masukkan 6 digit kode untuk mengaktifkan alamat belajarmu:',
+      privyOtpPlaceholder: '123456',
+      privyVerifyOtpBtn: 'Verifikasi & Masuk Kelas ➔',
+      privyOtpNotice: '💡 Uji cepat: Kode OTP verifikasi default adalah 123456',
+      privyCustodyNotice: 'Catatan Kunci: Wallet kamu dibuatkan untukmu oleh infrastruktur Privy dan dapat diekspor kapan saja. Alamat EVM ini digunakan untuk mencatat progres belajarmu dan menerima bukti kredensial di BNB Chain.',
+      btnBack: '← Kembali',
       browserOption: 'Ekstensi Dompet Browser',
       browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
       deviceOption: 'Kunci Tamu Instan (Kunci Perangkat)',

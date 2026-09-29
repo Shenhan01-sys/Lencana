@@ -11,6 +11,11 @@ import {
   syncCourse,
   snapshot,
 } from './learning'
+import {
+  sendEmailOtp,
+  verifyEmailOtp,
+  loginWithPrivyOAuth,
+} from './privy'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -497,19 +502,238 @@ function renderWalletState() {
   }
 }
 
-function openWalletModal() {
+function openWalletModal(startWithPrivy = false) {
   const modal = $('wallet-modal')
   const statusEl = $('wallet-modal-status')
+  const optionsList = $('wallet-options-list')
+  const privyPanel = $('privy-onboarding-panel')
+  const stepEmail = $('privy-step-email')
+  const stepOtp = $('privy-step-otp')
+
   if (statusEl) {
     statusEl.classList.add('hidden')
     statusEl.textContent = ''
   }
+
+  if (startWithPrivy) {
+    optionsList?.classList.add('hidden')
+    privyPanel?.classList.remove('hidden')
+    stepEmail?.classList.remove('hidden')
+    stepOtp?.classList.add('hidden')
+  } else {
+    optionsList?.classList.remove('hidden')
+    privyPanel?.classList.add('hidden')
+    stepEmail?.classList.remove('hidden')
+    stepOtp?.classList.add('hidden')
+  }
+
   modal?.classList.remove('hidden')
 }
 
 function closeWalletModal() {
   const modal = $('wallet-modal')
   modal?.classList.add('hidden')
+}
+
+function switchToPrivyPanel() {
+  const optionsList = $('wallet-options-list')
+  const privyPanel = $('privy-onboarding-panel')
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.add('hidden')
+    statusEl.textContent = ''
+  }
+  optionsList?.classList.add('hidden')
+  privyPanel?.classList.remove('hidden')
+  $('privy-step-email')?.classList.remove('hidden')
+  $('privy-step-otp')?.classList.add('hidden')
+  const emailInput = $('privy-email-input') as HTMLInputElement | null
+  emailInput?.focus()
+}
+
+function switchToOptionsList() {
+  const optionsList = $('wallet-options-list')
+  const privyPanel = $('privy-onboarding-panel')
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.add('hidden')
+    statusEl.textContent = ''
+  }
+  privyPanel?.classList.add('hidden')
+  optionsList?.classList.remove('hidden')
+}
+
+async function handlePrivySendOtp() {
+  const emailInput = $('privy-email-input') as HTMLInputElement | null
+  const statusEl = $('wallet-modal-status')
+  const btn = $('btn-privy-send-otp') as HTMLButtonElement | null
+  const email = emailInput?.value.trim() || ''
+
+  if (!email || !email.includes('@')) {
+    if (statusEl) {
+      statusEl.textContent = currentLang === 'en'
+        ? 'Please enter a valid email address.'
+        : 'Masukkan format email yang valid.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+    return
+  }
+
+  if (btn) {
+    btn.disabled = true
+    btn.textContent = currentLang === 'en' ? 'Sending code…' : 'Mengirim kode…'
+  }
+  if (statusEl) {
+    statusEl.classList.remove('hidden')
+    statusEl.textContent = currentLang === 'en' ? 'Contacting Privy Auth…' : 'Menghubungi Privy Auth…'
+    statusEl.className = 'wallet-modal-status'
+  }
+
+  try {
+    const res = await sendEmailOtp(email)
+    if (statusEl) {
+      statusEl.textContent = res.message
+      statusEl.className = 'wallet-modal-status warn'
+      statusEl.classList.remove('hidden')
+    }
+    // Show OTP input step
+    $('privy-step-email')?.classList.add('hidden')
+    $('privy-step-otp')?.classList.remove('hidden')
+    const otpInput = $('privy-otp-input') as HTMLInputElement | null
+    if (otpInput) {
+      otpInput.value = ''
+      otpInput.focus()
+    }
+  } catch (err: any) {
+    if (statusEl) {
+      statusEl.textContent = err?.message || 'Gagal mengirim OTP.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false
+      btn.textContent = DICTIONARIES[currentLang].wallet.privySendOtpBtn
+    }
+  }
+}
+
+async function handlePrivyVerifyOtp() {
+  const emailInput = $('privy-email-input') as HTMLInputElement | null
+  const otpInput = $('privy-otp-input') as HTMLInputElement | null
+  const statusEl = $('wallet-modal-status')
+  const btn = $('btn-privy-verify-otp') as HTMLButtonElement | null
+
+  const email = emailInput?.value.trim() || ''
+  const otp = otpInput?.value.trim() || ''
+
+  if (!otp) {
+    if (statusEl) {
+      statusEl.textContent = currentLang === 'en'
+        ? 'Please enter the 6-digit OTP code.'
+        : 'Masukkan 6 digit kode OTP.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+    return
+  }
+
+  if (btn) {
+    btn.disabled = true
+    btn.textContent = currentLang === 'en' ? 'Verifying…' : 'Memverifikasi…'
+  }
+  if (statusEl) {
+    statusEl.classList.remove('hidden')
+    statusEl.textContent = currentLang === 'en' ? 'Activating Privy Embedded Wallet…' : 'Mengaktifkan Dompet Embedded Privy…'
+    statusEl.className = 'wallet-modal-status'
+  }
+
+  try {
+    const res = await verifyEmailOtp(email, otp)
+    if (!res.ok || !res.address) {
+      if (statusEl) {
+        statusEl.textContent = res.why || (currentLang === 'en' ? 'Invalid verification code.' : 'Kode verifikasi tidak valid.')
+        statusEl.className = 'wallet-modal-status error'
+        statusEl.classList.remove('hidden')
+      }
+      return
+    }
+
+    walletState = { isConnected: true, address: res.address, isDemo: false }
+    sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+    renderWalletState()
+    closeWalletModal()
+
+    const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+    if (pendingTarget) {
+      sessionStorage.removeItem('lencana_enroll_target')
+      try {
+        await syncCourse(pendingTarget)
+      } catch (err) {
+        console.warn('Sync enrollment error:', err)
+      }
+      window.location.hash = `#/course/${pendingTarget}`
+    } else {
+      window.location.hash = '#/learn'
+    }
+  } catch (err: any) {
+    if (statusEl) {
+      statusEl.textContent = err?.message || 'Verifikasi gagal.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false
+      btn.textContent = DICTIONARIES[currentLang].wallet.privyVerifyOtpBtn
+    }
+  }
+}
+
+async function handlePrivyGoogleLogin() {
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.remove('hidden')
+    statusEl.textContent = currentLang === 'en' ? 'Connecting with Google & Privy…' : 'Menghubungkan Akun Google & Privy…'
+    statusEl.className = 'wallet-modal-status'
+  }
+
+  try {
+    const res = await loginWithPrivyOAuth('google')
+    if (!res.ok || !res.address) {
+      if (statusEl) {
+        statusEl.textContent = res.why || 'Gagal masuk dengan Google.'
+        statusEl.className = 'wallet-modal-status error'
+        statusEl.classList.remove('hidden')
+      }
+      return
+    }
+
+    walletState = { isConnected: true, address: res.address, isDemo: false }
+    sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+    renderWalletState()
+    closeWalletModal()
+
+    const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+    if (pendingTarget) {
+      sessionStorage.removeItem('lencana_enroll_target')
+      try {
+        await syncCourse(pendingTarget)
+      } catch (err) {
+        console.warn('Sync enrollment error:', err)
+      }
+      window.location.hash = `#/course/${pendingTarget}`
+    } else {
+      window.location.hash = '#/learn'
+    }
+  } catch (err: any) {
+    if (statusEl) {
+      statusEl.textContent = err?.message || 'Login Google gagal.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+  }
 }
 
 async function connectBrowserWallet() {
@@ -1220,9 +1444,13 @@ function handleRoute() {
   const hash = rawHash.toLowerCase().split('?')[0]
 
   const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me'
+  const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
   let targetPageId = 'page-home'
   if (hash === '#/courses' || hash === '#courses') {
     targetPageId = 'page-courses'
+  } else if (isPrivyOnboard) {
+    targetPageId = 'page-home'
+    openWalletModal(true)
   } else if (hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit') {
     targetPageId = 'page-submit'
   } else if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') {
@@ -1538,6 +1766,21 @@ function updateStaticText() {
   setText('btn-wallet-text', dict.wallet.connectBtn)
   setText('wallet-modal-title', dict.wallet.modalTitle)
   setText('wallet-modal-sub', dict.wallet.modalSub)
+  setText('wallet-opt-privy-title', dict.wallet.privyOption)
+  setText('wallet-opt-privy-badge', dict.wallet.privyBadgeRecommended)
+  setText('wallet-opt-privy-desc', dict.wallet.privyOptionSub)
+  setText('btn-back-privy-text', dict.wallet.btnBack)
+  setText('privy-google-btn-text', dict.wallet.privyGoogleBtn)
+  setText('privy-or-text', dict.wallet.privyOrFastLogin)
+  setText('btn-privy-send-otp-text', dict.wallet.privySendOtpBtn)
+  setText('privy-otp-notice', dict.wallet.privyOtpNotice)
+  setText('privy-step-otp-help', dict.wallet.privyStepOtpHelp)
+  setText('btn-privy-verify-otp-text', dict.wallet.privyVerifyOtpBtn)
+  setText('privy-custody-text', dict.wallet.privyCustodyNotice)
+  const emailInp = $('privy-email-input') as HTMLInputElement | null
+  if (emailInp) emailInp.placeholder = dict.wallet.privyEmailPlaceholder
+  const otpInp = $('privy-otp-input') as HTMLInputElement | null
+  if (otpInp) otpInp.placeholder = dict.wallet.privyOtpPlaceholder
   setText('wallet-opt-browser-title', dict.wallet.browserOption)
   setText('wallet-opt-browser-desc', dict.wallet.browserOptionSub)
   setText('wallet-opt-device-title', dict.wallet.deviceOption)
@@ -1996,9 +2239,32 @@ function wire() {
   $('lang-id')?.addEventListener('click', () => setLanguage('id'))
 
   // Wallet Navbar & Modal Wiring
-  $('btn-connect-wallet')?.addEventListener('click', openWalletModal)
+  $('btn-connect-wallet')?.addEventListener('click', () => openWalletModal(false))
   $('btn-close-wallet-modal')?.addEventListener('click', closeWalletModal)
   $('wallet-modal-backdrop')?.addEventListener('click', closeWalletModal)
+  $('btn-opt-privy')?.addEventListener('click', switchToPrivyPanel)
+  $('btn-back-privy')?.addEventListener('click', switchToOptionsList)
+  $('btn-privy-google')?.addEventListener('click', handlePrivyGoogleLogin)
+  $('btn-privy-send-otp')?.addEventListener('click', handlePrivySendOtp)
+  $('btn-privy-resend')?.addEventListener('click', handlePrivySendOtp)
+  $('btn-privy-verify-otp')?.addEventListener('click', handlePrivyVerifyOtp)
+  $('privy-email-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handlePrivySendOtp()
+    }
+  })
+  $('privy-otp-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handlePrivyVerifyOtp()
+    }
+  })
+  window.addEventListener('lencana:open-privy', (e: any) => {
+    const cid = e.detail?.courseId
+    if (cid) sessionStorage.setItem('lencana_enroll_target', cid)
+    openWalletModal(true)
+  })
   $('btn-opt-browser-wallet')?.addEventListener('click', connectBrowserWallet)
   $('btn-opt-device-wallet')?.addEventListener('click', connectDeviceWallet)
   $('btn-opt-demo-wallet')?.addEventListener('click', connectDemoWallet)
