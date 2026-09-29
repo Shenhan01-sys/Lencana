@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-29
 command: npm run rehost (baca-dulu) · npm run rehost -- --apply
 measured: 2026-09-29
-result: 7 kertas host mati → 7 dipindah, nol transaksi · verify:edge 17 dari 17
+result: 7 kertas host mati → 7 dipindah, nol transaksi · verify:edge akhirnya 19 dari 19
 ---
 
 # T24 - signer rehost.js (memindah kertas ke host tetap, tanpa menulis ke chain)
@@ -124,7 +124,7 @@ pernah tercetak sama sekali karena hanya keranjang `errors` yang dibaca (`outcom
 | `server.js`: `/issuers/<slug>` disajikan dari `agentIdentity()` | Dua penyaji (tepi & server lokal) untuk satu agen dengan `id` kunci berbeda — verifier yang lewat server kita sendiri akan menolak tanda tangan sah (B84) |
 | `serve-probe`: "server berjalan dari kode terbaru" (`startedAt` + `codeStamp` vs mtime `src/`) | Signer yatim dari run kemarin memegang port 8787 dan probe menguji kode lama sambil menyimpulkan perbaikan baru salah (B86). Cap direkam **saat proses mulai**, bukan saat ditanya |
 
-`verify:edge` sesudah semuanya: **8/0** dengan `17 dari 17`; `publish:edge` **55/56**;
+`verify:edge` sesudah semuanya: **8/0** dengan `17 dari 17` pada jam itu; korpus tumbuh lagi dua kertas (`--from-attempts` jalur esai) sehingga ukuran 29 Sep sore adalah **19 dari 19**; `publish:edge` **55/56**;
 `serve-probe` **49/0**; `e2e` **46/0**; `verify:live-cert` **35/0**; `verify:db` **28/0**;
 `check.js` **84/0** — lihat **B85** sebelum angka terakhir itu dikutip (jumlahnya turun dari 94
 tanpa sebab yang berhasil kutemukan).

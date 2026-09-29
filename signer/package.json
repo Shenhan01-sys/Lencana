@@ -33,6 +33,7 @@
     "verify:live-cert": "node scripts/verify-live-cert.js",
     "publish:edge": "tsx scripts/publish.js",
     "verify:edge": "node scripts/verify-edge.js",
+    "diag:lists": "node scripts/diag-lists.js",
     "rehost": "node scripts/rehost.js",
     "grade:essay": "tsx scripts/grade-essay.js"
   },

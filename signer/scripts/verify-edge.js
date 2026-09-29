@@ -76,9 +76,21 @@ console.log(`  chain   : ${health.revocation?.watched ?? '?'} hash dipantau · r
 check('tepi mengklaim jumlah dokumen sama dengan store',
   health.counts?.credentialsWithDocument === withDocs.length,
   `tepi=${health.counts?.credentialsWithDocument} store=${withDocs.length} — jalankan npm run publish:edge`)
-check('kedua daftar status masih cocok dengan chain saat ini',
+/**
+ * Yang diminta di sini adalah pencocokan PENUH, dan kata `partial` dilaporkan kalau tepi hanya
+ * memeriksa sebagian. Alasannya tercatat di `worker.mjs`: pemeriksaan lama menghabiskan jatah
+ * subrequest invokasi (27 + 27 `eth_call` > 50) lalu melapor `matchesChainNow:false` dengan sebab
+ * `Too many subrequests` — alarm palsu yang membuat daftar sah terlihat rusak. Kalau nanti angkanya
+ * kembali `partial`, yang perlu dinaikkan adalah jatah/paginasi pemeriksaannya, bukan tolernsi kita.
+ */
+const listVerdict = (p) => ({
+  matches: health[p]?.matchesChainNow, checked: health[p]?.checked, unchecked: health[p]?.unchecked,
+  ...(health[p]?.partial ? { partial: true } : {}),
+  ...(health[p]?.rateLimited ? { rateLimited: true } : {}),
+})
+check('kedua daftar status masih cocok dengan chain saat ini (pemeriksaan penuh, bukan sebagian)',
   health.revocation?.matchesChainNow === true && health.suspension?.matchesChainNow === true,
-  JSON.stringify({ rev: health.revocation?.matchesChainNow, sus: health.suspension?.matchesChainNow }))
+  JSON.stringify({ rev: listVerdict('revocation'), sus: listVerdict('suspension') }))
 
 const missing = []
 const byHost = new Map()

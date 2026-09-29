@@ -45,6 +45,14 @@ const CORS = {
  */
 const ETH_CALL_BATCH = 6
 
+/**
+ * Jatah `eth_call` per invokasi Worker. Plan Free membatasi subrequest per invokasi (50); dua daftar
+ * dengan 27 anggota masing-masing dulu memanggil chain dua kali (54) dan meledakkan batas itu.
+ * Angka ini di bawah 50 dengan sengaja, dan sisanya DILAPORKAN sebagai `unchecked` — bukan diperiksa
+ * sampai gagal, bukan pula dianggap cocok.
+ */
+const MAX_STATUS_CHECKS = 42
+
 function json (body, { status = 200, headers = {} } = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -96,10 +104,47 @@ function expectedBit (purpose, s) {
 }
 
 /**
- * Cocokkan blob yang mau kami sajikan dengan chain, sekarang juga.
- * @returns {{ok: true} | {ok: false, mismatch: Array}}
+ * Baca `statusOf` untuk sekumpulan hash SEKALI per invokasi.
+ *
+ * Kenapa dipisah dari pencocokan: `/healthz` memverifikasi DUA daftar, dan kedua daftar itu berisi
+ * hash yang sama. Selama verifikasi memanggil chain sendiri-sendiri, satu invokasi menghabiskan
+ * 27 + 27 `eth_call` = 54 subrequest — melewati batas 50 milik plan Free, dan Cloudflare menjawab
+ * dengan `Too many subrequests by single Worker invocation`. Yang terjadi lalu bukan kebenaran yang
+ * hilang tapi **alarm palsu**: daftar suspension dilaporkan `matchesChainNow:false`, lengkap dengan
+ * pesan limit sebagai "sebabnya", dan rute daftar status menjawab 503 untuk blob yang sebenarnya
+ * sah. Terukur 29 Sep: `hash` render = `hash` sajian = `hash` yang ter-anchor (`getTimestamp` ≠ 0),
+ * jadi chain-nya cocok; yang kehabisan jatah adalah tepinya sendiri.
  */
-async function verifyListAgainstChain (env, purpose) {
+async function readStatuses (env, hashes) {
+  const out = new Map()
+  let limited = false
+  const list = [...new Set(hashes)]
+  for (let i = 0; i < list.length; i += ETH_CALL_BATCH) {
+    const chunk = list.slice(i, i + ETH_CALL_BATCH)
+    const got = await Promise.all(chunk.map(async (h) => {
+      try {
+        return [h, { status: await statusOf(env, h) }]
+      } catch (err) {
+        const why = String(err?.message ?? err)
+        // Batas subrequest adalah kegagalan PERMINTAAN, bukan bukti perbedaan state.
+        if (/subrequest|Too many/i.test(why)) limited = true
+        return [h, { error: why.slice(0, 120) }]
+      }
+    }))
+    for (const [h, v] of got) out.set(h, v)
+  }
+  return { statuses: out, limited, requested: list.length }
+}
+
+/**
+ * Cocokkan blob yang mau kami sajikan dengan chain, memakai status yang sudah dibaca di invokasi ini.
+ * @returns {{ok:true, checked:number, unchecked:number} | {ok:false, mismatch:Array, limited?:boolean}}
+ */
+async function verifyListAgainstChain (env, purpose, cache = {}) {
+  // `cache` opsional: `/healthz` mengirim satu cache bersama untuk dua daftar, `serveList` tidak
+  // punya pasangan. Versi pertama fungsi ini menulis `cache.statuses` tanpa nilai default dan
+  // `serveList` melempar TypeError → daftar status yang sah menjawab 500. Regresi itu kutemukan
+  // sendiri di run berikutnya (`verify:edge` 4 merah), bukan pengguna.
   const published = env.STATE.lists[purpose]
   if (!published) return { ok: false, mismatch: [{ reason: 'state tidak memuat daftar itu' }] }
 
@@ -108,28 +153,37 @@ async function verifyListAgainstChain (env, purpose) {
     if (typeof e.index !== 'number') continue
     pending.push({ ...e, bit: decodeBit(published.encodedList, e.index) })
   }
-
-  const seen = new Set()
-  const mismatch = []
-  for (let i = 0; i < pending.length; i += ETH_CALL_BATCH) {
-    const chunk = pending.slice(i, i + ETH_CALL_BATCH)
-    const results = await Promise.all(chunk.map(async (e) => {
-      if (seen.has(e.hash)) return null
-      seen.add(e.hash)
-      try {
-        const s = await statusOf(env, e.hash)
-        if (!s.exists) return { ...e, why: 'chain tidak mengenalinya lagi' }
-        if (expectedBit(purpose, s) !== (e.bit === 1)) {
-          return { ...e, why: `bit tersaji=${e.bit}, chain=${expectedBit(purpose, s) ? 1 : 0}` }
-        }
-      } catch (err) {
-        return { ...e, why: String(err.message ?? err).slice(0, 120) }
-      }
-      return null
-    }))
-    for (const r of results) if (r) mismatch.push(r)
+  /**
+   * Pembandingan tidak boleh memanggil chain sendiri kalau cache invokasi ini sudah dibekali
+   * (kasus `/healthz`: dua daftar, satu himpunan hash). Kalau cache belum ada (kasus `serveList`,
+   * satu daftar per invokasi), barulah kita baca sendiri — dan yang di luar jatah TIDAK diperiksa
+   * diam-diam: ia dihitung `unchecked` dan dilaporkan apa adanya.
+   */
+  if (!cache.statuses) {
+    const budget = MAX_STATUS_CHECKS
+    const wanted = [...new Set(pending.map((e) => e.hash))].slice(0, budget)
+    const r = await readStatuses(env, wanted)
+    cache.statuses = r.statuses
+    cache.limited = cache.limited || r.limited
   }
-  return mismatch.length ? { ok: false, mismatch } : { ok: true }
+  const unchecked = pending.filter((e) => !cache.statuses.has(e.hash)).length
+  const toCheck = pending.filter((e) => cache.statuses.has(e.hash))
+
+  const mismatch = []
+  for (const e of toCheck) {
+    const got = cache.statuses.get(e.hash)
+    if (!got) { mismatch.push({ ...e, why: 'status tidak terbaca di invokasi ini' }); continue }
+    if (got.error) { mismatch.push({ ...e, why: got.error }); continue }
+    const s = got.status
+    if (!s.exists) { mismatch.push({ ...e, why: 'chain tidak mengenalinya lagi' }); continue }
+    if (expectedBit(purpose, s) !== (e.bit === 1)) {
+      mismatch.push({ ...e, why: `bit tersaji=${e.bit}, chain=${expectedBit(purpose, s) ? 1 : 0}` })
+    }
+  }
+  if (mismatch.length) return { ok: false, mismatch, checked: toCheck.length, unchecked, limited: cache.limited === true }
+  // Yang belum diperiksa membuat klaim "cocok" tidak jujur: laporkan sebagai `partial`.
+  if (unchecked > 0) return { ok: true, partial: true, checked: toCheck.length, unchecked }
+  return { ok: true, checked: toCheck.length, unchecked: 0 }
 }
 
 async function readKV (env, key) {
@@ -148,14 +202,31 @@ async function serveList (env, purpose, url) {
       { status: 503, headers: { 'cache-control': 'no-store', 'x-lencana-stale': 'not-published' } })
   }
   const v = await verifyListAgainstChain(env, purpose)
-  if (!v.ok) {
+  /**
+   * Yang membuat daftar ditolak = bukti bahwa bit kita berbeda dari chain. Kegagalan MEMBACA (RPC
+   * menolak karena jatah invokasi, jaringan putus) bukan bukti apa pun tentang daftar ini — dan
+   * menolak menyajikan daftar yang sah karena alat pembaca kita sendiri kehabisan kuota adalah
+   * cara membuat produk kita mati di tangan orang yang tidak bersalah. Terjadi 29 Sep: suspension
+   * dijawab 503 dengan `why: "Too many subrequests…"`, padahal hash sajian identik dengan yang
+   * ter-anchor di BAS. Jadi sekarang: hanya divergensi nyata yang 503; sisanya disajikan dengan
+   * header yang menyebut verifikasi tidak penuh.
+   */
+  const realDivergence = (v.mismatch ?? []).filter((m) => /bit tersaji|tidak mengenalinya lagi/.test(m.why ?? ''))
+  if (!v.ok && realDivergence.length) {
     return json({
       error: 'daftar tersaji tidak cocok dengan chain saat ini — kami menolak menyajikannya',
-      purpose, mismatch: v.mismatch.slice(0, 8),
+      purpose, mismatch: realDivergence.slice(0, 8),
       chainReads: v.reads, statePublishedAt: env.STATE.publishedAt,
     }, { status: 503, headers: { 'cache-control': 'no-store', 'x-lencana-stale': 'chain-diverged' } })
   }
-  return json(doc, { headers: { 'cache-control': 'no-store', 'x-lencana-verified-at': env.STATE.selectors ? new Date().toISOString() : '' } })
+  const unverified = !v.ok || v.partial === true || v.limited === true
+  return json(doc, {
+    headers: {
+      'cache-control': 'no-store',
+      'x-lencana-verified-at': env.STATE.selectors ? new Date().toISOString() : '',
+      ...(unverified ? { 'x-lencana-verified': 'partial' } : {}),
+    },
+  })
 }
 
 async function serveHealthz (env, url) {
@@ -172,16 +243,37 @@ async function serveHealthz (env, url) {
     listBits: LIST_BITS,
     counts: s.counts,
   }
+  // SATU cache status untuk kedua daftar: himpunan hash mereka sama, jadi membacanya dua kali hanya
+  // menghabiskan jatah subrequest dan menghasilkan alarm palsu (lihat catatan di `readStatuses`).
+  const union = []
+  for (const purpose of PK) {
+    for (const e of (env.STATE.lists[purpose]?.entries ?? [])) if (typeof e.index === 'number') union.push(e.hash)
+  }
+  const cache = { statuses: null, used: 0, limited: false }
+  if (union.length) {
+    const wanted = [...new Set(union)].slice(0, MAX_STATUS_CHECKS)
+    const r = await readStatuses(env, wanted)
+    cache.statuses = r.statuses
+    cache.limited = r.limited
+  }
   for (const purpose of PK) {
     const l = s.lists[purpose]
     if (!l) { out[purpose] = { error: 'belum diterbitkan' }; continue }
-    const v = await verifyListAgainstChain(env, purpose)
+    const v = await verifyListAgainstChain(env, purpose, cache)
     out[purpose] = {
       hash: l.hash,
       watched: l.entries.length,
       flagged: l.flagged,
       unallocated: l.unallocated,
-      matchesChainNow: v.ok,
+      // `matchesChainNow` hanya boleh benar kalau SEMUA anggota sempat dibandingkan dan cocok.
+      // Sebagian diperiksa = `partial`, bukan cocok dan bukan pula divergen.
+      matchesChainNow: v.ok === true && v.partial !== true,
+      checked: v.checked ?? 0,
+      unchecked: v.unchecked ?? 0,
+      // `partial` = tidak semua anggota sempat dibandingkan; `limited` = RPC menolak karena jatah
+      // invokasi habis. Dua-duanya BUKAN pernyataan bahwa daftar kita salah.
+      ...(v.partial ? { partial: true } : {}),
+      ...(v.limited || cache.limited ? { rateLimited: true } : {}),
       ...(v.ok ? {} : { mismatch: v.mismatch.slice(0, 4) }),
     }
   }
