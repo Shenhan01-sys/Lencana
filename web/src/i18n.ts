@@ -691,8 +691,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       w3cSpec: 'W3C & OB 3.0 Spec',
     },
     bannerNotDeployed: {
-      title: 'Our on-chain layer is not yet broadcast to this public chain.',
-      body: '47 offline/fork tests pass on chain 97 and 56 against officially deployed BAS, but the CredentialResolver and SoulboundCert addresses are empty on this preset.',
+      title: 'Nothing is deployed at this endpoint.',
+      body: 'The resolver and artifact addresses are empty for this preset, so there is nothing to read here. Our own layer is live on BNB Smart Chain testnet (97) — switch the network selector. Test counts are never quoted in this page: they are printed by `npm run sync:numbers` on the day they are needed.',
       hint: 'Configure addresses in Reader Configuration once deployed.',
       honestNote: 'This dApp deliberately refuses mock data: fake green indicators are worse than an honest empty result.',
     },
@@ -1264,8 +1264,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       w3cSpec: 'Kepatuhan Standar W3C',
     },
     bannerNotDeployed: {
-      title: 'Lapis on-chain kami belum disiarkan ke chain.',
-      body: '47 test lulus di fork chain 97 dan 56 terhadap BAS yang benar-benar ter-deploy, tapi address CredentialResolver / SoulboundCert masih kosong di preset ini.',
+      title: 'Endpoint ini belum punya apa pun yang ter-deploy.',
+      body: 'Address resolver dan kontrak artefak kosong di preset ini, jadi tidak ada yang bisa dibaca di sini. Lapis kami sendiri hidup di BNB Smart Chain testnet (97) — pindah lewat pemilih jaringan. Halaman ini tidak pernah mengutip jumlah uji: angkanya dicetak `npm run sync:numbers` pada hari dibutuhkan.',
       hint: 'Isi address-nya di panel Konfigurasi pembacaan begitu kontrak selesai di-deploy.',
       honestNote: 'Halaman ini sengaja tidak memakai data contoh: angka palsu yang terlihat bagus lebih buruk daripada halaman yang kosong dan jujur.',
     },
