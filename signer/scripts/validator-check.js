@@ -15,6 +15,7 @@
  * "eligible to be submitted…" sebagai string template, jadi angka hanya dibaca dari /api/validate.
  */
 import { appendFile, readFile } from 'node:fs/promises'
+import { createPublicClient, http, getAddress, parseAbi } from 'viem'
 import { gunzipSync } from 'node:zlib'
 
 const arg = (name, fallback) => {
@@ -43,6 +44,9 @@ const hash = (arg('hash') || env.DOC_HASH || env.DEMO_HASH || '').trim()
 
 let fails = 0
 const log = []
+// State chain untuk hash yang diperiksa; dipakai untuk menetapkan HARAPAN validator, dan ikut
+// tertulis di buku besar. `null` kalau chain-nya tidak teraih — itu dicatat, bukan diasumsikan lolos.
+let revokedOnChain = null
 function check (name, ok, detail = '') {
   log.push(`${ok ? 'ok  ' : 'GAGAL'} ${name}${detail ? ` -> ${detail}` : ''}`)
   console.log(`  ${ok ? 'ok   ' : 'GAGAL'} ${name}${detail ? ` -> ${detail}` : ''}`)
@@ -119,8 +123,48 @@ if (!verdict) {
 } else {
   const s = verdict.summary
   console.log(`\n  outcome ${s.outcome} · ${s.totalRun} pemeriksaan · ${s.errors} error · ${s.warnings} warning · ${s.fatals} fatal · ${s.exceptions} exception`)
-  for (const e of verdict.errors ?? []) console.log(`    - ${e.title}: ${e.message}`)
-  check('hasil validator: VALID, nol error', s.outcome === 'VALID' && s.errors === 0 && s.fatals === 0 && s.exceptions === 0)
+  // Semua kelompok pesan, bukan hanya `errors`. Run 29 Sep menemukan kenapa ini perlu: outcome
+  // FATAL dengan `errors: []`, jadi sebabnya ada di keranjang lain (`fatals`) dan tidak pernah
+  // tercetak — skrip melaporkan "merah" tanpa pernah bisa menjawab "karena apa". Buku besar
+  // ikut menyimpan ini supaya jawaban itu masih ada tiga hari dari sekarang.
+  const groups = Object.entries(verdict).filter(([, v]) => Array.isArray(v) && v.length)
+  for (const [name, items] of groups) {
+    for (const e of items) console.log(`    [${name}] ${e?.title ?? e?.code ?? ''}: ${e?.message ?? JSON.stringify(e).slice(0, 140)}`)
+  }
+  const allMessages = groups.flatMap(([, items]) => items.map((e) => `${e?.title ?? ''} ${e?.message ?? ''}`)).join(' ').toLowerCase()
+
+  /**
+   * Harapan datang dari CHAIN, bukan dari baris yang ditulis permanen di skrip.
+   *
+   * Versi sebelumnya menuntut `VALID` untuk hash apa pun yang diberikan. Untuk kredensial yang kita
+   * cabut — dan pencabutan justru adegan demo kita — validator pihak ketiga berkata FATAL karena
+   * bit revokasinya menyala, dan itu **produk yang bekerja** yang tercetak merah. Kegagalan yang
+   * salah arah ini sudah pernah terjadi di `serve-probe` (harapan agregat yang basi) dan di sini
+   * penyebabnya sama: angka harapan diambil dari ingatan penulis skrip, bukan dari state.
+   *
+   * Jadi: `revoked=true` di chain → kita TUNTUT validator menolaknya, dan penolakannya harus
+   * menyebut status/revokasi (kalau tidak, ia ditolak karena sebab lain — tanda tangan rusak
+   * sekalipun — dan itu tidak boleh lolos sebagai "sudah sesuai").
+   */
+  const chainClient = createPublicClient({ transport: http(env.RPC_URL) })
+  revokedOnChain = await chainClient.readContract({
+    address: getAddress(env.RESOLVER_ADDRESS),
+    abi: parseAbi(['function statusOf(bytes32) view returns (bool,bool,bool,bool,address,uint64,uint64)']),
+    functionName: 'statusOf',
+    args: [hash],
+  }).then(([exists, revoked]) => ({ exists, revoked })).catch(() => null)
+
+  if (!revokedOnChain) {
+    check('state chain terbaca (harus, supaya harapan validator bisa ditetapkan)', false, `${env.RPC_URL} / ${env.RESOLVER_ADDRESS}`)
+  } else if (revokedOnChain.revoked) {
+    const msgs = allMessages
+    const mentionsStatus = /revok|status|bitstring|list/i.test(msgs)
+    console.log(`    (chain: revoked=true → validator HARUS menolak; pesan: ${msgs.slice(0, 110) || '—'})`)
+    check('kertas tercabut ditolak validator, dan sebabnya menyebut status revokasi',
+      s.outcome !== 'VALID' && s.fatals + s.errors > 0 && mentionsStatus, `${s.outcome} · fatals=${s.fatals} errors=${s.errors}`)
+  } else {
+    check('hasil validator: VALID, nol error', s.outcome === 'VALID' && s.errors === 0 && s.fatals === 0 && s.exceptions === 0)
+  }
 }
 
 // 4. Buku besar. Verdict yang tidak dicatat tanggal + hash-nya tidak bisa dibela tiga hari dari sekarang.
@@ -129,7 +173,12 @@ if (process.argv.includes('--record') && verdict) {
   const line = JSON.stringify({
     at: new Date().toISOString(), credentialHash: hash, docUrl, uploadId,
     issuerDocument: vmUrl, outcome: verdict.summary.outcome, summary: verdict.summary,
-    errors: (verdict.errors ?? []).map((e) => e.message), baseUrl: BASE,
+    // Semua kelompok pesan (bukan hanya `errors`), plus state chain yang jadi dasar harapan kita —
+    // supaya baris buku besar bisa menjelaskan "kenapa FATAL" tanpa harus mengulang unggahan.
+    messages: Object.fromEntries(Object.entries(verdict).filter(([, v]) => Array.isArray(v) && v.length)
+      .map(([k, v]) => [k, v.map((e) => `${e?.title ?? e?.code ?? ''}${e?.message ? `: ${e.message}` : ''}`)])),
+    chain: { revoked: revokedOnChain?.revoked ?? null, exists: revokedOnChain?.exists ?? null },
+    baseUrl: BASE,
   }) + '\n'
   await appendFile(ledger, line, 'utf8')
   console.log(`  tercatat di vault/09-Testing/validator-runs.jsonl`)

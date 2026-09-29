@@ -163,6 +163,56 @@ for (const m of fatal) {
 for (const [k, list] of grouped) {
   check(`tidak ada bagian yang tertinggal di tepi (${k})`, false, `${list.length} rute: ${list.slice(0, 4).join(', ')}${list.length > 4 ? ', …' : ''}`)
 }
+/**
+ * INARIAN yang belum dijaga siapa pun sampai 29 Sep: untuk SETIAP kertas yang tayang di tepi,
+ * `proof.verificationMethod` harus benar-benar tercantum di `assertionMethod` dokumen penerbit yang
+ * ia menunjuk. `serve-probe` memeriksa ini untuk SATU `DOC_HASH`; verifier nyata memeriksa untuk
+ * setiap kertas yang dibukanya.
+ *
+ * Kenapa ini ada di sini sekarang: waktu memindah enam kertas ke host tepi (B65-b) aku menulis ulang
+ * `issuer.id` kertasnya tanpa sempat memastikan daftar kunci di sisi penerbit ikut berpindah —
+ * dan tidak ada gerbang yang menangkapnya selain `serve-probe` yang kebetulan sedang menguji satu
+ * hash. Kertas seperti itu bukan "tidak terverifikasi oleh kami", tapi "tidak terverifikasi oleh
+ * siapa pun, selamanya, dengan tanda tangan yang kelihatan utuh". Itu kegagalan terburuk yang bisa
+ * kita produksi, karena ia senyap.
+ */
+const perIssuer = new Map()
+for (const r of withDocs) {
+  const doc = r.document ?? {}
+  const iss = typeof doc.issuer === 'string' ? doc.issuer : doc.issuer?.id
+  const vm = doc.proof?.verificationMethod
+  const host = (() => { try { return new URL(String(vm ?? iss ?? '')).host } catch { return null } })()
+  if (!host || host !== edgeHost || !vm) continue
+  const base = vm.split('#')[0]
+  if (!perIssuer.has(base)) perIssuer.set(base, { keys: new Set(), creds: [] })
+  perIssuer.get(base).creds.push(String(r.credentialHash).slice(0, 10))
+  try {
+    const j = await (await fetch(base, { signal: AbortSignal.timeout(20_000) })).json()
+    for (const m of j.assertionMethod ?? []) perIssuer.get(base).keys.add(typeof m === 'string' ? m : m.id)
+    if (j.id) perIssuer.get(base).docId = j.id
+  } catch (e) {
+    perIssuer.get(base).error = String(e.message ?? e).slice(0, 60)
+  }
+}
+for (const [base, info] of perIssuer) {
+  // Perbandingan dilakukan per kredensial, bukan per himpunan kunci: yang harus dijawab adalah
+  // "kunci milik kertas mana yang tidak terdaftar", supaya merahnya bisa ditindaklanjuti.
+  const missingVms = []
+  for (const r of withDocs) {
+    const doc = r.document ?? {}
+    const iss = typeof doc.issuer === 'string' ? doc.issuer : doc.issuer?.id
+    const vm = doc.proof?.verificationMethod
+    if (!vm || vm.split('#')[0] !== base) continue
+    if (!info.keys.has(vm)) missingVms.push(`${String(r.credentialHash).slice(0, 10)}→${vm.slice(0, 30)}…`)
+  }
+  check(`kunci ${base.replace(/^https?:\/\//, '')} terdaftar di assertionMethod-nya (${info.creds.length} kertas)`,
+    !info.error && missingVms.length === 0 && info.keys.size > 0,
+    info.error ? `dokumen penerbit tidak teraih: ${info.error}` : (missingVms.length ? missingVms.join(', ') : `0 kunci, ${info.creds.length} kertas`))
+  if (info.docId && info.docId !== base) {
+    check(`dokumen penerbit ${base.slice(0, 40)}… mengidentifikasi dirinya dengan id yang sama`, false, `id tersaji: ${info.docId}`)
+  }
+}
+
 const fully = byHost.get(edgeHost)?.n ?? 0
 // Ini DIUKUR dan DINYATAKAN, bukan dibuat merah: kertas yang menunjuk host lain tidak bisa
 // disembuhkan oleh `publish` - URL-nya sudah tertulis di dalam dokumen bertanda tangan, jadi satu-satunya

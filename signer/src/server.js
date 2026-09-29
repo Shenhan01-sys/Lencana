@@ -20,7 +20,10 @@
  *   PORT=9000 BASE_URL=https://api.example node src/server.js
  */
 import { createServer } from 'node:http'
-import { loadKey, issuerDocument, listAgents, issuerDocumentFor } from './issuer.js'
+import { readdirSync, statSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { agentIdentity, issuerDocumentFor, issuerDocument, listAgents, loadKey } from './issuer.js'
 import { loadFileEnvReport } from './env.js'
 import { REVOCATION, SUSPENSION, renderList, servedHashes } from './lists.js'
 import { sha256Hex } from './credential.js'
@@ -66,6 +69,35 @@ const { key, controller, name } = await loadKey(AGENT_SLUG)
 const issuerDoc = issuerDocument({ controller, name, key })
 const loaderDocs = { [controller]: issuerDoc }
 const documentLoader = makeDocumentLoader(loaderDocs)
+
+/**
+ * Kapan proses ini mulai. Dipakai `serve-probe` untuk menolak menguji server yang lebih tua
+ * daripada kode di disk — yang terjadi 29 Sep: signer yatim dari run sehari sebelumnya masih
+ * memegang port 8787, probe berbicara dengannya, dan dua pemeriksaan merah karena PERBAIKANKU
+ * belum ada di proses itu. Angka merah dari proses lama lebih menyesatkan daripada tidak ada
+ * angka sama sekali, karena ia terbaca sebagai "kodenya salah".
+ */
+const STARTED_AT = new Date().toISOString()
+
+/**
+ * Cap kode yang DIPUAT proses ini, bukan yang ada di disk saat ditanya. Dibaca sekali di awal
+ * karena justru di situlah informasinya: kalau cap dihitung ulang saat `/healthz` dipanggil,
+ * server yatim akan melaporkan cap terbaru dan guard-nya mati — persis kegagalan yang mau ditangkap.
+ */
+const CODE_STAMP = (() => {
+  const here = dirname(fileURLToPath(import.meta.url))
+  let newest = 0
+  let files = 0
+  try {
+    for (const f of readdirSync(here)) {
+      if (!f.endsWith('.js')) continue
+      const m = statSync(join(here, f)).mtimeMs
+      files += 1
+      if (m > newest) newest = m
+    }
+  } catch { /* jangan mematikan /healthz karena stat gagal */ }
+  return { newestSrcMtime: newest || null, srcFiles: files }
+})()
 
 /**
  * Daftar untuk satu purpose. Isi logikanya ada di `lists.js` — dipakai juga oleh sisi penerbit,
@@ -294,7 +326,11 @@ const server = createServer(async (req, res) => {
       if (!agent) {
         return send(res, 404, { error: 'agen tidak dikenal', slug, known: agents.map((a) => a.agentSlug) })
       }
-      return send(res, 200, issuerDocumentFor(agent))
+      // Identitas disajikan dari `agentIdentity`, bukan dari controller di berkas kunci: kredensial
+      // yang sudah dipindah ke host tepi mencetak `issuer.id` di host itu, dan kalau server ini
+      // masih merakit `assertionMethod[].id` dari controller lama, verifier yang lewat sini
+      // menolak tanda tangan yang sah. (Ditangkap `serve-probe` 29 Sep — lihat `issuer.js:identityBase`.)
+      return send(res, 200, issuerDocumentFor(agentIdentity(agent)))
     }
     // `achievement.criteria.id` dan `result[].resultDescription` di setiap kredensial menunjuk ke
     // sini. Sampai hari ini keduanya hanya identifier — sah menurut spesifikasi, tapi pertanyaan
@@ -458,6 +494,10 @@ const server = createServer(async (req, res) => {
         // Semua identitas yang kami sajikan, supaya "kredensial ini menunjuk ke mana" bisa
         // dijawab dari satu permintaan, bukan dari tebakan slug.
         agentSlugs: (await listAgents()).map((a) => a.agentSlug),
+        startedAt: STARTED_AT,
+        // Kode mana yang sedang berjalan, direkam saat proses mulai: supaya penguji bisa bilang
+        // "server ini lebih tua daripada src/ di disk" alih-alih melaporkan merah palsu.
+        codeStamp: CODE_STAMP,
         watched: r.watched,
         // `unallocated` dilaporkan, bukan disembunyikan: kredensial yang ada di chain tapi belum
         // punya slot TIDAK ikut menentukan bit — dan itu harus kelihatan, bukan jadi daftar yang

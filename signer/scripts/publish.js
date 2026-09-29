@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { toFunctionSelector, getAddress } from 'viem'
 
-import { loadKey, issuerDocument } from '../src/issuer.js'
+import { agentAt, issuerDocumentFor, listAgents, loadKey, issuerDocument } from '../src/issuer.js'
 import { makeDocumentLoader } from '../src/sign.js'
 import { renderList, servedHashes, REVOCATION, SUSPENSION } from '../src/lists.js'
 import { listCredentials, knownHashes } from '../src/store.js'
@@ -129,6 +129,38 @@ for (const purpose of PURPOSES) await kvPut(KV_KEYS.list(purpose), lists[purpose
 await kvPut(KV_KEYS.issuer(SLUG), issuerDoc)
 published.issuer++
 
+/**
+ * Dokumen penerbit untuk SEMUA agen di disk, bukan cuma yang menandatangani hari ini (B65-b).
+ *
+ * Kenapa: tiap kredensial mencetak `issuer.id` miliknya sendiri, dan verifier mengikuti URL itu untuk
+ * mengambil kunci. Server tepi yang hanya melayani `AGENT_SLUG` membuat kertas terbitan agen lain
+ * 404 di tempat kunci berada — gejalanya " kredensial tidak dapat diverifikasi", padahal kuncinya ada
+ * di mesin ini. B48 menangkap bentuknya di server lokal; ini sisi terbitnya.
+ *
+ * Yang ditulis di mari bukan controller dari berkas kunci, tapi turunan `agentAt(…)`: identitas =
+ * kunci Multikey (tidak berubah), tempat tayang = tepi. Berkas `.keys/*.json` tidak disentuh, jadi
+ * perintah `agent` tetap bisa dijalankan dari host lamanya.
+ */
+const otherAgents = (await listAgents()).filter((a) => a.agentSlug !== SLUG)
+for (const a of otherAgents) {
+  const moved = agentAt(a, BASE)
+  const doc = issuerDocumentFor(moved)
+  // Yang dibandingkan adalah ENTRI-nya, bukan hanya dokumen: kunci disajikan lewat
+  // `assertionMethod[].id`, dan `proof.verificationMethod` pada kertas harus cocok persis dengan
+  // salah satu entri itu. Versi pertama pemeriksaan ini cuma mengecek `publicKeyMultibase`, jadi
+  // dokumen yang `id` entri-nya masih bersistem host lama lolos — dan gejalanya baru muncul di
+  // `serve-probe`: "verificationMethod tidak ada di assertionMethod issuer", tanda tangan tampak
+  // rusak padahal yang salah daftar kuncinya.
+  const vmId = `${moved.controller}#${moved.publicKeyMultibase}`
+  if (!doc.assertionMethod?.some((m) => m.id === vmId && m.publicKeyMultibase === moved.publicKeyMultibase)) {
+    console.error(`  ⚠ agen ${a.agentSlug}: assertionMethod tidak memuat "${vmId}" — tidak diterbitkan`)
+    continue
+  }
+  await kvPut(KV_KEYS.issuer(a.agentSlug), doc)
+  published.issuer++
+  console.log(`  issuer : ${a.agentSlug} disajikan di ${doc.id} (kunci ${moved.publicKeyMultibase.slice(0, 12)}…, controller berkas: ${a.controller})`)
+}
+
 for (const r of records) {
   const hash = String(r.credentialHash).toLowerCase()
   if (r.document) { await kvPut(KV_KEYS.credential(hash), r.document); published.credential++ }
@@ -228,6 +260,15 @@ for (const purpose of PURPOSES) {
 }
 const gi = await edge('issuer document', EDGE_ROUTES.issuer(SLUG), (j) => !!j.assertionMethod)
 if (!gi.ok) bad.push(failed(gi))
+// Setiap dokumen penerbit yang barusan ditulis harus bisa diambil — termasuk punya agen lain.
+// Kertas yang `issuer.id`-nya 404 itu tidak terverifikasi, dan `verify:edge` tidak melihat ini
+// karena ia mengikuti URL dari dalam kertas yang menunjuk cred, bukan issuer, untuk agen lama.
+for (const a of otherAgents) {
+  const want = agentAt(a, BASE)
+  const g = await edge(`issuer ${a.agentSlug}`, EDGE_ROUTES.issuer(a.agentSlug),
+    (j) => j.id === want.controller && (j.assertionMethod ?? []).some((m) => m.publicKeyMultibase === want.publicKeyMultibase))
+  if (!g.ok) bad.push(failed(g))
+}
 
 const shapes = {}
 for (const [hash, r] of byHash) {

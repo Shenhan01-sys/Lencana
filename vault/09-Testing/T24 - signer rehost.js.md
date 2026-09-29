@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-29
 command: npm run rehost (baca-dulu) · npm run rehost -- --apply
 measured: 2026-09-29
-result: 7 kertas host mati terklasifikasi · 1 dipindah tanpa gas · 6 menunggu keputusan (B83)
+result: 7 kertas host mati → 7 dipindah, nol transaksi · verify:edge 17 dari 17
 ---
 
 # T24 - signer rehost.js (memindah kertas ke host tetap, tanpa menulis ke chain)
@@ -73,14 +73,63 @@ transaksi, tidak ada kertas baru, tidak ada re-anchor. Diperiksa, bukan diasumsi
 | `npm run e2e` | **46 / 0** |
 | `npm run verify:live-cert` | **35 / 0** |
 
-## Yang TIDAK dibuktikan halaman ini
+## Run kedua hari yang sama — `--move-identity --fix-status-shape`, 6 kertas, tetap nol gas
 
-- Tidak ada satu pun dari 6 kertas `butuh identitas` yang jadi terbaca. Angkanya naik 10 → 11, bukan
-  → 17, dan itu memang hasil yang benar untuk alat yang tidak boleh memutuskan identitas penerbit.
-- Bukan pencabutan: kertas `0x8276e8a7…` yang dipindah **tetap revoked** — rehost tidak mengubah
-  status, dan memang tidak boleh.
-- Tidak menguji apakah validator pihak ketiga masih berkata `VALID` untuk kertas yang dipindah (ia
-  revoked, jadi jawabannya akan "tercabut", bukan "valid" — itu pekerjaan B83 kalau korpusnya dipilih ulang).
+Builder memutuskan B83 ("kalau bisa ya benerin aja"), jadi jalan (b) dipakai: URL identitas
+penerbit ikut pindah, kuncinya tidak. Ini yang tercetak:
+
+```
+  ok    0x041e5898: …/credentials/0x041e5898…   12 URL dipindah · kadaluarsa tetap · bit 8/9 tetap · catatan lama dibuang
+  ok    0xf34bdc45: …/credentials/0xf34bdc45…   12 URL dipindah · kadaluarsa tetap · bit 0/1 tetap · catatan lama dibuang
+  ok    0x63b510bd: …/credentials/0x63b510bd…   12 URL dipindah · kadaluarsa tetap · bit 20/21 tetap · catatan lama dibuang
+  ok    0x81fc74b6: …/credentials/0x81fc74b6…   12 URL dipindah · kadaluarsa tetap · bit 22/23 tetap · catatan lama dibuang
+  ok    0x58537cc3: …/credentials/0x58537cc3…   12 URL dipindah · kadaluarsa tetap · bit 24/25 tetap · catatan lama dibuang
+selesai: 5 kertas dipindah, 0 tidak dikerjakan.        (+ 0xfe4f7161 pada run pertama = 6)
+```
+
+Lapis yang membedakan ini dari "perbaikan bentuk diam-diam": kelima kertas itu `credentialStatus`-nya
+masih **array** (bentuk lama yang ditolak skema OB 3.0 — B68/OI-12). Memindah host tidak boleh
+mengubah isi, jadi perubahan bentuk minta bendera sendiri (`--fix-status-shape`), hanya menerima bentuk
+yang dikenali (dua entri, revocation + suspension), dan **menolak kalau nomor bitnya tidak sama dengan
+alokator**:
+
+```
+    bentuk  : credentialStatus array(2) → objek revokasi (index 22); entri suspension dibuang dan disimpan di record sebagai droppedStatusEntries
+```
+
+Store setelahnya (diukur, bukan diingat): **17 rekaman · 0 credentialStatus array · 17 satu objek ·
+7 di antaranya membawa jejak rehost** (`rehostFrom`, `rehostIdentity`, `droppedStatusEntries`).
+
+## Validator pihak ketiga atas keenamnya — dan harapan yang sekarang datang dari chain
+
+```
+  outcome VALID · 14 pemeriksaan · 0 error · 0 warning · 0 fatal        (0x58537cc3, 0x63b510bd, 0x041e5898, 0xfe4f7161)
+  outcome FATAL · 1 fatal
+    [fatals] Bitstring Status List Validation: Credential has been revoked   (0xf34bdc45, 0x81fc74b6)
+```
+
+Dua yang FATAL itu **bukan regresi**: keduanya memang kita cabut sebagai adegan demo, dan
+`validator-check.js` sekarang membaca `statusOf` di chain untuk menetapkan harapan — kertas tercabut
+dituntut ditolak **dengan sebab yang menyebut status**, bukan diterima. Sebelum perubahan ini skrip
+menuntut `VALID` untuk hash apa pun, jadi produk yang bekerja tercetak merah; dan sebab fatalnya tidak
+pernah tercetak sama sekali karena hanya keranjang `errors` yang dibaca (`outcome FATAL` dengan
+`errors: []`). Sekarang semua kelompok pesan dicetak dan ikut masuk buku besar.
+
+## Gerbang yang kutambahkan karena run ini, bukan karena diminta
+
+| gerbang | sebab ia ada |
+|---|---|
+| `verify:edge`: `proof.verificationMethod` harus tercantum di `assertionMethod` dokumen penerbit, untuk SETIAP kertas | Setelah `--move-identity`, tidak ada satu pun harness yang menjamin daftar kunci ikut pindah. Kertas tanpa kunci terdaftar = tidak dapat diverifikasi **selamanya** dengan tanda tangan yang tampak utuh. Terukur: agent-edge 11 kertas · agent-b41 3 · agent-demo 3, semuanya ok |
+| `publish.js` + `rehost.js` membandingkan **entri** `assertionMethod[].id` (bukan hanya `publicKeyMultibase`) | Versi pertama publish-ku lolos untuk dokumen yang entri kuncinya masih host lama; yang menangkap adalah `serve-probe`, dan itu keberuntungan, bukan gerbang |
+| `server.js`: `/issuers/<slug>` disajikan dari `agentIdentity()` | Dua penyaji (tepi & server lokal) untuk satu agen dengan `id` kunci berbeda — verifier yang lewat server kita sendiri akan menolak tanda tangan sah (B84) |
+| `serve-probe`: "server berjalan dari kode terbaru" (`startedAt` + `codeStamp` vs mtime `src/`) | Signer yatim dari run kemarin memegang port 8787 dan probe menguji kode lama sambil menyimpulkan perbaikan baru salah (B86). Cap direkam **saat proses mulai**, bukan saat ditanya |
+
+`verify:edge` sesudah semuanya: **8/0** dengan `17 dari 17`; `publish:edge` **55/56**;
+`serve-probe` **49/0**; `e2e` **46/0**; `verify:live-cert` **35/0**; `verify:db` **28/0**;
+`check.js` **84/0** — lihat **B85** sebelum angka terakhir itu dikutip (jumlahnya turun dari 94
+tanpa sebab yang berhasil kutemukan).
+
+
 
 **Related:** [[09-Testing/T18 - signer verify-edge.js]] · [[09-Testing/T17 - signer verify-live-cert.js]] ·
 [[04-Signer-Service/S10 - Edge surface]]

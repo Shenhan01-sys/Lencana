@@ -10,6 +10,7 @@
  * Perlu: server jalan (`npm run serve`) dengan RPC_URL + RESOLVER_ADDRESS + STATUS_HASHES terisi.
  */
 import { makeDocumentLoader, verifyDocument } from '../src/sign.js'
+import { readdirSync, statSync } from 'node:fs'
 import { gunzipSync } from 'node:zlib'
 import { LIST_BITS, REVOCATION, SUSPENSION, decodeBit } from '../src/statusList.js'
 import { loadFileEnvReport } from '../src/env.js'
@@ -49,6 +50,45 @@ async function getJson (path) {
 // `agent-demo`, jadi begitu `.env` berisi slug lain ia merah dengan 404 yang lebih mirip
 // "dokumennya hilang" daripada "probe-nya yang salah".
 const health = await getJson('/healthz')
+
+/**
+ * GUARD: server yang diuji harus lebih muda daripada kode di disk.
+ *
+ * Kenapa ini bukan formalitas: 29 Sep, `probe:serve` merah 2 pemeriksaan tepat setelah dokumen
+ * penerbit dinormalisasi — dan yang merah bukan kodenya, melainkan **server yatim dari run
+ * sehari sebelumnya** yang masih memegang 127.0.0.1:8787. Probe berbicara dengan proses lama
+ * sambil menyimpulkan kode baru salah. Setelah itu, setiap hasil probe tanpa cap waktu adalah
+ * klaim tentang proses mana pun yang kebetulan hold port itu.
+ *
+ * Perbandingan sengaja longgar (mtime src terbaru vs `startedAt` + `codeStamp` proses) dan
+ * kegagalannya NAMA, bukan diam: kita tidak mau ganti jadi merah hanya karena jam mesin meleset.
+ */
+{
+  const started = Date.parse(health?.startedAt ?? '')
+  const stampMs = Number(health?.codeStamp?.newestSrcMtime ?? 0)
+  const diskNewest = (() => {
+    try {
+      const here = new URL('../src/', import.meta.url)
+      let m = 0
+      for (const f of readdirSync(here)) {
+        if (!f.endsWith('.js')) continue
+        m = Math.max(m, statSync(new URL(f, here)).mtimeMs)
+      }
+      return m
+    } catch { return 0 }
+  })()
+  if (!health?.startedAt || !stampMs) {
+    check('server melaporkan startedAt + codeStamp (probe tidak menguji proses yang buta versi)', false,
+      JSON.stringify({ startedAt: health?.startedAt ?? null, codeStamp: health?.codeStamp ?? null }))
+  } else if (diskNewest && stampMs < diskNewest) {
+    const age = Math.round((diskNewest - stampMs) / 60_000)
+    check('server berjalan dari kode terbaru (startedAt + cap src >= mtime src di disk)', false,
+      `proses memuat src per ${new Date(stampMs).toISOString()}, disk terbaru ${new Date(diskNewest).toISOString()} (${age} menit lebih baru) — MATIKAN server lama, jalankan ulang npm run serve`)
+  } else {
+    check('server berjalan dari kode terbaru (startedAt + cap src >= mtime src di disk)', true,
+      `started ${new Date(started).toISOString()} · src ${health.codeStamp.srcFiles} berkas`)
+  }
+}
 check('/healthz menyebut identitas yang ia sajikan', typeof health.agent === 'string' && Array.isArray(health.agentSlugs),
   JSON.stringify({ agent: health.agent, agentSlugs: health.agentSlugs }))
 const SLUG = process.env.AGENT_SLUG ?? health.agent
