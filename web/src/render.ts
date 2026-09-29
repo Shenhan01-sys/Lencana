@@ -217,7 +217,9 @@ function renderStepper(r: Report, lang: Lang): string {
 export function generateCanonicalJsonLd(r: Report): Record<string, unknown> {
   const c = r.credential
   const cert = r.cert
-  const baseUrl = 'https://lencana.io'
+  // Origin yang sungguh menjawab hari ini (lihat `npm run verify:edge`):
+  // dulu baris ini menulis domain yang tidak kita pegang ke dalam URL yang kita sajikan.
+  const baseUrl = 'https://lencana-edge.hansgunawan775.workers.dev'
   const holderAddr = c.holder ?? c.recipient ?? cert.owner ?? '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
   const isSecurity = Boolean(c.courseId && c.courseId.includes('security'))
   const courseSlug = isSecurity ? 'bnb-security-audit' : 'web3-dasar-2026'

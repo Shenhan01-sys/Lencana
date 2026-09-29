@@ -28,6 +28,32 @@ const SAMPLE_HASHES = {
   format: '0x' + '11'.repeat(32),
 }
 
+/**
+ * Tempat dokumen kredensial kita BENAR-BENAR disajikan: Worker + KV yang diisi
+ * `npm run publish:edge`, dan satu-satunya host yang terbukti menjawab hari ini
+ * (`npm run verify:edge` → 19 dari 19 kertas terbaca publik).
+ */
+export const CREDENTIAL_HOST = 'https://lencana-edge.hansgunawan775.workers.dev'
+
+/** Kredensial yang dipakai tombol berbagi — hash demo yang sama dengan yang di panel verifier. */
+const SHARE_CREDENTIAL_HASH = SAMPLE_HASHES.valid
+
+/**
+ * URL verifikasi untuk tombol berbagi.
+ *
+ * Kenapa ini ada dan bukan string konstan: halaman ini SENDIRI verifier-nya, jadi alamat yang jujur
+ * adalah tempat halaman itu dibuka. Versi sebelumnya menulis `https://lencana.io/#/verify?q=…` di
+ * tiga tempat (LinkedIn, X, dan snippet embed) — domain yang tidak kita pegang, tidak ada yang
+ * menjawab di sana, dan dipasang di tombol yang tugasnya justru menunjuk bukti. Kalau halaman ini
+ * dibuka dari `file://` (atau tanpa origin), fallback-nya ke dokumen asli di tepi, bukan ke domain
+ * karangan: link yang mati lebih buruk daripada link yang jelek.
+ */
+function publicVerifyUrl (hash: string): string {
+  const here = typeof window === 'undefined' ? '' : window.location.origin
+  if (here && !/^(null|file:)/i.test(here)) return `${here.replace(/\/+$/, '')}/#/verify?q=${hash}`
+  return `${CREDENTIAL_HOST}/credentials/${hash}`
+}
+
 const ESSAY_PRESETS = {
   web3: `Comparing Centralized Web2 Certificates vs Open Badges 3.0 on EVM:
 Traditional certificates rely on siloed databases vulnerable to silent mutation, SQL injection, and administrative deletion. In contrast, Open Badges 3.0 anchored via EAS (Ethereum Attestation Service) on BNB Smart Chain leverage cryptographic immutability, deterministic hash commitments (keccak256), and verifiable resolver contracts. The revocation status is transparent and non-repudiable on-chain.`,
@@ -770,8 +796,13 @@ function shareOnLinkedIn() {
   const orgName = encodeURIComponent('Lencana Decentralized Protocol')
   const issueYear = '2026'
   const issueMonth = '9'
-  const certUrl = encodeURIComponent('https://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa')
-  const certId = '0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa'
+  // `publicVerifyUrl()`, bukan domain karangan. Sebelumnya baris ini menulis
+  // `https://lencana.io/#/verify?q=…` — domain yang tidak kita pegang dan tidak ada yang menjawab
+  // di sana, di tombol yang tujuannya justru menunjuk bukti. Halaman ini sendiri verifier-nya, jadi
+  // alamat yang benar adalah tempat halaman ini dibuka (lihat `publicVerifyUrl`).
+  const shareUrl = publicVerifyUrl(SHARE_CREDENTIAL_HASH)
+  const certUrl = encodeURIComponent(shareUrl)
+  const certId = SHARE_CREDENTIAL_HASH
 
   const url = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${certName}&organizationName=${orgName}&issueYear=${issueYear}&issueMonth=${issueMonth}&certUrl=${certUrl}&certId=${certId}`
   window.open(url, '_blank', 'noopener,noreferrer')
@@ -779,14 +810,15 @@ function shareOnLinkedIn() {
 
 function shareOnX() {
   const text = encodeURIComponent(
-    'Just earned my verifiable Soulbound Credential in "Web3 Dasar 2026" evaluated by autonomous AI on @BNBCHAIN! 🎓⛓️\n\nAudit cryptographic proof on-chain:\nhttps://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa\n\n#BNBChain #OpenBadges #Web3Education #Lencana'
+    `Just earned a verifiable Soulbound Credential in "Web3 Dasar 2026" — the result was graded against the issuer's own rubric and the status is readable on BNB Smart Chain.\n\nOpen the credential and its status list:\n${publicVerifyUrl(SHARE_CREDENTIAL_HASH)}\n\n#BNBChain #OpenBadges #Web3Education`
   )
   const url = `https://twitter.com/intent/tweet?text=${text}`
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 function copyEmbedCode() {
-  const snippet = `<a href="https://lencana.io/#/verify?q=0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/BNB%20Chain-Soulbound%20Open%20Badge%203.0-F0B90B?style=for-the-badge&logo=binance&logoColor=white" alt="Lencana Web3 Dasar 2026 Verified Credential" /></a>`
+  const href = publicVerifyUrl(SHARE_CREDENTIAL_HASH)
+  const snippet = `<a href="${href}" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/BNB%20Chain-Soulbound%20Open%20Badge%203.0-F0B90B?style=for-the-badge&logo=binance&logoColor=white" alt="Lencana Web3 Dasar 2026 Verified Credential" /></a>`
   navigator.clipboard.writeText(snippet).then(() => {
     const btn = $('btn-portfolio-embed')
     if (btn) {
@@ -1081,7 +1113,7 @@ const RINA_CREDENTIAL_JSONLD = {
     "id": "did:pkh:eip155:97:0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE",
     "type": "Profile",
     "name": "Lencana Agent-Foundations",
-    "url": "https://lencana.io"
+    "url": "https://lencana-edge.hansgunawan775.workers.dev"
   },
   "validFrom": "2026-09-21T00:00:00Z",
   "credentialSubject": {
@@ -2042,82 +2074,118 @@ function setupDemoDock() {
 // ========================================================
 // ITERATION 14: W3C VC 2.0 & OB 3.0 SPEC MATRIX
 // ========================================================
-const CANONICAL_DEMO_JSONLD = {
+/**
+ * CONTOH BENTUK — bukan dokumen terbit.
+ *
+ * Dinamai ulang dan diisi ulang: dulu konstanta ini bernama `CANONICAL_DEMO_JSONLD` dan
+ * isinya **tulisan tangan** — `credentialStatus` masih array dua entri (bentuk yang validator
+ * pihak ketiga tolak, lihat OI-12/B68), `proof.verificationMethod` menunjuk `#key-1` yang bukan
+ * kunci agen kita, dan belasan URL menunjuk `lencana.io`, domain yang tidak kita pegang. Panel ini
+ * juga punya tombol **salin** dan **unduh**, jadi ia menyerahkan dokumen karangan ke orang lain di
+ * bawah kata "canonical". Yang benar: tampilkan dokumen ASLI dari tepi (lihat `initSpecMatrix`),
+ * dan kalau jaringan mati, tunjukkan contoh ini dengan label yang tidak bisa dilewat.
+ */
+const SAMPLE_SHAPE_JSONLD = {
   '@context': [
     'https://www.w3.org/ns/credentials/v2',
     'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
   ],
-  id: 'https://lencana.io/credentials/0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa',
+  id: `${CREDENTIAL_HOST}/credentials/${SAMPLE_HASHES.valid}`,
   type: ['VerifiableCredential', 'OpenBadgeCredential'],
-  name: 'Web3 Foundations & EAS Attestation Architecture',
-  description: 'Official on-chain verified learning credential issued via Lencana CredentialResolver on BNB Smart Chain.',
+  name: 'Web3 Dasar 2026 — contoh bentuk, bukan kredensial terbit',
+  description: 'Ilustrasi bentuk dokumen. Yang sah adalah yang diambil dari GET /credentials/<hash> di bawah tanda tangan agen penerbit.',
   issuer: {
-    id: 'https://lencana.io/issuers/agent-foundations',
+    id: `${CREDENTIAL_HOST}/issuers/agent-edge`,
     type: 'Profile',
-    name: 'Agent-Foundations (Lencana AI Issuer)',
-    url: 'https://lencana.io/agents/agent-foundations',
+    name: 'agent-edge (Lencana issuer)',
+    url: `${CREDENTIAL_HOST}/issuers/agent-edge`,
   },
   validFrom: '2026-09-21T12:00:00Z',
   validUntil: '2027-09-21T12:00:00Z',
   credentialSubject: {
-    id: 'https://lencana.io/learners/0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
+    id: `did:pkh:eip155:97:${'0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'}`,
     type: 'AchievementSubject',
     achievement: {
-      id: 'https://lencana.io/achievements/web3-dasar-2026',
+      id: `${CREDENTIAL_HOST}/achievements/web3-dasar-2026`,
       type: ['Achievement'],
-      name: 'Web3 Foundations & EAS Attestation Architecture',
+      name: 'Web3 Dasar 2026',
       criteria: {
-        id: 'https://lencana.io/criteria/web3-dasar-2026',
+        id: `${CREDENTIAL_HOST}/criteria/web3-dasar-2026`,
         type: 'Criteria',
-        narrative: 'Score >= 70/100, autonomous AI agent evaluated essay rubric, live EAS schema verification.',
+        narrative: 'Contoh bentuk. Yang asli: bobot + ambang lulus milik penerbit, dipaku sebagai rubricHash di dokumen kriteria.',
       },
     },
     result: [
       {
-        id: 'https://lencana.io/results/web3-dasar-2026/0x0b95c83b',
+        id: `${CREDENTIAL_HOST}/results/web3-dasar-2026/${SAMPLE_HASHES.valid}`,
         type: ['Result'],
-        resultDescription: 'https://lencana.io/criteria/web3-dasar-2026#scale',
+        resultDescription: `${CREDENTIAL_HOST}/criteria/web3-dasar-2026#scale`,
         value: '93',
         achievedLevel: 'Honors Pass',
       },
     ],
   },
-  credentialStatus: [
-    {
-      id: 'https://lencana.io/credentials/status/revocation#slot14',
-      type: 'BitstringStatusListEntry',
-      statusPurpose: 'revocation',
-      statusListIndex: '14',
-      statusListCredential: 'https://lencana.io/credentials/status/revocation',
-    },
-    {
-      id: 'https://lencana.io/credentials/status/suspension#slot14',
-      type: 'BitstringStatusListEntry',
-      statusPurpose: 'suspension',
-      statusListIndex: '14',
-      statusListCredential: 'https://lencana.io/credentials/status/suspension',
-    },
-  ],
+  // SATU objek, bukan array: skema OB 3.0 memakai `[0..1]` dan validator pihak ketiga menolak
+  // array — persis cacat yang kami catat sebagai OI-12/B68 dan yang sudah tidak ada di 19/19
+  // dokumen kita. Daftar suspension TETAP ada di protocol kami (suspension list sendiri, dibaca
+  // lewat statusOf), cuma tidak boleh ditumpuk ke field ini.
+  credentialStatus: {
+    id: `${CREDENTIAL_HOST}/credentials/status/revocation#${SAMPLE_HASHES.valid}`,
+    type: 'BitstringStatusListEntry',
+    statusPurpose: 'revocation',
+    statusListIndex: '14',
+    statusListCredential: `${CREDENTIAL_HOST}/credentials/status/revocation`,
+  },
   proof: {
     type: 'DataIntegrityProof',
     cryptosuite: 'eddsa-rdfc-2022',
     created: '2026-09-21T12:00:00Z',
-    verificationMethod: 'https://lencana.io/issuers/agent-foundations#key-1',
+    verificationMethod: `${CREDENTIAL_HOST}/issuers/agent-edge#${'publicKeyMultikey asli: lihat GET /issuers/agent-edge'}`,
     proofPurpose: 'assertionMethod',
-    proofValue: 'z3h29Qkx4mJpE8X97bUvfK62wLaPnQ7xS8cT4zR91a7M0vC4e',
+    proofValue: 'CONTOH — bukan tanda tangan. Nilai asli ada di field proof dokumen yang diambil dari tepi.',
   },
 }
 
 function initSpecMatrix() {
   const displayEl = $('spec-jsonld-display')
+  /**
+   * Yang ditampilkan / disalin / diunduh adalah DOKUMEN ASLI dari tepi selama ia teraih.
+   *
+   * Kenapa harus begitu dan bukan sekadar ganti teks label: panel ini punya tombol salin dan unduh.
+   * Selama sumbernya konstanta tulisan tangan, setiap orang yang menekan tombol itu membawa pergi
+   * dokumen yang tidak pernah ada — dengan `proof` yang tidak pernah ditandatangani — dan menyerahkannya
+   * ke verifier lain sebagai "canonical". Sekarang: fail-closed ke contoh, tapi contohnya diberi
+   * header yang tidak bisa dilewat dan filenya tidak lagi mengaku kanonik.
+   */
+  let specDoc: unknown = SAMPLE_SHAPE_JSONLD
+  let specIsReal = false
+  const specLabel = () => specIsReal
+    ? ''
+    : '// CONTOH BENTUK — dokumen asli tidak teraih dari tepi. Ini bukan kredensial terbit,\n'
+      + '// dan proof di bawah ini tidak ada yang menandatangani. Ambil yang sah dari:\n'
+      + `// ${CREDENTIAL_HOST}/credentials/${SAMPLE_HASHES.valid}\n\n`
+  const specText = () => specLabel() + JSON.stringify(specDoc, null, 2)
+
   if (displayEl) {
-    displayEl.textContent = JSON.stringify(CANONICAL_DEMO_JSONLD, null, 2)
+    displayEl.textContent = specText()
+    void (async () => {
+      try {
+        const r = await fetch(`${CREDENTIAL_HOST}/credentials/${SAMPLE_HASHES.valid}`, { signal: AbortSignal.timeout(8000) })
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        specDoc = await r.json()
+        specIsReal = true
+        displayEl.textContent = specText()
+      } catch (e) {
+        // Biarkan contoh tampil, tapi jangan pernah biarkan ia diam: status jaringan ditulis di panel.
+        displayEl.textContent = specLabel().replace(/^\/\/ /gm, '') + `// (tepi tidak menjawab: ${String((e as Error).message ?? e)})\n` + JSON.stringify(SAMPLE_SHAPE_JSONLD, null, 2)
+      }
+    })()
   }
 
-  // Copy Canonical JSON-LD
+  // Copy the displayed JSON-LD (asli kalau teraih, contoh dengan label kalau tidak)
   $('btn-copy-spec-jsonld')?.addEventListener('click', async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(CANONICAL_DEMO_JSONLD, null, 2))
+      await navigator.clipboard.writeText(specText())
       const textEl = $('btn-copy-spec-jsonld-text')
       if (textEl) {
         const orig = textEl.textContent
@@ -2127,13 +2195,13 @@ function initSpecMatrix() {
     } catch {}
   })
 
-  // Download Canonical JSON-LD
+  // Download the displayed JSON-LD
   $('btn-download-spec-jsonld')?.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(CANONICAL_DEMO_JSONLD, null, 2)], { type: 'application/ld+json' })
+    const blob = new Blob([specText()], { type: 'application/ld+json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'lencana-canonical-openbadge.jsonld'
+    a.download = specIsReal ? 'lencana-credential-openbadge.jsonld' : 'lencana-CONTOH-BENTUK-not-issued.jsonld'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

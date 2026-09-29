@@ -75,6 +75,33 @@ kita dokumentasikan untuk platform orang lain.
     [[07-Backlog/03 - Findings and Tasks 2026-09-26]]. Kalau ruang sesi tinggal sedikit: tulis dulu
     keadaan penting ke vault, baru berhenti (aturan 11). Kekunoan vault adalah klaim yang salah
     pelan-pelan.
+13. **Dilarang menyunting berkas lewat perintah shell inline.** (ditulis setelah insiden nyata 29 Sep)
+    Menyisipkan satu baris ke `package.json` dengan `node -e` meninggalkan **koma ganda** →
+    `EJSONPARSE` → **setiap `npm run` di `signer/` mati**, dan berkas rusak itu ikut **terdorong ke
+    repo publik** (`3395b27`, baru diperbaiki `17da549`). Perintah inline yang sama meninggalkan berkas
+    sampah `signer/new` dan merusak karakter non-ASCII di tengah string. Aturan kerjanya:
+    - sunting berkas dengan **tool editor** (`edit` / `write_file`). Kalau perlu skrip, tulis skripnya
+      sebagai **berkas** (`.mjs`), jalankan, lalu baca keluarannya — bukan satu baris di shell.
+    - setelah menyentuh berkas konfigurasi: **validasi dengan memakainya**, bukan dengan membaca
+      teksnya (`node -e "require('./package.json')"` + satu `npm run` sungguhan). Berkas yang bisa
+      di-parse belum tentu bisa dijalankan.
+    - **jangan dorong suntingan config sebelum satu perintah nyata berhasil darinya.**
+14. **Alat baru wajib dijalankan di SEMUA jalurnya sebelum dipercaya.** (tertukis tiga kali pada hari
+    yang sama) `sync:numbers` lolos di jalur kumpulkan tapi mati di jalur `--verify`
+    (`JSON.parse(...).numbers` padahal berkas ditulis `{capturedAt, items}`); sesudah itu `--verify`
+    melaporkan **BEDA untuk halaman yang benar** karena polanya menuntut `**8/0**` sedang halaman
+    menulis `**8/0 · 19 dari 19**`; dan `audit` versi pertama menghasilkan **dua tembakan palsu**
+    (ia melabeli address dari regex bentuk alamat, bukan dari nama variabel, jadi `BAS_ADDRESS` —
+    EAS pihak ketiga, 18.881 byte, memang tanpa `schemaUID()` — dilaporkan sebagai "resolver kedua
+    yang mati"). Penjaga berpola salah lebih berbahaya daripada tidak ada penjaga: ia **melatih orang
+    mengabaikan barisnya.** Jadi: tulis alat → jalankan tiap mode-nya → kalau merah, buktikan dulu
+    apakah yang salah alatnya atau dunianya (`Conventions` #5, dan B59/B85/B86 adalah contoh yang
+    sudah lewat).
+15. **Jangan menulis ulang riwayat publik seorang diri.** Insiden aturan 13 sudah lewat: perbaiki
+    keadaannya, tulis kejadiannya (commit + vault), dan minta keputusan sebelum `--force-push`.
+    Commit yang sudah pernah dilihat orang dibiarkan apa adanya kecuali builder memerintahkan
+    sebaliknya — termasuk typo di badan commit: itu jejak, bukan aib yang layak menghapus riwayat.
+
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:
 [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · [[09-Testing/00 - Hub Testing]] ·
 [[08-Results/00 - Hub Results]] · [[10-Contributors/Open-Items/00 - Hub Open Items]]
