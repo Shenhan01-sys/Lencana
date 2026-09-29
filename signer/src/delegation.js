@@ -18,6 +18,8 @@
  * `app/test/CredentialResolver.fork.t.sol:511`, 68 test lulus di fork chain 97 & 56) dan struct
  * di `lib/bas/src/IEAS.sol`.
  */
+
+// [B52] SELESAI 2026-09-29 — primitif attestByDelegation + allowance EIP-712 terbukti di chain publik. Buktikan ulang: npm run delegate. JANGAN dibalik/diulang tanpa membuka kembali baris B52 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import {
   createPublicClient, createWalletClient, http,
   encodeAbiParameters, keccak256, concat, recoverAddress,

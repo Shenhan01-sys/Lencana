@@ -129,6 +129,17 @@ kita dokumentasikan untuk platform orang lain.
     Kalau builder memang perlu kerja di luar `app/`, itu diminta di sesinya sendiri, bukan
     dibongkar dari sini. Aturan #16 (golongan bergembok tidak dikerjakan tanpa permintaan) tetap berlaku.
 
+18. **Setiap backlog selesai → tag di kodenya, dan tag itu diadili alat.** Aturan builder 29 Sep:
+    "tandai seluruh source code yang sudah done berdasarkan backlog, biar tidak lupa dan tidak
+    diubah lagi". Bukan komentar "done!" (busuk dalam tiga hari), tapi baris yang bisa dicek silang:
+    ``// [B67] SELESAI 2026-09-29 — <apa yang dijaga>. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.``
+    Bagian yang belum selesai tapi baru disentuh diberi ``[B102] TERBUKA`` — menandai separuh kerja
+    sebagai selesai membuat kode dan catatan saling membantah. Ditegakkan **A9** di `npm run audit`:
+    tag `SELESAI` tanpa baris tertutup = TEMUAN; baris tertutup yang ditandai `TERBUKA` di kode = TEMUAN.
+    Kerjakan **satu ID lalu telusuri → tag → verify**, bukan massal: 26 tag sekaligus yang kupasang tanpa
+    telusur menghasilkan satu tag menempel ke ID yang masih terbuka (B102) dan dua baris backlog
+    menyebut nama test yang sudah kubuang sendiri (B39/B40) — keduanya baru ketahuan karena ditelusuri.
+
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:
 [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · [[09-Testing/00 - Hub Testing]] ·
 [[08-Results/00 - Hub Results]] · [[10-Contributors/Open-Items/00 - Hub Open Items]]

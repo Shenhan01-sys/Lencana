@@ -24,6 +24,8 @@
  * Ia TIDAK menulis apa pun ke repo: direktori store dibuat di `os.tmpdir()` dan dibersihkan.
  * Tidak ada transaksi, tidak ada publish, tidak ada uang sungguuhan.
  */
+
+// [B42] SELESAI 2026-09-29 — keadaan clone (.store kosong) diuji; /healthz tidak boleh 500 di sana. Buktikan ulang: npm run probe:cold. JANGAN dibalik/diulang tanpa membuka kembali baris B42 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'

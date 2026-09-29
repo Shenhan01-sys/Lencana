@@ -6,6 +6,8 @@
  * berarti hash yang kami kunci bisa berasal dari aturan yang berbeda dari daftar yang kami hidangkan
  * — dan itulah satu-satunya hal yang membuat anchor ada gunanya.
  */
+
+// [B53] SELESAI 2026-09-29 — hash yang di-anchor = hash yang disajikan (satu implementer, tidak dua salinan). Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B53 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { IndexAllocator, REVOCATION, SUSPENSION, encodeList, statusListCredential } from './statusList.js'
 import { readChainStatuses, revokedUids, suspendedUids } from './chainStatus.js'
 import { signDocument } from './sign.js'

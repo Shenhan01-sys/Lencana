@@ -19,6 +19,10 @@
  *   node src/server.js            # default 127.0.0.1:8787
  *   PORT=9000 BASE_URL=https://api.example node src/server.js
  */
+
+// [B67] SELESAI 2026-09-29 — penolakan tepi memakai x-lencana-stale bernama; alarmnya di monitor-edge, bukan di sini. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B96] SELESAI 2026-09-29 — pesan yang sampai ke klien berbahasa Inggris; komentar & log operator boleh Indonesia (D27/D28). Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createServer } from 'node:http'
 import { readdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'

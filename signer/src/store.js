@@ -14,6 +14,8 @@
  * dibaca dari chain. Kehilangan berkas ini membuat daftar lama tidak bisa diturunkan ulang —
  * tidak membuat status sebuah kredensial menjadi salah.
  */
+
+// [B42] SELESAI 2026-09-29 — LANCENA_STORE bisa dialihkan ke direktori lain — itu yang membuat probe store dingin mungkin. Buktikan ulang: npm run probe:cold. JANGAN dibalik/diulang tanpa membuka kembali baris B42 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'

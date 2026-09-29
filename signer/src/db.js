@@ -23,6 +23,8 @@
  * `SUPABASE_SECRET_KEY` di bawah nama `VITE_*` atau mengarahkan `envDir` Vite ke akar `app/`:
  * satu perubahan itu mengirim secret server-side ke browser setiap pengunjung.
  */
+
+// [B72] SELESAI 2026-09-29 — state belajar hidup di Postgres (server-side), bukan localStorage browser. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { keccak256, encodeAbiParameters, getAddress } from 'viem'
 import { verifyMessage } from 'viem/utils'
 

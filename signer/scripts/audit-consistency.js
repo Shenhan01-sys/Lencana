@@ -13,6 +13,10 @@
  * Semua pemeriksaan bersifat BACA terhadap berkas. Yang ditulis hanya baris backlog, dan hanya
  * kalau belum ada ID-nya (idempoten — menjalankan dua kali tidak menghasilkan dua baris).
  */
+
+// [B96] SELESAI 2026-09-29 — A8/A8b menjaga bahasa identifier, pesan keluaran, dan pola assertion harness. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// [B103] SELESAI 2026-09-29 — SURFACE hanya berkas yang ada; berkas yang hilang = TEMUAN, bukan dilewati diam-diam. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B103 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFile, writeFile } from 'node:fs/promises'
 import { existsSync, readdirSync } from 'node:fs'
 import { execFile } from 'node:child_process'
@@ -273,6 +277,53 @@ async function collect () {
       if (m && ID_WORDS.test(m[1])) idMsgs.push(`${f.replace(REPO, '')}:${i + 1}`)
     })
   }
+  // 9) TAG BACKLOG DI KODE (aturan #18) — tag 'SELESAI' wajib punya baris tertutup di backlog, dan
+  //    baris yang sudah tertutup tidak boleh ditandai 'TERBUKA' di kode. Tag yang tidak diadili
+  //    hanyalah klaim kedua: ia basi pada hari ketiga dan tidak ada yang tahu.
+  {
+    const skipTag = new Set(['node_modules', '.git', 'dist', 'out', 'cache', 'broadcast', 'lib', '.keys', '.store'])
+    const berkas = []
+    const walkTag = (d) => {
+      let es = []
+      try { es = readdirSync(d, { withFileTypes: true }) } catch { return }
+      for (const e of es) {
+        if (skipTag.has(e.name)) continue
+        const p = join(d, e.name)
+        if (e.isDirectory()) walkTag(p)
+        else if (/\.(ts|js|mjs|sol|sql|yml)$/.test(e.name)) berkas.push(p)
+      }
+    }
+    walkTag(REPO)
+    const rowsTag = {}
+    for (const l of (await read(findings)).split(/\r?\n/)) {
+      const m = /^\|\s*\*\*(B\d+)\*\*/.exec(l)
+      if (m) {
+        const tertutup = /✅|DITUTUP|SELESAI|\bDONE\b/.test(l)
+        // Halaman ini punya DUA tabel (kerja 29 Sep + tabel lama 21 Sep) dan ID yang sama bisa muncul
+        // di keduanya. Yang menang adalah TERBUKA: duplikat basi tidak boleh bersembunyi di balik
+        // baris baru yang sudah tertutup — itu persis kelas yang dijaga aturan #1.
+        rowsTag[m[1]] = (!tertutup || rowsTag[m[1]] === 'TERBUKA') ? 'TERBUKA' : 'SELESAI'
+      }
+    }
+    const salah = []
+    let jumlah = 0
+    for (const f of berkas) {
+      const isi = await readFile(f, 'utf8')
+      for (const m of isi.matchAll(/\[(B\d+)\] (SELESAI|TERBUKA)/g)) {
+        jumlah += 1
+        const status = rowsTag[m[1]]
+        if (!status) { salah.push(`${f.replace(REPO, '')}: [${m[1]}] tidak punya baris di backlog`); continue }
+        if (status !== m[2]) salah.push(`${f.replace(REPO, '')}: [${m[1]}] ditandai ${m[2]} padahal backlog ${status}`)
+      }
+    }
+    findingsOut.push({
+      id: 'A9', kind: salah.length ? 'TEMUAN' : 'bersih',
+      title: 'tag backlog di kode cocok dengan keadaan barisnya di vault (aturan #18)',
+      detail: `${jumlah} tag diperiksa` + (salah.length ? `, ${salah.length} TIDAK cocok:\n      ${salah.slice(0, 8).join('\n      ')}` : ' — semuanya cocok dua arah'),
+    })
+  }
+
+
   const MSG_BASELINE = 0
   findingsOut.push({
     id: 'A8', kind: idNames.length || idMsgs.length > MSG_BASELINE ? 'TEMUAN' : 'bersih',

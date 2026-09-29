@@ -6,6 +6,8 @@
  * menampilkan bagian yang sukses adalah halaman yang bisa membuat "belum terverifikasi"
  * kelihatan "terverifikasi".
  */
+
+// [B100] SELESAI 2026-09-29 — generateCanonicalJsonLd + proofValue karangan dibuang; tab kepatuhan pakai sampul specAudit. Buktikan ulang: npm run check:spec. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { Report } from './verify'
 import { EMPTY_UID } from './abi'
 import { explorerLink } from './config'

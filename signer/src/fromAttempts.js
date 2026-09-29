@@ -21,6 +21,8 @@
  *      `npm run check` offline — termasuk cabang penolakannya.
  */
 
+// [B62] SELESAI 2026-09-29 — angka kertas diturunkan dari rekaman attempts/attempt_components; flag angka dari CLI DITOLAK. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B62 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 const SLOTS = ['kuis', 'esai', 'praktik']
 
 /** Lesson mana saja yang merupakan slot kuis/esai penerbit — dibaca dari manifest, bukan ditebak. */

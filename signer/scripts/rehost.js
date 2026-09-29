@@ -24,6 +24,8 @@
  * host lama, tanda tangani ulang, lalu bandingkan daun demi daun — kalau ada SATU path yang berubah
  * bukan karena origin, kertas itu tidak ditulis.
  */
+
+// [B51] SELESAI 2026-09-29 — kertas pindah ke host tetap tanpa transaksi; identitas issuer ikut dipindah, host sementara ditolak. Buktikan ulang: npm run rehost. JANGAN dibalik/diulang tanpa membuka kembali baris B51 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, http, getAddress, parseAbi } from 'viem'
 
 import { loadFileEnvReport } from '../src/env.js'

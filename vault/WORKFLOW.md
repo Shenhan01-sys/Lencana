@@ -68,6 +68,14 @@ Tambahkan tautan balik di entri backlog + tabel riwayat Hub.
 8. **Rollback itu murah dan tepat** kalau eksperimen bikin makin kacau — `git reset --hard <commit-terkonfirmasi>` + catat pelajarannya di vault, jangan berjuang memperbaiki di atas kerusakan.
 9. **Commit LOKAL dulu, push atas persetujuan** — melindungi produksi dari eksperimen; eksperimen gagal = reset tanpa dampak remote.
 
+## Tandai di kode setiap backlog yang selesai (aturan #18)
+
+Sebelum menutup satu baris backlog: telusuri berkas yang ia sebut, tempel tag satu ID per berkas,
+dengan apa yang dijaga + perintah pembuktinya, lalu jalankan `npm run audit` (A9 mengadili dua arah).
+Contoh: ```
+// [B67] SELESAI 2026-09-29 — alarm eksternal tepi. Buktikan ulang: npm run monitor:edge.
+```
+
 ## Struktur Dokumen per-Item (pelengkap)
 
 Dokumen yang tumbuh per-item (AC, testing, exec summary) **WAJIB** pola **Hub + satu file per item**:

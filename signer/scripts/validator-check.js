@@ -14,6 +14,8 @@
  * Yang TIDAK dilakukan di sini: menebak verdict dari HTML. Halaman /validate menyimpan
  * "eligible to be submitted…" sebagai string template, jadi angka hanya dibaca dari /api/validate.
  */
+
+// [B41] SELESAI 2026-09-29 — validator 1EdTech dijalankan dari kode kita sendiri; outcome selain VALID = merah, dan --record menambah app/vault/09-Testing/validator-runs.jsonl. Buktikan ulang: npm run validator. JANGAN dibalik/diulang tanpa membuka kembali baris B41 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { appendFile, readFile } from 'node:fs/promises'
 import { createPublicClient, http, getAddress, parseAbi } from 'viem'
 import { gunzipSync } from 'node:zlib'
