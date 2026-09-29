@@ -16,6 +16,8 @@
  * Sumber kebenaran "apa yang kita punya" = store; "apa yang tepi klaim" = /healthz-nya sendiri.
  * Tidak ada angka yang diketik di berkas ini.
  */
+
+// [B67] SELESAI 2026-09-29 — pemeriksaan umur state tepi (MAX_STATE_AGE_HOURS, bawaan 26 jam) ada di sini juga, bukan hanya di monitor:edge. Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { listCredentials } from '../src/store.js'
 import { EDGE_ROUTES, PURPOSES } from '../src/edgeKeys.js'
 import { readAnchor } from '../src/anchor.js'
@@ -76,6 +78,29 @@ console.log(`  chain   : ${health.revocation?.watched ?? '?'} hash dipantau · r
 check('tepi mengklaim jumlah dokumen sama dengan store',
   health.counts?.credentialsWithDocument === withDocs.length,
   `tepi=${health.counts?.credentialsWithDocument} store=${withDocs.length} — jalankan npm run publish:edge`)
+
+/**
+ * B67 — umur state. Yang lama hanya "cocok sekarang": daftar yang dirender 3 hari lalu dan masih
+ * cocok dengan chain hari ini terasa aman, padahal `publish:edge` bisa saja mati sejak itu dan yang
+ * disajikan hanyalah artefak lama yang kebetulan masih benar. Kriteria urja B67 menulis pemeriksaan
+ * ini untuk `verify:edge`, jadi ia dipasang di sini juga — bukan cuma di `monitor:edge`.
+ * Ambang 26 jam = publish harian + kelonggaran; `MAX_STATE_AGE_HOURS` menaikkannya hanya kalau
+ * seseorang benar-benar memutuskan itu, bukan supaya hijaunya dapat.
+ */
+const MAX_STATE_AGE_HOURS = Number(process.env.MAX_STATE_AGE_HOURS ?? 26)
+{
+  const t = Date.parse(String(health.publishedAt ?? ''))
+  if (!Number.isFinite(t)) {
+    check('state tepi punya publishedAt yang terbaca', false, `publishedAt=${JSON.stringify(health.publishedAt)} — umur tidak bisa disimpulkan, jadi TIDAK dianggap aman`)
+  } else {
+    const ageH = (Date.now() - t) / 3.6e6
+    check(`state tepi cukup baru (umur ${ageH.toFixed(1)} jam ≤ ${MAX_STATE_AGE_HOURS} jam)`,
+      ageH <= MAX_STATE_AGE_HOURS && ageH >= -1,
+      ageH > MAX_STATE_AGE_HOURS
+        ? `terbit ${health.publishedAt} — Jalankan: npm run publish:edge (alarm eksternal: npm run monitor:edge)`
+        : `terbit ${health.publishedAt}`)
+  }
+}
 /**
  * Yang diminta di sini adalah pencocokan PENUH, dan kata `partial` dilaporkan kalau tepi hanya
  * memeriksa sebagian. Alasannya tercatat di `worker.mjs`: pemeriksaan lama menghabiskan jatah

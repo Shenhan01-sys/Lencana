@@ -167,7 +167,7 @@ ia dikutip (AGENTS #1).
 | # | ID | apa | selesai kalau | ± |
 |---|---|---|---|---|
 | 1 | **B107** | `sync:numbers` melapor merah tanpa sebab anak | `probe:serve`/verify:edge MERAH menampilkan 8 baris terakhir anak + `needs: local signer` | 20 m |
-| 2 | **B67** ✅ **SELESAI 29 Sep malam** ([[09-Testing/T28 - signer monitor-edge.js]] · `npm run monitor:edge` + workflow `edge-monitor`) | ~~tepi tidak tahu `publish` berhenti~~ | — |
+| 2 | **B67** ✅ SELESAI 29 Sep, kriteria 30 Sep dipenuhi ([[09-Testing/T28 - signer monitor-edge.js]]) | ~~tepi tidak tahu `publish` berhenti~~ | — |
 | 3 | **B66** | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | migrasi + 2 pemeriksaan `verify:db` (kadaluarsa hilang, aktif utuh) | 30 m |
 | 4 | **B78** | artefak tes tidak dibersihkan | `npm run cleanup` mencetak **sisa = 0**, bukan klaim lisan | 45 m |
 | 5 | **B84** | identitas penerbit punya 3 sumber berbeda | `publish.js` + `server.js` + `.keys/` menghasilkan **hash dokumen issuer yang sama** (verifikasi tanpa transaksi) | 1 j |

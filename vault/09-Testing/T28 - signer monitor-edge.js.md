@@ -45,5 +45,14 @@ hasil sangkaan (`watched` top-level tidak ada; yang ada `counts.watchedHashes`).
 ditulis apa adanya di atas supaya tidak ditebak dua kali (aturan #14). Workflow-nya belum pernah jalan di GitHub:
 buktinya adalah cron pertama setelah didorong. Keluar: 0 aman, 1 ALARM. Tidak ada transaksi, tidak ada publish.
 
+## Koreksi terlihat (30 Sep): gawang yang kugeser sendiri
+
+Kriteria urja untuk B67 berbunyi `verify:edge punya pemeriksaan umur state + melewati ambang = merah`.
+Malam 29 Sep aku menutup B67 dengan `monitor:edge` dan menandai barisnya selesai — kriterianya sendiri belum
+terpenuhi di berkas yang namanya disebut. Dipasang 30 Sep: `verify:edge` kini memeriksa umur state
+(`MAX_STATE_AGE_HOURS`, bawaan 26 jam; `publishedAt` tak terbaca = merah, bukan aman). Terukur: **9/0** dengan
+umur 10,2 jam; kontrol `MAX_STATE_AGE_HOURS=0` → **MERAH 9/1** menyebut `npm run publish:edge`. Pelajaran yang
+layak dicatat: "selesai" diukur dari kriteria yang tertulis, bukan dari pekerjaan yang sudah dilakukan.
+
 Terkait: [[09-Testing/T18 - signer verify-edge.js]], [[09-Testing/T26 - signer sample-check.js]],
 [[07-Backlog/03 - Findings and Tasks 2026-09-26]] B67.
