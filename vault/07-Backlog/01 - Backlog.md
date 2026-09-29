@@ -158,7 +158,7 @@ in 13 days:
 
 ---
 
-## Urja prioritas 29 Sep malam (14 siap kerja; 7 bergembok)
+## Urja prioritas 29 Sep malam (13 siap kerja; B67+B107+B42 selesai malam ini; 7 bergembok)
 
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 (TERBUKA total 21, bergembok 7). Angka apa pun di bawah harus dicetak ulang oleh perintahnya pada hari
@@ -167,7 +167,7 @@ ia dikutip (AGENTS #1).
 | # | ID | apa | selesai kalau | ± |
 |---|---|---|---|---|
 | 1 | **B107** | `sync:numbers` melapor merah tanpa sebab anak | `probe:serve`/verify:edge MERAH menampilkan 8 baris terakhir anak + `needs: local signer` | 20 m |
-| 2 | **B67** | tepi tidak tahu `publish` berhenti | `verify:edge` punya pemeriksaan umur state + melewati ambang = merah | 30 m |
+| 2 | **B67** ✅ **SELESAI 29 Sep malam** ([[09-Testing/T28 - signer monitor-edge.js]] · `npm run monitor:edge` + workflow `edge-monitor`) | ~~tepi tidak tahu `publish` berhenti~~ | — |
 | 3 | **B66** | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | migrasi + 2 pemeriksaan `verify:db` (kadaluarsa hilang, aktif utuh) | 30 m |
 | 4 | **B78** | artefak tes tidak dibersihkan | `npm run cleanup` mencetak **sisa = 0**, bukan klaim lisan | 45 m |
 | 5 | **B84** | identitas penerbit punya 3 sumber berbeda | `publish.js` + `server.js` + `.keys/` menghasilkan **hash dokumen issuer yang sama** (verifikasi tanpa transaksi) | 1 j |
