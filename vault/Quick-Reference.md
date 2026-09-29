@@ -51,6 +51,8 @@ never retyped.
 | `npm run diag:lists` | mengadili perbedaan hash daftar: render vs sajian tepi vs `getTimestamp` BAS | membuktikan B89 bukan soal data |
 | `npm run probe:serve` | mengadili server signer yang SEDANG BERJALAN (49 pemeriksaan) — ia TIDAK menyalakan server: `npm run serve` dulu, kalau tidak ia bilang "nyalakan dulu" + cara melepas port per-PID | PROBE SERVE HIJAU — 49, 0 gagal |
 | `npm run check:samples` | mengadili tiap nilai `SAMPLE_HASHES` di FE: 200 di tepi DAN status di chain cocok dengan labelnya | CONTOH UI HIJAU — 5 pemeriksaan, 0 gagal |
+| `npm run probe:cold` | server signer dengan `.store/` KOSONG — keadaan setiap orang yang datang dari `git clone` (B42/B106) | PROBE COLD HIJAU — 23, 0 gagal |
+| `LANCENA_ORIGIN=demo` | setel sebelum `npm run serve` untuk demo; harness menyetel `=test` sendiri (B78) | dibaca balik oleh `verify:db` sebagai pemeriksaan |
 | `npm run check:labels` | kelengkapan label aturan #18: tiap ID tertutup punya tag atau alasan, tiap tag cocok dengan barisnya | LABEL HIJAU — 4 pemeriksaan, 0 gagal |
 | `npm run monitor:edge` | alarm eksternal tepi: umur `publishedAt` vs ambang, `matchesChainNow` kedua daftar, `unchecked`, dokumen nyata 200 | AMAN 0 alarm · `--max-age=0` → ALARM |
 | `npm run check:spec` / `-- --self-test` | 14 predikat kepatuhan dijalankan atas dokumen yang disajikan tepi; self-test merusak dokumen yang sama dan menuntut barisnya merah | 14 lulus · 0 gagal · self-test 11 merah |
