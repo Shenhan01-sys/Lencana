@@ -228,4 +228,34 @@ contract CourseDepositTest is Test {
             }
         }
     }
+    /**
+     * Batas yang bikin skema ini bukan jebakan: kontrak ini menahan PREMI, bukan harga kursus.
+     *
+     * Angka yang diuji: deposit = 25 (premi 5 hari), harga dasar kursus 100 dibayar terpisah lewat
+     * rail x402 dan TIDAK PERNAH masuk kontrak ini. Telat → yang hilang cuma 25 itu; peserta tetap
+     * memegang kertasnya karena kelulusan tidak bergantung pada premi. Uji ini dipasang karena
+     * simulator membuktikan ladder berbasis refunds berubah jadi "diskon yang jarang batal", dan
+     * tanpa baris ini gampang sekali seseorang "memperbaiki" skemanya dengan menyetor 100.
+     */
+    function test_premiumModel_onlyThePremiumIsAtRisk() public {
+        // Alamat segar: klaim "peserta tidak kehilangan apa pun lagi" harus diukur dari nol,
+        // bukan dari saldo sisa setUp (versi pertama test ini memakai `learner` yang sudah punya
+        // 100 ether, dan gagal karena 100e18 != 0 — salah ujinya, bukan kontraknya).
+        address fresh = address(0xF11E);
+        uint256 basePrice = 100 ether;      // dibayar di jalur lain; tidak pernah mampir ke sini
+        uint256 premium = 25 ether;         // yang dipertaruhkan
+        token.mint(fresh, basePrice);       // ia punya uang kursusnya, tapi tidak menyetornya ke sini
+        vm.startPrank(fresh);
+        token.approve(address(dep), premium);
+        dep.deposit(cid, premium, 5, policy, payee);
+        vm.stopPrank();
+        assertEq(token.balanceOf(address(dep)), premium, "kontrak hanya memegang premi");
+        assertEq(token.balanceOf(fresh), basePrice - premium, "sisanya tidak tersentuh kontrak");
+
+        uint256 late = block.timestamp + 5 days + 1;
+        dep.finalize(fresh, cid, UID, late, 0, _signFinalize(fresh, cid, UID, late, 0, policy));
+        assertEq(token.balanceOf(payee), premium, "hangus = premi, bukan kursusnya");
+        assertEq(token.balanceOf(fresh), basePrice - premium, "peserta tidak kehilangan harga kursus di jalur ini");
+    }
+
 }

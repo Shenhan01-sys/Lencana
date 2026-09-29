@@ -111,6 +111,45 @@ for (const [name, s] of Object.entries(SCHEDULES)) {
 }
 
 /**
+ * RUN 2 — perbaikan atas temuan run 1.
+ *
+ * Run 1 membuktikan ladder "refunds lebih besar untuk tenggat lebih ketat" bukan penalti, tapi
+ * diskon yang jarang batal: harapan kembali 5d/7d selalu di atas 9d (yang 0,0), jadi tidak ada
+ * peserta rasional yang memilih 9 hari dan penerbit membayar 26-40% ke hampir semua orang.
+ *
+ * Bentuk yang diperbaiki: **premi tenggat**. Harga dasar sama untuk semua durasi; memilih tenggat
+ * ketat membayar premi DI MUKA, dan premi itu **dikembalikan** kalau peserta selesai tepat waktu.
+ * Yang hangus hanyalah premi — bukan seluruh biaya kursus. Konsekuensi yang kita mau:
+ * peserta yang yakin membayar premi demi pengembalian; peserta yang ragu tidak taruh apa-apa.
+ * Tidak ada tier yang didominasi, dan tidak ada orang yang kehilangan 100 satuan karena telat.
+ */
+const PREMIUM = { 5: 25, 7: 12, 9: 0 }
+const BASE = PRICE
+
+console.log('— RUN 2 · premi tenggat (harga dasar 100; premi 5d=25, 7d=12, 9d=0; premi kembali kalau tepat waktu)')
+const cost = {}
+for (const w of DAYS) {
+  cost[w] = {}
+  for (const [world, samples] of Object.entries(worlds)) {
+    let paid = 0
+    for (const t of samples) paid += (t <= w ? BASE : BASE + PREMIUM[w])
+    const expected = paid / samples.length
+    cost[w][world] = expected
+    console.log(`    ${`${w}d/${world.split(' ')[0]}`.padEnd(22)} bayar harapan ${expected.toFixed(2)} dari ${BASE} (premi ${PREMIUM[w]})`)
+  }
+  const mean = Object.values(cost[w]).reduce((a, v) => a + v, 0) / Object.keys(cost[w]).length
+  console.log(`    ${`${w}d`.padEnd(22)} rata-rata tiga dunia: ${mean.toFixed(2)}`)
+}
+// Yang menentukan: apakah ada durasi yang ALWAYS lebih murah (berarti tier lain tidak dipakai),
+// dan apakah urutan harapan biaya mengikuti tingkat keyakinan peserta (yang ragu → 9d paling murah).
+for (const world of Object.keys(worlds)) {
+  const order = [...DAYS].sort((a, b) => cost[a][world] - cost[b][world])
+  console.log(`    ${world.padEnd(24)} paling murah: ${order[0]}d → paling mahal: ${order[order.length - 1]}d`)
+}
+console.log('    penerbit menerima premi hanya dari yang meleset — tidak membayar diskon ke yang selesai.')
+console.log('')
+
+/**
  * Yang boleh disimpulkan dari tabel di atas, dan yang tidak.
  * Boleh: bentuk insentifnya — berapa pun ladder-nya, kalau hangus adalah satu-satunya hasil buruk
  * dan peluangnya tinggi di dunia nyata, peserta yang rasional akan memilih durasi tanpa taruhan.
