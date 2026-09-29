@@ -160,7 +160,7 @@ in 13 days:
 
 ## Urja prioritas 29 Sep malam (13 siap kerja; B67+B107+B42 selesai malam ini; 7 bergembok)
 
-**Status loop label (aturan #18) — selesai 30 Sep:** 46 ID tertutup → **40 bertanda di kode**, 72 tag dicocokkan dua arah oleh A9; 6 ID kunyatakan TANPA TAG KODE (B43 B71 B74 B76 B77 B99) karena perbaikannya hidup di dokumen vault, bukan di berkas kode. A9 diperluas ikut mengadili berkas PowerShell, jadi penjaga vault juga barang bukti (B56 check-links, B79 check-lang).
+**Status loop label (aturan #18) — 30 Sep, terukur:** 46 ID tertutup; **38 ID bertanda di berkas kode**, +2 lagi bertanda di penjaga PowerShell (B56 check-links.ps1, B79 check-lang.ps1 — A9 mengadili keduanya), **6 ID kunyatakan TANPA TAG KODE** (B43 B71 B74 B76 B77 B99) karena perbaikannya hidup di dokumen vault; A9 melaporkan **72 tag cocok dua arah**. B78 keluar dari daftar tertutup: telusur 30 Sep menunjukkan baris tes tidak punya penanda, jadi `sisa = 0` belum bisa dikueri (lihat barisnya).
 
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 (TERBUKA total 21, bergembok 7). Angka apa pun di bawah harus dicetak ulang oleh perintahnya pada hari
@@ -171,7 +171,7 @@ ia dikutip (AGENTS #1).
 | 1 | **B107** | `sync:numbers` melapor merah tanpa sebab anak | `probe:serve`/verify:edge MERAH menampilkan 8 baris terakhir anak + `needs: local signer` | 20 m |
 | 2 | **B67** ✅ SELESAI 29 Sep, kriteria 30 Sep dipenuhi ([[09-Testing/T28 - signer monitor-edge.js]]) | ~~tepi tidak tahu `publish` berhenti~~ | — |
 | 3 | **B66** | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | migrasi + 2 pemeriksaan `verify:db` (kadaluarsa hilang, aktif utuh) | 30 m |
-| 4 | **B78** | artefak tes tidak dibersihkan | `npm run cleanup` mencetak **sisa = 0**, bukan klaim lisan | 45 m |
+| 4 | **B78** 🟡 30 Sep: diagnosa lama salah — baris tes TIDAK punya penanda, jadi `sisa = 0` belum bisa dikueri; menunggu pilihan jalur A (self-purge) atau B (kolom `origin`) | artefak tes | — |
 | 5 | **B84** | identitas penerbit punya 3 sumber berbeda | `publish.js` + `server.js` + `.keys/` menghasilkan **hash dokumen issuer yang sama** (verifikasi tanpa transaksi) | 1 j |
 | 6 | **B102** | spesimen `delisted`/`expired` belum ada | `check:samples` melaporkan keduanya non-nol; tombol yang dicabut boleh dipasang lagi. Butuh 1 transaksi testnet → **izin builder** | 1 j |
 | 7 | **B105** | halaman penerbit + kalimat onboarding jujur | `#/publishers` baca-saja + README sesuai #5. **Tergantung #5** | 1 j |
