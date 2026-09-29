@@ -24,6 +24,8 @@
  * satu perubahan itu mengirim secret server-side ke browser setiap pengunjung.
  */
 
+// [B78] SELESAI 2026-09-29 — setiap enrollment membawa origin (demo|test|unknown; default unknown) supaya baris harness bisa dibedakan dari baris demo. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B78 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 // [B81] SELESAI 2026-09-29 — esai/praktik masuk sebagai rekaman + antrean penilaian penerbit; angka tidak diterima dari klien. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B81 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // [B72] SELESAI 2026-09-29 — state belajar hidup di Postgres (server-side), bukan localStorage browser. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
@@ -141,7 +143,10 @@ export async function enroll ({ learner, courseId, lessonsTotal = 0, message, si
     prefer: 'resolution=merge-duplicates,return=representation',
     // lessons_total ikut ditulis saat baris dibuat: tanpa penyebut itu, "selesai" tidak bisa
     // dihitung dan view akan mengembalikan NULL selamanya.
-    body: [{ learner: getAddress(learner), course_id: courseId, status: 'active', lessons_total: total }],
+    body: [{ learner: getAddress(learner), course_id: courseId, status: 'active', lessons_total: total,
+      // 'unknown' adalah default yang jujur: proses yang tidak memperkenalkan dirinya tidak boleh
+      // menyamar jadi demo. Harness yang menyalakan servernya sendiri mengirim LANCENA_ORIGIN=test.
+      origin: process.env.LANCENA_ORIGIN || 'unknown' }],
   })
   return { ok: true, enrollment: rows?.[0] ?? null, created: true }
 }
