@@ -3,8 +3,8 @@ tags: [testing, "T22"]
 status: active
 updated: 2026-09-28
 command: npm run verify:attempts (hitung-saja) + npm run verify:attempts:live (Postgres + chain 97)
-measured: 2026-09-28
-result: 25/0 offline · 55/0 live (satu alur HTTP penuh)
+measured: 2026-09-29
+result: 31/0 offline · 67/0 live · verify:edge 8/0 (29 Sep)
 ---
 
 # T22 - signer attempts-check.js (satu alur: peserta → rekaman → kertas → dokumen hasil)
@@ -107,7 +107,7 @@ diisi dari kolom `score`, satu nilai punya dua asal dan kertasnya tetap terlihat
 Kertas itu lalu diperiksa pihak ketiga: `npm run validator -- --hash 0xd1dcb1ff… --record` →
 **10/10, `outcome VALID`, 14 pemeriksaan, 0 error / 0 warning** (28 Sep, tercatat di
 `09-Testing/validator-runs.jsonl`). Regresi yang dijalankan hari yang sama: `check.js` **94/0**,
-`verify:db` **28/0**, `probe:serve` **48/0**, `npm run probe` (web) **73/0**.
+`verify:db` **47/0**, `probe:serve` **49/0**, `npm run probe` (web) **73/0** — segarkan dari `npm run sync:numbers`.
 
 ## Yang dibuktikan, dalam satu kalimat per baris
 

@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-28
 command: npm run verify:db
 measured: 2026-09-28
-result: 28 checks / 0 failed
+result: 47 checks / 0 failed
 ---
 
 # T21 - signer db-probe.js (state belajar di Postgres)
@@ -56,7 +56,7 @@ menandatangani request-nya. Tidak ada alamat yang diketik di berkas ini.
 DB HIJAU — 12 pemeriksaan, 0 gagal
 ```
 
-Regresi yang dicek setelahnya: `check.js` **88/0**, `serve-probe` **48/0** (server.js ikut berubah),
+Regresi yang dicek setelahnya: `check.js` **88/0**, `serve-probe` **49/0** (server.js ikut berubah),
 dan server yang sama menolak `/enroll` dengan `503` kalau `SUPABASE_SECRET_KEY` tidak diisi — ia
 tidak berpura-pura menjadi server yang punya DB.
 

@@ -577,7 +577,7 @@ stateDiagram-v2
 Pembeda yang harus disebut saat menjelaskan: **penerbit dijatuhkan ≠ kredensial dicabut.** Peserta
 yang memegang kertas dari agen yang sudah tidak dipercaya dapat verdict `ISSUER_DELISTED`, sementara
 attestation-nya sendiri tetap utuh dan artefaknya tetap di wallet-nya. Empat kasus ini punya baris
-ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **84/0** (29 Sep).
+ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **88/0** (29 Sep).
 
 ---
 
@@ -585,7 +585,7 @@ ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **84/0** (2
 
 | # | tahap | yang dijamin | perintah (29 Sep) |
 |---|---|---|---|
-| 1 | identitas peserta | tanda tangan EIP-191 atas nonce satu-kali; nonce hidup di DB, bukan di `Set` dalam proses | `npm run verify:db` **28/0** |
+| 1 | identitas peserta | tanda tangan EIP-191 atas nonce satu-kali; nonce hidup di DB, bukan di `Set` dalam proses | `npm run verify:db` **47/0** |
 | 2 | enrollment | baris per `(learner, course)`; `lessons_total` dari katalog; idempoten | `verify:attempts:live` 55/0 |
 | 3 | belajar | state machine ditegak server, setiap perpindahan di-event-log | 57 POST progres, `walkFails = 0` |
 | 4 | kuis | angka dihitung **server**; klien mengirim pilihan; `attempt_no` server yang naik; `verdict` dari ambang penerbit | `verify:db` (9 pemeriksaan `/grade`) |

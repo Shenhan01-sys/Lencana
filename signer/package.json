@@ -35,6 +35,7 @@
     "verify:edge": "node scripts/verify-edge.js",
     "diag:lists": "node scripts/diag-lists.js",
     "sim:deadline": "node scripts/deadline-sim.js",
+    "sync:numbers": "node scripts/sync-numbers.js",
     "rehost": "node scripts/rehost.js",
     "grade:essay": "tsx scripts/grade-essay.js"
   },
