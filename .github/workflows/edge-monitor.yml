@@ -1,0 +1,66 @@
+name: edge-monitor
+
+# B67 — "tepi tidak tahu kalau ia sendirian". Worker kita sudah MENOLAK menyajikan daftar yang
+# tidak cocok dengan chain (`x-lencana-stale`), tapi menolak sambil diam bukan alarm: yang tahu
+# duluan adalah orang asing yang membuka URL-nya. Workflow terjadwal ini memanggil perkakas yang
+# sama dengan yang dijalankan manusia (`npm run monitor:edge`) dan membunyikan isu kalau ia ALARM.
+#
+# Kenapa isu, bukan sekadar status merah: status merah pada workflow terjadwal hanya terlihat oleh
+# orang yang membuka tab Actions. Isu membuka sendiri halaman yang bisa dibaca, dan ia menyebut
+# pemeriksaan mana yang gagal dengan angka yang dicetak alatnya.
+#
+# Tidak ada kunci tanda tangan di sini: ini perkakas BACA-SAJA (HTTP ke tepi + chain publik).
+
+on:
+  schedule:
+    # 08:05 WIB sehari sesudah `publish:edge` (08:00) — jeda supaya publish sempat jalan duluan
+    - cron: '5 1 * * *'
+    - cron: '5 13 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ukur tepi (monitor:edge)
+        id: cek
+        working-directory: signer
+        run: |
+          node scripts/monitor-edge.js --json > monitor.json || echo "alarm=1" >> "$GITHUB_OUTPUT"
+          cat monitor.json
+          echo '---'
+          node -e "const j=require('./monitor.json');console.log(j.verdict+' · '+j.alarms.length+' alarm');"
+
+      - name: Bunyikan isu kalau ALARM
+        if: steps.cek.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            const j = JSON.parse(fs.readFileSync('signer/monitor.json', 'utf8'))
+            const judul = `Tepi Lencana ALARM — ${j.verdict} (${j.checkedAt.slice(0, 10)})`
+            const badan = [
+              'Dibunyikan oleh workflow `edge-monitor` (B67). Ini hasil `npm run monitor:edge -- --json`:',
+              '',
+              '```json',
+              JSON.stringify(j, null, 2),
+              '```',
+              '',
+              'Yang dimaksud: `publish:edge` mungkin berhenti (CI gagal, token kedaluwarsa, KV dibersihkan),',
+              'atau daftar sajian tidak lagi cocok dengan chain. Yang TIDAK diuji di sini tertulis di daftar',
+              '`notes` sebagai "TIDAK DIUJI" — jangan dibaca sebagai lulus.',
+            ].join('\n')
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title: judul, body: badan, labels: ['monitor'],
+            })

@@ -24,6 +24,7 @@
     "serve": "tsx src/server.js",
     "probe:serve": "node scripts/serve-probe.js",
     "probe:cold": "node scripts/cold-store-probe.js",
+    "monitor:edge": "node scripts/monitor-edge.js",
     "x402": "node scripts/x402-check.js",
     "issue": "tsx scripts/issue.js",
     "delegate": "tsx scripts/delegate.js",
