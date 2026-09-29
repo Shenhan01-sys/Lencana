@@ -36,7 +36,7 @@
     "diag:lists": "node scripts/diag-lists.js",
     "sim:deadline": "node scripts/deadline-sim.js",
     "sync:numbers": "node scripts/sync-numbers.js",
-    "audit": "node scripts/audit-consistency.js",,
+    "audit": "node scripts/audit-consistency.js",
     "rehost": "node scripts/rehost.js",
     "grade:essay": "tsx scripts/grade-essay.js"
   },

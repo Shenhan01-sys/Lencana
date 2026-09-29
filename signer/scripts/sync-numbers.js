@@ -102,7 +102,11 @@ const DOC_CLAIMS = [
   { file: '09-Testing/T24 - signer rehost.js.md', metric: 'check', want: (m) => `\`check.js\` **${m.pass}/${m.fail}**`, note: 'baris regresi T24' },
   { file: '00-Overview/12 - Business Process.md', metric: 'verifyDb', want: (m) => `\`npm run verify:db\` **${m.pass}/${m.fail}**`, note: 'tabel §7 baris 1' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'check', want: (m) => `signer check **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness' },
-  { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'edge', want: (m) => `verify:edge **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness' },
+  // Catatan matcher: halaman ini menulis `verify:edge **8/0 · 19 dari 19**`, jadi polanya sengaja
+  // berhenti sebelum `**` penutup. Versi pertama menuntut `**8/0**` persis dan menghasilkan "BEDA"
+  // untuk halaman yang sebenarnya benar — penjaga dengan pola yang salah lebih berbahaya daripada
+  // tidak ada penjaga, karena ia melatih orang mengabaikan barisnya.
+  { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'edge', want: (m) => `verify:edge **${m.pass}/${m.fail}`, note: 'baris ringkasan harness' },
   { file: 'START-HERE.md', metric: 'edge', want: (m) => m.ratio ? `**${m.ratio.a} dari ${m.ratio.b}**` : 'TIDAK ADA RASIO', note: 'baris Publicly readable' },
 ]
 
@@ -114,7 +118,8 @@ async function verifyDocs (numbers) {
     const want = c.want(m)
     let text
     try { text = await readFile(join(REPO, 'vault', c.file), 'utf8') } catch { console.log(`  MERAH  ${c.file}: berkas tidak ada`); bad += 1; continue }
-    if (text.includes(want)) continue
+    const hit = want instanceof RegExp ? want.test(text) : text.includes(want)
+    if (hit) continue
     bad += 1
     const label = c.metric === 'edge' ? /verify:edge|verify:edge `|Publicly readable/ : new RegExp(c.metric.replace(/^verify:/, ''))
     const lines = text.split(/\r?\n/)
@@ -127,9 +132,14 @@ async function verifyDocs (numbers) {
 
 if (VERIFY) {
   if (!existsSync(OUT)) { console.error('numbers.json belum ada — jalankan npm run sync:numbers dulu'); process.exit(1) }
-  const { numbers } = JSON.parse(await readFile(OUT, 'utf8'))
-  console.log(`\nsync:numbers --verify (sumber ${OUT}, dicatat ${numbers.capturedAt})`)
-  const bad = await verifyDocs(numbers.items)
+  // Bug yang ketahuan begitu jalur ini DIPERIKSA, bukan dibaca: berkas ditulis sebagai
+  // { capturedAt, note, items } tapi baris ini memanggil JSON.parse(...).numbers → undefined,
+  // lalu TypeError di karakter pertama laporan. Alat yang tidak dijalankan di semua jalurnya
+  // bukan alat — itu skrip yang kelihatan benar.
+  const doc = JSON.parse(await readFile(OUT, 'utf8'))
+  const numbers = doc.items ?? {}
+  console.log(`\nsync:numbers --verify (sumber ${OUT}, dicatat ${doc.capturedAt})`)
+  const bad = await verifyDocs(numbers)
   console.log(bad === 0 ? '\nANGKA HIJAU — halaman vault sepakat dengan numbers.json' : `\nANGKA MERAH — ${bad} klaim halaman tidak cocok. Perbaiki halamannya, jangan angka JSON-nya.`)
   process.exit(bad === 0 ? 0 : 1)
 }
