@@ -1,6 +1,6 @@
 # 05 — Status and order of work
 
-**Last updated: 28 September 2026. Submission deadline: 30 September 2026, 23:59 WIB (2 days).**
+**Last updated: 29 September 2026. Submission deadline: 30 September 2026, 23:59 WIB (1 day).**
 **Newest work queue: [[07-Backlog/03 - Findings and Tasks 2026-09-26]] (26-28 Sep) — B38 artefact metadata
 frozen at mint, B39 artefact granularity, B40 batch mint, B41 the validator run, B42 cold-store blind
 spot in the harness, B43 documentation debt, and since this morning B48 (one slug per process),
