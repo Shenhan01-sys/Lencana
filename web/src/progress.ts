@@ -110,16 +110,16 @@ export function summarize(
     const r = cp[l.slug]
     if (r?.done) {
       done += 1
-      kindsDone[l.kind] += 1
+      kindsDone[l.type] += 1
     }
     if (typeof r?.score === 'number') scores.push(r.score)
-    if (l.kind === 'esai' && r?.draft?.trim()) essayDrafted = true
+    if (l.type === 'esai' && r?.draft?.trim()) essayDrafted = true
   }
 
   const quizAvg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
   if (quizAvg !== null) gradedWeights += weights.kuis
   if (essayDrafted) gradedWeights += weights.esai
-  if (kindsDone.praktik > 0) gradedWeights += weights.praktik
+  if (kindsDone.lab > 0) gradedWeights += weights.lab
 
   const total = lessons.length || 1
   return {

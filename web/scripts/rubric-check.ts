@@ -88,7 +88,10 @@ check('rubrik dijumlah-ubah (total sama, komposisi beda) = hash BERUBAH',
   rubricHashOf(tampered) !== h1, `${rubricHashOf(tampered).slice(0, 18)} vs ${h1.slice(0, 18)}`)
 
 const typo = JSON.parse(JSON.stringify(m)) as CourseManifest
-findEssayManifest(typo).mod.lessons[0].blocks[0] = { t: 'p', text: (findEssayManifest(typo).mod.lessons[0].blocks[0] as any).text + ' (typo)' }
+{
+  const found = findEssayManifest(typo)
+  found.l.body = (found.l.body || "") + " (typo)"
+}
 check('perbaiki typo materi TIDAK mengubah rubricHash', rubricHashOf(typo) === h1)
 check('tapi mengubah manifestHash — materi ikut berkomitmen, terpisah dari kebijakan',
   manifestHashOf(typo) !== manifestHashOf(m))

@@ -49,11 +49,11 @@ export type Score = {
 }
 
 export function quizCount (m: CourseManifest): number {
-  return m.course.modules.reduce((n, mod) => n + mod.lessons.filter((l) => l.kind === 'kuis' || l.quiz).length, 0)
+  return m.course.modules.reduce((n, mod) => n + mod.lessons.filter((l) => l.type === 'kuis' || l.quiz).length, 0)
 }
 
 export function essayCount (m: CourseManifest): number {
-  return m.course.modules.reduce((n, mod) => n + mod.lessons.filter((l) => l.kind === 'esai' || l.essay).length, 0)
+  return m.course.modules.reduce((n, mod) => n + mod.lessons.filter((l) => l.type === 'esai' || l.essay).length, 0)
 }
 
 function mean (xs: number[]): number | null {

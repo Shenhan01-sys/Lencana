@@ -222,7 +222,7 @@ async function main() {
     check('lesson pertama kursus lanjut benar-benar bisa dicari lewat rute',
       !!first && !!findLesson(lanjut, first.slug), first?.slug ?? '(tidak ada lesson)')
     check('prasyarat kursus lanjut menunjuk kursus dasar, seperti rantai di chain',
-      lanjut.prereqCourseId === 'web3-dasar-2026', String(lanjut.prereqCourseId))
+      lanjut.prerequisites[0] === 'web3-dasar-2026', String(lanjut.prerequisites[0]))
   }
 
   // --- 8b. otoritas penilaian ------------------------------------------------

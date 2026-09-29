@@ -116,7 +116,7 @@ export function manifestHashOf (m: CourseManifest): Hex {
     publishedAt: m.publishedAt,
     modules: m.course.modules.map((mod) => ({
       id: mod.id,
-      lessons: mod.lessons.map((l) => ({ slug: l.slug, title: l.title, kind: l.kind, summary: l.summary, blocks: l.blocks })),
+      lessons: mod.lessons.map((l) => ({ slug: l.slug, title: l.title, kind: l.type, summary: l.summary, blocks: l.body })),
     })),
   })
   return keccak256(toBytes(body))

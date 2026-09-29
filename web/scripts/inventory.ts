@@ -23,7 +23,7 @@ console.log()
 for (const c of COURSES) {
   const st = courseStats(c)
   console.log(`${c.id}  -> courseId ${c.id.length} chars, ${st.modules} modul / ${st.lessons} lesson / ${st.pages} halaman / ${st.minutes} menit${
-    c.prereqCourseId ? ` · prasyarat ${c.prereqCourseId}` : ''
+    c.prerequisites[0] ? ` · prasyarat ${c.prerequisites[0]}` : ''
   }`)
   for (const m of c.modules) console.log(`   ${m.id}  ${m.title}  (${m.lessons.length} lesson)`)
 }
