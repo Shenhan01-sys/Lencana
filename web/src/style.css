@@ -13913,3 +13913,91 @@ body.is-submit-page #page-submit::before {
     transform: none;
   }
 }
+
+/* ============================================================
+   ROUTE AMBIENT — per-route media layer + thin black overlay.
+   Distinct artwork per route (never the same everywhere),
+   content always paints above. Decorative: aria-hidden, alt="".
+   Fixed positioning: only the active route's layer paints,
+   because hidden routes are display:none.
+   ============================================================ */
+
+#page-courses #courses,
+#page-submit #ai-evaluator,
+#page-verify #verifier {
+  position: relative;
+}
+
+#page-courses #courses > :not(.route-ambient),
+#page-submit #ai-evaluator > :not(.route-ambient),
+#page-verify #verifier > :not(.route-ambient) {
+  position: relative;
+  z-index: 1;
+}
+
+.route-ambient {
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+/* Footer guard: keep footer text above route ambients (navbar z-100
+   and demo dock z-95 already sit above; footer is static). */
+.app-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.route-ambient img {
+  filter: blur(2px) saturate(0.9) brightness(0.95);
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  transform: scale(1.06);
+  width: 100%;
+}
+
+.route-ambient::after {
+  background:
+    linear-gradient(180deg, rgba(8, 10, 13, 0.45) 0%, rgba(8, 10, 13, 0.62) 45%, rgba(8, 10, 13, 0.8) 100%);
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+#page-courses .route-ambient img {
+  object-position: 50% 28%;
+}
+
+/* Let the ambient breathe through the hero: the stage backdrop stays,
+   but its black alphas drop so art reads like Home's video treatment. */
+#page-courses .courses-hero-stage::before {
+  background:
+    linear-gradient(90deg, rgba(5, 7, 9, 0.82), rgba(5, 7, 9, 0.55) 44%, rgba(5, 7, 9, 0.18)),
+    radial-gradient(circle at 76% 42%, rgba(240, 185, 11, 0.16), transparent 28rem),
+    repeating-linear-gradient(90deg, transparent 0 5.9rem, rgba(255, 255, 255, 0.025) 6rem),
+    transparent;
+}
+
+#page-submit .route-ambient img {
+  object-position: 70% 30%;
+  opacity: 0.42;
+}
+
+#page-verify .route-ambient img {
+  object-position: 50% 40%;
+  opacity: 0.4;
+}
+
+@media (max-width: 640px) {
+  .route-ambient img {
+    opacity: 0.3;
+  }
+
+  #page-submit .route-ambient img,
+  #page-verify .route-ambient img {
+    opacity: 0.3;
+  }
+}
