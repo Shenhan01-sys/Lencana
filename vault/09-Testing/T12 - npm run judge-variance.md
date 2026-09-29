@@ -24,3 +24,20 @@ dari bukti mekanis + penilaian — lihat [[05-Course-Content/K4 - Scoring withou
 
 **Lihat juga:** [[04-Signer-Service/S5 - Grading and the model judge]]
 **Related:** [[09-Testing/00 - Hub Testing]] · [[08-Results/01 - Evidence and Limits]]
+## Run 30 Sep (5x, temperature 0, `openai/gpt-oss-120b`)
+
+· substantif `100 100 100 100 100` → spread **0**, rata-rata 100,0
+· fasih-tapi-kosong `4 2 5 2 2` → spread **3**, rata-rata **3,0**
+· jarak antar kelas **97,0 poin**; ambang lulus kursus **70**; keputusan **benar di 5/5 run**
+· 6 panggilan `HTTP 429` ditangani retry bertingkat (2s→12s) — kuota Groq, bukan kegagalan produk
+
+Yang boleh dikutip: **3,0** dan **97,0**. Yang tidak: menyebut rata-rata substantif 100 sebagai
+"penilainya akurat" — angka 100 tidak membuktikan apa-apa sampai angka 3,0 itu ada di kalimat yang sama.
+
+## Kenapa run ini pernah tidak bisa dijalankan sama sekali (B110)
+
+`judge-check.js` dan berkas di balik perintah ini adalah satu-satunya harness yang tidak memuat
+`app/.env`, jadi `npm run judge-variance` mati dengan "GROQ_API_KEY missing from the
+environment" meski kuncinya ada di repo sendiri — dan pesan kesalahannya menyuruh memakai perkakas
+di luar `app/`. Kelas yang sama dengan B43/B53/B56/B62: bukti yang cuma hidup di satu mesin.
+Diperbaiki 30 Sep, ditandai `[B110] SELESAI` di kedua berkas. Lihat juga [[09-Testing/T11 - npm run judge]].

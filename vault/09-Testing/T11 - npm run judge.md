@@ -24,3 +24,6 @@ peserta demo kita tetap fiktif dan itu tertulis di [[08-Results/01 - Evidence an
 
 **Lihat juga:** [[04-Signer-Service/S5 - Grading and the model judge]] · [[05-Course-Content/K4 - Scoring without the platform deciding]]
 **Related:** [[09-Testing/00 - Hub Testing]] · [[08-Results/01 - Evidence and Limits]]
+## 30 Sep — B110: harness ini dulu tidak memuat `app/.env`
+
+`npm run judge` sekarang berjalan dari clone (muat env sendiri, pesan kesalahan menunjuk `app/.env`). Run 30 Sep: **PENILAI SAH — 0 pemeriksaan gagal**; kontrol negatif tetap yang jadi bukti utama (kosong 4 vs substantif 99, ambang 70). Variansi: [[09-Testing/T12 - npm run judge-variance]].

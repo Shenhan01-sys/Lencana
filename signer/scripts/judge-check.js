@@ -13,6 +13,8 @@
  *
  * Keduanya kegagalan yang keras, bukan peringatan: ia keluar dengan kode lỗi kalau tidak terpenuhi.
  */
+
+// [B110] SELESAI 2026-09-29 — harness ini memuat app/.env sendiri (B110) — sebelumnya npm run judge tidak bisa dijalankan dari clone. Buktikan ulang: npm run judge. JANGAN dibalik/diulang tanpa membuka kembali baris B110 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFile } from 'node:fs/promises'
 import { findCourse, findLesson } from '../../web/src/courses/index.ts'
 import { gradeAgainstRubric, formatVerdict } from '../src/grade.js'
