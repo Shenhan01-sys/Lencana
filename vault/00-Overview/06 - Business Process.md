@@ -11,6 +11,16 @@ nama berkas di sini. Yang ditulis hanya: siapa melakukan apa, siapa membayar apa
 berjalan sebagai bisnis** versus yang **belum**. Mekanisme di balik setiap baris ada di
 [[01-Architecture/01 - Architecture]] dan [[04-Signer-Service/01 - Signer Service]].
 
+> **Koreksi 30 Sep (B117) — halaman ini memotret 26 Sep, dan empat barisnya sudah bergerak.** Tabel dan
+> warna diagram di bawah tidak kutimpa; yang berubah sejak itu: (1) **akun/rekaman belajar** — bukan lagi
+> "belum": enrollment, progres dan usaha peserta tercatat di server di bawah tanda tangan peserta sejak
+> 28 Sep (identitasnya masih kunci perangkat, belum akun yang bisa dipulihkan); (2) **bukti dibaca pemeriksa
+> asing** — baris yang menyebut "2 error" adalah run pertama 27 Sep; sejak itu validator menjawab VALID
+> dengan 0 error; (3) **orang luar memeriksa tanpa menghubungi kami** — 19 dari 19 kertas bisa dibuka
+> publik; (4) **pengumpulan esai** — sekarang diserahkan ke penerbit dan dinilai dengan kunci penerbit.
+> Yang **tetap** merah: peserta membayar kursus, penerbit bergabung sendiri, dan layanan yang berjalan tanpa
+> operator. Versi teknis dan terkini: [[00-Overview/12 - Business Process]].
+
 Status per **26 September 2026**. "Sudah" di halaman ini berarti *sudah berjalan dan bisa diperagakan*.
 Ia **tidak** berarti *sudah dipakai orang sungguhan* — tidak ada satu pun peserta nyata atau penerbit
 nyata yang memakai ini sampai hari ini, dan itu batas paling penting dari seluruh halaman.

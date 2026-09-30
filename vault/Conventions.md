@@ -52,6 +52,8 @@ readers are judges, a frontend maintainer, and AI agents.
 08-Results/         one executive summary per finished item + the evidence/limits hub
 09-Testing/         one note per harness command, with its real output
 10-Contributors/    who owns what, open items for the frontend maintainer + Open-Items/
+11-Refactoring/     consumer-readiness audit + target shape  (parts RF1…)
+12-LMS-References/  six LMS read at pinned commits + L7/L8   (parts L1…)
 Concepts/           atomic concept notes (#concept)
 Module-Guides/      one guide per NN- folder (auto-stubbed by sync-vault.ps1, must be filled)
 Notes/              dated session notes, status snapshots

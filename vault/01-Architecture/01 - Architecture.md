@@ -372,6 +372,17 @@ institution" — on chain its minter is us, and that is publicly visible.
 > use is still "built to the specification", never "interoperable" — now because a third party read our
 > paper and marked two places on it, not because nobody has looked.
 
+> **Koreksi 30 Sep (B117) — blok kutipan di atas memotret 27 Sep pagi dan tiga kalimatnya sudah tidak benar.**
+> (1) "did not pass — 2 errors": run kedua hari yang sama, dan run 28 Sep di host tetap, menjawab
+> `outcome: VALID` dengan 0 error ([[09-Testing/T15 - 1EdTech validator]]); kata yang boleh dipakai ada di
+> [[10-Contributors/Claims-Cheat-Sheet]]. (2) "the credential references both" di paragraf "What building it
+> changed" di bawah: sejak 27 Sep kertas menunjuk **satu** entri (`revocation`) karena skema OB 3.0 hanya
+> menerima satu objek; daftar `suspension` tetap disajikan dan tetap di-anchor
+> ([[04-Signer-Service/S3 - Two status lists]]). (3) "derived from chain state on every request": di tepi
+> publik daftar disusun dan ditandatangani **saat terbit**, lalu dicocokkan dengan chain **tiap permintaan**
+> dan ditolak 503 kalau berbeda (D44, [[04-Signer-Service/S10 - Edge surface]]). Signer lokal masih
+> menyusunnya per permintaan.
+
 An Open Badges verifier **does not read the chain**. Status checking is defined for exactly one type:
 
 > *"A Credential is revoked if the credentialStatus property is present, and the type of the

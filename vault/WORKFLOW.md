@@ -1,11 +1,11 @@
 ---
+tags: [workflow, concept, global]
+---
 
 > **Hook (aturan 12 `AGENTS.md`):** langkah 5 belum selesai sampai vault menampilkan angka
 > run hari itu. Setiap item yang dianggap beres wajib menutup loop ini — bukan cuma kodenya.
-> Kekunoan vault = klaim yang salah pelan-pelan; ukuran terakhirnya ada di baris **B93**
+> Kekunoan vault = klaim yang salah pelan-pelan; ukuran terakhirnya ada di baris **B93** dan **B117**
 > [[07-Backlog/03 - Findings and Tasks 2026-09-26|status dan tugas terbaru]].
-tags: [workflow, concept, global]
----
 
 # 🔄 Global Development Workflow — 5 Langkah Wajib per Item/Fase
 
@@ -78,8 +78,9 @@ berkasnya (`//`, `///`, `#`, `--`, `*`); tokennya wajib utuh. Dua penjaga mengad
 (A9 — konsistensi marker ↔ baris, dua arah) dan `npm run check:labels` (T29 — kelengkapan **dan bentuk**:
 tiap ID tertutup punya marker atau alasan 'TANPA TAG KODE' yang tertulis di barisnya, tidak ada sisa
 bentuk lama, marker wajib berstatus dan wajib duduk di baris komentar, satu ID tidak boleh dua kali di
-berkas yang sama). Terukur 30 Sep: **LABEL HIJAU 8/0** (80 marker di 46 ID) · **SELF-TEST HIJAU —
-12 fixture, 0 luput**.
+berkas yang sama). Terukur 30 Sep malam: **LABEL HIJAU 8/0** (83 marker di 49 ID) · **SELF-TEST HIJAU —
+12 fixture, 0 luput**. *(Kalimat ini tadinya menulis "80 marker di 46 ID" — pembacaan siang hari yang
+sama, sebelum marker B114, B105 dan B117 masuk; dikoreksi B117.)*
 
 > **Bentuk lama sudah tidak berlaku — diganti 30 Sep (B112 opsi A).** Sebelum ini marker ditulis
 > dengan kurung siku. Bentuk itu tidak bisa diverifikasi mesin, karena pola kurung-siku-B-angka juga

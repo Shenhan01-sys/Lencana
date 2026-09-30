@@ -35,6 +35,33 @@ disappear is `#lms-mount` (`web/index.html:518`) and the `renderLmsRoute()` call
 | **OI-9** | documents describing pages and logins that are not built | `FRONTEND_ITERATION.md:124` + its `file:///C:/…` links | OPEN |
 | **OI-10** | a config preset pointing at addresses that are not ours | `web/src/config.ts:23-24`, `:34-35` | OPEN — needs your call |
 
+### Status terukur 30 Sep (B117) — kolom "status" di atas ditulis 26 Sep dan tidak pernah disegarkan
+
+Peta di atas berhenti di OI-10 dan menandai semuanya OPEN, padahal beberapa butir sudah ditutup lewat baris
+backlog sejak 28–29 Sep. Yang di bawah ini **dihitung** dari `main` hari ini: jumlah kemunculan literal per
+berkas di `web/index.html`, `web/src/main.ts`, `render.ts`, `i18n.ts`, `config.ts` (komentar ikut terhitung,
+jadi tiap angka kubaca barisnya sebelum menyimpulkan). Nomor baris di peta lama sudah bergeser — `main.ts`
+tumbuh — jadi pakai nama simbolnya, bukan nomornya.
+
+| # | keadaan 30 Sep | yang terukur |
+|---|---|---|
+| OI-1 | **SEBAGIAN** | `generateCanonicalJsonLd` dan dokumen demo bertanda tangan palsu sudah dibuang (B94, B100); panel itu kini `fetch` dokumen asli dari tepi. Yang tersisa: `RINA_CREDENTIAL_JSONLD` di `main.ts` masih objek ketikan tangan (`urn:uuid:…`, `did:pkh:…`) dan masih dipakai dua kali |
+| OI-2 | **OPEN** | `/api/v1/verify/batch` masih ada: `index.html` 1, `i18n.ts` 2 |
+| OI-3 | **OPEN** | `toggleBitstringState` / "Simulate State Flip" masih ada: `index.html` 1, `main.ts` 2, `i18n.ts` 1 |
+| OI-4 | **OPEN** | `AttestationNotFound` / `ErrLocked` / `checkPrerequisites` masih ada: `index.html` 1, `main.ts` 3, `i18n.ts` 2 |
+| OI-5 | **OPEN** | `Rina Oktaviani` masih ada (`index.html` 3, `main.ts` 2, `i18n.ts` 6), begitu juga `#0x91a7` / `93/100`. Yang sudah hilang: angka kartu agen 1,420 / 856 / 640 (B101) |
+| OI-6 | **TUTUP** di berkas yang disajikan (B100) | `lencana.io` tinggal di komentar sejarah `main.ts`; nol di `index.html`, `render.ts`, `i18n.ts`. Masih satu di `FRONTEND_ITERATION.md` |
+| OI-7 | **OPEN** | `tBNB` masih ada: `index.html` 1, `main.ts` 1, `i18n.ts` 2 |
+| OI-8 | **literal tidak ditemukan lagi** | nol kemunculan `DAO-GOVERNED`, `FULLY ON-CHAIN DIPLOMAS`, `autonomous domain AI agent`, `on-chain mastery` di `index.html` dan `i18n.ts`. Aku tidak menelusuri komit mana yang menghapusnya |
+| OI-9 | **OPEN** | tiga tautan `file:///` masih di `FRONTEND_ITERATION.md` (tercatat di `vault/scripts/link-exceptions.txt`) |
+| OI-10 | **OPEN** | kedua alamat preset itu masih ada: `config.ts` 4, `index.html` 1 |
+| OI-11 | **OPEN** | `simulateX402Batch` masih ada dan masih berjalan di atas timer. Satu-satunya `fetch(` di `main.ts` milik panel dokumen (OI-1), bukan panel pembayaran |
+| OI-12 | **TUTUP** (B68) | nol `credentialStatus: [` di berkas FE |
+| OI-13 | **TUTUP** (B69, B100) | tombolnya memanggil `runSpecAudit()`; string "14/14 … (12ms)" tinggal di komentar sejarah |
+| OI-14 | **TUTUP** (B71) | nol `../_research/` di kedua `package.json` |
+| OI-15 | **TUTUP** (B70) | nol "belum disiarkan ke chain" |
+| OI-16 | catatan, bukan cacat | keputusan kunci kuis di bundel tetap terbuka sebagai B80 |
+
 ## OI-1 — the hand-typed documents
 
 `web/src/main.ts` renders the credential shape twice: a JSON-LD block at `:1104-1111` whose

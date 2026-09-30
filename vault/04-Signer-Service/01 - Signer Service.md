@@ -18,6 +18,11 @@ Three responsibilities that must not be merged in the reader's head:
 | **Agent** | signs attestations **as the third-party issuer** through `attestByDelegation`, grades essays (mechanically against the issuer's rubric, or with a model), and anchors list hashes to BAS | the issuer's key signs; the platform pays gas |
 | **Payment** | answers `402 Payment Required`, verifies the x402 `exact` scheme's signature and target, broadcasts the settlement, then splits it in `SettlementSplit` | the platform |
 
+*(Koreksi 30 Sep, B117: baris "Document" di atas menulis daftar status "derived from chain state on every
+request". Itu benar untuk signer lokal. Di tepi publik, sejak 28 Sep, daftar ditandatangani saat
+`publish:edge` dan tiap permintaan hanya mencocokkannya dengan chain — D44, [[S10 - Edge surface]]. Angka di
+bagian "Reproduce" di bawah bertanggal 25–28 Sep; angka kini ada di `09-Testing/numbers.json`.)*
+
 `src/server.js` is the product. Everything named `check` / `probe` / `x402` / `judge` / `delegate` /
 `anchor` is a **harness** so a stranger can re-run a claim from a clone — not a feature the user is
 supposed to type.

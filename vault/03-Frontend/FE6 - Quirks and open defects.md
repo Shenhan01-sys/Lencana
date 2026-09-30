@@ -12,6 +12,11 @@ describes is exercised from Node against chain 97; the panels below are markup a
 that read as evidence to a visitor. For each case: what the UI prints, what the code produces, and the
 open item tracking it (cites read in the current tree, 2026-09-25).
 
+> **Dibaca 30 Sep (B117):** halaman ini memotret tree per 25 Sep, dan nomor barisnya sudah bergeser. Beberapa
+> butir di bawah sudah ditutup (domain `lencana.io`, tab kepatuhan, dokumen demo karangan), beberapa belum
+> (panel pembayaran, panel bitstring, revert tiruan, persona). Keadaan per butir yang **diukur hari ini** ada
+> di [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep" — kutip dari sana, bukan dari sini.
+
 **Key points:**
 - **Hand-typed credential document** — `CANONICAL_DEMO_JSONLD` (`web/src/main.ts:2043`),
   `RINA_CREDENTIAL_JSONLD` (`:1072`), `generateCanonicalJsonLd()` from a live `Report`

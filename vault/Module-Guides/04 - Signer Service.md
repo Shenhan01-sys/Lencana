@@ -15,6 +15,9 @@ tags: [module, 04]
 - [[04-Signer-Service/S5 - Grading and the model judge]]
 - [[04-Signer-Service/S6 - x402 paid verification]]
 - [[04-Signer-Service/S7 - Server routes and lifecycle]]
+- [[04-Signer-Service/S8 - Criteria document]]
+- [[04-Signer-Service/S9 - Result document]]
+- [[04-Signer-Service/S10 - Edge surface]]
 
 ## Key facts
 - Serving order and the two contract bugs found here in September (the document route returning a store row; `/criteria` and `/results` pointing at nothing) are in [[04-Signer-Service/S7 - Server routes and lifecycle]].

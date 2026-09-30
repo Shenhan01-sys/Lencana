@@ -1,4 +1,5 @@
 // Lencana-B112 status=SELESAI 2026-09-30 — marker aturan #18 dipindah ke token yang tidak mungkin berupa kode, dan penjaga ini sekarang menuntut bentuk sekaligus kelengkapan yang dulu mustahil dituntut (8 pemeriksaan, dari 4). Buktikan ulang: npm run check:labels lalu npm run check:labels -- --self-test; inventaris penuh: npm run check:labels -- --list. JANGAN dibalik/diulang tanpa membuka kembali baris B112 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B117 status=SELESAI 2026-09-30 — angka baseline di kepala berkas ini disegarkan dari run malam 30 Sep (hanya komentar; tidak ada logika penjaga yang berubah). Buktikan ulang: npm run check:labels. JANGAN dibalik/diulang tanpa membuka kembali baris B117 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run check:labels` — aturan #18 bagian KEDUA: bukan cuma "marker cocok dengan barisnya" (itu A9),
  * tapi "tiap ID tertutup punya marker atau alasan yang tertulis", dan "tidak ada marker cacat".
@@ -23,13 +24,16 @@
  * `--self-test` mengadili penjaga ini dengan fixture: yang harus merah wajib tertangkap, yang harus
  * hijau wajib tidak terlapor. Tanpanya, "penjaga hijau" tidak bisa dibedakan dari "penjaga buta".
  *
- * Baseline sengaja disimpan di berkas ini (bukan di kepala). Terukur 30 Sep pada keadaan akhir hari:
- *   82 marker di 48 ID · 70 baris backlog · 50 tertutup · 5 ID tertutup beralasan TANPA TAG KODE
+ * Baseline sengaja disimpan di berkas ini (bukan di kepala). Terukur 30 Sep malam, sesudah B116
+ * terdaftar dan B117 ditutup:
+ *   83 marker di 49 ID · 72 baris backlog · 51 tertutup · 5 ID tertutup beralasan TANPA TAG KODE
  *   (B43 B71 B74 B76 B115) · lubang 0 · bandel 0 · sisa bentuk lama 0.
- * Selisihnya dijelaskan supaya tidak ada yang mengira angka ini karangan: 82 = 78 hasil migrasi B112
+ *   (Baris ini tadinya menulis "82 marker di 48 ID · 70 baris · 50 tertutup" — pembacaan sore hari
+ *   yang sama, sebelum baris B116 dan B117 ada.)
+ * Selisihnya dijelaskan supaya tidak ada yang mengira angka ini karangan: 83 = 78 hasil migrasi B112
  *   + 2 marker B112 (di berkas ini dan di blok A9 `audit-consistency.js`) + 1 marker B114 (di
- *   `sync-numbers.js`) + 1 marker B105 (di `web/src/main.ts`, status TERBUKA). Tertutup 50 = 46
- *   sesudah migrasi + B112 + B114 + B84 + B115. B84 tidak menambah marker (markernya sudah ada di
+ *   `sync-numbers.js`) + 1 marker B105 (di `web/src/main.ts`, status TERBUKA) + 1 marker B117 (di
+ *   berkas ini). Tertutup 51 = 46 sesudah migrasi + B112 + B114 + B84 + B115 + B117. B84 tidak menambah marker (markernya sudah ada di
  *   `identity-check.js` sejak 29 Sep, hanya di-flip ke SELESAI saat barisnya ditutup) dan B115 juga
  *   tidak — ia mengumumkan TANPA TAG KODE karena tidak ada satu baris kode pun yang berubah untuk
  *   menutupnya; 78/45/46 adalah keadaan tepat sesudah migrasi, sebelum baris-barisnya ditutup.

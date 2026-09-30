@@ -32,6 +32,8 @@ Structural entry point: every layer, one line each. For orientation and the coun
 | 08 | [[08-Results/00 - Hub Results]] | one executive summary per finished item, and the evidence/limits essay |
 | 09 | [[09-Testing/00 - Hub Testing]] | the home of every measured number |
 | 10 | [[10-Contributors/00 - Hub Contributors]] | ownership map, frontend contract, open items |
+| 11 | [[11-Refactoring/00 - Hub Refactoring]] | consumer-readiness audit and the target shape, front end and core |
+| 12 | [[12-LMS-References/00 - Hub LMS References]] | six LMS read at pinned commits; what an e-course must have, and where we stand |
 
 ## ⚡ Reference
 

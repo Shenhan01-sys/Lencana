@@ -24,8 +24,8 @@ ini terverifikasi 28 Sep dengan **membaca kode**, bukan membaca catatan lama.
 | 4 | progres per peserta + state machine | ✅ `POST /progress` + mesin status ditegak server (lompat ilegal → 422, status sama → noop) + `progress_events`; **FE tidak lagi menjadikannya satu-satunya tempat state** — `#/learn` mengirim unlocked→started→completed lewat HTTP (terukur 57 POST pada run 28 Sep), `localStorage` tinggal cache yang diberi label "di perangkat ini" | draf esai masih lokal saja (sengaja, lihat B81) |
 | 5 | rubric dengan skala eksplisit | ⚠️ `RubricItem{label,max}` itu bobot, bukan skala | skala berlabel-titik seperti ORA |
 | 6 | **dua gerbang: selesai ≠ lulus** | ✅ view `course_gates` memisahkan `all_lessons_done` dan `best_score`, dan **penerbitan memakainya**: `issue --from-attempts` menolak kalau salah satu belum lewat (`NULL` = belum tahu = belum selesai). UI masih punya `readyForCredential` sendiri — itu tampilan, bukan keputusan | pindahkan label UI ke angka gerbang server |
-| 7 | asal-usul nilai (siapa/apa yang menghasilkan angka) | ⚠️ **per jalur.** Kuis: `POST /grade` — klien mengirim *pilihan*, server yang menghitung terhadap kunci manifest, menyimpan komponen per soal, dan `attempt_hash` ikut tercetak di dokumen hasil (`…/results/…`) yang dirujuk `result[0].id`. Esai/praktik: angkanya masih laporan klien (`POST /attempts`) | antrean penilaian penerbit untuk esai/praktik (B81) + gradebook |
-| 8 | alur penilaian (manusia/model) dengan lock/regrade | ❌ `judge.js` fail-closed + kontrol negatif, tapi tak ada antrian/kunci/regrade | antrian + event regrade |
+| 7 | asal-usul nilai (siapa/apa yang menghasilkan angka) | ⚠️ **per jalur.** Kuis: `POST /grade` — klien mengirim *pilihan*, server yang menghitung terhadap kunci manifest, menyimpan komponen per soal, dan `attempt_hash` ikut tercetak di dokumen hasil (`…/results/…`) yang dirujuk `result[0].id`. Esai/praktik: angkanya masih laporan klien (`POST /attempts`). **Koreksi 30 Sep (B117):** untuk esai itu berhenti benar 29 Sep (B81) — esai masuk tanpa angka lewat `POST /essay`, angkanya hanya lewat tanda tangan EOA penerbit (`POST /essay/judgement`); tinggal praktik yang laporan klien | rute penyerahan praktik + gradebook |
+| 8 | alur penilaian (manusia/model) dengan lock/regrade | ⚠️ *(tadinya ❌)* `judge.js` fail-closed + kontrol negatif; sejak 29 Sep ada antrean esai (tabel `submissions`, `npm run grade:essay`, B81) dan penilaian ulang melaporkan `replacedHash`. Belum: kunci/lease penilaian, pengesahan manusia | kunci penilaian + pengesahan manusia (B104) |
 | 9 | hasil akhir yang bisa dicek orang asing | ✅ **pembeda kita** (bagian 2) | — |
 | 10 | harga + jalur bayar, dihitung server-side | ⚠️ x402 + `SettlementSplit` jalan **tapi menempel ke verifikasi**, bukan ke enrollment; panel browser = animasi (OI-11) | `POST /orders`, `platformBps` dihitung server |
 | 11 | peran & izin | ⚠️ whitelist issuer + `onlyOwner` di chain; tanpa peran produk | roles learner/publisher/mentor |
@@ -36,7 +36,8 @@ Urutan pengerjaan yang masuk akal terhadap bar ini = urutan yang sudah diurutkan
 dibobot server → 4 dua gerbang → 5 panel bayar nyata → 6 guard idempotensi → 7 gradebook**.
 Keadaan 28 Sep sore: **1, 2, 3, 4, 6 selesai dan terukur** (satu alurnya lewat HTTP,
 [[09-Testing/T22 - signer attempts-check.js]]), yang tersisa **5** (panel bayar nyata, OI-11) dan
-**7** (gradebook) — ditambah angka esai/praktik yang masih laporan klien (B81). Jangan membaca daftar
+**7** (gradebook) — ditambah angka esai/praktik yang masih laporan klien (B81) *(30 Sep: esai sudah
+tidak — lihat koreksi di baris 7; tinggal praktik)*. Jangan membaca daftar
 ini sebagai "kerangka umum sudah penuh": bar 2, 5, 8, 11, 12 masih ⚠️/❌ di tabel di atas.
 
 ## Bagian 2 — penyimpanan: Supabase (PostgreSQL)

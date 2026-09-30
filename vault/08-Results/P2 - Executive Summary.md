@@ -28,9 +28,19 @@ implemented yet".
 - A credential issued by this backend was submitted to the 1EdTech Open Badges 3.0 validator and returned
   **0 errors, 0 warnings** (27 Sep, `npm run validator`).
 
-**What is not true yet, in one breath.** One fictitious issuer on BNB Chain **testnet**, no real
-institution, no enrolment record (progress is browser storage), we are our own payment facilitator, the
-durable public host that the validator followed is still a temporary tunnel, and contract source is not
-verified on the explorer. Detail and dates: [[08-Results/01 - Evidence and Limits]].
+**What is not true yet, in one breath (as of 30 Sep).** One fictitious issuer on BNB Chain **testnet**, no
+real institution, the demo issuer's agent key is held by the platform, quiz answer keys ship in the browser
+bundle, a learner's identity is a device key with no recovery, we are our own payment facilitator, and
+contract source is not verified on the explorer. Detail and dates: [[08-Results/01 - Evidence and Limits]]
+and [[10-Contributors/Claims-Cheat-Sheet]].
+
+*(Koreksi 30 Sep, B117 — dua kalimat di paragraf ini sudah tidak benar dan tidak boleh dikutip dari versi
+lamanya: (1) "no enrolment record (progress is browser storage)" — sejak 28 Sep enrollment, progres dan usaha
+hidup di Postgres di bawah tanda tangan peserta, dan penerbitan membacanya (`issue --from-attempts`,
+[[09-Testing/T22 - signer attempts-check.js]]); (2) "the durable public host … is still a temporary tunnel" —
+sejak 28 Sep dokumen disajikan dari tepi tetap `lencana-edge…workers.dev`, dan validator berkata
+`outcome: VALID` terhadap host itu ([[09-Testing/T15 - 1EdTech validator]],
+[[04-Signer-Service/S10 - Edge surface]]). Butir validator di atas juga menyebut "27 Sep": run itu sah,
+tetapi hostnya sudah mati — yang bisa diulang orang hari ini adalah run 28 Sep di host tetap.)*
 
 **Related:** [[00-Overview/06 - Business Process]] · [[00-Overview/08 - Submission Copy]]

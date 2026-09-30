@@ -6,6 +6,10 @@ updated: 2026-09-25
 
 # 02 - Roadmap to the Deadline
 
+> **Halaman ini bertanggal 25 Sep dan dibiarkan sebagai rencana waktu itu** (B117, 30 Sep). Posisi hari ini
+> ada di [[START-HERE]]; pekerjaan yang tersisa di [[07-Backlog/01 - Backlog]] bagian "Urja". Dari daftar
+> "human-only" di bawah, keputusan URL publik sudah diambil dan dikerjakan (tepi tetap, 28 Sep).
+
 **Today: 25 September 2026 · deadline 30 September 2026, 23:59 WIB · 5 days left.**
 Backlog detail lives in [[07-Backlog/01 - Backlog]]; this page is only the day-by-day shape and what
 each day is worth.

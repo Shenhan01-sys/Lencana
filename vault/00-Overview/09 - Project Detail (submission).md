@@ -6,6 +6,13 @@ updated: 2026-09-26
 
 # 09 - Project Detail (submission)
 
+> ⚠️ **ARCHIVED — see [[00-Overview/10 - Project Detail (long form) - Copy]]** (B117, 30 Sep). Halaman ini
+> ditulis 26 Sep untuk field yang ternyata berbatas 5.600 karakter; yang ditempel ke form adalah berkas
+> *Copy* itu, dan rujukan panjangnya [[00-Overview/10 - Project Detail (long form)]]. Isinya dibiarkan apa
+> adanya sebagai jejak, jadi **angka di §6 dan batas di §7 adalah keadaan 24–28 Sep**: web probe 59/0,
+> `check.js` 53/0, "no enrolment record" — ketiganya sudah tidak benar. Angka kini:
+> [[10-Contributors/Claims-Cheat-Sheet]] dan `09-Testing/numbers.json`.
+
 Isi lengkap untuk field **"Project Detail * (markdown, mermaid diagrams supported)"**. Dokumen ini
 sengaja *self-contained*: semua nomor di sini sudah diukur dari repo ini, dan alamat kontraknya
 dicocokkan ke `broadcast/**/*.json` (catatan deploy asli), bukan disalin dari halaman lain.

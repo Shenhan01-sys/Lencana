@@ -22,16 +22,16 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 
 | | |
 |---|---|
-| Today | **29 September 2026** |
-| Submission deadline | **30 September 2026, 23:59 WIB** — **1 day left** |
+| Today | **30 September 2026** — hari tenggat *(koreksi 30 Sep, B117: baris ini tadinya "29 September" dengan "1 day left" — basi sehari)* |
+| Submission deadline | **30 September 2026, 23:59 WIB** — **hari ini** |
 | Repository | `github.com/Shenhan01-sys/Lencana` (public) |
 | Chain | BSC **testnet 97**. Nothing on mainnet, by choice: testnet satisfies the rules |
-| On-chain layer | 4 contracts deployed · **104 Foundry tests pass / 0 fail** on forks of **both 97 and 56** (re-run 28 Sep) → [`09-Testing/`](09-Testing/) |
+| On-chain layer | 4 contracts deployed · **104 Foundry tests pass / 0 fail** on forks of **both 97 and 56** (re-run 28 Sep) · 30 Sep, fork 97 saja: **120 / 0** dalam 6 suite — 16 tambahannya milik `CourseDeposit`, kontrak yang **belum dideploy** (B90); fork 56 tidak diulang hari ini → [`09-Testing/`](09-Testing/) |
 | Public host | Documents we sign are served from `https://lencana-edge.hansgunawan775.workers.dev` (Cloudflare Worker + KV, never signs anything) → [`04-Signer-Service/S10 - Edge surface.md`](04-Signer-Service/S10%20-%20Edge%20surface.md) |
 | External verdict | `vc.1ed.tech` OB 3.0 validator: **`outcome: VALID`**, 14 checks, 0 errors / 0 warnings — **6 kredensial berbeda** diukur 28 Sep, termasuk satu yang terbit **dari rekaman belajar peserta** → [`09-Testing/T15 - 1EdTech validator.md`](09-Testing/T15%20-%201EdTech%20validator.md) |
 | Learning surface | Enrollment, progres per lesson, dan nilai kuis yang **dihitung penerbit** (`POST /grade`) hidup di Postgres dan dipanggil halaman `#/learn` lewat HTTP (`web/src/learning.ts`); satu alur utuhnya terukur `npm run verify:attempts:live` **67/0** (esai sekarang lewat antrean + tanda tangan penerbit, B81) → [`09-Testing/T22 - signer attempts-check.js.md`](09-Testing/T22%20-%20signer%20attempts-check.js.md) |
 | Publicly readable | **19 dari 19** kertas yang kita pegang bisa dibuka orang tanpa mesin ini — diukur `npm run verify:edge` 29 Sep sore (jalur hari ini: 10 → 11 → 17 → 19). Yang dipindah bukan kertas baru: `npm run rehost` menulis ulang URL di dalam dokumen lalu menandatangani ulang dengan **kunci Multikey yang sama**, tanpa satu transaksi pun di chain — `credentialHash`, uid, nomor bit, dan hash daftar yang ter-anchor tidak berubah (B65-b, B83, [[09-Testing/T24 - signer rehost.js]]) |
-| Honest limits | [`10-Contributors/Claims-Cheat-Sheet.md`](10-Contributors/Claims-Cheat-Sheet.md) — **read this before writing any claim**, including UI copy. Batas yang bertambah hari ini: nilai esai/praktik masih laporan klien (B81), kunci jawaban kuis memang ada di bundel browser (B80), dan jumlah pemeriksaan `check.js` berubah 94 → 84 tanpa sebab yang kutemukan (B85 — jangan kutip angka itu sebelum dijelas) |
+| Honest limits | [`10-Contributors/Claims-Cheat-Sheet.md`](10-Contributors/Claims-Cheat-Sheet.md) — **read this before writing any claim**, including UI copy. Batas yang masih berlaku 30 Sep: kunci jawaban kuis memang ada di bundel browser (B80), **praktik** belum punya permukaan penyerahan sendiri, identitas peserta masih kunci perangkat yang hangus bersama tab (B82), dan kunci agen penerbit demo masih dipegang platform (B105 c). *(Koreksi 30 Sep, B117 — dua hal yang tadinya tertulis di sini sudah tertutup 29 Sep dan tidak boleh dikutip lagi sebagai batas: "nilai esai masih laporan klien (B81)" — esai sekarang masuk antrean dan angkanya hanya bisa ditulis tanda tangan penerbit; dan "`check.js` 94 → 84 tanpa sebab (B85)" — sebabnya aritmetika per entri `credentialStatus`, dan `check.js` mencetak baris `info` yang merekonstruksinya.)* |
 
 ## 🚀 Start here, depending on who you are
 
@@ -88,6 +88,8 @@ vault/
 ├─ 08-Results/         evidence & limits + one summary per item
 ├─ 09-Testing/         one record per harness command
 ├─ 10-Contributors/    ownership, claims, Open-Items/
+├─ 11-Refactoring/     consumer-readiness audit + target shape    (parts RF1…)
+├─ 12-LMS-References/  six LMS read at pinned commits, L7/L8 synthesis (parts L1…)
 ├─ Concepts/ · Module-Guides/ · Notes/ · Templates/ · scripts/
 └─ .obsidian/          local config (not committed; see Conventions)
 ```

@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run check:labels
 measured: 2026-09-30
-result: LABEL HIJAU — 8 pemeriksaan / 0 gagal (terukur ulang 30 Sep sesudah migrasi B112 dan penutupan B112 + B114 + B84 + B115: 82 marker di 48 ID · 70 baris backlog · 50 tertutup · 5 ID tertutup beralasan TANPA TAG KODE (B43 B71 B74 B76 B115) · lubang 0 · bandel 0 · sisa bentuk lama 0; plus SELF-TEST HIJAU 12 fixture / 0 luput. Angka sebelumnya di halaman ini — 4 pemeriksaan, 73 tag / 42 ID, lalu 78 tag / 45 ID, lalu 80 marker / 47 tertutup — benar pada waktunya dan tidak kuhapus; yang di bawah ini dicetak ulang dari run hari ini.)
+result: LABEL HIJAU — 8 pemeriksaan / 0 gagal (terukur ulang 30 Sep sesudah migrasi B112 dan penutupan B112 + B114 + B84 + B115, lalu sekali lagi malam harinya sesudah B116 terdaftar dan B117 ditutup: 83 marker di 49 ID · 72 baris backlog · 51 tertutup · 5 ID tertutup beralasan TANPA TAG KODE (B43 B71 B74 B76 B115) · lubang 0 · bandel 0 · sisa bentuk lama 0; plus SELF-TEST HIJAU 12 fixture / 0 luput. Angka sebelumnya di halaman ini — 4 pemeriksaan, 73 tag / 42 ID, lalu 78 tag / 45 ID, lalu 80 marker / 47 tertutup — benar pada waktunya dan tidak kuhapus; yang di bawah ini dicetak ulang dari run hari ini.)
 ---
 
 # T29 - signer label-coverage.js (aturan #18 ditegakkan dua arah)
@@ -27,6 +27,8 @@ klaim "source code sudah berlabel" jadi angka di chat, bukan keadaan di repo.
 | **baru (B112):** satu ID tidak muncul dua kali di berkas yang sama | dua penanda untuk satu ID di satu berkas adalah undangan untuk memperbarui salah satunya saja |
 
 Terukur 30 Sep pada keadaan akhir hari itu (dicetak `npm run check:labels -- --list`): **82 marker di 48 ID · 70 baris backlog · 50 tertutup · lubang 0 · bandel 0 · sisa bentuk lama 0 → LABEL HIJAU 8/0**, dan `npm run check:labels -- --self-test` → **SELF-TEST HIJAU — 12 fixture, 0 luput**. **Lima** ID tertutup tanpa marker, semuanya mengumumkan `TANPA TAG KODE` di barisnya: **B43 B71 B74 B76 B115** (B115 masuk karena menutupnya tidak mengubah satu baris kode pun — hanya keadaan operasi dan `app/.env`). Selisihnya dijelaskan, bukan dibiarkan jadi teka-teki: **82 = 78 hasil migrasi + 2 marker B112** (di `label-coverage.js` dan di blok A9 `audit-consistency.js`) **+ 1 marker B114** (di `sync-numbers.js`) **+ 1 marker B105** (di `web/src/main.ts`, sengaja `status=TERBUKA` karena halaman `#/publishers` baru sebagian dari yang dituntut barisnya); **48 ID** = 45 ID lama + B112 + B114 + B105; **50 tertutup** = 46 sebelum semuanya ditutup, lalu +B112 (Tahap 4), +B114, +B84 sesudah invarian kunci-penerbitnya masuk `check.js`, dan +B115 sesudah tepi diterbitkan ulang. Terukur pagi hari yang sama, sebelum migrasi: 78 tag di 45 ID · 46 tertutup → LABEL HIJAU 4/0.
+
+**Pembacaan 30 Sep malam (B117), dicetak `npm run check:labels`:** **83 marker di 49 ID · 72 baris backlog · 51 tertutup → LABEL HIJAU 8/0**, self-test 12 fixture / 0 luput. Selisih dari paragraf di atas punya nama: **+2 baris** = B116 (insiden kunci, terbuka) dan B117 (sapuan kekunoan vault, tertutup); **+1 marker dan +1 ID** = `Lencana-B117` di `signer/scripts/label-coverage.js`; **+1 tertutup** = B117. Lima ID beralasan `TANPA TAG KODE` tidak berubah. Paragraf di atas ("82 · 48 · 70 · 50") adalah pembacaan sore hari yang sama dan kubiarkan terbaca.
 
 Angka yang tertulis di halaman ini sebelumnya — `73 tag di 42 ID · 65 baris · 43 tertutup = 39 bertanda + 4 beralasan` — benar pada waktunya, bukan salah hitung; ia jadi basi karena tag baru masuk sesudahnya. Kutulis sebagai koreksi terlihat, bukan kutimpa.
 

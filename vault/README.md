@@ -36,12 +36,20 @@ Context notes: **why** the product is shaped like this, not what is in it. To ru
 | `08-Results/` | evidence and limits, plus one executive summary per finished item |
 | `09-Testing/` | one record per harness command, with its real output |
 | `10-Contributors/` | ownership, claims cheat-sheet, open items for the frontend maintainer |
+| `11-Refactoring/` | the consumer-readiness audit and the target shape, for the frontend owner and for our own side |
+| `12-LMS-References/` | six open-source learning platforms read at pinned commits, plus the comparison (L7, L8) |
 | `Concepts/` | atomic concept notes (credential hash vs UID, rubricHash, fronted gas, …) |
 | `Module-Guides/`, `Notes/`, `Templates/`, `scripts/` | the scaffolding, per [`Conventions.md`](Conventions.md) |
 
 ## Language policy
 
-Everything in this folder is **English** — it ships inside the product repository and judges read it.
-The product UI is Indonesian-first with an EN switch; that exception belongs to `web/`, not here.
+**Indonesian is fine in this folder** — decided by the builder on 28 Sep (B79), and written as rule 9 in
+[`AGENTS.md`](AGENTS.md) and in [`Conventions.md`](Conventions.md). What stays English: identifiers, test
+names and every message that leaves a process (B96). The product UI is Indonesian-first with an EN switch.
+What counts as a defect here is not the language but a number without its command.
+
+*(Koreksi 30 Sep, B117: paragraf ini tadinya berbunyi "Everything in this folder is English". Itu aturan
+lama yang sudah dicabut 28 Sep di dua berkas lain dan tertinggal di sini — dua aturan yang saling
+bertentangan lebih buruk daripada satu aturan yang dilanggar.)*
 
 Rules in full: [`Conventions.md`](Conventions.md) · for agents: [`AGENTS.md`](AGENTS.md)

@@ -28,6 +28,11 @@ The items live in one document so Dave can read them in a single pass:
 | OI-15 | a banner a visitor can still open says "lapis on-chain kami belum disiarkan" with a stale test count — the same false sentence I just removed from `verify.ts` |
 | OI-16 | `#/learn` sekarang menulis ke penerbit (B72, berkas `web/` disunting atas izin builder): berkas yang disentuh, mount point yang ditahan, dan satu keputusan yang tetap milik pemilik front-end — kunci kuis di bundel (B80) |
 
+**Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
+[[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15
+tertutup; OI-1 sebagian; OI-8 literalnya tidak ditemukan lagi; sisanya masih terbuka. Tabel di atas adalah
+daftar temuan, bukan daftar yang masih hidup.
+
 **Tiga dari daftar ini membuat yang lain terlihat lebih buruk, dan itu alasannya ditutup lebih dulu:**
 OI-15 (halaman berkata produknya belum disiarkan), OI-13 (hasil uji yang direkayasa) dan OI-12
 (dokumen yang ditolak validator). Ketiganya menyentuh kalimat penjualan kita sendiri — "klaim yang

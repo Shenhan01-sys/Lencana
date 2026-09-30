@@ -9,6 +9,13 @@ updated: 2026-09-28
 Every line was run against this working copy. The date is when that number was last printed. **If a
 command and a page disagree, the run wins.**
 
+> **Cara membaca dua tabel di halaman ini (B117, 30 Sep).** Tabel pertama di bawah adalah **rekaman
+> bertanggal** — kolom `last` menyebut hari angkanya dicetak, dan sebagian besar barisnya 28 Sep (mis. web
+> probe 59/0, `verify:edge` 5/0 dengan 8 dari 14). Itu bukan angka hari ini dan tidak dijaga alat. **Klaim
+> kini** ada di tabel kedua ("Perintah yang ditambahkan 29 Sep") yang dijaga `npm run sync:numbers -- --verify`,
+> dan di `09-Testing/numbers.json`: 30 Sep web probe 86/0 · `check` 91/0 · `serve-probe` 49/0 ·
+> `verify:edge` 9/0 (19 dari 19) · `verify:live-cert` 35/0 · `e2e` 46/0.
+
 | command (from `app/`) | prints | last |
 |---|---|---|
 | `forge test --evm-version cancun --fork-url https://bsc-testnet.publicnode.com` | 104 passed / 0 failed | 28 Sep |
@@ -46,7 +53,7 @@ never retyped.
 | `npm run rehost [-- --apply --move-identity --fix-status-shape]` | memindah kertas ke host tetap tanpa transaksi: URL ditulis ulang + ditandatangani ulang dengan kunci Multikey yang sama | 7 kertas; `verify:edge` 19 dari 19 |
 | `npm run grade:essay` | antrean esai penerbit; angka masuk hanya lewat tanda tangan EOA penerbit (`POST /essay/judgement`) | `verify:db` 48/0 *(tadinya 47/0 — basi; baris ini sekarang dijaga `DOC_CLAIMS`, B114)* |
 | `npm run audit` | konsistensi proyek: registry tunggal, kalimat terlarang di README/docs, placeholder, dokumen karangan, blokir basi, item hilang dari backlog, tag↔baris, bahasa identifier, angka README | **12 pemeriksaan · 0 TEMUAN** (30 Sep) *(baris ini tadinya menulis "2 TEMUAN (A3 berkas Dave, A6 Vault akar)" — benar pada 29 Sep, basi sesudah A3/A6 ditutup lewat B98/B99. `audit` bukan harness di `numbers.json`, jadi tidak ada gerbang yang bisa menangkapnya; itu dicatat di B114)* |
-| `npm run sync:numbers` / `-- --verify` | `vault/09-Testing/numbers.json` = satu sumber angka; `--verify` memarahi halaman vault yang angkanya tidak cocok | **ANGKA HIJAU — 25 klaim halaman diperiksa, 0 tidak cocok** (30 Sep; jumlah klaim itu dicetak alatnya sendiri) *(tadinya tertulis "9/9 harness terurai" — benar saat harnessnya masih sembilan; jumlah harness sengaja tidak kutulis di sini karena tidak ada perintah yang mencetaknya)* |
+| `npm run sync:numbers` / `-- --verify` | `vault/09-Testing/numbers.json` = satu sumber angka; `--verify` memarahi halaman vault yang angkanya tidak cocok | **ANGKA HIJAU — 26 klaim halaman diperiksa, 0 tidak cocok** (30 Sep malam; jumlah klaim itu dicetak alatnya sendiri — tadinya tertulis 25, yaitu sebelum klaim probe web di Claims-Cheat-Sheet didaftarkan; dikoreksi B117) *(tadinya tertulis "9/9 harness terurai" — benar saat harnessnya masih sembilan; jumlah harness sengaja tidak kutulis di sini karena tidak ada perintah yang mencetaknya)* |
 | `npm run sync:numbers -- --only=<id>` | ulang SATU harness saja untuk mendiagnosis merah (mis. `--only=serveProbe`); angka sebagian tidak masuk JSON — ia menolak menulis `numbers.json` | 1 harness, tanpa menulis JSON |
 | `npm run diag:lists` | mengadili perbedaan hash daftar: render vs sajian tepi vs `getTimestamp` BAS | membuktikan B89 bukan soal data |
 | `npm run probe:serve` | mengadili server signer yang SEDANG BERJALAN (49 pemeriksaan) — ia TIDAK menyalakan server: `npm run serve` dulu, kalau tidak ia bilang "nyalakan dulu" + cara melepas port per-PID | PROBE SERVE HIJAU — 49, 0 gagal |
