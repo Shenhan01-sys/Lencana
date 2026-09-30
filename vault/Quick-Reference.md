@@ -55,6 +55,7 @@ never retyped.
 | `LANCENA_ORIGIN=demo` | setel sebelum `npm run serve` untuk demo; harness menyetel `=test` sendiri (B78) | dibaca balik oleh `verify:db` sebagai pemeriksaan |
 | `npm run check:labels` | kelengkapan label aturan #18: tiap ID tertutup punya tag atau alasan, tiap tag cocok dengan barisnya | LABEL HIJAU — 4 pemeriksaan, 0 gagal |
 | `npm run check:identity` | hash dokumen issuer builder vs signer lokal vs tepi harus sama, plus baseUrl host tetap | IDENTITAS HIJAU — 4, 0 gagal |
+| `npm run cleanup` | bersihkan baris tes Postgres dengan bukti; tanpa `--apply` hanya menghitung | CLEANUP HIJAU — 6, 0 gagal |
 | `npm run judge-variance` | ulangi penilaian 5x, dua kelas jawaban — bukti penilai punya gigi | substantif spread 0 · kosong 3 · jarak 97,0 |
 | `npm run monitor:edge` | alarm eksternal tepi: umur `publishedAt` vs ambang, `matchesChainNow` kedua daftar, `unchecked`, dokumen nyata 200 | AMAN 0 alarm · `--max-age=0` → ALARM |
 | `npm run check:spec` / `-- --self-test` | 14 predikat kepatuhan dijalankan atas dokumen yang disajikan tepi; self-test merusak dokumen yang sama dan menuntut barisnya merah | 14 lulus · 0 gagal · self-test 11 merah |

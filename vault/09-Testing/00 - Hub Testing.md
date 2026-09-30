@@ -58,6 +58,7 @@ with them, **53** and **20**. Always read the group list, not only the count →
 | [[T28 - signer monitor-edge.js]] | `npm run monitor:edge` (+ workflow `edge-monitor`) | **2026-09-29** | **AMAN 0 alarm** · watchedHashes 27 · denganDokumen 19 · kedua daftar `matchesChainNow=true` 27/27 · umur state 7,6 jam · kontrol `--max-age=0` → ALARM umur · host mati → ALARM healthz | alarm **eksternal** B67: menolak sambil diam bukan alarm; isu berisi JSON pengukuran dibuka sendiri oleh cron | P1, P6 |
 | [[T29 - signer label-coverage.js]] | `npm run check:labels` | **2026-09-30** | **4 / 0** · 73 tag di 42 ID · 43 ID tertutup = **39 bertanda + 4 beralasan** (B43 B71 B74 B76) · 0 lubang, 0 bandel | kelengkapan label aturan #18 — A9 hanya jaga konsistensi; tanpa ini "semua yang selesai sudah berlabel" cuma angka di chat | P6 |
 | [[T31 - signer identity-check.js]] | `npm run check:identity` | **2026-09-30** | **4 / 0** · hash dokumen builder = signer lokal = tepi (`25495c4988aaf722`) · baseUrl host tetap · kunci .keys termuat eksak | mengadili "satu sumber identitas" (B84) di tiga pembacaan; merah kalau kode berubah tanpa `publish:edge` atau sebaliknya | P1, P6 |
+| [[T32 - signer cleanup.js]] | `npm run cleanup` (dry-run) · `-- --apply` | **2026-09-30** | **6 / 0** · sisa `origin=test` = **0**; terhapus 38 enrollment · 129 attempts · 144 components · 81 progress · 209 events | B78(a): pemurnian dengan bukti kueri; default dry-run, jejak disimpan sebelum hapus, `unknown` tidak disentuh | P6 |
 
 ## Conventions for this folder
 

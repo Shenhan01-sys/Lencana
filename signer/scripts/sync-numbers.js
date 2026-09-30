@@ -63,6 +63,7 @@ const HARNESS = [
   { id: 'coldProbe', label: 'probe:cold (store dingin dari clone)', cwd: SIGNER, cmd: ['npm', ['run', 'probe:cold']], re: /PROBE COLD (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'labels', label: 'check:labels (kelengkapan label aturan #18)', cwd: SIGNER, cmd: ['npm', ['run', 'check:labels']], re: /LABEL (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'identity', label: 'check:identity (satu sumber identitas penerbit)', cwd: SIGNER, cmd: ['npm', ['run', 'check:identity']], re: /IDENTITAS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'cleanup', label: 'cleanup (sisa baris tes = 0)', cwd: SIGNER, cmd: ['npm', ['run', 'cleanup']], re: /CLEANUP (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
