@@ -62,6 +62,7 @@ const HARNESS = [
   { id: 'spec', label: 'check:spec (14 asersi dinilai)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'check:spec']], re: /hasil: (\d+) lulus · (\d+) gagal/ },
   { id: 'coldProbe', label: 'probe:cold (store dingin dari clone)', cwd: SIGNER, cmd: ['npm', ['run', 'probe:cold']], re: /PROBE COLD (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'labels', label: 'check:labels (kelengkapan label aturan #18)', cwd: SIGNER, cmd: ['npm', ['run', 'check:labels']], re: /LABEL (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'identity', label: 'check:identity (satu sumber identitas penerbit)', cwd: SIGNER, cmd: ['npm', ['run', 'check:identity']], re: /IDENTITAS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -139,6 +140,8 @@ const DOC_CLAIMS = [
   { file: '09-Testing/T25 - web spec-audit-check.ts.md', metric: 'spec', want: (m) => `hasil: ${m.pass} lulus · ${m.fail} gagal`, note: 'blok angka T25' },
   { file: '09-Testing/T26 - signer sample-check.js.md', metric: 'samples', want: (m) => `check:samples **${m.pass}/${m.fail}**`, note: 'front matter T26 (contoh UI × tepi × chain)' },
   { file: '09-Testing/T26 - signer sample-check.js.md', metric: 'samples', want: (m) => `HIJAU — ${m.pass} pemeriksaan, ${m.fail} gagal`, note: 'blok angka T26' },
+  { file: '09-Testing/T29 - signer label-coverage.js.md', metric: 'labels', want: (m) => `LABEL HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T29 (kelengkapan label)' },
+  { file: '09-Testing/T31 - signer identity-check.js.md', metric: 'identity', want: (m) => `IDENTITAS HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T31 (satu sumber identitas)' },
   { file: '00-Overview/12 - Business Process.md', metric: 'verifyDb', want: (m) => `\`npm run verify:db\` **${m.pass}/${m.fail}**`, note: 'tabel §7 baris 1' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'check', want: (m) => `signer check **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness' },
   // Catatan matcher: halaman ini menulis `verify:edge **8/0 · 19 dari 19**`, jadi polanya sengaja
