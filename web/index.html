@@ -47,6 +47,7 @@
             <a href="#/verify" id="nav-verify" class="nav-link">Verifier</a>
             <a href="#/portfolio" id="nav-portfolio" class="nav-link">Portfolio</a>
             <a href="#/agent-hub" id="nav-agent-hub" class="nav-link">Agent Hub</a>
+            <a href="#/publishers" id="nav-publishers" class="nav-link">Publishers</a>
           </nav>
 
           <div class="nav-actions">
@@ -1837,6 +1838,37 @@
                 <code class="encoded-val" id="bitstring-multibase-val">uH4sICG3bN2UAA2JpdHN0cmluZwDFkMENgDAMBPt3f1f3...7fe7f7f7</code>
               </div>
             </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================================
+           PAGE 7: PUBLISHERS (READ-ONLY REGISTRY + ONBOARDING, B105)
+           Setiap nilai di dalamnya diisi saat runtime dari manifest penerbit
+           (web/src/manifest.ts) — tidak ada nama, angka, atau hash yang diketik
+           ke berkas ini, supaya halaman tidak bisa basi terhadap datanya.
+           ======================================================== -->
+      <div class="page-view hidden" id="page-publishers">
+        <section class="section-container" id="publishers">
+          <div class="section-header">
+            <div class="section-kicker" id="publishers-kicker">PUBLISHER REGISTRY</div>
+            <h2 class="section-title" id="publishers-title">Who publishes these credentials</h2>
+            <p class="section-sub" id="publishers-sub">Read-only.</p>
+          </div>
+
+          <div class="agent-hub-roster-wrap">
+            <div class="agent-hub-bar">
+              <h3 class="agent-hub-heading" id="publishers-registry-heading">Registered publishers</h3>
+              <span class="agent-hub-status-tag" id="publishers-count"></span>
+            </div>
+            <div class="agent-roster-grid" id="publishers-mount"></div>
+          </div>
+
+          <div class="agent-hub-roster-wrap">
+            <div class="agent-hub-bar">
+              <h3 class="agent-hub-heading" id="publishers-onboarding-heading">How a publisher is onboarded</h3>
+            </div>
+            <div class="section-sub" id="publishers-onboarding"></div>
           </div>
         </section>
       </div>

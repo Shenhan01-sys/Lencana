@@ -252,6 +252,37 @@ async function main() {
     check(`  tanpa bukti -> menolak, BUKAN nol`, none.verdict === 'BELUM_LENGKAP' && none.total === null, String(none.total))
   }
 
+  // ---------------------------------------------------------------- halaman penerbit (B105)
+  // Yang dijaga di sini bukan "halamannya cantik", tapi dua hal yang paling mudah hilang
+  // diam-diam: (1) rute + nav + mount-nya benar-benar terpasang, dan (2) kalimat yang MENGAKUI
+  // keadaan custody hari ini masih ada di KEDUA bahasa. Tanpa (2), halaman ini bisa terbaca
+  // sebagai "penerbit menandatangani sendiri" padahal kunci agen demo masih tinggal di mesin
+  // platform — dan itu klaim yang justru kita jadikan pembeda.
+  const { readFile } = await import('node:fs/promises')
+  const { MANIFESTS } = await import('../src/manifest')
+  const { DICTIONARIES } = await import('../src/i18n')
+  const htmlPub = await readFile(new URL('../index.html', import.meta.url), 'utf8')
+  const mainSrc = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8')
+  check('halaman #/publishers terpasang di index.html (page-view + nav + mount)',
+    htmlPub.includes('id="page-publishers"') && htmlPub.includes('id="nav-publishers"') && htmlPub.includes('id="publishers-mount"'))
+  check('rute #/publishers ditangani main.ts dan dipetakan ke nav-nya',
+    mainSrc.includes("hash === '#/publishers'") && mainSrc.includes("'page-publishers': 'nav-publishers'"))
+  check('isi registri diturunkan dari manifest saat runtime, bukan diketik ke HTML',
+    mainSrc.includes('renderPublishers') && !/id="publishers-mount"[^>]*>\s*[^<]/.test(htmlPub))
+  for (const lang of ['en', 'id'] as const) {
+    const s = DICTIONARIES[lang].publishersSection
+    check(`  kamus "${lang}" mengakui custody: kunci agen masih di mesin platform dan jalur self-custody BELUM dibangun`,
+      s.onboardingCustody.includes('.keys/') && /(NOT built|BELUM dibangun)/.test(s.onboardingCustody),
+      s.onboardingCustody.slice(0, 70))
+    check(`  kamus "${lang}" menyatakan onboarding itu manual (addIssuer oleh platform, bukan pendaftaran swalayan)`,
+      /addIssuer\(\)/.test(s.onboardingManual) && s.onboardingManual.length > 80)
+  }
+  check('setiap penerbit punya URL dokumen penerbit yang bisa dibuka orang',
+    MANIFESTS.every((m) => /^https?:\/\//.test(m.issuer.controllerUrl)), MANIFESTS.map((m) => m.issuer.controllerUrl).join(' '))
+  const slugUnik = new Set(MANIFESTS.map((m) => m.issuer.slug))
+  check(`registri penerbit punya isi (${slugUnik.size} penerbit / ${MANIFESTS.length} manifest)`,
+    slugUnik.size >= 1 && MANIFESTS.length >= 1)
+
   // ---------------------------------------------------------------- klien belajar (B72)
   // Yang diuji di sini KONTRAK antara browser dan penerbit, dengan `fetch` dan `sessionStorage`
   // dipalsukan. Sengaja tidak memanggil penerbit sungguhan: itu sudah dikerjakan

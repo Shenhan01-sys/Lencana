@@ -52,6 +52,31 @@ export interface TranslationDictionary {
     evaluator: string
     agents: string
     techEdge: string
+    publishers: string
+  }
+  /**
+   * B105 — halaman `#/publishers`. Baca-saja dan semuanya diturunkan dari manifest penerbit serta
+   * keadaan chain; tidak ada satu pun angka yang diketik ke dokumen. Bagian "onboarding" sengaja
+   * memuat pengakuan custody: hari ini kunci agen demo ada di mesin platform, dan itu justru yang
+   * tidak boleh terjadi di produksi (B87 jalur 3). Menulis halaman ini tanpa kalimat itu akan
+   * membuat "penerbit menandatangani sendiri" terbaca sebagai sesuatu yang sudah kami punya.
+   */
+  publishersSection: {
+    kicker: string
+    title: string
+    sub: string
+    registryHeading: string
+    coursesLabel: string
+    rubricLabel: string
+    issuerDocLabel: string
+    eoaLabel: string
+    publishedLabel: string
+    noEoa: string
+    openCourse: string
+    onboardingHeading: string
+    onboardingManual: string
+    onboardingCustody: string
+    onboardingTrueToday: string
   }
   wallet: {
     connectBtn: string
@@ -536,6 +561,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       verifier: 'Verifier',
       portfolio: 'Portfolio',
       agentHub: 'Agent Hub',
+      publishers: 'Publishers',
       howItWorks: 'How It Works',
       evaluator: 'AI Evaluator',
       agents: 'Agent Roster',
@@ -1096,6 +1122,23 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       inspectorTitle: 'Canonical OpenBadgeCredential 3.0 JSON-LD Document',
       copied: 'Copied to Clipboard! ✓',
     },
+    publishersSection: {
+      kicker: 'PUBLISHER REGISTRY',
+      title: 'Who publishes these credentials',
+      sub: 'Read-only. Every value on this page is derived from the issuer manifest and from chain state at render time — nothing here is typed into a document.',
+      registryHeading: 'Registered publishers and what they publish',
+      coursesLabel: 'Courses published',
+      rubricLabel: 'rubricHash',
+      issuerDocLabel: 'Issuer document (the public key registry)',
+      eoaLabel: 'On-chain allowlist address',
+      publishedLabel: 'Published',
+      noEoa: 'no allowlist address recorded in the manifest',
+      openCourse: 'Open course',
+      onboardingHeading: 'How a publisher is onboarded — stated plainly',
+      onboardingManual: 'Onboarding is manual. There is no self-service signup: the platform runs addIssuer() on CredentialResolver for the institution address, and delistIssuer() removes it. Being on that allowlist is what makes an issuer recognisable on chain (isIssuer).',
+      onboardingCustody: 'What we do NOT have yet, said out loud: the demo agent keys live on the platform machine (signer/.keys/), so today the platform signs for the demo publisher. A production deployment must not work that way — the institution should hold its own agent key while the platform only broadcasts and pays gas. That design is chosen (B87 route 3) but NOT built.',
+      onboardingTrueToday: 'What is true today and checkable by you: the issuer allowlist is on chain, the grading policy a credential was issued under is hashed into it (rubricHash, printed on the credential), and revocation or suspension is read from statusOf() on the deployed resolver rather than from a file we maintain.',
+    },
   },
   id: {
     appName: 'Lencana',
@@ -1109,6 +1152,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       verifier: 'Verifikasi',
       portfolio: 'Portofolio',
       agentHub: 'Pusat Tata Kelola',
+      publishers: 'Penerbit',
       howItWorks: 'Cara Kerja',
       evaluator: 'Evaluator AI',
       agents: 'Daftar Agen',
@@ -1668,6 +1712,23 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
         'Target: Dibangun secara ketat sesuai Rekomendasi W3C VC 2.0 dan spesifikasi Open Badges 3.0. Pengujian validator pihak ketiga resmi di vc.1ed.tech adalah target peta jalan menunggu penempatan URL publik di testnet. Batasan isi: Memverifikasi keabsahan kriptografi, tanda tangan multikey Ed25519, dan timestamp blok yang tidak dapat diubah; tidak mengevaluasi kebenaran subjektif isi esai peserta.',
       inspectorTitle: 'Dokumen Kredensial OpenBadgeCredential 3.0 Resmi (JSON-LD)',
       copied: 'Tersalin ke Clipboard! ✓',
+    },
+    publishersSection: {
+      kicker: 'REGISTRI PENERBIT',
+      title: 'Siapa yang menerbitkan kredensial ini',
+      sub: 'Baca-saja. Setiap nilai di halaman ini diturunkan dari manifest penerbit dan dari keadaan chain saat digambar — tidak ada yang diketik ke dokumen.',
+      registryHeading: 'Penerbit terdaftar dan apa yang mereka terbitkan',
+      coursesLabel: 'Kursus yang diterbitkan',
+      rubricLabel: 'rubricHash',
+      issuerDocLabel: 'Dokumen penerbit (registri kunci publik)',
+      eoaLabel: 'Alamat allowlist di chain',
+      publishedLabel: 'Diterbitkan',
+      noEoa: 'tidak ada alamat allowlist yang tercatat di manifest',
+      openCourse: 'Buka kursus',
+      onboardingHeading: 'Bagaimana penerbit ikut serta — dinyatakan apa adanya',
+      onboardingManual: 'Onboarding dilakukan manual. Tidak ada pendaftaran swalayan: platform yang menjalankan addIssuer() di CredentialResolver untuk alamat institusi, dan delistIssuer() untuk mencabutnya. Berada di allowlist itulah yang membuat sebuah penerbit dikenali di chain (isIssuer).',
+      onboardingCustody: 'Yang BELUM kami punya, dan ini dikatakan terang-terangan: kunci agen demo ada di mesin platform (signer/.keys/), jadi hari ini platform yang menandatangani atas nama penerbit demo. Penempatan produksi tidak boleh begitu — institusi yang memegang kunci agennya sendiri, sementara platform hanya menyiarkan dan membayar gas. Desain itu sudah dipilih (B87 jalur 3) tetapi BELUM dibangun.',
+      onboardingTrueToday: 'Yang benar hari ini dan bisa kamu periksa sendiri: allowlist penerbit ada di chain, kebijakan penilaian yang berlaku saat sebuah kredensial terbit di-hash ke dalamnya (rubricHash, tercetak di kredensial), dan pencabutan atau penangguhan dibaca dari statusOf() pada resolver yang ter-deploy — bukan dari berkas yang kami rawat.',
     },
   },
 }

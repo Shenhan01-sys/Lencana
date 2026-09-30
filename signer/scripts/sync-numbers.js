@@ -173,6 +173,11 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'attempts', want: (m) => new RegExp(`${m.pass}/${m.fail} offline`), note: 'baris verify:attempts di QR' },
   { file: 'Quick-Reference.md', metric: 'edge', want: (m) => (m.ratio ? new RegExp(`npm run rehost[^\\n]*${m.ratio.a} dari ${m.ratio.b}`) : 'TIDAK ADA RASIO'), note: 'baris rehost di QR' },
   { file: 'Quick-Reference.md', metric: 'verifyDb', want: (m) => new RegExp(`npm run grade:essay[^\\n]*verify:db.{0,3}${m.pass}/${m.fail}`), note: 'baris grade:essay di QR (mengutip angka verify:db)' },
+  // Ketahuan saat mengerjakan B105: angka probe web di Claims-Cheat-Sheet tidak dijaga klaim mana pun,
+  // jadi ia sempat basi (tertulis 73/0 padahal run hari itu mencetak 82/0) tanpa ada yang merah —
+  // A10 hanya menyapu README akar. Kelas lubang yang sama dengan B114, jadi ditutup dengan cara yang
+  // sama: klaimnya didaftarkan, bukan angkanya dihafal.
+  { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 
 async function verifyDocs (numbers) {

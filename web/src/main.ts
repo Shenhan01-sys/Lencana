@@ -12,6 +12,9 @@ import { runSpecAudit, specRowsHtml } from './specAudit'
 import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
 import { getSavedLanguage, saveLanguage, DICTIONARIES, type Lang } from './i18n'
 import { renderLmsRoute } from './lms'
+// B105 — halaman `#/publishers` membaca registri penerbit dari manifest, bukan dari angka yang
+// diketik ke HTML: kalau kursus atau penerbitnya bertambah, halamannya ikut berubah sendiri.
+import { MANIFESTS, rubricHashOf, shortHash } from './manifest'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -1221,6 +1224,8 @@ function handleRoute() {
     targetPageId = 'page-portfolio'
   } else if (hash === '#/agent-hub' || hash === '#ai-agents' || hash === '#agent-hub') {
     targetPageId = 'page-agent-hub'
+  } else if (hash === '#/publishers' || hash === '#publishers') {
+    targetPageId = 'page-publishers'
   } else if (hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me') {
     // Lapisan materi (src/lms.ts) menggambar di #lms-mount milik halaman courses. Route ini
     // sengaja dipakai awalan berbeda dari #/courses Dave: yang satu tokonya, yang satu isinya.
@@ -1253,6 +1258,7 @@ function handleRoute() {
     'page-verify': 'nav-verify',
     'page-portfolio': 'nav-portfolio',
     'page-agent-hub': 'nav-agent-hub',
+    'page-publishers': 'nav-publishers',
   }
 
   document.querySelectorAll('.nav-links .nav-link').forEach((link) => {
@@ -1267,12 +1273,72 @@ function handleRoute() {
   }
 }
 
+// Lencana-B105 status=TERBUKA — halaman #/publishers baca-saja SUDAH ada: registri penerbit diturunkan dari MANIFESTS saat runtime (bukan diketik ke HTML) dan kalimat onboarding-nya mengakui custody hari ini di kedua bahasa. Yang BELUM: barisnya menuntut data dari `GET /issuers` yang hidup, jumlah kredensial, dan status allowlist dibaca dari chain — ketiganya belum ada di sini, jadi marker ini TERBUKA. Buktikan ulang: cd web && npm run probe (9 asersi registri penerbit). JANGAN dibalik/diulang tanpa membuka kembali baris B105 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/**
+ * B105 — registri penerbit baca-saja. Setiap nilainya diturunkan dari `MANIFESTS` saat digambar:
+ * nama penerbit, URL dokumen penerbitnya (registri kunci publik), alamat allowlist di chain, dan
+ * `rubricHash` tiap kursus yang dihitung ulang di tempat. Jadi halaman ini tidak bisa basi terhadap
+ * datanya sendiri, dan tidak ada satu angka pun yang diketik ke HTML.
+ *
+ * Yang juga sengaja ditaruh di sini: kalimat onboarding yang mengakui keadaan custody hari ini.
+ * Tanpa itu, "penerbit menandatangani sendiri" terbaca sebagai sesuatu yang sudah kami punya,
+ * padahal kunci agen demo masih tinggal di mesin platform (B87 jalur 3 belum dibangun).
+ */
+function renderPublishers() {
+  const p = DICTIONARIES[currentLang].publishersSection
+  const mount = $('publishers-mount')
+  const onboarding = $('publishers-onboarding')
+  if (!mount || !onboarding) return
+
+  // Dikelompokkan per penerbit: yang dibaca orang adalah "siapa menerbitkan apa", bukan daftar
+  // kursus yang mengulang nama penerbitnya.
+  const perSlug = new Map<string, { name: string; controllerUrl: string; eoa?: string; courses: typeof MANIFESTS }>()
+  for (const m of MANIFESTS) {
+    const grup = perSlug.get(m.issuer.slug) ?? { name: m.issuer.name, controllerUrl: m.issuer.controllerUrl, eoa: m.issuer.eoa, courses: [] }
+    grup.courses.push(m)
+    perSlug.set(m.issuer.slug, grup)
+  }
+
+  const tag = $('publishers-count')
+  if (tag) tag.textContent = `${perSlug.size} publisher · ${MANIFESTS.length} manifest`
+
+  mount.innerHTML = [...perSlug.entries()].map(([slug, g]) => `
+    <div class="agent-card">
+      <div class="agent-card-top">
+        <h4>${escapeHtml(g.name)}</h4>
+      </div>
+      <p class="section-sub"><strong>slug</strong> ${escapeHtml(slug)}</p>
+      <p class="section-sub"><strong>${escapeHtml(p.eoaLabel)}</strong> ${g.eoa ? escapeHtml(g.eoa) : escapeHtml(p.noEoa)}</p>
+      <p class="section-sub"><strong>${escapeHtml(p.issuerDocLabel)}</strong>
+        <a href="${escapeHtml(g.controllerUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(g.controllerUrl)}</a></p>
+      <p class="section-sub"><strong>${escapeHtml(p.coursesLabel)}</strong> ${g.courses.length}</p>
+      ${g.courses.map((mf) => `<p class="section-sub">
+          <a href="#/course/${escapeHtml(mf.course.id)}">${escapeHtml(p.openCourse)}: ${escapeHtml(mf.course.title)}</a><br/>
+          <strong>${escapeHtml(p.rubricLabel)}</strong> ${escapeHtml(shortHash(rubricHashOf(mf)))} ·
+          <strong>${escapeHtml(p.publishedLabel)}</strong> ${escapeHtml(mf.publishedAt.slice(0, 10))}
+        </p>`).join('')}
+    </div>`).join('')
+
+  onboarding.innerHTML = [p.onboardingManual, p.onboardingCustody, p.onboardingTrueToday]
+    .map((t) => `<p>${escapeHtml(t)}</p>`).join('')
+}
+
 function updateStaticText() {
   const dict = DICTIONARIES[currentLang]
 
   // Navbar
   setText('nav-home', dict.nav.home)
   setText('nav-courses', dict.nav.courses)
+  setText('nav-publishers', dict.nav.publishers)
+
+  // B105 — halaman penerbit: teks statis dari kamus, isinya dari manifest
+  const pub = dict.publishersSection
+  setText('publishers-kicker', pub.kicker)
+  setText('publishers-title', pub.title)
+  setText('publishers-sub', pub.sub)
+  setText('publishers-registry-heading', pub.registryHeading)
+  setText('publishers-onboarding-heading', pub.onboardingHeading)
+  renderPublishers()
   setText('nav-submit', dict.nav.submit)
   setText('nav-verify', dict.nav.verifier)
   setText('nav-portfolio', dict.nav.portfolio)
