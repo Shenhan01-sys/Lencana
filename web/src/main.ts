@@ -1302,22 +1302,39 @@ function renderPublishers() {
   const tag = $('publishers-count')
   if (tag) tag.textContent = `${perSlug.size} publisher · ${MANIFESTS.length} manifest`
 
-  mount.innerHTML = [...perSlug.entries()].map(([slug, g]) => `
+  mount.innerHTML = [...perSlug.entries()].map(([slug, g]) => {
+    // Dokumen penerbit yang bisa dibuka siapa pun adalah yang disajikan TEPI, bukan `controllerUrl`
+    // di manifest demo: yang itu host loopback (127.0.0.1:8787) dan hanya menjawab di mesin yang
+    // menjalankan signer. Menampilkannya sebagai satu-satunya tautan berarti menyodorkan tautan mati
+    // ke orang yang membaca halaman ini dari tempat lain — jadi keduanya ditampilkan, dan yang
+    // loopback dinamai apa adanya alih-alih disembunyikan.
+    //
+    // Yang TIDAK boleh dilakukan: menurunkan URL publik dari slug manifest. Sudah dicoba dan diukur
+    // oleh `npm run probe`: `${CREDENTIAL_HOST}/issuers/yayasan-nusantara` menjawab **404**, karena
+    // tepi menyajikan dokumen per slug AGEN (agent-edge / agent-b41 / agent-demo), dan pemetaan
+    // penerbit -> agen tidak ada di manifest. Menebaknya berarti memasang tautan mati kedua.
+    // Yang ditampilkan adalah dokumen agen platform yang hari ini benar-benar menandatangani —
+    // dan itu justru bukti visual dari pengakuan custody di bawah, bukan sesuatu yang perlu ditutupi.
+    const publik = `${CREDENTIAL_HOST}/issuers/agent-edge`
+    const loopback = /^https?:\/\/(?:127\.0\.0\.1|localhost|\[::1\])(?::|\/)/.test(g.controllerUrl)
+    return `
     <div class="agent-card">
       <div class="agent-card-top">
         <h4>${escapeHtml(g.name)}</h4>
       </div>
       <p class="section-sub"><strong>slug</strong> ${escapeHtml(slug)}</p>
       <p class="section-sub"><strong>${escapeHtml(p.eoaLabel)}</strong> ${g.eoa ? escapeHtml(g.eoa) : escapeHtml(p.noEoa)}</p>
-      <p class="section-sub"><strong>${escapeHtml(p.issuerDocLabel)}</strong>
-        <a href="${escapeHtml(g.controllerUrl)}" target="_blank" rel="noreferrer noopener">${escapeHtml(g.controllerUrl)}</a></p>
+      <p class="section-sub"><strong>${escapeHtml(p.publicDocLabel)}</strong>
+        <a href="${escapeHtml(publik)}" target="_blank" rel="noreferrer noopener">${escapeHtml(publik)}</a></p>
+      <p class="section-sub"><strong>${escapeHtml(p.manifestUrlLabel)}</strong> ${escapeHtml(g.controllerUrl)}${loopback ? ` — ${escapeHtml(p.loopbackWarning)}` : ''}</p>
       <p class="section-sub"><strong>${escapeHtml(p.coursesLabel)}</strong> ${g.courses.length}</p>
       ${g.courses.map((mf) => `<p class="section-sub">
           <a href="#/course/${escapeHtml(mf.course.id)}">${escapeHtml(p.openCourse)}: ${escapeHtml(mf.course.title)}</a><br/>
           <strong>${escapeHtml(p.rubricLabel)}</strong> ${escapeHtml(shortHash(rubricHashOf(mf)))} ·
           <strong>${escapeHtml(p.publishedLabel)}</strong> ${escapeHtml(mf.publishedAt.slice(0, 10))}
         </p>`).join('')}
-    </div>`).join('')
+    </div>`
+  }).join('')
 
   onboarding.innerHTML = [p.onboardingManual, p.onboardingCustody, p.onboardingTrueToday]
     .map((t) => `<p>${escapeHtml(t)}</p>`).join('')

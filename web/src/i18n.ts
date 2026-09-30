@@ -68,11 +68,13 @@ export interface TranslationDictionary {
     registryHeading: string
     coursesLabel: string
     rubricLabel: string
-    issuerDocLabel: string
     eoaLabel: string
     publishedLabel: string
     noEoa: string
     openCourse: string
+    publicDocLabel: string
+    manifestUrlLabel: string
+    loopbackWarning: string
     onboardingHeading: string
     onboardingManual: string
     onboardingCustody: string
@@ -1125,15 +1127,17 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     publishersSection: {
       kicker: 'PUBLISHER REGISTRY',
       title: 'Who publishes these credentials',
-      sub: 'Read-only. Every value on this page is derived from the issuer manifest and from chain state at render time — nothing here is typed into a document.',
+      sub: 'Read-only. Every value on this page is computed at render time from the issuer manifest — nothing here is typed into a document. The on-chain allowlist status is NOT shown yet: the manifest carries no on-chain address for the publisher, and adding one would change manifestHash (tracked as B105).',
       registryHeading: 'Registered publishers and what they publish',
       coursesLabel: 'Courses published',
       rubricLabel: 'rubricHash',
-      issuerDocLabel: 'Issuer document (the public key registry)',
       eoaLabel: 'On-chain allowlist address',
       publishedLabel: 'Published',
       noEoa: 'no allowlist address recorded in the manifest',
       openCourse: 'Open course',
+      publicDocLabel: 'Public issuer document that signs today (the platform agent — see the custody note below)',
+      manifestUrlLabel: 'URL recorded in the demo manifest',
+      loopbackWarning: 'that address is a loopback host, so it only answers on the machine running the signer. It is shown for completeness, not as a link you can open — and it is NOT the same document as the public one above: the edge serves one document per signing agent, and the publisher-to-agent mapping is not recorded in the manifest (B105).',
       onboardingHeading: 'How a publisher is onboarded — stated plainly',
       onboardingManual: 'Onboarding is manual. There is no self-service signup: the platform runs addIssuer() on CredentialResolver for the institution address, and delistIssuer() removes it. Being on that allowlist is what makes an issuer recognisable on chain (isIssuer).',
       onboardingCustody: 'What we do NOT have yet, said out loud: the demo agent keys live on the platform machine (signer/.keys/), so today the platform signs for the demo publisher. A production deployment must not work that way — the institution should hold its own agent key while the platform only broadcasts and pays gas. That design is chosen (B87 route 3) but NOT built.',
@@ -1716,15 +1720,17 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     publishersSection: {
       kicker: 'REGISTRI PENERBIT',
       title: 'Siapa yang menerbitkan kredensial ini',
-      sub: 'Baca-saja. Setiap nilai di halaman ini diturunkan dari manifest penerbit dan dari keadaan chain saat digambar — tidak ada yang diketik ke dokumen.',
+      sub: 'Baca-saja. Setiap nilai di halaman ini dihitung saat digambar dari manifest penerbit — tidak ada yang diketik ke dokumen. Status allowlist di chain BELUM ditampilkan: manifest tidak memuat alamat on-chain penerbit, dan menambahnya akan mengubah manifestHash (dicatat sebagai B105).',
       registryHeading: 'Penerbit terdaftar dan apa yang mereka terbitkan',
       coursesLabel: 'Kursus yang diterbitkan',
       rubricLabel: 'rubricHash',
-      issuerDocLabel: 'Dokumen penerbit (registri kunci publik)',
       eoaLabel: 'Alamat allowlist di chain',
       publishedLabel: 'Diterbitkan',
       noEoa: 'tidak ada alamat allowlist yang tercatat di manifest',
       openCourse: 'Buka kursus',
+      publicDocLabel: 'Dokumen penerbit publik yang menandatangani hari ini (agen platform — lihat catatan custody di bawah)',
+      manifestUrlLabel: 'URL yang tercatat di manifest demo',
+      loopbackWarning: 'alamat itu host loopback, jadi ia hanya menjawab di mesin yang menjalankan signer. Ia ditampilkan demi kelengkapan, bukan sebagai tautan yang bisa kamu buka — dan ia BUKAN dokumen yang sama dengan yang publik di atas: tepi menyajikan satu dokumen per agen penandatangan, dan pemetaan penerbit ke agen tidak tercatat di manifest (B105).',
       onboardingHeading: 'Bagaimana penerbit ikut serta — dinyatakan apa adanya',
       onboardingManual: 'Onboarding dilakukan manual. Tidak ada pendaftaran swalayan: platform yang menjalankan addIssuer() di CredentialResolver untuk alamat institusi, dan delistIssuer() untuk mencabutnya. Berada di allowlist itulah yang membuat sebuah penerbit dikenali di chain (isIssuer).',
       onboardingCustody: 'Yang BELUM kami punya, dan ini dikatakan terang-terangan: kunci agen demo ada di mesin platform (signer/.keys/), jadi hari ini platform yang menandatangani atas nama penerbit demo. Penempatan produksi tidak boleh begitu — institusi yang memegang kunci agennya sendiri, sementara platform hanya menyiarkan dan membayar gas. Desain itu sudah dipilih (B87 jalur 3) tetapi BELUM dibangun.',

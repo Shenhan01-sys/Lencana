@@ -283,6 +283,38 @@ async function main() {
   check(`registri penerbit punya isi (${slugUnik.size} penerbit / ${MANIFESTS.length} manifest)`,
     slugUnik.size >= 1 && MANIFESTS.length >= 1)
 
+  // Dokumen penerbit yang ditampilkan halaman ini harus benar-benar bisa dibuka orang lain. Yang di
+  // manifest demo adalah host loopback (127.0.0.1:8787), jadi halaman menampilkan yang disajikan
+  // tepi — dan itu diuji lewat jaringan sungguhan, bukan dengan membaca sumbernya saja.
+  // `CREDENTIAL_HOST` TIDAK diimpor dari src/main: berkas itu kode DOM dan mengimpornya di Node akan
+  // meledak. Konstantanya dibaca dari sumber, dan keberadaannya ikut diadili supaya tidak bisa
+  // hilang diam-diam.
+  const hostMatch = /export const CREDENTIAL_HOST = '([^']+)'/.exec(mainSrc)
+  check('CREDENTIAL_HOST terdefinisi di main.ts (sumber URL dokumen penerbit publik)', !!hostMatch, hostMatch?.[1] ?? 'tidak ditemukan')
+  const hostPublik = hostMatch?.[1] ?? ''
+  // Dokumen agen yang hari ini menandatangani untuk penerbit demo — diuji lewat jaringan sungguhan.
+  // Versi pertama pemeriksaan ini menurunkan URL dari slug manifest danlangsung MERAH: tepi menjawab
+  // **404** untuk `/issuers/yayasan-nusantara`, karena tepi menyajikan dokumen per slug AGEN
+  // (agent-edge/agent-b41/agent-demo) dan pemetaan penerbit→agen tidak ada di manifest. Kegagalan itu
+  // yang membuat halamannya berhenti menebak URL, jadi pemeriksaannya ditulis terhadap URL yang
+  // memang ditampilkan halaman.
+  const urlDok = `${hostPublik}/issuers/agent-edge`
+  let okDok = false
+  let kunciDok = 0
+  let errDok = ''
+  try {
+    const r = await fetch(urlDok, { signal: AbortSignal.timeout(20_000) })
+    const j = await r.json() as { id?: string; assertionMethod?: unknown[] }
+    kunciDok = (j.assertionMethod ?? []).length
+    okDok = r.status === 200 && kunciDok > 0 && typeof j.id === 'string' && /^https:\/\//.test(j.id)
+    if (!okDok) errDok = `status ${r.status}, ${kunciDok} kunci, id=${String(j.id).slice(0, 60)}`
+  } catch (e) { errDok = String((e as Error).message ?? e).slice(0, 90) }
+  check(`dokumen penerbit publik terbaca orang lain: ${urlDok}`, okDok, errDok || `${kunciDok} kunci assertionMethod, id host https`)
+  check('halaman menampilkan URL yang sama dengan yang diuji di sini, bukan turunan dari slug manifest',
+    mainSrc.includes('/issuers/agent-edge'))
+  check('URL loopback di manifest dinamai apa adanya, bukan disodorkan sebagai tautan publik',
+    mainSrc.includes('loopbackWarning') && /127\.0\.0\.1|localhost/.test(mainSrc))
+
   // ---------------------------------------------------------------- klien belajar (B72)
   // Yang diuji di sini KONTRAK antara browser dan penerbit, dengan `fetch` dan `sessionStorage`
   // dipalsukan. Sengaja tidak memanggil penerbit sungguhan: itu sudah dikerjakan

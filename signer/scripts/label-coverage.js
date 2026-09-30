@@ -24,7 +24,7 @@
  * hijau wajib tidak terlapor. Tanpanya, "penjaga hijau" tidak bisa dibedakan dari "penjaga buta".
  *
  * Baseline sengaja disimpan di berkas ini (bukan di kepala). Terukur 30 Sep pada keadaan akhir hari:
- *   82 marker di 48 ID · 69 baris backlog · 49 tertutup · 4 ID tertutup beralasan TANPA TAG KODE
+ *   82 marker di 48 ID · 70 baris backlog · 49 tertutup · 4 ID tertutup beralasan TANPA TAG KODE
  *   (B43 B71 B74 B76) · lubang 0 · bandel 0 · sisa bentuk lama 0.
  * Selisihnya dijelaskan supaya tidak ada yang mengira angka ini karangan: 82 = 78 hasil migrasi B112
  *   + 2 marker B112 (di berkas ini dan di blok A9 `audit-consistency.js`) + 1 marker B114 (di
