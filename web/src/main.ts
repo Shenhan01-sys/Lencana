@@ -1481,13 +1481,7 @@ function handleRoute() {
   if (hash === '#/' || hash === '' || hash.startsWith('#/class/')) {
     targetPageId = 'page-new-app'
   } else if (hash === '#/courses' || hash === '#courses' || hash === '#catalog') {
-    // If not logged in, show landing page catalog; if logged in, direct to study room
-    if (effectiveAddress) {
-      window.location.hash = '#/class/web3-dasar-2026'
-      return
-    } else {
-      targetPageId = 'page-new-app'
-    }
+    targetPageId = 'page-new-app'
   } else if (isPrivyOnboard) {
     targetPageId = 'page-new-app'
     openWalletModal(true)

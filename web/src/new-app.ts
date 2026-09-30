@@ -13,8 +13,14 @@ export function mountNewApp(routeHash: string) {
   
   appEl.innerHTML = '';
   
-  if (routeHash === '#/' || routeHash === '') {
+  if (routeHash === '#/' || routeHash === '' || routeHash === '#/courses' || routeHash === '#courses' || routeHash === '#catalog') {
     appEl.appendChild(renderLanding());
+    if (routeHash.includes('catalog') || routeHash.includes('courses')) {
+      setTimeout(() => {
+        const cat = document.getElementById('catalog');
+        if (cat) cat.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
   } else if (routeHash.startsWith('#/class/')) {
     appEl.appendChild(renderClass(routeHash));
   }
