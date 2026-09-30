@@ -370,6 +370,52 @@ async function collect () {
   })
 
 
+  // 10) ANGKA README vs numbers.json (B111) — README adalah tabel yang dibaca juri, dan ia
+  //     dibiarakan basi oleh alat apa pun: 29 Sep tabelnya menulis web probe 59 / check 76 /
+  //     verify:edge 5 / live-cert 17 sementara hari itu yang tercetak 73 / 88 / 9 / 35.
+  //    Perintah yang tidak punya metrik di numbers.json (x402, validator, publish:edge, rubric,
+  //    inventory, delegate) sengaja TIDAK dibandingkan — mengecualikan tanpa alasan adalah
+  //    cara lain untuk membuat gerbang hijau palsu, jadi daftarnya eksplisit.
+  {
+    const NJ = join(SIGNER, '..', 'vault', '09-Testing', 'numbers.json')
+    const README = join(REPO, 'README.md')
+    if (!existsSync(NJ) || !existsSync(README)) {
+      findingsOut.push({ id: 'A10', kind: 'TEMUAN', title: 'angka README vs numbers.json', detail: 'salah satu berkas tidak terbaca — tidak ada yang dibandingkan' })
+    } else {
+      const items = JSON.parse(await readFile(NJ, 'utf8')).items ?? {}
+      const PETA = {
+        'npm run check': 'check', 'npm run verify:db': 'verifyDb', 'npm run probe:serve': 'serveProbe',
+        'npm run e2e': 'e2e', 'npm run verify:live-cert': 'liveCert', 'npm run verify:attempts': 'attempts',
+        'npm run verify:edge': 'edge', 'npm run probe': 'webProbe', 'npm run check:samples': 'samples',
+        'npm run check:spec': 'spec', 'npm run probe:cold': 'coldProbe', 'npm run check:labels': 'labels',
+        'npm run check:identity': 'identity', 'forge test': 'forgeOffline',
+      }
+      const salah = []
+      let banding = 0
+      const readme = await readFile(README, 'utf8')
+      readme.split(/\r?\n/).forEach((line, i) => {
+        const cmd = Object.keys(PETA).sort((a, b) => b.length - a.length).find((c) => line.includes(c))
+        // Baris `forge test` hanya dibandingkan dengan metrik OFFLINE, dan itu pun hanya pada baris
+        // yang menyebut --no-match-path: angka fork memang beda dan itu sah (66 offline, 120
+        // dengan fork aktif di 97, 104 di 56). Membandingkan semuanya = A10 merah selamanya.
+        if (line.includes('forge test') && !line.includes('no-match-path')) return
+        if (!cmd) return
+        const m = line.match(/\*\*\s*(\d{1,4})\s*(?:checks\s*\/|passed\s*\/|\/)\s*(\d{1,3})/)
+        const it = items[PETA[cmd]]
+        if (!m || !it) return
+        banding += 1
+        if (Number(m[1]) !== it.pass || Number(m[2]) !== it.fail) {
+          salah.push(`README:${i + 1} ${cmd} mengklaim ${m[1]}/${m[2]} · numbers.json ${it.pass}/${it.fail}`)
+        }
+      })
+      findingsOut.push({
+        id: 'A10', kind: salah.length ? 'TEMUAN' : 'bersih',
+        title: 'angka pada tabel bukti README sama dengan yang dicetak harness (B111)',
+        detail: `${banding} klaim dibandingkan` + (salah.length ? `, ${salah.length} BEDA:\n      ${salah.join('\n      ')}` : ' — semua cocok dengan numbers.json'),
+      })
+    }
+  }
+
   if (LOG && missingRows.length && t) {
     const anchor = '| **B73** | Audit Dicoding'
     const add = missingRows.map((m) => `| **${m.id}** 🔴 Temuan audit ` + new Date().toISOString().slice(0, 10) + ` (dipindah dari \`Vault/Notes/Pending-Tasks.md\`, sebelumnya hanya hidup di sana) | **${m.title}** | ${m.detail} | Belum tercatat di \`app/vault\` sama sekali: sesi yang hanya membaca backlog repo tidak akan pernah menemukannya. Inilah alasan baris ini ada — aturan \`AGENTS.md\` #6: kalau klaim/pekerjaan berpindah tempat, catatannya ikut berpindah. |\n`).join('')
