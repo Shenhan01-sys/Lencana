@@ -71,7 +71,7 @@ Tambahkan tautan balik di entri backlog + tabel riwayat Hub.
 ## Tandai di kode setiap backlog yang selesai (aturan #18)
 
 Sebelum menutup satu baris backlog: telusuri berkas yang ia sebut, tempel tag satu ID per berkas,
-dengan apa yang dijaga + perintah pembuktinya. Contoh tag: `// [B67] SELESAI 2026-09-29 — alarm
+dengan apa yang dijaga + perintah pembuktinya. Contoh tag: `// <B67> SELESAI 2026-09-29 — alarm
 eksternal tepi. Buktikan ulang: npm run monitor:edge.` Dua penjaga mengadilinya: `npm run audit`
 (A9 — konsistensi tag ↔ baris, dua arah) dan `npm run check:labels` (T29 — kelengkapan: tiap ID
 tertutup punya tag atau alasan 'TANPA TAG KODE' yang tertulis di barisnya).

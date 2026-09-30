@@ -132,8 +132,8 @@ kita dokumentasikan untuk platform orang lain.
 18. **Setiap backlog selesai → tag di kodenya, dan tag itu diadili alat.** Aturan builder 29 Sep:
     "tandai seluruh source code yang sudah done berdasarkan backlog, biar tidak lupa dan tidak
     diubah lagi". Bukan komentar "done!" (busuk dalam tiga hari), tapi baris yang bisa dicek silang:
-    `// [B67] SELESAI 2026-09-29 — <apa yang dijaga>. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.``
-    Bagian yang belum selesai tapi baru disentuh diberi ``[B102] TERBUKA`` — menandai separuh kerja
+    `// <B67> SELESAI 2026-09-29 — <apa yang dijaga>. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.``
+    Bagian yang belum selesai tapi baru disentuh diberi ``<B102> TERBUKA`` — menandai separuh kerja
     sebagai selesai membuat kode dan catatan saling membantah. Ditegakkan dua penjaga: **A9** di `npm run audit` (konsistensi) dan **`npm run check:labels`** ([[09-Testing/T29 - signer label-coverage.js]], kelengkapan):
     tag `SELESAI` tanpa baris tertutup = TEMUAN; baris tertutup yang ditandai `TERBUKA` di kode = TEMUAN.
     Kerjakan **satu ID lalu telusuri → tag → verify**, bukan massal: 26 tag sekaligus yang kupasang tanpa

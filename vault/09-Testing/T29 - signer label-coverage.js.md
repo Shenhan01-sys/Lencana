@@ -24,7 +24,7 @@ klaim "source code sudah berlabel" jadi angka di chat, bukan keadaan di repo.
 
 Terukur 30 Sep: `73 tag di 42 ID · 65 baris · **43 tertutup = 39 bertanda + 4 beralasan**; 6 baris mengumumkan `TANPA TAG KODE` tapi dua di antaranya (B77, B99) masih terbuka, jadi yang benar-benar dihitung sebagai penutupan adalah 4 (B43 B71 B74 B76). Lubang 0, bandel 0. → LABEL HIJAU 4/0`.
 
-**Koreksi 30 Sep:** angka yang kutulis di halaman ini sebelumnya (47 tertutup / 41 bertanda + 6 beralasan, lalu "37+6", dan "38+2") **semuanya gelembung** — penjaga membaca status dari seluruh baris, sehingga kata `SELESAI` di dalam kalimat counted sebagai baris tertutup. Setelah pembacaan diperbaiki (sel pertama saja) dan `check:labels` dipasang, yang terukur: **43 tertutup · 37 bertanda · 6 beralasan · 0 lubang**, 73 tag di 42 ID. Satu tag juga ternyata bohong dan diluruskan: `[B52] SELESAI` → `TERBUKA`.
+**Koreksi 30 Sep:** angka yang kutulis di halaman ini sebelumnya (47 tertutup / 41 bertanda + 6 beralasan, lalu "37+6", dan "38+2") **semuanya gelembung** — penjaga membaca status dari seluruh baris, sehingga kata `SELESAI` di dalam kalimat counted sebagai baris tertutup. Setelah pembacaan diperbaiki (sel pertama saja) dan `check:labels` dipasang, yang terukur: **43 tertutup · 37 bertanda · 6 beralasan · 0 lubang**, 73 tag di 42 ID. Satu tag juga ternyata bohong dan diluruskan: `penanda B52 = TERBUKA` → `TERBUKA`.
 Tergabung ke `npm run sync:numbers` sebagai harness ke-13.
 
 Terkait: [[09-Testing/T27 - signer cold-store-probe.js]], [[09-Testing/T18 - signer verify-edge.js]],
