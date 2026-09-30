@@ -14,6 +14,8 @@
  * kalau belum ada ID-nya (idempoten — menjalankan dua kali tidak menghasilkan dua baris).
  */
 
+// [B111] SELESAI 2026-09-29 — A10 mengadili angka pada tabel bukti README terhadap numbers.json — README tidak bisa lagi basi tanpa ketahuan. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B111 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 // [B101] SELESAI 2026-09-29 — SURFACE termasuk salinan UI dan berkas yang hilang = TEMUAN. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B101 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // [B96] SELESAI 2026-09-29 — A8/A8b menjaga bahasa identifier, pesan keluaran, dan pola assertion harness. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
