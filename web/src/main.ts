@@ -610,6 +610,8 @@ function isProtectedRouteHref(href: string): boolean {
   const hash = href.slice(marker).toLowerCase().split('?')[0]
   if (hash === '#/' || hash === '#') return false
   if (hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login') return false
+  // Verifier publik — sama seperti guard rute: tautan "Check Proof" tetap tampil untuk tamu.
+  if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') return false
   if (hash.startsWith('#/')) return true
   return ['#courses', '#learn', '#course', '#submit', '#ai-evaluator', '#verifier', '#verify',
     '#portfolio', '#ai-agents', '#agent-hub'].includes(hash)
@@ -1619,7 +1621,11 @@ function handleRoute() {
   const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
   const isHomeAnchor = hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture'
   const isHomeRoute = hash === '#/' || hash === '#'
-  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isPrivyOnboard) {
+  // Verifier adalah utilitas PUBLIK (bukan rute learner): bukti dibagikan lewat tautan,
+  // diperiksa orang asing tanpa akun, dan kapsul hero + Scene 1 mengarah ke sini. Bukan
+  // pengecualian untuk LMS — semua rute learner di bawah tetap terkunci untuk tamu.
+  const isPublicVerify = hash === '#/verify' || hash === '#verifier' || hash === '#verify'
+  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isPrivyOnboard && !isPublicVerify) {
     // Replace the attempted route before rendering so protected HTML never becomes visible.
     window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#/`)
     hash = '#/'
