@@ -7,6 +7,13 @@ measured: 2026-09-30 (offline dan live)
 result: 38/0 offline (30 Sep malam; 31/0 sebelum B104) · 82/0 live (30 Sep malam, lewat rantai pengesahan B104; 67/0 pada 29 Sep) · verify:edge 10/0 (30 Sep)
 ---
 
+# T22 - signer attempts-check.js (satu alur: peserta → rekaman → kertas → dokumen hasil)
+
+**Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B62, B62-b, B72, **B104** di
+[[07-Backlog/03 - Findings and Tasks 2026-09-26|status dan tugas terbaru]] · **Bar:**
+[[00-Overview/11 - Product Bar]] 3, 4, 6, 7, 8 · **Pasangan:** [[09-Testing/T21 - signer db-probe.js]] ·
+**Ringkas:** belum ada berkasnya (B77 ditahan builder)
+
 > **30 Sep malam, sesudah catatan di bawah ini ditulis — lapis `--live` DIJALANKAN (builder minta diuji
 > langsung): 82 / 0.** Esai di lapis live sekarang lewat rantai tiga lapis, bukan lagi dinilai penerbit
 > tanpa model. Selisih 15 dari 67 = tujuh pemeriksaan hitung-saja B104 + delapan bersih di lapis live
@@ -45,12 +52,6 @@ result: 38/0 offline (30 Sep malam; 31/0 sebelum B104) · 82/0 live (30 Sep mala
 > (70/0). **Lapis `--live` tidak kujalankan ulang**: ia menerbitkan satu kertas dan menambah korpus;
 > jalur esainya di sana dinilai penerbit tanpa model, jadi tidak melewati pengesahan. Angka 67/0 di
 > bawah adalah pembacaan 29 Sep, bukan bukti bahwa rantai tiga lapis pernah menerbitkan kertas.
-
-# T22 - signer attempts-check.js (satu alur: peserta → rekaman → kertas → dokumen hasil)
-
-**Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B62, B62-b, B72 di
-[[07-Backlog/03 - Findings and Tasks 2026-09-26|status dan tugas terbaru]] · **Bar:**
-[[00-Overview/11 - Product Bar]] 3, 4, 6, 7 · **Ringkas:** belum ada berkasnya (B77 ditahan builder)
 
 ## Kenapa harness ini ada
 

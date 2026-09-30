@@ -9,7 +9,7 @@ result: 70 checks / 0 failed
 
 # T21 - signer db-probe.js (state belajar di Postgres)
 
-**Hub:** [[09-Testing/00 - Hub Testing]] · **Bar:** [[00-Overview/11 - Product Bar]] · **Skema:** [[11-Refactoring/RF5a - Decision Memo - Enrollment Surface]]
+**Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B72, B81, **B78**, **B104** di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] · **Pasangan:** [[09-Testing/T22 - signer attempts-check.js]] · **Rute:** [[04-Signer-Service/S7 - Server routes and lifecycle]] · **Bar:** [[00-Overview/11 - Product Bar]] · **Skema:** [[11-Refactoring/RF5a - Decision Memo - Enrollment Surface]]
 
 ## Kenapa harness ini ada
 
