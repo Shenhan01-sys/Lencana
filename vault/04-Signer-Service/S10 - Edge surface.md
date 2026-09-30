@@ -95,8 +95,18 @@ yang ada, dan itu sudah kupelajari di tempat lain ([[04-Signer-Service/S8 - Crit
 ## Batas yang masih ada
 
 - **Satu titik kendali.** Namespace KV, worker, dan agen `agent-edge` bernaung di satu akun Cloudflare
-  milik satu orang. Token hanya ada di luar repo (`%LOCALAPPDATA%\Lencana-CF\`, tidak pernah di argv,
-  tidak pernah di git — `grep cfat_ app/` kosong).
+  milik satu orang. Token **seharusnya** hanya ada di luar repo (`%LOCALAPPDATA%\Lencana-CF\`, tidak
+  pernah di argv, tidak pernah di git). **Koreksi 30 Sep:** klaim "`grep cfat_ app/` kosong" di baris
+  ini tidak lagi benar untuk grep *filesystem* — sejak B115 token kedua juga ditulis ke `app/.env`
+  atas perintah builder. Berkas itu gitignored (`.gitignore:25`) dan **tidak terlacak** (terverifikasi
+  `git ls-files` dan `git grep cfat_ HEAD` → yang cocok hanya kalimat di baris ini sendiri), jadi tidak
+  ada secret yang pernah terdorong; yang berubah adalah **batas "di luar repo"**. Itu bertentangan
+  dengan alasan `publish.js` menolak membaca `.env` untuk dua variabel tersebut, jadi kalau mau
+  konsisten: pindahkan ke `%LOCALAPPDATA%\Lencana-CF\` dan hapus dari `.env`. Yang tetap benar dan
+  tidak berubah: nilainya tidak pernah dicetak, tidak pernah masuk argv, dan tidak pernah masuk pesan
+  komit. Catat juga bahwa sejak 30 Sep ada **dua** token hidup untuk akun yang sama (yang lama di
+  `%LOCALAPPDATA%\Lencana-CF\cf_token.txt` sejak 28 Sep, yang baru di `.env`) — dan yang baru pernah
+  menempel di chat, jadi keduanya perlu dirotasi/dihapus sesudah tenggat.
 - **Kuota.** Workers Free 100.000 permintaan/hari dan 10 ms CPU; `no-store` membuat setiap pembukaan
   daftar membaca chain lagi. Untuk demo hackathon cukup; untuk produk ini alasan lapis ini perlu
   cache yang dikey-kan pada state, bukan pada URL.
