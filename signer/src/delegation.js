@@ -19,7 +19,7 @@
  * di `lib/bas/src/IEAS.sol`.
  */
 
-// [B52] SELESAI — primitif `attestByDelegation` + allowance EIP-712 sudah terbukti di chain publik (itu yang
+// Lencana-B52 status=SELESAI — primitif `attestByDelegation` + allowance EIP-712 sudah terbukti di chain publik (itu yang
 // dikerjakan berkas ini). Barisnya tetap 🟡: sisanya (dua `SoulboundCert` di 97, mana yang jadi tujuan) bukan
 // lagi tujuan kita — lihat D46. Riwayat: tag ini sempat `SELESAI` padahal barisnya masih terbuka (30 Sep diluruskan ke
 // TERBUKA oleh check:labels), lalu barisnya ditutup 30 Sep sebagai KEPUTUSAN batas, bukan sebagai pekerjaan tersisa.

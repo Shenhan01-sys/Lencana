@@ -1,5 +1,5 @@
 /**
- * [B78] TERBUKA — bagian (a) SELESAI 30 Sep: pemurnian baris tes dengan bukti sisa = 0 (38 enrollment · 129 attempts
+ * Lencana-B78 status=TERBUKA — bagian (a) SELESAI 30 Sep: pemurnian baris tes dengan bukti sisa = 0 (38 enrollment · 129 attempts
  * · 144 attempt_components · 81 lesson_progress · 209 progress_events dihapus; 0 submissions, 0 orders;
  * jejak JSON di luar repo sebelum hapus). Buktikan ulang: `npm run cleanup` (dry-run) lalu
  * `npm run cleanup -- --apply`. Yang TIDAK diurus di sini: `course_gates` yang masih membaca baris

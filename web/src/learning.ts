@@ -31,7 +31,7 @@
  * ketika keduanya berbeda — dan itu backend, karena itu satu-satunya yang dibaca penerbit.
  */
 
-// [B58] SELESAI 2026-09-29 — Ini yang menentukan urutan kerja front-end. Kalau FE dibangun lebih dulu, FE menyimpan state yang tidak dimiliki core — dan di produk yang menjual "bukti tidak bisa dik Buktikan ulang: npm run verify:attempts:live. JANGAN dibalik/diulang tanpa membuka kembali baris B58 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B58 status=SELESAI 2026-09-29 — Ini yang menentukan urutan kerja front-end. Kalau FE dibangun lebih dulu, FE menyimpan state yang tidak dimiliki core — dan di produk yang menjual "bukti tidak bisa dik Buktikan ulang: npm run verify:attempts:live. JANGAN dibalik/diulang tanpa membuka kembali baris B58 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { stringToHex, type Hex } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 

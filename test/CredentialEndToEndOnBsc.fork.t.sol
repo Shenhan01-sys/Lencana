@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/// [B38] SELESAI 2026-09-29 — adegan pencabutan dibaca dari chain publik 97 dan 56 (rantai yang membuktikan B38). Buktikan ulang: forge test --match-path test/CredentialEndToEndOnBsc.fork.t.sol --rpc-url https://bsc-testnet.publicnode.com --evm-version cancun. JANGAN dibalik/diulang tanpa membuka kembali baris B38 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B38 status=SELESAI 2026-09-29 — adegan pencabutan dibaca dari chain publik 97 dan 56 (rantai yang membuktikan B38). Buktikan ulang: forge test --match-path test/CredentialEndToEndOnBsc.fork.t.sol --rpc-url https://bsc-testnet.publicnode.com --evm-version cancun. JANGAN dibalik/diulang tanpa membuka kembali baris B38 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 pragma solidity ^0.8.20;
 
 import { Test } from "forge-std/Test.sol";

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/// [B54] SELESAI 2026-09-29 — Riwayat angkanya sengaja dibiarkan terbaca, karena "tidak pernah ada kertas yang menganggur" adalah kalimat yang tidak boleh kita ucapkan. Ini bukan kosmetik: klaim ter Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B54 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B54 status=SELESAI 2026-09-29 — Riwayat angkanya sengaja dibiarkan terbaca, karena "tidak pernah ada kertas yang menganggur" adalah kalimat yang tidak boleh kita ucapkan. Ini bukan kosmetik: klaim ter Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B54 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 pragma solidity ^0.8.20;
 
 import { Script, console2 } from "forge-std/Script.sol";

@@ -13,7 +13,7 @@
  *   npm run check:spec -- 0x<hash lain>
  */
 
-// [B100] SELESAI 2026-09-29 — harness Node untuk penghitung + kontrol negatif. Buktikan ulang: npm run check:spec -- --self-test. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B100 status=SELESAI 2026-09-29 — harness Node untuk penghitung + kontrol negatif. Buktikan ulang: npm run check:spec -- --self-test. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, http } from 'viem'
 
 import { evaluateSpecAssertions, SPEC_ROWS, unreadableVerdicts } from '../src/specAudit'

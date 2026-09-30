@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-/// [B38] SELESAI 2026-09-29 — metadata artefak dipaku saat mint (tidak berubah setelahnya). Buktikan ulang: forge test --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B38 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B38 status=SELESAI 2026-09-29 — metadata artefak dipaku saat mint (tidak berubah setelahnya). Buktikan ulang: forge test --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B38 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-/// [B40] SELESAI 2026-09-29 — mint batch atomik per kursus; bentuk batch ditolak sebelum minting. Buktikan ulang: forge test --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B40 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B40 status=SELESAI 2026-09-29 — mint batch atomik per kursus; bentuk batch ditolak sebelum minting. Buktikan ulang: forge test --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B40 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-/// [B39] SELESAI 2026-09-29 — Artefak hanya di level kursus: LessonLevelNotMintable(hash, lessonId) menolak mint level Lesson; registry.lessonOf(attestationOf(hash)) adalah pencari levelnya. Buktikan ulang: forge test --match-contract SoulboundCertTest --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B39 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B39 status=SELESAI 2026-09-29 — Artefak hanya di level kursus: LessonLevelNotMintable(hash, lessonId) menolak mint level Lesson; registry.lessonOf(attestationOf(hash)) adalah pencari levelnya. Buktikan ulang: forge test --match-contract SoulboundCertTest --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B39 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 pragma solidity ^0.8.20;
 
 import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";

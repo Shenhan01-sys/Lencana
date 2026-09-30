@@ -20,15 +20,15 @@
  *   PORT=9000 BASE_URL=https://api.example node src/server.js
  */
 
-// [B106] SELESAI 2026-09-29 — buildList memisahkan dua sebab: konfigurasi hilang vs belum ada kertas (store dingin). Buktikan ulang: npm run probe:cold. JANGAN dibalik/diulang tanpa membuka kembali baris B106 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B106 status=SELESAI 2026-09-29 — buildList memisahkan dua sebab: konfigurasi hilang vs belum ada kertas (store dingin). Buktikan ulang: npm run probe:cold. JANGAN dibalik/diulang tanpa membuka kembali baris B106 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B86] SELESAI 2026-09-29 — server melaporkan startedAt + codeStamp sejak proses naik. Buktikan ulang: npm run probe:serve. JANGAN dibalik/diulang tanpa membuka kembali baris B86 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B86 status=SELESAI 2026-09-29 — server melaporkan startedAt + codeStamp sejak proses naik. Buktikan ulang: npm run probe:serve. JANGAN dibalik/diulang tanpa membuka kembali baris B86 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B48] SELESAI 2026-09-29 — empat kredensial demo yang sudah terbit tidak bisa diverifikasi orang asing di instance itu: verificationMethod mereka menunjuk dokumen yang tidak kita sajikan. Untuk v Buktikan ulang: lihat baris B48 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B48 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B48 status=SELESAI 2026-09-29 — empat kredensial demo yang sudah terbit tidak bisa diverifikasi orang asing di instance itu: verificationMethod mereka menunjuk dokumen yang tidak kita sajikan. Untuk v Buktikan ulang: lihat baris B48 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B48 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B67] SELESAI 2026-09-29 — penolakan tepi memakai x-lencana-stale bernama; alarmnya di monitor-edge, bukan di sini. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B67 status=SELESAI 2026-09-29 — penolakan tepi memakai x-lencana-stale bernama; alarmnya di monitor-edge, bukan di sini. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B96] SELESAI 2026-09-29 — pesan yang sampai ke klien berbahasa Inggris; komentar & log operator boleh Indonesia (D27/D28). Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B96 status=SELESAI 2026-09-29 — pesan yang sampai ke klien berbahasa Inggris; komentar & log operator boleh Indonesia (D27/D28). Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createServer } from 'node:http'
 import { readdirSync, statSync } from 'node:fs'
 import { dirname, join } from 'node:path'

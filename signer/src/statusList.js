@@ -25,7 +25,7 @@
  *                          masing-masing cukup 1 bit dan tidak perlu `statusMessage`)
  */
 
-// [B47] SELESAI 2026-09-29 — kapasitas bitstring dinyatakan di dalam list credential (credentialSubject.size) supaya pembaca tidak perlu menebak panjang daftar. Buktikan ulang: npm run probe:serve. JANGAN dibalik/diulang tanpa membuka kembali baris B47 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B47 status=SELESAI 2026-09-29 — kapasitas bitstring dinyatakan di dalam list credential (credentialSubject.size) supaya pembaca tidak perlu menebak panjang daftar. Buktikan ulang: npm run probe:serve. JANGAN dibalik/diulang tanpa membuka kembali baris B47 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { gzipSync, gunzipSync } from 'node:zlib'
 import { VC_V2_CONTEXT } from './context.js'
 

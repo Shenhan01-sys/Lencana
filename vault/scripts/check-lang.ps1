@@ -1,5 +1,5 @@
 
-# [B79] SELESAI 2026-09-29 — bahasa: kode & keluaran Inggris, vault Indonesia; token CJK = merah. Buktikan ulang: powershell -File vault/scripts/check-lang.ps1. JANGAN dibalik/diulang tanpa membuka kembali baris B79 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+# Lencana-B79 status=SELESAI 2026-09-29 — bahasa: kode & keluaran Inggris, vault Indonesia; token CJK = merah. Buktikan ulang: powershell -File vault/scripts/check-lang.ps1. JANGAN dibalik/diulang tanpa membuka kembali baris B79 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 # check-lang.ps1
 # Docs in this repo are English (plus deliberate Indonesian). This is not a style check: it catches
 # stray CJK characters that slip into sentences when writing fast. It happened three times in this

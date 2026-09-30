@@ -29,9 +29,9 @@
  * tidak pernah mencocokkan blob dengan state yang salah.
  */
 
-// [B67] SELESAI 2026-09-29 — tepi menolak dengan x-lencana-stale bernama; alarm eksternal ada di signer/scripts/monitor-edge.js. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B67 status=SELESAI 2026-09-29 — tepi menolak dengan x-lencana-stale bernama; alarm eksternal ada di signer/scripts/monitor-edge.js. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B89] SELESAI 2026-09-29 — batas 50 subrequest/invokasi Free plan → cache bersama + MAX_STATUS_CHECKS; kegagalan MEMBACA bukan bukti (jangan balikkan jadi 503). Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B89 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B89 status=SELESAI 2026-09-29 — batas 50 subrequest/invokasi Free plan → cache bersama + MAX_STATUS_CHECKS; kegagalan MEMBACA bukan bukti (jangan balikkan jadi 503). Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B89 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 import { REVOCATION, SUSPENSION, decodeBit, LIST_BITS } from '../signer/src/statusList.js'
 // Prefiks KV hanya ada di satu berkas; lihat [[04-Signer-Service/S10 - Edge surface]].

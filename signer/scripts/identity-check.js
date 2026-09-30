@@ -1,5 +1,5 @@
 /**
- * [B84] TERBUKA — berkas inilah yang menjaga bagian yang SUDAH selesai: satu sumber identitas
+ * Lencana-B84 status=TERBUKA — berkas inilah yang menjaga bagian yang SUDAH selesai: satu sumber identitas
  * penerbit (hash dokumen builder = signer lokal = tepi, untuk SEMUA agen yang dirujuk kertas
  * terbit) dan catatan .keys/ bebas host mati. Yang membuat barisnya masih TERBUKA hanyalah
  * custody — lihat B105 (c). Buktikan ulang: npm run check:identity

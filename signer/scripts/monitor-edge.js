@@ -25,7 +25,7 @@
  * Ini perkakas baca-saja. Tidak ada transaksi, tidak ada publish, tidak ada tulis-menulis.
  */
 
-// [B67] SELESAI 2026-09-29 — alarm EKSTERNAL tepi (umur publishedAt, matchesChainNow, unchecked) — jangan turunkan ambang diam-diam. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B67 status=SELESAI 2026-09-29 — alarm EKSTERNAL tepi (umur publishedAt, matchesChainNow, unchecked) — jangan turunkan ambang diam-diam. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 const EDGE = (process.env.EDGE_BASE_URL ?? 'https://lencana-edge.hansgunawan775.workers.dev').replace(/\/$/, '')
 const JSON_OUT = process.argv.includes('--json')
 const argNum = (name, def) => {

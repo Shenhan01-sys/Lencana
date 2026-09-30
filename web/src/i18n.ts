@@ -9,9 +9,9 @@
  * - Keep on-chain addresses, hashes, and verbatim specification citations untranslated.
  */
 
-// [B98] SELESAI 2026-09-29 — frasa yang dilarang Claims-Cheat-Sheet dibersihkan dari salinan EN+ID. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B98 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B98 status=SELESAI 2026-09-29 — frasa yang dilarang Claims-Cheat-Sheet dibersihkan dari salinan EN+ID. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B98 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B70] SELESAI 2026-09-29 — banner dan salinan UI tidak lagi mengaku 'belum disiarkan' atau mengutip jumlah uji. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B70 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B70 status=SELESAI 2026-09-29 — banner dan salinan UI tidak lagi mengaku 'belum disiarkan' atau mengutip jumlah uji. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B70 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 export type Lang = 'en' | 'id'
 

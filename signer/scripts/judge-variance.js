@@ -10,7 +10,7 @@
  * akhir + spread-nya. NOL klaim sebelum angka ini ada.
  */
 
-// [B110] SELESAI 2026-09-29 — memuat app/.env sendiri (B110); angka variansi 30 Sep ada di T30. Buktikan ulang: npm run judge-variance. JANGAN dibalik/diulang tanpa membuka kembali baris B110 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B110 status=SELESAI 2026-09-29 — memuat app/.env sendiri (B110); angka variansi 30 Sep ada di T30. Buktikan ulang: npm run judge-variance. JANGAN dibalik/diulang tanpa membuka kembali baris B110 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFile } from 'node:fs/promises'
 import { findCourse, findLesson } from '../../web/src/courses/index.ts'
 import { gradeAgainstRubric } from '../src/grade.js'

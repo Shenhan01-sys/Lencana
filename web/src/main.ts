@@ -1,11 +1,11 @@
 
-// [B94] SELESAI 2026-09-29 — tombol berbagi/panel tidak pernah menyerahkan dokumen karangan; bentuk saja diberi label bentuk-saja. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B94 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B94 status=SELESAI 2026-09-29 — tombol berbagi/panel tidak pernah menyerahkan dokumen karangan; bentuk saja diberi label bentuk-saja. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B94 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B102] TERBUKA — jangan dianggap selesai — BELUM ADA spesimen delisted/expired: tombol delisted dicabut karena tidak ada kertas yang cocok label — JANGAN diisi dokumen lain hanya supaya tombol hidup. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B102 status=TERBUKA — jangan dianggap selesai — BELUM ADA spesimen delisted/expired: tombol delisted dicabut karena tidak ada kertas yang cocok label — JANGAN diisi dokumen lain hanya supaya tombol hidup. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B50] SELESAI 2026-09-29 — kredensial yang TERSAJE di halaman kita sekarang tidak sama bentuknya dengan kredensial yang LOLOS validator. Untuk juri yang membuka "lihat dokumen", yang ia salin/ung Buktikan ulang: lihat baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B50 status=SELESAI 2026-09-29 — kredensial yang TERSAJE di halaman kita sekarang tidak sama bentuknya dengan kredensial yang LOLOS validator. Untuk juri yang membuka "lihat dokumen", yang ia salin/ung Buktikan ulang: lihat baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B68] SELESAI 2026-09-29 — front-end (builder mengizinkan penyuntingan 28 Sep) Buktikan ulang: lihat baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B68 status=SELESAI 2026-09-29 — front-end (builder mengizinkan penyuntingan 28 Sep) Buktikan ulang: lihat baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B68 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { verify, type Endpoint, type Report } from './verify'
 import { renderEmpty, renderReport } from './render'
 import { runSpecAudit, specRowsHtml } from './specAudit'

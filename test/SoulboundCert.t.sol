@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-/// [B96] SELESAI 2026-09-29 — nama fungsi uji berbahasa Inggris (D27/D28) — jangan kembalikan ke Indonesia. Buktikan ulang: forge test --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B96 status=SELESAI 2026-09-29 — nama fungsi uji berbahasa Inggris (D27/D28) — jangan kembalikan ke Indonesia. Buktikan ulang: forge test --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-/// [B38] SELESAI 2026-09-29 — test_MetadataFollowsStatusAfterRevocation membuktikan tokenURI membaca status on-chain setiap panggilan (B38). Buktikan ulang: forge test --match-test test_MetadataFollowsStatusAfterRevocation --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B38 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B38 status=SELESAI 2026-09-29 — test_MetadataFollowsStatusAfterRevocation membuktikan tokenURI membaca status on-chain setiap panggilan (B38). Buktikan ulang: forge test --match-test test_MetadataFollowsStatusAfterRevocation --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B38 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-/// [B39] SELESAI 2026-09-29 — test_ArtifactOnlyAtCourseLevel = bukti B39 (nama lama test_ArtefakHanyaLevelKursus, diganti 29 Sep oleh B96). Buktikan ulang: forge test --match-test test_ArtifactOnlyAtCourseLevel --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B39 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B39 status=SELESAI 2026-09-29 — test_ArtifactOnlyAtCourseLevel = bukti B39 (nama lama test_ArtefakHanyaLevelKursus, diganti 29 Sep oleh B96). Buktikan ulang: forge test --match-test test_ArtifactOnlyAtCourseLevel --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B39 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-/// [B40] SELESAI 2026-09-29 — test_FailedBatchLeavesNoArtifact + test_BatchShapeRejectedBeforeMinting = bukti B40 (MAX_BATCH 25, atomik; nama lama test_BatchYangGagalTidakMeninggalkanArtefak diganti oleh B96). Buktikan ulang: forge test --match-contract SoulboundCertTest --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B40 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/// Lencana-B40 status=SELESAI 2026-09-29 — test_FailedBatchLeavesNoArtifact + test_BatchShapeRejectedBeforeMinting = bukti B40 (MAX_BATCH 25, atomik; nama lama test_BatchYangGagalTidakMeninggalkanArtefak diganti oleh B96). Buktikan ulang: forge test --match-contract SoulboundCertTest --evm-version shanghai. JANGAN dibalik/diulang tanpa membuka kembali baris B40 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 pragma solidity ^0.8.20;
 
 import { Test } from "forge-std/Test.sol";

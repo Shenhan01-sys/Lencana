@@ -16,7 +16,7 @@
  * ditulis ulang — bukan kerahasiaan soal.
  */
 
-// [B72] SELESAI 2026-09-29 — kuis dinilai SERVER dari picks; teks klien tidak menentukan angka. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B72 status=SELESAI 2026-09-29 — kuis dinilai SERVER dari picks; teks klien tidak menentukan angka. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { manifestOf, rubricHashOf } from '../../web/src/manifest.ts'
 
 /** Lesson mana saja yang merupakan kuis, dengan soalnya — dibaca dari katalog penerbit. */

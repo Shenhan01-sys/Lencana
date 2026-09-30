@@ -19,9 +19,9 @@
  *  - tombol salin/unduh tidak pernah menyerahkan dokumen karangan: ia diisi setelah dokumen asli tiba.
  */
 
-// [B69] SELESAI 2026-09-29 — tombol pulse palsu sudah mati: tiap baris dinilai dari dokumen yang diambil. Buktikan ulang: npm run check:spec -- --self-test. JANGAN dibalik/diulang tanpa membuka kembali baris B69 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B69 status=SELESAI 2026-09-29 — tombol pulse palsu sudah mati: tiap baris dinilai dari dokumen yang diambil. Buktikan ulang: npm run check:spec -- --self-test. JANGAN dibalik/diulang tanpa membuka kembali baris B69 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B100] SELESAI 2026-09-29 — matriks kepatuhan DIHITUNG dari dokumen tepi (bukan 14 teks PASS) + kontrol negatif self-test. Buktikan ulang: npm run check:spec -- --self-test. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B100 status=SELESAI 2026-09-29 — matriks kepatuhan DIHITUNG dari dokumen tepi (bukan 14 teks PASS) + kontrol negatif self-test. Buktikan ulang: npm run check:spec -- --self-test. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { CredentialInfo } from './verify'
 
 export type SpecVerdict = { id: string; ok: boolean | null; observed: string }

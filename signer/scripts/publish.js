@@ -16,7 +16,7 @@
  * cloudflare/wrangler.toml.
  */
 
-// [B83] SELESAI 2026-09-29 — dokumen penerbit dirakit dari satu sumber identitas sebelum disajikan. Buktikan ulang: npm run publish:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B83 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B83 status=SELESAI 2026-09-29 — dokumen penerbit dirakit dari satu sumber identitas sebelum disajikan. Buktikan ulang: npm run publish:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B83 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'

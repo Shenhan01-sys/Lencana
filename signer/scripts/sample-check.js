@@ -14,7 +14,7 @@
  *   … npm run check:samples -- --json                → keluaran mesin (buat penjaga/`sync:numbers`)
  */
 
-// [B102] TERBUKA — jangan dianggap selesai — alat ini yang akan merah kalau ada yang memasang hash tanpa spesimen ke SAMPLE_HASHES — pemeriksaan `delisted`/`expired` masih menunggu spesimen, bukan sudah selesai. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B102 status=TERBUKA — jangan dianggap selesai — alat ini yang akan merah kalau ada yang memasang hash tanpa spesimen ke SAMPLE_HASHES — pemeriksaan `delisted`/`expired` masih menunggu spesimen, bukan sudah selesai. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

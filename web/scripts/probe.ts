@@ -28,7 +28,7 @@
  * satu eth_call, jadi perbedaan itu kita periksa di sini, bukan kita klaim di deskripsi.
  */
 
-// [B100] SELESAI 2026-09-29 — probe mengadili penghitung yang sama seperti halaman, bukan menempel PASS. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B100 status=SELESAI 2026-09-29 — probe mengadili penghitung yang sama seperti halaman, bukan menempel PASS. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { reportLoaded } from './load-env'
 import { verify, type Endpoint, type Report } from '../src/verify'
 import { renderReport } from '../src/render'

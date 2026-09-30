@@ -17,7 +17,7 @@
  * Tidak ada angka yang diketik di berkas ini.
  */
 
-// [B67] SELESAI 2026-09-29 — pemeriksaan umur state tepi (MAX_STATE_AGE_HOURS, bawaan 26 jam) ada di sini juga, bukan hanya di monitor:edge. Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B67 status=SELESAI 2026-09-29 — pemeriksaan umur state tepi (MAX_STATE_AGE_HOURS, bawaan 26 jam) ada di sini juga, bukan hanya di monitor:edge. Buktikan ulang: npm run verify:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { listCredentials } from '../src/store.js'
 import { EDGE_ROUTES, PURPOSES } from '../src/edgeKeys.js'
 import { readAnchor } from '../src/anchor.js'

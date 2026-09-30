@@ -14,13 +14,13 @@
  * kalau belum ada ID-nya (idempoten — menjalankan dua kali tidak menghasilkan dua baris).
  */
 
-// [B111] SELESAI 2026-09-29 — A10 mengadili angka pada tabel bukti README terhadap numbers.json — README tidak bisa lagi basi tanpa ketahuan. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B111 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B111 status=SELESAI 2026-09-29 — A10 mengadili angka pada tabel bukti README terhadap numbers.json — README tidak bisa lagi basi tanpa ketahuan. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B111 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B101] SELESAI 2026-09-29 — SURFACE termasuk salinan UI dan berkas yang hilang = TEMUAN. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B101 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B101 status=SELESAI 2026-09-29 — SURFACE termasuk salinan UI dan berkas yang hilang = TEMUAN. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B101 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B96] SELESAI 2026-09-29 — A8/A8b menjaga bahasa identifier, pesan keluaran, dan pola assertion harness. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B96 status=SELESAI 2026-09-29 — A8/A8b menjaga bahasa identifier, pesan keluaran, dan pola assertion harness. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B96 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// [B103] SELESAI 2026-09-29 — SURFACE hanya berkas yang ada; berkas yang hilang = TEMUAN, bukan dilewati diam-diam. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B103 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B103 status=SELESAI 2026-09-29 — SURFACE hanya berkas yang ada; berkas yang hilang = TEMUAN, bukan dilewati diam-diam. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B103 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFile, writeFile } from 'node:fs/promises'
 import { existsSync, readdirSync } from 'node:fs'
 import { execFile } from 'node:child_process'
@@ -319,21 +319,24 @@ async function collect () {
         rowsTag[m[1]] = (!tertutup || rowsTag[m[1]] === 'TERBUKA') ? 'TERBUKA' : 'SELESAI'
       }
     }
+    // Lencana-B112 status=TERBUKA — A9 membaca token marker bentuk baru, bukan kurung-siku. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B112 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+    // Bentuk kurung-siku ditinggalkan karena ia juga notasi tipe di kode kami (21 lokasi bytes32),
+    // jadi A9 tidak bisa menuntut kelengkapan; kelengkapan dijaga `npm run check:labels`.
     const salah = []
     let jumlah = 0
     for (const f of berkas) {
       const isi = await readFile(f, 'utf8')
-      for (const m of isi.matchAll(/\[(B\d+)\] (SELESAI|TERBUKA)/g)) {
+      for (const m of isi.matchAll(/Lencana-(B\d+) status=(SELESAI|TERBUKA)/g)) {
         jumlah += 1
         const status = rowsTag[m[1]]
-        if (!status) { salah.push(`${f.replace(REPO, '')}: [${m[1]}] tidak punya baris di backlog`); continue }
-        if (status !== m[2]) salah.push(`${f.replace(REPO, '')}: [${m[1]}] ditandai ${m[2]} padahal backlog ${status}`)
+        if (!status) { salah.push(`${f.replace(REPO, '')}: Lencana-${m[1]} tidak punya baris di backlog`); continue }
+        if (status !== m[2]) salah.push(`${f.replace(REPO, '')}: Lencana-${m[1]} ditandai ${m[2]} padahal backlog ${status}`)
       }
     }
     findingsOut.push({
       id: 'A9', kind: salah.length ? 'TEMUAN' : 'bersih',
-      title: 'tag backlog di kode cocok dengan keadaan barisnya di vault (aturan #18)',
-      detail: `${jumlah} tag diperiksa` + (salah.length ? `, ${salah.length} TIDAK cocok:\n      ${salah.slice(0, 8).join('\n      ')}` : ' — semuanya cocok dua arah'),
+      title: 'marker backlog di kode cocok dengan keadaan barisnya di vault (aturan #18)',
+      detail: `${jumlah} marker diperiksa` + (salah.length ? `, ${salah.length} TIDAK cocok:\n      ${salah.slice(0, 8).join('\n      ')}` : ' — semuanya cocok dua arah'),
     })
   }
 
