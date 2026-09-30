@@ -1,4 +1,4 @@
-// Lencana-B112 status=TERBUKA — marker aturan #18 dipindah ke token yang tidak mungkin berupa kode, dan penjaga ini sekarang menuntut kelengkapan yang dulu mustahil dituntut. Buktikan ulang: npm run check:labels lalu npm run check:labels -- --self-test. JANGAN dibalik/diulang tanpa membuka kembali baris B112 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B112 status=SELESAI 2026-09-30 — marker aturan #18 dipindah ke token yang tidak mungkin berupa kode, dan penjaga ini sekarang menuntut bentuk sekaligus kelengkapan yang dulu mustahil dituntut (8 pemeriksaan, dari 4). Buktikan ulang: npm run check:labels lalu npm run check:labels -- --self-test; inventaris penuh: npm run check:labels -- --list. JANGAN dibalik/diulang tanpa membuka kembali baris B112 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run check:labels` — aturan #18 bagian KEDUA: bukan cuma "marker cocok dengan barisnya" (itu A9),
  * tapi "tiap ID tertutup punya marker atau alasan yang tertulis", dan "tidak ada marker cacat".
@@ -224,6 +224,22 @@ for (const f of berkas) {
 
 const rows = bacaBaris(fs.readFileSync(BACKLOG, 'utf8'))
 const v = adili(marker, rows)
+
+// `--list` mencetak inventaris penuh: setiap marker dengan ID, statusnya di kode, status barisnya,
+// dan lokasinya. Alasannya: "semua sudah terlabeli" harus bisa diperiksa orang lain dari repo, bukan
+// dipercaya dari ringkasan di chat. Tanpa flag ini, keluaran tetap ringkas untuk harness.
+if (process.argv.includes('--list')) {
+  console.log('\n--list — inventaris marker (ID · status di kode · cocok/tidak dengan baris · lokasi)')
+  const urut = [...marker].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }) || a.berkas.localeCompare(b.berkas))
+  for (const m of urut) {
+    const r = rows.get(m.id)
+    const cocok = r && r.status === m.state ? 'cocok' : `BEDA(baris=${r ? r.status : 'TIDAK ADA'})`
+    console.log(`  ${m.id.padEnd(6)} ${m.state.padEnd(8)} ${cocok.padEnd(20)} ${m.berkas}:${m.baris}`)
+  }
+  const tanpaMarker = [...rows.entries()].filter(([id, r]) => r.status === 'SELESAI' && !v.byId.has(id))
+  console.log(`  total ${urut.length} marker di ${v.byId.size} ID · ${v.tertutup.length} ID tertutup`)
+  console.log(`  ID tertutup tanpa marker (harus mengumumkan TANPA TAG KODE): ${tanpaMarker.map(([id]) => id).join(' ') || '(nol)'}`)
+}
 
 let ran = 0
 let failed = 0

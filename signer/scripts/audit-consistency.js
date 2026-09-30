@@ -319,7 +319,7 @@ async function collect () {
         rowsTag[m[1]] = (!tertutup || rowsTag[m[1]] === 'TERBUKA') ? 'TERBUKA' : 'SELESAI'
       }
     }
-    // Lencana-B112 status=TERBUKA — A9 membaca token marker bentuk baru, bukan kurung-siku. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B112 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+    // Lencana-B112 status=SELESAI 2026-09-30 — A9 membaca token marker bentuk baru, bukan kurung-siku. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B112 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
     // Bentuk kurung-siku ditinggalkan karena ia juga notasi tipe di kode kami (21 lokasi bytes32),
     // jadi A9 tidak bisa menuntut kelengkapan; kelengkapan dijaga `npm run check:labels`.
     const salah = []
