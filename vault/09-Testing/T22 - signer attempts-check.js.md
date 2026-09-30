@@ -1,11 +1,23 @@
 ---
 tags: [testing, "T22"]
 status: active
-updated: 2026-09-28
+updated: 2026-09-30
 command: npm run verify:attempts (hitung-saja) + npm run verify:attempts:live (Postgres + chain 97)
-measured: 2026-09-29
-result: 31/0 offline · 67/0 live · verify:edge 8/0 (29 Sep)
+measured: 2026-09-30 (offline) · 2026-09-29 (live — TIDAK diulang sesudah B104)
+result: 38/0 offline (30 Sep malam; 31/0 sebelum B104) · 67/0 live (29 Sep, belum diulang) · verify:edge 8/0 (29 Sep)
 ---
+
+> **30 Sep malam — B104.** Lapis hitung-saja naik **31 → 38**: tujuh pemeriksaan baru di blok "AI
+> menilai → manusia mengesahkan → penerbit menerbitkan". Usulan model tanpa pengesahan → penurunan
+> bukti **ditolak**; `rejected` → ditolak; usaha terbaik yang belum disahkan **tidak** diganti usaha
+> lama yang lebih jelek; `adjusted` → angka yang diturunkan adalah angka reviewer; provenan dan dokumen
+> hasil menyebut reviewernya; esai yang dinilai penerbit tanpa model tetap jalan tanpa pengesahan
+> kedua. Dua fixture lama ("peserta lengkap" dan "esai dinilai penuh") memakai `judge_model`, jadi
+> keduanya sekarang membawa pengesahan `approved` — tanpa itu mereka ditolak, dan memang begitu
+> aturannya. Sisi HTTP + Postgres nyata rantai ini ada di [[09-Testing/T21 - signer db-probe.js]]
+> (70/0). **Lapis `--live` tidak kujalankan ulang**: ia menerbitkan satu kertas dan menambah korpus;
+> jalur esainya di sana dinilai penerbit tanpa model, jadi tidak melewati pengesahan. Angka 67/0 di
+> bawah adalah pembacaan 29 Sep, bukan bukti bahwa rantai tiga lapis pernah menerbitkan kertas.
 
 # T22 - signer attempts-check.js (satu alur: peserta → rekaman → kertas → dokumen hasil)
 
@@ -107,7 +119,7 @@ diisi dari kolom `score`, satu nilai punya dua asal dan kertasnya tetap terlihat
 Kertas itu lalu diperiksa pihak ketiga: `npm run validator -- --hash 0xd1dcb1ff… --record` →
 **10/10, `outcome VALID`, 14 pemeriksaan, 0 error / 0 warning** (28 Sep, tercatat di
 `09-Testing/validator-runs.jsonl`). Regresi yang dijalankan hari yang sama: `check.js` **94/0**,
-`verify:db` **50/0** (30 Sep malam, +2 penjaga view B78(c); 48/0 sebelumnya), `probe:serve` **49/0**, `npm run probe` (web) **73/0** — segarkan dari `npm run sync:numbers`.
+`verify:db` **70/0** (30 Sep malam: +2 penjaga view B78(c) → 50, lalu +20 pengesahan manusia B104; 48/0 sebelumnya), `probe:serve` **49/0**, `npm run probe` (web) **73/0** — segarkan dari `npm run sync:numbers`.
 
 ## Yang dibuktikan, dalam satu kalimat per baris
 

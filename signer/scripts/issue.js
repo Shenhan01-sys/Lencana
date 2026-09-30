@@ -215,7 +215,7 @@ if (FROM_ATTEMPTS) {
   quizScores = ev.evidence.quizScores
   essayScore = ev.evidence.essayScore
   praktikCompleted = ev.evidence.praktikCompleted
-  fromDB = { gates, stored: rows.length, provenance: ev.provenance, used: ev.used, unmapped: ev.unmapped, judges: ev.judges, notes: ev.notes }
+  fromDB = { gates, stored: rows.length, provenance: ev.provenance, used: ev.used, unmapped: ev.unmapped, judges: ev.judges, reviews: ev.reviews ?? [], notes: ev.notes }
   console.log(`dari rekaman: ${formatEvidence(ev)}`)
   for (const n of ev.notes) console.log(`            · ${n}`)
 }
@@ -457,7 +457,8 @@ await rememberCredential({
         },
         storedRows: fromDB.stored, attemptHashes,
         used: fromDB.used, components: fromDB.provenance, unmapped: fromDB.unmapped,
-        judges: fromDB.judges, notes: fromDB.notes,
+        // B104: siapa manusia yang mengesahkan angka model, dan dari berapa ke berapa.
+        judges: fromDB.judges, reviews: fromDB.reviews, notes: fromDB.notes,
       }
     : { source: 'cli-flags' },
   // Angka di dokumen bisa ditelusuri dari repo: lesson mana, verdict apa, model mana, dan

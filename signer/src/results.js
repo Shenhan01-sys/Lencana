@@ -67,6 +67,7 @@ export function resultDocument ({ baseUrl, record }) {
       ? `dihitung dari ${att.used?.length ?? 0} rekaman usaha yang tersimpan di Postgres terhadap rubrik ${record.rubricRef}`
         + `; attempt_hash ${att.attemptHashes?.[0] ?? '—'}${(att.attemptHashes?.length ?? 0) > 1 ? ` (+${att.attemptHashes.length - 1} lagi)` : ''}`
         + (att.judges?.length ? `; penilaian model ${att.judges.map((j) => j.model).filter((m, i, a) => a.indexOf(m) === i).join(', ')}` : '')
+        + (att.reviews?.length ? `; disahkan manusia (${att.reviews.map((r) => `${r.decision} oleh ${r.reviewer}`).join(', ')})` : '')
         + '; rinciannya di blok `attempts` di bawah, dan bisa dihitung ulang (lihat `compute`)'
       : eg
         ? `dihitung dari bukti terhadap rubrik ${record.rubricRef}; esai "${eg.lesson}" dinilai ${eg.judgeModel}`
@@ -114,6 +115,10 @@ export function resultDocument ({ baseUrl, record }) {
           components: att.components ?? [],
           unmapped: att.unmapped ?? [],
           notes: att.notes ?? [],
+          // B104 — hanya ada kalau sebuah angka model disahkan manusia: siapa, keputusan apa, dari
+          // berapa ke berapa. Rekaman tanpa pengesahan tidak mendapat kunci kosong, supaya dokumen
+          // hasil kertas yang sudah terbit tidak berubah bentuk.
+          ...(att.reviews?.length ? { reviews: att.reviews } : {}),
           compute: 'attempt_hash = keccak256(abi.encode(string×7)) atas baris attempts + attempt_components — see signer/src/db.js:computeAttemptHash',
         }
       : { source: record.attempts?.source ?? 'cli-flags', attemptHashes: [] },

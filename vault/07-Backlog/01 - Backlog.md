@@ -165,10 +165,10 @@ in 13 days:
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 — **terukur ulang 30 Sep sesudah B112, B114, B84, dan B115 ditutup**, dengan logika penjaga (status
 hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 78 baris tabel / **72 ID berbeda** =
-**55 SELESAI · 8 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
-B80 B82 B87 B99 B104 B105 **B116**. Angka 55 ini **sepakat dengan yang dicetak
-`check:labels`** ("94 marker di 51 ID · 72 baris backlog · 55 tertutup"), jadi dua alat berbeda memberi
-angka yang sama. *(Sebelum B78 ditutup malam 30 Sep: 54 · 9, dan 93 marker.)* *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
+**56 SELESAI · 7 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
+B80 B82 B87 B99 B105 **B116**. Angka 56 ini **sepakat dengan yang dicetak
+`check:labels`** ("97 marker di 52 ID · 72 baris backlog · 56 tertutup"), jadi dua alat berbeda memberi
+angka yang sama. *(Sebelum B104 ditutup malam 30 Sep: 55 · 8, dan 94 marker di 51 ID.)* *(Sebelum B78 ditutup malam 30 Sep: 54 · 9, dan 93 marker.)* *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
 ditutup malam yang sama: 52 · 11, dan 87 marker.)* *(Sebelum itu lagi
 51 · 12: B97 masih terbuka; ia ditutup sesudah siaran dari antrean terbukti di chain.)* *(Sebelum B117
 ditutup malam 30 Sep: 77 baris / 71 ID = 50 SELESAI · 12 TERBUKA · 9 bergembok.)* *(Baris ini tadinya
@@ -185,7 +185,7 @@ perintahnya pada hari ia dikutip (AGENTS #1).
 | 5 | **B84** ✅ SELESAI 30 Sep — `check:identity` 8/0 (hash dokumen builder = signer lokal = tepi) **dan** invarian "kunci tiap kertas terdaftar di dokumen penerbitnya" di `check.js` bagian 5d atas korpus store (91/0; 19 kertas / 3 dokumen penerbit, semuanya terdaftar) | ~~identitas penerbit punya 3 sumber berbeda~~ | — | — |
 | 6 | **B102** ✅ SELESAI 30 Sep malam — `npm run specimen` membuat kedua spesimen di chain 97 (agen korban didelisting; penerbit sungguhan tidak tersentuh), `check:samples` **9/0** dengan 1 expired · 1 delisted dan kini merah kalau sebuah keadaan kehilangan spesimennya → [[09-Testing/T26 - signer sample-check.js]]. Tombol FE belum dipasang lagi (pekerjaan FE, ditunda builder) | ~~spesimen `delisted`/`expired` belum ada~~ | — | — |
 | 7 | **B105** 🟡 30 Sep: **(b) SELESAI** dan **(a) sebagian** — `#/publishers` baca-saja sudah ada (nav + rute + halaman, 9 asersi baru di probe → **82/0**) dan kalimat onboarding-nya mengakui custody di kedua bahasa; yang belum: data dari `GET /issuers` yang hidup, jumlah kredensial, status allowlist dari chain | halaman penerbit + kalimat onboarding jujur | tiga hal yang disebut di kiri | — |
-| 8 | **B104** | rantai D42: AI menilai → **manusia mengesahkan** → terbit | migrasi review + rute bertanda tangan + gerbang ketiga + 2 pemeriksaan `verify:attempts` | 2 j |
+| 8 | **B104** ✅ SELESAI 30 Sep malam — migrasi 0009 (`review_roles`, `judgement_reviews`), `POST /essay/reviewers` + `POST /essay/review`, gerbang dan `issue --from-attempts` fail-closed atas angka model tanpa pengesahan; `verify:db` **70/0**, `verify:attempts` **38/0**. Belum: satu penerbitan utuh di chain lewat rantai ini, UI reviewer → [[09-Testing/T21 - signer db-probe.js]]. Riwayat: | ~~rantai: AI menilai → **manusia mengesahkan** → terbit~~ | migrasi review + rute bertanda tangan + gerbang ketiga + 2 pemeriksaan `verify:attempts` | 2 j |
 | 9 | **B90** ✅ SELESAI 30 Sep malam — `CourseDeposit` ter-deploy di chain 97 (`0xbeB5…E6c3`), tiga rute `/deposit/…`, `policyHash` dari manifest, `issuedAt` dari BAS; `verify:deposit` **27/0**, satu setoran nyata sampai selesai `verify:deposit:live` **38/0**, `forge` 16/16 tetap hijau → [[09-Testing/T34 - signer deposit-check.js]]. Tetap bukan klaim produk: tidak ada di halaman, jalur hangus hanya terbukti di `forge test` | ~~paruh dua kontrak durasi-cahaya~~ | — | — |
 | 10 | **B97** ✅ SELESAI 30 Sep malam — `POST /relay` + antrean idempoten + penjaga pra-gas (`verify:relay` **31/0**) dan satu siaran nyata dari antrean di chain 97 (`verify:relay:live` **17/0**, 347.059 gas) → [[09-Testing/T33 - signer relay-check.js]] | ~~relayer masih skrip~~ | — | — |
 | 11 | **B82** | identitas lintas perangkat hilang | ekspor/import terkunci frase lewat tes dua browser | ½ h |

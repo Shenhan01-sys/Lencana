@@ -49,7 +49,7 @@ import {
 } from './db.js'
 import { essayLesson, gradeQuiz } from './quiz.js'
 import { gradeAgainstRubric } from './grade.js'
-import { submitEssay as dbSubmitEssay, judgeEssay as dbJudgeEssay } from './db.js'
+import { submitEssay as dbSubmitEssay, judgeEssay as dbJudgeEssay, addReviewer as dbAddReviewer, reviewEssay as dbReviewEssay } from './db.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
@@ -400,7 +400,7 @@ const server = createServer(async (req, res) => {
     //    ada di KITA (tanda tangan nonce atas nama peserta), bukan di database;
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade'
-      || path === '/essay' || path === '/essay/judgement') {
+      || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -557,6 +557,41 @@ const server = createServer(async (req, res) => {
           attemptId: out.attemptId, attemptHash: out.attemptHash, replacedHash: out.replacedHash,
           score: out.score, verdict: out.verdict, components: out.components,
           gradedBy: body.judgeModel ? 'model' : 'human',
+          // B104: angka model belum dihitung gerbang sampai reviewer mengesahkannya.
+          needsReview: out.needsReview === true,
+        }))
+      }
+
+      // Pengesahan manusia (B104). Dua rute, dua kunci berbeda: penerbit MENUNJUK reviewer,
+      // reviewer MENGESAHKAN usulan model. Kode status lewat `out.kind`, bukan lewat membaca pesan.
+      const reviewStatus = (out) => ({ auth: 401, role: 403, conflict: 409 })[out.kind] ?? 422
+      if (path === '/essay/reviewers') {
+        if (!PAY_PAYEE) return send(res, 500, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher address to require' }))
+        if (String(body.issuer ?? '').toLowerCase() !== PAY_PAYEE.toLowerCase()) {
+          return send(res, 401, jsonBody({ error: `reviewers are appointed by the configured publisher (${PAY_PAYEE})` }))
+        }
+        if (!manifestOf(body.course)) return send(res, 400, jsonBody({ error: `course ${body.course} is not in the catalogue`, known: Object.keys(MANIFESTS) }))
+        const out = await dbAddReviewer({
+          courseId: body.course, reviewer: body.reviewer, issuer: body.issuer, message: body.message, signature: body.signature,
+        })
+        return out.ok
+          ? send(res, 200, jsonBody({ course: out.courseId, reviewer: out.reviewer, addedBy: out.addedBy }))
+          : send(res, reviewStatus(out), jsonBody({ error: out.why }))
+      }
+      if (path === '/essay/review') {
+        if (!Number.isInteger(Number(body.attemptId))) return send(res, 400, jsonBody({ error: 'requires attemptId' }))
+        if (!body.course || !body.lesson) return send(res, 400, jsonBody({ error: 'requires course + lesson (the rubric is read from the publisher manifest)' }))
+        const found = essayLesson(body.course, body.lesson)
+        if (found.error) return send(res, 400, jsonBody({ error: found.error }))
+        const out = await dbReviewEssay({
+          attemptId: body.attemptId, reviewer: body.reviewer, decision: body.decision, scores: body.scores,
+          essay: found.lesson.essay, passMark: found.manifest.course.passMark, message: body.message, signature: body.signature,
+        })
+        if (!out.ok) return send(res, reviewStatus(out), jsonBody({ error: out.why }))
+        return send(res, 200, jsonBody({
+          attemptId: out.attemptId, decision: out.decision, proposed: out.proposed, finalScore: out.finalScore,
+          verdict: out.verdict, attemptHash: out.attemptHash, replacedHash: out.replacedHash,
+          reviewer: out.reviewer, judgeModel: out.judgeModel,
         }))
       }
 

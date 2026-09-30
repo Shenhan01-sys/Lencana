@@ -255,7 +255,10 @@ export async function attemptsFor (learner, courseId) {
   const q = `?enrollment_id=eq.${e.id}`
     + '&order=kind.asc,lesson_key.asc,attempt_no.asc'
     + '&select=id,lesson_key,kind,attempt_no,score,verdict,rubric_hash,attempt_hash,judge_model,judge_temp,created_at,'
-    + 'attempt_components(item_id,score,weight,graded_by)'
+    + 'attempt_components(item_id,score,weight,graded_by),'
+    // B104: pengesahan manusia ikut terbaca bersama usahanya — `fromAttempts` menolak esai bernilai
+    // model yang tidak membawanya, jadi kalau embed ini hilang, penerbitan berhenti, bukan lolos.
+    + 'judgement_reviews(decision,reviewer,proposed,final_score,judge_model,reviewed_at)'
   return (await rest('attempts', { query: q })) ?? []
 }
 
@@ -509,6 +512,9 @@ export async function judgeEssay ({ attemptId, issuer, message, signature, score
   // Regrade harus idempoten: komponen model/manusia lama dibuang lebih dulu. Kalau tidak, dua
   // penilaian bertumpuk dan angka yang dibaca `fromAttempts` adalah hasil penjumlahan dua sesi.
   await rest('attempt_components', { method: 'DELETE', query: `?attempt_id=eq.${attempt.id}&graded_by=in.(model,human)` })
+  // Penilaian ulang = usulan baru. Pengesahan yang menempel pada usulan lama tidak boleh ikut
+  // mengesahkan angka yang belum pernah dilihat reviewernya (B104).
+  await rest('judgement_reviews', { method: 'DELETE', query: `?attempt_id=eq.${attempt.id}` })
   await rest('attempt_components', { method: 'POST', body: components })
   await rest('attempts', {
     method: 'PATCH', query: `?id=eq.${attempt.id}`, prefer: 'return=minimal',
@@ -519,5 +525,149 @@ export async function judgeEssay ({ attemptId, issuer, message, signature, score
     body: [{ state: 'judged', judged_at: new Date().toISOString() }],
   })
 
-  return { ok: true, attemptId: attempt.id, attemptHash, score, verdict, components: components.length, replacedHash: attempt.attempt_hash }
+  return {
+    ok: true, attemptId: attempt.id, attemptHash, score, verdict, components: components.length, replacedHash: attempt.attempt_hash,
+    // Angka model belum dihitung gerbang sampai ada pengesahan manusia; angka penerbit-manusia langsung.
+    needsReview: Boolean(judgeModel),
+  }
+}
+
+/* ------------------------------------------------------------------ pengesahan manusia (B104) */
+
+// Lencana-B104 status=SELESAI 2026-09-30 — angka esai dari model baru dihitung kalau reviewer terdaftar (bukan penerbit) menandatangani approved/adjusted; pesan yang ditandatangani mengikat usaha, keputusan, dan angka akhirnya. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B104 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/** Tanda tangan EIP-191 atas pesan ber-nonce, oleh `signer` — mekanisme yang sama dengan `judgeEssay`. */
+async function authorizeSigner ({ signer, message, signature, scope }) {
+  if (typeof signer !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(signer)) return { ok: false, kind: 'auth', why: 'invalid signer address' }
+  if (typeof message !== 'string' || typeof signature !== 'string') return { ok: false, kind: 'auth', why: 'requires message + signature' }
+  const nonce = /nonce=([0-9a-f]{12,})/.exec(message)?.[1]
+  if (!nonce) return { ok: false, kind: 'auth', why: 'message carries no nonce' }
+  let verified = false
+  try {
+    verified = await verifyMessage({ address: getAddress(signer), message, signature })
+  } catch (e) {
+    return { ok: false, kind: 'auth', why: `signature verification failed: ${String(e.message ?? e).slice(0, 80)}` }
+  }
+  if (!verified) return { ok: false, kind: 'auth', why: 'signature does not belong to the claimed signer address' }
+  const consumed = await consumeNonce({ nonce, learner: signer, scope })
+  if (!consumed.ok) return { ok: false, kind: 'auth', why: consumed.why }
+  return { ok: true }
+}
+
+/**
+ * Penerbit menunjuk reviewer untuk satu kursus. Pesan yang ditandatangani harus menyebut kursus dan
+ * alamat reviewernya: tanda tangan atas nonce saja bisa ditempelkan ke penunjukan siapa pun.
+ */
+export async function addReviewer ({ courseId, reviewer, issuer, message, signature }) {
+  if (typeof reviewer !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(reviewer)) return { ok: false, why: 'reviewer must be a 20-byte address' }
+  if (reviewer.toLowerCase() === String(issuer).toLowerCase()) {
+    return { ok: false, why: 'the publisher cannot appoint itself as reviewer — the review must come from a different key' }
+  }
+  const wants = [`course=${courseId}`, `reviewer=${reviewer.toLowerCase()}`]
+  if (typeof message !== 'string' || !wants.every((w) => message.toLowerCase().includes(w.toLowerCase()))) {
+    return { ok: false, why: `signed message must state ${wants.join(' and ')}` }
+  }
+  const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'review-role' })
+  if (!auth.ok) return auth
+  await rest('review_roles', {
+    method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
+    body: [{ course_id: courseId, reviewer: getAddress(reviewer), added_by: getAddress(issuer), message, signature }],
+  })
+  return { ok: true, courseId, reviewer: getAddress(reviewer), addedBy: getAddress(issuer) }
+}
+
+/**
+ * Pengesahan manusia atas satu usulan model.
+ *
+ * @param decision `approved` (angka model dipakai) | `adjusted` (angka reviewer menggantikannya) |
+ *                 `rejected` (tidak ada angka yang sah; gerbang tetap tertutup)
+ * @param scores   wajib untuk `adjusted`: `[{label, score}]` menutup SELURUH rubrik penerbit
+ */
+export async function reviewEssay ({ attemptId, reviewer, decision, scores, essay, passMark, message, signature }) {
+  if (!['approved', 'adjusted', 'rejected'].includes(decision)) return { ok: false, why: 'decision must be approved, adjusted or rejected' }
+  if (!essay?.rubric?.length) return { ok: false, why: 'essay rubric from the publisher is unreadable — nothing to review against' }
+
+  const rows = await rest('attempts', { query: `?id=eq.${Number(attemptId)}&select=*` })
+  const attempt = rows?.[0]
+  if (!attempt) return { ok: false, why: `attempt ${attemptId} does not exist` }
+  if (attempt.kind !== 'esai') return { ok: false, why: `attempt ${attemptId} is not an essay (${attempt.kind})` }
+  if (String(attempt.verdict ?? 'incomplete') === 'incomplete' || attempt.score === null) {
+    return { ok: false, why: 'this essay has no proposed score yet — there is nothing to review' }
+  }
+  if (!attempt.judge_model) {
+    return { ok: false, why: 'this essay was graded by the publisher without a model — there is no model proposal to review' }
+  }
+  const holder = await enrollmentOf(attempt.enrollment_id)
+  if (!holder) return { ok: false, why: `enrollment row ${attempt.enrollment_id} missing — this attempt is orphaned` }
+
+  // Angka akhir dihitung SEBELUM tanda tangan diperiksa, karena pesan yang ditandatangani harus
+  // menyebutnya: reviewer menandatangani keputusan atas usaha ini dengan angka ini, bukan nonce kosong.
+  let components = null
+  let finalScore = decision === 'approved' ? Number(attempt.score) : null
+  if (decision === 'adjusted') {
+    const known = new Map(essay.rubric.map((r) => [String(r.label), r]))
+    const given = new Map((scores ?? []).map((s) => [String(s.label), s]))
+    const asing = [...given.keys()].filter((k) => !known.has(k))
+    if (asing.length) return { ok: false, why: `foreign criteria rejected: ${asing.join(', ')} are not part of the publisher's rubric` }
+    components = []
+    let total = 0
+    for (const r of essay.rubric) {
+      const v0 = given.get(String(r.label))
+      if (!v0 || !Number.isFinite(Number(v0.score))) {
+        return { ok: false, why: `criterion "${r.label}" not graded — an adjustment must cover the whole rubric` }
+      }
+      const max = Number(r.max)
+      const v = Math.max(0, Math.min(max, Math.round(Number(v0.score))))
+      // Bentuk kolom yang sama dengan `judgeEssay`: persen 0..100, weight = max penerbit.
+      components.push({ attempt_id: attempt.id, item_id: `crit:${r.label}`, score: Math.round((v / max) * 10000) / 100, weight: max, graded_by: 'human' })
+      total += v
+    }
+    finalScore = Math.round(total * 100) / 100
+  }
+  const wants = [`attempt=${attempt.id}`, `decision=${decision}`, ...(finalScore === null ? [] : [`final=${finalScore}`])]
+  if (typeof message !== 'string' || !wants.every((w) => new RegExp(`(^|\\s)${w.replace(/[.]/g, '\\.')}(\\s|$)`).test(message))) {
+    return { ok: false, kind: 'auth', why: `signed message must state ${wants.join(', ')}` }
+  }
+
+  const auth = await authorizeSigner({ signer: reviewer, message, signature, scope: 'essay-review' })
+  if (!auth.ok) return auth
+  const role = await rest('review_roles', {
+    query: `?course_id=eq.${encodeURIComponent(holder.course_id)}&reviewer=eq.${getAddress(reviewer)}&select=added_by`,
+  })
+  if (!role?.length) return { ok: false, kind: 'role', why: `${getAddress(reviewer)} is not a reviewer for ${holder.course_id}` }
+  if (getAddress(reviewer) === getAddress(holder.learner)) return { ok: false, kind: 'role', why: 'a learner cannot review their own essay' }
+
+  const existing = await rest('judgement_reviews', { query: `?attempt_id=eq.${attempt.id}&select=decision,reviewer` })
+  if (existing?.length) {
+    return { ok: false, kind: 'conflict', why: `this proposal already has a review (${existing[0].decision}); a new one needs a new proposal from the publisher` }
+  }
+
+  const proposed = Number(attempt.score)
+  let attemptHash = attempt.attempt_hash
+  let verdict = attempt.verdict
+  if (decision === 'adjusted') {
+    verdict = Number.isFinite(Number(passMark)) ? (finalScore >= Number(passMark) ? 'pass' : 'fail') : 'graded'
+    attemptHash = computeAttemptHash({
+      learner: holder.learner, courseId: holder.course_id, lessonKey: attempt.lesson_key, kind: 'esai',
+      attemptNo: attempt.attempt_no, score: finalScore, rubricHash: attempt.rubric_hash,
+    })
+    await rest('attempt_components', { method: 'DELETE', query: `?attempt_id=eq.${attempt.id}&graded_by=in.(model,human)` })
+    await rest('attempt_components', { method: 'POST', body: components })
+    // `judge_model` TIDAK dihapus: usulannya memang datang dari model, dan itu harus tetap terbaca.
+    await rest('attempts', {
+      method: 'PATCH', query: `?id=eq.${attempt.id}`, prefer: 'return=minimal',
+      body: [{ score: finalScore, verdict, attempt_hash: attemptHash }],
+    })
+  }
+  await rest('judgement_reviews', {
+    method: 'POST', prefer: 'return=minimal',
+    body: [{
+      attempt_id: attempt.id, judge_model: attempt.judge_model, proposed, decision, final_score: finalScore,
+      reviewer: getAddress(reviewer), message, signature,
+    }],
+  })
+  return {
+    ok: true, attemptId: attempt.id, decision, proposed, finalScore, verdict: decision === 'rejected' ? null : verdict,
+    attemptHash, replacedHash: decision === 'adjusted' ? attempt.attempt_hash : null, reviewer: getAddress(reviewer), judgeModel: attempt.judge_model,
+  }
 }

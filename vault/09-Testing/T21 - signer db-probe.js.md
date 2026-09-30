@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run verify:db
 measured: 2026-09-30
-result: 50 checks / 0 failed
+result: 70 checks / 0 failed
 ---
 
 # T21 - signer db-probe.js (state belajar di Postgres)
@@ -158,6 +158,53 @@ Dua pemeriksaan baru (48 → 50), keduanya lahir dari migrasi
 
 Pelajaran yang sama dengan B43/B56, di lapis lain: "RLS tabel hijau" bukan "data tidak terbaca" —
 view di schema `public` adalah pintu kedua, dan pintu yang tidak ditanyai akan dilaporkan tertutup.
+
+## Run sesudahnya, malam yang sama — 70 / 0: angka model tidak menerbitkan sendirian (B104)
+
+```
+  ok    usulan model atas usaha esai kedua -> 200, skor 80, needsReview=true
+  ok    angka model TANPA pengesahan tidak dihitung gerbang (graded_attempts tidak naik)
+  ok    baris nyata: evidenceFromAttempts MENOLAK esai bernilai model tanpa pengesahan (issue berhenti sebelum gas)
+  ok    penunjukan reviewer oleh alamat selain penerbit -> 401
+  ok    penunjukan atas nama penerbit dengan tanda tangan kunci lain -> 401
+  ok    penerbit menunjuk DIRINYA sebagai reviewer -> 422 (lapis tengah harus kunci lain)
+  ok    pesan penunjukan yang tidak menyebut kursus + reviewer -> 422 (tanda tangan nonce saja tidak cukup)
+  ok    pengesahan oleh kunci yang BELUM ditunjuk -> 403
+  ok    penerbit menunjuk reviewer dengan tanda tangannya -> 200
+  ok    pesan pengesahan yang tidak mengikat usaha + keputusan + angka akhir -> 401
+  ok    penyesuaian yang hanya menilai sebagian rubrik -> 422
+  ok    pengesahan atas esai yang dinilai penerbit TANPA model -> 422 (tidak ada usulan model untuk disahkan)
+  ok    pengesahan adjusted oleh reviewer yang ditunjuk -> 200: usulan 80 -> akhir 92
+  ok    sesudah disahkan, usaha itu dihitung gerbang (graded_attempts naik tepat satu)
+  ok    baris nyata: angka esai yang diturunkan = angka REVIEWER, bukan angka model, dan komponennya graded_by human
+  ok    provenan menyebut siapa mengesahkan, keputusan apa, dari berapa ke berapa
+  ok    pengesahan kedua atas usulan yang sama -> 409
+  ok    penerbit menilai ulang dengan model -> pengesahan lama gugur, penurunan bukti kembali DITOLAK
+  ok    rejected -> 200 tanpa angka akhir; gerbang dan penurunan bukti tetap tertutup (ditolak != nol)
+  ok    penunjukan reviewer uji dibersihkan (sisa di review_roles = 0)
+
+DB HIJAU — 70 pemeriksaan, 0 gagal
+```
+
+Dua puluh pemeriksaan baru (50 → 70), satu rantai: **AI menilai → manusia mengesahkan → penerbit
+menerbitkan**. Skemanya `supabase/migrations/0009_judgement_reviews.sql`; rutenya
+`POST /essay/reviewers` (penerbit menunjuk) dan `POST /essay/review` (reviewer mengesahkan) —
+lihat [[04-Signer-Service/S7 - Server routes and lifecycle]].
+
+- **Gerbang diuji dari dua sisi atas baris yang sama**: tertutup sebelum pengesahan, terbuka sesudah
+  `adjusted`, tertutup lagi sesudah penerbit menilai ulang, dan tetap tertutup sesudah `rejected`.
+- **"Baris nyata"** berarti `evidenceFromAttempts` — fungsi yang dipakai `issue --from-attempts` —
+  dijalankan atas hasil `attemptsFor()` dari Postgres, bukan atas fixture. Bentuk embed PostgREST
+  (`judgement_reviews` sebagai objek atau array) ikut teruji di situ.
+- **Satu merah yang benar pada run pertama sesudah migrasi**: pemeriksaan lama
+  `graded_attempts == jumlah baris attempts yang benar-benar dinilai` mencetak `4 vs 5`. View-nya
+  benar; definisi "dinilai" di pemeriksaan itulah yang basi (dulu cukup `verdict != incomplete`).
+  Diselaraskan, dan sebabnya ditulis di komentar pemeriksaan itu.
+
+**Yang TIDAK dibuktikan run ini:** tidak ada kertas yang terbit di chain lewat rantai tiga lapis
+(`verify:attempts:live` tidak dijalankan ulang — lihat [[09-Testing/T22 - signer attempts-check.js]]);
+reviewer adalah alamat yang ditunjuk penerbit, tanpa identitas dan tanpa pencabutan penunjukan; dan
+tidak ada UI maupun CLI untuk mengesahkan, hanya rute HTTP.
 
 ## Yang sudah ditutup sejak halaman ini ditulis pertama kali (28 Sep, sore)
 

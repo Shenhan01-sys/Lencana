@@ -25,6 +25,16 @@
 
 const SLOTS = ['kuis', 'esai', 'praktik']
 
+// Lencana-B104 status=SELESAI 2026-09-30 — esai bernilai model tanpa pengesahan manusia (approved/adjusted) menghentikan penurunan bukti: issue --from-attempts berhenti sebelum gas. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B104 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+const ENDORSING = ['approved', 'adjusted']
+
+/** PostgREST menyajikan relasi satu-ke-satu sebagai objek dan satu-ke-banyak sebagai array; terima keduanya. */
+function reviewOf (attempt) {
+  const r = attempt?.judgement_reviews
+  if (!r) return null
+  return Array.isArray(r) ? (r[0] ?? null) : r
+}
+
 /** Lesson mana saja yang merupakan slot kuis/esai penerbit — dibaca dari manifest, bukan ditebak. */
 export function lessonSlugs (manifest) {
   const lessons = (manifest?.course?.modules ?? []).flatMap((m) => m.lessons ?? [])
@@ -82,6 +92,7 @@ export function evidenceFromAttempts (manifest, attempts) {
   const used = []
   const notes = []
   const judges = []
+  const reviews = []
 
   const track = (slot, attempt, raw) => {
     for (const c of raw.items) {
@@ -141,6 +152,28 @@ export function evidenceFromAttempts (manifest, attempts) {
   for (const slug of slugs.esai) {
     const a = bestGraded(rows, 'esai', slug)
     if (!a) continue
+    // B104 — angka model tidak menerbitkan apa pun sendirian. Fail-closed dan TIDAK melompat ke
+    // usaha lain: kalau usaha terbaik peserta belum disahkan manusia, jawabannya "belum", bukan
+    // "pakai yang lebih jelek saja" (itu mengubah nilai orang tanpa ada yang memutuskannya).
+    const review = reviewOf(a)
+    if (a.judge_model && !(review && ENDORSING.includes(review.decision))) {
+      return {
+        ok: false,
+        why: `essay "${slug}" (attempt no ${a.attempt_no}) was graded by a model (${a.judge_model}) and `
+          + (review ? `its human review is "${review.decision}"` : 'has no human review')
+          + ' — a model score alone does not issue a credential; it needs an approved or adjusted review',
+        evidence: { quizScores: [], praktikCompleted: false, essayScore: null }, provenance, unmapped: [], judges, notes, used: [],
+      }
+    }
+    if (review) {
+      reviews.push({
+        lesson: String(a.lesson_key ?? '-'), decision: review.decision, reviewer: review.reviewer ?? null,
+        judgeModel: review.judge_model ?? a.judge_model ?? null,
+        proposed: review.proposed === null || review.proposed === undefined ? null : Number(review.proposed),
+        finalScore: review.final_score === null || review.final_score === undefined ? null : Number(review.final_score),
+        attemptHash: a.attempt_hash ?? null,
+      })
+    }
     const comps = a.attempt_components ?? []
     const judged = comps.filter((c) => c && (c.graded_by === 'model' || c.graded_by === 'human'))
     // Kalau ada komponen hasil judge, itulah angka esainya; komponen mekanis hanya penjelas.
@@ -155,6 +188,10 @@ export function evidenceFromAttempts (manifest, attempts) {
     }
     if (!judged.length) notes.push(`esai "${slug}": tidak ada komponen graded_by model/human, angka dari komponen mekanis`)
     else notes.push(`esai "${slug}": angka dari ${judged.length} komponen graded_by ${judged[0].graded_by}`)
+    if (review) {
+      notes.push(`esai "${slug}": usulan model ${review.judge_model ?? a.judge_model} = ${Number(review.proposed)}, disahkan manusia (${review.decision}) `
+        + `oleh ${review.reviewer} -> ${Number(review.final_score)}`)
+    }
     essayVals.push(raw.value)
     track('esai', a, raw)
   }
@@ -195,7 +232,7 @@ export function evidenceFromAttempts (manifest, attempts) {
       praktikCompleted,
       essayScore: essayVals.length ? Math.round(mean(essayVals) * 100) / 100 : null,
     },
-    provenance, unmapped, judges, notes, used: used.map(({ key, ...u }) => u),
+    provenance, unmapped, judges, reviews, notes, used: used.map(({ key, ...u }) => u),
   }
 }
 

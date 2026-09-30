@@ -23,6 +23,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
 import { attemptsFor, computeAttemptHash, courseGates, dbConfigured, dbMissingReason, usedNonceExists } from '../src/db.js'
+import { evidenceFromAttempts } from '../src/fromAttempts.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 await loadFileEnvReport('verify:db')
@@ -373,6 +374,120 @@ if (await waitUp()) {
       })
       check('pesan penilaian yang sama tidak bisa dipakai ulang (nonce satu-kali juga mengunci jalur penerbit)',
         replay.status === 401, `${replay.status} ${JSON.stringify(replay.body)}`)
+
+      // 9c-2. B104 — angka MODEL tidak menerbitkan apa pun sendirian: AI menilai -> manusia
+      // mengesahkan -> penerbit menerbitkan. Usaha esai kedua dinilai "model" (ditandatangani
+      // penerbit, seperti `npm run grade:essay`), lalu diuji bahwa (a) gerbang tidak menghitungnya,
+      // (b) `evidenceFromAttempts` — fungsi yang dipakai `issue --from-attempts` — menolaknya atas
+      // BARIS NYATA dari Postgres, (c) hanya reviewer yang ditunjuk penerbit yang bisa mengesahkan,
+      // dan (d) sesudah `adjusted`, angka yang terbaca adalah angka reviewer, bukan angka model.
+      const pct = (p) => es.rubric.map((r) => ({ label: r.label, score: Math.round(Number(r.maximumScore) * p) }))
+      const sum = (xs) => xs.reduce((n, s) => n + s.score, 0)
+      const modelScores = pct(0.8)
+      const humanScores = pct(0.9)
+      const essayOnly = { course: { modules: [{ lessons: [{ slug: es.lesson, kind: 'esai', essay: {} }] }] } }
+      const evidenceOf = async (id) => evidenceFromAttempts(essayOnly, (await attemptsFor(learner.address, COURSE)).filter((r) => Number(r.id) === id))
+      const second = await essayPost({})
+      const attempt2 = Number(second.body?.attemptId)
+      const judgeAsModel = async (scores) => {
+        const m = `lencana-essay-judge ${second.body?.attemptHash} nonce=${nonce()}`
+        return post('/essay/judgement', {
+          issuer: issuer.address, course: COURSE, lesson: es.lesson, attemptId: attempt2, scores,
+          judgeModel: 'probe-model', judgeTemp: 0, message: m, signature: await issuer.signMessage({ message: m }),
+        })
+      }
+      const gatesBeforeModel = await courseGates(learner.address, COURSE)
+      const proposal = await judgeAsModel(modelScores)
+      check(`usulan model atas usaha esai kedua -> 200, skor ${sum(modelScores)}, needsReview=true`,
+        second.status === 201 && proposal.status === 200 && Number(proposal.body?.score) === sum(modelScores) && proposal.body?.needsReview === true,
+        `${proposal.status} ${JSON.stringify(proposal.body).slice(0, 160)}`)
+      const gatesProposed = await courseGates(learner.address, COURSE)
+      check('angka model TANPA pengesahan tidak dihitung gerbang (graded_attempts tidak naik)',
+        Number(gatesProposed?.graded_attempts) === Number(gatesBeforeModel?.graded_attempts),
+        JSON.stringify({ sebelum: gatesBeforeModel?.graded_attempts, sesudah: gatesProposed?.graded_attempts }))
+      const evNoReview = await evidenceOf(attempt2)
+      check('baris nyata: evidenceFromAttempts MENOLAK esai bernilai model tanpa pengesahan (issue berhenti sebelum gas)',
+        evNoReview.ok === false && /has no human review/.test(evNoReview.why ?? ''), JSON.stringify(evNoReview.why ?? evNoReview.evidence))
+
+      const reviewer = privateKeyToAccount(generatePrivateKey())
+      const appoint = async (signer, claimedIssuer, who, msgOverride) => {
+        const m = msgOverride ?? `lencana-review-role course=${COURSE} reviewer=${who.toLowerCase()} nonce=${nonce()}`
+        return post('/essay/reviewers', { issuer: claimedIssuer, course: COURSE, reviewer: who, message: m, signature: await signer.signMessage({ message: m }) })
+      }
+      const appointByStranger = await appoint(stranger, stranger.address, reviewer.address)
+      check('penunjukan reviewer oleh alamat selain penerbit -> 401', appointByStranger.status === 401, `${appointByStranger.status} ${JSON.stringify(appointByStranger.body)}`)
+      const appointForged = await appoint(stranger, issuer.address, reviewer.address)
+      check('penunjukan atas nama penerbit dengan tanda tangan kunci lain -> 401', appointForged.status === 401, `${appointForged.status} ${JSON.stringify(appointForged.body)}`)
+      const appointSelf = await appoint(issuer, issuer.address, issuer.address)
+      check('penerbit menunjuk DIRINYA sebagai reviewer -> 422 (lapis tengah harus kunci lain)',
+        appointSelf.status === 422 && /cannot appoint itself/.test(appointSelf.body?.error ?? ''), `${appointSelf.status} ${JSON.stringify(appointSelf.body)}`)
+      const appointUnbound = await appoint(issuer, issuer.address, reviewer.address, `lencana-review-role nonce=${nonce()}`)
+      check('pesan penunjukan yang tidak menyebut kursus + reviewer -> 422 (tanda tangan nonce saja tidak cukup)',
+        appointUnbound.status === 422 && /must state/.test(appointUnbound.body?.error ?? ''), `${appointUnbound.status} ${JSON.stringify(appointUnbound.body)}`)
+
+      const review = async (acct, decision, extra = {}, msgOverride) => {
+        const final = decision === 'adjusted' ? ` final=${sum(extra.scores ?? [])}` : decision === 'approved' ? ` final=${extra.final}` : ''
+        const m = msgOverride ?? `lencana-essay-review attempt=${extra.attemptId ?? attempt2} decision=${decision}${final} nonce=${nonce()}`
+        return post('/essay/review', {
+          reviewer: acct.address, course: COURSE, lesson: es.lesson, attemptId: extra.attemptId ?? attempt2, decision,
+          scores: extra.scores, message: m, signature: await acct.signMessage({ message: m }),
+        })
+      }
+      const byUnlisted = await review(reviewer, 'adjusted', { scores: humanScores })
+      check('pengesahan oleh kunci yang BELUM ditunjuk -> 403', byUnlisted.status === 403 && /is not a reviewer/.test(byUnlisted.body?.error ?? ''),
+        `${byUnlisted.status} ${JSON.stringify(byUnlisted.body)}`)
+      const appointed = await appoint(issuer, issuer.address, reviewer.address)
+      check('penerbit menunjuk reviewer dengan tanda tangannya -> 200', appointed.status === 200 && appointed.body?.reviewer === reviewer.address,
+        `${appointed.status} ${JSON.stringify(appointed.body)}`)
+      const unboundReview = await review(reviewer, 'adjusted', { scores: humanScores }, `lencana-essay-review nonce=${nonce()}`)
+      check('pesan pengesahan yang tidak mengikat usaha + keputusan + angka akhir -> 401',
+        unboundReview.status === 401 && /must state/.test(unboundReview.body?.error ?? ''), `${unboundReview.status} ${JSON.stringify(unboundReview.body)}`)
+      const partialReview = await review(reviewer, 'adjusted', { scores: humanScores.slice(1) })
+      check('penyesuaian yang hanya menilai sebagian rubrik -> 422', partialReview.status === 422 && /whole rubric/.test(partialReview.body?.error ?? ''),
+        `${partialReview.status} ${JSON.stringify(partialReview.body)}`)
+      const reviewHuman = await review(reviewer, 'approved', { attemptId, final: 100 })
+      check('pengesahan atas esai yang dinilai penerbit TANPA model -> 422 (tidak ada usulan model untuk disahkan)',
+        reviewHuman.status === 422 && /no model proposal/.test(reviewHuman.body?.error ?? ''), `${reviewHuman.status} ${JSON.stringify(reviewHuman.body)}`)
+
+      const adjusted = await review(reviewer, 'adjusted', { scores: humanScores })
+      check(`pengesahan adjusted oleh reviewer yang ditunjuk -> 200: usulan ${sum(modelScores)} -> akhir ${sum(humanScores)}`,
+        adjusted.status === 200 && Number(adjusted.body?.proposed) === sum(modelScores) && Number(adjusted.body?.finalScore) === sum(humanScores)
+        && adjusted.body?.judgeModel === 'probe-model' && adjusted.body?.replacedHash === proposal.body?.attemptHash,
+        `${adjusted.status} ${JSON.stringify(adjusted.body).slice(0, 200)}`)
+      const gatesReviewed = await courseGates(learner.address, COURSE)
+      check('sesudah disahkan, usaha itu dihitung gerbang (graded_attempts naik tepat satu)',
+        Number(gatesReviewed?.graded_attempts) === Number(gatesBeforeModel?.graded_attempts) + 1,
+        JSON.stringify({ sebelum: gatesBeforeModel?.graded_attempts, sesudah: gatesReviewed?.graded_attempts }))
+      const evReviewed = await evidenceOf(attempt2)
+      check('baris nyata: angka esai yang diturunkan = angka REVIEWER, bukan angka model, dan komponennya graded_by human',
+        evReviewed.ok === true && evReviewed.evidence.essayScore === sum(humanScores) && evReviewed.evidence.essayScore !== sum(modelScores)
+        && evReviewed.provenance.every((p) => p.gradedBy === 'human'), JSON.stringify(evReviewed.evidence ?? evReviewed.why))
+      check('provenan menyebut siapa mengesahkan, keputusan apa, dari berapa ke berapa',
+        evReviewed.reviews?.length === 1 && evReviewed.reviews[0].decision === 'adjusted' && evReviewed.reviews[0].reviewer === reviewer.address
+        && evReviewed.reviews[0].proposed === sum(modelScores) && evReviewed.reviews[0].finalScore === sum(humanScores), JSON.stringify(evReviewed.reviews))
+      const twice = await review(reviewer, 'approved', { final: sum(humanScores) })
+      check('pengesahan kedua atas usulan yang sama -> 409', twice.status === 409, `${twice.status} ${JSON.stringify(twice.body)}`)
+
+      // Penilaian ulang oleh penerbit = usulan baru: pengesahan lama tidak boleh ikut mengesahkannya.
+      const reproposal = await judgeAsModel(modelScores)
+      const evReproposed = await evidenceOf(attempt2)
+      check('penerbit menilai ulang dengan model -> pengesahan lama gugur, penurunan bukti kembali DITOLAK',
+        reproposal.status === 200 && evReproposed.ok === false && /has no human review/.test(evReproposed.why ?? ''), JSON.stringify(evReproposed.why ?? evReproposed.evidence))
+      const rejected = await review(reviewer, 'rejected')
+      const evRejected = await evidenceOf(attempt2)
+      const gatesRejected = await courseGates(learner.address, COURSE)
+      check('rejected -> 200 tanpa angka akhir; gerbang dan penurunan bukti tetap tertutup (ditolak != nol)',
+        rejected.status === 200 && rejected.body?.finalScore === null && evRejected.ok === false && /"rejected"/.test(evRejected.why ?? '')
+        && Number(gatesRejected?.graded_attempts) === Number(gatesBeforeModel?.graded_attempts),
+        `${rejected.status} ${JSON.stringify(evRejected.why)} graded=${gatesRejected?.graded_attempts}`)
+
+      // Penunjukan reviewer uji dibuang: `review_roles` tidak menempel ke enrollment, jadi `npm run
+      // cleanup` tidak akan pernah menemukannya — sisa harness yang tidak terjangkau pembersihnya.
+      const roleApi = `${process.env.SUPABASE_URL}/rest/v1/review_roles?reviewer=eq.${reviewer.address}`
+      const roleHdr = { apikey: process.env.SUPABASE_SECRET_KEY, authorization: `Bearer ${process.env.SUPABASE_SECRET_KEY}` }
+      await fetch(roleApi, { method: 'DELETE', headers: roleHdr, signal: AbortSignal.timeout(15_000) }).catch(() => null)
+      const roleLeft = await fetch(`${roleApi}&select=reviewer`, { headers: roleHdr, signal: AbortSignal.timeout(15_000) }).then((r) => r.json()).catch(() => null)
+      check('penunjukan reviewer uji dibersihkan (sisa di review_roles = 0)', Array.isArray(roleLeft) && roleLeft.length === 0, JSON.stringify(roleLeft))
     }
   }
 
@@ -383,11 +498,16 @@ if (await waitUp()) {
   {
     const g = await courseGates(learner.address, COURSE)
     const rows = await attemptsFor(learner.address, COURSE)
-    const gradedReal = rows.filter((r) => String(r.verdict ?? 'incomplete') !== 'incomplete').length
+    // Sejak migrasi 0009 (B104) "dinilai" tidak lagi berarti `verdict != incomplete` saja: esai
+    // bernilai model tanpa pengesahan approved/adjusted sengaja TIDAK dihitung gerbang. Pemeriksaan
+    // ini merah pada run pertama sesudah 0009 (4 vs 5) — view-nya benar, definisi di sini yang basi.
+    const endorsed = (r) => [].concat(r.judgement_reviews ?? []).some((v) => ['approved', 'adjusted'].includes(v?.decision))
+    const gradedReal = rows.filter((r) => String(r.verdict ?? 'incomplete') !== 'incomplete'
+      && !(r.kind === 'esai' && r.judge_model && !endorsed(r))).length
     check('lessons_completed TIDAK pernah melampaui lessons_total (penjaga fan-out view)',
       Number(g?.lessons_completed) <= Number(g?.lessons_total),
       JSON.stringify({ completed: g?.lessons_completed, total: g?.lessons_total }))
-    check('graded_attempts == jumlah baris attempts yang benar-benar dinilai',
+    check('graded_attempts == jumlah baris attempts yang benar-benar dinilai (esai model tanpa pengesahan tidak dihitung)',
       Number(g?.graded_attempts) === gradedReal, `${g?.graded_attempts} vs ${gradedReal} baris`)
   }
 

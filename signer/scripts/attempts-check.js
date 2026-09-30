@@ -22,7 +22,7 @@ import { spawn } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { createPublicClient, http, getAddress, parseAbi } from 'viem'
+import { createPublicClient, http, getAddress, parseAbi, keccak256, toBytes } from 'viem'
 
 import { loadFileEnvReport } from '../src/env.js'
 import { credentialHashOf } from '../src/credential.js'
@@ -137,6 +137,10 @@ check('total dari rekaman == total dari angka yang sama di jalur CLI',
   `${formatScore(viaAttempts)} vs ${formatScore(viaCli)}`)
 check('dan total itu LULUS terhadap ambang 70 manifest uji', viaAttempts.verdict === 'LULUS', formatScore(viaAttempts))
 
+// Alamat reviewer untuk fixture: diturunkan, tidak diketik (B49). Lapis hitung-saja tidak memeriksa
+// tanda tangan — itu tugas `verify:db` lewat HTTP — yang diuji di sini hanya aturan penurunan bukti.
+const REVIEWER = privateKeyToAccount(keccak256(toBytes('lencana-b104-fixture-reviewer'))).address
+
 head('manifest penerbit yang asli (web3-dasar-2026)')
 const real = manifestOf(COURSE)
 const slugs = lessonSlugs(real)
@@ -151,6 +155,8 @@ const realRows = [
   ...slugs.esai.map((slug, i) => attempt({
     kind: 'esai', lesson_key: slug, score: 92, attempt_hash: `0xesai${i}`,
     attempt_components: [comp('k1', 92, 25, 'model'), comp('k2', 92, 25, 'model')], judge_model: 'groq:test', judge_temp: 0,
+    // B104: angka model hanya ikut kalau disahkan manusia — tanpa baris ini peserta "lengkap" ini ditolak.
+    judgement_reviews: [{ decision: 'approved', reviewer: REVIEWER, proposed: 92, final_score: 92, judge_model: 'groq:test' }],
   })),
   attempt({ kind: 'praktik', lesson_key: slugs.praktik[0] ?? '-', score: 100, attempt_hash: '0xpraktik', attempt_components: [comp('build', 100, 1)] }),
 ]
@@ -199,6 +205,7 @@ const pairFull = essayPair(100)
 const essayFull = evidenceFromAttempts(real, [attempt({
   kind: 'esai', lesson_key: slugs.esai[0], score: pairFull.total, verdict: 'pass', attempt_hash: '0xessayfull',
   attempt_components: pairFull.components, judge_model: 'groq:llama-3.3-70b-versatile', judge_temp: 0,
+  judgement_reviews: [{ decision: 'approved', reviewer: REVIEWER, proposed: pairFull.total, final_score: pairFull.total, judge_model: 'groq:llama-3.3-70b-versatile' }],
 })])
 check('esai dinilai penuh -> 100/100, dan hasil turunan sama dengan angka yang disimpan (BUKAN 22)',
   pairFull.total === 100 && essayFull.evidence.essayScore === 100,
@@ -228,6 +235,54 @@ check('esai yang masih di antrean tidak ikut memberi angka (incomplete disaring,
 check('penilai tercatat di provenan: model siapa, suhu berapa, dari hash usaha mana',
   essayFull.judges.length === 1 && essayFull.judges[0].model === 'groq:llama-3.3-70b-versatile'
   && essayFull.judges[0].attemptHash === '0xessayfull', JSON.stringify(essayFull.judges))
+
+head('AI menilai -> manusia mengesahkan -> penerbit menerbitkan (B104)')
+/**
+ * Rantai yang dipilih builder. Yang dijaga: `graded_by='model'` yang ditandatangani penerbit TIDAK
+ * cukup untuk menerbitkan; dan kalau reviewer menyesuaikan, angka yang sampai ke kertas adalah angka
+ * reviewer. Komponen `adjusted` ditulis persis seperti `reviewEssay()` menulisnya (graded_by human).
+ */
+const modelOnly = (extra = {}) => attempt({
+  kind: 'esai', lesson_key: slugs.esai[0], score: pairFull.total, verdict: 'pass', attempt_hash: '0xessaymodel',
+  attempt_components: pairFull.components, judge_model: 'groq:llama-3.3-70b-versatile', judge_temp: 0, ...extra,
+})
+const noReview = evidenceFromAttempts(real, [modelOnly()])
+check('usulan model TANPA pengesahan -> jangan terbit: penurunan bukti ditolak dan menyebut sebabnya',
+  noReview.ok === false && /has no human review/.test(noReview.why ?? '') && noReview.evidence.essayScore === null, JSON.stringify(noReview.why ?? noReview.evidence))
+const rejectedReview = evidenceFromAttempts(real, [modelOnly({ judgement_reviews: [{ decision: 'rejected', reviewer: REVIEWER, proposed: pairFull.total, final_score: null }] })])
+check('pengesahan "rejected" juga tidak menerbitkan (ditolak reviewer != dinilai nol)',
+  rejectedReview.ok === false && /"rejected"/.test(rejectedReview.why ?? ''), JSON.stringify(rejectedReview.why ?? rejectedReview.evidence))
+const notSkipped = evidenceFromAttempts(real, [
+  attempt({ kind: 'esai', lesson_key: slugs.esai[0], attempt_no: 1, score: pairHalf.total, verdict: 'fail', attempt_hash: '0xessayold', attempt_components: pairHalf.components.map((c) => ({ ...c, graded_by: 'human' })) }),
+  modelOnly({ attempt_no: 2 }),
+])
+check('usaha terbaik yang belum disahkan TIDAK diam-diam diganti usaha lama yang lebih jelek',
+  notSkipped.ok === false && /has no human review/.test(notSkipped.why ?? ''), JSON.stringify(notSkipped.why ?? notSkipped.evidence))
+const adjustedPair = essayPair(60)
+const adjustedEv = evidenceFromAttempts(real, [modelOnly({
+  score: adjustedPair.total, attempt_hash: '0xessayadjusted',
+  attempt_components: adjustedPair.components.map((c) => ({ ...c, graded_by: 'human' })),
+  judgement_reviews: [{ decision: 'adjusted', reviewer: REVIEWER, proposed: pairFull.total, final_score: adjustedPair.total, judge_model: 'groq:llama-3.3-70b-versatile' }],
+})])
+check(`adjusted -> angka yang diturunkan adalah angka reviewer (${adjustedPair.total}), bukan angka model (${pairFull.total})`,
+  adjustedEv.ok === true && Math.abs(adjustedEv.evidence.essayScore - adjustedPair.total) <= 2 && adjustedEv.evidence.essayScore !== pairFull.total
+  && adjustedEv.provenance.every((p) => p.gradedBy === 'human'), JSON.stringify(adjustedEv.evidence ?? adjustedEv.why))
+check('pengesahan tercatat di provenan: reviewer, keputusan, usulan model, angka akhir',
+  adjustedEv.reviews?.length === 1 && adjustedEv.reviews[0].reviewer === REVIEWER && adjustedEv.reviews[0].decision === 'adjusted'
+  && adjustedEv.reviews[0].proposed === pairFull.total && adjustedEv.reviews[0].finalScore === adjustedPair.total, JSON.stringify(adjustedEv.reviews))
+const humanOnly = evidenceFromAttempts(real, [attempt({
+  kind: 'esai', lesson_key: slugs.esai[0], score: pairFull.total, verdict: 'pass', attempt_hash: '0xessayhuman',
+  attempt_components: pairFull.components.map((c) => ({ ...c, graded_by: 'human' })),
+})])
+check('esai yang dinilai penerbit tanpa model tidak butuh pengesahan kedua (tidak ada usulan model untuk disahkan)',
+  humanOnly.ok === true && humanOnly.evidence.essayScore === pairFull.total && humanOnly.reviews.length === 0, JSON.stringify(humanOnly.evidence ?? humanOnly.why))
+const reviewedDoc = resultDocument({ baseUrl: 'https://example', record: {
+  course: COURSE, credentialHash: `0x${'ab'.repeat(32)}`, uid: `0x${'cd'.repeat(32)}`, learner: REVIEWER, score: 60, verdict: 'LULUS',
+  rubricRef: 'x', rubricHash: '0x00', issuer: 'x', evidence: adjustedEv.evidence, essayGrading: null, document: {}, signedAt: '2026-09-30T00:00:00.000Z',
+  attempts: { source: 'postgres:attempts', used: adjustedEv.used, components: adjustedEv.provenance, judges: adjustedEv.judges, reviews: adjustedEv.reviews, notes: adjustedEv.notes, attemptHashes: ['0xessayadjusted'] },
+} })
+check('dokumen hasil menyebut pengesahan manusianya (siapa, keputusan) — bukan hanya nama model',
+  reviewedDoc.attempts.reviews?.[0]?.reviewer === REVIEWER && reviewedDoc.method.includes(`adjusted oleh ${REVIEWER}`), reviewedDoc.method)
 
 head('dokumen hasil memuat alamat aslinya (B62)')
 const record = {

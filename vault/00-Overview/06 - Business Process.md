@@ -166,3 +166,10 @@ Tiga hal yang membuat gambar ini jujur:
 
 Pekerjaan dipecah supaya tiap potong bisa diselesaikan utuh: **B104** (migrasi + rute + gerbang + dua
 pemeriksaan harness) dan **B105** (halaman penerbit + kalimat onboarding yang benar; tergantung **B84/B41**).
+
+> **Keadaan 30 Sep malam — B104 ditutup.** Tiga butir di atas sekarang terpasang dan terukur
+> (`npm run verify:db` 70/0, `npm run verify:attempts` 38/0): migrasi 0009, rute
+> `POST /essay/reviewers` + `POST /essay/review`, dan gerbang ketiga yang fail-closed. Satu penyimpangan
+> dari butir 2 yang sengaja: pesan yang ditandatangani reviewer **mengikat isinya** (`attempt=`,
+> `decision=`, `final=`), bukan nonce saja seperti `judgeEssay`. Yang belum: satu kertas yang benar-benar
+> terbit di chain lewat rantai ini, dan UI untuk reviewer — rinciannya di baris B104.

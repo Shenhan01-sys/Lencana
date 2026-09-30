@@ -155,6 +155,9 @@ for (const s of queue) {
   wrote += 1
   console.log(`    TERTULIS: skor ${out.score}/100 · verdict ${out.verdict} · ${out.components} komponen per kriteria · graded_by=${judgeModel ? 'model' : 'human'}`)
   console.log(`              hash ${attemptHash.slice(0, 18)}… → ${out.attemptHash.slice(0, 18)}…  (lama disimpan sebagai replaced)`)
+  // B104: angka model adalah USULAN. Gerbang dan `issue --from-attempts` tidak menghitungnya sampai
+  // reviewer yang ditunjuk penerbit menandatangani approved/adjusted lewat POST /essay/review.
+  if (out.needsReview) console.log('              MENUNGGU PENGESAHAN MANUSIA — belum dihitung gerbang, belum bisa menerbitkan')
 }
 
 console.log(`\nselesai   : ${wrote} ditulis, ${skipped} tidak.`)
