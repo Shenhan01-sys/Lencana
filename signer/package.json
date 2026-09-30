@@ -26,6 +26,7 @@
     "probe:cold": "node scripts/cold-store-probe.js",
     "monitor:edge": "node scripts/monitor-edge.js",
     "check:labels": "node scripts/label-coverage.js",
+    "check:identity": "node scripts/identity-check.js",
     "x402": "node scripts/x402-check.js",
     "issue": "tsx scripts/issue.js",
     "delegate": "tsx scripts/delegate.js",
