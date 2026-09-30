@@ -1,9 +1,9 @@
 /**
- * Lencana-B78 status=TERBUKA — bagian (a) SELESAI 30 Sep: pemurnian baris tes dengan bukti sisa = 0 (38 enrollment · 129 attempts
+ * Lencana-B78 status=SELESAI 2026-09-30 — bagian (a): pemurnian baris tes dengan bukti sisa = 0 (38 enrollment · 129 attempts
  * · 144 attempt_components · 81 lesson_progress · 209 progress_events dihapus; 0 submissions, 0 orders;
  * jejak JSON di luar repo sebelum hapus). Buktikan ulang: `npm run cleanup` (dry-run) lalu
- * `npm run cleanup -- --apply`. Yang TIDAK diurus di sini: `course_gates` yang masih membaca baris
- * tes — itu B78(c), menunggu keputusan karena view-nya dipakai halaman hasil.
+ * `npm run cleanup -- --apply`. Yang TIDAK diurus di sini: view `course_gates` — itu
+ * B78(c), ditutup migrasi 0008 (view membawa `origin`; baris tes tidak disaring, tapi terbedakan).
  * `npm run cleanup` — B78(a): bersihkan sisa harness dari Postgres, dengan bukti, bukan keyakinan.
  *
  * Kenapa defaultnya DRY-RUN. Perintah ini cascade ke banyak baris (terukur 30 Sep: 38 enrollment,

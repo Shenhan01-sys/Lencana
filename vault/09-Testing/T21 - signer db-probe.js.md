@@ -1,10 +1,10 @@
 ---
 tags: [testing, "T21"]
 status: active
-updated: 2026-09-28
+updated: 2026-09-30
 command: npm run verify:db
-measured: 2026-09-28
-result: 48 checks / 0 failed
+measured: 2026-09-30
+result: 50 checks / 0 failed
 ---
 
 # T21 - signer db-probe.js (state belajar di Postgres)
@@ -132,6 +132,32 @@ yang turun adalah hasil hitung penerbit:
 - `attempt_no` dihitung server dari baris yang ada, jadi klien tidak bisa menimpa usahanya sendiri;
 - jawabannya memuat `attemptNo` + `rubricHash` supaya **klien** bisa menghitung ulang
   `attempt_hash` — audit tidak boleh butuh secret key.
+
+## Run 30 Sep malam — 50 / 0, dan satu lubang yang harness ini sendiri tidak pernah tanyakan (B78(c))
+
+```
+  ok    view course_gates membawa origin=test untuk baris probe (baris tes terbedakan di view, migrasi 0008)
+  ok    publishable key TIDAK bisa membaca enrollment (RLS bekerja untuk klien publik)
+  ok    publishable key TIDAK bisa membaca view course_gates (security_invoker: RLS berlaku di balik view)
+
+DB HIJAU — 50 pemeriksaan, 0 gagal
+```
+
+Dua pemeriksaan baru (48 → 50), keduanya lahir dari migrasi
+`supabase/migrations/0008_course_gates_origin_and_invoker.sql`:
+
+1. **View membawa `origin`.** Baris tes tidak disaring dari `course_gates` — harness ini dan
+   `verify:attempts` membaca gerbang peserta ujinya lewat view itu — tapi sekarang terbedakan:
+   `?origin=eq.demo` sebelum mengutip angka apa pun dari view.
+2. **View tidak lagi melewati RLS.** Halaman ini sejak 28 Sep memeriksa `enrollments` dengan publishable
+   key dan berhenti di situ. Migrasi 0006 (29 Sep) membuat ulang view **tanpa** `security_invoker`, dan
+   sehari penuh pemeriksaan itu tetap hijau sementara kunci yang sama membaca view-nya. Terukur sebelum
+   0008: `GET /rest/v1/course_gates` → 200, **20 baris** (alamat peserta, hitungan lesson, nilai
+   terbaik); sesudahnya → 200 `[]`. Pemeriksaan kedua di atas adalah penjaganya, dan pengukuran
+   pra-migrasi itu kontrol negatifnya.
+
+Pelajaran yang sama dengan B43/B56, di lapis lain: "RLS tabel hijau" bukan "data tidak terbaca" —
+view di schema `public` adalah pintu kedua, dan pintu yang tidak ditanyai akan dilaporkan tertutup.
 
 ## Yang sudah ditutup sejak halaman ini ditulis pertama kali (28 Sep, sore)
 

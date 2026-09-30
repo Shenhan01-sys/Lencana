@@ -125,7 +125,7 @@ pernah tercetak sama sekali karena hanya keranjang `errors` yang dibaca (`outcom
 | `serve-probe`: "server berjalan dari kode terbaru" (`startedAt` + `codeStamp` vs mtime `src/`) | Signer yatim dari run kemarin memegang port 8787 dan probe menguji kode lama sambil menyimpulkan perbaikan baru salah (B86). Cap direkam **saat proses mulai**, bukan saat ditanya |
 
 `verify:edge` sesudah semuanya: **8/0** dengan `17 dari 17` pada jam itu; korpus tumbuh lagi dua kertas (`--from-attempts` jalur esai) sehingga ukuran 29 Sep sore adalah **19 dari 19**; `publish:edge` **55/56**;
-`serve-probe` **49/0**; `e2e` **46/0**; `verify:live-cert` **35/0**; `verify:db` **48/0**;
+`serve-probe` **49/0**; `e2e` **46/0**; `verify:live-cert` **35/0**; `verify:db` **50/0** (48/0 sebelum dua penjaga view B78(c));
 `check.js` **96/0** (30 Sep malam, sesudah korpus bertambah dua kertas spesimen B102 dan dokumen penerbit keempat; 91/0 siang hari yang sama, sesudah B84(b) menambah 3 pemeriksaan invarian kunci-penerbit; 88/0 pada 29 Sep; 84/0 ketika korpus masih 17 rekaman — lihat **B85** sebelum mengutip angka harness mana pun: jumlahnya mengikuti korpus, dan `npm run check` kini mencetak baris `info` yang merekonstruksinya; turun dari 94
 tanpa sebab yang berhasil kutemukan).
 

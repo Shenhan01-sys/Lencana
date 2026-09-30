@@ -165,10 +165,10 @@ in 13 days:
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 — **terukur ulang 30 Sep sesudah B112, B114, B84, dan B115 ditutup**, dengan logika penjaga (status
 hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 78 baris tabel / **72 ID berbeda** =
-**54 SELESAI · 9 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
-B78 B80 B82 B87 B99 B104 B105 **B116**. Angka 54 ini **sepakat dengan yang dicetak
-`check:labels`** ("93 marker di 51 ID · 72 baris backlog · 54 tertutup"), jadi dua alat berbeda memberi
-angka yang sama. *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
+**55 SELESAI · 8 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
+B80 B82 B87 B99 B104 B105 **B116**. Angka 55 ini **sepakat dengan yang dicetak
+`check:labels`** ("94 marker di 51 ID · 72 baris backlog · 55 tertutup"), jadi dua alat berbeda memberi
+angka yang sama. *(Sebelum B78 ditutup malam 30 Sep: 54 · 9, dan 93 marker.)* *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
 ditutup malam yang sama: 52 · 11, dan 87 marker.)* *(Sebelum itu lagi
 51 · 12: B97 masih terbuka; ia ditutup sesudah siaran dari antrean terbukti di chain.)* *(Sebelum B117
 ditutup malam 30 Sep: 77 baris / 71 ID = 50 SELESAI · 12 TERBUKA · 9 bergembok.)* *(Baris ini tadinya
@@ -181,7 +181,7 @@ perintahnya pada hari ia dikutip (AGENTS #1).
 | 1 | **B107** ✅ SELESAI 29 Sep — `DIAGONOSA` (12 baris terakhir anak + prasyarat + penyelamat), `--only=<id>`, dan menolak menulis `numbers.json` dari run sebagian | ~~`sync:numbers` melapor merah tanpa sebab anak~~ | — | — |
 | 2 | **B67** ✅ SELESAI 29 Sep, kriteria 30 Sep dipenuhi ([[09-Testing/T28 - signer monitor-edge.js]]) | ~~tepi tidak tahu `publish` berhenti~~ | — | — |
 | 3 | **B66** 🔒 DITAHAN 30 Sep — memberi TTL pada `used_nonces` **membuka kembali** jendela replay, karena `authorizeLearner` hanya menerima `nonce=([0-9a-f]{12,})` tanpa `ts=`; yang harus berubah lebih dulu adalah **bentuk pesan yang ditandatangani**, bukan skemanya | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | pesan bertanda tangan memuat `ts=` dulu, baru migrasi + 2 pemeriksaan `verify:db` | — |
-| 4 | **B78** 🟡 30 Sep: jalur B **sudah dipasang, (a)+(b) selesai** — kolom `origin` + `LANCENA_ORIGIN` + `npm run cleanup` (sisa `origin=test` = **0**), dan `verify:db` **48/0** membaca balik penandanya. Yang tersisa hanya **(c)** view `course_gates` yang masih membaca baris tes — butuh `drop` + `create view`, konsumennya embedding PostgREST + halaman hasil | artefak tes | (c) saja |
+| 4 | **B78** ✅ SELESAI 30 Sep malam — (c) ditutup migrasi 0008: view `course_gates` membawa `origin` dan kembali `security_invoker` (regresi 0006: view sempat terbaca publishable key, 20 baris → kini `[]`); `verify:db` **50/0** dengan dua penjaga baru → [[09-Testing/T21 - signer db-probe.js]]. Riwayat baris ini: 🟡 30 Sep: jalur B **sudah dipasang, (a)+(b) selesai** — kolom `origin` + `LANCENA_ORIGIN` + `npm run cleanup` (sisa `origin=test` = **0**), dan `verify:db` **48/0** membaca balik penandanya. Yang tersisa hanya **(c)** view `course_gates` yang masih membaca baris tes — butuh `drop` + `create view`, konsumennya embedding PostgREST + halaman hasil | artefak tes | (c) saja |
 | 5 | **B84** ✅ SELESAI 30 Sep — `check:identity` 8/0 (hash dokumen builder = signer lokal = tepi) **dan** invarian "kunci tiap kertas terdaftar di dokumen penerbitnya" di `check.js` bagian 5d atas korpus store (91/0; 19 kertas / 3 dokumen penerbit, semuanya terdaftar) | ~~identitas penerbit punya 3 sumber berbeda~~ | — | — |
 | 6 | **B102** ✅ SELESAI 30 Sep malam — `npm run specimen` membuat kedua spesimen di chain 97 (agen korban didelisting; penerbit sungguhan tidak tersentuh), `check:samples` **9/0** dengan 1 expired · 1 delisted dan kini merah kalau sebuah keadaan kehilangan spesimennya → [[09-Testing/T26 - signer sample-check.js]]. Tombol FE belum dipasang lagi (pekerjaan FE, ditunda builder) | ~~spesimen `delisted`/`expired` belum ada~~ | — | — |
 | 7 | **B105** 🟡 30 Sep: **(b) SELESAI** dan **(a) sebagian** — `#/publishers` baca-saja sudah ada (nav + rute + halaman, 9 asersi baru di probe → **82/0**) dan kalimat onboarding-nya mengakui custody di kedua bahasa; yang belum: data dari `GET /issuers` yang hidup, jumlah kredensial, status allowlist dari chain | halaman penerbit + kalimat onboarding jujur | tiga hal yang disebut di kiri | — |

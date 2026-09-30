@@ -407,6 +407,11 @@ if (await waitUp()) {
     check('enrollment buatan probe tercatat origin=test (penanda B78 ditulis sampai ke DB)',
       originRead.status === 200 && Array.isArray(originRead.body) && originRead.body.length === 1 && originRead.body[0].origin === 'test',
       `${originRead.status} ${JSON.stringify(originRead.body ?? originRead.err ?? '').slice(0, 120)}`)
+    // B78(c): penanda yang sama harus keluar dari VIEW yang dibaca halaman hasil dan penerbitan —
+    // kalau tidak, angka gerbang tidak bisa dipisah antara baris demo dan sisa harness.
+    const gateOrigin = await courseGates(learner.address, COURSE)
+    check('view course_gates membawa origin=test untuk baris probe (baris tes terbedakan di view, migrasi 0008)',
+      gateOrigin?.origin === 'test', JSON.stringify(gateOrigin?.origin ?? null))
   } else {
     console.log('  info  SUPABASE_SECRET_KEY tidak diisi — penanda origin TIDAK bisa dibaca balik di run ini')
   }
@@ -420,6 +425,16 @@ if (await waitUp()) {
   if (publishable) {
     check('publishable key TIDAK bisa membaca enrollment (RLS bekerja untuk klien publik)',
       publicRead.status === 200 && publicRead.text.trim() === '[]', `${publicRead.status} ${publicRead.text}`)
+    // 11b. B78(c) — view-nya juga. Migrasi 0006 membuat ulang `course_gates` tanpa
+    // `security_invoker`, dan selama sehari publishable key membaca 20 baris (alamat + nilai) lewat
+    // view itu sementara pemeriksaan di atas tetap hijau: RLS tabel tidak melindungi view definer.
+    // Pemeriksaan ini dijalankan SESUDAH probe menulis barisnya, jadi `[]` di sini bukan tabel kosong.
+    const viewRead = await fetch(`${process.env.SUPABASE_URL}/rest/v1/course_gates?select=*`, {
+      headers: { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, authorization: `Bearer ${process.env.SUPABASE_PUBLISHABLE_KEY}` },
+      signal: AbortSignal.timeout(15_000),
+    }).then(async (r) => ({ status: r.status, text: (await r.text()).slice(0, 60) })).catch((e) => ({ status: 0, text: String(e.message) }))
+    check('publishable key TIDAK bisa membaca view course_gates (security_invoker: RLS berlaku di balik view)',
+      viewRead.status === 200 && viewRead.text.trim() === '[]', `${viewRead.status} ${viewRead.text}`)
   } else {
     // Dilewati dan dihitung sebagai pemeriksaan yang gagal: kalau tidak, pemeriksaan yang tak pernah
     // berjalan akan menyumbang hijau dan jumlah itu akan dikutip sebagai bukti.
