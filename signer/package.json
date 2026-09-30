@@ -28,6 +28,7 @@
     "check:labels": "node scripts/label-coverage.js",
     "check:identity": "node scripts/identity-check.js",
     "cleanup": "node scripts/cleanup.js",
+    "migrate:tags": "node scripts/tag-migrate.js",
     "x402": "node scripts/x402-check.js",
     "issue": "tsx scripts/issue.js",
     "delegate": "tsx scripts/delegate.js",

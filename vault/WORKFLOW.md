@@ -76,6 +76,15 @@ eksternal tepi. Buktikan ulang: npm run monitor:edge.` Dua penjaga mengadilinya:
 (A9 — konsistensi tag ↔ baris, dua arah) dan `npm run check:labels` (T29 — kelengkapan: tiap ID
 tertutup punya tag atau alasan 'TANPA TAG KODE' yang tertulis di barisnya).
 
+> **Dalam pengerjaan (B112 opsi A, 30 Sep): bentuk contoh di atas sedang diganti.** Builder sudah
+> memilih marker baru `Lencana-Bnn status=SELESAI|TERBUKA`, karena pola kurung-siku-B-angka juga
+> dipakai kode kami sebagai notasi tipe (21 lokasi `[B32]` yang bukan tag) sehingga kelengkapan tag
+> tidak bisa dituntut alat. **Tahap 1/4 selesai** — alatnya sudah di repo (`npm run migrate:tags`,
+> dry-run `MIGRASI HIJAU — 78 tag di 45 berkas`) — tapi **tag di kode masih berbentuk lama** sampai
+> Tahap 2 jalan. Halaman ini dan aturan #18 sengaja **belum** ditulis ulang ke bentuk baru:
+> mengubah catatan sebelum kodenya dipindah berarti vault dan kode saling membantah. Rinciannya di
+> [[07-Backlog/03 - Findings and Tasks 2026-09-26]] B112 dan [[09-Testing/T29 - signer label-coverage.js]].
+
 ## Struktur Dokumen per-Item (pelengkap)
 
 Dokumen yang tumbuh per-item (AC, testing, exec summary) **WAJIB** pola **Hub + satu file per item**:

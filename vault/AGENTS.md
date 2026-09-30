@@ -140,6 +140,16 @@ kita dokumentasikan untuk platform orang lain.
     telusur menghasilkan satu tag menempel ke ID yang masih terbuka (B102) dan dua baris backlog
     menyebut nama test yang sudah kubuang sendiri (B39/B40) — keduanya baru ketahuan karena ditelusuri.
 
+    **Perubahan bentuk yang sedang berjalan (B112 opsi A, dipilih builder 30 Sep).** Contoh di atas
+    akan diganti menjadi `// Lencana-Bnn status=SELESAI|TERBUKA — …`, karena pola kurung-siku-B-angka
+    juga dipakai kode kami sendiri sebagai notasi tipe — terukur 21 lokasi `[B32]` yang bukan tag —
+    sehingga "temukan semua tag" tidak bisa dibedakan dari "temukan array bytes32" dan kelengkapan tag
+    tidak bisa dituntut alat. **Tahap 1/4 selesai:** alatnya sudah di repo (`npm run migrate:tags` di
+    `signer/`, default DRY-RUN, terukur `MIGRASI HIJAU — 78 tag di 45 berkas`), **tag di kode belum
+    dipindah**. Aturan ini sengaja masih menulis bentuk lama sampai Tahap 2 selesai — catatan yang
+    mendahului kodenya membuat keduanya saling membantah. Rincian + kriteria terima:
+    [[07-Backlog/03 - Findings and Tasks 2026-09-26]] B112, [[09-Testing/T29 - signer label-coverage.js]].
+
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:
 [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · [[09-Testing/00 - Hub Testing]] ·
 [[08-Results/00 - Hub Results]] · [[10-Contributors/Open-Items/00 - Hub Open Items]]
