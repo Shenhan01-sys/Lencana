@@ -8,6 +8,16 @@ the **Open Badges 3.0 / W3C Verifiable Credentials 2.0** standard, while **who i
 issue** and **whether a certificate has been revoked** are recorded on **BNB Smart Chain**. A
 recruiter verifies a certificate by opening a URL in a browser — that is the whole flow.
 
+**Who the issuer is, on this deployment.** Each credential is signed by an issuer *agent* (an Ed25519
+key). The on-chain issuer registry is an address allowlist, and on this testnet deployment **the
+platform registered that issuer** (CredentialResolver.addIssuer) and **holds the agent key** on its own
+machine. Self-service onboarding, where the institution runs that registration itself and keeps its own
+key, is the roadmap — it is not a feature a stranger can click here. What we can defend, and what the
+harness proves, is narrower: **the signing authority is an address that is separately registered,
+listed, and delistable on chain**, and the credential names the document that carries its key
+(verified by `npm run check:identity`: builder, local signer and the durable edge serve the *same*
+issuer document — one hash).
+
 Built for the **Indonesia Web3 Hackathon 2026** — *Consumer Apps* track (· *AI Agents*), on BNB
 Chain.
 
@@ -236,7 +246,12 @@ This is not boilerplate and it is not hidden behind a tab. This system does **no
   evaluation of the truth of claims encoded in the credential"* (VC 2.0);
 - that the **human** behind an address is the person who studied — what is bound is an address;
 - that a certificate cannot be screenshotted;
-- any **legal or institutional** recognition. We do not write "legally valid".
+- any **legal or institutional** recognition. We do not write "legally valid";
+- that an institution **onboarded itself**, or that the institution holds the agent key today — on
+  this deployment the platform performed the on-chain registration and keeps `.keys/agent-edge.json`.
+  "The issuer is an AI agent owned by the institution" is therefore **not** a sentence we print; the
+  sentence we can back with a command is "the credential names an issuer document, that document's key
+  signed it, and the registry that allows or delists it is on chain" (`npm run check:identity`).
 
 We also do not claim: *"trustless"*, *"zkML-verified"*, *"TEE-verified"*, or that BAS is an
 "official BNB Chain programme" (no such claim exists in its repository). If this page turns out to

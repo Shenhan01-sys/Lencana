@@ -193,7 +193,7 @@ verifier would read a recoverable delisting as a permanent revocation.
 AchievementCredential schema declares `credentialStatus` as `type: object` with cardinality `[0..1]` —
 one entry, one purpose — and `vc.1ed.tech` said so in its own words: `$.credentialStatus: array found,
 object expected`. So a credential points at **exactly one** list (`revocation`), and `suspension`
-remains built, anchored and served without being referenced by any conformant credential. The sentence
+remains built, anchored and served without being referenced by any credential that declares this profile. The sentence
 we are allowed is *"two status lists, and a credential points at revocation"* — not "every credential
 carries both". Details: `../vault/00-Overview/04 - Corrections.md` and
 `../vault/09-Testing/T15 - 1EdTech validator.md`.

@@ -44,7 +44,12 @@ const read = async (p) => { try { return await readFile(p, 'utf8') } catch { ret
 /** Kata yang dilarang oleh `Claims-Cheat-Sheet` — kalau muncul di tempat yang dibaca orang, itu temuan. */
 const FORBIDDEN = [
   { re: /\bkompatibel\s+1EdTech\b/i, why: 'lolos validator ≠ tersertifikasi 1EdTech; suite butuh keanggotaan' },
-  { re: /\blolos\s+sertifikasi\b|\bsertified\b|\btersertifikasi\s+1EdTech\b/i, why: 'kita tidak bisa menunjuk badan penerbit sertifikat' },
+  // 30 Sep: alternatif tengahnya dulu ditulis `\bsertified\b` — typo, kata itu tidak pernah ada,
+  // jadi 'certified' bahasa Inggris lolos selamanya (dan `conformant` / '1EdTech compatible' tidak
+  // pernah masuk daftar sama sekali). `bolehNegasi` menjaga ini tetap berguna:Disclaimer kita sendiri
+  // menulis **not** "certified" — gerbang yang menghukum kalimat yang menyangkal frasa itu akan
+  // dibisukan orang dalam dua hari (kelas kegagalan yang sama dengan A5).
+  { re: /\blolos\s+sertifikasi\b|\bcertified\b|\btersertifikasi\s+1EdTech\b|\bconformant\b|\b1EdTech\s+compatible\b/i, why: 'kita tidak bisa menunjuk badan penerbit sertifikat', bolehNegasi: true },
   { re: /\bunforgeable\b|\btamper[- ]proof\b|\btidak bisa dipalsukan\b/i, why: 'yang tidak bisa dipalsukan hanya yang kami uji (byte dibalik → tanda tangan mati)' },
   { re: /\bblockchain-secured\b|\bdiamankan blockchain\b/i, why: 'frase tanpa mekanik: dokumen hidup di luar chain' },
   { re: /\banti[- ]curang\b/i, why: 'kunci jawaban kuis tetap terbundel (B80)' },
@@ -164,7 +169,12 @@ async function collect () {
   const surface = await readSurface(SURFACE)
   for (const { f, t } of surface.texts) {
     t.split(/\r?\n/).forEach((line, i) => {
-      for (const c of FORBIDDEN) if (c.re.test(line)) bad.push(`${f}:${i + 1} [${c.why}] ${line.trim().slice(0, 90)}`)
+      for (const c of FORBIDDEN) {
+        if (!c.re.test(line)) continue
+        // penyangkalan eksplisit: `**not** "certified"`, `bukan "tersertifikasi"`, `jangan tulis "conformant"`
+        if (c.bolehNegasi && /(?:\*\*(?:not|never)\*\*|\b(?:not|never|bukan|jangan)\b)[^|\n]{0,24}["“”]/i.test(line)) continue
+        bad.push(`${f}:${i + 1} [${c.why}] ${line.trim().slice(0, 90)}`)
+      }
     })
   }
   findingsOut.push({
