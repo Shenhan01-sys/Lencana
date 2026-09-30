@@ -79,5 +79,25 @@ mencocokkan **token utuh case-sensitive**: korpus sudah punya `lencana-b41` sung
 [[Notes/Session-2026-09-27-B41-validator]], dan mencocokkan prefiksnya saja akan melahirkan
 positif-palsu berikutnya dari string keccak.
 
+## Kalau kamu mengukur ulang sendiri, dua angka akan terlihat "lebih" — dan itu benar
+
+Sebuah penyapu baca-saja yang **berbeda** dari penjaga ini (dipakai untuk validasi silang, bukan
+untuk dipercaya) melaporkan **86** kemunculan token `Lencana-B<angka>` dan **23** kemunculan pola
+kurung-siku di berkas kode, padahal marker sungguhan **80** dan notasi tipe yang dikenal **21**.
+Selisihnya punya nama, jadi tidak ada yang perlu diduga:
+
+- **86 = 80 marker + 6 contoh di dokumen** (`.md`): aturan #18 di `AGENTS.md`, contoh di
+  `WORKFLOW.md`, prosa `Lencana-B110 status=SELESAI` di baris B110 dan di T12, serta **dua** di baris
+  B112 (kutipan contoh opsi A dan catatan Tahap 2). Penjaga ini hanya menyapu ekstensi kode
+  (`.ts .js .mjs .sol .sql .yml .ps1`), jadi keenamnya tidak pernah dihitung sebagai marker — dan
+  memang tidak boleh: contoh di dokumen bukan penanda pekerjaan.
+- **23 = 21 notasi tipe bytes32 + 2 sebutan prosa** di komentar `tag-migrate.js` dan berkas penjaga
+  ini, yang menjelaskan tabrakan itu. Tidak satu pun diikuti kata status, jadi pemeriksaan "sisa
+  bentuk lama" tetap melaporkan **0**. Yang dijaga adalah bentuknya, bukan munculnya kurung siku:
+  kalau seseorang suatu hari menulis marker bentuk lama yang sebenarnya di komentar, ia tertangkap.
+
+Inilah alasan validasi silang dipakai dua alat: kalau hanya penjaga ini yang menghitung, angka 80
+tidak bisa dibedakan dari angka yang dibuat agar cocok dengan dirinya sendiri.
+
 Terkait: [[09-Testing/T27 - signer cold-store-probe.js]], [[09-Testing/T18 - signer verify-edge.js]],
 [[07-Backlog/03 - Findings and Tasks 2026-09-26]] B78 dan **B112**.

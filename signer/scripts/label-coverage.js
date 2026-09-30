@@ -23,9 +23,12 @@
  * `--self-test` mengadili penjaga ini dengan fixture: yang harus merah wajib tertangkap, yang harus
  * hijau wajib tidak terlapor. Tanpanya, "penjaga hijau" tidak bisa dibedakan dari "penjaga buta".
  *
- * Baseline sengaja disimpan di berkas ini (bukan di kepala). Terukur 30 Sep sesudah migrasi B112:
- *   78 marker di 45 ID · 68 baris backlog · 46 tertutup · 4 ID tertutup beralasan TANPA TAG KODE
+ * Baseline sengaja disimpan di berkas ini (bukan di kepala). Terukur 30 Sep pada keadaan akhir B112:
+ *   80 marker di 46 ID · 68 baris backlog · 47 tertutup · 4 ID tertutup beralasan TANPA TAG KODE
  *   (B43 B71 B74 B76) · lubang 0 · bandel 0 · sisa bentuk lama 0.
+ * Selisihnya dijelaskan supaya tidak ada yang mengira angka ini karangan: 80 = 78 hasil migrasi + 2
+ * marker B112 (di berkas ini dan di blok A9 `audit-consistency.js`); 78/45/46 adalah keadaan tepat
+ * sesudah migrasi dan sebelum baris B112 ditutup.
  * Turun itu bagus; naik itu regresi dan nama ID-nya dicetak.
  */
 import fs from 'node:fs'
