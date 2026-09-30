@@ -16,7 +16,7 @@ command and a page disagree, the run wins.**
 | `cd web && npm run probe` | 59 / 0 - the page's own `verify.ts`, four verdicts, public chain 97. Sejak 28 Sep memuat `../.env` sendiri (`scripts/load-env.ts`): sebelumnya `npm run probe` di clone bersih memeriksa `0x0000…` di port lokal dan keluar merah sementara README menjanjikan sebuah angka | 28 Sep |
 | `cd web && npx tsx scripts/rubric-check.ts` | 17 / 0 - policy and material hash separately | 28 Sep |
 | `cd web && npx tsx scripts/inventory.ts` | 2 courses · 7 modules · 24 lessons · 412 minutes | 26 Sep |
-| `cd signer && node scripts/check.js` | **88 / 0** (grows with the watched set; 76 earlier the same day) | 28 Sep |
+| `cd signer && node scripts/check.js` | **91 / 0** (30 Sep; tumbuh bersama korpus yang diawasi — 88/0 pada 29 Sep, 76 lebih pagi lagi, 84/0 saat korpus 17 rekaman) | 30 Sep |
 | `cd signer && node scripts/serve-probe.js` | 48 / 0 - document route, served bitstring length, every agent in `.keys/` at its own URL (B48), and since 28 Sep the **bit counts are compared with chain state**, not with a hand-maintained `EXPECT_*` list | 28 Sep |
 | `cd signer && npm run x402` | 20 / 0 - one payment, two verdicts, settlement + split on chain | 28 Sep |
 | `cd signer && npm run anchor -- --dry-run` | **22** watched · revocation **5** bits · suspension **1** bit · both served hashes already anchored; 0 new anchors. Also loads `../.env` itself since 28 Sep | 28 Sep |

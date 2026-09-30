@@ -24,11 +24,13 @@
  * hijau wajib tidak terlapor. Tanpanya, "penjaga hijau" tidak bisa dibedakan dari "penjaga buta".
  *
  * Baseline sengaja disimpan di berkas ini (bukan di kepala). Terukur 30 Sep pada keadaan akhir hari:
- *   81 marker di 47 ID · 69 baris backlog · 48 tertutup · 4 ID tertutup beralasan TANPA TAG KODE
+ *   81 marker di 47 ID · 69 baris backlog · 49 tertutup · 4 ID tertutup beralasan TANPA TAG KODE
  *   (B43 B71 B74 B76) · lubang 0 · bandel 0 · sisa bentuk lama 0.
  * Selisihnya dijelaskan supaya tidak ada yang mengira angka ini karangan: 81 = 78 hasil migrasi B112
  *   + 2 marker B112 (di berkas ini dan di blok A9 `audit-consistency.js`) + 1 marker B114 (di
- *   `sync-numbers.js`); 78/45/46 adalah keadaan tepat sesudah migrasi, sebelum baris ditutup.
+ *   `sync-numbers.js`). Tertutup 49 = 46 sesudah migrasi + B112 + B114 + B84 (B84 tidak menambah
+ *   marker: markernya sudah ada di `identity-check.js` sejak 29 Sep, hanya di-flip ke SELESAI saat
+ *   barisnya ditutup); 78/45/46 adalah keadaan tepat sesudah migrasi, sebelum baris-barisnya ditutup.
  * Turun itu bagus; naik itu regresi dan nama ID-nya dicetak.
  */
 import fs from 'node:fs'

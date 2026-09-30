@@ -1,8 +1,9 @@
 /**
- * Lencana-B84 status=TERBUKA — berkas inilah yang menjaga bagian yang SUDAH selesai: satu sumber identitas
+ * Lencana-B84 status=SELESAI 2026-09-30 — berkas inilah yang menjaga satu sumber identitas
  * penerbit (hash dokumen builder = signer lokal = tepi, untuk SEMUA agen yang dirujuk kertas
- * terbit) dan catatan .keys/ bebas host mati. Yang membuat barisnya masih TERBUKA hanyalah
- * custody — lihat B105 (c). Buktikan ulang: npm run check:identity
+ * terbit) dan catatan .keys/ bebas host mati. Barisnya DITUTUP 30 Sep sesudah invarian kunci-penerbit
+ * ikut diadili atas korpus store di check.js bagian 5d (B84(b)); halaman penerbit baca-saja pindah ke B105.
+ * Buktikan ulang: npm run check:identity
  * `npm run check:identity` — B84: apakah "identitas penerbit" masih satu hal.
  *
  * Kenapa ini ada: B83 sudah memaksa penerbitan memakai SATU sumber (kode merakit dokumen dari

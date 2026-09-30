@@ -417,6 +417,48 @@ if (!rpc || !resolverAddress || watched.length === 0) {
       check(`${purpose}: render ulang atas masukan sama -> hash sama`, a === b, `${a} vs ${b}`)
       check(`${purpose}: urutan masukan diacak -> hash TETAP sama`, a === c, `${a} vs ${c}`)
     }
+
+    /**
+     * 5d. B84(b) — invarian "kunci yang menandatangani tiap kertas TERDAFTAR di dokumen penerbit
+     *     yang ditunjuk kertas itu". `verify:edge` sudah mengadili hal yang sama, tetapi atas apa
+     *     yang TAYANG di tepi; yang diadili di sini adalah KORPUS STORE, jadi kertas yang belum
+     *     (atau tidak akan pernah) diterbitkan ke tepi ikut terjaring. Kelas bugnya nyata dan sudah
+     *     pernah terjadi: waktu memindah enam kertas ke host tepi (B65-b/B83), `issuer.id` ditulis
+     *     ulang tanpa memastikan daftar kunci di sisi penerbit ikut berpindah — dan satu-satunya
+     *     yang menangkap kala itu `serve-probe`, yang kebetulan sedang menguji satu hash. Kertas
+     *     seperti itu bukan "tidak terverifikasi oleh kami", melainkan "tidak terverifikasi oleh
+     *     siapa pun, selamanya, dengan tanda tangan yang kelihatan utuh": kegagalan paling senyap
+     *     yang bisa kita produksi.
+     *     Cakupan sengaja disamakan dengan pemeriksaan tetangganya — hanya rekaman yang hash-nya
+     *     termasuk yang diawasi; sisanya sudah dilaporkan sebagai grup yang DILEWATI, bukan diam.
+     */
+    const diawasi = issued.filter((rec) => [...statuses.values()].some((x) => x.hash.toLowerCase() === rec.credentialHash.toLowerCase()))
+    const vmPerPenerbit = new Map()
+    for (const rec of diawasi) {
+      const vm = rec.document?.proof?.verificationMethod
+      if (!vm) { check(`[${rec.course}] proof.verificationMethod ada`, false, 'tidak ada di dokumen'); continue }
+      const base = String(vm).split('#')[0]
+      if (!vmPerPenerbit.has(base)) vmPerPenerbit.set(base, [])
+      vmPerPenerbit.get(base).push({ course: rec.course, vm })
+    }
+    for (const [base, items] of vmPerPenerbit) {
+      const keys = new Set()
+      let err = null
+      try {
+        const j = await (await fetch(base, { signal: AbortSignal.timeout(20_000) })).json()
+        for (const m of j.assertionMethod ?? []) keys.add(typeof m === 'string' ? m : m.id)
+      } catch (e) { err = String(e.message ?? e).slice(0, 80) }
+      const hilang = items.filter((x) => !keys.has(x.vm))
+      // Satu pemeriksaan per penerbit, bukan per kertas: yang perlu dijawab orang adalah "kunci
+      // penerbit mana yang tidak mendaftar", dan daftar kertasnya ikut tercetak supaya bisa ditindak.
+      check(`kunci tiap kertas terdaftar di dokumen penerbit ${base.replace(/^https?:\/\//, '')} (${items.length} kertas)`,
+        !err && keys.size > 0 && hilang.length === 0,
+        err
+          ? `dokumen penerbit tidak teraih: ${err}`
+          : (hilang.length
+            ? hilang.map((x) => `${x.course}→${x.vm.slice(0, 44)}…`).join(', ')
+            : `${keys.size} kunci terdaftar, ${items.length} kertas semuanya cocok`))
+    }
   }
 }
 
