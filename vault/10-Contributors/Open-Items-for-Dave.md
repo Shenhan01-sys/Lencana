@@ -394,3 +394,21 @@ berbentuk latihan terbuka. Aku memilih tidak memutuskan ini diam-diam; angka sub
 yang (b) sampai kamu pilih.
 
 
+
+## OI-17 — tombol "Penerbit Didelisting" dan contoh "kadaluarsa" boleh kembali (B102, 30 Sep)
+
+Tombol delisted dicabut 29 Sep karena tidak ada satu pun kertas yang cocok dengan labelnya. Sejak 30 Sep
+malam spesimennya **ada dan diukur** (`npm run check:samples` → 9/0; asal-usul tiap alamat di
+[[09-Testing/T26 - signer sample-check.js]]):
+
+| label | hash | di tepi | di chain |
+|---|---|---|---|
+| `expired` | `0x202f8edf1a46ee6ed2fb9e99026a2bdcf957e654b786c46213112e5caf0afdcc` | 200 | expired (penerbit masih sah) |
+| `delisted` | `0xaa379627438fb47b6a6c2a5fefc421d26f3168ce941e82c19a591c773d849c0f` | 200 | delisted, **tidak** revoked |
+
+Yang **tidak** kulakukan: memasang tombolnya. `web/index.html` dan `SAMPLE_HASHES` di `web/src/main.ts`
+milikmu, dan builder menunda FE. Di `main.ts` yang kusentuh hanya baris komentar (marker B102 dan catatan
+di atas `SAMPLE_HASHES`). Kalau dipasang: tambahkan kunci `expired` / `delisted` ke `SAMPLE_HASHES` dengan
+dua hash di atas — nama kuncinya harus sama dengan label chain, karena `check:samples` membandingkan
+keduanya — lalu jalankan `npm run check:samples` di `signer/`. Jangan isi dengan hash lain supaya tombol
+hidup: alatnya akan merah, dan itu memang tugasnya.

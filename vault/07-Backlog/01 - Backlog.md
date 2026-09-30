@@ -165,9 +165,10 @@ in 13 days:
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 — **terukur ulang 30 Sep sesudah B112, B114, B84, dan B115 ditutup**, dengan logika penjaga (status
 hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 78 baris tabel / **72 ID berbeda** =
-**52 SELESAI · 11 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
-B78 B80 B82 B87 B90 B99 B102 B104 B105 **B116**. Angka 52 ini **sepakat dengan yang dicetak
-`check:labels`** ("52 tertutup"), jadi dua alat berbeda memberi angka yang sama. *(Satu jam sebelumnya
+**53 SELESAI · 10 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
+B78 B80 B82 B87 B90 B99 B104 B105 **B116**. Angka 53 ini **sepakat dengan yang dicetak
+`check:labels`** ("88 marker di 50 ID · 72 baris backlog · 53 tertutup"), jadi dua alat berbeda memberi
+angka yang sama. *(Sebelum B102 ditutup malam 30 Sep: 52 · 11, dan 87 marker.)* *(Sebelum itu lagi
 51 · 12: B97 masih terbuka; ia ditutup sesudah siaran dari antrean terbukti di chain.)* *(Sebelum B117
 ditutup malam 30 Sep: 77 baris / 71 ID = 50 SELESAI · 12 TERBUKA · 9 bergembok.)* *(Baris ini tadinya
 menulis "TERBUKA total 21, bergembok 7" — basi: B112, B114, B84, dan B115 tertutup hari ini, dan
@@ -181,7 +182,7 @@ perintahnya pada hari ia dikutip (AGENTS #1).
 | 3 | **B66** 🔒 DITAHAN 30 Sep — memberi TTL pada `used_nonces` **membuka kembali** jendela replay, karena `authorizeLearner` hanya menerima `nonce=([0-9a-f]{12,})` tanpa `ts=`; yang harus berubah lebih dulu adalah **bentuk pesan yang ditandatangani**, bukan skemanya | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | pesan bertanda tangan memuat `ts=` dulu, baru migrasi + 2 pemeriksaan `verify:db` | — |
 | 4 | **B78** 🟡 30 Sep: jalur B **sudah dipasang, (a)+(b) selesai** — kolom `origin` + `LANCENA_ORIGIN` + `npm run cleanup` (sisa `origin=test` = **0**), dan `verify:db` **48/0** membaca balik penandanya. Yang tersisa hanya **(c)** view `course_gates` yang masih membaca baris tes — butuh `drop` + `create view`, konsumennya embedding PostgREST + halaman hasil | artefak tes | (c) saja |
 | 5 | **B84** ✅ SELESAI 30 Sep — `check:identity` 8/0 (hash dokumen builder = signer lokal = tepi) **dan** invarian "kunci tiap kertas terdaftar di dokumen penerbitnya" di `check.js` bagian 5d atas korpus store (91/0; 19 kertas / 3 dokumen penerbit, semuanya terdaftar) | ~~identitas penerbit punya 3 sumber berbeda~~ | — | — |
-| 6 | **B102** | spesimen `delisted`/`expired` belum ada | `check:samples` melaporkan keduanya non-nol; tombol yang dicabut boleh dipasang lagi. Butuh 1 transaksi testnet → **izin builder** | 1 j |
+| 6 | **B102** ✅ SELESAI 30 Sep malam — `npm run specimen` membuat kedua spesimen di chain 97 (agen korban didelisting; penerbit sungguhan tidak tersentuh), `check:samples` **9/0** dengan 1 expired · 1 delisted dan kini merah kalau sebuah keadaan kehilangan spesimennya → [[09-Testing/T26 - signer sample-check.js]]. Tombol FE belum dipasang lagi (pekerjaan FE, ditunda builder) | ~~spesimen `delisted`/`expired` belum ada~~ | — | — |
 | 7 | **B105** 🟡 30 Sep: **(b) SELESAI** dan **(a) sebagian** — `#/publishers` baca-saja sudah ada (nav + rute + halaman, 9 asersi baru di probe → **82/0**) dan kalimat onboarding-nya mengakui custody di kedua bahasa; yang belum: data dari `GET /issuers` yang hidup, jumlah kredensial, status allowlist dari chain | halaman penerbit + kalimat onboarding jujur | tiga hal yang disebut di kiri | — |
 | 8 | **B104** | rantai D42: AI menilai → **manusia mengesahkan** → terbit | migrasi review + rute bertanda tangan + gerbang ketiga + 2 pemeriksaan `verify:attempts` | 2 j |
 | 9 | **B90** | paruh dua kontrak durasi-cahaya | deploy 97 + rute HTTP + uji yang sama tetap hijau | ½ h |

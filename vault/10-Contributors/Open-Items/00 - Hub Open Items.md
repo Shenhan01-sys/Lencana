@@ -27,6 +27,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-14 | `package.json` calls a tool that lives outside the repo, so `npm run probe:rpc` is dead in anyone else's clone (in-repo copy already added; one-line patch offered) |
 | OI-15 | a banner a visitor can still open says "lapis on-chain kami belum disiarkan" with a stale test count — the same false sentence I just removed from `verify.ts` |
 | OI-16 | `#/learn` sekarang menulis ke penerbit (B72, berkas `web/` disunting atas izin builder): berkas yang disentuh, mount point yang ditahan, dan satu keputusan yang tetap milik pemilik front-end — kunci kuis di bundel (B80) |
+| OI-17 | tombol "Penerbit Didelisting" dan contoh "kadaluarsa" boleh dipasang lagi: spesimennya sekarang ada dan diukur (B102, 30 Sep) — dua hash siap tempel, dan `check:samples` mengadili begitu dipasang |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
 [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15

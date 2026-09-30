@@ -14,7 +14,7 @@
  *   … npm run check:samples -- --json                → keluaran mesin (buat penjaga/`sync:numbers`)
  */
 
-// Lencana-B102 status=TERBUKA — jangan dianggap selesai — alat ini yang akan merah kalau ada yang memasang hash tanpa spesimen ke SAMPLE_HASHES — pemeriksaan `delisted`/`expired` masih menunggu spesimen, bukan sudah selesai. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B102 status=SELESAI 2026-09-30 — alat ini merah kalau ada yang memasang hash tanpa spesimen ke SAMPLE_HASHES, DAN kalau salah satu dari empat keadaan (valid/revoked/expired/delisted) kehilangan spesimennya di tepi atau di chain. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -103,7 +103,9 @@ if (JSON_OUT) {
     capturedAt: new Date().toISOString(), edge: BASE, total: rows.length, published200: published, picks,
   }, null, 2))
 } else {
-  console.log(`\ncheck:samples — ${rows.length} dokumen di store · ${published} terbit di tepi (${BASE})\n`)
+  const count = (want) => rows.filter((r) => r.chain === want).length
+  console.log(`\ncheck:samples — ${rows.length} dokumen di store · ${published} terbit di tepi (${BASE})`)
+  console.log(`  valid ${count('valid')} · revoked ${count('revoked')} · expired ${count('expired')} · delisted ${count('delisted')}\n`)
   for (const r of [...rows].sort((a, b) => String(a.chain).localeCompare(String(b.chain)))) {
     console.log(`  ${String(r.edge).padEnd(8)} ${r.chain.padEnd(14)} ${r.hash}${r.shape ? `  ${r.shape.types} · list=${r.shape.statusList ? 'ya' : 'TIDAK'} · ${r.shape.cryptosuite ?? 'tanpa suite'}` : ''}`)
   }
@@ -143,6 +145,15 @@ for (const [key, value] of Object.entries(claims)) {
   const row = rows.find((r) => r.hash === value.toLowerCase())
   check(`SAMPLE_HASHES.${key} terbit di tepi`, Boolean(row) && row.edge === 200, row ? `tepi menjawab ${row.edge}` : 'hash tidak ada di store kita')
   check(`SAMPLE_HASHES.${key} cocok dengan labelnya di chain`, row?.chain === key, `chain bilang ${row?.chain ?? '—'}`)
+}
+/**
+ * Empat keadaan yang dijual halaman verifikasi wajib punya spesimennya (B102). Sebelum 30 Sep
+ * `expired` dan `delisted` nol dan alat ini tetap hijau — ia hanya mengadili yang TERPASANG, jadi
+ * "tidak ada spesimen" lolos sebagai diam. Sekarang ketiadaan itu merah: kalau spesimennya hilang
+ * dari tepi atau dari chain, tombolnya tidak boleh hidup lagi tanpa ada yang tahu.
+ */
+for (const [state, hash] of Object.entries(picks)) {
+  check(`ada spesimen "${state}" yang 200 di tepi dan ${state} di chain`, Boolean(hash), `nol — resepnya: npm run specimen (lihat baris B102)`)
 }
 console.log(`\nCONTOH UI ${fails === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${fails} gagal`)
 process.exitCode = fails > 0 ? 1 : 0

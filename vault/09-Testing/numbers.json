@@ -1,12 +1,12 @@
 {
-  "capturedAt": "2026-09-30T12:58:00.341Z",
+  "capturedAt": "2026-09-30T13:29:28.657Z",
   "note": "Dihasilkan npm run sync:numbers. Halaman vault yang mengutip angka harness wajib cocok dengan berkas ini (verify: npm run sync:numbers -- --verify).",
   "items": {
     "check": {
-      "total": 91,
+      "total": 96,
       "fail": 0,
       "skipped": 0,
-      "pass": 91
+      "pass": 96
     },
     "verifyDb": {
       "total": 48,
@@ -15,10 +15,10 @@
       "pass": 48
     },
     "serveProbe": {
-      "total": 49,
+      "total": 50,
       "fail": 0,
       "skipped": 0,
-      "pass": 49
+      "pass": 50
     },
     "e2e": {
       "total": 46,
@@ -39,13 +39,13 @@
       "pass": 31
     },
     "edge": {
-      "total": 9,
+      "total": 10,
       "fail": 0,
       "skipped": 0,
-      "pass": 9,
+      "pass": 10,
       "ratio": {
-        "a": 19,
-        "b": 19
+        "a": 21,
+        "b": 21
       }
     },
     "forgeOffline": {
@@ -61,10 +61,10 @@
       "pass": 86
     },
     "samples": {
-      "total": 5,
+      "total": 9,
       "fail": 0,
       "skipped": 0,
-      "pass": 5
+      "pass": 9
     },
     "spec": {
       "total": 14,
@@ -85,10 +85,10 @@
       "pass": 8
     },
     "identity": {
-      "total": 8,
+      "total": 9,
       "fail": 0,
       "skipped": 0,
-      "pass": 8
+      "pass": 9
     },
     "cleanup": {
       "total": 6,

@@ -1,7 +1,7 @@
 
 // Lencana-B94 status=SELESAI 2026-09-29 — tombol berbagi/panel tidak pernah menyerahkan dokumen karangan; bentuk saja diberi label bentuk-saja. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B94 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// Lencana-B102 status=TERBUKA — jangan dianggap selesai — BELUM ADA spesimen delisted/expired: tombol delisted dicabut karena tidak ada kertas yang cocok label — JANGAN diisi dokumen lain hanya supaya tombol hidup. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B102 status=SELESAI 2026-09-30 — spesimen delisted/expired sekarang ADA dan diukur (hash-nya di T26); tombol delisted BELUM dipasang lagi — itu pekerjaan FE. Kalau dipasang, isi hanya dengan hash yang dicetak check:samples untuk label itu, JANGAN dokumen lain supaya tombol hidup. Buktikan ulang: npm run check:samples. JANGAN dibalik/diulang tanpa membuka kembali baris B102 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // Lencana-B50 status=SELESAI 2026-09-29 — kredensial yang TERSAJE di halaman kita sekarang tidak sama bentuknya dengan kredensial yang LOLOS validator. Untuk juri yang membuka "lihat dokumen", yang ia salin/ung Buktikan ulang: lihat baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B50 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
@@ -44,6 +44,9 @@ let ep: Endpoint = loadEndpoint()
  *    mengirim orang ke NOT_FOUND;
  *  - `delisted` (0x4d0ffdf3…) — tidak ada satu pun kredensial delisted yang bisa ditunjukkan,
  *    jadi tombolnya dicabut, bukan diisi dokumen yang tidak cocok dengan labelnya (B102).
+ * Catatan 30 Sep: angka "19 dokumen, NOL expired/delisted" di atas adalah pembacaan 29 Sep. Sejak
+ * B102 ditutup `check:samples` mencetak 21 dokumen dengan 1 expired (0x202f8edf…) dan 1 delisted
+ * (0xaa379627…); tombolnya belum dipasang lagi di sini.
  * `format` sekarang benar-benar rusak bentuknya; dulu ia hash 32 byte yang sah, jadi demo
  * "format salah" justru menghasilkan "tidak ditemukan".
  */

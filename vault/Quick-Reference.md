@@ -13,8 +13,9 @@ command and a page disagree, the run wins.**
 > bertanggal** — kolom `last` menyebut hari angkanya dicetak, dan sebagian besar barisnya 28 Sep (mis. web
 > probe 59/0, `verify:edge` 5/0 dengan 8 dari 14). Itu bukan angka hari ini dan tidak dijaga alat. **Klaim
 > kini** ada di tabel kedua ("Perintah yang ditambahkan 29 Sep") yang dijaga `npm run sync:numbers -- --verify`,
-> dan di `09-Testing/numbers.json`: 30 Sep web probe 86/0 · `check` 91/0 · `serve-probe` 49/0 ·
-> `verify:edge` 9/0 (19 dari 19) · `verify:live-cert` 35/0 · `e2e` 46/0.
+> dan di `09-Testing/numbers.json`: 30 Sep malam web probe 86/0 · `check` 96/0 · `serve-probe` 50/0 ·
+> `verify:edge` 10/0 (21 dari 21) · `verify:live-cert` 35/0 · `e2e` 46/0. (Siang hari yang sama, sebelum
+> dua kertas spesimen B102: `check` 91/0 · `serve-probe` 49/0 · `verify:edge` 9/0 dengan 19 dari 19.)
 
 | command (from `app/`) | prints | last |
 |---|---|---|
@@ -23,7 +24,7 @@ command and a page disagree, the run wins.**
 | `cd web && npm run probe` | 59 / 0 - the page's own `verify.ts`, four verdicts, public chain 97. Sejak 28 Sep memuat `../.env` sendiri (`scripts/load-env.ts`): sebelumnya `npm run probe` di clone bersih memeriksa `0x0000…` di port lokal dan keluar merah sementara README menjanjikan sebuah angka | 28 Sep |
 | `cd web && npx tsx scripts/rubric-check.ts` | 17 / 0 - policy and material hash separately | 28 Sep |
 | `cd web && npx tsx scripts/inventory.ts` | 2 courses · 7 modules · 24 lessons · 412 minutes | 26 Sep |
-| `cd signer && node scripts/check.js` | **91 / 0** (30 Sep; tumbuh bersama korpus yang diawasi — 88/0 pada 29 Sep, 76 lebih pagi lagi, 84/0 saat korpus 17 rekaman) | 30 Sep |
+| `cd signer && node scripts/check.js` | **96 / 0** (30 Sep malam, sesudah dua kertas spesimen B102; tumbuh bersama korpus yang diawasi — 91/0 siang hari yang sama, 88/0 pada 29 Sep, 76 lebih pagi lagi, 84/0 saat korpus 17 rekaman) | 30 Sep |
 | `cd signer && node scripts/serve-probe.js` | 48 / 0 - document route, served bitstring length, every agent in `.keys/` at its own URL (B48), and since 28 Sep the **bit counts are compared with chain state**, not with a hand-maintained `EXPECT_*` list | 28 Sep |
 | `cd signer && npm run x402` | 20 / 0 - one payment, two verdicts, settlement + split on chain | 28 Sep |
 | `cd signer && npm run anchor -- --dry-run` | **22** watched · revocation **5** bits · suspension **1** bit · both served hashes already anchored; 0 new anchors. Also loads `../.env` itself since 28 Sep | 28 Sep |
@@ -50,18 +51,19 @@ never retyped.
 | perintah | apa | angka terakhir yang dicetak |
 |---|---|---|
 | `npm run verify:attempts` / `:live` | satu rantai peserta → rekaman → `issue --from-attempts` → `/results/…` (`:live` menulis 1 attestation testnet) | 31/0 offline · 67/0 live |
-| `npm run rehost [-- --apply --move-identity --fix-status-shape]` | memindah kertas ke host tetap tanpa transaksi: URL ditulis ulang + ditandatangani ulang dengan kunci Multikey yang sama | 7 kertas; `verify:edge` 19 dari 19 |
+| `npm run rehost [-- --apply --move-identity --fix-status-shape]` | memindah kertas ke host tetap tanpa transaksi: URL ditulis ulang + ditandatangani ulang dengan kunci Multikey yang sama | 7 kertas; `verify:edge` 21 dari 21 (30 Sep malam; 19 dari 19 sebelum dua spesimen B102 — `rehost` sendiri tidak dijalankan lagi, yang bertambah korpusnya) |
 | `npm run grade:essay` | antrean esai penerbit; angka masuk hanya lewat tanda tangan EOA penerbit (`POST /essay/judgement`) | `verify:db` 48/0 *(tadinya 47/0 — basi; baris ini sekarang dijaga `DOC_CLAIMS`, B114)* |
 | `npm run audit` | konsistensi proyek: registry tunggal, kalimat terlarang di README/docs, placeholder, dokumen karangan, blokir basi, item hilang dari backlog, tag↔baris, bahasa identifier, angka README | **12 pemeriksaan · 0 TEMUAN** (30 Sep) *(baris ini tadinya menulis "2 TEMUAN (A3 berkas Dave, A6 Vault akar)" — benar pada 29 Sep, basi sesudah A3/A6 ditutup lewat B98/B99. `audit` bukan harness di `numbers.json`, jadi tidak ada gerbang yang bisa menangkapnya; itu dicatat di B114)* |
 | `npm run sync:numbers` / `-- --verify` | `vault/09-Testing/numbers.json` = satu sumber angka; `--verify` memarahi halaman vault yang angkanya tidak cocok | **ANGKA HIJAU — 28 klaim halaman diperiksa, 0 tidak cocok** (30 Sep malam; jumlah klaim itu dicetak alatnya sendiri — 25 lalu 26 sebelum B117, dan 28 sesudah dua klaim `verify:relay` milik B97 didaftarkan) *(tadinya tertulis "9/9 harness terurai" — benar saat harnessnya masih sembilan; jumlah harness sengaja tidak kutulis di sini karena tidak ada perintah yang mencetaknya)* |
 | `npm run sync:numbers -- --only=<id>` | ulang SATU harness saja untuk mendiagnosis merah (mis. `--only=serveProbe`); angka sebagian tidak masuk JSON — ia menolak menulis `numbers.json` | 1 harness, tanpa menulis JSON |
 | `npm run diag:lists` | mengadili perbedaan hash daftar: render vs sajian tepi vs `getTimestamp` BAS | membuktikan B89 bukan soal data |
-| `npm run probe:serve` | mengadili server signer yang SEDANG BERJALAN (49 pemeriksaan) — ia TIDAK menyalakan server: `npm run serve` dulu, kalau tidak ia bilang "nyalakan dulu" + cara melepas port per-PID | PROBE SERVE HIJAU — 49, 0 gagal |
-| `npm run check:samples` | mengadili tiap nilai `SAMPLE_HASHES` di FE: 200 di tepi DAN status di chain cocok dengan labelnya | CONTOH UI HIJAU — 5 pemeriksaan, 0 gagal |
+| `npm run probe:serve` | mengadili server signer yang SEDANG BERJALAN (50 pemeriksaan; 49 sebelum agen keempat B102) — ia TIDAK menyalakan server: `npm run serve` dulu, kalau tidak ia bilang "nyalakan dulu" + cara melepas port per-PID | PROBE SERVE HIJAU — 50, 0 gagal |
+| `npm run check:samples` | mengadili tiap nilai `SAMPLE_HASHES` di FE: 200 di tepi DAN status di chain cocok dengan labelnya; sejak B102 juga menuntut **spesimen untuk keempat keadaan** (valid / revoked / expired / delisted) | CONTOH UI HIJAU — 9 pemeriksaan, 0 gagal *(5 sebelum B102; korpus 21: 13 valid · 6 revoked · 1 expired · 1 delisted)* |
+| `npm run specimen` / `-- --apply` | B102: spesimen `delisted` (agen korban, alamat diturunkan dari label) dan `expired` (masa berlaku 675 detik); tanpa `--apply` hanya membaca chain | SPESIMEN HIJAU — 7 pemeriksaan, 0 gagal |
 | `npm run probe:cold` | server signer dengan `.store/` KOSONG — keadaan setiap orang yang datang dari `git clone` (B42/B106) | PROBE COLD HIJAU — 23, 0 gagal |
 | `LANCENA_ORIGIN=demo` | setel sebelum `npm run serve` untuk demo; harness menyetel `=test` sendiri (B78) | dibaca balik oleh `verify:db` sebagai pemeriksaan |
 | `npm run check:labels` | kelengkapan marker aturan #18: tiap ID tertutup punya marker atau alasan, tiap marker cocok dengan barisnya, tidak ada sisa bentuk lama, marker wajib di baris komentar dan wajib berstatus | LABEL HIJAU — 8 pemeriksaan, 0 gagal |
-| `npm run check:identity` | hash dokumen issuer builder vs signer lokal vs tepi harus sama, plus baseUrl host tetap | IDENTITAS HIJAU — 8 pemeriksaan, 0 gagal *(sebelumnya tertulis 4 — basi tanpa gerbang yang menangkap; B114)* |
+| `npm run check:identity` | hash dokumen issuer builder vs signer lokal vs tepi harus sama, plus baseUrl host tetap | IDENTITAS HIJAU — 9 pemeriksaan, 0 gagal *(8 sebelum agen keempat B102; lebih lama lagi tertulis 4 — basi tanpa gerbang yang menangkap; B114)* |
 | `npm run cleanup` | bersihkan baris tes Postgres dengan bukti; tanpa `--apply` hanya menghitung | CLEANUP HIJAU — 6, 0 gagal |
 | `npm run judge-variance` | ulangi penilaian 5x, dua kelas jawaban — bukti penilai punya gigi | substantif spread 0 · kosong 3 · jarak 97,0 |
 | `npm run monitor:edge` | alarm eksternal tepi: umur `publishedAt` vs ambang, `matchesChainNow` kedua daftar, `unchecked`, dokumen nyata 200 | AMAN 0 alarm · `--max-age=0` → ALARM |
