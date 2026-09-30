@@ -144,8 +144,8 @@ kita dokumentasikan untuk platform orang lain.
     `status=SELESAI` tanpa baris tertutup = TEMUAN; baris tertutup yang ditandai `status=TERBUKA` di
     kode = TEMUAN; sisa bentuk lama di berkas kode = TEMUAN; marker tanpa `status=` yang sah =
     TEMUAN; marker yang tidak duduk di baris komentar = TEMUAN; satu ID dua kali di berkas yang sama
-    = TEMUAN. Terukur 30 Sep: **LABEL HIJAU 8/0** (82 marker di 48 ID · 70 baris · 49 tertutup ·
-    4 beralasan `TANPA TAG KODE` = B43 B71 B74 B76) dan **SELF-TEST HIJAU — 12 fixture, 0 luput**,
+    = TEMUAN. Terukur 30 Sep: **LABEL HIJAU 8/0** (82 marker di 48 ID · 70 baris · 50 tertutup ·
+    5 beralasan `TANPA TAG KODE` = B43 B71 B74 B76 B115) dan **SELF-TEST HIJAU — 12 fixture, 0 luput**,
     termasuk dua yang wajib TIDAK terlapor: notasi tipe bytes32 dan preimage keccak `lencana-b41`.
     Kerjakan **satu ID lalu telusuri → marker → verify**, bukan massal: 26 marker sekaligus yang
     kupasang tanpa telusur menghasilkan satu marker menempel ke ID yang masih terbuka (B102) dan dua
