@@ -40,4 +40,4 @@ Yang boleh dikutip: **3,0** dan **97,0**. Yang tidak: menyebut rata-rata substan
 `app/.env`, jadi `npm run judge-variance` mati dengan "GROQ_API_KEY missing from the
 environment" meski kuncinya ada di repo sendiri — dan pesan kesalahannya menyuruh memakai perkakas
 di luar `app/`. Kelas yang sama dengan B43/B53/B56/B62: bukti yang cuma hidup di satu mesin.
-Diperbaiki 30 Sep, ditandai `penanda B110 = SELESAI` di kedua berkas. Lihat juga [[09-Testing/T11 - npm run judge]].
+Diperbaiki 30 Sep, ditandai marker `Lencana-B110 status=SELESAI` di kedua berkas (kala itu masih berbentuk kurung siku; dipindah oleh B112 opsi A). Lihat juga [[09-Testing/T11 - npm run judge]].

@@ -87,7 +87,7 @@ Every number below is the output of a command that was run, not a plan.
 | `npm run check:spec` (+ `-- --self-test`) in `web/` | **14/0 / failed** against the document the edge serves; the self-test corrupts that same document and requires **11 rows to go red** — the counter is proven able to fail |
 | `npm run probe:cold` in `signer/` | **23/0 / failed** (30 Sep) — what a fresh clone actually sees: an empty `.store/`. Found `/healthz` 500 on that state and the two causes were separated |
 | `npm run check:identity` in `signer/` | **8/0 / failed** (30 Sep) — the issuer document is byte-identical across builder / local signer / durable edge (`25495c4988aaf722`), for **every** agent referenced by an issued paper, and no key record stores a dead host |
-| `npm run check:labels` in `signer/` | **4/0 / failed** (30 Sep) — every closed backlog line carries a tag in the code it points at, and every tag agrees with its line |
+| `npm run check:labels` in `signer/` | **8/0 / failed** (30 Sep) — every closed backlog line carries a marker in the code it points at, every marker agrees with its line, no pre-B112 tag shape survives anywhere in the code, every marker sits on a comment line, no marker is missing its status, and no ID is marked twice in the same file |
 | files in the repo | **305 tracked** (`git ls-files`, 30 Sep). No `node_modules/`, `out/`, `cache/`, `broadcast/`, `dist/`, `.env`, `signer/.keys/`, `signer/.store/` — which means the numbers above are re-runnable **with our `.env`, our keys and our credential store**; a fresh clone needs its own issuer key, a funded wallet and `npm run issue` before any of it prints |
 
 The fork tests call **BAS (BNB Attestation Service, a fork of EAS 1.3.0) exactly as deployed on

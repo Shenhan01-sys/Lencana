@@ -129,25 +129,43 @@ kita dokumentasikan untuk platform orang lain.
     Kalau builder memang perlu kerja di luar `app/`, itu diminta di sesinya sendiri, bukan
     dibongkar dari sini. Aturan #16 (golongan bergembok tidak dikerjakan tanpa permintaan) tetap berlaku.
 
-18. **Setiap backlog selesai → tag di kodenya, dan tag itu diadili alat.** Aturan builder 29 Sep:
+18. **Setiap backlog selesai → marker di kodenya, dan marker itu diadili alat.** Aturan builder 29 Sep:
     "tandai seluruh source code yang sudah done berdasarkan backlog, biar tidak lupa dan tidak
-    diubah lagi". Bukan komentar "done!" (busuk dalam tiga hari), tapi baris yang bisa dicek silang:
-    `// <B67> SELESAI 2026-09-29 — <apa yang dijaga>. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.``
-    Bagian yang belum selesai tapi baru disentuh diberi ``<B102> TERBUKA`` — menandai separuh kerja
-    sebagai selesai membuat kode dan catatan saling membantah. Ditegakkan dua penjaga: **A9** di `npm run audit` (konsistensi) dan **`npm run check:labels`** ([[09-Testing/T29 - signer label-coverage.js]], kelengkapan):
-    tag `SELESAI` tanpa baris tertutup = TEMUAN; baris tertutup yang ditandai `TERBUKA` di kode = TEMUAN.
-    Kerjakan **satu ID lalu telusuri → tag → verify**, bukan massal: 26 tag sekaligus yang kupasang tanpa
-    telusur menghasilkan satu tag menempel ke ID yang masih terbuka (B102) dan dua baris backlog
-    menyebut nama test yang sudah kubuang sendiri (B39/B40) — keduanya baru ketahuan karena ditelusuri.
+    diubah lagi". Bukan komentar "done!" (busuk dalam tiga hari), tapi baris yang bisa dicek silang.
+    Bentuknya sejak 30 Sep (B112 opsi A): prefiks komentar mengikuti bahasa berkasnya (`//`, `///`,
+    `#`, `--`, `*`), dan tokennya wajib utuh — `Lencana-Bnn status=SELESAI|TERBUKA`:
 
-    **Perubahan bentuk yang sedang berjalan (B112 opsi A, dipilih builder 30 Sep).** Contoh di atas
-    akan diganti menjadi `// Lencana-Bnn status=SELESAI|TERBUKA — …`, karena pola kurung-siku-B-angka
-    juga dipakai kode kami sendiri sebagai notasi tipe — terukur 21 lokasi `[B32]` yang bukan tag —
-    sehingga "temukan semua tag" tidak bisa dibedakan dari "temukan array bytes32" dan kelengkapan tag
-    tidak bisa dituntut alat. **Tahap 1/4 selesai:** alatnya sudah di repo (`npm run migrate:tags` di
-    `signer/`, default DRY-RUN, terukur `MIGRASI HIJAU — 78 tag di 45 berkas`), **tag di kode belum
-    dipindah**. Aturan ini sengaja masih menulis bentuk lama sampai Tahap 2 selesai — catatan yang
-    mendahului kodenya membuat keduanya saling membantah. Rincian + kriteria terima:
+    `// Lencana-B67 status=SELESAI 2026-09-29 — <apa yang dijaga>. Buktikan ulang: npm run monitor:edge. JANGAN dibalik/diulang tanpa membuka kembali baris B67 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.`
+
+    Bagian yang belum selesai tapi baru disentuh diberi `status=TERBUKA` — menandai separuh kerja
+    sebagai selesai membuat kode dan catatan saling membantah. Ditegakkan dua penjaga: **A9** di
+    `npm run audit` (konsistensi marker ↔ baris, dua arah) dan **`npm run check:labels`**
+    ([[09-Testing/T29 - signer label-coverage.js]], kelengkapan **dan bentuk**): marker
+    `status=SELESAI` tanpa baris tertutup = TEMUAN; baris tertutup yang ditandai `status=TERBUKA` di
+    kode = TEMUAN; sisa bentuk lama di berkas kode = TEMUAN; marker tanpa `status=` yang sah =
+    TEMUAN; marker yang tidak duduk di baris komentar = TEMUAN; satu ID dua kali di berkas yang sama
+    = TEMUAN. Terukur 30 Sep: **LABEL HIJAU 8/0** (80 marker di 46 ID · 68 baris · 46 tertutup ·
+    4 beralasan `TANPA TAG KODE` = B43 B71 B74 B76) dan **SELF-TEST HIJAU — 12 fixture, 0 luput**,
+    termasuk dua yang wajib TIDAK terlapor: notasi tipe bytes32 dan preimage keccak `lencana-b41`.
+    Kerjakan **satu ID lalu telusuri → marker → verify**, bukan massal: 26 marker sekaligus yang
+    kupasang tanpa telusur menghasilkan satu marker menempel ke ID yang masih terbuka (B102) dan dua
+    baris backlog menyebut nama test yang sudah kubuang sendiri (B39/B40) — keduanya baru ketahuan
+    karena ditelusuri.
+
+    **Kenapa bentuknya diganti — koreksi terlihat, bukan penghapusan jejak.** Sampai 30 Sep bentuknya
+    kurung siku: `// <B67> SELESAI …`. Bentuk itu **tidak bisa diverifikasi mesin**, karena pola
+    kurung-siku-B-angka juga dipakai kode kami sendiri sebagai notasi tipe — terukur **21 lokasi**
+    `[B32]` yang bukan marker (`abi('statusOf', [B32], [BOOL, …])` di `e2e.js`, `journey.js`,
+    `revoke.js`, `verify-live-cert.js`). Jadi "temukan semua marker" tidak bisa dibedakan dari
+    "temukan array bytes32", dan kedua penjaga selama ini selamat **hanya karena kebetulan** mereka
+    mensyaratkan kata status sesudah kurung — akibatnya marker yang lupa status lolos selamanya dan
+    kelengkapan tidak pernah bisa dituntut alat. Yang diganti hanya tokennya: 78 marker di 45 berkas
+    dipindah oleh `npm run migrate:tags` (`signer/scripts/tag-migrate.js`, default DRY-RUN, menulis
+    hanya dengan `--apply`), satu token per baris, tanpa satu kalimat pun ditulis ulang — terbukti dari
+    `45 files changed, 78 insertions(+), 78 deletions(-)` dan verifikasi mekanis bahwa tiap baris baru
+    sama persis dengan baris lama setelah substitusi token. Tidak ada daftar hitam nama: 21 lokasi
+    notasi tipe itu lolos karena bahasanya memang bukan marker, bukan karena dikecualikan.
+    Rincian + tujuh kriteria terima:
     [[07-Backlog/03 - Findings and Tasks 2026-09-26]] B112, [[09-Testing/T29 - signer label-coverage.js]].
 
 Full rules: [[Conventions]] · Orientation: [[START-HERE]] · Document maps:

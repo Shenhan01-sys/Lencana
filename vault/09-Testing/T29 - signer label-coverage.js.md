@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run check:labels
 measured: 2026-09-30
-result: LABEL HIJAU — 4 pemeriksaan / 0 gagal (terukur ulang 30 Sep: 78 tag di 45 ID · 68 baris backlog · 46 tertutup · 4 ID tertutup beralasan TANPA TAG KODE (B43 B71 B74 B76) · lubang 0 · bandel 0. Angka sebelumnya di halaman ini — 73 tag / 42 ID / 43 tertutup — benar pada waktunya dan tidak kuhapus; yang di bawah ini dicetak ulang dari run hari ini.)
+result: LABEL HIJAU — 8 pemeriksaan / 0 gagal (terukur ulang 30 Sep sesudah migrasi B112: 80 marker di 46 ID · 68 baris backlog · 46 tertutup · 4 ID tertutup beralasan TANPA TAG KODE (B43 B71 B74 B76) · lubang 0 · bandel 0 · sisa bentuk lama 0; plus SELF-TEST HIJAU 12 fixture / 0 luput. Angka sebelumnya di halaman ini — 4 pemeriksaan, 73 tag / 42 ID, lalu 78 tag / 45 ID — benar pada waktunya dan tidak kuhapus; yang di bawah ini dicetak ulang dari run hari ini.)
 ---
 
 # T29 - signer label-coverage.js (aturan #18 ditegakkan dua arah)
@@ -17,19 +17,23 @@ klaim "source code sudah berlabel" jadi angka di chat, bukan keadaan di repo.
 
 | pemeriksaan | maksud |
 |---|---|
-| ID tertutup punya tag **atau** barisnya menulis `TANPA TAG KODE` | baseline 0 lubang; naik = merah |
-| tiap tag cocok dengan status barisnya | baseline 0 bandel |
+| ID tertutup punya marker **atau** barisnya menulis `TANPA TAG KODE` | baseline 0 lubang; naik = merah |
+| tiap marker cocok dengan status barisnya | baseline 0 bandel |
 | `TANPA TAG KODE` yang diumumkan memang benar tidak bertanda | tadinya pemeriksaan ini tautologi (senantiasa benar) — hijau pinjaman, sudah kuganti |
 | tidak ada baris TERBUKA yang ditandai `SELESAI` | arah kedua, sama dengan A9 |
+| **baru (B112):** tidak ada sisa bentuk lama di berkas kode | migrasi tidak boleh setengah jalan; 21 lokasi notasi tipe bytes32 tidak terlapor karena bahasanya memang bukan marker, bukan karena dikecualikan |
+| **baru (B112):** tiap marker duduk di baris komentar | marker di dalam string kode bukan penanda, dan tidak boleh dihitung sebagai penutup |
+| **baru (B112):** tidak ada marker tanpa `status=` yang sah | inilah lubang yang dulu **lolos selamanya**: bentuk lama hanya terbaca kalau kebetulan diikuti kata status |
+| **baru (B112):** satu ID tidak muncul dua kali di berkas yang sama | dua penanda untuk satu ID di satu berkas adalah undangan untuk memperbarui salah satunya saja |
 
-Terukur 30 Sep (dicetak `npm run check:labels` hari itu, sesudah tag B42/B54/B67/B78/B84/B105/B110/B111 masuk): **78 tag di 45 ID · 68 baris backlog · 46 tertutup · lubang 0 · bandel 0 → LABEL HIJAU 4/0**. Empat ID tertutup tanpa tag, semuanya mengumumkan `TANPA TAG KODE` di barisnya: **B43 B71 B74 B76**.
+Terukur 30 Sep sesudah migrasi B112 (dicetak `npm run check:labels` lalu `npm run sync:numbers` hari itu): **80 marker di 46 ID · 68 baris backlog · 46 tertutup · lubang 0 · bandel 0 · sisa bentuk lama 0 → LABEL HIJAU 8/0**, dan `npm run check:labels -- --self-test` → **SELF-TEST HIJAU — 12 fixture, 0 luput**. Empat ID tertutup tanpa marker, semuanya mengumumkan `TANPA TAG KODE` di barisnya: **B43 B71 B74 B76**. Selisihnya dijelaskan, bukan dibiarkan jadi teka-teki: 80 = 78 hasil migrasi + 2 marker B112 yang dipasang di `label-coverage.js` dan di blok A9 `audit-consistency.js`; 46 ID = 45 ID lama + B112. Terukur pagi hari yang sama, sebelum migrasi: 78 tag di 45 ID → LABEL HIJAU 4/0.
 
 Angka yang tertulis di halaman ini sebelumnya — `73 tag di 42 ID · 65 baris · 43 tertutup = 39 bertanda + 4 beralasan` — benar pada waktunya, bukan salah hitung; ia jadi basi karena tag baru masuk sesudahnya. Kutulis sebagai koreksi terlihat, bukan kutimpa.
 
 **Koreksi 30 Sep:** angka yang kutulis di halaman ini sebelumnya (47 tertutup / 41 bertanda + 6 beralasan, lalu "37+6", dan "38+2") **semuanya gelembung** — penjaga membaca status dari seluruh baris, sehingga kata `SELESAI` di dalam kalimat counted sebagai baris tertutup. Setelah pembacaan diperbaiki (sel pertama saja) dan `check:labels` dipasang, yang terukur: **43 tertutup · 37 bertanda · 6 beralasan · 0 lubang**, 73 tag di 42 ID. Satu tag juga ternyata bohong dan diluruskan: `penanda B52 = TERBUKA` → `TERBUKA`.
 Tergabung ke `npm run sync:numbers` sebagai harness ke-13.
 
-## B112 opsi A — bentuk marker diganti (Tahap 1/4 selesai 30 Sep, Tahap 2–4 belum)
+## B112 opsi A — bentuk marker diganti (30 Sep: marker sudah dipindah, penjaga sudah membaca bentuk baru)
 
 Penjaga ini dan A9 selama ini **selamat karena kebetulan**: keduanya mensyaratkan kata `SELESAI|TERBUKA`
 sesudah kurung siku, sedangkan pola kurung-siku-B-angka juga dipakai kode kami sendiri sebagai notasi
@@ -50,15 +54,30 @@ alat berbeda memberi angka sama. Kontrol negatifnya terbaca dari rencananya send
 `verify-live-cert.js` tidak masuk daftar; `journey.js` 1 tag (bukan 8) dan `revoke.js` 1 (bukan 5)
 padahal keduanya penuh `[B32]`.
 
-**Keadaan sekarang, supaya halaman ini tidak dibaca lebih maju dari kodenya:** tag di 45 berkas kode
-**masih berbentuk lama** `<Bnn> SELESAI|TERBUKA`. Yang sudah ada baru alatnya. Bentuk baru dipakai di
-kode pada Tahap 2, dan pada saat itu halaman ini bertambah pemeriksaan (sisa bentuk lama = TEMUAN,
-marker wajib di baris komentar, `--self-test` dengan fixture merah) sehingga **angka 4 pemeriksaan di
-atas akan naik** — README akar, `signer/README.md`, hub ini, dan `Quick-Reference.md` ikut diperbarui
-dari run hari itu, bukan dari ingatan. Satu catatan desain yang ketahuan saat mengukur: korpus sudah
-punya `lencana-b41` sungguhan di dalam preimage `keccak256("lencana-b41-probe-learner")`
-([[Notes/Session-2026-09-27-B41-validator]]), jadi penjaga wajib mencocokkan **token utuh
-case-sensitive**, bukan prefiksnya — kalau tidak, positif-palsu berikutnya lahir dari string keccak.
+**Keadaan sekarang (30 Sep, sesudah migrasi dijalankan):** 78 marker di 45 berkas kode **sudah
+berbentuk baru**, sisa bentuk lama **0** — tercetak `SUDAH TERMIGRASI` oleh `npm run migrate:tags`,
+dan diperiksa ulang setiap run oleh baris "tidak ada sisa bentuk lama" di atas. Pemeriksaan halaman
+ini **naik dari 4 jadi 8**, jadi angka di README akar, `signer/README.md`, hub, dan
+`Quick-Reference.md` disegarkan dari run hari yang sama, bukan dari ingatan.
+
+**`--self-test` — 12 fixture, 0 luput.** Penjaga yang tidak pernah terbukti bisa merah bukan penjaga,
+jadi fixture-nya mengadili fungsi yang sama dengan yang dipakai repo: marker tanpa status **tertangkap**,
+bentuk lama **tertangkap**, marker di dalam string kode **ditolak**, marker `SELESAI` pada baris
+TERBUKA **jadi bandel**, ID tertutup tanpa marker **jadi lubang**, `TANPA TAG KODE` yang ternyata
+bertanda **jadi bohong**, marker ke ID yang tidak punya baris **jadi bandel**, satu ID dua kali di
+berkas yang sama **jadi duplikat** — dan dua yang **wajib tidak terlapor**: notasi tipe
+`abi('statusOf', [B32], …)` serta preimage `keccak256("lencana-b41-probe-learner")`. Fixture-nya
+**dirakit dari potongan string**, tidak pernah ditulis harfiah: bentuk lama yang ditulis lengkap di
+berkas ini akan tertangkap pemeriksaannya sendiri, dan penjaga yang merah karena membaca dirinya
+sendiri adalah penjaga yang tidak bisa dipakai (persis kejadian A3 dengan frasa terlarang).
+
+**Dua bug milikku sendiri yang tertangkap penjaga ini sebelum dikomit**, keduanya kelas yang sama —
+grup tangkapan regex: `ID_TOKEN` menangkap `67` bukan `B67`, sehingga 46 marker tampak menunjuk ID
+yang tidak ada (lubang 42, bandel 46); dan bug yang sama persis ada di pola A9 yang baru kutulis.
+Yang menangkap bukan mataku, melainkan pemeriksaan ini sendiri. Karena itu juga penjaga wajib
+mencocokkan **token utuh case-sensitive**: korpus sudah punya `lencana-b41` sungguhan di
+[[Notes/Session-2026-09-27-B41-validator]], dan mencocokkan prefiksnya saja akan melahirkan
+positif-palsu berikutnya dari string keccak.
 
 Terkait: [[09-Testing/T27 - signer cold-store-probe.js]], [[09-Testing/T18 - signer verify-edge.js]],
 [[07-Backlog/03 - Findings and Tasks 2026-09-26]] B78 dan **B112**.

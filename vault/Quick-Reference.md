@@ -53,8 +53,8 @@ never retyped.
 | `npm run check:samples` | mengadili tiap nilai `SAMPLE_HASHES` di FE: 200 di tepi DAN status di chain cocok dengan labelnya | CONTOH UI HIJAU — 5 pemeriksaan, 0 gagal |
 | `npm run probe:cold` | server signer dengan `.store/` KOSONG — keadaan setiap orang yang datang dari `git clone` (B42/B106) | PROBE COLD HIJAU — 23, 0 gagal |
 | `LANCENA_ORIGIN=demo` | setel sebelum `npm run serve` untuk demo; harness menyetel `=test` sendiri (B78) | dibaca balik oleh `verify:db` sebagai pemeriksaan |
-| `npm run check:labels` | kelengkapan label aturan #18: tiap ID tertutup punya tag atau alasan, tiap tag cocok dengan barisnya | LABEL HIJAU — 4 pemeriksaan, 0 gagal |
-| `npm run check:identity` | hash dokumen issuer builder vs signer lokal vs tepi harus sama, plus baseUrl host tetap | IDENTITAS HIJAU — 4, 0 gagal |
+| `npm run check:labels` | kelengkapan marker aturan #18: tiap ID tertutup punya marker atau alasan, tiap marker cocok dengan barisnya, tidak ada sisa bentuk lama, marker wajib di baris komentar dan wajib berstatus | LABEL HIJAU — 8 pemeriksaan, 0 gagal |
+| `npm run check:identity` | hash dokumen issuer builder vs signer lokal vs tepi harus sama, plus baseUrl host tetap | IDENTITAS HIJAU — 8 pemeriksaan, 0 gagal *(sebelumnya tertulis 4 — basi tanpa gerbang yang menangkap; B114)* |
 | `npm run cleanup` | bersihkan baris tes Postgres dengan bukti; tanpa `--apply` hanya menghitung | CLEANUP HIJAU — 6, 0 gagal |
 | `npm run judge-variance` | ulangi penilaian 5x, dua kelas jawaban — bukti penilai punya gigi | substantif spread 0 · kosong 3 · jarak 97,0 |
 | `npm run monitor:edge` | alarm eksternal tepi: umur `publishedAt` vs ambang, `matchesChainNow` kedua daftar, `unchecked`, dokumen nyata 200 | AMAN 0 alarm · `--max-age=0` → ALARM |

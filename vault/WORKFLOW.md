@@ -70,19 +70,24 @@ Tambahkan tautan balik di entri backlog + tabel riwayat Hub.
 
 ## Tandai di kode setiap backlog yang selesai (aturan #18)
 
-Sebelum menutup satu baris backlog: telusuri berkas yang ia sebut, tempel tag satu ID per berkas,
-dengan apa yang dijaga + perintah pembuktinya. Contoh tag: `// <B67> SELESAI 2026-09-29 — alarm
-eksternal tepi. Buktikan ulang: npm run monitor:edge.` Dua penjaga mengadilinya: `npm run audit`
-(A9 — konsistensi tag ↔ baris, dua arah) dan `npm run check:labels` (T29 — kelengkapan: tiap ID
-tertutup punya tag atau alasan 'TANPA TAG KODE' yang tertulis di barisnya).
+Sebelum menutup satu baris backlog: telusuri berkas yang ia sebut, tempel marker satu ID per berkas,
+dengan apa yang dijaga + perintah pembuktinya. Bentuknya sejak 30 Sep (B112 opsi A):
+`// Lencana-B67 status=SELESAI 2026-09-29 — alarm eksternal tepi. Buktikan ulang: npm run monitor:edge.`
+Yang belum selesai tapi sudah disentuh diberi `status=TERBUKA`. Prefiks komentar mengikuti bahasa
+berkasnya (`//`, `///`, `#`, `--`, `*`); tokennya wajib utuh. Dua penjaga mengadilinya: `npm run audit`
+(A9 — konsistensi marker ↔ baris, dua arah) dan `npm run check:labels` (T29 — kelengkapan **dan bentuk**:
+tiap ID tertutup punya marker atau alasan 'TANPA TAG KODE' yang tertulis di barisnya, tidak ada sisa
+bentuk lama, marker wajib berstatus dan wajib duduk di baris komentar, satu ID tidak boleh dua kali di
+berkas yang sama). Terukur 30 Sep: **LABEL HIJAU 8/0** (80 marker di 46 ID) · **SELF-TEST HIJAU —
+12 fixture, 0 luput**.
 
-> **Dalam pengerjaan (B112 opsi A, 30 Sep): bentuk contoh di atas sedang diganti.** Builder sudah
-> memilih marker baru `Lencana-Bnn status=SELESAI|TERBUKA`, karena pola kurung-siku-B-angka juga
-> dipakai kode kami sebagai notasi tipe (21 lokasi `[B32]` yang bukan tag) sehingga kelengkapan tag
-> tidak bisa dituntut alat. **Tahap 1/4 selesai** — alatnya sudah di repo (`npm run migrate:tags`,
-> dry-run `MIGRASI HIJAU — 78 tag di 45 berkas`) — tapi **tag di kode masih berbentuk lama** sampai
-> Tahap 2 jalan. Halaman ini dan aturan #18 sengaja **belum** ditulis ulang ke bentuk baru:
-> mengubah catatan sebelum kodenya dipindah berarti vault dan kode saling membantah. Rinciannya di
+> **Bentuk lama sudah tidak berlaku — diganti 30 Sep (B112 opsi A).** Sebelum ini marker ditulis
+> dengan kurung siku. Bentuk itu tidak bisa diverifikasi mesin, karena pola kurung-siku-B-angka juga
+> dipakai kode kami sendiri sebagai notasi tipe — terukur 21 lokasi `[B32]` yang bukan marker — jadi
+> "temukan semua marker" tidak bisa dibedakan dari "temukan array bytes32" dan kelengkapan label tidak
+> pernah bisa dituntut alat. 78 marker di 45 berkas dipindah oleh `npm run migrate:tags` (satu token
+> per baris, tidak ada kalimat yang ditulis ulang), dan marker bentuk lama yang tertinggal sekarang
+> **TEMUAN** di `check:labels`. Rinciannya di
 > [[07-Backlog/03 - Findings and Tasks 2026-09-26]] B112 dan [[09-Testing/T29 - signer label-coverage.js]].
 
 ## Struktur Dokumen per-Item (pelengkap)
