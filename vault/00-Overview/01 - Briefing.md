@@ -28,7 +28,7 @@ mechanical questions instead. See [[01-Architecture/01 - Architecture|01 - Archi
 | | who | relationship to crypto |
 |---|---|---|
 | **Rina, 24** — learner | takes the course, submits work, receives a certificate | **none.** Never sees a seed phrase, never signs a transaction, never pays for the certificate |
-| **A training institution** — issuer and sponsor | writes the course, sets the pass standard | owns the agent, therefore owns the **issuance** key. It is a third party to us: we admit it, and we can delist it, but we cannot sign, speak or revoke on its behalf |
+| **A training institution** — issuer and sponsor | writes the course, sets the pass standard | owns the agent, therefore owns the **issuance** key. It is a third party to us: we admit it, and we can delist it, but we cannot sign, speak or revoke on its behalf. *(Koreksi 1 Okt, **D53**: agen tidak lagi dimiliki institusi — pemiliknya peran baru **Agent Owner**, dan institusi menyewa agen per aktivitas penilaian. Belum ada di kode; lihat B118/B119.)* |
 | **Bagas, HR** — verifier | receives hundreds of applicants, wants to know which are real | **none.** Opens a URL, pastes a code |
 
 The hackathon track literally reads *"social, gaming and loyalty with **seamless UX**"*. Wallet-free

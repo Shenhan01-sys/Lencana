@@ -18,6 +18,13 @@ this repository that re-runs it — with one caveat worth stating up front: thos
 gitignored. A fresh clone re-runs the offline suites and `npm run rubric` / `inventory` unaided; the
 chain-facing numbers need an issuer key, a funded testnet wallet and `npm run issue` first.
 
+> **Arah baru, 1 Okt — [[00-Overview/03 - Decisions|D53]].** Agen penilai akan dimiliki peran baru
+> *Agent Owner* dengan identitas di registry ERC-8004 yang disediakan BNB, dan penerbit menyewanya per
+> aktivitas penilaian (tujuh label tingkat berat); reviewer diperlakukan sebagai penilai, boleh agen AI.
+> **Belum ada di kode** — B118, B119, B120. Sampai itu selesai, "the issuer (a third party's agent)" di
+> paragraf atas berarti EOA + kunci dokumen yang dijalankan di mesin platform. Gambaran alur dari kode:
+> [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].
+
 ## ⏳ Position
 
 | | |

@@ -38,7 +38,8 @@ result: 38/0 offline (30 Sep malam; 31/0 sebelum B104) · 82/0 live (30 Sep mala
 > `…/results/web3-dasar-2026/0x1045d03c…`: `result 100 LULUS`, `essayScore 100`,
 > `reviews[0].decision = adjusted`, `proposed 80`, `finalScore 100`. **Yang tetap harus dibaca
 > bersama angka ini:** "model" di sini usulan harness (`harness:proposal-80pct`) dan reviewernya kunci
-> turunan label — yang terbukti mekanismenya, bukan keberadaan mentor. Kalimat "lapis `--live` tidak
+> turunan label — yang terbukti mekanismenya, bukan keberadaan mentor. *(1 Okt, D53: reviewer memang
+> tidak harus manusia — boleh agen AI; B120.)* Kalimat "lapis `--live` tidak
 > kujalankan ulang" di catatan berikut adalah keadaan satu jam sebelumnya, dibiarkan terbaca.
 
 > **30 Sep malam — B104.** Lapis hitung-saja naik **31 → 38**: tujuh pemeriksaan baru di blok "AI

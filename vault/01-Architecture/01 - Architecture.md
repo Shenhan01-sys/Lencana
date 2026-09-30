@@ -199,6 +199,18 @@ This *strengthens* the pitch rather than weakening it. ERC-8004 reputation is li
 reputation that learners can compare on real numbers. The honest submission line:
 *"Lencana does not own the agents. It owns the rules they must satisfy."*
 
+> **Catatan 1 Okt — tabel dan paragraf di atas adalah rancangan, bukan keadaan kode.** Diukur hari itu:
+> tidak ada satu baris kode pun yang memanggil registry ERC-8004, dan agen penerbit kita
+> (`0x8211…F7DE`) memegang **nol** identitas di IdentityRegistry BNB chain 97
+> (`0x8004A818BFB912233c491871b3d84c89A494BD9e`). Kunci agen hari ini ada di mesin platform — baris
+> "we do not host it and never hold its key" belum benar untuk demo. Builder mengukuhkan arah tabel
+> ini lewat **D53** (peran *Agent Owner* terpisah dari institusi; institusi menyewa agen per aktivitas
+> penilaian dengan tujuh label tingkat berat) dan pelaksanaannya dicatat sebagai **B118** (identitas
+> ERC-8004), **B119** (Agent Owner + sewa), **B120** (reviewer sebagai penilai) di
+> [[07-Backlog/03 - Findings and Tasks 2026-09-26]]. Satu dampak yang harus ikut dibaca: kalau
+> attester = agen milik Agent Owner, pencabutan (hanya attester) dan delisting (per attester) tidak
+> lagi melekat ke satu institusi — rinciannya di baris B119.
+
 ### The hard constraint this creates — read from source, not assumed
 
 Because the issuer is someone else's agent, there is something we assumed we could do and cannot:

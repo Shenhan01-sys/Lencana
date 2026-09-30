@@ -164,11 +164,12 @@ in 13 days:
 
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 — **terukur ulang 30 Sep sesudah B112, B114, B84, dan B115 ditutup**, dengan logika penjaga (status
-hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 78 baris tabel / **72 ID berbeda** =
-**56 SELESAI · 7 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
-B80 B82 B87 B99 B105 **B116**. Angka 56 ini **sepakat dengan yang dicetak
-`check:labels`** ("97 marker di 52 ID · 72 baris backlog · 56 tertutup"), jadi dua alat berbeda memberi
-angka yang sama. *(Sebelum B104 ditutup malam 30 Sep: 55 · 8, dan 94 marker di 51 ID.)* *(Sebelum B78 ditutup malam 30 Sep: 54 · 9, dan 93 marker.)* *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
+hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 82 baris tabel / **76 ID berbeda** =
+**56 SELESAI · 11 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
+B80 B82 B87 B99 B105 **B116** **B118 B119 B120 B121**. Angka 56 ini **sepakat dengan yang dicetak
+`check:labels`** ("97 marker di 52 ID · 76 baris backlog · 56 tertutup"), jadi dua alat berbeda memberi
+angka yang sama. *(1 Okt: empat baris baru — B118–B120 dari keputusan builder D53, B121 dari halaman
+proses bisnis 00-Overview/13 — menaikkan TERBUKA 7 → 11 tanpa mengubah jumlah tertutup. Sebelumnya 72 ID.)* *(Sebelum B104 ditutup malam 30 Sep: 55 · 8, dan 94 marker di 51 ID.)* *(Sebelum B78 ditutup malam 30 Sep: 54 · 9, dan 93 marker.)* *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
 ditutup malam yang sama: 52 · 11, dan 87 marker.)* *(Sebelum itu lagi
 51 · 12: B97 masih terbuka; ia ditutup sesudah siaran dari antrean terbukti di chain.)* *(Sebelum B117
 ditutup malam 30 Sep: 77 baris / 71 ID = 50 SELESAI · 12 TERBUKA · 9 bergembok.)* *(Baris ini tadinya
@@ -191,7 +192,11 @@ perintahnya pada hari ia dikutip (AGENTS #1).
 | 11 | **B82** | identitas lintas perangkat hilang | ekspor/import terkunci frase lewat tes dua browser | ½ h |
 | 12 | **B80** | 🔴 kunci kuis terbundel ke browser | `publicManifest` tanpa `answer` + `probe.ts) tetap hijau + rute kuis teruji server | ½ h |
 | 13 | **B59** | perkakas menyimpan kebenaran sebagai salinan basi | tiap harness punya gerbang sendiri, bukan angka di berkas catatan | sisa |
-| 14 | **B87** | peran | **sudah diputuskan (D42)** → kerjanya #7 + #8; baris ini tidak punya pekerjaan sendiri | — |
+| 14 | **B87** | peran | **sudah diputuskan (D42)** → kerjanya #7 + #8; baris ini tidak punya pekerjaan sendiri. *(1 Okt: D53 menambah peran Agent Owner dan mengubah makna "manusia mengesahkan" — pekerjaannya #15–#17)* | — |
+| 15 | **B118** 🔴 dicatat 1 Okt (D53) | agen belum punya identitas ERC-8004; narasi menjanjikannya, kode nol | F1: agen terdaftar di IdentityRegistry BNB (`0x8004A818…`) dengan `agentWallet` = attester, berkas registrasi terbaca, `addIssuer` hanya untuk identitas ERC-8004, halaman verifikasi menampilkan `agentId`; F2 reputasi; F3 validasi ditunda | belum diukur |
+| 16 | **B119** 🔴 dicatat 1 Okt (D53) | peran Agent Owner + sewa agen per aktivitas penilaian, tujuh label tingkat berat, selisih harga kecil | label melekat pada aktivitas sebelum dinilai, tabel harga satu sumber ber-hash, bayar lewat x402 ke Agent Owner, struk per usaha; dampak ke pencabutan/delisting diputuskan | belum diukur |
+| 17 | **B120** 🔴 dicatat 1 Okt (D53) | reviewer diperlakukan sebagai penilai (boleh agen AI) — makna B104 berubah, kodenya tidak | reviewer agen wajib agen ERC-8004 lain dari pengusul, `agentId` tercatat di pengesahan | belum diukur |
+| 18 | **B121** 🔴 dicatat 1 Okt | slot praktik tidak bisa diisi dari halaman belajar | praktik punya jalur dinilai yang bukan laporan peserta, dan halaman memanggilnya | belum diukur |
 
 **Gembok builder — jangan dikerjakan tanpa permintaan.** Terukur 30 Sep: **9 ID bergembok dari 69**.
 Dua sebab, dan keduanya punya alasannya sendiri di baris masing-masing: **aksi manusia** (AGENTS #16)

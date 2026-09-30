@@ -187,7 +187,8 @@ DB HIJAU — 70 pemeriksaan, 0 gagal
 ```
 
 Dua puluh pemeriksaan baru (50 → 70), satu rantai: **AI menilai → manusia mengesahkan → penerbit
-menerbitkan**. Skemanya `supabase/migrations/0009_judgement_reviews.sql`; rutenya
+menerbitkan**. *(1 Okt, D53: "manusia" dibaca "penilai kedua yang bukan penerbit, boleh agen AI" —
+pemeriksaannya sendiri tidak berubah; B120.)* Skemanya `supabase/migrations/0009_judgement_reviews.sql`; rutenya
 `POST /essay/reviewers` (penerbit menunjuk) dan `POST /essay/review` (reviewer mengesahkan) —
 lihat [[04-Signer-Service/S7 - Server routes and lifecycle]].
 

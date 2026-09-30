@@ -174,3 +174,8 @@ pemeriksaan harness) dan **B105** (halaman penerbit + kalimat onboarding yang be
 > `decision=`, `final=`), bukan nonce saja seperti `judgeEssay`. Satu kertas uji sudah benar-benar terbit
 > di chain lewat rantai ini (`verify:attempts:live` 82/0: usulan 80 → reviewer 100, dibaca balik dari
 > tepi). Yang belum: UI untuk reviewer, dan penilai serta pengesah sungguhan — rinciannya di baris B104.
+>
+> **Perubahan arah 1 Okt — D53.** Pengesah tidak harus manusia: reviewer diperlakukan sebagai penilai dan
+> boleh agen AI (B120). Agen penilai dimiliki peran baru *Agent Owner* dan disewa penerbit per aktivitas
+> penilaian dengan tujuh label tingkat berat (B119); identitas agennya di registry ERC-8004 BNB (B118).
+> Kata "manusia" di bagian ini dibaca dengan keputusan itu.

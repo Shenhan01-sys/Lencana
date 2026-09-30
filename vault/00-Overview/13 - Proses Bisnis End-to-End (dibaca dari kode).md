@@ -23,6 +23,13 @@ updated: 2026-09-30
 > **Aku belum mencocokkannya baris per baris dengan dua halaman lama itu** — kalau ada selisih, yang
 > benar adalah kodenya, dan selisihnya layak jadi koreksi terlihat di halaman lama.
 >
+> **Perubahan arah sesudah halaman ini ditulis — D53, 1 Okt.** Builder memutuskan tiga hal yang
+> mengubah bagian 2, 7, dan 11 di bawah (keadaan kodenya belum berubah; halaman ini tetap menggambarkan
+> kode hari ini): (1) agen penilai dimiliki peran baru **Agent Owner**, dan **penerbit menyewanya per
+> aktivitas penilaian** dengan tujuh label tingkat berat (sangat ringan … sangat berat) — B119;
+> (2) identitas agen memakai **registry ERC-8004 yang disediakan BNB** — B118; (3) **reviewer
+> diperlakukan sebagai penilai**, boleh agen AI — B120. Lihat [[00-Overview/03 - Decisions]] D53.
+>
 > Halaman ini sengaja hampir tanpa angka. Angka harness hidup di `09-Testing/numbers.json`
 > (`npm run sync:numbers`).
 
@@ -50,6 +57,7 @@ dengan tanda tangan.
 | **Platform Lencana** | kunci owner resolver = kunci pembayar gas (`DEPLOYER_PRIVATE_KEY`) | mendaftarkan dan mendelisting penerbit, menyiarkan transaksi atas nama agen, menyegel daftar status, mencetak artefak soulbound, menyajikan dokumen | **mencabut** kredensial penerbit, mengubah isi klaim, menilai peserta |
 | **Pemeriksa** (HRD, kampus lain, siapa pun) | tidak ada | membaca status dari chain, membuka dokumen dari tepi publik | — |
 | **Klien mesin** | EOA pemegang token | membayar per permintaan untuk verifikasi massal (`POST /verify`) | — |
+| ***Agent Owner*** — **rancangan D53, belum ada di kode** | pemilik NFT identitas ERC-8004 agen + kunci agen | merawat dan mengonfigurasi agen penilai; disewa penerbit per aktivitas penilaian | — (batas wewenangnya belum diputuskan; lihat dampak di B119) |
 
 ⚠️ **Yang harus dibaca bersama tabel ini.** Di demo hari ini kunci agen penerbit (`ISSUER_PRIVATE_KEY`
 dan `signer/.keys/`) berada di mesin yang sama dengan kunci platform. Pemisahan peran di atas
@@ -502,8 +510,7 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
    dinilai, dan satu-satunya jalan masuknya `POST /attempts` — yang **tidak dipanggil halaman belajar**
    (`grep -rn "/attempts" web/src` → nol pemanggil; harness memanggilnya langsung). Jadi peserta yang
    memakai halaman saja akan berhenti di "praktik: belum dikerjakan" saat penerbitan. Dan rute itu
-   sendiri menerima angka kiriman peserta. Belum punya baris backlog sendiri; yang tercatat baru
-   "praktik masih laporan klien" di B81.
+   sendiri menerima angka kiriman peserta. Dicatat sebagai **B121** (1 Okt).
 2. **Penerbitan tidak dipicu peserta.** Tidak ada rute "saya sudah selesai, terbitkan". Penerbit
    menjalankan `npm run issue` per peserta.
 3. **Penerbit dan platform satu mesin.** Kunci agen ada di `signer/.keys/` dan `.env` platform. Jalur
@@ -519,6 +526,10 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
 9. **Jalur hangus premi** hanya terbukti di uji kontrak, tidak di chain publik.
 10. **Dua kursus, satu penerbit demo.** Penerbitnya fiktif dan disebut fiktif di namanya sendiri
     (`web/src/manifest.ts`); kursus kedua (`web3-lanjut-2026`) mensyaratkan yang pertama.
+11. **"Agen" belum punya identitas di luar resolver kita.** Narasi Lencana (Briefing, Architecture)
+    menjanjikan agen ERC-8004; kode tidak memanggil registry ERC-8004 mana pun, dan agen penerbit
+    memegang nol identitas di IdentityRegistry BNB chain 97 (terukur 1 Okt). Dicatat sebagai **B118**,
+    bersama peran Agent Owner dan sewa per aktivitas (**B119**) serta reviewer sebagai penilai (**B120**).
 
 ## 14. Cara membuktikan ulang tiap alur
 
