@@ -171,5 +171,6 @@ pemeriksaan harness) dan **B105** (halaman penerbit + kalimat onboarding yang be
 > (`npm run verify:db` 70/0, `npm run verify:attempts` 38/0): migrasi 0009, rute
 > `POST /essay/reviewers` + `POST /essay/review`, dan gerbang ketiga yang fail-closed. Satu penyimpangan
 > dari butir 2 yang sengaja: pesan yang ditandatangani reviewer **mengikat isinya** (`attempt=`,
-> `decision=`, `final=`), bukan nonce saja seperti `judgeEssay`. Yang belum: satu kertas yang benar-benar
-> terbit di chain lewat rantai ini, dan UI untuk reviewer — rinciannya di baris B104.
+> `decision=`, `final=`), bukan nonce saja seperti `judgeEssay`. Satu kertas uji sudah benar-benar terbit
+> di chain lewat rantai ini (`verify:attempts:live` 82/0: usulan 80 → reviewer 100, dibaca balik dari
+> tepi). Yang belum: UI untuk reviewer, dan penilai serta pengesah sungguhan — rinciannya di baris B104.

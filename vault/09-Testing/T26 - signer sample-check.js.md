@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run check:samples · npm run check:samples -- --json · npm run specimen
 measured: 2026-09-30
-result: check:samples **9/0** · 21 dokumen di store · 21 terbit di tepi · 13 valid · 6 revoked · 1 expired · 1 delisted · specimen 7/0
+result: check:samples **9/0** · 22 dokumen di store · 22 terbit di tepi · 14 valid · 6 revoked · 1 expired · 1 delisted (21 dokumen · 13 valid sebelum kertas uji B104) · specimen 7/0
 ---
 
 # T26 - signer sample-check.js (hash contoh di antarmuka diadili, bukan diingat)

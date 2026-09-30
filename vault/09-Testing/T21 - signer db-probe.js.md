@@ -201,8 +201,8 @@ lihat [[04-Signer-Service/S7 - Server routes and lifecycle]].
   benar; definisi "dinilai" di pemeriksaan itulah yang basi (dulu cukup `verdict != incomplete`).
   Diselaraskan, dan sebabnya ditulis di komentar pemeriksaan itu.
 
-**Yang TIDAK dibuktikan run ini:** tidak ada kertas yang terbit di chain lewat rantai tiga lapis
-(`verify:attempts:live` tidak dijalankan ulang — lihat [[09-Testing/T22 - signer attempts-check.js]]);
+**Yang TIDAK dibuktikan run ini:** penerbitan di chain — itu dibuktikan terpisah malam yang sama oleh
+`verify:attempts:live` 82/0, satu kertas lewat rantai tiga lapis ([[09-Testing/T22 - signer attempts-check.js]]);
 reviewer adalah alamat yang ditunjuk penerbit, tanpa identitas dan tanpa pencabutan penunjukan; dan
 tidak ada UI maupun CLI untuk mengesahkan, hanya rute HTTP.
 

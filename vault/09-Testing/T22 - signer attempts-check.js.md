@@ -3,9 +3,36 @@ tags: [testing, "T22"]
 status: active
 updated: 2026-09-30
 command: npm run verify:attempts (hitung-saja) + npm run verify:attempts:live (Postgres + chain 97)
-measured: 2026-09-30 (offline) · 2026-09-29 (live — TIDAK diulang sesudah B104)
-result: 38/0 offline (30 Sep malam; 31/0 sebelum B104) · 67/0 live (29 Sep, belum diulang) · verify:edge 8/0 (29 Sep)
+measured: 2026-09-30 (offline dan live)
+result: 38/0 offline (30 Sep malam; 31/0 sebelum B104) · 82/0 live (30 Sep malam, lewat rantai pengesahan B104; 67/0 pada 29 Sep) · verify:edge 10/0 (30 Sep)
 ---
+
+> **30 Sep malam, sesudah catatan di bawah ini ditulis — lapis `--live` DIJALANKAN (builder minta diuji
+> langsung): 82 / 0.** Esai di lapis live sekarang lewat rantai tiga lapis, bukan lagi dinilai penerbit
+> tanpa model. Selisih 15 dari 67 = tujuh pemeriksaan hitung-saja B104 + delapan bersih di lapis live
+> (dua pemeriksaan lama "dinilai penerbit" diganti tujuh, ditambah tiga di ujung). Yang menyangkut rantainya:
+>
+> ```
+>   ok    usulan MODEL ditandatangani penerbit -> 200, skor 80, needsReview=true
+>   ok    angka model tanpa pengesahan TIDAK menggerakkan gerbang
+>   ok    issue --from-attempts DITOLAK karena esai bernilai model belum disahkan manusia (bukan karena pemanggilan salah)
+>   ok    dan penolakan itu terjadi SEBELUM gas: tidak ada attestation untuk peserta ini
+>   ok    penerbit menunjuk reviewer 0xa1C4F96d… -> 200
+>   ok    reviewer mengesahkan dengan penyesuaian -> 200: usulan 80 -> akhir 100
+>   ok    dokumen hasil di tepi: esai = angka reviewer (100), bukan usulan model (80)
+>   ok    dokumen hasil di tepi menyebut pengesahnya: reviewer, keputusan adjusted, usulan, angka akhir
+>   ok    komponen esai di dokumen hasil graded_by human, dan model pengusulnya tetap tercatat
+> ```
+>
+> Kertasnya:
+> `0x1045d03c5404f5627e70ac3d3e8a84570854a847a9d839ff9d4ffb71b5280655`, peserta uji
+> `0x864F2eCA53DC6489487f3628FBe687Cd73a832C9`, reviewer `0xa1C4F96df0DbfD225c4004B31481e21e410aa5e9`
+> (= `keccak256("lencana-b104-live-reviewer")`). Dibaca sekali lagi di luar harness, langsung dari
+> `…/results/web3-dasar-2026/0x1045d03c…`: `result 100 LULUS`, `essayScore 100`,
+> `reviews[0].decision = adjusted`, `proposed 80`, `finalScore 100`. **Yang tetap harus dibaca
+> bersama angka ini:** "model" di sini usulan harness (`harness:proposal-80pct`) dan reviewernya kunci
+> turunan label — yang terbukti mekanismenya, bukan keberadaan mentor. Kalimat "lapis `--live` tidak
+> kujalankan ulang" di catatan berikut adalah keadaan satu jam sebelumnya, dibiarkan terbaca.
 
 > **30 Sep malam — B104.** Lapis hitung-saja naik **31 → 38**: tujuh pemeriksaan baru di blok "AI
 > menilai → manusia mengesahkan → penerbit menerbitkan". Usulan model tanpa pengesahan → penurunan

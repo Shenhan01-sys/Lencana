@@ -529,6 +529,11 @@ async function live () {
     issuerAcct !== null, 'ISSUER_PRIVATE_KEY kosong')
   const essayLesson = lessons.find((l) => l.essay?.rubric?.length)
   const essayRubric = essayLesson?.essay?.rubric ?? []
+  // Reviewer run live diturunkan dari label (B49): alamatnya ikut tercetak di dokumen hasil kertas
+  // yang terbit, jadi asal-usulnya harus bisa dihitung ulang. Penunjukannya TIDAK dibuang sesudah run.
+  const liveReviewer = privateKeyToAccount(keccak256(toBytes('lencana-b104-live-reviewer')))
+  const LIVE_JUDGE_MODEL = 'harness:proposal-80pct'
+  let liveReview = null
   const filler = Array.from({ length: 430 }, (_, i) => `kata${i}`).join(' ')
   const essayText = `Karangan uji ini menyebut alamat 0x1234abcd5678ef90 dan fungsi attestationOf lewat https://docs.bnbchain.org/bnb-smart-chain/developer/rpc/ ; sisanya tidak bisa saya simpulkan dari data publik.` + ' ' + filler
   for (const slug of slugs.esai) {
@@ -555,17 +560,55 @@ async function live () {
     if (issuerAcct && essayRubric.length) {
       const preHash = String(sub.body?.attemptHash ?? '')
       const msg = `lencana-essay-judge ${preHash} nonce=${nonce()}`
+      /**
+       * B104 — rantai tiga lapis, dijalankan UTUH sampai ke kertas: model mengusulkan (ditandatangani
+       * penerbit) -> penerbitan DITOLAK -> penerbit menunjuk reviewer -> reviewer menyesuaikan angka ->
+       * baru penerbitan jalan. Sampai 30 Sep jalur ini dinilai penerbit tanpa model, jadi run live
+       * tidak pernah melewati pengesahan sama sekali.
+       */
+      const attemptId = Number(sub.body?.attemptId)
+      const proposedScores = essayRubric.map((r) => ({ label: r.label, score: Math.round(Number(r.max) * 0.8) }))
+      const proposedTotal = proposedScores.reduce((n, s) => n + s.score, 0)
       const jud = await post('/essay/judgement', {
-        issuer: issuerAcct.address, course: COURSE, lesson: slug, attemptId: Number(sub.body?.attemptId),
-        scores: essayRubric.map((r) => ({ label: r.label, score: r.max })),
+        issuer: issuerAcct.address, course: COURSE, lesson: slug, attemptId,
+        scores: proposedScores, judgeModel: LIVE_JUDGE_MODEL, judgeTemp: 0,
         message: msg, signature: await issuerAcct.signMessage({ message: msg }),
       })
-      check(`penilaian esai oleh kunci penerbit -> 200, skor ${jud.body?.score}, verdict ${jud.body?.verdict}`,
-        jud.status === 200 && Number(jud.body?.score) === 100 && jud.body?.verdict === 'pass'
+      check(`usulan MODEL ditandatangani penerbit -> 200, skor ${jud.body?.score}, needsReview=${jud.body?.needsReview}`,
+        jud.status === 200 && Number(jud.body?.score) === proposedTotal && jud.body?.needsReview === true
         && jud.body?.replacedHash === preHash && jud.body?.attemptHash !== preHash,
         `${jud.status} ${JSON.stringify(jud.body).slice(0, 150)}`)
+      const gatesProposed = await courseGates(learner.address, COURSE)
+      check('angka model tanpa pengesahan TIDAK menggerakkan gerbang',
+        Number(gatesProposed?.graded_attempts) === Number(gatesQueued?.graded_attempts),
+        JSON.stringify({ antre: gatesQueued?.graded_attempts, usulan: gatesProposed?.graded_attempts }))
+      const blocked = await issueArgs([])
+      check('issue --from-attempts DITOLAK karena esai bernilai model belum disahkan manusia (bukan karena pemanggilan salah)',
+        blocked.status !== 0 && /has no human review/.test(blocked.out) && notUsage(blocked.out),
+        `exit ${blocked.status} :: ${blocked.out.split('\n').slice(-3).join(' | ')}`)
+      const stillNone = await client.readContract({ address: RESOLVER, abi: ATTEST_OF, functionName: 'attestationOf', args: [credentialHashFor(learner.address)] })
+      check('dan penolakan itu terjadi SEBELUM gas: tidak ada attestation untuk peserta ini', stillNone === EMPTY, stillNone)
+
+      const roleMsg = `lencana-review-role course=${COURSE} reviewer=${liveReviewer.address.toLowerCase()} nonce=${nonce()}`
+      const role = await post('/essay/reviewers', {
+        issuer: issuerAcct.address, course: COURSE, reviewer: liveReviewer.address,
+        message: roleMsg, signature: await issuerAcct.signMessage({ message: roleMsg }),
+      })
+      check(`penerbit menunjuk reviewer ${liveReviewer.address.slice(0, 10)}… -> 200`, role.status === 200 && role.body?.reviewer === liveReviewer.address,
+        `${role.status} ${JSON.stringify(role.body).slice(0, 120)}`)
+      const finalScores = essayRubric.map((r) => ({ label: r.label, score: r.max }))
+      const finalTotal = finalScores.reduce((n, s) => n + Number(s.score), 0)
+      const revMsg = `lencana-essay-review attempt=${attemptId} decision=adjusted final=${finalTotal} nonce=${nonce()}`
+      const rev = await post('/essay/review', {
+        reviewer: liveReviewer.address, course: COURSE, lesson: slug, attemptId, decision: 'adjusted', scores: finalScores,
+        message: revMsg, signature: await liveReviewer.signMessage({ message: revMsg }),
+      })
+      check(`reviewer mengesahkan dengan penyesuaian -> 200: usulan ${rev.body?.proposed} -> akhir ${rev.body?.finalScore}`,
+        rev.status === 200 && Number(rev.body?.proposed) === proposedTotal && Number(rev.body?.finalScore) === finalTotal && rev.body?.verdict === 'pass',
+        `${rev.status} ${JSON.stringify(rev.body).slice(0, 170)}`)
+      liveReview = { proposed: proposedTotal, final: finalTotal }
       const gatesGraded = await courseGates(learner.address, COURSE)
-      check('setelah dinilai penerbit, usaha esai ikut terbaca gerbang',
+      check('setelah disahkan manusia, usaha esai ikut terbaca gerbang',
         Number(gatesGraded?.graded_attempts) === Number(gatesQueued?.graded_attempts) + 1
         && Number(gatesGraded?.best_score) === 100,
         JSON.stringify({ graded: gatesGraded?.graded_attempts, best: gatesGraded?.best_score }))
@@ -653,6 +696,21 @@ async function live () {
       !JSON.stringify(served).includes('"answer"') && served.evidence?.essayTextIncluded === false)
     check('rubrik di dokumen hasil == rubrik yang ikut dihash di setiap attempt peserta',
       served.rubric?.hash === rubricHash, `${served.rubric?.hash} vs ${rubricHash}`)
+    // B104, ujung rantainya: yang tercetak di dokumen hasil KERTAS YANG TERBIT adalah angka reviewer,
+    // dan dokumen itu menyebut siapa yang mengesahkan — dibaca dari host publik, bukan dari proses ini.
+    if (liveReview) {
+      const rv = served.attempts?.reviews?.[0]
+      check(`dokumen hasil di tepi: esai = angka reviewer (${liveReview.final}), bukan usulan model (${liveReview.proposed})`,
+        Number(served.evidence?.essayScore) === liveReview.final && Number(served.evidence?.essayScore) !== liveReview.proposed,
+        JSON.stringify(served.evidence))
+      check('dokumen hasil di tepi menyebut pengesahnya: reviewer, keputusan adjusted, usulan, angka akhir',
+        rv?.reviewer === liveReviewer.address && rv?.decision === 'adjusted' && rv?.proposed === liveReview.proposed && rv?.finalScore === liveReview.final
+        && String(served.method ?? '').includes(`adjusted oleh ${liveReviewer.address}`), JSON.stringify(rv ?? served.method))
+      check('komponen esai di dokumen hasil graded_by human, dan model pengusulnya tetap tercatat',
+        (served.attempts?.components ?? []).filter((c) => c.slot === 'esai').every((c) => c.gradedBy === 'human')
+        && (served.attempts?.components ?? []).some((c) => c.slot === 'esai')
+        && JSON.stringify(served.grader ?? {}).includes(LIVE_JUDGE_MODEL), JSON.stringify(served.grader))
+    }
   }
   check('angka yang sama keluar dari computeScore terhadap rekaman (tidak ada jalur kedua)',
     served ? String(served.result) === String(computeScore(real, evidenceFromAttempts(real, rows).evidence).total) : false,
