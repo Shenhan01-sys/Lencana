@@ -56,7 +56,13 @@ const HARNESS = [
   { id: 'liveCert', label: 'verify:live-cert', cwd: SIGNER, cmd: ['npm', ['run', 'verify:live-cert']], re: /LAPIS ARTEFAK HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'attempts', label: 'verify:attempts (offline)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m },
   { id: 'edge', label: 'verify:edge', cwd: SIGNER, cmd: ['npm', ['run', 'verify:edge']], re: /TEPI HIJAU — (\d+) pemeriksaan, (\d+) gagal/, also: /terukur : (\d+) dari (\d+)/ },
-  { id: 'forgeOffline', label: 'forge test (offline)', cwd: REPO, cmd: ['forge', ['test']], re: /(\d+) tests passed, (\d+) failed, (\d+) skipped/ },
+  // Lencana-B114 status=SELESAI 2026-09-30 — perintah harness ini sekarang PERSIS perintah yang
+  // dinamai barisnya di README (`forge test --no-match-path "*.fork.t.sol"`). Sebelumnya harness
+  // menjalankan `forge test` polos (66 passed, 0 failed, 9 skipped) sementara baris README menempelkan
+  // angka itu pada perintah --no-match-path yang mencetak 65/0/0 — dan A10 tetap hijau, karena ia
+  // membandingkan angka dengan angka, bukan angka dengan perintah yang menamainya. Buktikan ulang:
+  // npm run sync:numbers lalu npm run audit (A10). JANGAN dibalik/diulang tanpa membuka kembali baris B114 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'forgeOffline', label: 'forge test (offline, tanpa *.fork.t.sol)', cwd: REPO, cmd: ['forge', ['test', '--no-match-path', '*.fork.t.sol']], re: /(\d+) tests passed, (\d+) failed, (\d+) skipped/ },
   { id: 'webProbe', label: 'probe (web)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'probe']], re: /PROBE HIJAU \((\d+) pemeriksaan, (\d+) gagal\)/ },
   { id: 'samples', label: 'check:samples (contoh UI × tepi × chain)', cwd: SIGNER, cmd: ['npm', ['run', 'check:samples']], re: /CONTOH UI (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'spec', label: 'check:spec (14 asersi dinilai)', cwd: join(REPO, 'web'), cmd: ['npm', ['run', 'check:spec']], re: /hasil: (\d+) lulus · (\d+) gagal/ },
@@ -151,6 +157,22 @@ const DOC_CLAIMS = [
   // tidak ada penjaga, karena ia melatih orang mengabaikan barisnya.
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'edge', want: (m) => `verify:edge **${m.pass}/${m.fail}`, note: 'baris ringkasan harness' },
   { file: 'START-HERE.md', metric: 'edge', want: (m) => m.ratio ? `**${m.ratio.a} dari ${m.ratio.b}**` : 'TIDAK ADA RASIO', note: 'baris Publicly readable' },
+  // B114: kolom Quick-Reference berjudul "angka terakhir yang dicetak", jadi tiap barisnya yang punya
+  // metrik di numbers.json WAJIB kini — dan mulai hari ini dijaga, bukan dibiarkan pada ingatan.
+  // Baris hub Testing SENGAJA tidak ikut: kolomnya bertanggal, isinya rekaman pengukuran hari itu,
+  // dan memaksanya sama dengan hari ini berarti menyuruh orang menulis ulang sejarah. Garisnya:
+  // QR = klaim kini, hub = rekaman bertanggal. Polanya regex dan longgar pada kata "pemeriksaan",
+  // karena QR menulis bentuk pendek ("CLEANUP HIJAU — 6, 0 gagal") sementara alatnya mencetak panjang.
+  { file: 'Quick-Reference.md', metric: 'labels', want: (m) => new RegExp(`LABEL HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris check:labels di QR' },
+  { file: 'Quick-Reference.md', metric: 'identity', want: (m) => new RegExp(`IDENTITAS HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris check:identity di QR' },
+  { file: 'Quick-Reference.md', metric: 'cleanup', want: (m) => new RegExp(`CLEANUP HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris cleanup di QR' },
+  { file: 'Quick-Reference.md', metric: 'samples', want: (m) => new RegExp(`CONTOH UI HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris check:samples di QR' },
+  { file: 'Quick-Reference.md', metric: 'coldProbe', want: (m) => new RegExp(`PROBE COLD HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris probe:cold di QR' },
+  { file: 'Quick-Reference.md', metric: 'serveProbe', want: (m) => new RegExp(`PROBE SERVE HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris probe:serve di QR' },
+  { file: 'Quick-Reference.md', metric: 'spec', want: (m) => new RegExp(`${m.pass} lulus · ${m.fail} gagal`), note: 'baris check:spec di QR' },
+  { file: 'Quick-Reference.md', metric: 'attempts', want: (m) => new RegExp(`${m.pass}/${m.fail} offline`), note: 'baris verify:attempts di QR' },
+  { file: 'Quick-Reference.md', metric: 'edge', want: (m) => (m.ratio ? new RegExp(`npm run rehost[^\\n]*${m.ratio.a} dari ${m.ratio.b}`) : 'TIDAK ADA RASIO'), note: 'baris rehost di QR' },
+  { file: 'Quick-Reference.md', metric: 'verifyDb', want: (m) => new RegExp(`npm run grade:essay[^\\n]*verify:db.{0,3}${m.pass}/${m.fail}`), note: 'baris grade:essay di QR (mengutip angka verify:db)' },
 ]
 
 async function verifyDocs (numbers) {
@@ -170,6 +192,9 @@ async function verifyDocs (numbers) {
     console.log(`  BEDA   ${c.file} (${c.note}) — harus memuat "${want}"`)
     for (const h of hits.slice(0, 3)) console.log(h)
   }
+  // Jumlah klaim DICETAK, bukan diingat: Quick-Reference mengutip angka ini, dan angka yang tidak
+  // bisa dicetak perintahnya sendiri tidak boleh dikutip siapa pun (termasuk olehku).
+  console.log(`  klaim halaman yang diperiksa: ${DOC_CLAIMS.length}`)
   return bad
 }
 

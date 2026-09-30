@@ -401,8 +401,10 @@ async function collect () {
       readme.split(/\r?\n/).forEach((line, i) => {
         const cmd = Object.keys(PETA).sort((a, b) => b.length - a.length).find((c) => line.includes(c))
         // Baris `forge test` hanya dibandingkan dengan metrik OFFLINE, dan itu pun hanya pada baris
-        // yang menyebut --no-match-path: angka fork memang beda dan itu sah (66 offline, 120
-        // dengan fork aktif di 97, 104 di 56). Membandingkan semuanya = A10 merah selamanya.
+        // yang menyebut --no-match-path: angka fork memang beda dan itu sah (65 offline dengan
+        // --no-match-path — itulah perintah yang dijalankan harness sejak B114; 66 untuk `forge test`
+        // polos dengan 9 skip; 120 dengan fork aktif di 97; 104 di 56). Membandingkan semuanya =
+        // A10 merah selamanya.
         if (line.includes('forge test') && !line.includes('no-match-path')) return
         if (!cmd) return
         const m = line.match(/\*\*\s*(\d{1,4})\s*(?:checks\s*\/|passed\s*\/|\/)\s*(\d{1,3})/)
