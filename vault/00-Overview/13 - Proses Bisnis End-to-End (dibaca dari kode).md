@@ -57,7 +57,7 @@ dengan tanda tangan.
 | **Platform Lencana** | kunci owner resolver = kunci pembayar gas (`DEPLOYER_PRIVATE_KEY`) | mendaftarkan dan mendelisting penerbit, menyiarkan transaksi atas nama agen, menyegel daftar status, mencetak artefak soulbound, menyajikan dokumen | **mencabut** kredensial penerbit, mengubah isi klaim, menilai peserta |
 | **Pemeriksa** (HRD, kampus lain, siapa pun) | tidak ada | membaca status dari chain, membuka dokumen dari tepi publik | — |
 | **Klien mesin** | EOA pemegang token | membayar per permintaan untuk verifikasi massal (`POST /verify`) | — |
-| ***Agent Owner*** — **rancangan D53, belum ada di kode** | pemilik NFT identitas ERC-8004 agen + kunci agen | merawat dan mengonfigurasi agen penilai; disewa penerbit per aktivitas penilaian | — (batas wewenangnya belum diputuskan; lihat dampak di B119) |
+| ***Agent Owner*** — D53; **identitasnya sudah ada (B118), sewanya belum (B119)** | pemilik NFT identitas ERC-8004 agen (#2534, `0x067c…0c4f`) | merawat berkas registrasi dan dompet agen; kelak disewa penerbit per aktivitas penilaian | — (batas wewenangnya belum diputuskan; lihat dampak di B119) |
 
 ⚠️ **Yang harus dibaca bersama tabel ini.** Di demo hari ini kunci agen penerbit (`ISSUER_PRIVATE_KEY`
 dan `signer/.keys/`) berada di mesin yang sama dengan kunci platform. Pemisahan peran di atas
@@ -384,6 +384,10 @@ flowchart TD
   D -- tidak --> OK["VALID"]
 ```
 
+Sejak 1 Okt (B118) halaman juga membaca **identitas ERC-8004 agen penerbit**: manifest penerbit menyebut
+`agentId`, lalu halaman membuktikan ke registry BNB bahwa `agentWallet` identitas itu = attester kertas.
+Hasilnya satu kalimat alasan; verdict di bawah **tidak** berubah karenanya.
+
 Urutannya disengaja: fakta tentang **kredensial** (dicabut, kadaluarsa) menang atas penilaian tentang
 **penerbit** (didelisting). Halaman juga menelusuri rantai prasyarat (`prerequisiteOf`, berulang) dan
 menampilkan keadaan tiap mata rantainya, serta artefak soulbound kalau ada.
@@ -526,10 +530,10 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
 9. **Jalur hangus premi** hanya terbukti di uji kontrak, tidak di chain publik.
 10. **Dua kursus, satu penerbit demo.** Penerbitnya fiktif dan disebut fiktif di namanya sendiri
     (`web/src/manifest.ts`); kursus kedua (`web3-lanjut-2026`) mensyaratkan yang pertama.
-11. **"Agen" belum punya identitas di luar resolver kita.** Narasi Lencana (Briefing, Architecture)
-    menjanjikan agen ERC-8004; kode tidak memanggil registry ERC-8004 mana pun, dan agen penerbit
-    memegang nol identitas di IdentityRegistry BNB chain 97 (terukur 1 Okt). Dicatat sebagai **B118**,
-    bersama peran Agent Owner dan sewa per aktivitas (**B119**) serta reviewer sebagai penilai (**B120**).
+11. ~~**"Agen" belum punya identitas di luar resolver kita.**~~ **Ditutup 1 Okt (B118 F1):** agen penerbit
+    sekarang agen ERC-8004 #2534 di IdentityRegistry BNB, pemiliknya Agent Owner, dompetnya = attester, dan
+    halaman verifikasi membuktikannya per kertas. Yang masih putus di jalur ini: sewa per aktivitas (**B119**),
+    reviewer sebagai penilai (**B120**), dan reputasi (B118 F2) — belum ada.
 
 ## 14. Cara membuktikan ulang tiap alur
 
@@ -544,4 +548,5 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
 | F pencabutan dan delisting | `npm run revoke` · `npm run specimen` | [[09-Testing/T26 - signer sample-check.js]] |
 | G x402 | `npm run x402` | [[04-Signer-Service/S6 - x402 paid verification]] |
 | G premi tenggat | `npm run verify:deposit` | [[09-Testing/T34 - signer deposit-check.js]] |
+| A/E identitas agen ERC-8004 | `npm run verify:agent` | [[09-Testing/T35 - signer agent-identity-check.js]] |
 | kontrak | `forge test` (di `app/`) | [[09-Testing/T1 - forge test on chain 97]] |

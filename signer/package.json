@@ -10,6 +10,9 @@
   },
   "scripts": {
     "agent": "node scripts/agent.js",
+    "agent:identity": "node scripts/agent-identity.js",
+    "admit": "node scripts/admit.js",
+    "verify:agent": "tsx scripts/agent-identity-check.js",
     "adopt": "node scripts/adopt.js --demo",
     "check": "node scripts/check.js",
     "check:samples": "node scripts/sample-check.js",

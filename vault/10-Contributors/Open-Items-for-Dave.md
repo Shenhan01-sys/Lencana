@@ -412,3 +412,26 @@ di atas `SAMPLE_HASHES`). Kalau dipasang: tambahkan kunci `expired` / `delisted`
 dua hash di atas — nama kuncinya harus sama dengan label chain, karena `check:samples` membandingkan
 keduanya — lalu jalankan `npm run check:samples` di `signer/`. Jangan isi dengan hash lain supaya tombol
 hidup: alatnya akan merah, dan itu memang tugasnya.
+
+## OI-18 — identitas ERC-8004 agen penerbit sudah ada di laporan verifikasi; panelnya belum (B118, 1 Okt)
+
+Sejak 1 Okt agen penerbit kita adalah agen ERC-8004 **#2534** di IdentityRegistry yang disediakan BNB
+(chain 97), dan `web/src/verify.ts` membacanya per kertas. Yang sampai ke halaman hari ini hanya **satu
+kalimat alasan** baru ("Agen penerbitnya punya identitas ERC-8004 #2534 … bukan reputasi"). Datanya
+lengkap di `report.issuerAgent`:
+
+| field | isi |
+|---|---|
+| `agentId`, `registry` | identitas yang diklaim manifest penerbit (`web/src/manifest.ts` → `issuer.agent`) |
+| `owner` | pemilik NFT identitas — peran *Agent Owner* (D53) |
+| `wallet`, `walletIsAttester` | dompet agen di registry, dan apakah sama dengan attester kertas ini |
+| `registrationPointsBack` | berkas registrasi agen menunjuk balik ke `agentId` itu |
+
+Yang **tidak** kulakukan: menampilkan panelnya — `render.ts` milikmu. Dua hal untuk panel itu, dari
+pengukuran, bukan selera: (1) **ini informasi, bukan putusan** — verdict tidak berubah karenanya, jadi
+jangan dijadikan lencana hijau/merah kedua; (2) **jangan tulis "reputasi"** — yang dibaca hanya identitas,
+dan klaim reputasi dilarang di [[10-Contributors/Claims-Cheat-Sheet]].
+
+Satu hal lain yang ketemu sambil mencari ERC-8004, untuk fase FE: kartu agen di `web/index.html` mencetak
+"99.8% Consensus" dan "1,420 Essays Evaluated" — tidak ada perintah yang menghasilkan angka itu.
+Kalau kartunya dipertahankan, `agentId` 2534 dan dompetnya bisa jadi isi yang terukur.

@@ -74,6 +74,8 @@ const HARNESS = [
   { id: 'relay', label: 'verify:relay (rute relayer, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:relay']], re: /RELAY (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B90 status=SELESAI 2026-09-30 — rute setoran tenggat ikut jadi sumber angka; mode tanpa gas, servernya sendiri dengan store dingin. Buktikan ulang: npm run sync:numbers -- --only=deposit. JANGAN dibalik/diulang tanpa membuka kembali baris B90 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'deposit', label: 'verify:deposit (setoran tenggat, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:deposit']], re: /DEPOSIT (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B118 status=SELESAI 2026-10-01 —identitas agen ERC-8004 ikut jadi sumber angka; baca-saja, tanpa transaksi. Buktikan ulang: npm run sync:numbers -- --only=agent. JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'agent', label: 'verify:agent (identitas ERC-8004, baca-saja)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:agent']], re: /AGEN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -185,6 +187,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'relay', want: (m) => new RegExp(`RELAY HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:relay di QR' },
   { file: '09-Testing/T34 - signer deposit-check.js.md', metric: 'deposit', want: (m) => `DEPOSIT HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T34 (setoran tenggat)' },
   { file: 'Quick-Reference.md', metric: 'deposit', want: (m) => new RegExp(`DEPOSIT HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:deposit di QR' },
+  { file: '09-Testing/T35 - signer agent-identity-check.js.md', metric: 'agent', want: (m) => `AGEN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T35 (identitas ERC-8004)' },
+  { file: 'Quick-Reference.md', metric: 'agent', want: (m) => new RegExp(`AGEN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:agent di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

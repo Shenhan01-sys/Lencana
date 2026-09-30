@@ -210,6 +210,13 @@ reputation that learners can compare on real numbers. The honest submission line
 > [[07-Backlog/03 - Findings and Tasks 2026-09-26]]. Satu dampak yang harus ikut dibaca: kalau
 > attester = agen milik Agent Owner, pencabutan (hanya attester) dan delisting (per attester) tidak
 > lagi melekat ke satu institusi — rinciannya di baris B119.
+>
+> **Diperbarui 1 Okt, hari yang sama — B118 F1 ditutup.** Agen penerbit sekarang agen ERC-8004 **#2534**
+> di IdentityRegistry BNB; pemilik NFT-nya Agent Owner `0x067cb80aA2b82E6a31De974E0f67D044F3ca0c4f`
+> (kunci terpisah dari attester dan dari platform), `agentWallet` = attester `0x8211…F7DE`, dan berkas
+> registrasinya `data:` URI di chain. Halaman verifikasi membuktikannya per kertas
+> ([[09-Testing/T35 - signer agent-identity-check.js]]). Yang di tabel ini tetap rancangan: reputasi
+> portabel (F2), dan "we never hold its key" — di demo kunci Agent Owner juga dipegang tim kita.
 
 ### The hard constraint this creates — read from source, not assumed
 

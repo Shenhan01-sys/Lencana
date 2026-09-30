@@ -9,7 +9,8 @@
  * Setiap panggilan dicatat (label + argumen + hasil atau error) dan daftar itu ditampilkan,
  * supaya kegagalan baca tidak bisa menyamar sebagai "semua normal".
  */
-import { createPublicClient, http, toFunctionSelector, type Address, type Hex, type PublicClient } from 'viem'
+import { createPublicClient, http, toFunctionSelector, keccak256, stringToBytes, parseAbi, type Address, type Hex, type PublicClient } from 'viem'
+import { MANIFESTS } from './manifest'
 import {
   basAbi,
   credentialResolverAbi,
@@ -20,6 +21,13 @@ import {
 } from './abi'
 
 const ZERO_ADDR = '0x0000000000000000000000000000000000000000' as Address
+
+/** IdentityRegistry ERC-8004 (registry BNB). Hanya fungsi yang ADA di versi yang dideploy di chain 97. */
+const erc8004IdentityAbi = parseAbi([
+  'function ownerOf(uint256 tokenId) view returns (address)',
+  'function getMetadata(uint256 agentId, string metadataKey) view returns (bytes)',
+  'function tokenURI(uint256 tokenId) view returns (string)',
+])
 
 export type Endpoint = {
   rpcUrl: string
@@ -119,6 +127,23 @@ export type CertInfo = {
 
 export type ChainNode = { uid: Hex; status: 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'UNKNOWN'; depth: number }
 
+/**
+ * Identitas ERC-8004 agen penerbit (B118, D53). Informasi, BUKAN bagian putusan: verdict tetap dari
+ * resolver. Yang dibuktikan di sini hanya "manifest penerbit menyebut agen #N, dan dompet agen itu di
+ * registry = attester kertas ini". Reputasi tidak dibaca dan tidak diklaim.
+ */
+export type IssuerAgentInfo = {
+  standard: 'ERC-8004'
+  registry: Address | null
+  agentId: string | null
+  /** dari mana `agentId` diambil — hari ini selalu manifest penerbit kursus kertas ini */
+  claimedBy: string | null
+  owner: Address | null
+  wallet: Address | null
+  walletIsAttester: boolean | null
+  registrationPointsBack: boolean | null
+}
+
 export type Report = {
   input: { raw: string; interpretedAs: Interpretation; note: string }
   endpoint: Endpoint
@@ -128,6 +153,7 @@ export type Report = {
   credential: CredentialInfo
   resolver: ResolverInfo
   cert: CertInfo
+  issuerAgent: IssuerAgentInfo
   anchors: { evidenceTimestamp: number | null; offchainRevokedByIssuer: number | null }
   chainHistory: ChainNode[]
   readLog: ReadLog[]
@@ -315,6 +341,10 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
       holderBalance: null,
       wiredToThisResolver: null,
       hasCode: false,
+    },
+    issuerAgent: {
+      standard: 'ERC-8004', registry: null, agentId: null, claimedBy: null,
+      owner: null, wallet: null, walletIsAttester: null, registrationPointsBack: null,
     },
     anchors: { evidenceTimestamp: null, offchainRevokedByIssuer: null },
     chainHistory: [],
@@ -696,6 +726,40 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
     )
   }
 
+  // -------------------------------------------- 8b. identitas ERC-8004 agen penerbit (B118)
+  // Lencana-B118 status=SELESAI 2026-10-01 —halaman verifikasi membuktikan klaim manifest "agen ERC-8004 #N" dengan membaca agentWallet di registry dan membandingkannya dengan attester; tidak mengubah verdict. Buktikan ulang: npm run verify:agent (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  const claimed = report.credential.courseId
+    ? MANIFESTS.find((m) => keccak256(stringToBytes(m.course.id)).toLowerCase() === String(report.credential.courseId).toLowerCase())
+    : undefined
+  const agentRef = claimed?.issuer.agent
+  const agentReg = agentRef ? /^eip155:(\d+):(0x[0-9a-fA-F]{40})$/.exec(agentRef.registry) : null
+  if (agentRef && agentReg && Number(agentReg[1]) === report.chain.chainId && report.credential.issuer) {
+    const registry = agentReg[2] as Address
+    const id = BigInt(agentRef.agentId)
+    Object.assign(report.issuerAgent, { registry, agentId: agentRef.agentId, claimedBy: `manifest penerbit ${claimed!.course.id}` })
+    report.issuerAgent.owner = await read<Address>('ERC8004.ownerOf(agentId)', registry, agentRef.agentId, () =>
+      client.readContract({ address: registry, abi: erc8004IdentityAbi, functionName: 'ownerOf', args: [id] }),
+    )
+    // Versi yang dideploy di 97 tidak punya getAgentWallet(); dompetnya metadata reserved "agentWallet".
+    const walletBytes = await read<Hex>('ERC8004.getMetadata(agentId,"agentWallet")', registry, agentRef.agentId, () =>
+      client.readContract({ address: registry, abi: erc8004IdentityAbi, functionName: 'getMetadata', args: [id, 'agentWallet'] }),
+    )
+    report.issuerAgent.wallet = walletBytes && walletBytes.length === 42 ? (`0x${walletBytes.slice(2)}` as Address) : null
+    report.issuerAgent.walletIsAttester = report.issuerAgent.wallet
+      ? report.issuerAgent.wallet.toLowerCase() === String(report.credential.issuer).toLowerCase()
+      : false
+    const uri = await read<string>('ERC8004.tokenURI(agentId)', registry, agentRef.agentId, () =>
+      client.readContract({ address: registry, abi: erc8004IdentityAbi, functionName: 'tokenURI', args: [id] }),
+    )
+    let reg: { registrations?: { agentId?: number | string; agentRegistry?: string }[] } | null = null
+    try {
+      const b64 = /^data:application\/json;base64,(.+)$/.exec(uri ?? '')?.[1]
+      reg = b64 ? JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0)))) : null
+    } catch { reg = null }
+    report.issuerAgent.registrationPointsBack = Boolean(reg?.registrations?.some((r) =>
+      String(r.agentId) === agentRef.agentId && String(r.agentRegistry ?? '').toLowerCase() === agentRef.registry.toLowerCase()))
+  }
+
   // -------------------------------------------- 9. keputusan
   const c = report.credential
   const now = report.chain.blockTimestamp
@@ -736,6 +800,12 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
 
   if (report.resolver.schemaUid && c.schemaUid && c.schemaUid.toLowerCase() !== report.resolver.schemaUid.toLowerCase()) {
     reasons.push('AWAS: UID schema attestation ini berbeda dari UID schema resolver. Jangan terima kredensial dari schema lain.')
+  }
+  const ag = report.issuerAgent
+  if (ag.agentId && ag.walletIsAttester === true) {
+    reasons.push(`Agen penerbitnya punya identitas ERC-8004 #${ag.agentId} di registry ${ag.registry}; dompet agen itu = attester kertas ini (dibaca dari chain). Identitas, bukan reputasi — reputasinya tidak dibaca di sini.`)
+  } else if (ag.agentId && ag.walletIsAttester === false) {
+    reasons.push(`Manifest penerbit menyebut agen ERC-8004 #${ag.agentId}, tetapi dompet agen itu (${ag.wallet ?? 'kosong'}) BUKAN attester kertas ini — klaim manifest tidak terbukti untuk kertas ini.`)
   }
   const badLink = report.chainHistory.find((n) => n.status !== 'ACTIVE')
   if (badLink) {

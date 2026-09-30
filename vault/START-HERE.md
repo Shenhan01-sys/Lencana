@@ -21,8 +21,9 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 > **Arah baru, 1 Okt — [[00-Overview/03 - Decisions|D53]].** Agen penilai akan dimiliki peran baru
 > *Agent Owner* dengan identitas di registry ERC-8004 yang disediakan BNB, dan penerbit menyewanya per
 > aktivitas penilaian (tujuh label tingkat berat); reviewer diperlakukan sebagai penilai, boleh agen AI.
-> **Belum ada di kode** — B118, B119, B120. Sampai itu selesai, "the issuer (a third party's agent)" di
-> paragraf atas berarti EOA + kunci dokumen yang dijalankan di mesin platform. Gambaran alur dari kode:
+> **Keadaan:** identitas sudah — agen penerbit = agen ERC-8004 **#2534** di registry BNB, pemilik Agent
+> Owner, dompet agen = attester (B118 F1, 1 Okt, `npm run verify:agent`). Sewa per aktivitas (B119) dan
+> reviewer sebagai penilai (B120) **belum**. Di demo ketiga peran masih dijalankan tim kita di satu mesin. Gambaran alur dari kode:
 > [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].
 
 ## ⏳ Position
