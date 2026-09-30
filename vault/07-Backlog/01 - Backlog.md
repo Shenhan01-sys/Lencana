@@ -174,10 +174,10 @@ penghitungannya.)* Angka apa pun di bawah harus dicetak ulang oleh perintahnya p
 
 | # | ID | apa | selesai kalau | ± |
 |---|---|---|---|---|
-| 1 | **B107** | `sync:numbers` melapor merah tanpa sebab anak | `probe:serve`/verify:edge MERAH menampilkan 8 baris terakhir anak + `needs: local signer` | 20 m |
-| 2 | **B67** ✅ SELESAI 29 Sep, kriteria 30 Sep dipenuhi ([[09-Testing/T28 - signer monitor-edge.js]]) | ~~tepi tidak tahu `publish` berhenti~~ | — |
-| 3 | **B66** | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | migrasi + 2 pemeriksaan `verify:db` (kadaluarsa hilang, aktif utuh) | 30 m |
-| 4 | **B78** 🟡 30 Sep: diagnosa lama salah — baris tes TIDAK punya penanda, jadi `sisa = 0` belum bisa dikueri; menunggu pilihan jalur A (self-purge) atau B (kolom `origin`) | artefak tes | — |
+| 1 | **B107** ✅ SELESAI 29 Sep — `DIAGONOSA` (12 baris terakhir anak + prasyarat + penyelamat), `--only=<id>`, dan menolak menulis `numbers.json` dari run sebagian | ~~`sync:numbers` melapor merah tanpa sebab anak~~ | — | — |
+| 2 | **B67** ✅ SELESAI 29 Sep, kriteria 30 Sep dipenuhi ([[09-Testing/T28 - signer monitor-edge.js]]) | ~~tepi tidak tahu `publish` berhenti~~ | — | — |
+| 3 | **B66** 🔒 DITAHAN 30 Sep — memberi TTL pada `used_nonces` **membuka kembali** jendela replay, karena `authorizeLearner` hanya menerima `nonce=([0-9a-f]{12,})` tanpa `ts=`; yang harus berubah lebih dulu adalah **bentuk pesan yang ditandatangani**, bukan skemanya | `used_nonces` tanpa TTL, `progress_events` tanpa retensi | pesan bertanda tangan memuat `ts=` dulu, baru migrasi + 2 pemeriksaan `verify:db` | — |
+| 4 | **B78** 🟡 30 Sep: jalur B **sudah dipasang, (a)+(b) selesai** — kolom `origin` + `LANCENA_ORIGIN` + `npm run cleanup` (sisa `origin=test` = **0**), dan `verify:db` **48/0** membaca balik penandanya. Yang tersisa hanya **(c)** view `course_gates` yang masih membaca baris tes — butuh `drop` + `create view`, konsumennya embedding PostgREST + halaman hasil | artefak tes | (c) saja |
 | 5 | **B84** | identitas penerbit punya 3 sumber berbeda | `publish.js` + `server.js` + `.keys/` menghasilkan **hash dokumen issuer yang sama** (verifikasi tanpa transaksi) | 1 j |
 | 6 | **B102** | spesimen `delisted`/`expired` belum ada | `check:samples` melaporkan keduanya non-nol; tombol yang dicabut boleh dipasang lagi. Butuh 1 transaksi testnet → **izin builder** | 1 j |
 | 7 | **B105** | halaman penerbit + kalimat onboarding jujur | `#/publishers` baca-saja + README sesuai #5. **Tergantung #5** | 1 j |
@@ -189,8 +189,16 @@ penghitungannya.)* Angka apa pun di bawah harus dicetak ulang oleh perintahnya p
 | 13 | **B59** | perkakas menyimpan kebenaran sebagai salinan basi | tiap harness punya gerbang sendiri, bukan angka di berkas catatan | sisa |
 | 14 | **B87** | peran | **sudah diputuskan (D42)** → kerjanya #7 + #8; baris ini tidak punya pekerjaan sendiri | — |
 
-**Gembok builder (AGENTS #16, jangan dikerjakan tanpa permintaan):** B49, B63, B64, B65, B73, B75, B95.
+**Gembok builder — jangan dikerjakan tanpa permintaan.** Terukur 30 Sep: **9 ID bergembok dari 69**.
+Dua sebab, dan keduanya punya alasannya sendiri di baris masing-masing: **aksi manusia** (AGENTS #16)
+= B63, B64, B65; **ditahan atas keputusan builder** = B49, B66 (TTL pada `used_nonces` akan membuka
+ulang jendela replay selama pesan yang ditandatangani belum memuat `ts=`), B73, B75, B77, B95.
+*(Baris ini tadinya menyebut tujuh ID — B66 dan B77 ketinggalan, padahal keduanya bergembok.)*
 
-**Gerbang wajib sebelum menyebut apa pun "selesai":** `npm run sync:numbers` (13 harness) →
-`npm run audit` (10) → `check-links` 0 rusak + `check-lang` 0 CJK + mermaid → komit (tanpa atribusi AI)
-→ dorong **hanya** atas kata builder.
+**Gerbang wajib sebelum menyebut apa pun "selesai":** `npm run sync:numbers` (**15 harness**) lalu
+`-- --verify` (**25 klaim halaman**) → `npm run audit` (**12 pemeriksaan**, termasuk A9 marker↔baris
+dan A10 angka README) → `npm run check:labels` (**8 pemeriksaan** + `--self-test` 12 fixture) →
+`check-links` 0 rusak + `check-lang` 0 CJK + `check-mermaid` 0 hazard → komit (tanpa atribusi AI)
+→ dorong **hanya** atas kata builder. *(Baris ini tadinya menulis "13 harness" dan "audit (10)" —
+basi, dan tidak menyebut `check:labels` sama sekali; angka di atas dicetak ulang oleh perintahnya
+sendiri pada 30 Sep.)*
