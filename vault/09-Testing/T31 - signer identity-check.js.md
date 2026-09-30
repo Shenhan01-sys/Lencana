@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run check:identity
 measured: 2026-09-30
-result: IDENTITAS HIJAU — 4 pemeriksaan / 0 gagal
+result: IDENTITAS HIJAU — 8 pemeriksaan / 0 gagal
 ---
 
 # T31 - signer identity-check.js (satu sumber identitas penerbit, tiga pembacaan)
@@ -29,7 +29,9 @@ tanda tangan di kertas itu.
 
 · builder / signer lokal / tepi: hash **identik** `25495c4988aaf722`
 · `baseUrl` = `https://lencana-edge.hansgunawan775.workers.dev` (host tetap)
-· `IDENTITAS HIJAU — 4 pemeriksaan, 0 gagal`
+· `IDENTITAS HIJAU — 8 pemeriksaan, 0 gagal`
+· dokumen penerbit SEMUA agen yang dirujuk kertas terbit (agent-b41, agent-demo, agent-edge) bersih dari host mati
+· catatan kunci lokal (3 agen) bersih dari host mati — ini yang dulu bikin B41 bisa terjadi
 
 ## Cara menjalankan
 

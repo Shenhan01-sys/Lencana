@@ -12,9 +12,13 @@
  * harus cocok adalah seluruh isi yang dipercaya verifier. Keluar: 0 = sama, 1 = berbeda.
  */
 import { createHash } from 'node:crypto'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { loadFileEnvReport } from '../src/env.js'
 import { identityBase, issuerDocumentFor, listAgents, loadKey } from '../src/issuer.js'
 
+const SIGNER = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 await loadFileEnvReport('check:identity')
 const env = process.env
 const EDGE = (env.EDGE_BASE_URL ?? 'https://lencana-edge.hansgunawan775.workers.dev').replace(/\/$/, '')
@@ -70,5 +74,54 @@ cek('dokumen builder memakai kunci yang sama dengan berkas .keys/', (() => {
   const entri = (dibangun?.assertionMethod ?? []).find((x) => x.id === kunci?.id)
   return Boolean(entri) && entri.publicKeyMultibase === kunci.publicKeyMultibase
 })(), 'builder menghasilkan kunci/controller lain dari berkas')
+/**
+ * SETIAP agen yang dirujuk kertas terbit harus punya dokumen penerbit yang bersih di tepi — bukan
+ * hanya agen aktif (B54). 30 Sep: gerbang ini dulu cuma mengadili agent-edge, sementara 6 kertas
+ * menunjuk agen lain (agent-b41 ×3, agent-demo ×3). Yang basi ternyata hanya berkas kunci lokal;
+ * dokumen di tepi bersih. Tanpa pemeriksaan ini, regresi "dokumen penerbit menunjuk tunnel mati"
+ * tidak terbaca oleh gerbang mana pun — padahal itu persis kecelakaan B41.
+ */
+{
+  const jalurStore = join(SIGNER, '.store', 'state.json')
+  if (!existsSync(jalurStore)) {
+    console.log('      info  store lokal tidak ada — pemeriksaan agen rujukan dilewati, BUKAN dianggap lulus')
+  } else {
+    const st = JSON.parse(readFileSync(jalurStore, 'utf8'))
+    const dirujuk = new Set()
+    for (const c of Object.values(st.credentials ?? {})) {
+      const s = String(c?.document?.issuer?.id ?? '').match(/issuers\/([\w-]+)/)?.[1]
+      if (s) dirujuk.add(s)
+    }
+    for (const s of [...dirujuk].sort()) {
+      const rEdge = await get(`${EDGE}/issuers/${s}`)
+      const rLokal = await get(`${LOCAL}/issuers/${s}`)
+      const doc = rEdge.ok ? rEdge.body : (rLokal.ok ? rLokal.body : null)
+      const mana = rEdge.ok ? 'tepi' : (rLokal.ok ? 'signer lokal' : 'tidak tersaji')
+      const mati = (JSON.stringify(doc ?? {}).match(/https?:\/\/[a-z0-9.-]+/gi) ?? [])
+        .filter((u) => /trycloudflare|127\.0\.0\.1|localhost/.test(u))
+      cek(`dokumen issuer ${s} (${mana}) bersih dari host mati`, Boolean(doc) && mati.length === 0,
+        mati.length ? [...new Set(mati)].join(', ') : `tepi=${rEdge.status} lokal=${rLokal.status}`)
+    }
+  }
+}
+
+/**
+ * Berkas catatan kunci tidak boleh menyimpan host yang sudah mati. Yang dibaca verifier memang
+ * dokumen di tepi (dan itu bersih), tapi host basi di dalam `controller`/`id` adalah sumber
+ * kebingungan yang melahirkan B41 — dan setelah 30 Sep record lama dicocokkan, tidak ada alasan
+ * lagi ia kembali tanpa ketahuan.
+ */
+{
+  const dir = join(SIGNER, '.keys')
+  const basi = []
+  if (existsSync(dir)) {
+    for (const e of readdirSync(dir).filter((x) => x.endsWith('.json'))) {
+      const s = readFileSync(join(dir, e), 'utf8')
+      if (/trycloudflare|127\.0\.0\.1|localhost/.test(s)) basi.push(e)
+    }
+    cek(`catatan kunci lokal bebas host mati (${readdirSync(dir).filter((x) => x.endsWith('.json')).length} agen)`, basi.length === 0, basi.join(', '))
+  }
+}
+
 console.log(`\nIDENTITAS ${gagal === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${gagal} gagal`)
 process.exitCode = gagal === 0 ? 0 : 1
