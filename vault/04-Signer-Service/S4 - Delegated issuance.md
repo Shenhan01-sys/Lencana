@@ -67,6 +67,12 @@ explanation. Nothing here is guessed: the domain is read from the contract, the 
   allocated the moment it is issued, so a served list can never quietly omit it. `--dry-run` stops after
   signing and says which claims it therefore did not make (`:171-175`); default deadline is 900 s
   (`:149`), and `deadline = 0` is warned about because it means "never expires" (`:150`).
+- **Since 30 Sep there is a door, not only a script (B97).** `POST /relay` (`signer/src/relay.js`) accepts a
+  delegation an agent signed on its own machine, recomputes the same digest with `attestDigest()`, and refuses
+  before gas anything the chain would revert. The nonce it expects is the chain nonce **plus the entries of
+  that agent still waiting in the queue** — two requests signed at the same nonce cannot both land. Measured
+  without gas: `npm run verify:relay` 31/0 ([[09-Testing/T33 - signer relay-check.js]]). Not yet measured:
+  a broadcast that originated from the queue; `npm run delegate` remains the only path proven on chain.
 - What the platform holds is timing, not authorship: it can delay or drop a broadcast, it cannot author
   or alter a claim, and the agent can always relay its own `attest()` as a fallback.
 

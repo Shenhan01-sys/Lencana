@@ -70,6 +70,8 @@ const HARNESS = [
   { id: 'labels', label: 'check:labels (kelengkapan label aturan #18)', cwd: SIGNER, cmd: ['npm', ['run', 'check:labels']], re: /LABEL (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'identity', label: 'check:identity (satu sumber identitas penerbit)', cwd: SIGNER, cmd: ['npm', ['run', 'check:identity']], re: /IDENTITAS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'cleanup', label: 'cleanup (sisa baris tes = 0)', cwd: SIGNER, cmd: ['npm', ['run', 'cleanup']], re: /CLEANUP (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B97 status=TERBUKA 2026-09-30 — rute relayer ikut jadi sumber angka; ia menyalakan servernya sendiri dengan store dingin dan tidak mengeluarkan gas. Buktikan ulang: npm run sync:numbers -- --only=relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'relay', label: 'verify:relay (rute relayer, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:relay']], re: /RELAY (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -177,6 +179,8 @@ const DOC_CLAIMS = [
   // jadi ia sempat basi (tertulis 73/0 padahal run hari itu mencetak 82/0) tanpa ada yang merah —
   // A10 hanya menyapu README akar. Kelas lubang yang sama dengan B114, jadi ditutup dengan cara yang
   // sama: klaimnya didaftarkan, bukan angkanya dihafal.
+  { file: '09-Testing/T33 - signer relay-check.js.md', metric: 'relay', want: (m) => `RELAY HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T33 (rute relayer)' },
+  { file: 'Quick-Reference.md', metric: 'relay', want: (m) => new RegExp(`RELAY HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:relay di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

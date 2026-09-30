@@ -53,6 +53,11 @@ import { submitEssay as dbSubmitEssay, judgeEssay as dbJudgeEssay } from './db.j
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
+// Lencana-B97 status=TERBUKA 2026-09-30 — rute POST /relay dan GET /relay/<id>: pintu bagi agen pihak ketiga untuk menyerahkan delegasi bertanda tangan; siaran hanya kalau RELAY_BROADCAST=1. Buktikan ulang: npm run verify:relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import {
+  submitRelay, getRelayJob, relaySummary, drainRelayQueue,
+  RELAY_MAX_BATCH, RELAY_MAX_DEADLINE_SECONDS,
+} from './relay.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -66,6 +71,10 @@ const BASE_URL = process.env.BASE_URL ?? `http://${HOST}:${PORT}`
 const AGENT_SLUG = process.env.AGENT_SLUG ?? 'agent-demo'
 const RESOLVER = process.env.RESOLVER_ADDRESS
 const RPC_URL = process.env.RPC_URL
+const BAS = process.env.BAS_ADDRESS
+// Siaran dari antrean relayer mati secara bawaan: server yang dinyalakan harness, atau orang dari
+// `git clone`, tidak boleh mengeluarkan gas hanya karena ada yang mengirim POST /relay.
+const RELAY_BROADCAST = process.env.RELAY_BROADCAST === '1' && Boolean(process.env.DEPLOYER_PRIVATE_KEY)
 
 // Harga satu verifikasi, dalam satuan terkecil token (6 desimal): 0,001 = "satu permen".
 const PRICE = BigInt(process.env.X402_PRICE ?? '1000')
@@ -552,6 +561,27 @@ const server = createServer(async (req, res) => {
     // Satu-satunya rute yang meminta bayaran. Verifikasi itu sendiri tetap gratis di halaman;
     // yang berbayar adalah jalur mesin-ke-mesin (agen yang memanggil kami untuk banyak kredensial).
     if (path === '/verify') return handleVerify(req, res)
+    // Relayer penerbitan (B97). Agen menandatangani di tempatnya sendiri dan menyerahkan hasilnya
+    // ke sini; semua penolakan terjadi di `submitRelay` sebelum satu wei pun bergerak.
+    if (path === '/relay') {
+      if (req.method !== 'POST') return send(res, 405, { error: 'POST required', path })
+      let body
+      try {
+        body = await readJsonBody(req)
+      } catch (err) {
+        return send(res, 400, { error: err.message })
+      }
+      const out = await submitRelay({ body, rpcUrl: RPC_URL, resolverAddress: RESOLVER, basAddress: BAS })
+      if (!out.ok) return send(res, out.status, { error: out.error })
+      if (RELAY_BROADCAST && !out.duplicate) {
+        drainRelayQueue({ rpcUrl: RPC_URL, resolverAddress: RESOLVER, basAddress: BAS, platformPrivateKey: process.env.DEPLOYER_PRIVATE_KEY })
+      }
+      return send(res, out.status, { ...out.job, duplicate: out.duplicate, broadcast: RELAY_BROADCAST ? 'enabled' : 'disabled' })
+    }
+    if (path.startsWith('/relay/')) {
+      const job = await getRelayJob(decodeURIComponent(path.slice('/relay/'.length)))
+      return job ? send(res, 200, job) : send(res, 404, { error: 'no relay job with that id', path })
+    }
     // `result[0].id` di dalam setiap kredensial menunjuk ke sini: angka hasil + bukti apa yang
     // menghasilkannya + perangkat mana yang menilai (B44). Tanpa rute ini, ijazah kita mencetak
     // URL yang tidak menjawab — sama seperti `/criteria` kemarin.
@@ -622,11 +652,17 @@ const server = createServer(async (req, res) => {
           token: PAY_TOKEN ?? '(belum diisi)', split: PAY_SPLIT ?? '(belum diisi)',
           payee: PAY_PAYEE ?? '(belum diisi)', configured: Boolean(PAY_TOKEN && PAY_SPLIT && PAY_PAYEE),
         },
+        // Dilaporkan apa adanya: `broadcast: false` berarti permintaan diterima dan diantrekan,
+        // tapi tidak ada yang disiarkan oleh proses ini.
+        relay: {
+          route: 'POST /relay', configured: Boolean(RPC_URL && RESOLVER && BAS), broadcast: RELAY_BROADCAST,
+          maxBatch: RELAY_MAX_BATCH, maxDeadlineSeconds: RELAY_MAX_DEADLINE_SECONDS, jobs: await relaySummary(),
+        },
       })
     }
     return send(res, 404, {
       error: 'not found', path,
-      hint: `/issuers/${AGENT_SLUG} | /criteria/<courseId> | /results/<courseId>/<credentialHash> | /credentials/<credentialHash> | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /healthz`,
+      hint: `/issuers/${AGENT_SLUG} | /criteria/<courseId> | /results/<courseId>/<credentialHash> | /credentials/<credentialHash> | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /relay (POST) | /relay/<id> | /healthz`,
     })
   } catch (err) {
     // Tidak menutupi sebabnya: kegagalan konfigurasi harus terbaca sebagai kegagalan konfigurasi.
