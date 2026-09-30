@@ -1,4 +1,4 @@
-// Lencana-B97 status=TERBUKA 2026-09-30 — mengadili rute relayer lewat HTTP tanpa mengeluarkan gas: yang sah diantrekan, yang pasti revert ditolak dengan sebabnya, dan chain dibaca ulang untuk membuktikan tidak ada yang tersiar. Siaran nyata dari antrean belum diuji di sini. Buktikan ulang: npm run verify:relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B97 status=SELESAI 2026-09-30 — mengadili rute relayer lewat HTTP: tanpa bendera tidak ada gas (yang sah diantrekan, yang pasti revert ditolak dengan sebabnya, chain dibaca ulang); dengan --live satu siaran nyata dari antrean dibaca balik dari chain. Buktikan ulang: npm run verify:relay, lalu npm run verify:relay:live. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:relay` — B97: relayer penerbitan sebagai layanan.
  *
@@ -72,8 +72,12 @@ async function freePort (from) {
 }
 const PORT = Number(process.env.RELAY_PROBE_PORT ?? await freePort(8837))
 const BASE = `http://127.0.0.1:${PORT}`
+// `--live` = SATU siaran nyata dari antrean (gas testnet, dibayar kunci platform). Tanpa bendera itu
+// tidak ada jalan bagi run ini untuk mengeluarkan gas: variabelnya dihapus dari lingkungan anak.
+const LIVE = process.argv.includes('--live')
 const childEnv = { ...process.env, LANCENA_STORE: coldDir, PORT: String(PORT), HOST: '127.0.0.1', BASE_URL: BASE }
-delete childEnv.RELAY_BROADCAST
+if (LIVE) childEnv.RELAY_BROADCAST = '1'
+else delete childEnv.RELAY_BROADCAST
 const child = spawn('npm', ['run', 'serve'], { cwd: SIGNER, env: childEnv, stdio: ['ignore', 'pipe', 'pipe'], shell: true })
 let errBuf = ''
 child.stdout.on('data', () => {})
@@ -95,7 +99,7 @@ const finish = () => {
   if (process.platform === 'win32' && child.pid) spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
   else { try { child.kill('SIGKILL') } catch { /* sudah mati */ } }
   try { rmSync(coldDir, { recursive: true, force: true }) } catch { /* dibuang OS */ }
-  console.log(`\nRELAY ${failed === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${failed} gagal`)
+  console.log(`\nRELAY ${LIVE ? 'LIVE ' : ''}${failed === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${failed} gagal`)
   setTimeout(() => process.exit(failed === 0 ? 0 : 1), 300)
 }
 
@@ -107,8 +111,10 @@ try {
   }
   check('server naik dengan store dingin dan /healthz 200', health?.status === 200, health ? `HTTP ${health.status} ${health.text.slice(0, 120)}` : `tidak menjawab · ${errBuf.slice(-160)}`)
   if (health?.status !== 200) throw new Error('server tidak menjawab — sisa pemeriksaan tidak bisa dijalankan')
-  check('/healthz melaporkan relay terkonfigurasi dan siaran MATI (tidak ada gas yang bisa keluar dari run ini)',
-    health.body?.relay?.configured === true && health.body?.relay?.broadcast === false, json(health.body?.relay))
+  check(LIVE
+    ? '/healthz melaporkan relay terkonfigurasi dan siaran NYALA (run ini memang --live)'
+    : '/healthz melaporkan relay terkonfigurasi dan siaran MATI (tidak ada gas yang bisa keluar dari run ini)',
+  health.body?.relay?.configured === true && health.body?.relay?.broadcast === LIVE, json(health.body?.relay))
 
   const schema = await readResolver('schemaUID')
   const { domain, nonce } = await readDelegationContext({ rpcUrl: RPC, basAddress: BAS, attester: agent.address })
@@ -140,6 +146,60 @@ try {
     })),
     ...over,
   })
+
+  // --- --live: satu siaran nyata dari antrean ------------------------------------------------
+  if (LIVE) {
+    const platform = privateKeyToAccount(process.env.DEPLOYER_PRIVATE_KEY)
+    const agentBalBefore = await client.getBalance({ address: agent.address })
+    const platBalBefore = await client.getBalance({ address: platform.address })
+    const lv = entryFor(learner('live'))
+    console.log(`  info  agen ${agent.address} · platform ${platform.address} · peserta uji ${lv.entry.recipient}`)
+    console.log(`  info  credentialHash ${lv.credentialHash} (kursus label uji "lencana-relay-probe", bukan kertas katalog)`)
+    const signedLv = await signAs(AGENT_PK, lv.entry, nonceBefore)
+    const sent = await call('POST', '/relay', wire([signedLv]))
+    check('permintaan sah -> 202, siaran enabled', sent.status === 202 && sent.body?.broadcast === 'enabled', `${sent.status} ${sent.text.slice(0, 160)}`)
+    let job = null
+    for (let i = 0; i < 60; i++) {
+      job = (await call('GET', `/relay/${sent.body?.id}`)).body
+      if (job && !['queued', 'broadcasting'].includes(job.state)) break
+      await new Promise((r) => setTimeout(r, 2000))
+    }
+    check('pekerjaan berakhir confirmed dengan txHash tercatat', job?.state === 'confirmed' && /^0x[0-9a-f]{64}$/.test(job?.txHash ?? ''), json(job))
+    console.log(`  info  tx ${job?.txHash} · gas ${job?.gasUsed} · blok ${job?.blockNumber}`)
+    check('yang membayar adalah kunci platform (paidBy), bukan agen', String(job?.paidBy ?? '').toLowerCase() === platform.address.toLowerCase(), job?.paidBy)
+
+    const uid = await readResolver('attestationOf', [lv.credentialHash])
+    check('resolver kita mengindeks kredensialnya (attestationOf != 0)', uid !== EMPTY_UID, uid)
+    console.log(`  info  uid ${uid}`)
+    const st = await readResolver('statusOf', [lv.credentialHash])
+    check('attester yang tercatat di chain = AGEN, bukan penyiar', st[4].toLowerCase() === agent.address.toLowerCase(), st[4])
+    check('statusOf: exists, tidak dicabut, penerbit tidak didelisting', st[0] === true && st[1] === false && st[3] === false, json(st))
+    check('holderOf = peserta yang ditandatangani agen', (await readResolver('holderOf', [lv.credentialHash])).toLowerCase() === lv.entry.recipient.toLowerCase())
+    const agentBalAfter = await client.getBalance({ address: agent.address })
+    const platBalAfter = await client.getBalance({ address: platform.address })
+    check('saldo agen TIDAK berubah sampai wei (nol gas di sisi agen)', agentBalAfter === agentBalBefore, `${agentBalBefore} -> ${agentBalAfter}`)
+    check('saldo platform turun (dialah yang membayar gas)', platBalAfter < platBalBefore, `${platBalBefore} -> ${platBalAfter}`)
+    const ctxAfter = await readDelegationContext({ rpcUrl: RPC, basAddress: BAS, attester: agent.address })
+    check(`nonce agen naik tepat satu (${nonceBefore} -> ${ctxAfter.nonce})`, BigInt(ctxAfter.nonce) === nonceBefore + 1n, String(ctxAfter.nonce))
+
+    // Inti RF6 butir 1: permintaan yang sama dikirim lagi TIDAK boleh menjadi siaran kedua.
+    const replay = await call('POST', '/relay', wire([signedLv]))
+    check('permintaan yang sama dikirim ulang -> 200, pekerjaan dan txHash yang sama',
+      replay.status === 200 && replay.body?.duplicate === true && replay.body?.txHash === job?.txHash, `${replay.status} ${replay.text.slice(0, 160)}`)
+    await new Promise((r) => setTimeout(r, 4000))
+    const ctxReplay = await readDelegationContext({ rpcUrl: RPC, basAddress: BAS, attester: agent.address })
+    check('dan nonce agen tidak naik lagi (tidak ada siaran kedua)', BigInt(ctxReplay.nonce) === nonceBefore + 1n, String(ctxReplay.nonce))
+
+    const coldState = join(coldDir, 'state.json')
+    const adopted = existsSync(coldState) ? Object.values(JSON.parse(readFileSync(coldState, 'utf8')).watched ?? {}) : []
+    check('kredensial diadopsi ke himpunan pantau store proses itu (tidak menunggu adopt.js)', adopted.map((h) => h.toLowerCase()).includes(lv.credentialHash.toLowerCase()), json(adopted))
+    if (warmBefore) {
+      const w = statSync(WARM_STATE)
+      check('state.json hangat (19 kertas) tidak disentuh run ini', w.size === warmBefore.size && w.mtimeMs === warmBefore.mtimeMs, `${warmBefore.size}B -> ${w.size}B`)
+    }
+    finish()
+    await new Promise(() => {})
+  }
 
   // --- jalur sah ---------------------------------------------------------------------------
   const a = entryFor(learner(1))

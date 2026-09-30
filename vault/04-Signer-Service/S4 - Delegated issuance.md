@@ -71,8 +71,9 @@ explanation. Nothing here is guessed: the domain is read from the contract, the 
   delegation an agent signed on its own machine, recomputes the same digest with `attestDigest()`, and refuses
   before gas anything the chain would revert. The nonce it expects is the chain nonce **plus the entries of
   that agent still waiting in the queue** — two requests signed at the same nonce cannot both land. Measured
-  without gas: `npm run verify:relay` 31/0 ([[09-Testing/T33 - signer relay-check.js]]). Not yet measured:
-  a broadcast that originated from the queue; `npm run delegate` remains the only path proven on chain.
+  without gas: `npm run verify:relay` 31/0; and with one real broadcast from the queue on chain 97:
+  `npm run verify:relay:live` 17/0 — attester = the agent, agent balance unchanged to the wei, and the same
+  request sent twice did not broadcast twice ([[09-Testing/T33 - signer relay-check.js]]).
 - What the platform holds is timing, not authorship: it can delay or drop a broadcast, it cannot author
   or alter a claim, and the agent can always relay its own `attest()` as a fallback.
 

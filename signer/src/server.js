@@ -53,7 +53,7 @@ import { submitEssay as dbSubmitEssay, judgeEssay as dbJudgeEssay } from './db.j
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
-// Lencana-B97 status=TERBUKA 2026-09-30 — rute POST /relay dan GET /relay/<id>: pintu bagi agen pihak ketiga untuk menyerahkan delegasi bertanda tangan; siaran hanya kalau RELAY_BROADCAST=1. Buktikan ulang: npm run verify:relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B97 status=SELESAI 2026-09-30 — rute POST /relay dan GET /relay/<id>: pintu bagi agen pihak ketiga untuk menyerahkan delegasi bertanda tangan; siaran hanya kalau RELAY_BROADCAST=1. Buktikan ulang: npm run verify:relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import {
   submitRelay, getRelayJob, relaySummary, drainRelayQueue,
   RELAY_MAX_BATCH, RELAY_MAX_DEADLINE_SECONDS,

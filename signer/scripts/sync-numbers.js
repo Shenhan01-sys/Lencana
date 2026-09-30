@@ -70,7 +70,7 @@ const HARNESS = [
   { id: 'labels', label: 'check:labels (kelengkapan label aturan #18)', cwd: SIGNER, cmd: ['npm', ['run', 'check:labels']], re: /LABEL (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'identity', label: 'check:identity (satu sumber identitas penerbit)', cwd: SIGNER, cmd: ['npm', ['run', 'check:identity']], re: /IDENTITAS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'cleanup', label: 'cleanup (sisa baris tes = 0)', cwd: SIGNER, cmd: ['npm', ['run', 'cleanup']], re: /CLEANUP (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
-  // Lencana-B97 status=TERBUKA 2026-09-30 — rute relayer ikut jadi sumber angka; ia menyalakan servernya sendiri dengan store dingin dan tidak mengeluarkan gas. Buktikan ulang: npm run sync:numbers -- --only=relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B97 status=SELESAI 2026-09-30 — rute relayer ikut jadi sumber angka; ia menyalakan servernya sendiri dengan store dingin dan tidak mengeluarkan gas. Buktikan ulang: npm run sync:numbers -- --only=relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'relay', label: 'verify:relay (rute relayer, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:relay']], re: /RELAY (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {

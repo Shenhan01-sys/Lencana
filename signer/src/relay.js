@@ -1,4 +1,4 @@
-// Lencana-B97 status=TERBUKA 2026-09-30 — relayer penerbitan sebagai LAYANAN: rute menerima permintaan delegasi bertanda tangan agen, mengadilinya sebelum gas, dan mengantrekannya. Yang belum: siaran dari antrean ini belum pernah dijalankan di chain publik. Buktikan ulang: npm run verify:relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B97 status=SELESAI 2026-09-30 — relayer penerbitan sebagai LAYANAN: rute menerima permintaan delegasi bertanda tangan agen, mengadilinya sebelum gas, mengantrekannya, dan menyiarkannya sekali saja (terbukti di chain 97, tx 0xa28aa457…ceb1). Buktikan ulang: npm run verify:relay (tanpa gas) dan npm run verify:relay:live (satu transaksi testnet). JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * Antrean relayer (B97): `attestByDelegation` sebagai layanan, bukan sebagai skrip yang dijalankan orang.
  *
@@ -23,6 +23,9 @@
  * Yang SENGAJA tidak dilakukan di sini: menyiarkan secara bawaan. Tanpa `RELAY_BROADCAST=1`
  * pekerjaan berhenti di `queued` — server yang dinyalakan harness atau orang dari `git clone` tidak
  * boleh mengeluarkan gas hanya karena ada yang mengirim POST.
+ *
+ * Siaran dari antrean terbukti 30 Sep di chain 97 (`npm run verify:relay:live`): attester = agen,
+ * saldo agen tidak berubah, dan kiriman ulang permintaan yang sama tidak menjadi siaran kedua.
  *
  * Batas yang harus ikut terbaca: antrean ini satu berkas JSON dan satu proses. Dua instance signer
  * atas store yang sama akan saling menimpa; itu batas yang sama dengan `state.json` (B78/RF6).

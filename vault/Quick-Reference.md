@@ -67,4 +67,5 @@ never retyped.
 | `npm run monitor:edge` | alarm eksternal tepi: umur `publishedAt` vs ambang, `matchesChainNow` kedua daftar, `unchecked`, dokumen nyata 200 | AMAN 0 alarm · `--max-age=0` → ALARM |
 | `npm run check:spec` / `-- --self-test` | 14 predikat kepatuhan dijalankan atas dokumen yang disajikan tepi; self-test merusak dokumen yang sama dan menuntut barisnya merah | 14 lulus · 0 gagal · self-test 11 merah |
 | `npm run verify:relay` | rute relayer `POST /relay` (B97): yang sah diantrekan, yang pasti revert ditolak sebelum gas; server dan store-nya sendiri, siaran mati | RELAY HIJAU — 31 pemeriksaan, 0 gagal |
+| `npm run verify:relay:live` | sama, dengan `RELAY_BROADCAST=1`: **menulis 1 attestation testnet** dari antrean dan membacanya balik dari chain (attester = agen, saldo agen tetap, tanpa siaran ganda) | RELAY LIVE HIJAU — 17, 0 gagal (30 Sep, 347.059 gas) |
 | `npm run sim:deadline` | simulator B90; mengubah bentuk insentif setelah terbukti ladder refund bukan penalti | RUN 2: 5d murah hanya di dunia cepat |

@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run verify:relay
 measured: 2026-09-30
-result: RELAY HIJAU — 31 pemeriksaan / 0 gagal (tanpa gas; siaran dari antrean BELUM diuji di chain)
+result: RELAY HIJAU — 31 pemeriksaan / 0 gagal (tanpa gas) · RELAY LIVE HIJAU — 17 / 0 (satu siaran nyata di chain 97)
 ---
 
 # T33 - signer relay-check.js (relayer penerbitan sebagai layanan, diadili sebelum gas)
@@ -95,12 +95,44 @@ permintaan itu ditolak karena tanda tangan, bukan oleh penjaga yang mau kuuji. V
 karena kebetulan. Kelas yang sama dengan dua merah pertama di [[09-Testing/T21 - signer db-probe.js]]:
 penolakan yang kebetulan benar tidak membuktikan apa pun.
 
-## Yang TIDAK dibuktikan 31/0 ini
+## Run `--live` 30 Sep — 17 / 0, satu transaksi testnet
 
-- **Siaran dari antrean belum pernah dijalankan di chain publik.** Kode `drainRelayQueue` ada dan
-  memakai pembentuk permintaan yang sama dengan `npm run delegate`, tetapi tidak ada satu transaksi pun
-  yang lahir dari `POST /relay`. Itu sebabnya baris B97 tetap terbuka. Menjalankannya berarti transaksi
-  testnet dari kunci platform — dan kunci itu sedang terekspos (B116).
+`npm run verify:relay:live` menyalakan server yang sama dengan `RELAY_BROADCAST=1` dan mengirim **satu**
+permintaan sah. Dijalankan atas izin builder; yang membayar gas adalah kunci platform.
+
+```
+  ok    /healthz melaporkan relay terkonfigurasi dan siaran NYALA (run ini memang --live)
+  info  agen 0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE · platform 0xAEc63F6cEbBfacdC3516992b6ec396147c9c8361 · peserta uji 0xC0CC57ce36F787d8902b415e1f6abA4b1F91cC96
+  info  credentialHash 0x13a6864522ae367ab78f4b58d6a1e102690352096c67a7135217c378adef7f4e (kursus label uji "lencana-relay-probe", bukan kertas katalog)
+  ok    permintaan sah -> 202, siaran enabled
+  ok    pekerjaan berakhir confirmed dengan txHash tercatat
+  info  tx 0xa28aa457f58cc4f47f86a84e31f476ead7a5f9bb2813255dbccbcc902605ceb1 · gas 347059 · blok 134059032
+  ok    yang membayar adalah kunci platform (paidBy), bukan agen
+  ok    resolver kita mengindeks kredensialnya (attestationOf != 0)
+  info  uid 0xd922d6ee8959532ef578de51020e72641eedc08737fe430f5cc338502880bd5a
+  ok    attester yang tercatat di chain = AGEN, bukan penyiar
+  ok    statusOf: exists, tidak dicabut, penerbit tidak didelisting
+  ok    holderOf = peserta yang ditandatangani agen
+  ok    saldo agen TIDAK berubah sampai wei (nol gas di sisi agen)
+  ok    saldo platform turun (dialah yang membayar gas)
+  ok    nonce agen naik tepat satu (5 -> 6)
+  ok    permintaan yang sama dikirim ulang -> 200, pekerjaan dan txHash yang sama
+  ok    dan nonce agen tidak naik lagi (tidak ada siaran kedua)
+  ok    kredensial diadopsi ke himpunan pantau store proses itu (tidak menunggu adopt.js)
+  ok    state.json hangat (19 kertas) tidak disentuh run ini
+
+RELAY LIVE HIJAU — 17 pemeriksaan, 0 gagal
+```
+
+Dua baris yang paling berarti: **"permintaan yang sama dikirim ulang → txHash yang sama"** dan **"nonce
+tidak naik lagi"**. Itu bedanya layanan dari skrip: skrip yang dijalankan dua kali menyiarkan dua kali.
+
+Jejak di chain 97 yang ditinggalkan run ini adalah kredensial berlabel uji (kursusnya
+`keccak256("lencana-relay-probe")`, tidak ada di katalog, tanpa dokumen OB 3.0). Ia tidak masuk korpus 19
+kertas dan tidak boleh dikutip sebagai bukti pengguna. Setiap `--live` berikutnya menambah satu lagi.
+
+## Yang TIDAK dibuktikan
+
 - Pemulihan sesudah proses mati di tengah siaran: pekerjaan ber-`txHash` ditandai `unknown` dan tidak
   diulang, tetapi jalur itu belum diuji.
 - Antrean adalah satu berkas JSON dan satu proses; dua instance signer atas store yang sama saling

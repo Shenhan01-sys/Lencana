@@ -165,9 +165,10 @@ in 13 days:
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 — **terukur ulang 30 Sep sesudah B112, B114, B84, dan B115 ditutup**, dengan logika penjaga (status
 hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 78 baris tabel / **72 ID berbeda** =
-**51 SELESAI · 12 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
-B78 B80 B82 B87 B90 B97 B99 B102 B104 B105 **B116**. Angka 51 ini **sepakat dengan yang dicetak
-`check:labels`** ("51 tertutup"), jadi dua alat berbeda memberi angka yang sama. *(Sebelum B117
+**52 SELESAI · 11 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
+B78 B80 B82 B87 B90 B99 B102 B104 B105 **B116**. Angka 52 ini **sepakat dengan yang dicetak
+`check:labels`** ("52 tertutup"), jadi dua alat berbeda memberi angka yang sama. *(Satu jam sebelumnya
+51 · 12: B97 masih terbuka; ia ditutup sesudah siaran dari antrean terbukti di chain.)* *(Sebelum B117
 ditutup malam 30 Sep: 77 baris / 71 ID = 50 SELESAI · 12 TERBUKA · 9 bergembok.)* *(Baris ini tadinya
 menulis "TERBUKA total 21, bergembok 7" — basi: B112, B114, B84, dan B115 tertutup hari ini, dan
 angka lama itu tidak menyebut sumber penghitungannya.)* Angka apa pun di bawah harus dicetak ulang oleh
@@ -184,7 +185,7 @@ perintahnya pada hari ia dikutip (AGENTS #1).
 | 7 | **B105** 🟡 30 Sep: **(b) SELESAI** dan **(a) sebagian** — `#/publishers` baca-saja sudah ada (nav + rute + halaman, 9 asersi baru di probe → **82/0**) dan kalimat onboarding-nya mengakui custody di kedua bahasa; yang belum: data dari `GET /issuers` yang hidup, jumlah kredensial, status allowlist dari chain | halaman penerbit + kalimat onboarding jujur | tiga hal yang disebut di kiri | — |
 | 8 | **B104** | rantai D42: AI menilai → **manusia mengesahkan** → terbit | migrasi review + rute bertanda tangan + gerbang ketiga + 2 pemeriksaan `verify:attempts` | 2 j |
 | 9 | **B90** | paruh dua kontrak durasi-cahaya | deploy 97 + rute HTTP + uji yang sama tetap hijau | ½ h |
-| 10 | **B97** 🟡 30 Sep malam: **rute + antrean + penjaga pra-gas terpasang** (`POST /relay`, `GET /relay/<id>`, `verify:relay` **31/0** tanpa gas — [[09-Testing/T33 - signer relay-check.js]]). Yang tersisa: **satu siaran nyata dari antrean** di chain 97 | ~~relayer masih skrip~~ → layanan, siarannya belum dibuktikan | satu permintaan lewat `POST /relay` dengan `RELAY_BROADCAST=1` mendarat, `attester` = agen, saldo agen tak berubah, `txHash` tercatat di pekerjaan. Butuh transaksi testnet → **izin builder**, dan sebaiknya sesudah B116 | 1 tx |
+| 10 | **B97** ✅ SELESAI 30 Sep malam — `POST /relay` + antrean idempoten + penjaga pra-gas (`verify:relay` **31/0**) dan satu siaran nyata dari antrean di chain 97 (`verify:relay:live` **17/0**, 347.059 gas) → [[09-Testing/T33 - signer relay-check.js]] | ~~relayer masih skrip~~ | — | — |
 | 11 | **B82** | identitas lintas perangkat hilang | ekspor/import terkunci frase lewat tes dua browser | ½ h |
 | 12 | **B80** | 🔴 kunci kuis terbundel ke browser | `publicManifest` tanpa `answer` + `probe.ts) tetap hijau + rute kuis teruji server | ½ h |
 | 13 | **B59** | perkakas menyimpan kebenaran sebagai salinan basi | tiap harness punya gerbang sendiri, bukan angka di berkas catatan | sisa |
