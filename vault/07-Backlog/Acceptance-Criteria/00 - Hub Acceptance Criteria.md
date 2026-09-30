@@ -13,7 +13,7 @@ inventing one file per criterion would put text in the vault that no run support
 
 | criterion | strongest evidence available — **each figure carries the day it was printed** | where |
 |---|---|---|
-| **P1** on-chain / chain integration | `forge test` on a fork of 97: **120 passed / 0 failed** in 6 suites (30 Sep; 16 of them are `CourseDeposit`, a contract that is **not deployed**). Forks of 97 **and** 56: 104/0 each (28 Sep — 56 not re-run since). `npm run verify:deploy` 15/15 against chain 97 (28 Sep) | [[09-Testing/T1 - forge test on chain 97]], [[09-Testing/T14 - verify the public deployment]] |
+| **P1** on-chain / chain integration | `forge test` on a fork of 97: **120 passed / 0 failed** in 6 suites (30 Sep; 16 of them are `CourseDeposit` — **not deployed** when this was measured, deployed to chain 97 the same evening: `0xbeB57bC1a3Ad050b66Ad6ce1E2e42a6cd040E6c3`, B90, [[09-Testing/T34 - signer deposit-check.js]]). Forks of 97 **and** 56: 104/0 each (28 Sep — 56 not re-run since). `npm run verify:deploy` 15/15 against chain 97 (28 Sep) | [[09-Testing/T1 - forge test on chain 97]], [[09-Testing/T14 - verify the public deployment]] |
 | **P2** clarity of the problem | the six-platform read, with commit SHAs | [[12-LMS-References/L8 - Lencana vs LMS]] |
 | **P3** utility / money path | `npm run x402` 20/0 (28 Sep): one payment, two verdicts, settlement + split read from chain | [[09-Testing/T6 - npm run x402]] |
 | **P4** correctness of assessment | `rubric-check` **17/0** (30 Sep) + `computeScore` reading the issuer's manifest | [[09-Testing/T5 - npm run rubric]], [[05-Course-Content/K4 - Scoring without the platform deciding]] |

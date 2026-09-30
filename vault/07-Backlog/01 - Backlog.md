@@ -165,10 +165,11 @@ in 13 days:
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 — **terukur ulang 30 Sep sesudah B112, B114, B84, dan B115 ditutup**, dengan logika penjaga (status
 hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 78 baris tabel / **72 ID berbeda** =
-**53 SELESAI · 10 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
-B78 B80 B82 B87 B90 B99 B104 B105 **B116**. Angka 53 ini **sepakat dengan yang dicetak
-`check:labels`** ("88 marker di 50 ID · 72 baris backlog · 53 tertutup"), jadi dua alat berbeda memberi
-angka yang sama. *(Sebelum B102 ditutup malam 30 Sep: 52 · 11, dan 87 marker.)* *(Sebelum itu lagi
+**54 SELESAI · 9 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
+B78 B80 B82 B87 B99 B104 B105 **B116**. Angka 54 ini **sepakat dengan yang dicetak
+`check:labels`** ("93 marker di 51 ID · 72 baris backlog · 54 tertutup"), jadi dua alat berbeda memberi
+angka yang sama. *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
+ditutup malam yang sama: 52 · 11, dan 87 marker.)* *(Sebelum itu lagi
 51 · 12: B97 masih terbuka; ia ditutup sesudah siaran dari antrean terbukti di chain.)* *(Sebelum B117
 ditutup malam 30 Sep: 77 baris / 71 ID = 50 SELESAI · 12 TERBUKA · 9 bergembok.)* *(Baris ini tadinya
 menulis "TERBUKA total 21, bergembok 7" — basi: B112, B114, B84, dan B115 tertutup hari ini, dan
@@ -185,7 +186,7 @@ perintahnya pada hari ia dikutip (AGENTS #1).
 | 6 | **B102** ✅ SELESAI 30 Sep malam — `npm run specimen` membuat kedua spesimen di chain 97 (agen korban didelisting; penerbit sungguhan tidak tersentuh), `check:samples` **9/0** dengan 1 expired · 1 delisted dan kini merah kalau sebuah keadaan kehilangan spesimennya → [[09-Testing/T26 - signer sample-check.js]]. Tombol FE belum dipasang lagi (pekerjaan FE, ditunda builder) | ~~spesimen `delisted`/`expired` belum ada~~ | — | — |
 | 7 | **B105** 🟡 30 Sep: **(b) SELESAI** dan **(a) sebagian** — `#/publishers` baca-saja sudah ada (nav + rute + halaman, 9 asersi baru di probe → **82/0**) dan kalimat onboarding-nya mengakui custody di kedua bahasa; yang belum: data dari `GET /issuers` yang hidup, jumlah kredensial, status allowlist dari chain | halaman penerbit + kalimat onboarding jujur | tiga hal yang disebut di kiri | — |
 | 8 | **B104** | rantai D42: AI menilai → **manusia mengesahkan** → terbit | migrasi review + rute bertanda tangan + gerbang ketiga + 2 pemeriksaan `verify:attempts` | 2 j |
-| 9 | **B90** | paruh dua kontrak durasi-cahaya | deploy 97 + rute HTTP + uji yang sama tetap hijau | ½ h |
+| 9 | **B90** ✅ SELESAI 30 Sep malam — `CourseDeposit` ter-deploy di chain 97 (`0xbeB5…E6c3`), tiga rute `/deposit/…`, `policyHash` dari manifest, `issuedAt` dari BAS; `verify:deposit` **27/0**, satu setoran nyata sampai selesai `verify:deposit:live` **38/0**, `forge` 16/16 tetap hijau → [[09-Testing/T34 - signer deposit-check.js]]. Tetap bukan klaim produk: tidak ada di halaman, jalur hangus hanya terbukti di `forge test` | ~~paruh dua kontrak durasi-cahaya~~ | — | — |
 | 10 | **B97** ✅ SELESAI 30 Sep malam — `POST /relay` + antrean idempoten + penjaga pra-gas (`verify:relay` **31/0**) dan satu siaran nyata dari antrean di chain 97 (`verify:relay:live` **17/0**, 347.059 gas) → [[09-Testing/T33 - signer relay-check.js]] | ~~relayer masih skrip~~ | — | — |
 | 11 | **B82** | identitas lintas perangkat hilang | ekspor/import terkunci frase lewat tes dua browser | ½ h |
 | 12 | **B80** | 🔴 kunci kuis terbundel ke browser | `publicManifest` tanpa `answer` + `probe.ts) tetap hijau + rute kuis teruji server | ½ h |
@@ -198,8 +199,8 @@ Dua sebab, dan keduanya punya alasannya sendiri di baris masing-masing: **aksi m
 ulang jendela replay selama pesan yang ditandatangani belum memuat `ts=`), B73, B75, B77, B95.
 *(Baris ini tadinya menyebut tujuh ID — B66 dan B77 ketinggalan, padahal keduanya bergembok.)*
 
-**Gerbang wajib sebelum menyebut apa pun "selesai":** `npm run sync:numbers` (**16 harness** sejak `verify:relay` masuk, B97) lalu
-`-- --verify` (**28 klaim halaman**, dicetak alatnya 30 Sep malam; 25 → 26 → 28) → `npm run audit` (**12 pemeriksaan**, termasuk A9 marker↔baris
+**Gerbang wajib sebelum menyebut apa pun "selesai":** `npm run sync:numbers` (**17 harness** sejak `verify:deposit` masuk, B90; 16 sejak `verify:relay`, B97) lalu
+`-- --verify` (**30 klaim halaman**, dicetak alatnya 30 Sep malam; 25 → 26 → 28 → 30) → `npm run audit` (**12 pemeriksaan**, termasuk A9 marker↔baris
 dan A10 angka README) → `npm run check:labels` (**8 pemeriksaan** + `--self-test` 12 fixture) →
 `check-links` 0 rusak + `check-lang` 0 CJK + `check-mermaid` 0 hazard → komit (tanpa atribusi AI)
 → dorong **hanya** atas kata builder. *(Baris ini tadinya menulis "13 harness" dan "audit (10)" —

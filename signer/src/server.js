@@ -58,6 +58,8 @@ import {
   submitRelay, getRelayJob, relaySummary, drainRelayQueue,
   RELAY_MAX_BATCH, RELAY_MAX_DEADLINE_SECONDS,
 } from './relay.js'
+// Lencana-B90 status=SELESAI 2026-09-30 — rute GET /deposit/policy/<course>, GET /deposit/<course>/<learner>, POST /deposit/finalize; siaran hanya kalau DEPOSIT_BROADCAST=1. Buktikan ulang: npm run verify:deposit. JANGAN dibalik/diulang tanpa membuka kembali baris B90 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { deadlinePolicyOf, readDeposit, finalizeDeposit } from './deposit.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -85,6 +87,17 @@ const PAY_SPLIT = process.env.SPLIT_ADDRESS
 // bukan dengan menulis alamatnya sendiri sebagai penerima.
 const PAY_PAYEE = process.env.ISSUER_ADDRESS
 const TIMEOUT_SECONDS = Number(process.env.X402_TIMEOUT ?? 600)
+
+// Setoran tenggat (B90). Premi yang hangus mengalir ke PENERBIT, sama seperti bayaran verifikasi.
+// Siaran mati secara bawaan dengan alasan yang sama dengan relayer: sebuah POST tidak boleh
+// mengeluarkan gas dari server harness atau clone orang lain.
+const DEPOSIT = process.env.DEPOSIT_ADDRESS
+const DEPOSIT_READY = Boolean(DEPOSIT && RPC_URL && RESOLVER && BAS && PAY_TOKEN && PAY_PAYEE)
+const DEPOSIT_BROADCAST = process.env.DEPOSIT_BROADCAST === '1' && Boolean(process.env.DEPLOYER_PRIVATE_KEY)
+const DEPOSIT_CFG = {
+  rpcUrl: RPC_URL, chainId: CHAIN_ID, depositAddress: DEPOSIT, tokenAddress: PAY_TOKEN, payee: PAY_PAYEE,
+  resolverAddress: RESOLVER, basAddress: BAS,
+}
 
 const { key, controller, name } = await loadKey(AGENT_SLUG)
 const issuerDoc = issuerDocument({ controller, name, key })
@@ -582,6 +595,35 @@ const server = createServer(async (req, res) => {
       const job = await getRelayJob(decodeURIComponent(path.slice('/relay/'.length)))
       return job ? send(res, 200, job) : send(res, 404, { error: 'no relay job with that id', path })
     }
+    // Setoran tenggat (B90). Tiga rute: aturan yang dilihat peserta SEBELUM memilih tenggat, keadaan
+    // satu setoran dari chain, dan penyelesaian yang diadili sebelum gas (`deposit.js`).
+    if (path === '/deposit/finalize' || path.startsWith('/deposit/')) {
+      if (!DEPOSIT_READY) return send(res, 503, { error: 'deposit contract is not configured on this server', path })
+      if (path === '/deposit/finalize') {
+        if (req.method !== 'POST') return send(res, 405, { error: 'POST required', path })
+        let body
+        try {
+          body = await readJsonBody(req)
+        } catch (err) {
+          return send(res, 400, { error: err.message })
+        }
+        const out = await finalizeDeposit({
+          body, cfg: DEPOSIT_CFG, broadcast: DEPOSIT_BROADCAST, platformPrivateKey: process.env.DEPLOYER_PRIVATE_KEY,
+        })
+        const { ok, status, ...rest } = out
+        return send(res, status, jsonBody(rest))
+      }
+      const parts = decodeURIComponent(path.slice('/deposit/'.length)).split('/')
+      if (parts[0] === 'policy') {
+        const built = deadlinePolicyOf(parts[1] ?? '', DEPOSIT_CFG)
+        return built
+          ? send(res, 200, { policyHash: built.policyHash, policy: built.policy })
+          : send(res, 404, { error: 'no publisher manifest for that course', path })
+      }
+      const out = await readDeposit({ slug: parts[0] ?? '', learner: parts[1], cfg: DEPOSIT_CFG })
+      const { ok, status, ...rest } = out
+      return send(res, status, jsonBody(rest))
+    }
     // `result[0].id` di dalam setiap kredensial menunjuk ke sini: angka hasil + bukti apa yang
     // menghasilkannya + perangkat mana yang menilai (B44). Tanpa rute ini, ijazah kita mencetak
     // URL yang tidak menjawab — sama seperti `/criteria` kemarin.
@@ -658,11 +700,17 @@ const server = createServer(async (req, res) => {
           route: 'POST /relay', configured: Boolean(RPC_URL && RESOLVER && BAS), broadcast: RELAY_BROADCAST,
           maxBatch: RELAY_MAX_BATCH, maxDeadlineSeconds: RELAY_MAX_DEADLINE_SECONDS, jobs: await relaySummary(),
         },
+        // Alamat kontraknya dilaporkan di sini supaya bisa dibuka di explorer, bukan dibaca dari
+        // dokumentasi kami; `broadcast: false` = penyelesaian diadili tapi tidak disiarkan proses ini.
+        deposit: {
+          routes: 'GET /deposit/policy/<course> · GET /deposit/<course>/<learner> · POST /deposit/finalize',
+          contract: DEPOSIT ?? '(belum diisi)', configured: DEPOSIT_READY, broadcast: DEPOSIT_BROADCAST,
+        },
       })
     }
     return send(res, 404, {
       error: 'not found', path,
-      hint: `/issuers/${AGENT_SLUG} | /criteria/<courseId> | /results/<courseId>/<credentialHash> | /credentials/<credentialHash> | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /relay (POST) | /relay/<id> | /healthz`,
+      hint: `/issuers/${AGENT_SLUG} | /criteria/<courseId> | /results/<courseId>/<credentialHash> | /credentials/<credentialHash> | /credentials/status/{revocation,suspension} | /verify (POST, berbayar) | /relay (POST) | /relay/<id> | /deposit/policy/<courseId> | /deposit/<courseId>/<learner> | /deposit/finalize (POST) | /healthz`,
     })
   } catch (err) {
     // Tidak menutupi sebabnya: kegagalan konfigurasi harus terbaca sebagai kegagalan konfigurasi.

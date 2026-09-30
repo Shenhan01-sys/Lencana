@@ -22,6 +22,8 @@
     "verify:attempts:live": "tsx scripts/attempts-check.js --live",
     "verify:relay": "tsx scripts/relay-check.js",
     "verify:relay:live": "tsx scripts/relay-check.js --live",
+    "verify:deposit": "tsx scripts/deposit-check.js",
+    "verify:deposit:live": "tsx scripts/deposit-check.js --live",
     "judge": "tsx scripts/judge-check.js",
     "judge-variance": "tsx scripts/judge-variance.js",
     "serve": "tsx src/server.js",

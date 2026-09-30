@@ -91,6 +91,12 @@ transaksi — ia harus salah satu dari:
 
 ## 6. Keputusan yang dibutuhkan (B90)
 
+> **Catatan 30 Sep malam — bagian ini sejarah, dibiarkan terbaca.** Builder memilih jalur (A) dan
+> kemudian mengizinkan deploy. Keadaan sekarang: `CourseDeposit` ter-deploy di chain 97
+> (`0xbeB57bC1a3Ad050b66Ad6ce1E2e42a6cd040E6c3`), punya rute HTTP, dan satu setoran uji diselesaikan
+> dari setor sampai premi kembali — lihat [[09-Testing/T34 - signer deposit-check.js]] dan baris B90.
+> Kalimat "TIDAK dideploy" di butir 2 di bawah adalah pilihan yang ditawarkan waktu itu, bukan keadaan hari ini.
+
 Aku **tidak** mengimplementasikan apa pun dari bagian ini hari ini; yang kukerjakan adalah memastikan
 kalimatnya benar. Pilih salah satu, nanti malam atau besok:
 
