@@ -14,7 +14,7 @@
  * Peserta uji dibuat acak per run dan barisnya ber-`origin=test` (dibersihkan `npm run cleanup`).
  * Hasil cetaknya dipecah per backlog: `B119 x/y` dan `B120 x/y`, lalu satu baris total.
  */
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { randomBytes } from 'node:crypto'
@@ -80,7 +80,7 @@ async function call (method, path, body, headers = {}) {
   return { status: r.status, body: parsed, text }
 }
 const finish = () => {
-  if (process.platform === 'win32' && child.pid) spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+  if (process.platform === 'win32' && child.pid) spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
   else { try { child.kill('SIGKILL') } catch { /* sudah mati */ } }
   const [r1, f1] = tally.B119
   const [r2, f2] = tally.B120

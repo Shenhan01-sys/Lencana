@@ -17,7 +17,7 @@
  * uji dari run sebelumnya dilepas dulu (`freeTestProofKey`); kunci yang dipegang peserta sungguhan
  * tidak disentuh dan membuat harness merah.
  */
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { randomBytes } from 'node:crypto'
@@ -81,7 +81,7 @@ async function call (method, path, body) {
   return { status: r.status, body: parsed, text }
 }
 const finish = () => {
-  if (process.platform === 'win32' && child.pid) spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+  if (process.platform === 'win32' && child.pid) spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
   else { try { child.kill('SIGKILL') } catch { /* sudah mati */ } }
   console.log(`\nPRAKTIK ${LIVE ? 'LIVE ' : ''}${failed === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${failed} gagal`)
   setTimeout(() => process.exit(failed === 0 ? 0 : 1), 300)

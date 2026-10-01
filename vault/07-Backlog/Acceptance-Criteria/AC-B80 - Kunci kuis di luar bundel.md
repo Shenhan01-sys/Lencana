@@ -26,5 +26,5 @@ setelah penyerahan, dan halaman menampilkan alasannya pasca-serah)"*, ditambah t
 | AC-B80#8 | tidak ada berkas browser yang mengimpor kunci | usulan B80 | **PASS** 1 Okt | penjaga impor di harness; source map tanpa `manifest-keys.ts`/`*.keys.ts` |
 | AC-B80#9 | yang "tidak boleh rusak" tetap hijau | catatan B80 (7) | **PASS** 1 Okt | `rubric` 17/0 · probe web 88/0 · `verify:attempts` 39/0 · `verify:db` 70/0 · baterai `sync:numbers` (lihat T39) |
 | AC-B80#10 | berkas milik pemilik front-end tidak disentuh | AGENTS #10 | **PASS** 1 Okt | `main.ts`, `render.ts`, `index.html`, `style.css`, `i18n.ts` tidak berubah; `main.ts` tetap memanggil `rubricHashOf`, yang kini membaca nilai terbit |
-| AC-B80#11 | bundel yang **tayang** di Vercel bersih | — | **diukur sesudah dorong** | lihat bagian "Sesudah deploy" di T39 |
+| AC-B80#11 | bundel yang **tayang** di Vercel bersih | — | **PASS** 1 Okt 16:32 | `verify:quizkeys --deployed=https://lencana-psi.vercel.app/` → 33/0: `index-DtXy16cc.js` 0/28 `why`, 0 literal; URL bundel lama kini dijawab `index.html` |
 | AC-B80#12 | kuis tidak bisa ditebak lewat ulangan | — | **DI LUAR CAKUPAN** — pembahasan per soal + ulangan tak terbatas tetap membocorkan kunci pelan-pelan; butuh batas usaha atau penundaan pembahasan (keputusan produk) | D56 |

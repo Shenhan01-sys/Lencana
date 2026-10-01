@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-01
 command: npm run verify:quizkeys · npm run verify:quizkeys -- --deployed=<url halaman>
 measured: 2026-10-01
-result: KUNCI KUIS HIJAU — 30 pemeriksaan / 0 gagal (bundel dibangun dari kode ini) · kontrol negatif terhadap bundel yang masih tayang di Vercel sebelum deploy ulang: MERAH 33 / 2 gagal (28 dari 28 teks why, 28 literal answer)
+result: KUNCI KUIS HIJAU — 30 pemeriksaan / 0 gagal (bundel dibangun dari kode ini) · kontrol negatif terhadap bundel yang masih tayang di Vercel sebelum deploy ulang: MERAH 33 / 2 gagal (28 dari 28 teks why, 28 literal answer) · sesudah deploy 16:32 dengan --deployed: HIJAU 33 / 0 (0 dari 28)
 ---
 
 # T39 - signer quiz-keys-check.js — B80: kunci jawaban kuis tidak lagi sampai ke browser
@@ -97,7 +97,25 @@ KUNCI KUIS MERAH — 33 pemeriksaan, 2 gagal
 ```
 
 Itu yang seharusnya: penjaganya bisa merah, dan merahnya menunjuk benda yang benar. Sesudah dorong, pemeriksaan
-yang sama diulang terhadap bundel yang baru tayang — hasilnya dicatat di bawah (bagian "Sesudah deploy").
+yang sama diulang terhadap bundel yang baru tayang — hasilnya di bagian berikut.
+
+## Sesudah deploy (1 Okt, commit `243c6c8`)
+
+Vercel menayangkan bundel baru **16:32:18** — `index-DtXy16cc.js`, nama yang sama dengan bundel yang dibangun
+lokal dari kode ini (build-nya deterministik). Pemeriksaan yang sama:
+
+```
+— B'. bundel yang sedang tayang di https://lencana-psi.vercel.app/
+  info  https://lencana-psi.vercel.app/assets/index-DtXy16cc.js (536125 byte)
+  ok    tayang: teks soal ada di bundel (kontrol positif pemindai) — 28 dari 28
+  ok    tayang: teks alasan kunci (why) di bundel — 0 dari 28
+  ok    tayang: literal answer:<angka> di bundel — 0
+KUNCI KUIS HIJAU — 33 pemeriksaan, 0 gagal
+```
+
+URL bundel lama (`…/assets/index-DTmQmZft.js`) kini dijawab `index.html` lewat rewrite SPA (200, 113.839 byte, tanpa
+teks kunci) — berkas JS lamanya tidak lagi tersaji di domain produksi. Yang tidak bisa kuukur dari sini: URL
+per-deployment Vercel lama (alamat `*.vercel.app` khusus tiap deployment), yang biasanya tetap hidup.
 
 ## Harness lain yang ikut terukur 1 Okt
 

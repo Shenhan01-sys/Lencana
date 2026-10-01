@@ -13,7 +13,7 @@
  * per label: `deposit()` menolak setoran kedua untuk (peserta, kursus) yang sama. Sesudah itu mode
  * tanpa gas membaca setoran yang sudah selesai itu dari chain sebagai spesimen.
  */
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -112,7 +112,7 @@ async function call (method, path, body) {
 const refused = (r, status, re) => r.status === status && re.test(String(r.body?.error ?? ''))
 
 const finish = () => {
-  if (process.platform === 'win32' && child.pid) spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+  if (process.platform === 'win32' && child.pid) spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
   else { try { child.kill('SIGKILL') } catch { /* sudah mati */ } }
   try { rmSync(coldDir, { recursive: true, force: true }) } catch { /* dibuang OS */ }
   console.log(`\nDEPOSIT ${LIVE ? 'LIVE ' : ''}${failed === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${failed} gagal`)

@@ -183,3 +183,11 @@ yang yatim (bukti eth-call milik pemegang kertas `0x372c2518…`, terikat ke usa
   asal yatim 28/30 Sep. `src/ports.js` membuat run berikutnya **tidak** lagi berbicara dengan kode lama,
   tapi yatimnya tetap menumpuk (14 port per harness; sesudah itu `freePort` melempar dengan pesan yang
   menyuruh mematikannya). Sebabnya belum diselidiki — dicatat, tidak ditebak.
+  **Koreksi 1 Okt malam — sebabnya ketemu dan ditutup.** Sesudah tiga baterai B80, yatim yang tertinggal (11) hanya
+  milik `relay-check`, `deposit-check`, `agents-check`, `praktik-check`: keempatnya menjalankan `taskkill /T` secara
+  **asinkron** lalu `process.exit` 300 ms kemudian, sehingga taskkill tidak sempat selesai. `quiz-keys-check` (B80),
+  yang memakai `spawnSync`, tidak meninggalkan satu pun. Keempatnya — plus `attempts-check`, yang keluar seketika
+  sesudah taskkill dan menjadi asal yatim 8795 tanggal 30 Sep — kini memakai `spawnSync`. Bukti: keempat harness
+  dijalankan sesudah perbaikan, hijau semua (31/0, 27/0, 34/0, 32/0), dan pendengar yang tersisa di 8837–8899 hanya
+  `8884` milik System (pid 4) — nol yatim. Jalur `--live` `attempts-check` (yang menyalakan server) tidak diulang
+  karena menerbitkan kertas; perubahannya sama persis.

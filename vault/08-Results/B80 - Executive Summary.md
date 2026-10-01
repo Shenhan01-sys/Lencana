@@ -34,8 +34,9 @@ updated: 2026-10-01
 
 ## 3. Status
 
-**SELESAI** (baris B80 ditutup). Bundel yang tayang di Vercel bersih **sesudah** deploy ulang dari commit ini —
-diukur ulang dengan `--deployed` dan dicatat di T39. **Di luar cakupan:** membuat kuis tak bisa ditebak lewat ulangan.
+**SELESAI** (baris B80 ditutup). Bundel yang tayang di Vercel **bersih sesudah deploy 16:32** dari commit `243c6c8`:
+`--deployed` → 33/0, `index-DtXy16cc.js` 0/28 `why`, 0 literal `answer` (T39). **Di luar cakupan:** membuat kuis tak bisa
+ditebak lewat ulangan.
 
 ## 4. Risiko tersisa
 

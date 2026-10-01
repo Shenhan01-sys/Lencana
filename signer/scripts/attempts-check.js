@@ -18,7 +18,7 @@
  * terbukti menolak masukan tidak lengkap. Journey 28 Sep sudah menunjukkan satu penolakan palsu
  * (prasyarat), dan kali ini yang diuji adalah gerbang belajar + flag angka dari perintah.
  */
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
@@ -751,7 +751,9 @@ async function live () {
   // menahan pipe stdout tetap terbuka — run pertama mati karena timeout 10 menit, bukan karena
   // pemeriksaan yang gagal.
   try {
-    if (process.platform === 'win32') spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+    // Sinkron (1 Okt): taskkill yang dijalankan asinkron lalu disusul process.exit seketika tidak sempat
+    // selesai — itulah asal server yatim di 8795 (30 Sep) yang membuat run berikutnya bicara ke kode lama.
+    if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
     else child.kill('SIGKILL')
   } catch { /* biar OS yang membereskan */ }
   process.exit(fails === 0 ? 0 : 1)

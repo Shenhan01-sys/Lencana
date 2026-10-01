@@ -13,7 +13,7 @@
  * sesudah semuanya nonce agen serta `attestationOf` dibaca ulang dari chain — kalau ada yang tersiar,
  * dua pemeriksaan itu merah. Kunci agen dipakai hanya untuk menandatangani di dalam proses ini.
  */
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -92,7 +92,7 @@ async function call (method, path, body) {
 }
 
 const finish = () => {
-  if (process.platform === 'win32' && child.pid) spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+  if (process.platform === 'win32' && child.pid) spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
   else { try { child.kill('SIGKILL') } catch { /* sudah mati */ } }
   try { rmSync(coldDir, { recursive: true, force: true }) } catch { /* dibuang OS */ }
   console.log(`\nRELAY ${LIVE ? 'LIVE ' : ''}${failed === 0 ? 'HIJAU' : 'MERAH'} — ${ran} pemeriksaan, ${failed} gagal`)
