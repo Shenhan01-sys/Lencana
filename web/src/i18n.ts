@@ -44,10 +44,8 @@ export interface TranslationDictionary {
   nav: {
     home: string
     courses: string
-    classroom: string
-    submit: string
+    dashboard: string
     verifier: string
-    portfolio: string
     agentHub: string
     howItWorks: string
     evaluator: string
@@ -83,32 +81,6 @@ export interface TranslationDictionary {
   }
   wallet: {
     connectBtn: string
-    connectedAs: string
-    modalTitle: string
-    modalSub: string
-    privyOption: string
-    privyOptionSub: string
-    privyBadgeRecommended: string
-    privyEmailPlaceholder: string
-    privySendOtpBtn: string
-    privyGoogleBtn: string
-    privyOrFastLogin: string
-    privyStepOtpHelp: string
-    privyOtpPlaceholder: string
-    privyVerifyOtpBtn: string
-    privyOtpNotice: string
-    privyCustodyNotice: string
-    btnBack: string
-    browserOption: string
-    browserOptionSub: string
-    deviceOption: string
-    deviceOptionSub: string
-    demoOption: string
-    demoOptionSub: string
-    disconnect: string
-    connecting: string
-    noExtension: string
-    wrongNetwork: string
   }
   mintModal: {
     title: string
@@ -493,13 +465,6 @@ export interface TranslationDictionary {
     delistSub: string
     btnTestDelist: string
     delistWarning: string
-    bitstringHeading: string
-    bitstringSub: string
-    bitLegendValid: string
-    bitLegendRevoked: string
-    bitLegendSuspended: string
-    btnToggleBit: string
-    liveMultibaseLabel: string
   }
   diplomaModal: {
     kicker: string
@@ -519,41 +484,6 @@ export interface TranslationDictionary {
     btnLinkedIn: string
     btnX: string
     btnClose: string
-  }
-  tamperPlayground: {
-    kicker: string
-    title: string
-    sub: string
-    attack1Btn: string
-    attack1Title: string
-    attack1Desc: string
-    attack2Btn: string
-    attack2Title: string
-    attack2Desc: string
-    attack3Btn: string
-    attack3Title: string
-    attack3Desc: string
-    attack4Btn: string
-    attack4Title: string
-    attack4Desc: string
-    terminalTitle: string
-    revertBadge: string
-    resetBtn: string
-  }
-  x402Console: {
-    kicker: string
-    title: string
-    sub: string
-    philosophyKicker: string
-    philosophyText: string
-    btnSimulateBatch: string
-    batchSizeLabel: string
-    step1Label: string
-    step2Label: string
-    step3Label: string
-    step4Label: string
-    candidatesAudited: string
-    latencyLabel: string
   }
   demoMode: {
     kicker: string
@@ -654,10 +584,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     nav: {
       home: 'Home',
       courses: 'Courses',
-      classroom: 'Study Room',
-      submit: 'Submit Work',
+      dashboard: 'Dashboard',
       verifier: 'Check Proof',
-      portfolio: 'Portfolio',
       agentHub: 'Trust Center',
       publishers: 'Publishers',
       howItWorks: 'How It Works',
@@ -845,7 +773,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       sealCaption: 'Independently checkable · No account needed',
       inspectKicker: 'DEEPER INSPECTION TOOLS',
       inspectTitle: 'For auditors who want to see everything.',
-      inspectSub: 'The checks below hold the same evidence behind every answer above — open standards, attack simulations, and batch review.',
+      inspectSub: 'The checks below hold the same evidence behind every answer above — open standards, signatures and status lists.',
       label: 'Proof to check',
       placeholder: 'Paste a proof link, code, or wallet address — accepts credentialHash, attestation UID, tokenId, or address',
       btnVerify: 'Verify',
@@ -1118,48 +1046,15 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       sub: 'Monitor whitelisted domain agents, cryptographic revocation status lists, and anti-compromise delisting registers.',
       agentsHeading: 'Whitelisted Evaluator Agents',
       revocationHeading: 'On-Chain Cryptographic Revocation Console',
-      revocationSub: 'Demonstrate non-repudiation: simulate revoking an attestation UID on BAS via CredentialResolver.',
-      btnTestRevoke: 'Simulate Revoke Attestation #0xf34b...',
+      revocationSub: 'Only the issuer that signed a credential can revoke it on BAS, and the verifier reads that state straight from chain.',
+      btnTestRevoke: 'Check a revoked credential',
       delistHeading: 'Anti-Compromise Delisting Register',
-      delistSub: 'If an AI agent key is ever compromised, the platform contract immediately delists it, blocking new attestations while preserving past verified credentials.',
-      btnTestDelist: 'Simulate Delisting Compromised Agent-B',
-      delistWarning: 'Failsafe Guard: Delisted signers are immediately rejected by CredentialResolver on-chain.',
-      bitstringHeading: 'W3C Bitstring Status List (Chain-State Derived)',
-      bitstringSub: 'Visual representation of BitstringStatusList2021 where revocation & suspension bits are computed directly from live smart contract storage, guaranteeing zero out-of-sync discrepancies.',
-      bitLegendValid: 'Bit 0: Valid / Active (Unrevoked)',
-      bitLegendRevoked: 'Bit 1: Permanently Revoked',
-      bitLegendSuspended: 'Bit 1: Suspended / Delisted',
-      btnToggleBit: 'Simulate State Flip',
-      liveMultibaseLabel: 'Live Gzip Multibase String:',
+      delistSub: 'If an issuer key is ever compromised, the platform delists that issuer on chain. It can issue nothing new; what it issued before is not erased — the verifier shows it came from a delisted issuer, and it no longer counts as a prerequisite.',
+      btnTestDelist: 'Check a credential from a delisted issuer',
+      delistWarning: 'Enforced on chain: CredentialResolver refuses every new issuance from a delisted issuer.',
     },
     wallet: {
-      connectBtn: 'Sign in with Browser',
-      connectedAs: 'Connected:',
-      modalTitle: 'Sign in with Browser / Wallet',
-      modalSub: 'Sign in with Privy embedded wallet or connect your existing Web3 browser wallet.',
-      privyOption: 'Sign in with email (Privy)',
-      privyOptionSub: 'A wallet created for you without a seed phrase — the same address on any device',
-      privyBadgeRecommended: 'Recommended',
-      privyEmailPlaceholder: 'Enter your email (e.g. learner@gmail.com)',
-      privySendOtpBtn: 'Send OTP Code ➔',
-      privyGoogleBtn: 'Continue with Google Account',
-      privyOrFastLogin: 'or sign in with',
-      privyStepOtpHelp: 'Verification code sent. Enter the 6-digit code to activate your learning address:',
-      privyOtpPlaceholder: '123456',
-      privyVerifyOtpBtn: 'Verify & Enter Classroom ➔',
-      privyOtpNotice: 'The code comes from Privy to your inbox — check the spam folder too.',
-      privyCustodyNotice: 'Key custody: your wallet is created for you and held by Privy infrastructure — Lencana never holds its key. This EVM address records your course progress and receives your soulbound credentials.',
-      btnBack: '← Back',
-      browserOption: 'Browser Extension Wallet',
-      browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
-      deviceOption: '1-Click Guest Key (Device Key)',
-      deviceOptionSub: 'Start studying immediately without installing extensions (temporary session key)',
-      demoOption: '1-Click Demo Learner (rina.bnb)',
-      demoOptionSub: 'Instant testing without installing extensions (0x5cA3...7c3B)',
-      disconnect: 'Disconnect',
-      connecting: 'Connecting...',
-      noExtension: 'No Web3 wallet extension found. Please use the Demo Account or install MetaMask.',
-      wrongNetwork: 'Please switch your wallet network to BNB Smart Chain Testnet (Chain ID: 97).',
+      connectBtn: 'Sign in',
     },
     mintModal: {
       title: 'Your achievement is ready to share!',
@@ -1189,41 +1084,6 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnLinkedIn: 'Add to LinkedIn Profile',
       btnX: 'Share on X',
       btnClose: 'Close Diploma',
-    },
-    tamperPlayground: {
-      kicker: 'FORGERY DEFENSE · TRY IT YOURSELF',
-      title: 'See what happens when someone tampers with a proof',
-      sub: 'Try four real attack simulations below. Each one is stopped by the same checks that protect every achievement — the execution trace shows exactly where the attack fails.',
-      attack1Btn: 'Simulate 1-Byte Grade Tamper',
-      attack1Title: 'Attack 1: Document Tampering (Grade 93 ➔ 99)',
-      attack1Desc: 'Adversary modifies an essay score or name in the JSON-LD payload. Result: Keccak256 digests mismatch and ECDSA signature fails.',
-      attack2Btn: 'Simulate Soulbound Token Theft',
-      attack2Title: 'Attack 2: ERC-5192 Token Theft / Transfer',
-      attack2Desc: 'Secondary market buyer or thief invokes safeTransferFrom(Rina, Thief, tokenId). Result: EVM strictly reverts with NotTransferable().',
-      attack3Btn: 'Simulate Rogue Agent Impersonation',
-      attack3Title: 'Attack 3: Unapproved Rogue Agent Issuance',
-      attack3Desc: 'Malicious bot attempts to mint or attest without whitelisting. Result: CredentialResolver reverts with NotAnIssuer(0xBadBot).',
-      attack4Btn: 'Simulate Revoked Prerequisite Attack',
-      attack4Title: 'Attack 4: Revoked Prerequisite Chaining Attack',
-      attack4Desc: 'Attacker attempts to claim Level 2 credential while Level 1 prerequisite was revoked. Result: Reverts with PrerequisiteRevoked().',
-      terminalTitle: 'Simulated EVM Execution Trace & Call Stack',
-      revertBadge: 'REVERTED ON-CHAIN',
-      resetBtn: 'Reset Simulator',
-    },
-    x402Console: {
-      kicker: 'FOR RECRUITERS & TEAMS',
-      title: 'Check many applications at once',
-      sub: 'A batch-audit demo for recruiters and hiring systems: screen ten candidate proofs in one run. Single checks above stay free forever — only this convenience layer ever carries a fee.',
-      philosophyKicker: 'CORE PROTOCOL PRINCIPLE',
-      philosophyText: 'We charge for convenience, never for truth. Public verification is free, wallet-free, forever. x402 micropayments directly reimburse platform issuance gas without debt ledgers.',
-      btnSimulateBatch: 'Simulate 10-Candidate Batch Audit (1,000 DemoCourseToken)',
-      batchSizeLabel: 'Batch Payload: 10 Candidate Resume Credential Hashes',
-      step1Label: '1. Client Request: POST /verify [batch]',
-      step2Label: '2. Gateway Challenge: HTTP/1.1 402 Payment Required',
-      step3Label: '3. Micropayment Authorization: PAYMENT: eip712-allowance',
-      step4Label: '4. Verified Batch Report: 10/10 Candidates Processed in 118ms',
-      candidatesAudited: '10 Candidates Audited: 8 VALID · 1 REVOKED · 1 DELISTED',
-      latencyLabel: 'Latency: 118ms · Fee Settled: 1,000 DemoCourseToken (atomic units)',
     },
     demoMode: {
       kicker: 'GUIDED PRODUCT TOUR',
@@ -1403,10 +1263,8 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
     nav: {
       home: 'Beranda',
       courses: 'Katalog Kursus',
-      classroom: 'Ruang Belajar',
-      submit: 'Kumpulkan Tugas',
+      dashboard: 'Dashboard',
       verifier: 'Periksa Bukti',
-      portfolio: 'Portofolio',
       agentHub: 'Pusat Kepercayaan',
       publishers: 'Penerbit',
       howItWorks: 'Cara Kerja',
@@ -1594,7 +1452,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       sealCaption: 'Dapat diperiksa siapa saja · Tanpa akun',
       inspectKicker: 'PERALATAN INSPEKSI LANJUTAN',
       inspectTitle: 'Untuk auditor yang ingin melihat semuanya.',
-      inspectSub: 'Pemeriksaan di bawah menyimpan bukti yang sama di balik setiap jawaban di atas — standar terbuka, simulasi serangan, dan pemeriksaan massal.',
+      inspectSub: 'Pemeriksaan di bawah menyimpan bukti yang sama di balik setiap jawaban di atas — standar terbuka, tanda tangan, dan daftar status.',
       label: 'Bukti yang diperiksa',
       placeholder: 'Tempel tautan bukti, kode, atau address dompet — menerima credentialHash, UID atestasi, tokenId, atau address',
       btnVerify: 'Periksa',
@@ -1867,48 +1725,15 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       sub: 'Pantau agen domain resmi di whitelist, daftar pencabutan kriptografis, dan mekanisme delisting anti-kebocoran kunci.',
       agentsHeading: 'Daftar Agen Penilai Ber-Whitelist',
       revocationHeading: 'Konsol Uji Pencabutan Kriptografis On-Chain',
-      revocationSub: 'Buktikan integritas: simulasikan pencabutan UID atestasi di BAS melalui CredentialResolver.',
-      btnTestRevoke: 'Simulasikan Pencabutan Atestasi #0xf34b...',
+      revocationSub: 'Hanya penerbit yang menandatangani kredensial yang bisa mencabutnya di BAS, dan verifier membaca keadaan itu langsung dari chain.',
+      btnTestRevoke: 'Periksa kredensial yang dicabut',
       delistHeading: 'Register Delisting Anti-Kompromi Kunci',
-      delistSub: 'Jika kunci privat agen bocor, kontrak platform langsung mendelisting agen tersebut: menolak sertifikat baru tanpa membatalkan kredensial sah terdahulu.',
-      btnTestDelist: 'Simulasikan Delisting Agen-B',
-      delistWarning: 'Pengaman Otomatis: Agen yang didelisting seketika ditolak oleh CredentialResolver on-chain.',
-      bitstringHeading: 'W3C Bitstring Status List (Berdasarkan State Kontrak)',
-      bitstringSub: 'Representasi visual BitstringStatusList2021 di mana bit pencabutan & suspensi dihitung langsung dari storage smart contract, menjamin sinkronisasi mutlak 100%.',
-      bitLegendValid: 'Bit 0: Aktif / Sah (Belum Dicabut)',
-      bitLegendRevoked: 'Bit 1: Dicabut Permanen',
-      bitLegendSuspended: 'Bit 1: Ditangguhkan / Delisted',
-      btnToggleBit: 'Simulasikan Perubahan Bit',
-      liveMultibaseLabel: 'String Multibase Gzip Real-Time:',
+      delistSub: 'Kalau kunci penerbit bocor, platform men-delist penerbit itu di chain. Ia tidak bisa menerbitkan apa pun lagi; terbitannya yang lama tidak dihapus — verifier menunjukkan asalnya dari penerbit yang di-delist, dan kredensial itu tidak lagi diterima sebagai prasyarat.',
+      btnTestDelist: 'Periksa kredensial dari penerbit yang di-delist',
+      delistWarning: 'Ditegakkan di chain: CredentialResolver menolak setiap penerbitan baru dari penerbit yang di-delist.',
     },
     wallet: {
-      connectBtn: 'Masuk dengan Browser',
-      connectedAs: 'Terhubung:',
-      modalTitle: 'Masuk dengan Browser / Dompet',
-      modalSub: 'Masuk dengan dompet embedded Privy atau hubungkan dompet Web3 browser kamu.',
-      privyOption: 'Masuk dengan email (Privy)',
-      privyOptionSub: 'Dompet dibuatkan untukmu tanpa seed phrase — alamat yang sama di perangkat mana pun',
-      privyBadgeRecommended: 'Disarankan',
-      privyEmailPlaceholder: 'Masukkan email kamu (contoh: peserta@gmail.com)',
-      privySendOtpBtn: 'Kirim Kode OTP ➔',
-      privyGoogleBtn: 'Lanjutkan dengan Akun Google',
-      privyOrFastLogin: 'atau masuk cepat dengan',
-      privyStepOtpHelp: 'Kode verifikasi telah dikirim. Masukkan 6 digit kode untuk mengaktifkan alamat belajarmu:',
-      privyOtpPlaceholder: '123456',
-      privyVerifyOtpBtn: 'Verifikasi & Masuk Kelas ➔',
-      privyOtpNotice: 'Kode dikirim Privy ke kotak masukmu — cek juga folder spam.',
-      privyCustodyNotice: 'Catatan kunci: dompetmu dibuatkan untukmu dan dijaga infrastruktur Privy — Lencana tidak memegang kuncinya. Alamat EVM ini digunakan untuk mencatat progres belajarmu dan menerima bukti kredensial di BNB Chain.',
-      btnBack: '← Kembali',
-      browserOption: 'Ekstensi Dompet Browser',
-      browserOptionSub: 'MetaMask, Binance Web3 Wallet, Rabby, Trust Wallet',
-      deviceOption: 'Kunci Tamu Instan (Kunci Perangkat)',
-      deviceOptionSub: 'Mulai belajar langsung tanpa pasang ekstensi (kunci sesi sementara)',
-      demoOption: 'Siswa Demo 1-Klik (rina.bnb)',
-      demoOptionSub: 'Uji coba instan tanpa perlu install ekstensi (0x5cA3...7c3B)',
-      disconnect: 'Putuskan',
-      connecting: 'Menghubungkan...',
-      noExtension: 'Ekstensi dompet Web3 tidak terdeteksi. Silakan gunakan Akun Demo atau install MetaMask.',
-      wrongNetwork: 'Harap alihkan jaringan dompet kamu ke BNB Smart Chain Testnet (Chain ID: 97).',
+      connectBtn: 'Masuk',
     },
     mintModal: {
       title: 'Pencapaianmu siap dibagikan!',
@@ -1938,41 +1763,6 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       btnLinkedIn: 'Tambah ke Profil LinkedIn',
       btnX: 'Bagikan di X',
       btnClose: 'Tutup Ijazah',
-    },
-    tamperPlayground: {
-      kicker: 'PERTAHANAN PEMALSUAN · COBA SENDIRI',
-      title: 'Lihat apa yang terjadi saat seseorang mengubah bukti',
-      sub: 'Coba empat simulasi serangan nyata di bawah. Semuanya dihentikan oleh pemeriksaan yang sama yang melindungi setiap pencapaian — jejak eksekusinya menunjukkan persis di mana serangan itu gagal.',
-      attack1Btn: 'Simulasikan Modifikasi Nilai 1-Byte',
-      attack1Title: 'Serangan 1: Manipulasi Dokumen (Nilai 93 ➔ 99)',
-      attack1Desc: 'Penyerang mengubah nilai esai atau nama di payload JSON-LD. Hasil: Digest Keccak256 tidak cocok dan verifikasi ECDSA gagal total.',
-      attack2Btn: 'Simulasikan Pencurian Token Soulbound',
-      attack2Title: 'Serangan 2: Pencurian / Transfer Token ERC-5192',
-      attack2Desc: 'Pembeli pasar sekunder mencoba memanggil safeTransferFrom(Rina, Pencuri, tokenId). Hasil: EVM menolak dengan revert NotTransferable().',
-      attack3Btn: 'Simulasikan Agen Palsu Tak Berizin',
-      attack3Title: 'Serangan 3: Penerbitan oleh Agen Liar Tanpa Whitelist',
-      attack3Desc: 'Bot berbahaya mencoba membuat atestasi tanpa terdaftar di whitelist. Hasil: CredentialResolver menolak dengan NotAnIssuer(0xBadBot).',
-      attack4Btn: 'Simulasikan Serangan Prasyarat Dicabut',
-      attack4Title: 'Serangan 4: Rantai Prasyarat yang Telah Dicabut',
-      attack4Desc: 'Penyerang mencoba mengeklaim sertifikat Level 2 padahal prasyarat Level 1 telah dicabut. Hasil: Revert dengan PrerequisiteRevoked().',
-      terminalTitle: 'Jejak Eksekusi EVM & Call Stack Terenkapsulasi',
-      revertBadge: 'REVERT ON-CHAIN (GAGAL DITEMBUS)',
-      resetBtn: 'Reset Simulator',
-    },
-    x402Console: {
-      kicker: 'UNTUK PEREKRUT & TIM',
-      title: 'Periksa banyak lamaran sekaligus',
-      sub: 'Demo audit massal untuk perekrut dan sistem rekrutmen: saring sepuluh bukti kandidat dalam sekali jalan. Pemeriksaan satuan di atas tetap gratis selamanya — hanya lapisan kenyamanan ini yang berbayar.',
-      philosophyKicker: 'PRINSIP UTAMA PROTOKOL',
-      philosophyText: 'Kami mengenakan biaya untuk kenyamanan, bukan untuk kebenaran. Verifikasi publik selalu gratis tanpa dompet selamanya. Biaya mikro x402 langsung menutupi biaya gas penerbitan tanpa buku utang.',
-      btnSimulateBatch: 'Simulasikan Audit 10 Kandidat (1.000 DemoCourseToken)',
-      batchSizeLabel: 'Payload Batch: 10 Hash Kredensial Resume Pelamar',
-      step1Label: '1. Permintaan Klien: POST /verify [batch]',
-      step2Label: '2. Gateway Challenge: HTTP/1.1 402 Payment Required',
-      step3Label: '3. Otorisasi Pembayaran Mikro: PAYMENT: eip712-allowance',
-      step4Label: '4. Laporan Audit Selesai: 10/10 Kandidat Diproses dalam 118ms',
-      candidatesAudited: '10 Kandidat Diaudit: 8 VALID · 1 DICABUT · 1 DELISTED',
-      latencyLabel: 'Latensi: 118ms · Biaya Selesai: 1.000 DemoCourseToken (satuan atomik)',
     },
     demoMode: {
       kicker: 'TUR PRODUK TERPANDU',

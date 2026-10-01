@@ -578,3 +578,23 @@ Builder meminta UI 3D alur bisnis Lencana per peran di landing dan meng-acc brie
 
 Cara menilai ulang: `cd web && npx tsc --noEmit && npm run build && npm run probe`, lalu buka `#/` → gulir ke "Satu alur,
 tiga kursi" → ganti EN/ID di navbar (teks bagian dan hero harus ikut berganti).
+
+## OI-24 — pintu masuk berakun dan permukaan publik tanpa simulasi: berkasmu yang tersentuh (B123, D59, 2 Okt)
+
+Builder: "ini bukan simulasi FE lagi jd ga boleh ditampilin asal begitu". Rencananya di
+[[11-Refactoring/RF7 - Halaman publik vs internal, dashboard per peran, onboarding]] (langkah A); keputusan D59.
+
+| berkas | perubahan |
+|---|---|
+| `web/index.html` | modal `#wallet-modal` (Privy/ekstensi/kunci perangkat/Demo Learner) dibuang — dialog masuk sekarang dibangun `pages/login.ts`; nav: Study Room/AI Studio/My Credentials → satu `#nav-dashboard` (`#/me`, `student-only`); tombol navbar "Sign in"; Verifier: `#tamper-playground` + `#x402-console` dibuang; Trust Center: blok bitstring dibuang, kartu delisting menunjuk spesimen sungguhan `0xaa379627…` |
+| `web/src/main.ts` | handler modal lama, `connectDemoWallet`/`connectDeviceWallet`/`connectBrowserWallet`, `applyPrivyModeLabels`, simulasi bitstring/tamper/x402 dibuang; `onSignedIn` + `initLogin`/`completeGoogleReturn`; `#/submit`, `#ai-evaluator`, `#/portfolio` → `#/me`; `SAMPLE_HASHES.delisted` + handler tombol delisting |
+| `web/src/i18n.ts` | `wallet` diciutkan ke `connectBtn`; `tamperPlayground` dan `x402Console` dibuang; kunci bitstring dibuang; `nav.dashboard`; label revoke/delisting dan `inspectSub` dibetulkan (tidak lagi "Simulate") |
+| `web/src/pages/class.ts`, `web/src/lesson-views.ts` | kotak identitas kelas: satu tombol "Masuk"; aksi kunci perangkat/dompet dibuang |
+
+**Tidak disentuh, tapi mati:** `#page-home` (landing lama + navbarnya sendiri), `#page-submit` (AI Studio, `simulateAiEvaluation`),
+`#page-portfolio` (kartu "Rina Oktaviani"), dock demo (`force-hidden`) — tidak ada rute yang membukanya lagi, tapi markup dan
+kodenya masih di berkas. Juga CSS untuk bagian yang dibuang (`.wallet-modal*`, `.tamper-*`, `.x402-*`, `.bitstring-*`).
+Membuangnya keputusanmu; kalau dibiarkan, ia tetap terbaca di sumber halaman.
+
+Hook baru: `window.dispatchEvent(new CustomEvent('lencana:open-privy', { detail: { courseId } }))` tetap membuka dialog masuk
+(nama event dipertahankan supaya pemanggil lama tidak putus).

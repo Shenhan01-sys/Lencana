@@ -173,22 +173,20 @@ export function setEndpoint (url: string): void {
 export function snapshot (): LearningSnapshot { return state }
 export function learnerAddress (): string | null { return state.identity?.address ?? null }
 
-/** A separate marker proves the learner deliberately entered a supported sign-in mode. */
+/**
+ * Sesi peserta = akun yang masuk lewat login (Google/email, B82). Sejak D59 (2 Okt) kunci perangkat dan dompet
+ * ekstensi tidak lagi membuka halaman internal: platform e-course harus tahu siapa akunnya. Penandanya di
+ * localStorage sengaja bertahan lintas tab; tanpa itu penjaga rute mengusir tab baru sebelum
+ * `resumePrivyLearner` sempat memulihkan dompetnya.
+ */
 export function hasExplicitLearnerSession (): boolean {
-  // Login email (Privy, B82) sengaja bertahan lintas tab lewat penandanya di localStorage; tanpa ini
-  // penjaga rute mengusir tab baru sebelum `resumePrivyLearner` sempat memulihkan dompetnya.
-  return readSession(AUTH_KEY) === 'active' || hasPrivyMark()
+  return hasPrivyMark()
 }
 
 function setExplicitLearnerSession (active: boolean): void {
   if (active) writeSession(AUTH_KEY, 'active')
   else dropSession(AUTH_KEY)
   if (typeof window !== 'undefined') window.dispatchEvent(new Event('lencana:learner-session-change'))
-}
-
-/** The demo wallet is an intentional learner entry mode, even though it has no signing identity. */
-export function startDemoLearnerSession (): void {
-  setExplicitLearnerSession(true)
 }
 
 /**
@@ -290,6 +288,36 @@ export async function connectPrivyLearner (email: string, code: string): Promise
   if (!/^\d{6}$/.test(code.trim())) return { ok: false, why: 'Kodenya 6 digit angka dari email.' }
   try {
     const id = adoptPrivy(await (await import('./privy')).privyLogin(email, code))
+    const account = await linkPrivyAccount()
+    return { ok: true, identity: id, account }
+  } catch (e) {
+    return { ok: false, why: errText(e) }
+  }
+}
+
+/** Metode masuk yang aktif di app login (Google hanya kalau dinyalakan di sana). Gagal dibaca → email saja. */
+export async function loginMethods (): Promise<{ google: boolean, email: boolean }> {
+  try {
+    return await (await import('./privy')).privyLoginMethods()
+  } catch {
+    return { google: false, email: true }
+  }
+}
+
+/** Mulai login Google: halaman pergi ke Google dan kembali ke `redirectURI`. */
+export async function startGoogleLogin (redirectURI: string): Promise<{ ok: boolean, why?: string }> {
+  try {
+    await (await import('./privy')).privyGoogleStart(redirectURI)
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, why: errText(e) }
+  }
+}
+
+/** Kembali dari Google membawa kode sekali-pakai: tukar dengan sesi, pasang dompet, catat ikatan akun di penerbit. */
+export async function finishGoogleLogin (code: string, oauthState: string): Promise<{ ok: boolean, why?: string, identity?: LearnerIdentity, account?: AccountLink }> {
+  try {
+    const id = adoptPrivy(await (await import('./privy')).privyGoogleFinish(code, oauthState))
     const account = await linkPrivyAccount()
     return { ok: true, identity: id, account }
   } catch (e) {

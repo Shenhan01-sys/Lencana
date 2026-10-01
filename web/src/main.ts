@@ -18,22 +18,12 @@ import { MANIFESTS, rubricHashOf, shortHash } from './manifest'
 import { legacyLearnRoute } from './lesson-views'
 import {
   learnerAddress,
-  connectWalletLearner,
-  connectPrivyLearner,
-  createDeviceLearner,
   forgetLearner,
   hasExplicitLearnerSession,
-  sendPrivyCode,
-  startDemoLearnerSession,
   syncCourse,
   snapshot,
 } from './learning'
-
-// B82 (D57): login email lewat Privy kini sungguhan — app ID publik ditulis sebagai default di
-// `privy.ts`, kode datang dari kotak masuk, dan dompet tertanamnya yang menandatangani. Cabang "mode
-// demo" di bawah (kode 123456, Google tiruan) ditulis sebelum itu dan tidak pernah berlaku lagi.
-// Sengaja TIDAK mengimpor `./privy` di sini: modul login harus tetap dimuat lambat (verify:privy E).
-const isRealPrivyConfigured = (): boolean => true
+import { initLogin, openLogin, completeGoogleReturn } from './pages/login'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -72,6 +62,9 @@ let ep: Endpoint = loadEndpoint()
 const SAMPLE_HASHES = {
   valid: '0xd0bce6f402e437e4bcc32ddc3d305c5b6b7079b7c4473f6c5625a8183bf7930e',
   revoked: '0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2',
+  // 2 Okt (D59): dipasang lagi untuk tombol Trust Center yang sebelumnya "Simulate Delisting" tanpa handler;
+  // spesimen B102, diadili check:samples (delisted di chain, 200 di tepi).
+  delisted: '0xaa379627438fb47b6a6c2a5fefc421d26f3168ce941e82c19a591c773d849c0f',
   format: '0x123',
 }
 // Kartu kredensial di hero landing menunjuk sampel "valid" yang sama — satu sumber, diadili check:samples.
@@ -534,89 +527,45 @@ function updateEssayWordCount() {
 interface WalletState {
   isConnected: boolean
   address: string | null
-  isDemo: boolean
 }
 
 let walletState: WalletState = {
   isConnected: false,
   address: null,
-  isDemo: false,
 }
 
 function initWalletState() {
+  // D59: hanya akun (login Google/email) yang membuka halaman internal; identitas lain yang tersisa di tab ini dilepas.
   if (!hasExplicitLearnerSession()) {
-    // Old session data without the explicit marker is not an authenticated learner session.
     if (learnerAddress()) forgetLearner()
     try { sessionStorage.removeItem('lencana_wallet') } catch { /* storage may be unavailable */ }
-    walletState = { isConnected: false, address: null, isDemo: false }
+    walletState = { isConnected: false, address: null }
     renderWalletState()
     return
   }
   const addr = learnerAddress()
-  if (addr) {
-    const s = snapshot()
-    const k = s.identity?.kind
-    walletState = {
-      isConnected: true,
-      address: addr,
-      isDemo: k === 'perangkat' || (k === 'privy' && !isRealPrivyConfigured()),
-    }
-    renderWalletState()
-    return
-  }
-  try {
-    const saved = sessionStorage.getItem('lencana_wallet')
-    if (saved) {
-      walletState = JSON.parse(saved)
-      renderWalletState()
-    }
-  } catch {}
+  walletState = { isConnected: Boolean(addr), address: addr }
+  renderWalletState()
 }
 
 function renderWalletState() {
   const connectBtn = $('btn-connect-wallet')
   const connectedPill = $('wallet-connected-pill')
   const addrDisplay = $('wallet-address-display')
-  const learnerAddrEl = document.querySelector('.learner-addr')
-  const portfolioAddrEl = document.querySelector('.portfolio-wallet-addr')
-  const mintReceiptAddr = $('mint-receipt-recipient')
-
-  const effectiveAddress = hasExplicitLearnerSession()
-    ? learnerAddress() || (walletState.isConnected ? walletState.address : null)
-    : null
-
+  const effectiveAddress = hasExplicitLearnerSession() ? learnerAddress() || walletState.address : null
   const studentLinks = document.querySelectorAll('.student-only')
 
   if (effectiveAddress) {
     connectBtn?.classList.add('hidden')
     connectedPill?.classList.remove('hidden')
-    studentLinks.forEach(el => el.classList.remove('hidden'))
-    const short = `${effectiveAddress.slice(0, 6)}...${effectiveAddress.slice(-4)}`
-    if (addrDisplay) {
-      addrDisplay.textContent = walletState.isDemo ? `guest (${short})` : short
-    }
-    if (learnerAddrEl) learnerAddrEl.textContent = effectiveAddress
-    if (portfolioAddrEl) portfolioAddrEl.textContent = effectiveAddress
-    if (mintReceiptAddr) mintReceiptAddr.textContent = effectiveAddress
-    // Kartu learner di storefront: nama fixture ("Rina Oktaviani", OI-5) diganti alamat
-    // nyata begitu ada identitas — ilustrasi tidak boleh menyamar jadi peserta yang masuk.
-    const cardName = $('learner-profile-name')
-    if (cardName) cardName.textContent = walletState.isDemo ? `Guest ${short}` : short
-    const cardSub = $('learner-sub-info')
-    if (cardSub) {
-      cardSub.textContent = walletState.isDemo
-        ? (currentLang === 'en' ? 'Temporary session key · progress syncs to the issuer when online' : 'Kunci sesi sementara · progres tersinkron ke penerbit saat online')
-        : (currentLang === 'en' ? 'Connected wallet · progress syncs to the issuer' : 'Dompet terhubung · progres tersinkron ke penerbit')
-    }
-    const avatar = document.querySelector('.learner-avatar-img')
-    if (avatar) avatar.textContent = effectiveAddress.slice(2, 4).toUpperCase()
+    studentLinks.forEach((el) => el.classList.remove('hidden'))
+    // Orang mengenali akunnya dari email, bukan dari alamat dompet.
+    const email = snapshot().identity?.email
+    if (addrDisplay) addrDisplay.textContent = email || `${effectiveAddress.slice(0, 6)}...${effectiveAddress.slice(-4)}`
   } else {
     connectBtn?.classList.remove('hidden')
     connectedPill?.classList.add('hidden')
-    studentLinks.forEach(el => el.classList.add('hidden'))
-    if (learnerAddrEl) learnerAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
-    if (portfolioAddrEl) portfolioAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
-    if (mintReceiptAddr) mintReceiptAddr.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
+    studentLinks.forEach((el) => el.classList.add('hidden'))
   }
   updateLearnerNavigation()
 }
@@ -671,310 +620,10 @@ function updateLearnerNavigation(): void {
   })
 }
 
-function openWalletModal(startWithPrivy = false) {
-  const modal = $('wallet-modal')
-  const statusEl = $('wallet-modal-status')
-  const optionsList = $('wallet-options-list')
-  const privyPanel = $('privy-onboarding-panel')
-  const stepEmail = $('privy-step-email')
-  const stepOtp = $('privy-step-otp')
-
-  if (statusEl) {
-    statusEl.classList.add('hidden')
-    statusEl.textContent = ''
-  }
-
-  if (startWithPrivy) {
-    optionsList?.classList.add('hidden')
-    privyPanel?.classList.remove('hidden')
-    stepEmail?.classList.remove('hidden')
-    stepOtp?.classList.add('hidden')
-  } else {
-    optionsList?.classList.remove('hidden')
-    privyPanel?.classList.add('hidden')
-    stepEmail?.classList.remove('hidden')
-    stepOtp?.classList.add('hidden')
-  }
-
-  applyPrivyModeLabels()
-  modal?.classList.remove('hidden')
-}
-
-function closeWalletModal() {
-  const modal = $('wallet-modal')
-  modal?.classList.add('hidden')
-}
-
-/**
- * Label mode Privy: demo vs live. Tanpa App ID Privy sungguhan, "masuk dengan Privy"
- * sebenarnya membuat kunci lokal di sesi ini — bukan dompet embedded Privy, tidak ada
- * email yang dikirim, dan "login Google" tidak menyentuh Google. Copy di bawah membuat
- * perbedaan itu eksplisit supaya halaman tidak berpura-pura (vault OI-5/OI-13).
- */
-function applyPrivyModeLabels(): void {
-  if (isRealPrivyConfigured()) return
-  const en = currentLang === 'en'
-  setText('wallet-opt-privy-desc', en
-    ? 'Demo mode (no Privy App ID): local session key, not a real Privy wallet'
-    : 'Mode demo (tanpa App ID Privy): kunci sesi lokal, bukan dompet Privy sungguhan')
-  setText('privy-google-btn-text', en
-    ? 'Continue with Google (Demo — no real Google)'
-    : 'Lanjutkan dengan Google (Demo — tanpa Google sungguhan)')
-  setText('privy-otp-notice', en
-    ? 'Demo mode: any code of 4+ digits is accepted locally (123456 for quick test). No email is actually sent.'
-    : 'Mode demo: kode apa pun ≥4 digit diterima secara lokal (123456 untuk uji cepat). Tidak ada email yang benar-benar dikirim.')
-  setText('privy-step-otp-help', en
-    ? 'Demo mode: nothing was emailed. Enter any 4+ digit code (123456 for quick test) to activate a local learning address:'
-    : 'Mode demo: tidak ada yang dikirim ke email. Masukkan kode apa pun ≥4 digit (123456 untuk uji cepat) untuk mengaktifkan alamat belajar lokal:')
-  setText('privy-custody-text', en
-    ? 'Demo mode: the key is generated in this browser and dies with the session/tab. It is NOT a Privy embedded wallet and cannot be exported via Privy.'
-    : 'Mode demo: kunci dibuat di peramban ini dan hangus bersama sesi/tab. Ini BUKAN dompet embedded Privy dan tidak bisa diekspor lewat Privy.')
-}
-
-function switchToPrivyPanel() {
-  const optionsList = $('wallet-options-list')
-  const privyPanel = $('privy-onboarding-panel')
-  const statusEl = $('wallet-modal-status')
-  if (statusEl) {
-    statusEl.classList.add('hidden')
-    statusEl.textContent = ''
-  }
-  optionsList?.classList.add('hidden')
-  privyPanel?.classList.remove('hidden')
-  $('privy-step-email')?.classList.remove('hidden')
-  $('privy-step-otp')?.classList.add('hidden')
-  const emailInput = $('privy-email-input') as HTMLInputElement | null
-  emailInput?.focus()
-}
-
-function switchToOptionsList() {
-  const optionsList = $('wallet-options-list')
-  const privyPanel = $('privy-onboarding-panel')
-  const statusEl = $('wallet-modal-status')
-  if (statusEl) {
-    statusEl.classList.add('hidden')
-    statusEl.textContent = ''
-  }
-  privyPanel?.classList.add('hidden')
-  optionsList?.classList.remove('hidden')
-}
-
-async function handlePrivySendOtp() {
-  const emailInput = $('privy-email-input') as HTMLInputElement | null
-  const statusEl = $('wallet-modal-status')
-  const btn = $('btn-privy-send-otp') as HTMLButtonElement | null
-  const email = emailInput?.value.trim() || ''
-
-  if (!email || !email.includes('@')) {
-    if (statusEl) {
-      statusEl.textContent = currentLang === 'en'
-        ? 'Please enter a valid email address.'
-        : 'Masukkan format email yang valid.'
-      statusEl.className = 'wallet-modal-status error'
-      statusEl.classList.remove('hidden')
-    }
-    return
-  }
-
-  if (btn) {
-    btn.disabled = true
-    btn.textContent = currentLang === 'en' ? 'Sending code…' : 'Mengirim kode…'
-  }
-  if (statusEl) {
-    statusEl.classList.remove('hidden')
-    const demo = !isRealPrivyConfigured()
-    statusEl.textContent = demo
-      ? (currentLang === 'en' ? 'Demo mode: preparing a local code (nothing is sent)…' : 'Mode demo: menyiapkan kode lokal (tidak ada yang dikirim)…')
-      : (currentLang === 'en' ? 'Contacting Privy Auth…' : 'Menghubungi Privy Auth…')
-    statusEl.className = 'wallet-modal-status'
-  }
-
-  try {
-    const res = await sendPrivyCode(email)
-    if (!res.ok) {
-      if (statusEl) {
-        statusEl.textContent = res.why || (currentLang === 'en' ? 'The code could not be sent.' : 'Kode tidak terkirim.')
-        statusEl.className = 'wallet-modal-status error'
-        statusEl.classList.remove('hidden')
-      }
-      return
-    }
-    if (statusEl) {
-      statusEl.textContent = currentLang === 'en'
-        ? `Code sent to ${email}. Check your inbox (and spam), then enter the 6 digits.`
-        : `Kode dikirim ke ${email}. Cek kotak masuk (dan folder spam), lalu ketik 6 digitnya.`
-      statusEl.className = 'wallet-modal-status'
-      statusEl.classList.remove('hidden')
-    }
-    // Show OTP input step
-    $('privy-step-email')?.classList.add('hidden')
-    $('privy-step-otp')?.classList.remove('hidden')
-    const otpInput = $('privy-otp-input') as HTMLInputElement | null
-    if (otpInput) {
-      otpInput.value = ''
-      otpInput.focus()
-    }
-  } catch (err: any) {
-    if (statusEl) {
-      statusEl.textContent = err?.message || 'Gagal mengirim OTP.'
-      statusEl.className = 'wallet-modal-status error'
-      statusEl.classList.remove('hidden')
-    }
-  } finally {
-    if (btn) {
-      btn.disabled = false
-      btn.textContent = DICTIONARIES[currentLang].wallet.privySendOtpBtn
-    }
-  }
-}
-
-async function handlePrivyVerifyOtp() {
-  const emailInput = $('privy-email-input') as HTMLInputElement | null
-  const otpInput = $('privy-otp-input') as HTMLInputElement | null
-  const statusEl = $('wallet-modal-status')
-  const btn = $('btn-privy-verify-otp') as HTMLButtonElement | null
-
-  const email = emailInput?.value.trim() || ''
-  const otp = otpInput?.value.trim() || ''
-
-  if (!otp) {
-    if (statusEl) {
-      statusEl.textContent = currentLang === 'en'
-        ? 'Please enter the 6-digit OTP code.'
-        : 'Masukkan 6 digit kode OTP.'
-      statusEl.className = 'wallet-modal-status error'
-      statusEl.classList.remove('hidden')
-    }
-    return
-  }
-
-  if (btn) {
-    btn.disabled = true
-    btn.textContent = currentLang === 'en' ? 'Verifying…' : 'Memverifikasi…'
-  }
-  if (statusEl) {
-    statusEl.classList.remove('hidden')
-    statusEl.textContent = currentLang === 'en' ? 'Activating Privy Embedded Wallet…' : 'Mengaktifkan Dompet Embedded Privy…'
-    statusEl.className = 'wallet-modal-status'
-  }
-
-  try {
-    const login = await connectPrivyLearner(email, otp)
-    const res = { ok: login.ok, address: login.identity?.address, why: login.why }
-    if (!res.ok || !res.address) {
-      if (statusEl) {
-        statusEl.textContent = res.why || (currentLang === 'en' ? 'Invalid verification code.' : 'Kode verifikasi tidak valid.')
-        statusEl.className = 'wallet-modal-status error'
-        statusEl.classList.remove('hidden')
-      }
-      return
-    }
-
-    walletState = { isConnected: true, address: res.address, isDemo: false }
-    sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
-    renderWalletState()
-    closeWalletModal()
-
-    const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
-    if (pendingTarget) {
-      sessionStorage.removeItem('lencana_enroll_target')
-      try {
-        await syncCourse(pendingTarget)
-      } catch (err) {
-        console.warn('Sync enrollment error:', err)
-      }
-      window.location.hash = `#/course/${pendingTarget}`
-    } else {
-      window.location.hash = '#/learn'
-    }
-  } catch (err: any) {
-    if (statusEl) {
-      statusEl.textContent = err?.message || 'Verifikasi gagal.'
-      statusEl.className = 'wallet-modal-status error'
-      statusEl.classList.remove('hidden')
-    }
-  } finally {
-    if (btn) {
-      btn.disabled = false
-      btn.textContent = DICTIONARIES[currentLang].wallet.privyVerifyOtpBtn
-    }
-  }
-}
-
-async function handlePrivyGoogleLogin() {
-  const statusEl = $('wallet-modal-status')
-  if (statusEl) {
-    statusEl.classList.remove('hidden')
-    const demo = !isRealPrivyConfigured()
-    statusEl.textContent = demo
-      ? (currentLang === 'en' ? 'Demo mode: simulating a Google login (no real Google)…' : 'Mode demo: mensimulasikan login Google (tanpa Google sungguhan)…')
-      : (currentLang === 'en' ? 'Connecting with Google & Privy…' : 'Menghubungkan Akun Google & Privy…')
-    statusEl.className = 'wallet-modal-status'
-  }
-
-  try {
-    // Google dimatikan di app Privy Lencana (pengaturan dibaca 1 Okt), dan login tiruannya dibuang (B82).
-    const res: { ok: boolean, address?: string, why?: string } = {
-      ok: false,
-      why: currentLang === 'en' ? 'Google sign-in is not enabled for this app yet — use email.' : 'Masuk dengan Google belum diaktifkan untuk app ini — pakai email.',
-    }
-    if (!res.ok || !res.address) {
-      if (statusEl) {
-        statusEl.textContent = res.why || 'Gagal masuk dengan Google.'
-        statusEl.className = 'wallet-modal-status error'
-        statusEl.classList.remove('hidden')
-      }
-      return
-    }
-
-    walletState = { isConnected: true, address: res.address, isDemo: false }
-    sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
-    renderWalletState()
-    closeWalletModal()
-
-    const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
-    if (pendingTarget) {
-      sessionStorage.removeItem('lencana_enroll_target')
-      try {
-        await syncCourse(pendingTarget)
-      } catch (err) {
-        console.warn('Sync enrollment error:', err)
-      }
-      window.location.hash = `#/course/${pendingTarget}`
-    } else {
-      window.location.hash = '#/learn'
-    }
-  } catch (err: any) {
-    if (statusEl) {
-      statusEl.textContent = err?.message || 'Login Google gagal.'
-      statusEl.className = 'wallet-modal-status error'
-      statusEl.classList.remove('hidden')
-    }
-  }
-}
-
-async function connectBrowserWallet() {
-  const statusEl = $('wallet-modal-status')
-  if (statusEl) {
-    statusEl.classList.remove('hidden')
-    statusEl.textContent = DICTIONARIES[currentLang].wallet.connecting
-    statusEl.className = 'wallet-modal-status'
-  }
-
-  const res = await connectWalletLearner()
-  if (!res.ok || !res.identity) {
-    if (statusEl) {
-      statusEl.textContent = res.why || DICTIONARIES[currentLang].wallet.noExtension
-      statusEl.className = 'wallet-modal-status error'
-    }
-    return
-  }
-
-  walletState = { isConnected: true, address: res.identity.address, isDemo: false }
-  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+/** Sesudah login (email atau Google, D59): kembali ke kursus yang dituju, atau ke dashboard. */
+async function onSignedIn(address: string) {
+  walletState = { isConnected: true, address }
   renderWalletState()
-  closeWalletModal()
-
   const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
   if (pendingTarget) {
     sessionStorage.removeItem('lencana_enroll_target')
@@ -983,64 +632,15 @@ async function connectBrowserWallet() {
     } catch (err) {
       console.warn('Sync enrollment error:', err)
     }
-    window.location.hash = `#/course/${pendingTarget}`
-  }
-}
-
-async function connectDeviceWallet() {
-  const id = createDeviceLearner()
-  if (!id) {
-    const statusEl = $('wallet-modal-status')
-    if (statusEl) {
-      statusEl.textContent = currentLang === 'en'
-        ? 'Browser storage is blocked in private mode. Please connect a Web3 wallet.'
-        : 'Penyimpanan sesi browser tidak tersedia di mode privat. Silakan gunakan dompet Web3.'
-      statusEl.className = 'wallet-modal-status error'
-      statusEl.classList.remove('hidden')
-    }
-    return
-  }
-
-  walletState = { isConnected: true, address: id.address, isDemo: true }
-  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
-  renderWalletState()
-  closeWalletModal()
-
-  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
-  if (pendingTarget) {
-    sessionStorage.removeItem('lencana_enroll_target')
-    try {
-      await syncCourse(pendingTarget)
-    } catch (err) {
-      console.warn('Sync enrollment error:', err)
-    }
-    window.location.hash = `#/course/${pendingTarget}`
+    window.location.hash = `#/class/${encodeURIComponent(pendingTarget)}`
   } else {
-    window.location.hash = '#/learn'
-  }
-}
-
-function connectDemoWallet() {
-  startDemoLearnerSession()
-  walletState = {
-    isConnected: true,
-    address: '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
-    isDemo: true,
-  }
-  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
-  renderWalletState()
-  closeWalletModal()
-
-  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
-  if (pendingTarget) {
-    sessionStorage.removeItem('lencana_enroll_target')
-    window.location.hash = `#/course/${pendingTarget}`
+    window.location.hash = '#/me'
   }
 }
 
 function disconnectWallet() {
   forgetLearner()
-  walletState = { isConnected: false, address: null, isDemo: false }
+  walletState = { isConnected: false, address: null }
   sessionStorage.removeItem('lencana_wallet')
   sessionStorage.removeItem('lencana_enroll_target')
   renderWalletState()
@@ -1307,276 +907,6 @@ function copyEmbedCode() {
   })
 }
 
-// ========================================================
-// ITERATION 12: W3C BITSTRING STATUS LIST INTERACTIVE MATRIX
-// ========================================================
-interface BitItem {
-  index: number
-  status: 'valid' | 'revoked' | 'suspended'
-  attestationUid: string
-}
-
-let bitstringState: BitItem[] = []
-let bitstringFlipped = false
-
-function initBitstringMatrix() {
-  bitstringState = []
-  for (let i = 0; i < 256; i++) {
-    let status: 'valid' | 'revoked' | 'suspended' = 'valid'
-    let attestationUid = `0x${(i + 100).toString(16).padStart(64, '0')}`
-
-    if (i === 42) {
-      status = 'revoked'
-      attestationUid = '0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2'
-    } else if (i === 87) {
-      status = 'suspended'
-      attestationUid = '0x4d0ffdf32d174796a2c8bbe38e739c26ec6e205e6cdf48409f7240d28552df1c'
-    }
-
-    bitstringState.push({ index: i, status, attestationUid })
-  }
-  renderBitstringMatrix()
-}
-
-function renderBitstringMatrix() {
-  const grid = $('bitstring-grid')
-  if (!grid) return
-
-  grid.innerHTML = ''
-  let validCount = 0
-  let revokedCount = 0
-  let suspendedCount = 0
-
-  bitstringState.forEach((bit) => {
-    if (bit.status === 'valid') validCount++
-    if (bit.status === 'revoked') revokedCount++
-    if (bit.status === 'suspended') suspendedCount++
-
-    const cell = document.createElement('div')
-    cell.className = `bit-cell ${bit.status}`
-    cell.textContent = bit.status === 'valid' ? '0' : '1'
-    cell.title = `Bit #${bit.index} · ${bit.status.toUpperCase()} · Attestation UID: ${bit.attestationUid.slice(0, 10)}...`
-
-    cell.addEventListener('click', () => {
-      if (bit.status === 'valid') {
-        bit.status = 'revoked'
-      } else if (bit.status === 'revoked') {
-        bit.status = 'suspended'
-      } else {
-        bit.status = 'valid'
-      }
-      renderBitstringMatrix()
-    })
-
-    grid.appendChild(cell)
-  })
-
-  const summary = $('bitstring-status-summary')
-  if (summary) {
-    summary.innerHTML = `Active: <strong>${validCount} Valid</strong> · <strong class="red">${revokedCount} Revoked</strong> · <strong class="amber">${suspendedCount} Suspended</strong>`
-  }
-
-  const multibaseEl = $('bitstring-multibase-val')
-  if (multibaseEl) {
-    multibaseEl.textContent = `uH4sIC${(revokedCount * 17 + suspendedCount * 31).toString(16).padStart(4, '0')}N2UAA2JpdHN0cmluZwDFkMENgDAMBPt3f1f3...${(validCount % 99).toString(16)}fe7f7`
-  }
-}
-
-function toggleBitstringState() {
-  bitstringFlipped = !bitstringFlipped
-  if (bitstringFlipped) {
-    bitstringState[10].status = 'revoked'
-    bitstringState[64].status = 'suspended'
-    bitstringState[128].status = 'revoked'
-  } else {
-    bitstringState[10].status = 'valid'
-    bitstringState[64].status = 'valid'
-    bitstringState[128].status = 'valid'
-  }
-  renderBitstringMatrix()
-}
-
-// ========================================================
-// ITERATION 13: INTERACTIVE TAMPER & FORGERY PLAYGROUND
-// ========================================================
-function simulateAttack(attackType: 1 | 2 | 3 | 4) {
-  const terminal = $('tamper-terminal-body')
-  const pill = $('tamper-revert-pill')
-  if (!terminal) return
-
-  terminal.innerHTML = ''
-  if (pill) {
-    pill.className = 'tamper-revert-pill reverted'
-  }
-
-  if (attackType === 1) {
-    if (pill) pill.textContent = 'REVERTED: INVALID SIGNATURE'
-    terminal.innerHTML = `
-      <div class="tamper-line system">[00.04s] Attacker modifies payload: score: "93/100" ➔ "99/100 (Summa Cum Laude)"</div>
-      <div class="tamper-line">[00.12s] Recomputing Keccak256(payload)...</div>
-      <div class="tamper-line trace">Original Digest: 0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</div>
-      <div class="tamper-line trace">Tampered Digest: 0x7e3a1f8d92410a5b8812c9381ea5b00918c7263bda495821038b584920491823</div>
-      <div class="tamper-line">[00.22s] Calling BAS.getAttestation(0x7e3a1f8d9...) on chain 97...</div>
-      <div class="tamper-line revert">[EVM REVERT] NotFound() · Attestation does not exist on-chain in BAS storage!</div>
-      <div class="tamper-line">[00.32s] Calling ecrecover(0x7e3a..., v: 27, r: 0x4e2..., s: 0x71b...)...</div>
-      <div class="tamper-line revert">[00.40s] Recovered Signer: 0x937Fa2... != Whitelisted Agent (0x8211...7DE)</div>
-      <div class="tamper-line revert">[CRITICAL FAIL] Cryptographic signature check FAILED. Any single byte tampering breaks mathematical verification!</div>
-    `
-  } else if (attackType === 2) {
-    if (pill) pill.textContent = 'REVERTED: ERC-5192 LOCKED'
-    terminal.innerHTML = `
-      <div class="tamper-line system">[00.05s] Attacker invokes SoulboundCert.safeTransferFrom(from: 0x5cA3..., to: 0xAttacker..., tokenId: 1)</div>
-      <div class="tamper-line">[00.14s] SoulboundCert queries internal lock registry: locked(1)...</div>
-      <div class="tamper-line trace">locked(1) == true · Token was issued as immutable Soulbound Credential</div>
-      <div class="tamper-line">[00.24s] Executing _beforeTokenTransfer(0x5cA3..., 0xAttacker..., 1)...</div>
-      <div class="tamper-line revert">[EVM REVERT] NotTransferable() · SoulboundCert blocks transfer</div>
-      <div class="tamper-line trace">Transaction reverted by EVM. Gas consumed: 21,418 gas.</div>
-      <div class="tamper-line success">[SECURITY PASS] The credential remains locked to learner wallet 0x5cA3...7c3B. Secondary market sale impossible!</div>
-    `
-  } else if (attackType === 3) {
-    if (pill) pill.textContent = 'REVERTED: NOT AN ISSUER'
-    terminal.innerHTML = `
-      <div class="tamper-line system">[00.06s] Unauthorized caller 0x4d0ffdf32d1... attempts attestByDelegation() on BAS schema #0x2c4e...</div>
-      <div class="tamper-line">[00.15s] BAS invokes resolver hook: CredentialResolver.onAttest(attestation, msg.value)</div>
-      <div class="tamper-line trace">CredentialResolver checking whitelist: _issuer[0x4d0ffdf32d1...]</div>
-      <div class="tamper-line revert">[EVM REVERT] NotAnIssuer(0x4d0ffdf32d174796a2c8bbe38e739c26ec6e205e)</div>
-      <div class="tamper-line trace">Attestation refused by CredentialResolver hook. Zero bytes written to chain.</div>
-      <div class="tamper-line success">[SECURITY PASS] Malicious agents cannot issue credentials without explicit platform governance whitelisting!</div>
-    `
-  } else if (attackType === 4) {
-    if (pill) pill.textContent = 'REVERTED: PREREQUISITE REVOKED'
-    terminal.innerHTML = `
-      <div class="tamper-line system">[00.05s] Attacker attempts to claim "BNB Chain Security" requiring "Web3 Dasar 2026"</div>
-      <div class="tamper-line">[00.16s] CredentialResolver validating prerequisite hook: onAttest() -> _validatePrerequisite()</div>
-      <div class="tamper-line trace">Reading BAS storage for refUID: 0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2...</div>
-      <div class="tamper-line trace">Found attestation: revocationTime == 1774051200 (REVOKED ON-CHAIN)</div>
-      <div class="tamper-line revert">[EVM REVERT] PrerequisiteRevoked(0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2)</div>
-      <div class="tamper-line trace">Transaction reverted at depth 1. EAS prerequisite loophole CLOSED.</div>
-      <div class="tamper-line success">[SECURITY PASS] Lencana ensures revoked foundational credentials instantly disqualify chained advanced credentials!</div>
-    `
-  }
-}
-
-function resetTamperSimulator() {
-  const terminal = $('tamper-terminal-body')
-  const pill = $('tamper-revert-pill')
-  if (pill) {
-    pill.className = 'tamper-revert-pill'
-    pill.textContent = 'STATUS: SYSTEM READY'
-  }
-  if (terminal) {
-    terminal.innerHTML = `
-      <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0x7CA6...) and SoulboundCert (0xC6FD...).</div>
-      <div class="tamper-line">[Ready] Select an attack scenario above to test on-chain cryptographic reverts.</div>
-    `
-  }
-}
-
-// ========================================================
-// ITERATION 13: B2B RECRUITER BULK AUDIT & x402 PROTOCOL
-// ========================================================
-const CANDIDATE_BATCH_DATA = [
-  { name: 'Rina Oktaviani', hash: '0x0b95c8...67fa', verdict: 'valid', tag: 'VALID · HONORS (93)' },
-  { name: 'Dimas Pratama', hash: '0x1a82d4...41ea', verdict: 'valid', tag: 'VALID · PASS (88)' },
-  { name: 'Siti Nurhaliza', hash: '0x992b11...902f', verdict: 'valid', tag: 'VALID · HONORS (95)' },
-  { name: 'Budi Santoso', hash: '0xf34bdc...56f2', verdict: 'revoked', tag: 'REVOKED · BIT #42' },
-  { name: 'Dewi Lestari', hash: '0x43fa21...12ab', verdict: 'valid', tag: 'VALID · PASS (85)' },
-  { name: 'Andi Wijaya', hash: '0x88bb33...77cd', verdict: 'valid', tag: 'VALID · PASS (82)' },
-  { name: 'Mega Rahmawati', hash: '0x4d0ffd...df1c', verdict: 'delisted', tag: 'DELISTED · BIT #87' },
-  { name: 'Fajar Nugraha', hash: '0x71aa22...33ee', verdict: 'valid', tag: 'VALID · HONORS (91)' },
-  { name: 'Gita Savitri', hash: '0x55cc88...99bb', verdict: 'valid', tag: 'VALID · PASS (87)' },
-  { name: 'Hendra Gunawan', hash: '0x66dd44...11aa', verdict: 'valid', tag: 'VALID · PASS (84)' },
-]
-
-function renderBatchCandidatesList() {
-  const container = $('batch-candidates-list')
-  if (!container) return
-
-  container.innerHTML = ''
-  CANDIDATE_BATCH_DATA.forEach((cand) => {
-    const item = document.createElement('div')
-    item.className = 'batch-cand-item'
-    item.innerHTML = `
-      <div class="batch-cand-info">
-        <span class="batch-cand-name">${cand.name}</span>
-        <code class="batch-cand-hash">${cand.hash}</code>
-      </div>
-      <span class="batch-cand-verdict ${cand.verdict}">${cand.tag}</span>
-    `
-    container.appendChild(item)
-  })
-}
-
-let isSimulatingX402 = false
-function simulateX402Batch() {
-  if (isSimulatingX402) return
-  isSimulatingX402 = true
-
-  const btn = $('btn-simulate-x402') as HTMLButtonElement | null
-  if (btn) btn.disabled = true
-
-  const step1 = $('xstep-1')
-  const step2 = $('xstep-2')
-  const step3 = $('xstep-3')
-  const step4 = $('xstep-4')
-  const step2Status = $('xstep-2-status')
-  const step3Status = $('xstep-3-status')
-  const step4Status = $('xstep-4-status')
-
-  // Reset steps
-  ;[step1, step2, step3, step4].forEach((s) => s?.classList.remove('active', 'done'))
-  if (step2Status) step2Status.textContent = 'WAITING'
-  if (step3Status) step3Status.textContent = 'WAITING'
-  if (step4Status) step4Status.textContent = 'WAITING'
-
-  // Step 1: Active
-  step1?.classList.add('active')
-
-  // Step 2: Gateway returns 402 Payment Required
-  setTimeout(() => {
-    step1?.classList.remove('active')
-    step1?.classList.add('done')
-    step2?.classList.add('active')
-    if (step2Status) {
-      step2Status.textContent = '402 CHALLENGE'
-      step2Status.className = 'flow-status-pill active'
-    }
-  }, 350)
-
-  // Step 3: Recruiter client signs EIP-712 micro-payment authorization
-  setTimeout(() => {
-    step2?.classList.remove('active')
-    step2?.classList.add('done')
-    if (step2Status) {
-      step2Status.textContent = 'CHALLENGED'
-      step2Status.className = 'flow-status-pill done'
-    }
-    step3?.classList.add('active')
-    if (step3Status) {
-      step3Status.textContent = 'SIGNED (0.0005 tBNB)'
-      step3Status.className = 'flow-status-pill active'
-    }
-  }, 850)
-
-  // Step 4: Batch audit completed in 118ms
-  setTimeout(() => {
-    step3?.classList.remove('active')
-    step3?.classList.add('done')
-    if (step3Status) {
-      step3Status.textContent = 'SETTLED'
-      step3Status.className = 'flow-status-pill done'
-    }
-    step4?.classList.add('done')
-    if (step4Status) {
-      step4Status.textContent = '200 OK (118ms)'
-      step4Status.className = 'flow-status-pill done'
-    }
-    renderBatchCandidatesList()
-    if (btn) btn.disabled = false
-    isSimulatingX402 = false
-  }, 1350)
-}
-
 const RINA_CREDENTIAL_JSONLD = {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
@@ -1668,6 +998,11 @@ function handleRoute() {
     window.location.hash = legacy
     return
   }
+  // D59: studio esai tiruan dan portofolio fiktif bukan halaman lagi — rekaman milik peserta ada di #/me.
+  if (['#/submit', '#submit', '#ai-evaluator', '#/portfolio', '#portfolio'].includes(hash)) {
+    window.location.hash = '#/me'
+    return
+  }
 
   const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
   const isHomeAnchor = hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture'
@@ -1689,7 +1024,7 @@ function handleRoute() {
     if (target) sessionStorage.setItem('lencana_enroll_target', target)
     window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#/`)
     hash = '#/'
-    if (/^#\/(class\/|me$|submit$|portfolio$)/.test(attempted)) openWalletModal(true)
+    if (/^#\/(class\/|me$)/.test(attempted)) openLogin({ guarded: true })
   }
   updateLearnerNavigation()
 
@@ -1699,7 +1034,7 @@ function handleRoute() {
     targetPageId = 'page-new-app'
   } else if (isPrivyOnboard) {
     targetPageId = 'page-new-app'
-    openWalletModal(true)
+    openLogin()
   } else if (hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit') {
     targetPageId = 'page-submit'
   } else if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') {
@@ -1845,7 +1180,7 @@ function updateStaticText() {
   // Navbar
   setText('nav-home', dict.nav.home)
   setText('nav-courses', dict.nav.courses)
-  setText('nav-classroom', dict.nav.classroom)
+  setText('nav-dashboard', dict.nav.dashboard)
   setText('nav-publishers', dict.nav.publishers)
 
   // B105 — halaman penerbit: teks statis dari kamus, isinya dari manifest
@@ -1856,9 +1191,7 @@ function updateStaticText() {
   setText('publishers-registry-heading', pub.registryHeading)
   setText('publishers-onboarding-heading', pub.onboardingHeading)
   renderPublishers()
-  setText('nav-submit', dict.nav.submit)
   setText('nav-verify', dict.nav.verifier)
-  setText('nav-portfolio', dict.nav.portfolio)
   setText('nav-agent-hub', dict.nav.agentHub)
 
   // Hero Section - Executive Academic Standard
@@ -2092,41 +1425,9 @@ function updateStaticText() {
   setText('agent-hub-delist-heading', dict.agentHubSection.delistHeading)
   setText('agent-hub-delist-sub', dict.agentHubSection.delistSub)
   setText('btn-hub-test-delist', dict.agentHubSection.btnTestDelist)
-  setText('bitstring-heading', dict.agentHubSection.bitstringHeading)
-  setText('bitstring-sub', dict.agentHubSection.bitstringSub)
-  setText('bit-leg-valid', dict.agentHubSection.bitLegendValid)
-  setText('bit-leg-revoked', dict.agentHubSection.bitLegendRevoked)
-  setText('bit-leg-suspended', dict.agentHubSection.bitLegendSuspended)
-  setText('btn-toggle-bitstring-text', dict.agentHubSection.btnToggleBit)
-  setText('bitstring-encoded-lbl', dict.agentHubSection.liveMultibaseLabel)
 
   // Wallet Navbar & Modal
   setText('btn-wallet-text', dict.wallet.connectBtn)
-  setText('wallet-modal-title', dict.wallet.modalTitle)
-  setText('wallet-modal-sub', dict.wallet.modalSub)
-  setText('wallet-opt-privy-title', dict.wallet.privyOption)
-  setText('wallet-opt-privy-badge', dict.wallet.privyBadgeRecommended)
-  setText('wallet-opt-privy-desc', dict.wallet.privyOptionSub)
-  setText('btn-back-privy-text', dict.wallet.btnBack)
-  setText('privy-google-btn-text', dict.wallet.privyGoogleBtn)
-  setText('privy-or-text', dict.wallet.privyOrFastLogin)
-  setText('btn-privy-send-otp-text', dict.wallet.privySendOtpBtn)
-  setText('privy-otp-notice', dict.wallet.privyOtpNotice)
-  setText('privy-step-otp-help', dict.wallet.privyStepOtpHelp)
-  setText('btn-privy-verify-otp-text', dict.wallet.privyVerifyOtpBtn)
-  setText('privy-custody-text', dict.wallet.privyCustodyNotice)
-  const emailInp = $('privy-email-input') as HTMLInputElement | null
-  if (emailInp) emailInp.placeholder = dict.wallet.privyEmailPlaceholder
-  const otpInp = $('privy-otp-input') as HTMLInputElement | null
-  if (otpInp) otpInp.placeholder = dict.wallet.privyOtpPlaceholder
-  setText('wallet-opt-browser-title', dict.wallet.browserOption)
-  setText('wallet-opt-browser-desc', dict.wallet.browserOptionSub)
-  setText('wallet-opt-device-title', dict.wallet.deviceOption)
-  setText('wallet-opt-device-desc', dict.wallet.deviceOptionSub)
-  setText('wallet-opt-demo-title', dict.wallet.demoOption)
-  setText('wallet-opt-demo-desc', dict.wallet.demoOptionSub)
-  // Timpa label Privy bila App ID sungguhan belum dipasang (mode demo).
-  applyPrivyModeLabels()
   renderWalletState()
 
   // Mint Celebration Modal
@@ -2153,38 +1454,6 @@ function updateStaticText() {
   setText('diploma-evaluator-meta', dict.diplomaModal.evaluatorMeta)
   setText('diploma-anchor-heading', dict.diplomaModal.anchorHeading)
   setText('diploma-qr-caption', dict.diplomaModal.qrCaption)
-
-  // Tamper & Forgery Defense Playground (Iteration 13)
-  setText('tamper-kicker', dict.tamperPlayground.kicker)
-  setText('tamper-title', dict.tamperPlayground.title)
-  setText('tamper-sub', dict.tamperPlayground.sub)
-  setText('btn-reset-tamper-text', dict.tamperPlayground.resetBtn)
-  setText('tcard-title-1', dict.tamperPlayground.attack1Title)
-  setText('tcard-desc-1', dict.tamperPlayground.attack1Desc)
-  setText('btn-attack-1', dict.tamperPlayground.attack1Btn)
-  setText('tcard-title-2', dict.tamperPlayground.attack2Title)
-  setText('tcard-desc-2', dict.tamperPlayground.attack2Desc)
-  setText('btn-attack-2', dict.tamperPlayground.attack2Btn)
-  setText('tcard-title-3', dict.tamperPlayground.attack3Title)
-  setText('tcard-desc-3', dict.tamperPlayground.attack3Desc)
-  setText('btn-attack-3', dict.tamperPlayground.attack3Btn)
-  setText('tcard-title-4', dict.tamperPlayground.attack4Title)
-  setText('tcard-desc-4', dict.tamperPlayground.attack4Desc)
-  setText('btn-attack-4', dict.tamperPlayground.attack4Btn)
-  setText('tamper-terminal-title', dict.tamperPlayground.terminalTitle)
-
-  // B2B Recruiter Bulk Audit & x402 Protocol (Iteration 13)
-  setText('x402-kicker', dict.x402Console.kicker)
-  setText('x402-title', dict.x402Console.title)
-  setText('x402-sub', dict.x402Console.sub)
-  setText('btn-simulate-x402-text', dict.x402Console.btnSimulateBatch)
-  setText('x402-philosophy-kicker', dict.x402Console.philosophyKicker)
-  setText('x402-philosophy-text', dict.x402Console.philosophyText)
-  setText('xstep-1-name', dict.x402Console.step1Label)
-  setText('xstep-2-name', dict.x402Console.step2Label)
-  setText('xstep-3-name', dict.x402Console.step3Label)
-  setText('xstep-4-name', dict.x402Console.step4Label)
-  setText('x402-candidates-audited', dict.x402Console.candidatesAudited)
 
   // Demo Mode Dock (Iteration 14)
   setText('demo-dock-title', dict.demoMode.title)
@@ -2442,7 +1711,7 @@ function wire() {
       const addr = learnerAddress()
       if (!addr) {
         sessionStorage.setItem('lencana_enroll_target', target)
-        openWalletModal()
+        openLogin()
       } else {
         const btnEl = e.currentTarget as HTMLButtonElement
         const orig = btnEl.textContent
@@ -2476,7 +1745,6 @@ function wire() {
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeStudyModal()
-      closeWalletModal()
       closeMintModal()
       closeDiplomaModal()
       closeNexumMobileMenu()
@@ -2556,19 +1824,21 @@ function wire() {
     inputEl.value = SAMPLE_HASHES.revoked
     run()
   })
+  // Dulu "Simulate Delisting…" tanpa handler sama sekali (D59): sekarang memeriksa spesimen delisted sungguhan.
+  $('btn-hub-test-delist')?.addEventListener('click', () => {
+    window.location.hash = '#/verify'
+    inputEl.value = SAMPLE_HASHES.delisted
+    run()
+  })
 
   // Client-side Hash Router Listener
   window.addEventListener('hashchange', handleRoute)
   window.addEventListener('lencana:learner-session-change', () => {
     const identity = snapshot().identity
     if (!hasExplicitLearnerSession()) {
-      walletState = { isConnected: false, address: null, isDemo: false }
+      walletState = { isConnected: false, address: null }
     } else if (identity) {
-      walletState = {
-        isConnected: true,
-        address: identity.address,
-        isDemo: identity.kind === 'perangkat' || (identity.kind === 'privy' && !isRealPrivyConfigured()),
-      }
+      walletState = { isConnected: true, address: identity.address }
     }
     renderWalletState()
     if (!hasExplicitLearnerSession()) handleRoute()
@@ -2603,37 +1873,13 @@ function wire() {
   $('lang-id')?.addEventListener('click', () => setLanguage('id'))
 
   // Wallet Navbar & Modal Wiring
-  $('btn-connect-wallet')?.addEventListener('click', () => openWalletModal(false))
-  $('btn-close-wallet-modal')?.addEventListener('click', closeWalletModal)
-  $('wallet-modal-backdrop')?.addEventListener('click', closeWalletModal)
-  $('btn-opt-privy')?.addEventListener('click', switchToPrivyPanel)
-  $('btn-back-privy')?.addEventListener('click', switchToOptionsList)
-  $('btn-privy-google')?.addEventListener('click', handlePrivyGoogleLogin)
-  // Tombol yang pasti gagal lebih buruk dari tidak ada tombol (RF3): sembunyikan sampai Google diaktifkan.
-  $('btn-privy-google')?.classList.add('hidden')
-  $('btn-privy-send-otp')?.addEventListener('click', handlePrivySendOtp)
-  $('btn-privy-resend')?.addEventListener('click', handlePrivySendOtp)
-  $('btn-privy-verify-otp')?.addEventListener('click', handlePrivyVerifyOtp)
-  $('privy-email-input')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handlePrivySendOtp()
-    }
-  })
-  $('privy-otp-input')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handlePrivyVerifyOtp()
-    }
-  })
+  $('btn-connect-wallet')?.addEventListener('click', () => openLogin())
+  // Kotak identitas di ruang kelas meminta login lewat event ini (lesson-views.ts serverLine).
   window.addEventListener('lencana:open-privy', (e: any) => {
     const cid = e.detail?.courseId
     if (cid) sessionStorage.setItem('lencana_enroll_target', cid)
-    openWalletModal(true)
+    openLogin()
   })
-  $('btn-opt-browser-wallet')?.addEventListener('click', connectBrowserWallet)
-  $('btn-opt-device-wallet')?.addEventListener('click', connectDeviceWallet)
-  $('btn-opt-demo-wallet')?.addEventListener('click', connectDemoWallet)
   $('btn-disconnect-wallet')?.addEventListener('click', disconnectWallet)
 
   // Celebratory Mint Modal Wiring
@@ -2660,19 +1906,6 @@ function wire() {
   $('btn-diploma-x')?.addEventListener('click', shareOnX)
   $('btn-portfolio-x')?.addEventListener('click', shareOnX)
   $('btn-portfolio-embed')?.addEventListener('click', copyEmbedCode)
-
-  // Bitstring Status List Simulation Wiring (Iteration 12)
-  $('btn-toggle-bitstring')?.addEventListener('click', toggleBitstringState)
-
-  // Tamper & Forgery Defense Playground Wiring (Iteration 13)
-  $('btn-attack-1')?.addEventListener('click', () => simulateAttack(1))
-  $('btn-attack-2')?.addEventListener('click', () => simulateAttack(2))
-  $('btn-attack-3')?.addEventListener('click', () => simulateAttack(3))
-  $('btn-attack-4')?.addEventListener('click', () => simulateAttack(4))
-  $('btn-reset-tamper')?.addEventListener('click', resetTamperSimulator)
-
-  // B2B Recruiter Bulk Audit & x402 Protocol Wiring (Iteration 13)
-  $('btn-simulate-x402')?.addEventListener('click', simulateX402Batch)
 
   // Demo Walkthrough Dock & Spec Matrix Wiring (Iteration 14)
   setupDemoDock()
@@ -2794,29 +2027,6 @@ function setupDemoDock() {
     }, 250)
   })
 
-  // Scene 3: Cryptographic Tamper Defense
-  $('demo-scene-3')?.addEventListener('click', () => {
-    window.location.hash = '#/verify'
-    setTimeout(() => {
-      const tamperSec = $('tamper-playground')
-      if (tamperSec) {
-        tamperSec.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-      simulateAttack(1)
-    }, 200)
-  })
-
-  // Scene 4: B2B Recruiter x402 Micropayments
-  $('demo-scene-4')?.addEventListener('click', () => {
-    window.location.hash = '#/verify'
-    setTimeout(() => {
-      const x402Sec = $('x402-console')
-      if (x402Sec) {
-        x402Sec.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }
-      simulateX402Batch()
-    }, 200)
-  })
 }
 
 // ========================================================
@@ -3391,10 +2601,10 @@ function initHeroTreeCanvas() {
 
 function boot() {
   initWalletState()
+  initLogin({ onSignedIn })
+  void completeGoogleReturn()
   initHeroCardTilt()
   initHeroTreeCanvas()
-  initBitstringMatrix()
-  renderBatchCandidatesList()
   wire()
   updateStaticText()
   paintConfig()

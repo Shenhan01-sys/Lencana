@@ -27,6 +27,7 @@ logged-in state look identical, so everything appears to be dummy data — and a
 | **RF4** | [[RF4 - Learning Surface Target Shape]] | the real learning page: chapters, inline interactivity, mentor sidebar; catalog beyond web3; six LMS references |
 | **RF5** | [[RF5 - Enrollment and the Paid Path]] | enrollment is the chargeable event; what exists on chain today and what does not |
 | **RF6** | [[RF6 - Core System, Backend and Contracts]] | our own side: four structural holes (no idempotency, no index, signer is a process not a service, money not attached to a user action), contract by contract, and the priority with four days left |
+| **RF7** | [[RF7 - Halaman publik vs internal, dashboard per peran, onboarding]] | halaman publik vs internal (eksklusif login), dashboard per peran (Peserta, Penerbit, Agent Owner), onboarding login pertama, dan urutan langkah A → A2 → B → C (draf, 2 Okt) |
 
 Rules of engagement, inherited from [[Conventions]]:
 

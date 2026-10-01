@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run check:samples · npm run check:samples -- --json · npm run specimen
 measured: 2026-09-30
-result: check:samples **9/0** · 22 dokumen di store · 22 terbit di tepi · 14 valid · 6 revoked · 1 expired · 1 delisted (21 dokumen · 13 valid sebelum kertas uji B104) · specimen 7/0
+result: check:samples **11/0** (2 Okt, sesudah `delisted` dipasang di UI — B123; 9/0 pada 30 Sep) · 26 dokumen di store · 26 terbit di tepi · 17 valid · 7 revoked · 1 expired · 1 delisted (30 Sep: 22 dokumen · 14 valid · 6 revoked; 21 · 13 sebelum kertas uji B104) · specimen 7/0
 ---
 
 # T26 - signer sample-check.js (hash contoh di antarmuka diadili, bukan diingat)
@@ -58,6 +58,10 @@ check:samples — 21 dokumen di store · 21 terbit di tepi
   SAMPLE_HASHES di web/src/main.ts: 3 entri
 CONTOH UI HIJAU — 9 pemeriksaan, 0 gagal
 ```
+
+**2 Okt (B123, D59):** `delisted` dipasang ke `SAMPLE_HASHES` untuk tombol Trust Center yang sebelumnya "Simulate Delisting"
+tanpa handler. Run hari itu: `26 dokumen di store · 26 terbit di tepi`, `valid 17 · revoked 7 · expired 1 · delisted 1`,
+`SAMPLE_HASHES di web/src/main.ts: 4 entri`, **CONTOH UI HIJAU — 11 pemeriksaan, 0 gagal**. Blok di atas adalah run 30 Sep.
 
 ⚠️ **Yang tertulis di sini sebelumnya (29 Sep), dibiarkan terbaca:** `19 dokumen · 13 valid · 6 revoked ·
 0 expired · 0 delisted · CONTOH UI HIJAU — 5 pemeriksaan, 0 gagal`. Angka itu benar pada harinya; yang

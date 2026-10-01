@@ -26,7 +26,7 @@ export const PRIVY_APP_ID: string = import.meta.env.VITE_PRIVY_APP_ID || 'cmuphc
 
 type Sdk = typeof import('@privy-io/js-sdk-core')
 type Eip1193 = { request: (a: { method: string, params?: unknown[] }) => Promise<unknown> }
-type PrivyUser = { id: string, linked_accounts: Array<{ type: string, address?: string }> }
+type PrivyUser = { id: string, linked_accounts: Array<{ type: string, address?: string, email?: string }> }
 export type PrivyIdentity = { address: string, userId: string, email: string | null }
 
 let ready: Promise<{ privy: Privy, mod: Sdk }> | null = null
@@ -77,7 +77,8 @@ function teardown (): void {
 }
 
 function emailOf (user: PrivyUser): string | null {
-  return user.linked_accounts.find((a) => a.type === 'email')?.address ?? null
+  const accounts = user.linked_accounts
+  return accounts.find((a) => a.type === 'email')?.address ?? accounts.find((a) => a.type === 'google_oauth')?.email ?? null
 }
 
 /**
@@ -102,6 +103,30 @@ async function attachWallet (user: PrivyUser): Promise<PrivyIdentity> {
   }) as unknown as Eip1193
   current = { address: wallet.address, userId: user.id, email: emailOf(user), provider }
   return { address: current.address, userId: current.userId, email: current.email }
+}
+
+/**
+ * Metode masuk yang benar-benar aktif di app ini, dibaca dari konfigurasi app yang dimuat SDK. Halaman hanya
+ * menampilkan tombol untuk metode yang aktif — tombol "Google" yang ternyata tidak bisa dipakai adalah klaim palsu.
+ */
+export async function privyLoginMethods (): Promise<{ google: boolean, email: boolean }> {
+  const { privy } = await client()
+  const cfg = privy.app.getConfig()
+  return { google: Boolean(cfg?.google_oauth), email: cfg ? Boolean(cfg.email_auth) : true }
+}
+
+/** Login Google: peramban pindah ke Google, lalu kembali ke `redirectURI` membawa kode sekali-pakai. */
+export async function privyGoogleStart (redirectURI: string): Promise<void> {
+  const { privy } = await client()
+  const { url } = await privy.auth.oauth.generateURL('google', redirectURI)
+  window.location.assign(url)
+}
+
+/** Tukar kode yang dibawa pulang dari Google dengan sesi, lalu pasang dompet tertanamnya. */
+export async function privyGoogleFinish (code: string, state: string): Promise<PrivyIdentity> {
+  const { privy } = await client()
+  const session = await privy.auth.oauth.loginWithCode(code, state, 'google')
+  return attachWallet(session.user as PrivyUser)
 }
 
 export async function privySendCode (email: string): Promise<void> {

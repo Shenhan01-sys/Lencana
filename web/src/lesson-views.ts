@@ -97,7 +97,7 @@ export function identityLabel (id: LearnerIdentity | null): string {
   if (id?.kind === 'privy') {
     const acc = snapshot().account
     const link = acc ? (acc.linked ? ' · tertaut di penerbit' : ` · ikatan akun belum tercatat (${acc.note})`) : ''
-    return `login email${id.email ? ` ${id.email}` : ''} · dompet tertanam, sama di perangkat mana pun${link}`
+    return `akun${id.email ? ` ${id.email}` : ''} · dompet belajar yang sama di perangkat mana pun${link}`
   }
   return id?.kind === 'dompet' ? 'dompet' : 'kunci perangkat (hangus bersama tab ini)'
 }
@@ -111,15 +111,12 @@ export function serverLine (courseId: string): string {
       <p class="muted">Peramban ini pernah masuk dengan email; dompet tertanamnya sedang disambungkan lagi.</p></aside>`
   }
   if (!addr) {
-    // Lencana-B82 status=TERBUKA 2026-10-01 — kotak identitas: "Masuk dengan email (Privy)" membuka modal masuk di main.ts, yang memakai alur sungguhan learning.ts (kode dari kotak masuk → dompet tertanam yang sama di perangkat mana pun); kunci perangkat dan dompet ekstensi tetap ada. Yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+    // Lencana-B82 status=TERBUKA 2026-10-01 — kotak identitas: tombol "Masuk" membuka dialog masuk (pages/login.ts), yang memakai alur sungguhan learning.ts (Google bila aktif, atau kode dari kotak masuk → dompet tertanam yang sama di perangkat mana pun); sejak D59 kunci perangkat dan dompet ekstensi tidak lagi ditawarkan. Yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
     return `<aside class="note learn-id">
-      <strong>Hubungkan identitas untuk menyimpan rekaman belajar</strong>
-      <p>Kamu bisa membaca materi tanpa masuk. Untuk mengirim jawaban dan menyimpan progres pada
-      penerbit, pilih identitas peserta terlebih dahulu.</p>
+      <strong>Masuk untuk menyimpan rekaman belajar</strong>
+      <p>Jawaban, progres, dan bukti belajarmu tercatat di penerbit atas nama akunmu.</p>
       <div class="actions">
-        <button class="primary" data-action="learner-privy" data-course="${esc(courseId)}">Masuk dengan email (Privy)</button>
-        <button data-action="learner-device" data-course="${esc(courseId)}">Pakai kunci perangkat (sementara)</button>
-        <button data-action="learner-wallet" data-course="${esc(courseId)}">Sambungkan dompet</button>
+        <button class="primary" data-action="learner-privy" data-course="${esc(courseId)}">Masuk</button>
       </div>
       <details><summary>Pengaturan lanjutan penerbit</summary><p class="muted">${ep} · ubah kalau penerbitmu berjalan di tempat lain, lalu muat ulang.</p></details>
     </aside>`

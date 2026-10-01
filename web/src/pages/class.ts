@@ -22,7 +22,7 @@ import type { Course, Lesson, Module } from '../content'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse } from '../progress'
 import {
-  completeLesson, connectWalletLearner, createDeviceLearner, forgetLearner, hasExplicitLearnerSession,
+  completeLesson, forgetLearner, hasExplicitLearnerSession,
   hasPrivyMark, learnerAddress, resumePrivyLearner, setEndpoint, snapshot, submitEssay, submitQuiz,
   syncCourse,
 } from '../learning'
@@ -379,28 +379,8 @@ export function bindLearningActions (root: HTMLElement, rerender: Rerender): voi
     const status = (role: string) => root.querySelector(`[data-role="${role}"]`) as HTMLElement | null
     const endpointInput = () => root.querySelector('[data-role="signer-endpoint"]') as HTMLInputElement | null
 
-    if (action === 'learner-device') {
-      const id = createDeviceLearner()
-      if (!id) {
-        learnStatus(root, 'Peramban ini menolak penyimpanan sesi (mode privat?), jadi kunci perangkat tidak bisa dibuat. Pakai dompet Web3.', true)
-        return
-      }
-      learnStatus(root, `Identitas perangkat dibuat: ${id.address.slice(0, 10)}… — kunci ini hangus bersama tab, bukan identitas tahan lama.`)
-      if (courseId) await syncCourse(courseId)
-      rerender()
-      return
-    }
-
     if (action === 'learner-privy') {
       window.dispatchEvent(new CustomEvent('lencana:open-privy', { detail: { courseId } }))
-      return
-    }
-
-    if (action === 'learner-wallet') {
-      const r = await connectWalletLearner()
-      if (!r.ok) { learnStatus(root, r.why ?? 'dompet menolak', true); return }
-      if (courseId) await syncCourse(courseId)
-      rerender()
       return
     }
 

@@ -131,6 +131,12 @@ Yang ditemukan uji itu dan sudah diperbaiki sebelum catatan ini:
    Pada pointer kasar pendengarnya kini dilepas; ketukan memakai pendengar scene sendiri.
 5. Jam diam stasiun pertama ikut termakan kompilasi shader di perangkat lemah — kini mulai dihitung di frame pertama.
 
+## Koreksi sesudah commit (2 Okt, D59)
+
+Kalimat stasiun "Masuk" (Peserta) menyebut "dompet tertanam (Privy) — atau kunci perangkat". Sejak D59 akun hanya lewat
+login dan halaman tidak menyebut mereknya, jadi kalimatnya kini: "Masuk dengan akunmu; dompet belajar dibuat untukmu, tanpa
+seed phrase. Setiap rekaman yang kamu kirim ditandatanganinya." (B123)
+
 ## Di luar bagian 3D tetapi ikut ditambal (berkas maintainer — OI-23)
 
 - **Ganti bahasa tidak menggambar ulang landing.** Sejak port `dex/lencana-ui` (D58), `setLanguage` di `web/src/main.ts`

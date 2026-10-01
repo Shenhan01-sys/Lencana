@@ -1,0 +1,164 @@
+/* Dialog masuk (login.ts, RF7 langkah A). Referensi builder: kartu terbelah — form di kertas terang, potongan kertas
+   berlapis membuka ilustrasi gelap. Palet Lencana: gading, arang, emas. Semua aturan di bawah .login-dialog. */
+html.login-open { overflow: hidden; }
+
+.login-dialog {
+  --lg-paper: #f4f1ea;
+  --lg-ink: #14171c;
+  --lg-muted: #5d636b;
+  --lg-line: #cfc6b2;
+  --lg-gold: #f0b90b;
+  --lg-gold-deep: #8a6508;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.login-dialog[hidden] { display: none; }
+.login-dialog .login-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 10, 0.72);
+  backdrop-filter: blur(10px);
+  animation: login-fade 0.25s ease;
+}
+.login-dialog .login-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  width: min(980px, 100%);
+  height: min(640px, calc(100vh - 32px));
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--lg-paper);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(240, 185, 11, 0.2);
+  animation: login-rise 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.login-dialog .login-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(240, 185, 11, 0.35);
+  border-radius: 50%;
+  background: rgba(13, 16, 20, 0.6);
+  color: var(--lg-paper);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.login-dialog .login-close:hover { background: rgba(13, 16, 20, 0.85); }
+.login-dialog .login-close:active { transform: scale(0.92); }
+
+/* --- sisi form ------------------------------------------------------------------------------- */
+.login-dialog .login-form-side {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 56px;
+  overflow: auto;
+  color: var(--lg-ink);
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+}
+.login-dialog .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+.login-dialog .login-brand img { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; box-shadow: 0 0 0 1px rgba(20, 23, 28, 0.1); }
+/* warna judul ditulis eksplisit: aturan h2 global halaman ini putih, dan kertas dialognya gading */
+.login-dialog .login-title { margin: 0; color: var(--lg-ink); font-size: 34px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
+.login-dialog .login-sub { margin: 0 0 12px; color: var(--lg-muted); font-size: 15px; line-height: 1.5; }
+.login-dialog .login-step { display: flex; flex-direction: column; gap: 10px; }
+.login-dialog .login-step[hidden] { display: none; }
+.login-dialog .login-label { margin: 4px 0 -4px 16px; color: #4a4f56; font-size: 12.5px; font-weight: 600; }
+.login-dialog .login-input {
+  height: 48px;
+  padding: 0 20px;
+  border: 1.5px solid var(--lg-line);
+  border-radius: 999px;
+  background: #fbfaf6;
+  color: var(--lg-ink);
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.login-dialog .login-input:focus { border-color: var(--lg-gold); box-shadow: 0 0 0 4px rgba(240, 185, 11, 0.22); }
+.login-dialog .login-code { text-align: center; font-size: 22px; letter-spacing: 0.5em; font-variant-numeric: tabular-nums; }
+.login-dialog .login-primary,
+.login-dialog .login-google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 48px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.login-dialog .login-primary { margin-top: 6px; border: 0; background: var(--lg-ink); color: var(--lg-gold); }
+.login-dialog .login-primary:hover:not(:disabled) { background: #1f242c; box-shadow: 0 8px 24px rgba(240, 185, 11, 0.18); }
+.login-dialog .login-google { border: 1.5px solid var(--lg-line); background: #fff; color: var(--lg-ink); }
+.login-dialog .login-google:hover { box-shadow: 0 6px 18px rgba(20, 23, 28, 0.12); }
+.login-dialog .login-google[hidden] { display: none; }
+.login-dialog .login-primary:active:not(:disabled),
+.login-dialog .login-google:active { transform: scale(0.98); }
+.login-dialog .login-primary:disabled { opacity: 0.6; cursor: progress; }
+.login-dialog .login-divider { display: flex; align-items: center; gap: 12px; margin: 4px 0; color: #7a7f86; font-size: 12.5px; }
+.login-dialog .login-divider::before,
+.login-dialog .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--lg-line); }
+.login-dialog .login-divider[hidden] { display: none; }
+.login-dialog .login-note { margin: 0; color: var(--lg-muted); font-size: 14px; line-height: 1.5; }
+.login-dialog .login-note b { color: var(--lg-ink); word-break: break-all; }
+.login-dialog .login-links { display: flex; justify-content: center; gap: 10px; color: #9a9ea4; font-size: 13px; }
+.login-dialog .login-link { border: 0; padding: 0; background: none; color: var(--lg-gold-deep); font: inherit; font-weight: 600; cursor: pointer; }
+.login-dialog .login-link:hover { text-decoration: underline; }
+.login-dialog .login-status { min-height: 20px; margin: 2px 0 0; color: var(--lg-muted); font-size: 13px; line-height: 1.45; }
+.login-dialog .login-status.bad { color: #b42318; }
+.login-dialog .login-fine { margin-top: 6px; color: #6b7078; font-size: 12.5px; line-height: 1.5; }
+.login-dialog .login-fine details { margin-top: 4px; }
+.login-dialog .login-fine summary { width: fit-content; color: var(--lg-gold-deep); font-weight: 600; cursor: pointer; }
+.login-dialog .login-fine details p { margin: 6px 0 0; }
+
+/* --- sisi ilustrasi -------------------------------------------------------------------------- */
+.login-dialog .login-art { position: relative; overflow: hidden; background: #0d1014; }
+.login-dialog .login-art-svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+
+@media (max-width: 760px) {
+  .login-dialog { padding: 12px; }
+  .login-dialog .login-card { grid-template-columns: 1fr; height: min(700px, calc(100vh - 24px)); border-radius: 24px; }
+  /* Ilustrasi jadi latar seluruh kartu; form menjadi kartu kaca di atasnya (seperti versi ponsel referensi). */
+  .login-dialog .login-art { position: absolute; inset: 0; background: radial-gradient(ellipse at 60% 20%, #2b2414, #0b0d10 70%); }
+  /* titik fokus ilustrasi (kartu + laurel) harus berada di atas kartu kaca, bukan di belakangnya */
+  .login-dialog .login-art-svg { height: 44%; }
+  .login-dialog .login-form-side {
+    justify-content: flex-start;
+    margin: auto 14px 14px;
+    padding: 26px 22px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 22px;
+    background: rgba(244, 241, 234, 0.84);
+    backdrop-filter: blur(14px) saturate(1.15);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    max-height: calc(100% - 90px);
+  }
+  .login-dialog .login-title { font-size: 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-dialog .login-backdrop,
+  .login-dialog .login-card { animation: none; }
+}
+
+@keyframes login-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes login-rise { from { opacity: 0; transform: translateY(18px) scale(0.98); } to { opacity: 1; transform: none; } }

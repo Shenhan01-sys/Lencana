@@ -62,8 +62,8 @@ export const ROLES: Role[] = [
         id: 'sign-in', kit: 'terminal',
         title: { en: 'Sign in', id: 'Masuk' },
         line: {
-          en: 'Email login gives an embedded wallet (Privy) — or a device key. Every write is signed by it.',
-          id: 'Login email memberi dompet tertanam (Privy) — atau kunci perangkat. Setiap tulisan ditandatanganinya.',
+          en: 'Sign in with your account; a learning wallet is created for you, no seed phrase. Every record you send is signed by it.',
+          id: 'Masuk dengan akunmu; dompet belajar dibuat untukmu, tanpa seed phrase. Setiap rekaman yang kamu kirim ditandatanganinya.',
         },
       },
       {
