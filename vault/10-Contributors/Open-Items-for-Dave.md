@@ -538,3 +538,11 @@ Indonesia saja (belum lewat `i18n.ts` — itu berkasmu). Hook yang bisa kamu pak
 Yang belum terbukti dan bukan urusan tata letak: login positif belum diuji dua peramban oleh builder
 ([[09-Testing/T41 - signer privy-check.js (B82 login Privy)]]).
 
+*(Koreksi 1 Okt malam, sesudah merge `dex/lencana-fe-integration` — [[03-Frontend/FE7 - Merge cabang FE 1 Okt]]: formulir email inline di atas **sudah
+tidak ada**. Satu permukaan login sekarang modal masukmu (`privy-onboarding-panel`), dan handler-nya memanggil alur
+sungguhan `sendPrivyCode` / `connectPrivyLearner` dari `learning.ts`. Kotak identitas hanya punya tombol
+`data-action="learner-privy"` yang mengirim event `lencana:open-privy`; hook `privy-send`, `privy-login`,
+`privy-email`, `privy-code` di tabel atas tidak berlaku lagi. Simulasi kode 123456, Google tiruan, dan
+`createPrivyLearner` dibuang; tombol Google disembunyikan karena Google mati di app Privy; teks "dapat diekspor kapan
+saja" dikoreksi karena belum ada fitur ekspor.)*
+

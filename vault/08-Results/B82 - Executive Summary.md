@@ -28,6 +28,9 @@ updated: 2026-10-01
   A10 `npm run audit` (baris README).
 - **Dependensi** — `web/.npmrc` `legacy-peer-deps=true`: SDK mematok peer *opsional* `viem` 2.56.0 persis
   (halaman ini 2.56.5) dan `ox` lewat `permissionless` yang tidak kita pasang; alasannya tertulis di berkasnya.
+- *(1 Okt malam, sesudah commit ini: merge `dex/lencana-fe-integration` memindah permukaan login ke modal masuk milik
+  FE — formulir inline di kotak identitas diganti tombol yang membuka modal itu, dan handler modal memakai alur B82.
+  Rinciannya di [[03-Frontend/FE7 - Merge cabang FE 1 Okt]].)*
 - **Koreksi yang dibiarkan terlihat** — teks gap `journey.js` ("core tidak punya akun/login"), kepala `learning.ts`
   (kalimat kunci kuis di bundel, basi sejak B80), T40, START-HERE, halaman proses bisnis 12 + 13, RF3.
 
