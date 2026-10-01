@@ -7,6 +7,12 @@ tags: [frontend, "FE4"]
 **Part of:** [[03-Frontend/01 - Frontend]]
 **Source:** `web/src/main.ts:5`, `web/src/main.ts:1180`, `web/index.html:518`
 
+> **1 Okt malam (FE7) — kontrak di bawah ini sudah berubah, dibiarkan terbaca sebagai riwayat.** Ruang belajar
+> sekarang `web/src/pages/class.ts` + `web/src/lesson-views.ts`, dipasang `new-app.ts` ke `#page-new-app`
+> (bukan `#lms-mount`); `renderLmsRoute`/`bindLms` dan `lms.ts` tidak ada lagi; rutenya `#/class/<kursus>[/<modul>/<lesson>]`
+> dan `#/me`, dengan `#/learn` dan `#/course/…` dipetakan ke sana; gaya lapisan belajar dikunci ke `.lesson-engine`.
+> Pembagian kepemilikan tetap: tampilan milik FE, model konten + perilaku belajar milik lapisan belajar → [[03-Frontend/FE7 - Merge cabang FE 1 Okt]].
+
 **Summary:** Two people edit this directory and one page renders both their layers, so the boundary
 has to be written down rather than remembered. The frontend maintainer owns the page shell and the
 verifier's presentation; the learning surface owns the content model and its router. The seam is

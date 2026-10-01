@@ -583,6 +583,74 @@ export interface TranslationDictionary {
     inspectorTitle: string
     copied: string
   }
+lmsV2: {
+    heroEyebrow: string
+    heroTitle: string
+    heroDesc: string
+    btnCurriculum: string
+    btnVerify: string
+    catalogTitle: string
+    catalogDesc: string
+    tagPrereq: string
+    tagMinutes: string
+    tagModules: string
+    tagLessons: string
+    stepsTitle: string
+    stepsDesc: string
+    step1Title: string
+    step1Desc: string
+    step2Title: string
+    step2Desc: string
+    step3Title: string
+    step3Desc: string
+    trustTitle: string
+    trustDesc: string
+    linkTrust: string
+    linkSource: string
+
+    authGateTitle: string
+    authGateDesc: string
+    authGateBtnLogin: string
+    authGateBtnBack: string
+    topbarGuest: string
+    topbarPortfolio: string
+    sidebarCurriculum: string
+    sidebarModules: string
+    quizTitle: string
+    quizTarget: string
+    quizCorrect: string
+    quizIncorrect: string
+    quizSuccess: string
+    quizFail: string
+    quizScore: string
+    essayTitle: string
+    essayDesc: string
+    essayInstructions: string
+    essayRubric: string
+    essayPlaceholder: string
+    essayWordsOk: string
+    essayWordsMin: string
+    essayEvaluating: string
+    essaySuccess: string
+    essayFail: string
+    essayBtnSubmit: string
+    essayBtnEvaluating: string
+    railTitle: string
+    railConcepts: string
+    railRefs: string
+    overviewOutcomes: string
+    overviewPrereq: string
+    overviewNone: string
+    overviewCriteria: string
+    btnStartModule: string
+    btnNext: string
+    btnPortfolio: string
+    btnMarkDone: string
+    btnDone: string
+    btnPrev: string
+    notFound: string
+    notFoundLink: string
+  }
 }
 
 export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
@@ -1213,8 +1281,145 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       onboardingCustody: 'What we do NOT have yet, said out loud: the demo agent keys live on the platform machine (signer/.keys/), so today the platform signs for the demo publisher. A production deployment must not work that way — the institution should hold its own agent key while the platform only broadcasts and pays gas. That design is chosen (B87 route 3) but NOT built.',
       onboardingTrueToday: 'What is true today and checkable by you: the issuer allowlist is on chain, the grading policy a credential was issued under is hashed into it (rubricHash, printed on the credential), and revocation or suspension is read from statusOf() on the deployed resolver rather than from a file we maintain.',
     },
+    lmsV2: {
+      heroEyebrow: 'Decentralized Web3 Academy',
+      heroTitle: 'Learn, test, and prove it.',
+      heroDesc: 'Courses whose grades are not typed in by the learner: quizzes are graded by the publisher server, and an AI agent proposes the essay score that only counts once a second key appointed by the publisher approves it. Graduates hold a Soulbound (ERC-5192) credential anyone can check on chain.',
+      btnCurriculum: 'View Curriculum',
+      btnVerify: 'Verify Credentials',
+      catalogTitle: 'Course Catalog',
+      catalogDesc: 'Structured curriculum for Web3 engineers.',
+      tagPrereq: 'LOCKED',
+      tagMinutes: 'MINUTES',
+      tagModules: 'MODULES',
+      tagLessons: 'LESSONS',
+      stepsTitle: 'Certification Flow',
+      stepsDesc: 'A deterministic process from learning to on-chain credential issuance.',
+      step1Title: 'Self-Paced Mastery',
+      step1Desc: 'Each course is structured from fundamentals to technical case studies. No registration fees, completely open access.',
+      step2Title: 'Graded essay, approved by a second key',
+      step2Desc: 'An AI agent proposes your essay score against the publisher rubric, whose hash is committed on chain. The proposal counts only after a second key appointed by the publisher approves or adjusts it. Quiz answers are graded by the publisher server, never by this page.',
+      step3Title: 'Cryptographic Credentials',
+      step3Desc: 'Graduates receive a Soulbound token and a BAS attestation (BNB Attestation Service). The token cannot be transferred; the attestation can be revoked by its issuer, and the verifier shows that state.',
+      trustTitle: 'Open Standards Infrastructure',
+      trustDesc: 'Credentials are W3C Verifiable Credentials 2.0 / Open Badges 3.0 documents, and one issued by this backend passed the 1EdTech OB 3.0 validator (14 checks, 0 errors, 0 warnings). The contracts are open source and the verifier reads status straight from chain — you do not have to trust our server.',
+      linkTrust: 'Trust & Limits',
+      linkSource: 'Source Code',
+
+      authGateTitle: 'Class Access Locked',
+      authGateDesc: 'You must log in using email or a Web3 wallet to access the materials, interactive quizzes, and curriculum of this course.',
+      authGateBtnLogin: 'Log In Now ➔',
+      authGateBtnBack: '← Back to Public Catalog',
+      topbarGuest: 'Guest',
+      topbarPortfolio: 'My learning & credentials',
+      sidebarCurriculum: 'Curriculum',
+      sidebarModules: 'Learning Modules',
+      quizTitle: 'Quiz — graded by the publisher',
+      quizTarget: 'Passing target',
+      quizCorrect: '✓ Correct!',
+      quizIncorrect: '✗ Incorrect.',
+      quizSuccess: 'Evaluation Successful',
+      quizFail: 'Evaluation Below Threshold',
+      quizScore: 'Your Score',
+      essayTitle: 'Essay — graded by the publisher',
+      essayDesc: 'Your essay goes to the publisher queue without a score. An AI agent proposes a score against the rubric; it counts only after a second key approves it.',
+      essayInstructions: 'Instructions:',
+      essayRubric: 'View Grading Criteria (100 Points)',
+      essayPlaceholder: 'Write your arguments and synthesis...',
+      essayWordsOk: 'words',
+      essayWordsMin: 'words minimum',
+      essayEvaluating: 'Sending to the publisher…',
+      essaySuccess: 'Submitted — awaiting the publisher',
+      essayFail: 'Evaluation failed: Ensure signer is active.',
+      essayBtnSubmit: 'Submit for Grading',
+      essayBtnEvaluating: 'Sending…',
+      railTitle: 'On This Page',
+      railConcepts: 'Core Concepts',
+      railRefs: 'External References',
+      overviewOutcomes: 'Outcomes',
+      overviewPrereq: 'Prerequisites',
+      overviewNone: 'No specific prerequisites.',
+      overviewCriteria: 'Graduation Criteria',
+      btnStartModule: 'Start Module 1 ➔',
+      btnNext: 'Next ➔',
+      btnPortfolio: 'My learning summary ➔',
+      btnMarkDone: 'Mark as Done',
+      btnDone: 'Completed',
+      btnPrev: '← Previous',
+      notFound: 'Course Not Found',
+      notFoundLink: 'Back to Course Catalog'
+    }
   },
+
   id: {
+    lmsV2: {
+      heroEyebrow: 'Akademi Web3 Terdesentralisasi',
+      heroTitle: 'Pelajari, uji, dan buktikan.',
+      heroDesc: 'Kursus yang nilainya tidak diketik peserta: kuis dinilai server penerbit, dan agen AI mengusulkan nilai esai yang baru berlaku sesudah kunci kedua yang ditunjuk penerbit mengesahkannya. Lulusan memegang kredensial Soulbound (ERC-5192) yang bisa diperiksa siapa pun di chain.',
+      btnCurriculum: 'Lihat Kurikulum',
+      btnVerify: 'Verifikasi Kredensial',
+      catalogTitle: 'Katalog Kursus',
+      catalogDesc: 'Kurikulum terstruktur untuk engineer Web3.',
+      tagPrereq: 'BERSYARAT',
+      tagMinutes: 'MENIT',
+      tagModules: 'MODUL',
+      tagLessons: 'MATERI',
+      stepsTitle: 'Alur Sertifikasi',
+      stepsDesc: 'Proses deterministik dari pembelajaran hingga penerbitan kredensial on-chain.',
+      step1Title: 'Pahami Materi Secara Mandiri',
+      step1Desc: 'Setiap kursus disusun secara terstruktur dari dasar hingga studi kasus teknikal. Tanpa biaya pendaftaran, sepenuhnya akses terbuka.',
+      step2Title: 'Esai dinilai, disahkan kunci kedua',
+      step2Desc: 'Agen AI mengusulkan nilai esaimu terhadap rubrik penerbit, yang hash-nya terikat di chain. Usulan itu baru berlaku sesudah kunci kedua yang ditunjuk penerbit mengesahkan atau mengubahnya. Jawaban kuis dinilai server penerbit, bukan halaman ini.',
+      step3Title: 'Kredensial Kriptografis',
+      step3Desc: 'Lulusan menerima token Soulbound dan attestation BAS (BNB Attestation Service). Token tidak bisa dipindahtangankan; attestation bisa dicabut penerbitnya, dan halaman verifikasi menampilkan keadaan itu.',
+      trustTitle: 'Infrastruktur Standar Terbuka',
+      trustDesc: 'Kredensial berupa dokumen W3C Verifiable Credentials 2.0 / Open Badges 3.0, dan satu yang diterbitkan backend ini lolos validator OB 3.0 milik 1EdTech (14 pemeriksaan, 0 error, 0 warning). Kontraknya terbuka dan halaman verifikasi membaca status langsung dari chain — kamu tidak perlu memercayai server kami.',
+      linkTrust: 'Trust & Limits',
+      linkSource: 'Source Code',
+
+      authGateTitle: 'Akses Kelas Terkunci',
+      authGateDesc: 'Anda harus masuk (login) terlebih dahulu menggunakan email atau dompet Web3 untuk mengakses materi, kuis interaktif, dan kurikulum kursus ini.',
+      authGateBtnLogin: 'Masuk Sekarang ➔',
+      authGateBtnBack: '← Kembali ke Katalog Publik',
+      topbarGuest: 'Tamu',
+      topbarPortfolio: 'Belajar & kredensialku',
+      sidebarCurriculum: 'Kurikulum',
+      sidebarModules: 'Modul Pembelajaran',
+      quizTitle: 'Kuis — dinilai penerbit',
+      quizTarget: 'Target kelulusan',
+      quizCorrect: '✓ Benar!',
+      quizIncorrect: '✗ Kurang tepat.',
+      quizSuccess: 'Evaluasi Berhasil',
+      quizFail: 'Evaluasi Belum Memenuhi Ambang',
+      quizScore: 'Skor Kamu',
+      essayTitle: 'Esai — dinilai penerbit',
+      essayDesc: 'Esaimu masuk antrean penerbit tanpa angka. Agen AI mengusulkan nilai terhadap rubrik; nilai itu baru berlaku sesudah kunci kedua mengesahkannya.',
+      essayInstructions: 'Instruksi:',
+      essayRubric: 'Lihat Kriteria Penilaian (100 Poin)',
+      essayPlaceholder: 'Tuliskan argumen dan sintesis jawabanmu...',
+      essayWordsOk: 'kata',
+      essayWordsMin: 'kata minimum',
+      essayEvaluating: 'Mengirim ke penerbit…',
+      essaySuccess: 'Terkirim — menunggu penilaian penerbit',
+      essayFail: 'Evaluasi gagal: Pastikan signer aktif.',
+      essayBtnSubmit: 'Serahkan Penilaian',
+      essayBtnEvaluating: 'Mengirim…',
+      railTitle: 'Di Halaman Ini',
+      railConcepts: 'Inti Konsep',
+      railRefs: 'Rujukan Eksternal',
+      overviewOutcomes: 'Capaian (Outcomes)',
+      overviewPrereq: 'Prasyarat',
+      overviewNone: 'Tidak ada prasyarat khusus.',
+      overviewCriteria: 'Kriteria Lulus',
+      btnStartModule: 'Mulai Modul 1 ➔',
+      btnNext: 'Selanjutnya ➔',
+      btnPortfolio: 'Ringkasan belajarku ➔',
+      btnMarkDone: 'Tandai Selesai',
+      btnDone: 'Terselesaikan',
+      btnPrev: '← Sebelumnya',
+      notFound: 'Kelas Tidak Ditemukan',
+      notFoundLink: 'Kembali ke Katalog Kursus'
+    },
     appName: 'Lencana',
     tagline: 'Bukti tepercaya untuk hasil belajar nyata',
     description:

@@ -4,6 +4,10 @@ tags: [frontend, "FE2"]
 
 # FE2 - Learning surface router
 
+> **1 Okt malam (FE7):** router di halaman ini (`lms.ts`, `#lms-mount`) sudah diganti cangkang kelas dari cabang FE
+> yang di-port ke model core — `pages/class.ts` + `lesson-views.ts`, rute `#/class/…`. Isi di bawah adalah riwayat;
+> perilaku (kuis lewat server, esai tanpa angka, dua angka perangkat/penerbit) dipindah utuh → [[03-Frontend/FE7 - Merge cabang FE 1 Okt]].
+
 **Part of:** [[03-Frontend/01 - Frontend]]
 **Source:** `web/src/lms.ts:452`, `web/src/content.ts:26`, `web/src/progress.ts:17`
 

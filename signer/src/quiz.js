@@ -2,7 +2,7 @@
  * `src/quiz.js` — penilaian kuis terjadi di SERVER, bukan di browser.
  *
  * Kenapa ini ada sekarang (B72): permukaan tulisnya sudah ada (`POST /attempts` menerima `score`),
- * dan halaman belajar selama ini menghitung angkanya sendiri (`web/src/lms.ts` action `grade`,
+ * dan halaman belajar selama ini menghitung angkanya sendiri (`web/src/lms.ts` action `grade` — berkas itu diganti `lesson-views.ts` + `pages/class.ts` pada 1 Okt, FE7,
  * memakai `item.answer` yang memang ikut terbundel ke browser). Menyambungkan halaman ke server
  * lewat jalur itu berarti angka kelulusan dikirim oleh pihak yang dinilai — dan `attempt_hash` lalu
  * membekukan angka itu supaya terlihat sah. Yang menutup celahnya bukan hash, tapi tempat

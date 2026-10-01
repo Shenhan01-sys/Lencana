@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-01
 command: npm run verify:privy · npm run verify:privy -- --deployed=<url halaman>
 measured: 2026-10-01
-result: LOGIN PRIVY HIJAU — 38 pemeriksaan / 0 gagal (jalur positif dengan token sah TIDAK diuji — app belum punya akun uji Privy) · run pertama MERAH 36 / 1 (kontrol negatif membongkar endpoint pengaturan app yang publik) · kontrol negatif --deployed atas bundel Vercel yang belum memuat login (index-DtXy16cc.js): MERAH 42 / 2
+result: LOGIN PRIVY HIJAU — 41 pemeriksaan / 0 gagal (38 sebelum B122 menambah 3 pemeriksaan preflight CORS; jalur positif dengan token sah TIDAK diuji — app belum punya akun uji Privy) · run pertama MERAH 36 / 1 (kontrol negatif membongkar endpoint pengaturan app yang publik) · kontrol negatif --deployed atas bundel Vercel yang belum memuat login (index-DtXy16cc.js): MERAH 42 / 2
 ---
 
 # T41 - signer privy-check.js — B82: login peserta lewat Privy
@@ -40,6 +40,29 @@ users._get(nonexistent) bad ERR 401 401 {"error":"Invalid app ID or app secret."
 
 Pembuktian secret dipindah ke API users — termasuk `users()._get`, persis panggilan yang dipakai rute — dan pengaturan app
 tinggal dipakai untuk membaca konfigurasi, dengan label "endpoint publik — bukan bukti secret".
+
+## 1 Okt malam — +3 pemeriksaan preflight CORS (B122), 41 / 0
+
+Uji peramban ruang kelas ([[09-Testing/T42 - Uji peramban ruang kelas (FE7)]]) menemukan bahwa setiap `OPTIONS` ke rute tulis
+dijawab 405 — termasuk `POST /auth/privy`, jadi login email dari halaman pun tidak akan pernah sampai ke penerbit. Server
+diperbaiki (B122) dan bagian C harness ini sekarang menuntut preflight lolos untuk `/auth/privy`, `/enroll`, `/grade`.
+Bagian C dari run sesudahnya:
+
+```
+— C. POST /auth/privy lewat HTTP (server sendiri, origin=test)
+  ok    kiriman kosong -> 400
+  ok    learner rusak -> 400
+  ok    token rusak -> 400
+  ok    JWT palsu -> 401 "access token rejected"
+  ok    jawaban tidak memantulkan token, dan tidak memuat app secret
+  ok    tetap tidak ada ikatan untuk alamat itu sesudah lapis HTTP
+  ok    preflight CORS /auth/privy dari origin lain -> 204, izinkan POST + content-type + jaringan privat (B122)
+  ok    preflight CORS /enroll dari origin lain -> 204, izinkan POST + content-type + jaringan privat (B122)
+  ok    preflight CORS /grade dari origin lain -> 204, izinkan POST + content-type + jaringan privat (B122)
+  ok    server tanpa PRIVY_APP_SECRET -> 503 (gagal tertutup)
+```
+
+Baterai sesudah port FE + B122 (`npm run sync:numbers`): **22 harness · 0 gagal**.
 
 ## Transkrip `npm run verify:privy` (2026-10-01T12:43Z)
 

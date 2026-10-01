@@ -44,7 +44,7 @@ menurut kebutuhan core:
 Gerbang sesudah merge: `tsc` bersih, probe web **88/0**, `verify:quizkeys` **30/0**, `verify:privy` **38/0**,
 `check:labels` 8/0 (146 marker), `npm run audit` 12 · 0 temuan.
 
-## Merge 2 — `dex/lencana-ui`: DITAHAN, menunggu keputusan builder
+## Merge 2 — `dex/lencana-ui`: ditahan, lalu builder memilih "port ke core" (squash, lokal)
 
 Cabang ini **mengganti seluruh permukaan belajar**, bukan menata ulangnya: `main.ts` membuang `renderLmsRoute`, `lms.ts`
 dihapus, semua rute belajar dialihkan ke `#/class/…` (`new-app.ts`, `router.ts`, `pages/class.ts`, `pages/landing.ts`), dan
@@ -61,3 +61,22 @@ model konten diganti (`ClassData`, dibangkitkan `scratch/migrate.ts`). Diukur 1 
 Menurut FE4, model konten dan router belajar milik lapisan belajar; tampilan kelas `ui` hanya bisa masuk kalau dipindah
 ke model core dan penilaian server — itu langkah refactor FE. Merge biasa juga membawa `a6d0662` ke riwayat `main`
 (B116); kalau diambil, bentuknya squash tanpa `env_hans`.
+
+**Keputusan builder (1 Okt malam): "Port ke core"; push ditahan — dicatat sebagai D58 di [[00-Overview/03 - Decisions]].** Yang dikerjakan, sebagai satu commit squash —
+riwayat `a6d0662` tidak masuk `main`:
+
+| bagian | keputusan |
+|---|---|
+| `env_hans`, `scratch/`, `scratch_test/`, `web/index.backup.html`, `.agents/skills/` (14) | **tidak diambil** — kunci bocor (B116) dan berkas kerja, bukan produk |
+| `FRONTEND_STATE.md`, `vault/03-Frontend/FE_CURRENT_STATE.md` | **tidak diambil** — potret cabang sebelum port (masih menyebut `lms.ts`, Privy dengan fallback simulasi, "dapat diekspor kapan saja", EAS) dan menaut path lokal `C:/Project_Dave/…`; isinya tidak benar untuk `main`. Tetap terbaca di cabangnya |
+| `content.ts`, `courses/*.ts`, `courses/index.ts`, `manifest.ts`, `score.ts`, `progress.ts`, `web/scripts/*` | **versi core** — model, kunci di server (B80), `lesson.proof` (B121), `rubricHash` terbit tidak bergeser |
+| `router.ts`, `lib/markdown.ts` | tidak diambil — tidak dipakai sesudah port (isi lesson dirender dari blok core) |
+| `style.css` (+1.846), gambar `public/*.jpg`, `lib/ui.ts`, `new-app.ts`, nav `index.html`, kamus `lmsV2` | **diambil** |
+| `pages/landing.ts`, `pages/class.ts` | **diambil lalu di-port**: cangkang FE (topbar, pohon modul, rail) + isi dari `lesson-views.ts` — templat `lms.ts` yang disalin baris demi baris oleh skrip (kuis lewat `/grade` dengan pembahasan server, esai tanpa angka, kotak identitas + rekaman penerbit, `#/me` + baca chain). Aksi `bindLms` pindah ke `bindLearningActions`. `lms.ts` dihapus; `lms.css` dikunci ulang ke `.lesson-engine` |
+| `main.ts` | rute FE (`new-app` untuk `#/`, katalog, `#/class/…`, `#/me`) + penjaga sesi `fe-integration`; `#/learn` dan `#/course/<id>/l/<slug>` dipetakan ke lesson yang sama (versi cabang memetakannya ke modul bernama "l"); `#/publishers` dan Trust & Limits publik untuk tamu |
+| teks `lmsV2` yang tampil | dikoreksi menurut Claims: bukan "dinilai agen AI otonom"/"tanpa bias" (usulan agen disahkan kunci kedua), BAS bukan EAS, attestation bisa dicabut (bukan "selamanya"), validator OB 3.0 dengan angkanya, tanpa "kami tidak menyembunyikan kunci Anda" |
+
+**Uji:** `tsc` bersih, build, probe web **88/0**, `verify:quizkeys` **30/0** (0 kunci di bundel; tidak ada berkas
+`web/src` yang mengimpor kunci), `verify:privy` (modul login tetap lambat), `check:labels` 8/0, `npm run audit` 0 temuan,
+dan **uji peramban sungguhan** — [[09-Testing/T42 - Uji peramban ruang kelas (FE7)]]. Uji peramban itu menemukan **B122** (preflight CORS 405: halaman belajar tidak
+pernah bisa menulis dari peramban) dan dua bug halaman yang terbawa dari `lms.ts`; ketiganya ditutup di port ini.

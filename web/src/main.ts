@@ -11,10 +11,11 @@ import { renderEmpty, renderReport } from './render'
 import { runSpecAudit, specRowsHtml } from './specAudit'
 import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
 import { getSavedLanguage, saveLanguage, DICTIONARIES, type Lang } from './i18n'
-import { renderLmsRoute } from './lms'
 // B105 — halaman `#/publishers` membaca registri penerbit dari manifest, bukan dari angka yang
 // diketik ke HTML: kalau kursus atau penerbitnya bertambah, halamannya ikut berubah sendiri.
 import { MANIFESTS, rubricHashOf, shortHash } from './manifest'
+// FE7: rute lama lapisan belajar dipetakan ke ruang kelas (pages/class.ts) — lihat handleRoute.
+import { legacyLearnRoute } from './lesson-views'
 import {
   learnerAddress,
   connectWalletLearner,
@@ -582,9 +583,12 @@ function renderWalletState() {
     ? learnerAddress() || (walletState.isConnected ? walletState.address : null)
     : null
 
+  const studentLinks = document.querySelectorAll('.student-only')
+
   if (effectiveAddress) {
     connectBtn?.classList.add('hidden')
     connectedPill?.classList.remove('hidden')
+    studentLinks.forEach(el => el.classList.remove('hidden'))
     const short = `${effectiveAddress.slice(0, 6)}...${effectiveAddress.slice(-4)}`
     if (addrDisplay) {
       addrDisplay.textContent = walletState.isDemo ? `guest (${short})` : short
@@ -607,6 +611,7 @@ function renderWalletState() {
   } else {
     connectBtn?.classList.remove('hidden')
     connectedPill?.classList.add('hidden')
+    studentLinks.forEach(el => el.classList.add('hidden'))
     if (learnerAddrEl) learnerAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
     if (portfolioAddrEl) portfolioAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
     if (mintReceiptAddr) mintReceiptAddr.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
@@ -628,6 +633,8 @@ function isProtectedRouteHref(href: string): boolean {
   if (hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login') return false
   // Verifier publik — sama seperti guard rute: tautan "Check Proof" tetap tampil untuk tamu.
   if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') return false
+  // FE7: halaman transparansi juga publik — registri penerbit (B105) dan Trust & Limits (landing menautkannya).
+  if (hash === '#/publishers' || hash === '#publishers' || hash === '#/agent-hub' || hash === '#agent-hub' || hash === '#ai-agents') return false
   if (hash.startsWith('#/')) return true
   return ['#courses', '#learn', '#course', '#submit', '#ai-evaluator', '#verifier', '#verify',
     '#portfolio', '#ai-agents', '#agent-hub'].includes(hash)
@@ -1645,32 +1652,50 @@ function copyJsonLd() {
   })
 }
 
+import { mountNewApp } from './new-app'
+
 function handleRoute() {
   const rawHash = window.location.hash || '#/'
   let hash = rawHash.toLowerCase().split('?')[0]
 
+  // Rute lama lapisan belajar (`#/learn`, `#/course/…`) → ruang kelas. `#/course/<id>/l/<slug>`
+  // menunjuk lesson yang SAMA, bukan modul bernama "l" (FE7).
+  const legacy = legacyLearnRoute(hash)
+  if (legacy) {
+    window.location.hash = legacy
+    return
+  }
+
   const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
   const isHomeAnchor = hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture'
-  const isHomeRoute = hash === '#/' || hash === '#'
+  const isHomeRoute = hash === '#/' || hash === '#' || hash === ''
+  const isCatalog = hash === '#/courses' || hash === '#courses' || hash === '#catalog'
   // Verifier adalah utilitas PUBLIK (bukan rute learner): bukti dibagikan lewat tautan,
   // diperiksa orang asing tanpa akun, dan kapsul hero + Scene 1 mengarah ke sini. Bukan
   // pengecualian untuk LMS — semua rute learner di bawah tetap terkunci untuk tamu.
   const isPublicVerify = hash === '#/verify' || hash === '#verifier' || hash === '#verify'
   // B105: registri penerbit juga informasi publik (dibaca dari manifest), bukan rute learner.
   const isPublicPublishers = hash === '#/publishers' || hash === '#publishers'
-  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isPrivyOnboard && !isPublicVerify && !isPublicPublishers) {
-    // Replace the attempted route before rendering so protected HTML never becomes visible.
+  // FE7: Trust & Limits juga halaman transparansi — landing menautkannya untuk tamu.
+  const isPublicTrust = hash === '#/agent-hub' || hash === '#agent-hub' || hash === '#ai-agents'
+  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isCatalog && !isPrivyOnboard && !isPublicVerify && !isPublicPublishers && !isPublicTrust) {
+    // Rute peserta tanpa sesi: HTML yang dilindungi tidak pernah tampil (fe-integration), kursus
+    // tujuannya diingat, dan modal masuk dibuka (ui) supaya tamu tahu kenapa ia kembali ke beranda.
+    const attempted = hash
+    const target = attempted.startsWith('#/class/') ? decodeURIComponent(attempted.split('/')[2] ?? '') : ''
+    if (target) sessionStorage.setItem('lencana_enroll_target', target)
     window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#/`)
     hash = '#/'
+    if (/^#\/(class\/|me$|submit$|portfolio$)/.test(attempted)) openWalletModal(true)
   }
   updateLearnerNavigation()
 
-  const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me'
-  let targetPageId = 'page-home'
-  if (hash === '#/courses' || hash === '#courses') {
-    targetPageId = 'page-courses'
+  const isLms = hash.startsWith('#/class/') || hash === '#/me'
+  let targetPageId = 'page-new-app'
+  if (isHomeRoute || isCatalog || isLms) {
+    targetPageId = 'page-new-app'
   } else if (isPrivyOnboard) {
-    targetPageId = 'page-home'
+    targetPageId = 'page-new-app'
     openWalletModal(true)
   } else if (hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit') {
     targetPageId = 'page-submit'
@@ -1682,15 +1707,15 @@ function handleRoute() {
     targetPageId = 'page-agent-hub'
   } else if (hash === '#/publishers' || hash === '#publishers') {
     targetPageId = 'page-publishers'
-  } else if (isLms) {
-    // Lapisan materi (src/lms.ts) menggambar di #lms-mount milik halaman courses. Route ini
-    // sengaja dipakai awalan berbeda dari #/courses: yang satu tokonya, yang satu isinya.
-    targetPageId = 'page-courses'
   } else {
-    targetPageId = 'page-home'
+    targetPageId = 'page-new-app'
   }
 
-  const isHome = targetPageId === 'page-home'
+  if (targetPageId === 'page-new-app') {
+    mountNewApp(hash)
+  }
+
+  const isHome = targetPageId === 'page-home' || targetPageId === 'page-new-app'
   document.body.classList.toggle('is-home-page', isHome)
   document.body.classList.toggle('is-submit-page', targetPageId === 'page-submit')
   closeNexumMobileMenu()
@@ -1704,12 +1729,22 @@ function handleRoute() {
     }
   })
 
-  // Gambar (atau bersihkan) lapisan materi di halaman courses. Fungsi ini tahu sendiri apakah
-  // route-nya miliknya, jadi memanggilnya pada setiap route tidak akan menimpa apa pun.
-  renderLmsRoute()
+  const isClassRoute = hash.startsWith('#/class/')
+  const globalHeader = document.querySelector('header.app-navbar') as HTMLElement;
+  const globalDock = document.querySelector('.demo-dock') as HTMLElement;
+  if (isClassRoute) {
+    if (globalHeader) globalHeader.classList.add('force-hidden');
+  } else {
+    if (globalHeader) globalHeader.classList.remove('force-hidden');
+  }
+  // Demote demo dock to collapsed state unless specifically triggered
+  if (globalDock) globalDock.classList.add('force-hidden');
+
+  // Legacy LMS route is now handled by new router
 
   const routeNavMap: Record<string, string> = {
     'page-home': 'nav-home',
+    'page-new-app': 'nav-home',
     'page-courses': 'nav-courses',
     'page-submit': 'nav-submit',
     'page-verify': 'nav-verify',

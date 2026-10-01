@@ -376,6 +376,18 @@ function checkPayment (p) {
 const server = createServer(async (req, res) => {
   const path = new URL(req.url, BASE_URL).pathname
   try {
+    // Lencana-B122 status=SELESAI 2026-10-01 — preflight CORS: halaman belajar (origin lain: dev server, Vercel) mengirim POST JSON, dan peramban selalu bertanya OPTIONS dulu; sampai 1 Okt jawabannya 405 untuk setiap rute, jadi tidak satu pun tulisan halaman yang pernah sampai dari peramban sungguhan (ditemukan uji peramban FE7). Otorisasi tidak berubah: tulisan tetap butuh tanda tangan/token di badan, tanpa cookie. Buktikan ulang: npm run verify:privy (bagian C). JANGAN dibalik/diulang tanpa membuka kembali baris B122 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'access-control-allow-origin': '*',
+        'access-control-allow-methods': 'GET, POST, OPTIONS',
+        'access-control-allow-headers': 'content-type, x-payment',
+        // Chrome (Private Network Access): halaman publik yang memanggil signer di 127.0.0.1.
+        'access-control-allow-private-network': 'true',
+        'access-control-max-age': '600',
+      })
+      return res.end()
+    }
     if (path === `/issuers/${AGENT_SLUG}` || path === '/issuers') return send(res, 200, issuerDoc)
     // B48: setiap kredensial mencetak `verificationMethod` miliknya sendiri. Selama server hanya
     // melayani slug yang kebetulan di-start, ijazah terbitan agen lain jadi 404 di instance ini —

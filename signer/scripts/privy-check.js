@@ -105,7 +105,7 @@ async function serve (port, extra = {}) {
     if (!up) await sleep(750)
   }
   if (up?.status !== 200) { stop(); throw new Error(`server tidak naik: ${errBuf.slice(-200)}`) }
-  return { call, stop }
+  return { call, stop, base }
 }
 
 const servers = []
@@ -182,6 +182,17 @@ try {
   check('JWT palsu -> 401 "access token rejected"', c4.status === 401 && /access token rejected/.test(c4.body?.error ?? ''), c4.text.slice(0, 160))
   check('jawaban tidak memantulkan token, dan tidak memuat app secret', !c4.text.includes(forged) && noSecret(c4.text))
   check('tetap tidak ada ikatan untuk alamat itu sesudah lapis HTTP', (await learnerAccount(someone)) === null)
+  // Lencana-B122 status=SELESAI 2026-10-01 — halaman belajar memanggil rute ini dari origin lain (dev server, Vercel); peramban menanyakan OPTIONS dulu, dan sampai 1 Okt setiap rute menjawab 405. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B122 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  for (const p of ['/auth/privy', '/enroll', '/grade']) {
+    const r = await fetch(`${s1.base}${p}`, {
+      method: 'OPTIONS', signal: AbortSignal.timeout(20000),
+      headers: { origin: 'http://127.0.0.1:5173', 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type', 'access-control-request-private-network': 'true' },
+    })
+    const h = (k) => r.headers.get(k) ?? ''
+    check(`preflight CORS ${p} dari origin lain -> 204, izinkan POST + content-type + jaringan privat (B122)`,
+      r.status === 204 && h('access-control-allow-origin') === '*' && /POST/.test(h('access-control-allow-methods')) && /content-type/i.test(h('access-control-allow-headers')) && h('access-control-allow-private-network') === 'true',
+      json({ status: r.status, origin: h('access-control-allow-origin'), methods: h('access-control-allow-methods'), headers: h('access-control-allow-headers'), pna: h('access-control-allow-private-network') }))
+  }
   s1.stop()
   // Server tanpa app secret: rute harus menolak terang-terangan, bukan diam-diam menerima.
   const s2 = await serve(Number(await freePort(8937)), { PRIVY_APP_SECRET: '' })

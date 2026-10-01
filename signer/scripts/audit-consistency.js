@@ -189,7 +189,7 @@ async function collect () {
   })
 
   // 4) Tempat penampung yang tertinggal di kode yang dilihat publik.
-  const PUB_CODE = ['web/src/main.ts', 'web/src/verify.ts', 'web/src/lms.ts', 'web/src/learning.ts', 'web/src/specAudit.ts', 'signer/src/server.js', 'signer/src/db.js', 'signer/src/credential.js', 'contracts/SoulboundCert.sol', 'contracts/CredentialResolver.sol', 'contracts/CourseDeposit.sol']
+  const PUB_CODE = ['web/src/main.ts', 'web/src/verify.ts', 'web/src/lesson-views.ts', 'web/src/pages/class.ts', 'web/src/pages/landing.ts', 'web/src/learning.ts', 'web/src/specAudit.ts', 'signer/src/server.js', 'signer/src/db.js', 'signer/src/credential.js', 'contracts/SoulboundCert.sol', 'contracts/CredentialResolver.sol', 'contracts/CourseDeposit.sol']
   const stubs = []
   const pub = await readSurface(PUB_CODE)
   for (const { f, t } of pub.texts) {

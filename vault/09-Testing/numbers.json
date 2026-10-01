@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-01T12:43:04.517Z",
+  "capturedAt": "2026-10-01T14:22:52.220Z",
   "note": "Dihasilkan npm run sync:numbers. Halaman vault yang mengutip angka harness wajib cocok dengan berkas ini (verify: npm run sync:numbers -- --verify).",
   "items": {
     "check": {
@@ -133,10 +133,10 @@
       "pass": 30
     },
     "privy": {
-      "total": 38,
+      "total": 41,
       "fail": 0,
       "skipped": 0,
-      "pass": 38
+      "pass": 41
     }
   }
 }

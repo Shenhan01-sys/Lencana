@@ -44,7 +44,7 @@ updated: 2026-10-01
 | pembuktian secret bisa merah | secret palsu → **401** di API users; run pertama **MERAH 36 / 1** karena kontrol negatif membongkar endpoint publik |
 | dua ikatan serentak ke dua akun | **tepat satu menang** |
 | server tanpa secret | **503** |
-| `npm run verify:privy` | **38 / 0** |
+| `npm run verify:privy` | **38 / 0** — **41 / 0** sesudah B122 menambah 3 pemeriksaan preflight (1 Okt malam: `OPTIONS /auth/privy` tadinya 405, jadi login dari halaman tidak akan pernah sampai ke penerbit) |
 | probe web · `verify:db` | **88 / 0 · 70 / 0** |
 | baterai `npm run sync:numbers` | **22 harness · 0 gagal** |
 | pemindai bundel tayang bisa merah | `--deployed` atas bundel Vercel lama → **MERAH 42 / 2** (diulang sesudah deploy) |

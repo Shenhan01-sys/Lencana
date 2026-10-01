@@ -546,3 +546,9 @@ sungguhan `sendPrivyCode` / `connectPrivyLearner` dari `learning.ts`. Kotak iden
 `createPrivyLearner` dibuang; tombol Google disembunyikan karena Google mati di app Privy; teks "dapat diekspor kapan
 saja" dikoreksi karena belum ada fitur ekspor.)*
 
+*(Koreksi kedua, 1 Okt malam — port `dex/lencana-ui` ke core, [[03-Frontend/FE7 - Merge cabang FE 1 Okt]]: kotak identitas sekarang dirender di ruang kelas
+barumu (`pages/class.ts`) lewat `lesson-views.ts:serverLine`; tombolnya tetap `data-action="learner-privy"` → event
+`lencana:open-privy` → modal masukmu. `lms.ts` tidak ada lagi. Dua hal yang kuubah di halamanmu dan kenapa: kuis tidak
+lagi dinilai di browser (kunci tetap di server, pembahasan dari `/grade`), dan isi lesson dirender dari blok core — bukan
+markdown `ClassData` — karena server membaca model yang sama.)*
+
