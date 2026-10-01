@@ -26,7 +26,8 @@ export function mountNewApp (routeHash: string): void {
 
   appEl.innerHTML = ''
 
-  if (routeHash === '#/' || routeHash === '' || routeHash === '#' || routeHash === '#/courses' || routeHash === '#courses' || routeHash === '#catalog') {
+  // `#how-it-works` = bagian alur 3D di landing (FE8); `handleRoute` menggulir ke sana sesudah landing tergambar.
+  if (routeHash === '#/' || routeHash === '' || routeHash === '#' || routeHash === '#/courses' || routeHash === '#courses' || routeHash === '#catalog' || routeHash === '#how-it-works') {
     appEl.appendChild(renderLanding())
     if (routeHash.includes('catalog') || routeHash.includes('courses')) {
       setTimeout(() => {

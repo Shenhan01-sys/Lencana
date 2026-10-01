@@ -552,3 +552,29 @@ barumu (`pages/class.ts`) lewat `lesson-views.ts:serverLine`; tombolnya tetap `d
 lagi dinilai di browser (kunci tetap di server, pembahasan dari `/grade`), dan isi lesson dirender dari blok core — bukan
 markdown `ClassData` — karena server membaca model yang sama.)*
 
+
+## OI-23 — bagian "Certification Flow" di landing diganti alur bisnis 3D; tiga berkasmu ikut disentuh (FE8, 2 Okt)
+
+Builder meminta UI 3D alur bisnis Lencana per peran di landing dan meng-acc brief-nya
+([[03-Frontend/FE8 - Business flow 3D (brief)]]). Bagiannya hidup di berkas baru (`web/src/pages/flow3d*.ts`,
+`flow3d.css`) dan menggantikan bagian tiga langkah di `pages/landing.ts`. Berkasmu yang ikut disentuh, dan kenapa:
+
+| berkas | perubahan |
+|---|---|
+| `web/src/main.ts` | `setLanguage` kini menggambar ulang landing (`mountNewApp('#/')`) kalau landing sedang tampil. Sebelumnya hero, katalog, dan bagian ini tetap di bahasa lama sampai rute berganti. Daftar rute yang memicunya: `#/`, `#`, kosong, `#/courses`, `#courses`, `#catalog`, `#how-it-works` |
+| `web/src/new-app.ts` | `#how-it-works` menggambar landing (sebelumnya halaman kosong); `handleRoute` sudah menggulir ke `#how-it-works`, dan bagian 3D memakai id itu |
+| `web/src/i18n.ts` | `lmsV2.stepsTitle`, `stepsDesc`, `step1Title` … `step3Desc` dibuang (tipe + EN + ID) — satu-satunya pemakainya bagian yang diganti |
+| `web/src/style.css` | blok `/* 3. How It Works */` (`.how-it-works-*`, `.step-number`, `.step-content`) dibuang, diganti satu baris penunjuk ke `pages/flow3d.css`; `.flow-step-content` di `#page-verify` tidak tersentuh |
+
+**Tidak disentuh:** `index.html`, `render.ts`, titik mount (`#page-new-app`, `mountNewApp`, `renderLanding`).
+
+**Masih terbuka — keputusanmu:**
+
+- Ruang kelas (`#/class/…`, `#/me`) **tidak** digambar ulang saat bahasa diganti, jadi teks `lmsV2`-nya tetap di bahasa lama
+  sampai rute berganti. Sengaja tidak kusambungkan: menggambar ulang di sana menghapus draf esai yang sedang diketik. Butuh
+  penyimpanan draf dulu, atau penggantian teks tanpa menggambar ulang.
+- `#pipeline` dan `#architecture` masih lolos penjaga rute sebagai anchor beranda tetapi menggambar halaman kosong
+  (`mountNewApp` tidak punya cabang untuknya, dan `id="architecture"` ada di halaman lama yang disembunyikan).
+
+Cara menilai ulang: `cd web && npx tsc --noEmit && npm run build && npm run probe`, lalu buka `#/` → gulir ke "Satu alur,
+tiga kursi" → ganti EN/ID di navbar (teks bagian dan hero harus ikut berganti).

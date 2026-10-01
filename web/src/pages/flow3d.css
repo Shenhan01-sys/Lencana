@@ -1,0 +1,162 @@
+/* FE8 — bagian "cara Lencana bekerja" (flow3d.ts). Semua aturan dikunci di .flow3d-section supaya tidak
+   menyentuh halaman lain; warna mengikuti emas Lencana dan kartu hero. */
+.flow3d-section {
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 120px 24px 140px;
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+}
+.flow3d-section .flow3d-head { display: grid; gap: 14px; max-width: 780px; margin-bottom: 30px; }
+.flow3d-section .flow3d-eyebrow {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-gold, #f0b90b);
+}
+.flow3d-section .flow3d-title {
+  margin: 0;
+  font-size: clamp(34px, 4.4vw, 60px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--text-primary, #fff);
+}
+.flow3d-section .flow3d-desc { margin: 0; max-width: 58ch; font-size: 17px; line-height: 1.6; color: var(--text-secondary, #a9b0ba); }
+.flow3d-section .flow3d-roles {
+  display: inline-flex;
+  gap: 6px;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 5px;
+  border: 1px solid rgba(240, 185, 11, 0.28);
+  border-radius: 999px;
+  background: rgba(12, 15, 19, 0.6);
+}
+.flow3d-section .flow3d-role {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 18px;
+  background: transparent;
+  color: var(--text-secondary, #a9b0ba);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.flow3d-section .flow3d-role:hover { color: #fff; }
+.flow3d-section .flow3d-role:active { transform: scale(0.96); }
+.flow3d-section .flow3d-role[aria-pressed="true"] { background: #f0b90b; color: #0c0f13; }
+
+.flow3d-section .flow3d-stage {
+  position: relative;
+  height: clamp(440px, 56vw, 690px);
+  overflow: hidden;
+  border: 1px solid rgba(240, 185, 11, 0.14);
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(240, 185, 11, 0.09), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.28));
+}
+.flow3d-section .flow3d-canvas,
+.flow3d-section .flow3d-canvas canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.flow3d-section .flow3d-labels { position: absolute; inset: 0; pointer-events: none; }
+.flow3d-section .flow3d-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid rgba(240, 185, 11, 0.25);
+  border-radius: 999px;
+  background: rgba(12, 15, 19, 0.74);
+  color: #d9d8cd;
+  font: 650 12px/1.2 var(--font-mono, ui-monospace, monospace);
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  will-change: transform;
+}
+.flow3d-section .flow3d-label b { color: #f0b90b; font-weight: 800; }
+.flow3d-section .flow3d-label.active { border-color: #f0b90b; background: #f0b90b; color: #0c0f13; }
+.flow3d-section .flow3d-label.active b { color: #0c0f13; }
+.flow3d-section .flow3d-label.hover { border-color: #ffe14d; }
+.flow3d-section .flow3d-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #8b919a;
+  font: 650 12px var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.flow3d-section .flow3d-stage.ready .flow3d-loading,
+.flow3d-section .flow3d-stage.failed .flow3d-loading { display: none; }
+.flow3d-section .flow3d-fallback { display: none; position: absolute; inset: 0; overflow: auto; padding: 28px; }
+.flow3d-section .flow3d-stage.failed { height: auto; aspect-ratio: auto; }
+.flow3d-section .flow3d-stage.failed .flow3d-fallback { display: block; position: static; overflow: visible; }
+.flow3d-section.is-flat .flow3d-panel { display: none; }
+.flow3d-section .flow3d-fallback-note { margin: 0 0 18px; color: #8b919a; font-size: 14px; }
+.flow3d-section .flow3d-fallback-list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.flow3d-section .flow3d-fallback-list li { display: grid; grid-template-columns: 44px 1fr; gap: 12px; align-items: start; }
+.flow3d-section .flow3d-fallback-list b { color: #f0b90b; font: 800 14px var(--font-mono, ui-monospace, monospace); padding-top: 2px; }
+.flow3d-section .flow3d-fallback-list strong { color: var(--text-primary, #fff); }
+.flow3d-section .flow3d-fallback-list p { margin: 2px 0 0; color: var(--text-secondary, #a9b0ba); font-size: 14px; line-height: 1.5; }
+
+.flow3d-section .flow3d-panel {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 18px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 18px 22px;
+  border: 1px solid rgba(240, 185, 11, 0.18);
+  border-radius: 18px;
+  background: rgba(12, 15, 19, 0.55);
+  transition: border-color 0.2s ease;
+}
+.flow3d-section .flow3d-panel.hovered { border-color: rgba(255, 225, 77, 0.55); }
+.flow3d-section .flow3d-step { color: #f0b90b; font: 800 13px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.1em; }
+.flow3d-section .flow3d-name { display: block; color: var(--text-primary, #fff); font-size: 18px; }
+.flow3d-section .flow3d-line { margin: 4px 0 0; color: var(--text-secondary, #a9b0ba); font-size: 15px; line-height: 1.5; }
+.flow3d-section .flow3d-controls { display: flex; gap: 8px; }
+.flow3d-section .flow3d-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(240, 185, 11, 0.35);
+  border-radius: 12px;
+  background: transparent;
+  color: #f0b90b;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.flow3d-section .flow3d-btn:hover:not(:disabled) { background: rgba(240, 185, 11, 0.12); }
+.flow3d-section .flow3d-btn:active:not(:disabled) { transform: scale(0.92); }
+.flow3d-section .flow3d-btn:disabled { opacity: 0.4; cursor: default; }
+.flow3d-section .flow3d-hint {
+  grid-column: 1 / -1;
+  color: #6f7680;
+  font: 650 11px var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+  .flow3d-section { padding: 80px 16px 96px; }
+  .flow3d-section .flow3d-stage { height: auto; aspect-ratio: 5 / 4; border-radius: 18px; }
+  .flow3d-section .flow3d-panel { grid-template-columns: 1fr; gap: 10px; }
+  .flow3d-section .flow3d-roles { flex-wrap: wrap; border-radius: 18px; }
+  .flow3d-section .flow3d-role { padding: 8px 12px; font-size: 13px; }
+  .flow3d-section .flow3d-label span { display: none; }
+}

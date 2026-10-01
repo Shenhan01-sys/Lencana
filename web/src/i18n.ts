@@ -595,14 +595,6 @@ lmsV2: {
     tagMinutes: string
     tagModules: string
     tagLessons: string
-    stepsTitle: string
-    stepsDesc: string
-    step1Title: string
-    step1Desc: string
-    step2Title: string
-    step2Desc: string
-    step3Title: string
-    step3Desc: string
     trustTitle: string
     trustDesc: string
     linkTrust: string
@@ -1293,14 +1285,6 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       tagMinutes: 'MINUTES',
       tagModules: 'MODULES',
       tagLessons: 'LESSONS',
-      stepsTitle: 'Certification Flow',
-      stepsDesc: 'A deterministic process from learning to on-chain credential issuance.',
-      step1Title: 'Self-Paced Mastery',
-      step1Desc: 'Each course is structured from fundamentals to technical case studies. No registration fees, completely open access.',
-      step2Title: 'Graded essay, approved by a second key',
-      step2Desc: 'An AI agent proposes your essay score against the publisher rubric, whose hash is committed on chain. The proposal counts only after a second key appointed by the publisher approves or adjusts it. Quiz answers are graded by the publisher server, never by this page.',
-      step3Title: 'Cryptographic Credentials',
-      step3Desc: 'Graduates receive a Soulbound token and a BAS attestation (BNB Attestation Service). The token cannot be transferred; the attestation can be revoked by its issuer, and the verifier shows that state.',
       trustTitle: 'Open Standards Infrastructure',
       trustDesc: 'Credentials are W3C Verifiable Credentials 2.0 / Open Badges 3.0 documents, and one issued by this backend passed the 1EdTech OB 3.0 validator (14 checks, 0 errors, 0 warnings). The contracts are open source and the verifier reads status straight from chain — you do not have to trust our server.',
       linkTrust: 'Trust & Limits',
@@ -1364,14 +1348,6 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       tagMinutes: 'MENIT',
       tagModules: 'MODUL',
       tagLessons: 'MATERI',
-      stepsTitle: 'Alur Sertifikasi',
-      stepsDesc: 'Proses deterministik dari pembelajaran hingga penerbitan kredensial on-chain.',
-      step1Title: 'Pahami Materi Secara Mandiri',
-      step1Desc: 'Setiap kursus disusun secara terstruktur dari dasar hingga studi kasus teknikal. Tanpa biaya pendaftaran, sepenuhnya akses terbuka.',
-      step2Title: 'Esai dinilai, disahkan kunci kedua',
-      step2Desc: 'Agen AI mengusulkan nilai esaimu terhadap rubrik penerbit, yang hash-nya terikat di chain. Usulan itu baru berlaku sesudah kunci kedua yang ditunjuk penerbit mengesahkan atau mengubahnya. Jawaban kuis dinilai server penerbit, bukan halaman ini.',
-      step3Title: 'Kredensial Kriptografis',
-      step3Desc: 'Lulusan menerima token Soulbound dan attestation BAS (BNB Attestation Service). Token tidak bisa dipindahtangankan; attestation bisa dicabut penerbitnya, dan halaman verifikasi menampilkan keadaan itu.',
       trustTitle: 'Infrastruktur Standar Terbuka',
       trustDesc: 'Kredensial berupa dokumen W3C Verifiable Credentials 2.0 / Open Badges 3.0, dan satu yang diterbitkan backend ini lolos validator OB 3.0 milik 1EdTech (14 pemeriksaan, 0 error, 0 warning). Kontraknya terbuka dan halaman verifikasi membaca status langsung dari chain — kamu tidak perlu memercayai server kami.',
       linkTrust: 'Trust & Limits',

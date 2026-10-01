@@ -2232,6 +2232,11 @@ function setLanguage(lang: Lang) {
   updateStaticText()
   mountStaticSpec()
   paintBanner()
+  // Landing (lmsV2) mengambil teksnya dari kamus saat digambar: tanpa ini ia tetap di bahasa lama sampai
+  // rute berganti. Ruang kelas sengaja tidak digambar ulang di sini — draf esai yang sedang diketik hilang.
+  const routeNow = (window.location.hash || '#/').toLowerCase().split('?')[0]
+  const landingShown = Boolean(document.querySelector('#page-new-app > .landing-shell'))
+  if (landingShown && ['#/', '#', '', '#/courses', '#courses', '#catalog', '#how-it-works'].includes(routeNow)) mountNewApp('#/')
   if (lastReport) {
     outEl.innerHTML = renderReport(lastReport, currentLang)
     void runSpecAudit(outEl, { hash: lastReport.credential.hash, cred: lastReport.credential, edgeBase: CREDENTIAL_HOST, lang: currentLang })

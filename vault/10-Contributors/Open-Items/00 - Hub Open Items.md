@@ -33,6 +33,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-21 | kunci kuis keluar dari bundel (B80): berkas `web/` yang disentuh (`courses`, `content.ts`, `manifest.ts`, `manifest-keys.ts`, `learning.ts`, `lms.ts`, `probe.ts`) dan yang tidak (`main.ts`, `render.ts`, `index.html`, `style.css`, `i18n.ts`); jangan tandai opsi benar, jangan tulis "anti-curang" |
 | OI-20 | lesson praktik harus memanggil `POST /praktik` (B121): slot praktik kini hanya terisi dari bacaan chain, dan halaman belum punya formulir penyerahan praktik — peserta halaman tidak bisa lulus tanpanya |
 | OI-22 | kotak identitas belajar punya login email lewat Privy (B82, D57, 1 Okt malam): `privy.ts` baru, `learning.ts`/`lms.ts`/`lms.css` disentuh secukupnya, tombol kunci perangkat tidak lagi primary, teks belum lewat `i18n.ts`; berkas milikmu tidak disentuh. Jangan tulis "login teruji lintas perangkat" sebelum builder menguji dua peramban |
+| OI-23 | bagian "Certification Flow" diganti alur bisnis 3D (FE8, 2 Okt): `main.ts` kini menggambar ulang landing saat bahasa diganti, `new-app.ts` menggambar landing untuk `#how-it-works`, salinan tiga langkah dibuang dari `i18n.ts` dan CSS-nya dari `style.css`; ruang kelas sengaja tidak digambar ulang (draf esai), `#pipeline`/`#architecture` masih kosong |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
 [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15

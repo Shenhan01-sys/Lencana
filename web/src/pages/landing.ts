@@ -14,6 +14,7 @@ import { COURSES, findCourse } from '../courses/index'
 import type { Course } from '../content'
 import { getSavedLanguage, DICTIONARIES } from '../i18n'
 import { classLink, verifyLink } from '../lesson-views'
+import { renderFlow3D } from './flow3d'
 
 const REPO_URL = 'https://github.com/Shenhan01-sys/Lencana'
 /** Logo resmi (Logo-Fix1 dari builder, 2 Okt) — JPEG berlatar putih, jadi selalu ditaruh di ubin terang. */
@@ -169,21 +170,7 @@ export function renderLanding (): HTMLElement {
       h('div', { class: 'catalog-bento-grid' }, ...COURSES.map((c, i) => renderCourseCard(c, i))),
     ),
 
-    h('section', { class: 'how-it-works-section' },
-      h('div', { class: 'how-it-works-grid' },
-        h('div', { class: 'how-it-works-sticky' },
-          h('h2', { class: 'how-it-works-title' }, t.stepsTitle),
-          h('p', { class: 'how-it-works-subtitle' }, t.stepsDesc),
-        ),
-        h('div', { class: 'how-it-works-steps' },
-          ...[[t.step1Title, t.step1Desc], [t.step2Title, t.step2Desc], [t.step3Title, t.step3Desc]].map(([title, desc], i) =>
-            h('div', { class: 'how-it-works-step' },
-              h('span', { class: 'step-number' }, `0${i + 1}`),
-              h('div', { class: 'step-content' }, h('h3', null, title), h('p', null, desc)),
-            )),
-        ),
-      ),
-    ),
+    renderFlow3D(),
 
     h('section', { class: 'trust-section' },
       h('div', { class: 'trust-box' },

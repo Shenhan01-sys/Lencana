@@ -28,6 +28,7 @@ Bilingual (`src/i18n.ts`, EN/ID, persisted). The rest of the routes (`#/`, `#/co
 - [[FE4 - Mount contract with the maintainer]] — the DOM nodes and calls that must survive a redesign, and the merge policy
 - [[FE6 - Quirks and open defects]] — what is currently misleading in the shipped UI, by reference to the open items
 - [[FE7 - Merge cabang FE 1 Okt]] — merge `dex/lencana-fe-integration` (selesai, lokal) dan kenapa `dex/lencana-ui` ditahan (kunci kuis, bukti praktik, penilaian browser, B116)
+- [[FE8 - Business flow 3D (brief)]] — alur bisnis 3D di landing (Peserta · Penerbit · Agent Owner), menggantikan bagian tiga langkah; brief yang di-acc, koreksinya, dan hasil uji peramban 2 Okt
 
 ## Reproduce
 
