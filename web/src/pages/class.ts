@@ -12,6 +12,7 @@ import {
   lessonRecord, 
   summarize 
 } from '../progress';
+import { getSavedLanguage, DICTIONARIES } from '../i18n';
 
 function isAuthed(): boolean {
   if (learnerAddress()) return true;
@@ -24,30 +25,32 @@ function isAuthed(): boolean {
 
 /** Render Auth Gate when user is not logged in */
 function renderAuthGate(c: ClassData): HTMLElement {
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
   return h('div', { class: 'class-shell lms-auth-gate' },
     h('div', { class: 'lms-auth-box' },
       h('div', { class: 'lms-auth-icon' }, '🔒'),
-      h('h2', { class: 'lms-auth-title' }, 'Akses Kelas Terkunci'),
+      h('h2', { class: 'lms-auth-title' }, t.authGateTitle),
       h('p', { class: 'lms-auth-desc' }, 
-        `Anda harus masuk (login) terlebih dahulu menggunakan email atau dompet Web3 untuk mengakses materi, kuis interaktif, dan kurikulum "${c.title}".`
+        t.authGateDesc.replace('kursus ini', `"${c.title}"`) // minor fallback replacement if needed
       ),
       h('a', { 
         href: '#/login', 
         class: 'btn-editorial btn-editorial-primary lms-auth-btn' 
-      }, 'Masuk Sekarang ➔'),
-      h('a', { href: '#/', class: 'btn-editorial btn-editorial-ghost lms-auth-btn mt-2' }, '← Kembali ke Katalog Publik')
+      }, t.authGateBtnLogin),
+      h('a', { href: '#/', class: 'btn-editorial btn-editorial-ghost lms-auth-btn mt-2' }, t.authGateBtnBack)
     )
   );
 }
 
 /** Top bar in class shell */
 function renderClassTopBar(c: ClassData, summary: ReturnType<typeof summarize>): HTMLElement {
-  const addr = learnerAddress() || 'Tamu';
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
+  const addr = learnerAddress() || t.topbarGuest;
   const shortAddr = addr.length > 12 ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : addr;
 
   return h('header', { class: 'class-topbar' },
     h('div', { class: 'lms-topbar-left' },
-      h('a', { href: '#/', class: 'class-topbar-nav' }, '← Katalog'),
+      h('a', { href: '#/', class: 'class-topbar-nav' }, `← ${t.catalogTitle}`),
       h('span', { class: 'lms-topbar-sep' }, '/'),
       h('span', { class: 'class-topbar-title' }, c.title)
     ),
@@ -60,7 +63,7 @@ function renderClassTopBar(c: ClassData, summary: ReturnType<typeof summarize>):
       ),
       h('div', { class: 'lms-topbar-group lms-topbar-user' },
         h('span', { class: 'lms-user-addr' }, shortAddr),
-        h('a', { href: '#/portfolio', class: 'class-topbar-nav lms-nav-gold' }, 'Ijazah Saya')
+        h('a', { href: '#/portfolio', class: 'class-topbar-nav lms-nav-gold' }, t.topbarPortfolio)
       )
     )
   );
@@ -68,10 +71,11 @@ function renderClassTopBar(c: ClassData, summary: ReturnType<typeof summarize>):
 
 /** Left sidebar: Module tree with completion status */
 function renderSidebar(c: ClassData, activeLessonSlug?: string, cp: Record<string, any> = {}): HTMLElement {
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
   return h('aside', { class: 'class-sidebar' },
     h('div', { class: 'class-sidebar-header' },
-      h('h3', { class: 'class-sidebar-eyebrow' }, 'Kurikulum'),
-      h('p', { class: 'class-sidebar-title' }, `${c.modules.length} Modul Pembelajaran`)
+      h('h3', { class: 'class-sidebar-eyebrow' }, t.sidebarCurriculum),
+      h('p', { class: 'class-sidebar-title' }, `${c.modules.length} ${t.sidebarModules}`)
     ),
     h('nav', { class: 'module-tree' },
       ...c.modules.map((m, mIdx) => {
@@ -79,7 +83,7 @@ function renderSidebar(c: ClassData, activeLessonSlug?: string, cp: Record<strin
         
         return h('div', { class: 'module-group' },
           h('div', { class: 'module-header' },
-            h('span', { class: 'module-header-title' }, `Modul ${mIdx + 1}: ${m.title}`),
+            h('span', { class: 'module-header-title' }, `${mIdx + 1}: ${m.title}`),
             h('span', { class: 'module-header-count' }, 
               `${moduleLessonsDone}/${m.lessons.length}`
             )
@@ -120,9 +124,10 @@ function renderSidebar(c: ClassData, activeLessonSlug?: string, cp: Record<strin
 
 /** Interactive Quiz Component */
 function renderQuizComponent(c: ClassData, l: LessonData, onComplete: () => void): HTMLElement {
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
   const quizData = (l as any).quiz;
   if (!quizData || !quizData.questions) {
-    return h('div', null, 'Data kuis tidak ditemukan.');
+    return h('div', null, 'Data error.');
   }
 
   const questions: QuizQuestion[] = quizData.questions;
@@ -130,8 +135,8 @@ function renderQuizComponent(c: ClassData, l: LessonData, onComplete: () => void
 
   const container = h('div', { class: 'interactive-panel' },
     h('div', { class: 'interactive-header' },
-      h('h3', { class: 'interactive-title' }, 'Kuis Pemahaman Mandiri'),
-      h('p', { class: 'interactive-desc' }, `Target kelulusan: ${quizData.passPct}% · Jawab seluruh pertanyaan untuk menyelesaikan.`)
+      h('h3', { class: 'interactive-title' }, t.quizTitle),
+      h('p', { class: 'interactive-desc' }, `${t.quizTarget}: ${quizData.passPct}%`)
     )
   );
 
@@ -164,7 +169,7 @@ function renderQuizComponent(c: ClassData, l: LessonData, onComplete: () => void
           });
 
           feedbackBox.className = `lms-question-feedback ${isCorrect ? 'success' : 'error'}`;
-          feedbackBox.innerHTML = `<strong>${isCorrect ? '✓ Benar!' : '✗ Kurang tepat.'}</strong> ${q.why}`;
+          feedbackBox.innerHTML = `<strong>${isCorrect ? t.quizCorrect : t.quizIncorrect}</strong> ${q.why}`;
           
           checkCompletion();
         }
@@ -194,8 +199,8 @@ function renderQuizComponent(c: ClassData, l: LessonData, onComplete: () => void
 
       resultBox.className = `lms-quiz-result ${passed ? 'success' : 'error'}`;
       resultBox.innerHTML = `
-        <h4 class="result-title">${passed ? 'Evaluasi Berhasil' : 'Evaluasi Belum Memenuhi Ambang'}</h4>
-        <p class="result-desc">Skor Kamu: <span>${pct}%</span> (${correct} dari ${questions.length} benar) · Target kelulusan: ${quizData.passPct}%</p>
+        <h4 class="result-title">${passed ? t.quizSuccess : t.quizFail}</h4>
+        <p class="result-desc">${t.quizScore}: <span>${pct}%</span> (${correct}/${questions.length})</p>
       `;
 
       if (passed) onComplete();
@@ -209,31 +214,30 @@ function renderQuizComponent(c: ClassData, l: LessonData, onComplete: () => void
 
 /** Interactive AI Essay Evaluation Studio Component */
 function renderEssayComponent(c: ClassData, l: LessonData, onComplete: () => void): HTMLElement {
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
   const essayData = (l as any).essay;
   const currentRecord = lessonRecord(c.id, l.slug);
   const minWords = essayData?.minWords || 400;
 
   const container = h('div', { class: 'interactive-panel' },
     h('div', { class: 'interactive-header' },
-      h('h3', { class: 'interactive-title' }, 'Evaluasi AI Otonom'),
-      h('p', { class: 'interactive-desc' }, 
-        'Esai ini dievaluasi oleh agen AI berdasarkan rubrik on-chain. Kelulusan mutlak diperlukan untuk penerbitan kredensial.'
-      )
+      h('h3', { class: 'interactive-title' }, t.essayTitle),
+      h('p', { class: 'interactive-desc' }, t.essayDesc)
     ),
     h('div', { class: 'lms-essay-instructions' },
-      h('h4', { class: 'lms-essay-eyebrow' }, 'Instruksi:'),
+      h('h4', { class: 'lms-essay-eyebrow' }, t.essayInstructions),
       h('p', { class: 'lms-essay-prompt' }, essayData?.prompt || l.body)
     )
   );
 
   if (essayData?.rubric) {
     const rubricAccordion = h('details', { class: 'lms-rubric-accordion' },
-      h('summary', { class: 'lms-rubric-summary' }, 'Lihat Kriteria Penilaian (100 Poin)'),
+      h('summary', { class: 'lms-rubric-summary' }, t.essayRubric),
       h('div', { class: 'lms-rubric-list' },
         ...essayData.rubric.map((r: any) => 
           h('div', { class: 'lms-rubric-item' },
             h('span', null, r.label),
-            h('span', { class: 'lms-rubric-pts' }, `Maks ${r.max} pt`)
+            h('span', { class: 'lms-rubric-pts' }, `Max ${r.max} pt`)
           )
         )
       )
@@ -243,7 +247,7 @@ function renderEssayComponent(c: ClassData, l: LessonData, onComplete: () => voi
 
   const textarea = h('textarea', {
     class: 'essay-textarea',
-    placeholder: 'Tuliskan argumen dan sintesis jawabanmu...',
+    placeholder: t.essayPlaceholder,
   }) as HTMLTextAreaElement;
 
   if (currentRecord?.draft) {
@@ -251,15 +255,14 @@ function renderEssayComponent(c: ClassData, l: LessonData, onComplete: () => voi
   }
 
   const wordCountEl = h('div', { class: 'lms-word-count' },
-    h('span', { id: 'word-count-text' }, `0 / ${minWords} kata`),
-    h('span', null, 'Otomatis tersimpan di browser')
+    h('span', { id: 'word-count-text' }, `0 / ${minWords} ${t.essayWordsOk}`)
   );
 
   function updateWords() {
     const words = textarea.value.trim().split(/\s+/).filter(Boolean).length;
     const counterText = container.querySelector('#word-count-text');
     if (counterText) {
-      counterText.textContent = `${words} / ${minWords} kata minimum`;
+      counterText.textContent = `${words} / ${minWords} ${t.essayWordsMin}`;
       counterText.className = words >= minWords ? 'lms-word-ok' : '';
     }
     recordLesson(c.id, l.slug, 'essay', { draft: textarea.value });
@@ -275,35 +278,35 @@ function renderEssayComponent(c: ClassData, l: LessonData, onComplete: () => voi
       const text = textarea.value.trim();
       const words = text.split(/\s+/).filter(Boolean).length;
       if (words < minWords) {
-        alert(`Esai kamu baru memiliki ${words} kata. Minimal ${minWords} kata.`);
+        alert(`${words} < ${minWords} ${t.essayWordsMin}`);
         return;
       }
 
       (submitBtn as HTMLButtonElement).disabled = true;
-      submitBtn.textContent = 'Menghubungi Agen...';
+      submitBtn.textContent = t.essayBtnEvaluating;
       statusEl.className = 'lms-essay-status pending';
-      statusEl.innerHTML = 'Mengevaluasi secara otonom terhadap rubrik...';
+      statusEl.innerHTML = t.essayEvaluating;
       
       try {
         const res = await submitEssay(c.id, l.slug, text);
         if (res && res.attemptHash) {
           recordLesson(c.id, l.slug, 'essay', { done: true, draft: text });
           statusEl.className = 'lms-essay-status success';
-          statusEl.innerHTML = `<strong>Lolos Evaluasi.</strong> Catatan: ${res.note || 'Sukses'}.<br/>Hash: <span>${res.attemptHash}</span>`;
+          statusEl.innerHTML = `<strong>${t.essaySuccess}.</strong> ${res.note || ''}.<br/>Hash: <span>${res.attemptHash}</span>`;
           onComplete();
         } else {
           statusEl.className = 'lms-essay-status error';
-          statusEl.innerHTML = `Evaluasi gagal: Pastikan signer aktif.`;
+          statusEl.innerHTML = t.essayFail;
         }
       } catch (err: any) {
         statusEl.className = 'lms-essay-status error';
         statusEl.innerHTML = `Error: ${err.message}`;
       } finally {
         (submitBtn as HTMLButtonElement).disabled = false;
-        submitBtn.textContent = 'Serahkan Penilaian';
+        submitBtn.textContent = t.essayBtnSubmit;
       }
     }
-  }, 'Serahkan Penilaian');
+  }, t.essayBtnSubmit);
 
   container.appendChild(textarea);
   container.appendChild(wordCountEl);
@@ -316,16 +319,17 @@ function renderEssayComponent(c: ClassData, l: LessonData, onComplete: () => voi
 
 /** Right rail: Table of Contents & References */
 function renderRightRail(l: LessonData): HTMLElement {
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
   return h('aside', { class: 'class-rail' },
     h('div', { class: 'lms-rail-block' },
-      h('h4', { class: 'rail-heading' }, 'Di Halaman Ini'),
+      h('h4', { class: 'rail-heading' }, t.railTitle),
       h('nav', null,
         h('a', { href: '#', class: 'rail-link' }, l.title),
-        h('a', { href: '#', class: 'rail-link' }, 'Inti Konsep')
+        h('a', { href: '#', class: 'rail-link' }, t.railConcepts)
       )
     ),
     h('div', { class: 'lms-rail-block' },
-      h('h4', { class: 'rail-heading' }, 'Rujukan Eksternal'),
+      h('h4', { class: 'rail-heading' }, t.railRefs),
       h('nav', null,
         h('a', { href: 'https://eips.ethereum.org/EIPS/eip-55', target: '_blank', class: 'rail-link lms-ext-link' }, '↗ EIP-55'),
         h('a', { href: 'https://eips.ethereum.org/EIPS/eip-712', target: '_blank', class: 'rail-link lms-ext-link' }, '↗ EIP-712')
@@ -336,12 +340,13 @@ function renderRightRail(l: LessonData): HTMLElement {
 
 /** Class Overview Page */
 function renderClassOverview(c: ClassData): HTMLElement {
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
   const firstLesson = c.modules[0]?.lessons[0];
 
   return h('div', { class: 'lesson-container' },
     h('div', { class: 'lms-overview-header' },
       h('div', { class: 'lms-overview-eyebrow' }, 
-        `${c.level} · Estimasi ${c.duration} Menit`
+        `${c.level} · ~${c.duration} ${t.tagMinutes}`
       ),
       h('h1', { class: 'lesson-title' }, c.title),
       h('p', { class: 'lms-overview-desc' }, c.subtitle)
@@ -349,7 +354,7 @@ function renderClassOverview(c: ClassData): HTMLElement {
 
     h('div', { class: 'lms-overview-grid' },
       h('div', null,
-        h('h3', { class: 'lms-overview-section-title' }, 'Capaian (Outcomes)'),
+        h('h3', { class: 'lms-overview-section-title' }, t.overviewOutcomes),
         h('ul', { class: 'lms-list' },
           ...c.outcomes.map(o => h('li', { class: 'lms-list-item' },
             h('span', { class: 'lms-list-bullet' }, '—'),
@@ -358,7 +363,7 @@ function renderClassOverview(c: ClassData): HTMLElement {
         )
       ),
       h('div', null,
-        h('h3', { class: 'lms-overview-section-title' }, 'Prasyarat'),
+        h('h3', { class: 'lms-overview-section-title' }, t.overviewPrereq),
         c.prerequisites.length > 0
           ? h('ul', { class: 'lms-list' },
               ...c.prerequisites.map(p => h('li', { class: 'lms-list-item' },
@@ -366,9 +371,9 @@ function renderClassOverview(c: ClassData): HTMLElement {
                 h('span', null, p)
               ))
             )
-          : h('p', { class: 'lms-text-muted' }, 'Tidak ada prasyarat khusus.'),
+          : h('p', { class: 'lms-text-muted' }, t.overviewNone),
         
-        h('h3', { class: 'lms-overview-section-title mt-top' }, 'Kriteria Lulus'),
+        h('h3', { class: 'lms-overview-section-title mt-top' }, t.overviewCriteria),
         h('p', { class: 'lms-text-muted' }, c.criteria)
       )
     ),
@@ -377,21 +382,22 @@ function renderClassOverview(c: ClassData): HTMLElement {
       h('a', { 
         href: `#/class/${c.id}/${c.modules[0].id}/${firstLesson.slug}`, 
         class: 'btn-editorial btn-editorial-primary btn-large' 
-      }, 'Mulai Modul 1 ➔')
+      }, t.btnStartModule)
     ) : null
   );
 }
 
 /** Master Class Page Renderer */
 export function renderClass(routeHash: string): HTMLElement {
+  const t = DICTIONARIES[getSavedLanguage()].lmsV2;
   const parts = routeHash.split('/').slice(2);
   const [classId, moduleId, lessonId] = parts;
 
   const c = COURSES.find(x => x.id === classId);
   if (!c) {
     return h('div', { class: 'lms-not-found' },
-      h('h2', { class: 'lms-not-found-title' }, 'Kelas Tidak Ditemukan'),
-      h('a', { href: '#/', class: 'lms-not-found-link' }, 'Kembali ke Katalog Kursus')
+      h('h2', { class: 'lms-not-found-title' }, t.notFound),
+      h('a', { href: '#/', class: 'lms-not-found-link' }, t.notFoundLink)
     );
   }
 
@@ -423,7 +429,7 @@ export function renderClass(routeHash: string): HTMLElement {
       const nextBtn = h('a', {
         href: next ? `#/class/${c.id}/${next.module.id}/${next.lesson.slug}` : `#/portfolio`,
         class: 'btn-editorial btn-editorial-primary'
-      }, next ? 'Selanjutnya ➔' : 'Lihat Ijazah 🎓');
+      }, next ? t.btnNext : t.btnPortfolio);
 
       const markCompleteBtn = h('button', {
         type: 'button',
@@ -432,18 +438,18 @@ export function renderClass(routeHash: string): HTMLElement {
           recordLesson(c.id, lesson.slug, lesson.type, { done: !isCurrentDone });
           window.location.reload();
         }
-      }, isCurrentDone ? 'Terselesaikan' : 'Tandai Selesai');
+      }, isCurrentDone ? t.btnDone : t.btnMarkDone);
 
       let interactiveElement: HTMLElement | null = null;
       if (lesson.type === 'quiz') {
         interactiveElement = renderQuizComponent(c, lesson, () => {
           markCompleteBtn.className = 'btn-editorial success';
-          markCompleteBtn.textContent = 'Kuis Lulus';
+          markCompleteBtn.textContent = t.btnDone;
         });
       } else if (lesson.type === 'essay') {
         interactiveElement = renderEssayComponent(c, lesson, () => {
           markCompleteBtn.className = 'btn-editorial success';
-          markCompleteBtn.textContent = 'Esai Dinilai';
+          markCompleteBtn.textContent = t.btnDone;
         });
       }
 
@@ -465,7 +471,7 @@ export function renderClass(routeHash: string): HTMLElement {
             ? h('a', { 
                 href: `#/class/${c.id}/${prev.module.id}/${prev.lesson.slug}`, 
                 class: 'btn-editorial btn-editorial-ghost' 
-              }, '← Sebelumnya')
+              }, t.btnPrev)
             : h('span', null),
           
           h('div', { class: 'lms-footer-actions' },
@@ -475,7 +481,7 @@ export function renderClass(routeHash: string): HTMLElement {
         )
       );
     } else {
-      mainBody = h('div', { class: 'lms-not-found' }, 'Materi pelajaran tidak ditemukan.');
+      mainBody = h('div', { class: 'lms-not-found' }, t.notFound);
     }
   } else {
     mainBody = renderClassOverview(c);

@@ -552,6 +552,74 @@ export interface TranslationDictionary {
     inspectorTitle: string
     copied: string
   }
+lmsV2: {
+    heroEyebrow: string
+    heroTitle: string
+    heroDesc: string
+    btnCurriculum: string
+    btnVerify: string
+    catalogTitle: string
+    catalogDesc: string
+    tagPrereq: string
+    tagMinutes: string
+    tagModules: string
+    tagLessons: string
+    stepsTitle: string
+    stepsDesc: string
+    step1Title: string
+    step1Desc: string
+    step2Title: string
+    step2Desc: string
+    step3Title: string
+    step3Desc: string
+    trustTitle: string
+    trustDesc: string
+    linkTrust: string
+    linkSource: string
+
+    authGateTitle: string
+    authGateDesc: string
+    authGateBtnLogin: string
+    authGateBtnBack: string
+    topbarGuest: string
+    topbarPortfolio: string
+    sidebarCurriculum: string
+    sidebarModules: string
+    quizTitle: string
+    quizTarget: string
+    quizCorrect: string
+    quizIncorrect: string
+    quizSuccess: string
+    quizFail: string
+    quizScore: string
+    essayTitle: string
+    essayDesc: string
+    essayInstructions: string
+    essayRubric: string
+    essayPlaceholder: string
+    essayWordsOk: string
+    essayWordsMin: string
+    essayEvaluating: string
+    essaySuccess: string
+    essayFail: string
+    essayBtnSubmit: string
+    essayBtnEvaluating: string
+    railTitle: string
+    railConcepts: string
+    railRefs: string
+    overviewOutcomes: string
+    overviewPrereq: string
+    overviewNone: string
+    overviewCriteria: string
+    btnStartModule: string
+    btnNext: string
+    btnPortfolio: string
+    btnMarkDone: string
+    btnDone: string
+    btnPrev: string
+    notFound: string
+    notFoundLink: string
+  }
 }
 
 export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
@@ -1162,8 +1230,146 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       inspectorTitle: 'Canonical OpenBadgeCredential 3.0 JSON-LD Document',
       copied: 'Copied to Clipboard! ✓',
     },
+
+    lmsV2: {
+      heroEyebrow: 'Decentralized Web3 Academy',
+      heroTitle: 'Learn, test, and prove it.',
+      heroDesc: 'In-depth courses autonomously evaluated by AI agents, culminating in an on-chain Soulbound ERC-5192 diploma. Transparent and unforgeable.',
+      btnCurriculum: 'View Curriculum',
+      btnVerify: 'Verify Credentials',
+      catalogTitle: 'Course Catalog',
+      catalogDesc: 'Structured curriculum for Web3 engineers.',
+      tagPrereq: 'LOCKED',
+      tagMinutes: 'MINUTES',
+      tagModules: 'MODULES',
+      tagLessons: 'LESSONS',
+      stepsTitle: 'Certification Flow',
+      stepsDesc: 'A deterministic process from learning to on-chain credential issuance.',
+      step1Title: 'Self-Paced Mastery',
+      step1Desc: 'Each course is structured from fundamentals to technical case studies. No registration fees, completely open access.',
+      step2Title: 'Autonomous Thesis Exam',
+      step2Desc: 'Graduation is determined by an AI agent that grades your essay against an on-chain rubric mechanically and transparently without bias.',
+      step3Title: 'Cryptographic Credentials',
+      step3Desc: 'Graduates receive a Soulbound token and EAS Attestation. Credentials are non-transferable, and your skill proof is recorded forever.',
+      trustTitle: 'Open Standards Infrastructure',
+      trustDesc: 'This system is built following W3C Verifiable Credentials v2.0 and Open Badges 3.0 standards. Our contracts are open, we do not hide your keys, and you can verify any diploma directly via a node without having to trust our server.',
+      linkTrust: 'Trust & Limits',
+      linkSource: 'Source Code',
+
+      authGateTitle: 'Class Access Locked',
+      authGateDesc: 'You must log in using email or a Web3 wallet to access the materials, interactive quizzes, and curriculum of this course.',
+      authGateBtnLogin: 'Log In Now ➔',
+      authGateBtnBack: '← Back to Public Catalog',
+      topbarGuest: 'Guest',
+      topbarPortfolio: 'My Diploma',
+      sidebarCurriculum: 'Curriculum',
+      sidebarModules: 'Learning Modules',
+      quizTitle: 'Self-Check Quiz',
+      quizTarget: 'Passing target',
+      quizCorrect: '✓ Correct!',
+      quizIncorrect: '✗ Incorrect.',
+      quizSuccess: 'Evaluation Successful',
+      quizFail: 'Evaluation Below Threshold',
+      quizScore: 'Your Score',
+      essayTitle: 'Autonomous AI Evaluation',
+      essayDesc: 'This essay is evaluated by an AI agent based on an on-chain rubric. Absolute passing is required for credential issuance.',
+      essayInstructions: 'Instructions:',
+      essayRubric: 'View Grading Criteria (100 Points)',
+      essayPlaceholder: 'Write your arguments and synthesis...',
+      essayWordsOk: 'words',
+      essayWordsMin: 'words minimum',
+      essayEvaluating: 'Evaluating autonomously against rubric...',
+      essaySuccess: 'Evaluation Passed',
+      essayFail: 'Evaluation failed: Ensure signer is active.',
+      essayBtnSubmit: 'Submit for Grading',
+      essayBtnEvaluating: 'Contacting Agent...',
+      railTitle: 'On This Page',
+      railConcepts: 'Core Concepts',
+      railRefs: 'External References',
+      overviewOutcomes: 'Outcomes',
+      overviewPrereq: 'Prerequisites',
+      overviewNone: 'No specific prerequisites.',
+      overviewCriteria: 'Graduation Criteria',
+      btnStartModule: 'Start Module 1 ➔',
+      btnNext: 'Next ➔',
+      btnPortfolio: 'View Diploma 🎓',
+      btnMarkDone: 'Mark as Done',
+      btnDone: 'Completed',
+      btnPrev: '← Previous',
+      notFound: 'Course Not Found',
+      notFoundLink: 'Back to Course Catalog'
+    }
   },
+
   id: {
+    lmsV2: {
+      heroEyebrow: 'Akademi Web3 Terdesentralisasi',
+      heroTitle: 'Pelajari, uji, dan buktikan.',
+      heroDesc: 'Kursus mendalam yang dievaluasi secara otonom oleh agen AI, diakhiri dengan ijazah on-chain Soulbound ERC-5192. Transparan dan tidak dapat dipalsukan.',
+      btnCurriculum: 'Lihat Kurikulum',
+      btnVerify: 'Verifikasi Kredensial',
+      catalogTitle: 'Katalog Kursus',
+      catalogDesc: 'Kurikulum terstruktur untuk engineer Web3.',
+      tagPrereq: 'BERSYARAT',
+      tagMinutes: 'MENIT',
+      tagModules: 'MODUL',
+      tagLessons: 'MATERI',
+      stepsTitle: 'Alur Sertifikasi',
+      stepsDesc: 'Proses deterministik dari pembelajaran hingga penerbitan kredensial on-chain.',
+      step1Title: 'Pahami Materi Secara Mandiri',
+      step1Desc: 'Setiap kursus disusun secara terstruktur dari dasar hingga studi kasus teknikal. Tanpa biaya pendaftaran, sepenuhnya akses terbuka.',
+      step2Title: 'Ujian Tesis Otonom',
+      step2Desc: 'Kelulusan ditentukan oleh agen AI yang menilai esai Anda melawan rubrik on-chain secara mekanikal dan transparan tanpa bias.',
+      step3Title: 'Kredensial Kriptografis',
+      step3Desc: 'Lulusan menerima token Soulbound dan EAS Attestation. Kredensial tidak dapat dipindahtangankan, dan pembuktian skill Anda dicatat selamanya.',
+      trustTitle: 'Infrastruktur Standar Terbuka',
+      trustDesc: 'Sistem ini dibangun mengikuti standar W3C Verifiable Credentials v2.0 dan Open Badges 3.0. Kontrak kami terbuka, kami tidak menyembunyikan kunci Anda, dan Anda dapat memverifikasi ijazah mana pun langsung melalui node tanpa harus mempercayai server kami.',
+      linkTrust: 'Trust & Limits',
+      linkSource: 'Source Code',
+
+      authGateTitle: 'Akses Kelas Terkunci',
+      authGateDesc: 'Anda harus masuk (login) terlebih dahulu menggunakan email atau dompet Web3 untuk mengakses materi, kuis interaktif, dan kurikulum kursus ini.',
+      authGateBtnLogin: 'Masuk Sekarang ➔',
+      authGateBtnBack: '← Kembali ke Katalog Publik',
+      topbarGuest: 'Tamu',
+      topbarPortfolio: 'Ijazah Saya',
+      sidebarCurriculum: 'Kurikulum',
+      sidebarModules: 'Modul Pembelajaran',
+      quizTitle: 'Kuis Pemahaman Mandiri',
+      quizTarget: 'Target kelulusan',
+      quizCorrect: '✓ Benar!',
+      quizIncorrect: '✗ Kurang tepat.',
+      quizSuccess: 'Evaluasi Berhasil',
+      quizFail: 'Evaluasi Belum Memenuhi Ambang',
+      quizScore: 'Skor Kamu',
+      essayTitle: 'Evaluasi AI Otonom',
+      essayDesc: 'Esai ini dievaluasi oleh agen AI berdasarkan rubrik on-chain. Kelulusan mutlak diperlukan untuk penerbitan kredensial.',
+      essayInstructions: 'Instruksi:',
+      essayRubric: 'Lihat Kriteria Penilaian (100 Poin)',
+      essayPlaceholder: 'Tuliskan argumen dan sintesis jawabanmu...',
+      essayWordsOk: 'kata',
+      essayWordsMin: 'kata minimum',
+      essayEvaluating: 'Mengevaluasi secara otonom terhadap rubrik...',
+      essaySuccess: 'Lolos Evaluasi',
+      essayFail: 'Evaluasi gagal: Pastikan signer aktif.',
+      essayBtnSubmit: 'Serahkan Penilaian',
+      essayBtnEvaluating: 'Menghubungi Agen...',
+      railTitle: 'Di Halaman Ini',
+      railConcepts: 'Inti Konsep',
+      railRefs: 'Rujukan Eksternal',
+      overviewOutcomes: 'Capaian (Outcomes)',
+      overviewPrereq: 'Prasyarat',
+      overviewNone: 'Tidak ada prasyarat khusus.',
+      overviewCriteria: 'Kriteria Lulus',
+      btnStartModule: 'Mulai Modul 1 ➔',
+      btnNext: 'Selanjutnya ➔',
+      btnPortfolio: 'Lihat Ijazah 🎓',
+      btnMarkDone: 'Tandai Selesai',
+      btnDone: 'Terselesaikan',
+      btnPrev: '← Sebelumnya',
+      notFound: 'Kelas Tidak Ditemukan',
+      notFoundLink: 'Kembali ke Katalog Kursus'
+    },
     appName: 'Lencana',
     tagline: 'Bukti tepercaya untuk hasil belajar nyata',
     description:
