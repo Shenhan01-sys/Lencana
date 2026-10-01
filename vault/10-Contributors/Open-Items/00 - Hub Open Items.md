@@ -28,7 +28,8 @@ The items live in one document so Dave can read them in a single pass:
 | OI-15 | a banner a visitor can still open says "lapis on-chain kami belum disiarkan" with a stale test count — the same false sentence I just removed from `verify.ts` |
 | OI-16 | `#/learn` sekarang menulis ke penerbit (B72, berkas `web/` disunting atas izin builder): berkas yang disentuh, mount point yang ditahan, dan satu keputusan yang tetap milik pemilik front-end — kunci kuis di bundel (B80) |
 | OI-17 | tombol "Penerbit Didelisting" dan contoh "kadaluarsa" boleh dipasang lagi: spesimennya sekarang ada dan diukur (B102, 30 Sep) — dua hash siap tempel, dan `check:samples` mengadili begitu dipasang |
-| OI-18 | laporan verifikasi sekarang membawa identitas ERC-8004 agen penerbit (`report.issuerAgent`, B118, 1 Okt); panel di halaman belum ada, dan kartu agen di `index.html` masih mencetak angka tanpa sumber |
+| OI-18 | laporan verifikasi sekarang membawa identitas ERC-8004 agen penerbit (`report.issuerAgent`, B118, 1 Okt); panel di halaman belum ada, dan kartu agen di `index.html` masih mencetak angka tanpa sumber. *Koreksi 1 Okt sore (D54): agen bukan penanda tangan — `walletIsAttester` diharapkan `false`* |
+| OI-19 | sewa agen per aktivitas (B119) dan reviewer agen (B120) hidup di penerbit lewat empat rute baru; belum ada layar kartu tarif, sewa, dan bayar tagihan |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
 [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15

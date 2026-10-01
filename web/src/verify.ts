@@ -128,9 +128,12 @@ export type CertInfo = {
 export type ChainNode = { uid: Hex; status: 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'UNKNOWN'; depth: number }
 
 /**
- * Identitas ERC-8004 agen penerbit (B118, D53). Informasi, BUKAN bagian putusan: verdict tetap dari
- * resolver. Yang dibuktikan di sini hanya "manifest penerbit menyebut agen #N, dan dompet agen itu di
- * registry = attester kertas ini". Reputasi tidak dibaca dan tidak diklaim.
+ * Identitas ERC-8004 agen PENILAI yang dipakai penerbit (B118, D53; disesuaikan D54). Informasi, BUKAN
+ * bagian putusan: verdict tetap dari resolver. Sejak D54 (opsi B) penerbit tetap attester, jadi yang
+ * dibuktikan: identitas agen yang disebut manifest ada di registry, berkas registrasinya menunjuk
+ * balik, dan dompet agen itu BUKAN attester kertas ini (`walletIsAttester === false` = sesuai model).
+ * Pagi 1 Okt bagian ini menuntut kebalikannya (dompet agen = attester) — itu model sebelum D54.
+ * Reputasi tidak dibaca dan tidak diklaim.
  */
 export type IssuerAgentInfo = {
   standard: 'ERC-8004'
@@ -727,7 +730,7 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
   }
 
   // -------------------------------------------- 8b. identitas ERC-8004 agen penerbit (B118)
-  // Lencana-B118 status=SELESAI 2026-10-01 —halaman verifikasi membuktikan klaim manifest "agen ERC-8004 #N" dengan membaca agentWallet di registry dan membandingkannya dengan attester; tidak mengubah verdict. Buktikan ulang: npm run verify:agent (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B118 status=SELESAI 2026-10-01 — halaman verifikasi membaca identitas agen penilai ERC-8004 yang disebut manifest (pemilik, dompet, registrasi menunjuk balik) dan, sejak D54, memastikan agen itu BUKAN attester kertas; tidak mengubah verdict. Buktikan ulang: npm run verify:agent (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   const claimed = report.credential.courseId
     ? MANIFESTS.find((m) => keccak256(stringToBytes(m.course.id)).toLowerCase() === String(report.credential.courseId).toLowerCase())
     : undefined
@@ -801,11 +804,16 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
   if (report.resolver.schemaUid && c.schemaUid && c.schemaUid.toLowerCase() !== report.resolver.schemaUid.toLowerCase()) {
     reasons.push('AWAS: UID schema attestation ini berbeda dari UID schema resolver. Jangan terima kredensial dari schema lain.')
   }
+  // D54 (1 Okt, opsi B): penerbit tetap attester, agen hanya menilai. Jadi yang dibuktikan di sini:
+  // identitas agen penilai yang disebut penerbit ADA di registry, dan agen itu BUKAN penanda tangan
+  // kertas ini. Kalau dompet agen = attester, itu pelanggaran model D54 — ditulis, bukan dirapikan.
   const ag = report.issuerAgent
-  if (ag.agentId && ag.walletIsAttester === true) {
-    reasons.push(`Agen penerbitnya punya identitas ERC-8004 #${ag.agentId} di registry ${ag.registry}; dompet agen itu = attester kertas ini (dibaca dari chain). Identitas, bukan reputasi — reputasinya tidak dibaca di sini.`)
-  } else if (ag.agentId && ag.walletIsAttester === false) {
-    reasons.push(`Manifest penerbit menyebut agen ERC-8004 #${ag.agentId}, tetapi dompet agen itu (${ag.wallet ?? 'kosong'}) BUKAN attester kertas ini — klaim manifest tidak terbukti untuk kertas ini.`)
+  if (ag.agentId && ag.owner && ag.registrationPointsBack && ag.walletIsAttester === false) {
+    reasons.push(`Penerbit memakai agen penilai ERC-8004 #${ag.agentId} (registry ${ag.registry}, pemilik ${ag.owner}); identitasnya terbaca dari chain. Agen itu BUKAN penanda tangan kertas ini — penerbitnya yang menandatangani dan hanya penerbit yang bisa mencabutnya. Identitas, bukan reputasi.`)
+  } else if (ag.agentId && ag.walletIsAttester === true) {
+    reasons.push(`AWAS: dompet agen penilai ERC-8004 #${ag.agentId} sama dengan penanda tangan kertas ini — model Lencana (D54) memisahkan agen penilai dari penerbit.`)
+  } else if (ag.agentId) {
+    reasons.push(`Manifest penerbit menyebut agen penilai ERC-8004 #${ag.agentId}, tetapi identitas itu tidak terbaca utuh dari registry (pemilik atau berkas registrasinya) — klaim manifest tidak terbukti.`)
   }
   const badLink = report.chainHistory.find((n) => n.status !== 'ACTIVE')
   if (badLink) {

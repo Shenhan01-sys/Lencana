@@ -76,6 +76,8 @@ const HARNESS = [
   { id: 'deposit', label: 'verify:deposit (setoran tenggat, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:deposit']], re: /DEPOSIT (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B118 status=SELESAI 2026-10-01 —identitas agen ERC-8004 ikut jadi sumber angka; baca-saja, tanpa transaksi. Buktikan ulang: npm run sync:numbers -- --only=agent. JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'agent', label: 'verify:agent (identitas ERC-8004, baca-saja)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:agent']], re: /AGEN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B119 status=SELESAI 2026-10-01 — sewa agen per aktivitas (B119) dan reviewer agen (B120) ikut jadi sumber angka; mode tanpa gas, server sendiri, baris origin=test. Buktikan ulang: npm run sync:numbers -- --only=agents. JANGAN dibalik/diulang tanpa membuka kembali baris B119 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'agents', label: 'verify:agents (sewa agen + reviewer agen, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:agents']], re: /AGEN SEWA (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -189,6 +191,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'deposit', want: (m) => new RegExp(`DEPOSIT HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:deposit di QR' },
   { file: '09-Testing/T35 - signer agent-identity-check.js.md', metric: 'agent', want: (m) => `AGEN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T35 (identitas ERC-8004)' },
   { file: 'Quick-Reference.md', metric: 'agent', want: (m) => new RegExp(`AGEN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:agent di QR' },
+  { file: '09-Testing/T36 - signer agents-check.js (B119 sewa agen).md', metric: 'agents', want: (m) => `AGEN SEWA HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T36 (sewa agen)' },
+  { file: 'Quick-Reference.md', metric: 'agents', want: (m) => new RegExp(`AGEN SEWA HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:agents di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

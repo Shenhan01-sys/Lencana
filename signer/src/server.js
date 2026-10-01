@@ -60,6 +60,12 @@ import {
 } from './relay.js'
 // Lencana-B90 status=SELESAI 2026-09-30 — rute GET /deposit/policy/<course>, GET /deposit/<course>/<learner>, POST /deposit/finalize; siaran hanya kalau DEPOSIT_BROADCAST=1. Buktikan ulang: npm run verify:deposit. JANGAN dibalik/diulang tanpa membuka kembali baris B90 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { deadlinePolicyOf, readDeposit, finalizeDeposit } from './deposit.js'
+// Lencana-B119 status=SELESAI 2026-10-01 — rute agen sewaan: GET /agents/<id>/rates, POST /agents/hire, penilaian agen di POST /essay/judgement (agentId), GET /agent-charges/<id>, POST /agent-charges/<id>/pay (x402 ke dompet agen). Buktikan ulang: npm run verify:agents. JANGAN dibalik/diulang tanpa membuka kembali baris B119 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B120 status=SELESAI 2026-10-01 — reviewer agen: POST /essay/reviewers dengan agentId, dan pengesahannya ditagih di POST /essay/review. Buktikan ulang: npm run verify:agents. JANGAN dibalik/diulang tanpa membuka kembali baris B120 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import {
+  rates as agentRates, hire as agentHireRoute, agentJudge, appointReviewerAgent, chargeReview,
+  payCharge as payAgentCharge, getCharge as getAgentCharge,
+} from './agents.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -94,6 +100,14 @@ const TIMEOUT_SECONDS = Number(process.env.X402_TIMEOUT ?? 600)
 const DEPOSIT = process.env.DEPOSIT_ADDRESS
 const DEPOSIT_READY = Boolean(DEPOSIT && RPC_URL && RESOLVER && BAS && PAY_TOKEN && PAY_PAYEE)
 const DEPOSIT_BROADCAST = process.env.DEPOSIT_BROADCAST === '1' && Boolean(process.env.DEPLOYER_PRIVATE_KEY)
+// Agen sewaan (B119/B120). Penerbit = ISSUER_ADDRESS (D54: penerbit tetap attester); pembayaran sewa
+// diselesaikan fasilitator yang sama dengan /verify, ke kontrak pembagian yang sama, dengan payee =
+// dompet agen yang tercatat di registry ERC-8004.
+const AGENTS_READY = Boolean(dbConfigured() && RPC_URL && PAY_TOKEN && PAY_SPLIT && PAY_PAYEE)
+const AGENTS_CFG = {
+  rpcUrl: RPC_URL, chainId: CHAIN_ID, publisher: PAY_PAYEE, token: PAY_TOKEN, split: PAY_SPLIT,
+  facilitatorPk: process.env.DEPLOYER_PRIVATE_KEY,
+}
 const DEPOSIT_CFG = {
   rpcUrl: RPC_URL, chainId: CHAIN_ID, depositAddress: DEPOSIT, tokenAddress: PAY_TOKEN, payee: PAY_PAYEE,
   resolverAddress: RESOLVER, basAddress: BAS,
@@ -521,6 +535,21 @@ const server = createServer(async (req, res) => {
         }))
       }
 
+      if (path === '/essay/judgement' && body.agentId !== undefined) {
+        // B119 (D54): penilaian oleh AGEN sewaan, ditandatangani dompet agen di registry ERC-8004 —
+        // bukan oleh penerbit. Agen harus disewa untuk kursus ini; label tingkat berat ia pilih sendiri
+        // di pesan yang ia tandatangani, dan aktivitasnya langsung jadi tagihan.
+        if (!body.course || !body.lesson) return send(res, 400, jsonBody({ error: 'requires course + lesson (the rubric is read from the publisher manifest)' }))
+        if (!Number.isInteger(Number(body.attemptId))) return send(res, 400, jsonBody({ error: 'requires attemptId' }))
+        const found = essayLesson(body.course, body.lesson)
+        if (found.error) return send(res, 400, jsonBody({ error: found.error }))
+        const out = await agentJudge(AGENTS_CFG, body, found)
+        if (!out.ok) return send(res, out.status, jsonBody({ error: out.why }))
+        return send(res, 200, jsonBody({
+          attemptId: out.attemptId, attemptHash: out.attemptHash, replacedHash: out.replacedHash, score: out.score, verdict: out.verdict,
+          components: out.components, gradedBy: 'agent', agentId: out.agentId, label: out.label, needsReview: true, charge: out.charge,
+        }))
+      }
       if (path === '/essay/judgement') {
         /**
          * Penilaian oleh penerbit, atas nama EOA-nya sendiri (B81). Bukan peserta, dan bukan kami:
@@ -571,6 +600,13 @@ const server = createServer(async (req, res) => {
           return send(res, 401, jsonBody({ error: `reviewers are appointed by the configured publisher (${PAY_PAYEE})` }))
         }
         if (!manifestOf(body.course)) return send(res, 400, jsonBody({ error: `course ${body.course} is not in the catalogue`, known: Object.keys(MANIFESTS) }))
+        if (body.agentId !== undefined) {
+          // B120: reviewer agen ERC-8004 — dompet, pemilik, dan tarifnya dibaca dari registry.
+          const ag = await appointReviewerAgent(AGENTS_CFG, body)
+          return ag.ok
+            ? send(res, 200, jsonBody({ course: ag.courseId, reviewer: ag.reviewer, addedBy: ag.addedBy, agentId: ag.agentId, agentOwner: ag.agentOwner }))
+            : send(res, ag.status, jsonBody({ error: ag.why }))
+        }
         const out = await dbAddReviewer({
           courseId: body.course, reviewer: body.reviewer, issuer: body.issuer, message: body.message, signature: body.signature,
         })
@@ -588,10 +624,13 @@ const server = createServer(async (req, res) => {
           essay: found.lesson.essay, passMark: found.manifest.course.passMark, message: body.message, signature: body.signature,
         })
         if (!out.ok) return send(res, reviewStatus(out), jsonBody({ error: out.why }))
+        // B120: pengesahan oleh reviewer agen juga satu aktivitas penilaian — ditagih seperti penilaian.
+        const charge = await chargeReview(AGENTS_CFG, out)
         return send(res, 200, jsonBody({
           attemptId: out.attemptId, decision: out.decision, proposed: out.proposed, finalScore: out.finalScore,
           verdict: out.verdict, attemptHash: out.attemptHash, replacedHash: out.replacedHash,
           reviewer: out.reviewer, judgeModel: out.judgeModel,
+          reviewerAgentId: out.reviewerAgent?.agentId ?? null, label: out.label ?? null, charge,
         }))
       }
 
@@ -605,6 +644,52 @@ const server = createServer(async (req, res) => {
       return out.ok
         ? send(res, 201, jsonBody({ attemptHash: out.attemptHash, attemptId: out.attempt?.id, score: out.attempt?.score, verdict: out.attempt?.verdict }))
         : send(res, 401, jsonBody({ error: out.why }))
+    }
+    // Agen sewaan (B119, D54): tabel harga, sewa oleh penerbit, dan tagihan per aktivitas penilaian.
+    if (path.startsWith('/agents/') || path.startsWith('/agent-charges/')) {
+      if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent hiring is not configured on this server', missing: dbMissingReason() }))
+      const ratesMatch = /^\/agents\/(\d+)\/rates$/.exec(path)
+      if (ratesMatch && req.method === 'GET') {
+        const r = await agentRates(AGENTS_CFG, ratesMatch[1])
+        const { ok, status, why, ...rest } = r
+        return send(res, ok ? 200 : status, jsonBody(ok ? rest : { error: why }))
+      }
+      if (path === '/agents/hire') {
+        if (req.method !== 'POST') return send(res, 405, jsonBody({ error: 'POST required', path }))
+        const body = await readJsonBody(req)
+        const h = await agentHireRoute(AGENTS_CFG, body, (c) => Boolean(manifestOf(c)))
+        const { ok, status, why, ...rest } = h
+        return send(res, ok ? 200 : status, jsonBody(ok ? rest : { error: why }))
+      }
+      const chargeMatch = /^\/agent-charges\/(\d+)(\/pay)?$/.exec(path)
+      if (chargeMatch && !chargeMatch[2] && req.method === 'GET') {
+        const c = await getAgentCharge(chargeMatch[1])
+        return c ? send(res, 200, jsonBody(c)) : send(res, 404, jsonBody({ error: 'no such agent charge', path }))
+      }
+      if (chargeMatch && chargeMatch[2]) {
+        if (req.method !== 'POST') return send(res, 405, jsonBody({ error: 'POST required', path }))
+        const c = await getAgentCharge(chargeMatch[1])
+        if (!c) return send(res, 404, jsonBody({ error: 'no such agent charge', path }))
+        const terms = () => [paymentRequirements({
+          tokenAddress: c.token, payTo: PAY_SPLIT, amount: BigInt(c.amount), chainId: CHAIN_ID,
+          resource: `${BASE_URL}/agent-charges/${c.id}/pay`, maxTimeoutSeconds: TIMEOUT_SECONDS,
+        })]
+        const header = req.headers['x-payment']
+        if (!header) return send(res, 402, jsonBody({ x402Version: 1, error: 'X-PAYMENT header is required', accepts: terms(), charge: c }), 'application/json', { 'www-authenticate': 'X-PAYMENT realm="x402", error="insufficient_payment"' })
+        const payment = decodePaymentHeader(header)
+        if (!payment) return send(res, 402, jsonBody({ x402Version: 1, error: 'X-PAYMENT is not valid base64(JSON)', accepts: terms() }))
+        let paid
+        try {
+          paid = await payAgentCharge(AGENTS_CFG, chargeMatch[1], payment)
+        } catch (err) {
+          return send(res, 402, jsonBody({ x402Version: 1, error: `settlement failed: ${String(err.message).split('\n')[0]}`, accepts: terms() }))
+        }
+        if (!paid.ok) return send(res, paid.status, jsonBody({ error: paid.why, ...(paid.status === 402 ? { x402Version: 1, accepts: terms() } : {}) }))
+        return send(res, 200, jsonBody({ charge: paid.charge, settleTx: paid.settled.settleTx, splitTx: paid.settled.splitTx }), 'application/json', {
+          'x-payment-response': encodePaymentHeader({ x402Version: 1, success: true, network: `eip155:${CHAIN_ID}`, transaction: paid.settled.settleTx, payer: payment.payload?.payer }),
+        })
+      }
+      return send(res, 404, jsonBody({ error: 'not found', path, hint: 'GET /agents/<agentId>/rates · POST /agents/hire · GET /agent-charges/<id> · POST /agent-charges/<id>/pay' }))
     }
     // Satu-satunya rute yang meminta bayaran. Verifikasi itu sendiri tetap gratis di halaman;
     // yang berbayar adalah jalur mesin-ke-mesin (agen yang memanggil kami untuk banyak kredensial).

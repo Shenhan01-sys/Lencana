@@ -38,9 +38,10 @@ export type Issuer = {
   /** alamat yang tercatat sebagai `attester` di chain — pengikat manifest ke on-chain whitelist */
   eoa?: Address
   /**
-   * Agen penilai yang dipakai penerbit ini, sebagai identitas ERC-8004 (B118, D53). Ini KLAIM penerbit;
-   * yang membuktikannya chain: `getMetadata(agentId,"agentWallet")` di registry itu harus sama dengan
-   * `attester` kertas yang diperiksa (`web/src/verify.ts` bagian 8b). Sengaja TIDAK ikut
+   * Agen PENILAI yang disewa penerbit ini, sebagai identitas ERC-8004 (B118, D53; D54). Ini KLAIM
+   * penerbit; chain yang membuktikannya: identitas ada, berkas registrasinya menunjuk balik, dan —
+   * sejak D54 (penerbit tetap attester) — dompet agen BUKAN attester kertas (`web/src/verify.ts`
+   * bagian 8b). Sewa yang sungguhan tercatat di tabel `agent_hires` (B119). Sengaja TIDAK ikut
    * `manifestHashOf`/`rubricHashOf`: mengganti agen tidak mengubah materi maupun aturan penilaian,
    * dan hash yang sudah tercetak di kertas lama tidak boleh bergeser karenanya.
    */
@@ -155,7 +156,7 @@ const YAYASAN: Issuer = {
   slug: 'yayasan-nusantara',
   name: 'Yayasan Literasi Digital Nusantara (institusi demo, fiktif)',
   controllerUrl: 'http://127.0.0.1:8787/issuers/agent-demo',
-  // Lencana-B118 status=SELESAI 2026-10-01 —agen ERC-8004 #2534 di IdentityRegistry BNB chain 97, didaftarkan 1 Okt oleh Agent Owner 0x067c…0c4f; agentWallet = attester 0x8211…F7DE. Buktikan ulang: npm run verify:agent (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B118 status=SELESAI 2026-10-01 —agen ERC-8004 #2534 di IdentityRegistry BNB chain 97, didaftarkan 1 Okt oleh Agent Owner 0x067c…0c4f; sejak D54 agentWallet = dompet operasional agen 0xFd26…0094, BUKAN attester. Buktikan ulang: npm run verify:agent (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   agent: { registry: 'eip155:97:0x8004A818BFB912233c491871b3d84c89A494BD9e', agentId: '2534' },
 }
 

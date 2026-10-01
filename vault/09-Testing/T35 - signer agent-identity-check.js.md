@@ -4,8 +4,22 @@ status: active
 updated: 2026-10-01
 command: npm run verify:agent
 measured: 2026-10-01
-result: AGEN HIJAU — 23 pemeriksaan / 0 gagal (baca-saja, chain 97)
+result: AGEN HIJAU — 24 pemeriksaan / 0 gagal (baca-saja, chain 97, sesudah D54; pagi hari yang sama 23/0 dengan model lama)
 ---
+
+> **KOREKSI 1 Okt, sore — D54 (opsi B).** Halaman di bawah ditulis untuk model pagi itu: `agentWallet` agen
+> #2534 = **attester** (kunci penerbit), dan `npm run admit` hanya menerima dompet agen. Builder lalu
+> memilih "penerbit tetap attester, agen hanya penilai yang dibayar". Yang berubah, di chain dan di kode:
+> - `setAgentWallet(2534, 0xFd26Fb1fDdaEB8e9A08ba317586Ca0b3Cc480094)` — tx
+>   `0x4db6b54d00fcc0fe816f724b6b158b8a41acaea1f42e70545201b82032058e63`: dompet agen kini **kunci operasional
+>   agen** (`AGENT_GRADER_*` di `.env`), bukan penerbit;
+> - berkas registrasi diganti (`setAgentURI` `0xfbe66d62…9f8a`): "Lencana essay grading agent … never signs
+>   or revokes credentials", `services: []` (tadinya mengiklankan dokumen penerbit — bukan layanan agen);
+> - `npm run admit -- --address <penerbit>` menerima kunci **penerbit** dan **menolak** dompet maupun pemilik agen;
+> - `verify.ts` 8b kini membuktikan agen itu **bukan** attester kertas (`walletIsAttester === false`).
+>
+> Harness-nya ditulis ulang untuk model itu → **24/0**. Tabel transaksi dan jebakan di bawah tetap benar
+> sebagai sejarah; kalimat "agentWallet = attester" di bawah ini adalah keadaan pagi 1 Okt.
 
 # T35 - signer agent-identity-check.js (agen penerbit punya identitas ERC-8004 yang bisa diperiksa orang lain)
 
@@ -43,6 +57,8 @@ tidak dari catatan kita.
 
 - IdentityRegistry BNB: `0x8004A818BFB912233c491871b3d84c89A494BD9e` (implementasi di balik proxy saat diukur:
   `0x7274e874CA62410a93Bd8bf61c69d8045E399c02`; `eip712Domain` = `ERC8004IdentityRegistry` v1 chain 97).
+- ReputationRegistry BNB: `0x8004B663056A597Dffe9eCcC1965A193B7388713` — ada di chain 97 tapi **tidak dipakai**
+  (F2 reputasi bukan bagian penutupan B118); ValidationRegistry belum dideploy di chain 97 (F3).
 - **Agent Owner** `0x067cb80aA2b82E6a31De974E0f67D044F3ca0c4f` — kunci acak baru (bukan turunan label),
   disimpan di `app/.env` sebagai `AGENT_OWNER_PRIVATE_KEY` / `AGENT_OWNER_ADDRESS`; nilainya tidak pernah dicetak.
 - **agentWallet** = attester `0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE` (penerbit semua kertas korpus kecuali spesimen delisted B102).

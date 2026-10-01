@@ -13,6 +13,8 @@ carries the command that printed it and the date it printed.
 |---|---|
 | [[08-Results/01 - Evidence and Limits]] | the ledger: claim -> evidence -> what it does NOT prove, and the banned sentences |
 | [[08-Results/P2 - Executive Summary]] | the short reading for someone who will not open the repo |
+| [[08-Results/B119 - Executive Summary]] | 1 Okt — penerbit menyewa agen penilai ERC-8004 per aktivitas; label dipilih agen, harga = tarif Agent Owner + 5%/tingkat, dibayar lewat x402 ke dompet agen (`verify:agents:live` 40/0) |
+| [[08-Results/B120 - Executive Summary]] | 1 Okt — reviewer diperlakukan sebagai penilai: agen reviewer ERC-8004 #2542 dengan Agent Owner lain; pengesahannya ditagih; penilai ≠ reviewer dijaga dua arah (`verify:agents` bagian B120 12/12, live 15/15) |
 
 **Rule for adding a row.** Only from a run. If no command prints the number, the number does not belong
 here: it becomes open work in [[07-Backlog/03 - Findings and Tasks 2026-09-26]] and the submission text

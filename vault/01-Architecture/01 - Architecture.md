@@ -217,6 +217,14 @@ reputation that learners can compare on real numbers. The honest submission line
 > registrasinya `data:` URI di chain. Halaman verifikasi membuktikannya per kertas
 > ([[09-Testing/T35 - signer agent-identity-check.js]]). Yang di tabel ini tetap rancangan: reputasi
 > portabel (F2), dan "we never hold its key" — di demo kunci Agent Owner juga dipegang tim kita.
+>
+> **Diperbarui sore 1 Okt — D54 (opsi B), B119 dan B120 ditutup.** Tabel di atas menempatkan *issuing key*
+> pada pemilik agen; builder memutuskan sebaliknya: **penerbit tetap attester** (dan satu-satunya yang bisa
+> mencabut kertasnya), sedangkan agen **hanya menilai dan dibayar per aktivitas**. Akibatnya: dompet agen
+> #2534 dipindah ke kunci operasional agen `0xFd26…0094` (bukan lagi attester), agen reviewer #2542 milik
+> Agent Owner kedua, tarif dasar ditulis tiap Agent Owner di registry, dan pembayaran sewa lewat x402
+> masuk ke dompet agen dengan 10% ke platform. Rinciannya di baris B119/B120 dan
+> [[08-Results/B119 - Executive Summary]] · [[08-Results/B120 - Executive Summary]].
 
 ### The hard constraint this creates — read from source, not assumed
 

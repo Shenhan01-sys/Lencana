@@ -31,6 +31,7 @@
 // Lencana-B72 status=SELESAI 2026-09-29 — state belajar hidup di Postgres (server-side), bukan localStorage browser. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { keccak256, encodeAbiParameters, getAddress } from 'viem'
 import { verifyMessage } from 'viem/utils'
+import { isLabel, DIFFICULTY_LABELS } from './pricing.js'
 
 const URL_ = () => (process.env.SUPABASE_URL || '').replace(/\/$/, '')
 const KEY = () => process.env.SUPABASE_SECRET_KEY || ''
@@ -254,7 +255,7 @@ export async function attemptsFor (learner, courseId) {
   if (!e) return []
   const q = `?enrollment_id=eq.${e.id}`
     + '&order=kind.asc,lesson_key.asc,attempt_no.asc'
-    + '&select=id,lesson_key,kind,attempt_no,score,verdict,rubric_hash,attempt_hash,judge_model,judge_temp,created_at,'
+    + '&select=id,lesson_key,kind,attempt_no,score,verdict,rubric_hash,attempt_hash,judge_model,judge_temp,graded_by_agent,difficulty_label,created_at,'
     + 'attempt_components(item_id,score,weight,graded_by),'
     // B104: pengesahan manusia ikut terbaca bersama usahanya — `fromAttempts` menolak esai bernilai
     // model yang tidak membawanya, jadi kalau embed ini hilang, penerbitan berhenti, bukan lolos.
@@ -558,12 +559,14 @@ async function authorizeSigner ({ signer, message, signature, scope }) {
  * Penerbit menunjuk reviewer untuk satu kursus. Pesan yang ditandatangani harus menyebut kursus dan
  * alamat reviewernya: tanda tangan atas nonce saja bisa ditempelkan ke penunjukan siapa pun.
  */
-export async function addReviewer ({ courseId, reviewer, issuer, message, signature }) {
+export async function addReviewer ({ courseId, reviewer, issuer, message, signature, agent = null }) {
   if (typeof reviewer !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(reviewer)) return { ok: false, why: 'reviewer must be a 20-byte address' }
   if (reviewer.toLowerCase() === String(issuer).toLowerCase()) {
     return { ok: false, why: 'the publisher cannot appoint itself as reviewer — the review must come from a different key' }
   }
-  const wants = [`course=${courseId}`, `reviewer=${reviewer.toLowerCase()}`]
+  // B120: reviewer agen ERC-8004 — faktanya dibaca dari registry oleh pemanggil (`src/agents.js`);
+  // pesan penerbit wajib menyebut agentId-nya juga.
+  const wants = [`course=${courseId}`, `reviewer=${reviewer.toLowerCase()}`, ...(agent ? [`agent=${agent.agentId}`] : [])]
   if (typeof message !== 'string' || !wants.every((w) => message.toLowerCase().includes(w.toLowerCase()))) {
     return { ok: false, why: `signed message must state ${wants.join(' and ')}` }
   }
@@ -571,9 +574,12 @@ export async function addReviewer ({ courseId, reviewer, issuer, message, signat
   if (!auth.ok) return auth
   await rest('review_roles', {
     method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
-    body: [{ course_id: courseId, reviewer: getAddress(reviewer), added_by: getAddress(issuer), message, signature }],
+    body: [{
+      course_id: courseId, reviewer: getAddress(reviewer), added_by: getAddress(issuer), message, signature,
+      agent_id: agent ? String(agent.agentId) : null, agent_owner: agent ? getAddress(agent.owner) : null,
+    }],
   })
-  return { ok: true, courseId, reviewer: getAddress(reviewer), addedBy: getAddress(issuer) }
+  return { ok: true, courseId, reviewer: getAddress(reviewer), addedBy: getAddress(issuer), agentId: agent ? String(agent.agentId) : null }
 }
 
 /**
@@ -624,18 +630,42 @@ export async function reviewEssay ({ attemptId, reviewer, decision, scores, essa
     }
     finalScore = Math.round(total * 100) / 100
   }
-  const wants = [`attempt=${attempt.id}`, `decision=${decision}`, ...(finalScore === null ? [] : [`final=${finalScore}`])]
+  if (typeof reviewer !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(reviewer)) return { ok: false, kind: 'auth', why: 'invalid reviewer address' }
+  // Lencana-B120 status=SELESAI 2026-10-01 — reviewer boleh agen ERC-8004 (D53/D54): ia wajib agen lain dengan Agent Owner lain dari agen pengusul, wajib menyebut label tingkat berat, dan agentId-nya tercatat di pengesahan. Buktikan ulang: npm run verify:agents. JANGAN dibalik/diulang tanpa membuka kembali baris B120 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Penunjukan dibaca lebih dulu (baca-saja): ia menentukan apakah reviewer ini agen ERC-8004 (B120),
+  // dan agen wajib menyebut label tingkat berat di pesan yang ia tandatangani.
+  const role = await rest('review_roles', {
+    query: `?course_id=eq.${encodeURIComponent(holder.course_id)}&reviewer=eq.${getAddress(reviewer)}&select=added_by,agent_id,agent_owner`,
+  })
+  if (!role?.length) return { ok: false, kind: 'role', why: `${getAddress(reviewer)} is not a reviewer for ${holder.course_id}` }
+  if (getAddress(reviewer) === getAddress(holder.learner)) return { ok: false, kind: 'role', why: 'a learner cannot review their own essay' }
+  const reviewerAgent = role[0].agent_id ? { agentId: String(role[0].agent_id), owner: role[0].agent_owner } : null
+  let label = null
+  if (reviewerAgent) {
+    // B120: penilai kedua tidak boleh agen yang sama, dan tidak boleh milik Agent Owner yang sama,
+    // dengan agen yang mengusulkan angka — kalau boleh, lapis pengesahan runtuh jadi satu pihak dua kali.
+    if (attempt.graded_by_agent && String(attempt.graded_by_agent) === reviewerAgent.agentId) {
+      return { ok: false, kind: 'role', why: `reviewer agent ${reviewerAgent.agentId} is the agent that proposed this score` }
+    }
+    if (attempt.graded_by_agent) {
+      const grader = await rest('agent_hires', {
+        query: `?course_id=eq.${encodeURIComponent(holder.course_id)}&agent_id=eq.${encodeURIComponent(attempt.graded_by_agent)}&select=agent_owner`,
+      })
+      if (grader?.[0]?.agent_owner && String(grader[0].agent_owner).toLowerCase() === String(reviewerAgent.owner).toLowerCase()) {
+        return { ok: false, kind: 'role', why: 'reviewer agent and proposing agent belong to the same Agent Owner' }
+      }
+    }
+    label = /(?:^|\s)label=([a-z-]+)(?:\s|$)/.exec(String(message ?? ''))?.[1] ?? null
+    if (!isLabel(label)) return { ok: false, kind: 'auth', why: `an agent reviewer must state label=<${DIFFICULTY_LABELS.join('|')}> in its signed message` }
+  }
+
+  const wants = [`attempt=${attempt.id}`, `decision=${decision}`, ...(finalScore === null ? [] : [`final=${finalScore}`]), ...(label ? [`label=${label}`] : [])]
   if (typeof message !== 'string' || !wants.every((w) => new RegExp(`(^|\\s)${w.replace(/[.]/g, '\\.')}(\\s|$)`).test(message))) {
     return { ok: false, kind: 'auth', why: `signed message must state ${wants.join(', ')}` }
   }
 
   const auth = await authorizeSigner({ signer: reviewer, message, signature, scope: 'essay-review' })
   if (!auth.ok) return auth
-  const role = await rest('review_roles', {
-    query: `?course_id=eq.${encodeURIComponent(holder.course_id)}&reviewer=eq.${getAddress(reviewer)}&select=added_by`,
-  })
-  if (!role?.length) return { ok: false, kind: 'role', why: `${getAddress(reviewer)} is not a reviewer for ${holder.course_id}` }
-  if (getAddress(reviewer) === getAddress(holder.learner)) return { ok: false, kind: 'role', why: 'a learner cannot review their own essay' }
 
   const existing = await rest('judgement_reviews', { query: `?attempt_id=eq.${attempt.id}&select=decision,reviewer` })
   if (existing?.length) {
@@ -664,10 +694,142 @@ export async function reviewEssay ({ attemptId, reviewer, decision, scores, essa
     body: [{
       attempt_id: attempt.id, judge_model: attempt.judge_model, proposed, decision, final_score: finalScore,
       reviewer: getAddress(reviewer), message, signature,
+      reviewer_agent_id: reviewerAgent?.agentId ?? null, difficulty_label: label,
     }],
   })
   return {
     ok: true, attemptId: attempt.id, decision, proposed, finalScore, verdict: decision === 'rejected' ? null : verdict,
     attemptHash, replacedHash: decision === 'adjusted' ? attempt.attempt_hash : null, reviewer: getAddress(reviewer), judgeModel: attempt.judge_model,
+    reviewerAgent, label, gradedByAgent: attempt.graded_by_agent ?? null,
   }
+}
+
+/* ------------------------------------------------------------------ agen sewaan (B119, D54) */
+
+// Lencana-B119 status=SELESAI 2026-10-01 — sewa agen penilai per kursus, penilaian bertanda tangan dompet agen dengan label tingkat berat yang ia pilih, dan tagihan per aktivitas. Buktikan ulang: npm run verify:agents. JANGAN dibalik/diulang tanpa membuka kembali baris B119 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/**
+ * Penerbit menyewa agen penilai untuk satu kursus. Fakta tentang agen (dompet, pemilik) DIBACA dari
+ * registry ERC-8004 oleh pemanggil (`src/agents.js`) dan diserahkan ke sini; fungsi ini hanya menuntut
+ * tanda tangan penerbit atas pesan yang menyebut kursus dan `agentId`-nya.
+ */
+export async function hireAgent ({ courseId, agent, publisher, message, signature }) {
+  const wants = [`course=${courseId}`, `agent=${agent.agentId}`]
+  if (typeof message !== 'string' || !wants.every((w) => new RegExp(`(^|\\s)${w}(\\s|$)`).test(message))) {
+    return { ok: false, kind: 'auth', why: `signed message must state ${wants.join(' and ')}` }
+  }
+  const auth = await authorizeSigner({ signer: publisher, message, signature, scope: 'agent-hire' })
+  if (!auth.ok) return auth
+  await rest('agent_hires', {
+    method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
+    body: [{
+      course_id: courseId, agent_id: String(agent.agentId), registry: agent.registry, agent_wallet: getAddress(agent.wallet),
+      agent_owner: getAddress(agent.owner), hired_by: getAddress(publisher), message, signature,
+    }],
+  })
+  return { ok: true, courseId, agentId: String(agent.agentId), wallet: getAddress(agent.wallet), owner: getAddress(agent.owner) }
+}
+
+export async function agentHiresFor (courseId) {
+  return (await rest('agent_hires', { query: `?course_id=eq.${encodeURIComponent(courseId)}&select=*` })) ?? []
+}
+
+export async function agentHire (courseId, agentId) {
+  const rows = await rest('agent_hires', { query: `?course_id=eq.${encodeURIComponent(courseId)}&agent_id=eq.${encodeURIComponent(String(agentId))}&select=*` })
+  return rows?.[0] ?? null
+}
+
+/** Reviewer agen (B120) yang ditunjuk untuk satu kursus — dipakai `hire` untuk menolak arah sebaliknya. */
+export async function reviewerAgentsFor (courseId) {
+  return (await rest('review_roles', { query: `?course_id=eq.${encodeURIComponent(courseId)}&agent_id=not.is.null&select=reviewer,agent_id,agent_owner` })) ?? []
+}
+
+/** Angka per kriteria → komponen persen (bentuk yang sama dengan `judgeEssay`). */
+function rubricComponents ({ essay, scores, attemptId, gradedBy }) {
+  const known = new Map(essay.rubric.map((r) => [String(r.label), r]))
+  const given = new Map((scores ?? []).map((s) => [String(s.label), s]))
+  const asing = [...given.keys()].filter((k) => !known.has(k))
+  if (asing.length) return { ok: false, why: `foreign criteria rejected: ${asing.join(', ')} are not part of the publisher's rubric` }
+  const components = []
+  let total = 0
+  for (const r of essay.rubric) {
+    const v0 = given.get(String(r.label))
+    if (!v0 || !Number.isFinite(Number(v0.score))) return { ok: false, why: `criterion "${r.label}" not graded — a partial rubric must not produce a final score` }
+    const max = Number(r.max)
+    const v = Math.max(0, Math.min(max, Math.round(Number(v0.score))))
+    components.push({ attempt_id: attemptId, item_id: `crit:${r.label}`, score: Math.round((v / max) * 10000) / 100, weight: max, graded_by: gradedBy })
+    total += v
+  }
+  return { ok: true, components, total: Math.round(total * 100) / 100 }
+}
+
+/**
+ * Penilaian oleh AGEN sewaan (bukan penerbit). Yang menandatangani adalah dompet agen di registry;
+ * pesannya wajib mengikat usaha, angka akhir, dan label tingkat berat pilihan agen. Angkanya usulan
+ * model (`graded_by='model'`), jadi gerbang B104 menahannya sampai ada pengesahan.
+ */
+export async function agentJudgeEssay ({ attemptId, courseId, agent, scores, essay, passMark, judgeModel, judgeTemp, message, signature }) {
+  if (!essay?.rubric?.length) return { ok: false, why: 'essay rubric from the publisher is unreadable — nothing to grade' }
+  if (!judgeModel) return { ok: false, why: 'an agent judgement must name its model (judgeModel)' }
+  const rows = await rest('attempts', { query: `?id=eq.${Number(attemptId)}&select=*` })
+  const attempt = rows?.[0]
+  if (!attempt) return { ok: false, why: `attempt ${attemptId} does not exist` }
+  if (attempt.kind !== 'esai') return { ok: false, why: `attempt ${attemptId} is not an essay (${attempt.kind})` }
+  const holder = await enrollmentOf(attempt.enrollment_id)
+  if (!holder) return { ok: false, why: `enrollment row ${attempt.enrollment_id} missing — this attempt is orphaned` }
+  if (holder.course_id !== courseId) return { ok: false, why: `attempt ${attemptId} belongs to ${holder.course_id}, not ${courseId}` }
+
+  const scored = rubricComponents({ essay, scores, attemptId: attempt.id, gradedBy: 'model' })
+  if (!scored.ok) return scored
+  const label = /(?:^|\s)label=([a-z-]+)(?:\s|$)/.exec(String(message ?? ''))?.[1] ?? null
+  if (!isLabel(label)) return { ok: false, kind: 'auth', why: `the agent must state label=<${DIFFICULTY_LABELS.join('|')}> in its signed message` }
+  const wants = [`attempt=${attempt.id}`, `final=${scored.total}`, `label=${label}`]
+  if (!wants.every((w) => new RegExp(`(^|\\s)${w.replace(/[.]/g, '\\.')}(\\s|$)`).test(message))) {
+    return { ok: false, kind: 'auth', why: `signed message must state ${wants.join(', ')}` }
+  }
+  const auth = await authorizeSigner({ signer: agent.wallet, message, signature, scope: 'essay-agent-judge' })
+  if (!auth.ok) return auth
+
+  const score = scored.total
+  const verdict = Number.isFinite(Number(passMark)) ? (score >= Number(passMark) ? 'pass' : 'fail') : 'graded'
+  const attemptHash = computeAttemptHash({
+    learner: holder.learner, courseId: holder.course_id, lessonKey: attempt.lesson_key, kind: 'esai',
+    attemptNo: attempt.attempt_no, score, rubricHash: attempt.rubric_hash,
+  })
+  await rest('attempt_components', { method: 'DELETE', query: `?attempt_id=eq.${attempt.id}&graded_by=in.(model,human)` })
+  await rest('judgement_reviews', { method: 'DELETE', query: `?attempt_id=eq.${attempt.id}` })
+  await rest('attempt_components', { method: 'POST', body: scored.components })
+  await rest('attempts', {
+    method: 'PATCH', query: `?id=eq.${attempt.id}`, prefer: 'return=minimal',
+    body: [{ score, verdict, attempt_hash: attemptHash, judge_model: judgeModel, judge_temp: judgeTemp ?? null, graded_by_agent: String(agent.agentId), difficulty_label: label }],
+  })
+  await rest('submissions', {
+    method: 'PATCH', query: `?attempt_id=eq.${attempt.id}`, prefer: 'return=minimal',
+    body: [{ state: 'judged', judged_at: new Date().toISOString() }],
+  })
+  return { ok: true, attemptId: attempt.id, attemptHash, replacedHash: attempt.attempt_hash, score, verdict, label, components: scored.components.length, needsReview: true }
+}
+
+/** Satu tagihan per aktivitas penilaian agen. Jumlahnya dihitung pemanggil dari tarif + label. */
+export async function insertCharge (row) {
+  const rows = await rest('agent_charges', { method: 'POST', prefer: 'return=representation', body: [row] })
+  return rows?.[0] ?? null
+}
+
+export async function getCharge (id) {
+  const rows = await rest('agent_charges', { query: `?id=eq.${Number(id)}&select=*` })
+  return rows?.[0] ?? null
+}
+
+export async function chargesFor (attemptId) {
+  return (await rest('agent_charges', { query: `?attempt_id=eq.${Number(attemptId)}&order=id.asc&select=*` })) ?? []
+}
+
+/** Hanya tagihan `due` yang bisa ditandai lunas — dua pembayaran untuk satu tagihan ditolak di sini. */
+export async function markChargePaid ({ id, payer, settleTx, splitTx }) {
+  const rows = await rest('agent_charges', {
+    method: 'PATCH', query: `?id=eq.${Number(id)}&status=eq.due`, prefer: 'return=representation',
+    body: [{ status: 'paid', payer: getAddress(payer), settle_tx: settleTx, split_tx: splitTx, paid_at: new Date().toISOString() }],
+  })
+  return rows?.[0] ?? null
 }

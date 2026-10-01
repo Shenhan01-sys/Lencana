@@ -415,6 +415,14 @@ hidup: alatnya akan merah, dan itu memang tugasnya.
 
 ## OI-18 — identitas ERC-8004 agen penerbit sudah ada di laporan verifikasi; panelnya belum (B118, 1 Okt)
 
+> **Koreksi 1 Okt sore — keputusan D54 (opsi B), dibaca sebelum isi di bawah.** Agen **tidak** lagi
+> penanda tangan kertas. Penerbit tetap attester (dan satu-satunya yang bisa mencabut kertasnya); agen
+> #2534 hanya menilai dan dibayar per aktivitas. Akibatnya untuk panel: `walletIsAttester` sekarang
+> **diharapkan `false`** — kalimat alasannya berbunyi "dompet agen BUKAN penanda tangan kertas ini", dan
+> kalau suatu hari `true`, halaman mencetak **AWAS** (agen ikut menandatangani, berlawanan dengan D54).
+> Baris tabel `wallet, walletIsAttester` di bawah tetap benar sebagai nama field; artinya yang berubah.
+> Sejak B119/B120 ada juga **permukaan sewa agen** yang belum punya UI — lihat OI-19.
+
 Sejak 1 Okt agen penerbit kita adalah agen ERC-8004 **#2534** di IdentityRegistry yang disediakan BNB
 (chain 97), dan `web/src/verify.ts` membacanya per kertas. Yang sampai ke halaman hari ini hanya **satu
 kalimat alasan** baru ("Agen penerbitnya punya identitas ERC-8004 #2534 … bukan reputasi"). Datanya
@@ -435,3 +443,24 @@ dan klaim reputasi dilarang di [[10-Contributors/Claims-Cheat-Sheet]].
 Satu hal lain yang ketemu sambil mencari ERC-8004, untuk fase FE: kartu agen di `web/index.html` mencetak
 "99.8% Consensus" dan "1,420 Essays Evaluated" — tidak ada perintah yang menghasilkan angka itu.
 Kalau kartunya dipertahankan, `agentId` 2534 dan dompetnya bisa jadi isi yang terukur.
+
+## OI-19 — sewa agen per aktivitas sudah hidup di penerbit; belum ada satu layar pun (B119, B120, 1 Okt)
+
+Penerbit sekarang bisa menyewa agen penilai ERC-8004 per mata kuliah, agen menandatangani nilainya sendiri
+lengkap dengan **label tingkat berat yang ia pilih**, dan tiap aktivitas jadi tagihan yang dibayar lewat
+x402 ke dompet agen. Reviewer juga boleh agen (agen lain, pemilik lain). Semua itu baru bisa disentuh lewat
+HTTP dan harness `npm run verify:agents` (34/0 tanpa gas, 40/0 dengan dua pembayaran nyata —
+[[09-Testing/T36 - signer agents-check.js (B119 sewa agen)]], [[09-Testing/T37 - signer agents-check.js (B120 reviewer agen)]]).
+
+| rute | untuk layar apa |
+|---|---|
+| `GET /agents/<id>/rates` | **kartu tarif**: tarif dasar dari Agent Owner + tujuh harga (×1.00 … ×1.30), token, `ladderHash` |
+| `POST /agents/hire` | tombol "sewa agen ini untuk mata kuliah X" — pesan yang ditandatangani **penerbit** |
+| `GET /agent-charges/<id>` | baris tagihan: aktivitas (nilai/review), label, jumlah, status `due`/`paid`, tx |
+| `POST /agent-charges/<id>/pay` | bayar: tanpa `X-PAYMENT` → 402 + `accepts`; dengan `X-PAYMENT` → lunas, header `x-payment-response` |
+
+Tiga hal yang harus terbaca di layar, dari keputusan, bukan selera: (1) **label dipilih agen**, bukan
+penerbit — jangan beri penerbit kontrol mengubahnya; (2) **tarif dasar milik Agent Owner** dan dibaca dari
+registry, kenaikan 5%/tingkat milik Lencana — dua sumber itu sebaiknya terlihat terpisah; (3) agen **bukan
+penanda tangan kertas** — jangan tulis "kredensial ditandatangani agen". Yang tidak kusentuh: berkas FE
+milikmu (`main.ts`, `render.ts`, `index.html`, `style.css`, `i18n.ts`).

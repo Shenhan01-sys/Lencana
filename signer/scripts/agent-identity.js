@@ -1,60 +1,67 @@
 /**
- * `npm run agent:identity` — daftarkan agen penerbit di registry ERC-8004 BNB (B118 F1, keputusan D53).
+ * `npm run agent:identity` — rawat identitas agen penilai Lencana di registry ERC-8004 BNB.
+ * (B118 F1 → disesuaikan D54 untuk B119/B120, 1 Okt.)
  *
- *   npm run agent:identity                    # hanya membaca: identitas yang ada + apa yang masih kurang
- *   npm run agent:identity -- --apply         # menulis: isi gas Agent Owner, register, ikat dompet, pasang URI
- *   npm run agent:identity -- --agent-id 42   # pakai identitas yang sudah ada, jangan cari
+ *   npm run agent:identity                              # baca-saja, peran penilai (agen #2534)
+ *   npm run agent:identity -- --role reviewer           # baca-saja, agen reviewer
+ *   npm run agent:identity -- [--role …] --apply        # menulis: isi gas, register, ikat dompet, URI, tarif
+ *   npm run agent:identity -- --agent-id 42             # pakai identitas yang sudah ada, jangan cari
  *
- * Tiga kunci, tiga peran — dan itu inti D53, bukan hiasan:
- *   AGENT_OWNER_PRIVATE_KEY  pemilik NFT identitas (peran Agent Owner). Yang memanggil register /
- *                            setAgentWallet / setAgentURI.
- *   ISSUER_PRIVATE_KEY       EOA attester — yang tercatat di BAS. Ia hanya MENANDATANGANI pernyataan
- *                            EIP-712 "dompet agen #N adalah saya"; ia tidak mengirim transaksi.
- *   DEPLOYER_PRIVATE_KEY     platform — hanya mengisi gas Agent Owner kalau saldonya kurang.
- * Di demo ketiganya dipegang tim Lencana di satu mesin, dan berkas registrasinya mengatakan itu.
+ * Kunci per peran — Agent Owner memegang identitas, dompet operasional agen bekerja dan dibayar:
+ *   penilai   AGENT_OWNER_PRIVATE_KEY     + AGENT_GRADER_PRIVATE_KEY     tarif dasar bawaan 2000
+ *   reviewer  REVIEWER_OWNER_PRIVATE_KEY  + AGENT_REVIEWER_PRIVATE_KEY   tarif dasar bawaan 1500
+ * (satuan terkecil token demo 6 desimal; `--tariff N` untuk angka lain). Platform (`DEPLOYER_PRIVATE_KEY`)
+ * hanya mengisi gas Agent Owner. Penerbit (`ISSUER_PRIVATE_KEY`) TIDAK terlibat: sejak D54 ia tetap
+ * attester dan agen tidak pernah menandatangani kredensial — skrip menolak kalau dompet agen = penerbit.
  *
- * Idempoten: tiap langkah membaca chain dulu. Setiap transaksi disimulasikan (`eth_call`) sebelum
- * dikirim, supaya tanda tangan atau bentuk yang salah gagal tanpa gas.
+ * Idempoten: tiap langkah membaca chain dulu; tiap transaksi disimulasikan sebelum dikirim.
  */
 
-// Lencana-B118 status=SELESAI 2026-10-01 —pendaftaran agen penerbit di IdentityRegistry ERC-8004 BNB; pemilik NFT = Agent Owner, agentWallet = attester, URI = data: registrasi. Buktikan ulang: npm run verify:agent. JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { createPublicClient, createWalletClient, http, parseEther, formatEther, getAddress, parseAbi, decodeEventLog } from 'viem'
+// Lencana-B118 status=SELESAI 2026-10-01 — pendaftaran agen penilai di IdentityRegistry ERC-8004 BNB; pemilik NFT = Agent Owner, URI = data: registrasi; sejak D54 dompet agen = kunci operasional agen, bukan attester. Buktikan ulang: npm run verify:agent. JANGAN dibalik/diulang tanpa membuka kembali baris B118 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B120 status=SELESAI 2026-10-01 — agen reviewer = identitas ERC-8004 kedua dengan Agent Owner dan dompet yang berbeda dari agen penilai. Buktikan ulang: npm run verify:agents. JANGAN dibalik/diulang tanpa membuka kembali baris B120 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { createPublicClient, createWalletClient, http, parseEther, formatEther, getAddress, decodeEventLog } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
 import {
-  ERC8004, identityAbi, agentWalletTypedData, registrationFile, toDataUri, readAgent,
+  ERC8004, identityAbi, agentWalletTypedData, registrationFile, toDataUri, readAgent, TARIFF_KEY, encodeTariff,
 } from '../src/erc8004.js'
 
 await loadFileEnvReport('agent:identity')
 const env = process.env
+const arg = (n) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 ? process.argv[i + 1] : undefined }
 const APPLY = process.argv.includes('--apply')
-const argAt = process.argv.indexOf('--agent-id')
-const ARG_ID = argAt >= 0 ? process.argv[argAt + 1] : null
+const ROLE = arg('role') ?? 'grader'
+const ROLES = {
+  grader: { owner: 'AGENT_OWNER_PRIVATE_KEY', wallet: 'AGENT_GRADER_PRIVATE_KEY', tariff: 2000n },
+  reviewer: { owner: 'REVIEWER_OWNER_PRIVATE_KEY', wallet: 'AGENT_REVIEWER_PRIVATE_KEY', tariff: 1500n },
+}
+const R = ROLES[ROLE]
+if (!R) { console.error(`--role harus grader atau reviewer, bukan ${ROLE}`); process.exit(2) }
+const TARIFF = arg('tariff') ? BigInt(arg('tariff')) : R.tariff
 
-for (const k of ['RPC_URL', 'RESOLVER_ADDRESS', 'EDGE_BASE_URL', 'ISSUER_PRIVATE_KEY', 'AGENT_OWNER_PRIVATE_KEY']) {
-  if (!env[k]) { console.error(`${k} belum diisi — ini bukan kegagalan, prasyaratnya belum ada`); process.exit(2) }
+for (const k of ['RPC_URL', 'DEMO_TOKEN_ADDRESS', 'ISSUER_ADDRESS', R.owner, R.wallet]) {
+  if (!env[k]) { console.error(`${k} belum diisi — prasyarat, bukan kegagalan`); process.exit(2) }
 }
 const client = createPublicClient({ transport: http(env.RPC_URL) })
 const chainId = await client.getChainId()
 const REG = ERC8004[chainId]?.identity
 if (!REG) { console.error(`tidak ada registry ERC-8004 yang dikenal untuk chain ${chainId}`); process.exit(2) }
 const chain = { id: chainId, name: `chain-${chainId}`, nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 }, rpcUrls: { default: { http: [env.RPC_URL] } } }
-const owner = privateKeyToAccount(env.AGENT_OWNER_PRIVATE_KEY)
-const attester = privateKeyToAccount(env.ISSUER_PRIVATE_KEY)
-const SLUG = env.AGENT_SLUG || 'agent-edge'
+const owner = privateKeyToAccount(env[R.owner])
+const agentWallet = privateKeyToAccount(env[R.wallet])
+const publisher = getAddress(env.ISSUER_ADDRESS)
 const ownerWallet = createWalletClient({ account: owner, chain, transport: http(env.RPC_URL) })
 
-if (owner.address === attester.address) {
-  console.error('berhenti: Agent Owner sama dengan attester — D53 memisahkan keduanya')
-  process.exit(2)
-}
-const isIssuer = await client.readContract({
-  address: env.RESOLVER_ADDRESS, abi: parseAbi(['function isIssuer(address) view returns (bool)']), functionName: 'isIssuer', args: [attester.address],
-})
-console.log(`registry ${REG} (chain ${chainId}) · ${APPLY ? 'MENULIS (--apply)' : 'hanya membaca'}`)
+for (const [why, bad] of [
+  ['Agent Owner sama dengan dompet operasional agen', owner.address === agentWallet.address],
+  ['dompet agen = penerbit (attester) — D54: agen tidak pernah menandatangani kredensial', agentWallet.address === publisher],
+  ['Agent Owner = penerbit — agen disewa penerbit, bukan miliknya', owner.address === publisher],
+]) if (bad) { console.error(`berhenti: ${why}`); process.exit(2) }
+
+console.log(`registry ${REG} (chain ${chainId}) · peran ${ROLE} · ${APPLY ? 'MENULIS (--apply)' : 'hanya membaca'}`)
 console.log(`  Agent Owner : ${owner.address} · saldo ${formatEther(await client.getBalance({ address: owner.address }))} tBNB`)
-console.log(`  attester    : ${attester.address} · isIssuer di resolver = ${isIssuer}`)
+console.log(`  dompet agen : ${agentWallet.address}`)
 
 const mined = async (what, hash) => {
   const r = await client.waitForTransactionReceipt({ hash })
@@ -63,13 +70,12 @@ const mined = async (what, hash) => {
   return r
 }
 
-/** Cari identitas yang sudah dimiliki Agent Owner lewat event Registered (owner ter-indeks). */
 async function findExisting () {
-  if (ARG_ID) return ARG_ID
+  if (arg('agent-id')) return arg('agent-id')
   const bal = await client.readContract({ address: REG, abi: identityAbi, functionName: 'balanceOf', args: [owner.address] })
   if (bal === 0n) return null
   const latest = await client.getBlockNumber()
-  for (let to = latest; to > latest - 200000n && to > 0n; to -= 5000n) {
+  for (let to = latest; to > latest - 400000n && to > 0n; to -= 5000n) {
     const from = to - 4999n > 0n ? to - 4999n : 0n
     const logs = await client.getLogs({
       address: REG, event: identityAbi.find((x) => x.type === 'event' && x.name === 'Registered'),
@@ -105,30 +111,33 @@ if (agentId) {
   let a = await readAgent(client, { chainId, agentId })
   if (!a.ok) throw new Error(a.why)
   if (a.owner !== owner.address) throw new Error(`identitas #${agentId} dimiliki ${a.owner}, bukan Agent Owner ${owner.address}`)
+  const wantUri = toDataUri(registrationFile({ chainId, registry: REG, agentId, role: ROLE }))
+  const wantTariff = encodeTariff({ token: env.DEMO_TOKEN_ADDRESS, amount: TARIFF })
 
-  if (APPLY && a.wallet !== attester.address) {
-    const now = (await client.getBlock()).timestamp
-    const deadline = now + 240n // kontrak menolak lebih dari 5 menit ke depan
-    const sig = await attester.signTypedData(agentWalletTypedData({ chainId, registry: REG, agentId, newWallet: attester.address, owner: owner.address, deadline }))
+  if (APPLY && a.wallet !== agentWallet.address) {
+    const deadline = (await client.getBlock()).timestamp + 240n // kontrak menolak > 5 menit
+    const sig = await agentWallet.signTypedData(agentWalletTypedData({ chainId, registry: REG, agentId, newWallet: agentWallet.address, owner: owner.address, deadline }))
     const { request } = await client.simulateContract({
-      account: owner, address: REG, abi: identityAbi, functionName: 'setAgentWallet', args: [BigInt(agentId), attester.address, deadline, sig],
+      account: owner, address: REG, abi: identityAbi, functionName: 'setAgentWallet', args: [BigInt(agentId), agentWallet.address, deadline, sig],
     })
-    await mined('setAgentWallet(attester)', await ownerWallet.writeContract(request))
+    await mined(`setAgentWallet(${a.wallet ?? 'kosong'} -> ${agentWallet.address})`, await ownerWallet.writeContract(request))
   }
-  const want = toDataUri(registrationFile({ chainId, registry: REG, agentId, agentSlug: SLUG, edgeBaseUrl: env.EDGE_BASE_URL, resolver: env.RESOLVER_ADDRESS }))
-  if (APPLY && a.uri !== want) {
-    const { request } = await client.simulateContract({
-      account: owner, address: REG, abi: identityAbi, functionName: 'setAgentURI', args: [BigInt(agentId), want],
-    })
-    await mined(`setAgentURI (data: URI, ${want.length} karakter)`, await ownerWallet.writeContract(request))
+  if (APPLY && a.uri !== wantUri) {
+    const { request } = await client.simulateContract({ account: owner, address: REG, abi: identityAbi, functionName: 'setAgentURI', args: [BigInt(agentId), wantUri] })
+    await mined(`setAgentURI (peran ${ROLE}, ${wantUri.length} karakter)`, await ownerWallet.writeContract(request))
+  }
+  const currentTariff = await client.readContract({ address: REG, abi: identityAbi, functionName: 'getMetadata', args: [BigInt(agentId), TARIFF_KEY] })
+  if (APPLY && currentTariff !== wantTariff) {
+    const { request } = await client.simulateContract({ account: owner, address: REG, abi: identityAbi, functionName: 'setMetadata', args: [BigInt(agentId), TARIFF_KEY, wantTariff] })
+    await mined(`setMetadata(${TARIFF_KEY} = ${TARIFF})`, await ownerWallet.writeContract(request))
   }
 
   a = await readAgent(client, { chainId, agentId })
   console.log('\nterbaca dari chain:')
   console.log(`  agentId     : ${a.agentId} · ${a.registry}`)
   console.log(`  owner       : ${a.owner}${a.owner === owner.address ? ' (Agent Owner)' : ''}`)
-  console.log(`  agentWallet : ${a.wallet}${a.wallet === attester.address ? ' (= attester)' : ' (BELUM attester)'}`)
-  console.log(`  registrasi  : ${a.registrationType ?? 'tidak terbaca'} · menunjuk balik ke #${a.agentId}: ${a.pointsBack}`)
-  console.log(`  URI sama dengan yang diharapkan: ${a.uri === want}`)
+  console.log(`  agentWallet : ${a.wallet}${a.wallet === agentWallet.address ? ' (= dompet operasional agen)' : ' (BELUM dompet agen)'}`)
+  console.log(`  registrasi  : ${a.registration?.name ?? 'tidak terbaca'} · menunjuk balik: ${a.pointsBack} · URI sesuai peran: ${a.uri === wantUri}`)
+  console.log(`  tarif dasar : ${a.tariff ? `${a.tariff.amount} @ ${a.tariff.token}` : 'belum ada'}`)
   if (!APPLY) console.log('\n(tanpa --apply: tidak ada yang ditulis)')
 }

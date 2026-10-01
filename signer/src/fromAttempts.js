@@ -108,6 +108,8 @@ export function evidenceFromAttempts (manifest, attempts) {
         lesson: String(attempt.lesson_key ?? '-'), kind: attempt.kind,
         model: attempt.judge_model, temperature: attempt.judge_temp ?? null,
         attemptHash: attempt.attempt_hash ?? null,
+        // B119: agen sewaan yang mengusulkan angka dan label tingkat berat pilihannya (null = penerbit).
+        ...(attempt.graded_by_agent ? { agentId: String(attempt.graded_by_agent), difficultyLabel: attempt.difficulty_label ?? null } : {}),
       })
     }
     // Baris usaha yang ikut melahirkan angka — termasuk yang tidak menyumbang komponen (praktik

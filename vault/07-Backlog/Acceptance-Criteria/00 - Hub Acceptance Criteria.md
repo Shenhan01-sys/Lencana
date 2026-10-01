@@ -27,4 +27,11 @@ inventing one file per criterion would put text in the vault that no run support
 28 Sep (B51). Angka di atas dicetak ulang hari ini atau diberi tanggal run aslinya; yang bertanggal lama
 memang belum diulang, dan itu ditulis, bukan dirapikan.)*
 
+## AC per backlog (WORKFLOW langkah 2) — mulai 1 Okt
+
+| item | AC | testing | summary | status |
+|---|---|---|---|---|
+| **B119** sewa agen penilai per aktivitas | [[07-Backlog/Acceptance-Criteria/AC-B119 - Sewa agen per aktivitas]] | [[09-Testing/T36 - signer agents-check.js (B119 sewa agen)]] | [[08-Results/B119 - Executive Summary]] | 10 PASS · 1 BLOCKED (UI, FE) |
+| **B120** reviewer sebagai penilai (agen AI) | [[07-Backlog/Acceptance-Criteria/AC-B120 - Reviewer sebagai penilai]] | [[09-Testing/T37 - signer agents-check.js (B120 reviewer agen)]] | [[08-Results/B120 - Executive Summary]] | 7 PASS · 1 BLOCKED (ValidationRegistry belum ada di 97) |
+
 **Related:** [[00-Overview/02 - Roadmap to the Deadline]] · [[08-Results/01 - Evidence and Limits]]

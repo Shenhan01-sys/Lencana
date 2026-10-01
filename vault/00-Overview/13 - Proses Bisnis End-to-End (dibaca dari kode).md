@@ -30,6 +30,10 @@ updated: 2026-09-30
 > (2) identitas agen memakai **registry ERC-8004 yang disediakan BNB** — B118; (3) **reviewer
 > diperlakukan sebagai penilai**, boleh agen AI — B120. Lihat [[00-Overview/03 - Decisions]] D53.
 >
+> **Sore 1 Okt — D54 dan ketiganya sudah dibangun (B118, B119, B120).** Penerbit tetap penanda tangan dan
+> pencabut kredensial (opsi B); agen hanya menilai. Bagian 2, 7, 11, 12, dan 13 di bawah sudah memuat
+> perubahan itu (ditandai "D54"); bagian lain tidak berubah.
+>
 > Halaman ini sengaja hampir tanpa angka. Angka harness hidup di `09-Testing/numbers.json`
 > (`npm run sync:numbers`).
 
@@ -57,7 +61,8 @@ dengan tanda tangan.
 | **Platform Lencana** | kunci owner resolver = kunci pembayar gas (`DEPLOYER_PRIVATE_KEY`) | mendaftarkan dan mendelisting penerbit, menyiarkan transaksi atas nama agen, menyegel daftar status, mencetak artefak soulbound, menyajikan dokumen | **mencabut** kredensial penerbit, mengubah isi klaim, menilai peserta |
 | **Pemeriksa** (HRD, kampus lain, siapa pun) | tidak ada | membaca status dari chain, membuka dokumen dari tepi publik | — |
 | **Klien mesin** | EOA pemegang token | membayar per permintaan untuk verifikasi massal (`POST /verify`) | — |
-| ***Agent Owner*** — D53; **identitasnya sudah ada (B118), sewanya belum (B119)** | pemilik NFT identitas ERC-8004 agen (#2534, `0x067c…0c4f`) | merawat berkas registrasi dan dompet agen; kelak disewa penerbit per aktivitas penilaian | — (batas wewenangnya belum diputuskan; lihat dampak di B119) |
+| ***Agent Owner*** — D53/D54, **dibangun (B118–B120)** | pemilik NFT identitas ERC-8004 agen (penilai #2534 `0x067c…0c4f`; reviewer #2542 `0x99b1…0C72`) | merawat berkas registrasi, dompet operasional agen, dan **tarif dasar** (metadata `lencana.baseTariff`) | menandatangani atau mencabut kredensial (D54); disewa tanpa identitas ERC-8004 |
+| **Agen penilai / agen reviewer** (D54) | dompet operasional agen (`agentWallet` di registry) | menilai atau mengesahkan esai untuk kursus yang menyewanya, **memilih label tingkat berat** di pesan yang ia tandatangani, menerima sewa per aktivitas | menjadi attester; reviewer agen tidak boleh agen pengusul atau satu pemilik dengannya |
 
 ⚠️ **Yang harus dibaca bersama tabel ini.** Di demo hari ini kunci agen penerbit (`ISSUER_PRIVATE_KEY`
 dan `signer/.keys/`) berada di mesin yang sama dengan kunci platform. Pemisahan peran di atas
@@ -278,6 +283,11 @@ stateDiagram-v2
   Disahkan --> [*]: dihitung gerbang
 ```
 
+**Sejak D54 (B119/B120):** "penerbit menandatangani angka model" di atas punya jalur kedua — **agen penilai
+yang disewa** menandatangani usulannya sendiri dengan dompetnya (`POST /essay/judgement` + `agentId`), dan
+**reviewer boleh agen** (`POST /essay/reviewers` + `agentId`). Aturan gerbangnya sama; yang bertambah adalah
+label tingkat berat di setiap pesan agen dan satu tagihan per aktivitas (bagian 11c).
+
 Hanya dua keadaan yang **dihitung gerbang**: `DinilaiPenerbit` dan `Disahkan`. "Ditolak reviewer"
 tidak sama dengan "nilai nol" — tidak ada angka yang ditulis.
 
@@ -485,6 +495,36 @@ sequenceDiagram
 Stempel `recordHash` di langkah 4 hari ini hanya dilakukan harness (`npm run verify:deposit:live`)
 dengan kunci platform — belum ada rute atau perintah produk yang melakukannya.
 
+**c. Sewa agen per aktivitas penilaian (B119/B120, D54).** Penerbit menyewa agen penilai ERC-8004 untuk
+satu kursus; setiap aktivitas agen (menilai atau mengesahkan) menjadi satu tagihan.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant I as Penerbit
+  participant S as Signer service
+  participant REG as IdentityRegistry ERC-8004 (BNB)
+  participant A as Agen penilai
+  participant SP as SettlementSplit
+
+  I->>S: POST /agents/hire (kursus, agentId, tanda tangan penerbit)
+  S->>REG: baca dompet, pemilik, berkas registrasi, tarif dasar Agent Owner
+  S-->>I: disewa (dompet dan pemilik agen tercatat)
+  A->>S: POST /essay/judgement (agentId, angka, label pilihan agen, tanda tangan dompet agen)
+  S->>S: agen disewa untuk kursus ini? dompet masih sama? label sah? pesan mengikat usaha + angka + label?
+  S-->>A: usulan tercatat + tagihan = tarif x (1 + 5% x tingkat)
+  I->>S: POST /agent-charges/id/pay (X-PAYMENT, tanpa BNB)
+  S->>SP: settlement x402, payee = dompet agen
+  SP-->>A: 90% tagihan
+  S-->>I: struk settlement, tagihan lunas
+```
+
+Penilai dan reviewer satu kursus tidak boleh agen yang sama atau milik Agent Owner yang sama. Aturan itu
+dijaga **dua arah** — saat penerbit menunjuk reviewer agen (`appointReviewerAgent`) dan saat menyewa agen
+penilai (`hire`, `signer/src/agents.js`) — lalu sekali lagi saat pengesahan (`reviewEssay`). Arah kedua
+baru ditambahkan 1 Okt sore, sesudah baris residu sebuah run harness ditemukan melanggarnya
+([[09-Testing/T37 - signer agents-check.js (B120 reviewer agen)]]).
+
 **Yang tidak ada:** pembelian kursus. Tabel `orders` ada di skema tetapi tidak ada kode yang menulisnya;
 peserta mendaftar tanpa membayar, dan kontrak premi tidak dipanggil halaman mana pun.
 
@@ -494,7 +534,9 @@ peserta mendaftar tanpa membayar, dan kontrak premi tidak dipanggil halaman mana
 |---|---|---|
 | rubrik, bobot, ambang lulus, masa berlaku, prasyarat | penerbit | manifest → `rubricHash` tercetak di tiap kertas |
 | angka kuis | aturan penerbit, dihitung server | `signer/src/quiz.js` |
-| angka esai | penerbit; kalau dari model, harus disahkan reviewer | `judgeEssay`, `reviewEssay`, view `course_gates`, `fromAttempts.js` |
+| angka esai | penerbit **atau agen penilai yang disewanya** (D54); kalau dari model, harus disahkan reviewer (orang atau agen lain) | `judgeEssay`, `agentJudgeEssay`, `reviewEssay`, view `course_gates`, `fromAttempts.js` |
+| label tingkat berat satu aktivitas | **agen yang melakukannya** (D54) | pesan bertanda tangan agen; `attempts.difficulty_label`, `agent_charges.label` |
+| harga sewa | tarif dasar: **Agent Owner** (registry); kenaikan per tingkat: **Lencana** (5%) | `lencana.baseTariff`, `signer/src/pricing.js` |
 | lulus atau tidak | `computeScore` terhadap manifest — bukan platform, bukan operator | `web/src/score.ts`, `signer/scripts/issue.js` |
 | siapa boleh jadi penerbit | platform | `addIssuer` / `delistIssuer` (owner resolver) |
 | mencabut satu kredensial | penerbit yang menerbitkannya, tidak ada orang lain | BAS (`attester == revoker`) |
@@ -532,8 +574,10 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
     (`web/src/manifest.ts`); kursus kedua (`web3-lanjut-2026`) mensyaratkan yang pertama.
 11. ~~**"Agen" belum punya identitas di luar resolver kita.**~~ **Ditutup 1 Okt (B118 F1):** agen penerbit
     sekarang agen ERC-8004 #2534 di IdentityRegistry BNB, pemiliknya Agent Owner, dompetnya = attester, dan
-    halaman verifikasi membuktikannya per kertas. Yang masih putus di jalur ini: sewa per aktivitas (**B119**),
-    reviewer sebagai penilai (**B120**), dan reputasi (B118 F2) — belum ada.
+    halaman verifikasi membuktikannya per kertas. **Sore 1 Okt, D54:** sewa per aktivitas (**B119**) dan
+    reviewer agen (**B120**) juga sudah dibangun — penerbit tetap attester, agen hanya menilai. Yang masih
+    putus di jalur ini: reputasi (B118 F2), pencerminan ke ValidationRegistry (belum ada di 97), dan
+    **UI** untuk menyewa, menilai, dan membayar — semuanya baru rute HTTP.
 
 ## 14. Cara membuktikan ulang tiap alur
 
@@ -549,4 +593,5 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
 | G x402 | `npm run x402` | [[04-Signer-Service/S6 - x402 paid verification]] |
 | G premi tenggat | `npm run verify:deposit` | [[09-Testing/T34 - signer deposit-check.js]] |
 | A/E identitas agen ERC-8004 | `npm run verify:agent` | [[09-Testing/T35 - signer agent-identity-check.js]] |
+| C/G sewa agen + reviewer agen | `npm run verify:agents` · `npm run verify:agents:live` | [[09-Testing/T36 - signer agents-check.js (B119 sewa agen)]] · [[09-Testing/T37 - signer agents-check.js (B120 reviewer agen)]] |
 | kontrak | `forge test` (di `app/`) | [[09-Testing/T1 - forge test on chain 97]] |
