@@ -46,6 +46,7 @@ import {
   enroll as dbEnroll, recordAttempt as dbRecordAttempt, storeAttempt as dbStoreAttempt,
   nextAttemptNo as dbNextAttemptNo,
   setLessonProgress as dbSetProgress, progressSummary as dbProgressSummary, authorizeLearner as dbAuthorize,
+  learnerRecords as dbLearnerRecords,
 } from './db.js'
 import { essayLesson, gradeQuiz } from './quiz.js'
 // Lencana-B121 status=TERBUKA 2026-10-01 — core: POST /praktik membaca ulang chain 97 sebelum usaha praktik tersimpan, dan POST /attempts menolak skor kuis/esai/praktik kiriman peserta; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
@@ -435,7 +436,7 @@ const server = createServer(async (req, res) => {
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
-      || path === '/auth/privy') {
+      || path === '/auth/privy' || path === '/me/records') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -454,6 +455,16 @@ const server = createServer(async (req, res) => {
       }
       const body = await readJsonBody(req)
       if (!body || typeof body !== 'object') return send(res, 400, jsonBody({ error: 'body must be a JSON object' }))
+      // Lencana-B124 status=TERBUKA 2026-10-02 — rute POST /me/records: rekaman belajar milik peserta (enrollment, ringkasan, usaha dinilai) untuk dashboard; hanya pemilik alamat (tanda tangan + nonce, pesan khusus), tanpa teks esai. Buktikan ulang: npm run verify:records. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+      if (path === '/me/records') {
+        // Pesan harus menyebut keperluannya: tanda tangan untuk enroll/kuis tidak boleh dipakai ulang untuk membaca nilai.
+        if (typeof body.message !== 'string' || !/^lencana-records nonce=[0-9a-f]{12,}$/.test(body.message)) {
+          return send(res, 400, jsonBody({ error: 'message must be "lencana-records nonce=<hex>"' }))
+        }
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'records' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        return send(res, 200, jsonBody(await dbLearnerRecords(body.learner)))
+      }
       if (path === '/progress') {
         const out = await dbSetProgress({
           learner: body.learner, courseId: body.course, lessonId: body.lesson, to: body.status,

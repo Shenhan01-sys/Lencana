@@ -5,6 +5,8 @@
  * render ulang cukup mengganti isinya.
  */
 import { renderLanding } from './pages/landing'
+import { renderApp } from './pages/dashboard'
+import { renderCourseDetail } from './pages/course-detail'
 import { bindLearningActions, renderClass, renderMe } from './pages/class'
 
 const currentHash = (): string => (window.location.hash || '#/').toLowerCase().split('?')[0]
@@ -35,6 +37,12 @@ export function mountNewApp (routeHash: string): void {
         if (cat) cat.scrollIntoView({ behavior: 'smooth' })
       }, 100)
     }
+  } else if (routeHash === '#/app' || routeHash.startsWith('#/app/')) {
+    // Area internal peserta (RF7 A2, B124) — penjaga rute di main.ts sudah memastikan ada akun.
+    appEl.appendChild(renderApp(routeHash))
+  } else if (/^#\/course\/[^/]+$/.test(routeHash)) {
+    // Detail kursus PUBLIK: silabus dan aturan penilaian terlihat sebelum masuk; isi kelas tetap di balik akun.
+    appEl.appendChild(renderCourseDetail(decodeURIComponent(routeHash.split('/')[2] ?? '')))
   } else if (routeHash.startsWith('#/class/')) {
     appEl.appendChild(renderClass(routeHash, rerender))
   } else if (routeHash === '#/me') {

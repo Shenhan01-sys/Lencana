@@ -24,6 +24,7 @@ import {
   snapshot,
 } from './learning'
 import { initLogin, openLogin, completeGoogleReturn } from './pages/login'
+import { needsOnboarding } from './pages/dashboard'
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -586,6 +587,8 @@ function isProtectedRouteHref(href: string): boolean {
   if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') return false
   // FE7: halaman transparansi juga publik — registri penerbit (B105) dan Trust & Limits (landing menautkannya).
   if (hash === '#/publishers' || hash === '#publishers' || hash === '#/agent-hub' || hash === '#agent-hub' || hash === '#ai-agents') return false
+  // RF7 A2: halaman detail kursus publik — tautannya tetap tampil untuk tamu.
+  if (/^#\/course\/[^/]+$/.test(hash)) return false
   if (hash.startsWith('#/')) return true
   return ['#courses', '#learn', '#course', '#submit', '#ai-evaluator', '#verifier', '#verify',
     '#portfolio', '#ai-agents', '#agent-hub'].includes(hash)
@@ -624,6 +627,11 @@ function updateLearnerNavigation(): void {
 async function onSignedIn(address: string) {
   walletState = { isConnected: true, address }
   renderWalletState()
+  // Login pertama akun ini di peramban ini: onboarding dulu (RF7 A2). Kursus yang dituju tetap diingat di sessionStorage.
+  if (needsOnboarding(address)) {
+    window.location.hash = '#/app/welcome'
+    return
+  }
   const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
   if (pendingTarget) {
     sessionStorage.removeItem('lencana_enroll_target')
@@ -634,7 +642,7 @@ async function onSignedIn(address: string) {
     }
     window.location.hash = `#/class/${encodeURIComponent(pendingTarget)}`
   } else {
-    window.location.hash = '#/me'
+    window.location.hash = '#/app'
   }
 }
 
@@ -998,9 +1006,9 @@ function handleRoute() {
     window.location.hash = legacy
     return
   }
-  // D59: studio esai tiruan dan portofolio fiktif bukan halaman lagi — rekaman milik peserta ada di #/me.
-  if (['#/submit', '#submit', '#ai-evaluator', '#/portfolio', '#portfolio'].includes(hash)) {
-    window.location.hash = '#/me'
+  // D59: studio esai tiruan dan portofolio fiktif bukan halaman lagi; #/me lama menjadi dashboard (RF7 A2).
+  if (['#/submit', '#submit', '#ai-evaluator', '#/portfolio', '#portfolio', '#/me'].includes(hash)) {
+    window.location.hash = '#/app'
     return
   }
 
@@ -1016,7 +1024,9 @@ function handleRoute() {
   const isPublicPublishers = hash === '#/publishers' || hash === '#publishers'
   // FE7: Trust & Limits juga halaman transparansi — landing menautkannya untuk tamu.
   const isPublicTrust = hash === '#/agent-hub' || hash === '#agent-hub' || hash === '#ai-agents'
-  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isCatalog && !isPrivyOnboard && !isPublicVerify && !isPublicPublishers && !isPublicTrust) {
+  // RF7 A2: detail kursus (silabus, aturan penilaian) publik; isi kelasnya tidak.
+  const isPublicCourse = /^#\/course\/[^/]+$/.test(hash)
+  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isCatalog && !isPrivyOnboard && !isPublicVerify && !isPublicPublishers && !isPublicTrust && !isPublicCourse) {
     // Rute peserta tanpa sesi: HTML yang dilindungi tidak pernah tampil (fe-integration), kursus
     // tujuannya diingat, dan modal masuk dibuka (ui) supaya tamu tahu kenapa ia kembali ke beranda.
     const attempted = hash
@@ -1024,11 +1034,11 @@ function handleRoute() {
     if (target) sessionStorage.setItem('lencana_enroll_target', target)
     window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#/`)
     hash = '#/'
-    if (/^#\/(class\/|me$)/.test(attempted)) openLogin({ guarded: true })
+    if (/^#\/(class\/|me$|app)/.test(attempted)) openLogin({ guarded: true })
   }
   updateLearnerNavigation()
 
-  const isLms = hash.startsWith('#/class/') || hash === '#/me'
+  const isLms = hash.startsWith('#/class/') || hash === '#/me' || hash === '#/app' || hash.startsWith('#/app/')
   let targetPageId = 'page-new-app'
   if (isHomeRoute || isCatalog || isLms) {
     targetPageId = 'page-new-app'
@@ -1093,7 +1103,7 @@ function handleRoute() {
 
   document.querySelectorAll('.nav-links .nav-link').forEach((link) => {
     if (isLms) {
-      link.classList.toggle('active', link.id === 'nav-classroom')
+      link.classList.toggle('active', link.id === 'nav-dashboard')
     } else {
       link.classList.toggle('active', link.id === routeNavMap[targetPageId])
     }

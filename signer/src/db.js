@@ -371,6 +371,31 @@ export async function attemptsFor (learner, courseId) {
   return (await rest('attempts', { query: q })) ?? []
 }
 
+/**
+ * Rekaman milik SATU peserta untuk dashboard-nya (B124): semua enrollment, ringkasan per kursus, dan usaha yang
+ * dinilai. Hanya dipanggil sesudah `authorizeLearner` — nilai adalah data pribadi. Proyeksinya sengaja sempit:
+ * tanpa teks esai, tanpa komponen per soal, tanpa kolom yang tidak dibutuhkan halaman.
+ */
+export async function learnerRecords (learner) {
+  const addr = getAddress(learner)
+  const q = `?learner=eq.${encodeURIComponent(addr)}&select=id,course_id,status,enrolled_at&order=enrolled_at.asc`
+  const enrollments = (await rest('enrollments', { query: q })) ?? []
+  const courses = []
+  for (const e of enrollments) {
+    const summary = await progressSummary(addr, e.course_id)
+    const attempts = (await attemptsFor(addr, e.course_id)).map((a) => {
+      const r = (a.judgement_reviews ?? [])[0] ?? null
+      return {
+        lesson: a.lesson_key, kind: a.kind, attemptNo: a.attempt_no, score: a.score, verdict: a.verdict,
+        gradedByAgent: a.graded_by_agent ?? null, judgeModel: a.judge_model ?? null, at: a.created_at,
+        review: r ? { decision: r.decision, finalScore: r.final_score ?? null, at: r.reviewed_at ?? null } : null,
+      }
+    })
+    courses.push({ courseId: e.course_id, status: e.status, enrolledAt: e.enrolled_at, summary, attempts })
+  }
+  return { learner: addr, courses }
+}
+
 /** Nonce disimpan di DB, dan itu harus bisa dibuktikan — bukan dipercaya dari komentar. */
 export async function usedNonceExists (nonce) {
   const rows = await rest('used_nonces', { query: `?nonce=eq.${encodeURIComponent(nonce)}&select=nonce` })

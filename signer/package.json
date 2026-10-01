@@ -17,6 +17,7 @@
     "verify:praktik": "tsx scripts/praktik-check.js",
     "verify:praktik:live": "tsx scripts/praktik-check.js --live",
     "verify:quizkeys": "tsx scripts/quiz-keys-check.js",
+    "verify:records": "tsx scripts/records-check.js",
     "verify:privy": "node scripts/privy-check.js",
     "verify:agent": "tsx scripts/agent-identity-check.js",
     "adopt": "node scripts/adopt.js --demo",

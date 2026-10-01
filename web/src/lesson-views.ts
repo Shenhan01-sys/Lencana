@@ -55,6 +55,8 @@ export function legacyLearnRoute (hash: string): string | null {
   const course = findCourse(seg[1])
   if (!course) return '#catalog'
   if (seg[2] === 'l' && seg[3]) return lessonLink(course, seg[3])
+  // RF7 A2: `#/course/<id>` sendiri adalah halaman detail kursus publik, bukan rute lama.
+  if (seg.length === 2) return null
   return classLink(course.id)
 }
 

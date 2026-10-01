@@ -598,3 +598,19 @@ Membuangnya keputusanmu; kalau dibiarkan, ia tetap terbaca di sumber halaman.
 
 Hook baru: `window.dispatchEvent(new CustomEvent('lencana:open-privy', { detail: { courseId } }))` tetap membuka dialog masuk
 (nama event dipertahankan supaya pemanggil lama tidak putus).
+
+## OI-25 — area internal peserta `#/app`, onboarding, dan detail kursus publik: berkasmu yang tersentuh (B124, 2 Okt)
+
+Rencana: RF7 langkah A2 ([[11-Refactoring/RF7 - Halaman publik vs internal, dashboard per peran, onboarding]]). Halaman barunya
+hidup di berkas baru (`web/src/pages/dashboard.ts`, `course-detail.ts`, `dashboard.css`); yang ikut tersentuh:
+
+| berkas | perubahan |
+|---|---|
+| `web/index.html` | `#nav-dashboard` menunjuk `#/app` (sebelumnya `#/me`) |
+| `web/src/main.ts` | `#/me` ikut dialihkan ke `#/app`; penjaga rute: `#/course/<id>` publik (`isPublicCourse`, juga di `isProtectedRouteHref`), `#/app…` minta login; `isLms` mencakup `#/app`, nav aktif = `#nav-dashboard`; `onSignedIn` → onboarding pada login pertama, lalu kursus yang dituju atau `#/app` |
+| `web/src/new-app.ts` | rute `#/app…` → `renderApp`, `#/course/<id>` → `renderCourseDetail` |
+| `web/src/pages/landing.ts` | kartu katalog menunjuk detail kursus `#/course/<id>`, bukan ruang kelas |
+| `web/src/lesson-views.ts` | `legacyLearnRoute`: `#/course/<id>` sendiri tidak lagi dialihkan ke kelas (`#/course/<id>/l/<slug>` tetap) |
+
+**Untukmu:** tampilan dashboard dan detail kursus memakai palet landing tapi kelasnya sendiri (`.app-*`, `.cd-*`, `.app-welcome`);
+silakan ditata ulang — yang harus tetap: rute `#/app…` di balik akun, dan angka nilai hanya dari `POST /me/records`.

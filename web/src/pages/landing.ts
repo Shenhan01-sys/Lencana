@@ -13,7 +13,7 @@ import { h } from '../lib/ui'
 import { COURSES, findCourse } from '../courses/index'
 import type { Course } from '../content'
 import { getSavedLanguage, DICTIONARIES } from '../i18n'
-import { classLink, verifyLink } from '../lesson-views'
+import { verifyLink } from '../lesson-views'
 import { renderFlow3D } from './flow3d'
 
 const REPO_URL = 'https://github.com/Shenhan01-sys/Lencana'
@@ -121,7 +121,7 @@ function renderCourseCard (c: Course, index: number): HTMLElement {
   const prereq = c.prereqCourseId ? findCourse(c.prereqCourseId) : undefined
 
   return h('a', {
-    href: classLink(c.id),
+    href: `#/course/${encodeURIComponent(c.id)}`,
     class: `course-card-editorial ${index === 0 ? 'course-card-large' : ''}`,
   },
     h('div', { class: 'course-card-image-wrap' },
