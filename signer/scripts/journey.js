@@ -131,9 +131,13 @@ ok('alamat peserta B diturunkan dari kunci baru (dipakai untuk menguji penolakan
 console.log(`  peserta A: ${learnerA.address}`)
 console.log(`  peserta B: ${learnerB.address}`)
 console.log(`  agen     : ${privateKeyToAccount(env.ISSUER_PRIVATE_KEY).address} (EOA penanda tangan attestation)`)
-gaps.push('akun peserta: core TIDAK punya endpoint akun, enrollment, atau penyimpanan jawaban. Alamat di atas '
-  + 'hanya bermakna sebagai penerima attestation; tidak ada "daftar" di backend. FE yang menyimpan progres '
-  + 'akan menyimpan state yang tidak dimiliki core (lihat RF5: tidak ada enrollment = tidak ada yang dibayar).')
+// Koreksi 1 Okt: teks gap ini sampai hari itu masih berkata core tidak punya enrollment atau penyimpanan
+// jawaban — basi sejak B72 (28-29 Sep). Yang memang masih tidak ada ditulis apa adanya di bawah.
+gaps.push('akun peserta: core TIDAK punya akun/login — identitas peserta adalah kunci penanda tangan (kunci '
+  + 'perangkat yang hangus bersama tab, atau dompet; B82). Enrollment, progres, dan jawaban SUDAH disimpan core '
+  + 'sejak B72 (Postgres lewat /enroll, /progress, /grade, /essay, /praktik), tapi journey ini menerbitkan lewat '
+  + 'CLI penerbit, bukan dari rekaman itu — alur rekaman diuji `npm run verify:attempts:live`. Pembelian kursus '
+  + 'juga belum ada: tabel `orders` tidak pernah ditulis, jadi enrollment belum terikat pembayaran (RF5).')
 
 // ---------------------------------------------------------------- 2. belajar
 head('belajar — permukaan yang bisa dibaca core dari katalog penerbit')
