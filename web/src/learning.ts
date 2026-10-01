@@ -47,6 +47,7 @@ import type { PrivyIdentity } from './privy'
 
 const EP_KEY = 'lencana-signer-url'
 const ID_KEY = 'lencana-learner-v1'
+const AUTH_KEY = 'lencana-explicit-learner-session-v1'
 const DEFAULT_EP = 'http://127.0.0.1:8787'
 /** localStorage: "peramban ini punya sesi login email" — supaya tab baru tahu ada yang bisa dipulihkan. Tanpa data pribadi. */
 const PRIVY_MARK = 'lencana-privy-v1'
@@ -172,6 +173,24 @@ export function setEndpoint (url: string): void {
 export function snapshot (): LearningSnapshot { return state }
 export function learnerAddress (): string | null { return state.identity?.address ?? null }
 
+/** A separate marker proves the learner deliberately entered a supported sign-in mode. */
+export function hasExplicitLearnerSession (): boolean {
+  // Login email (Privy, B82) sengaja bertahan lintas tab lewat penandanya di localStorage; tanpa ini
+  // penjaga rute mengusir tab baru sebelum `resumePrivyLearner` sempat memulihkan dompetnya.
+  return readSession(AUTH_KEY) === 'active' || hasPrivyMark()
+}
+
+function setExplicitLearnerSession (active: boolean): void {
+  if (active) writeSession(AUTH_KEY, 'active')
+  else dropSession(AUTH_KEY)
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('lencana:learner-session-change'))
+}
+
+/** The demo wallet is an intentional learner entry mode, even though it has no signing identity. */
+export function startDemoLearnerSession (): void {
+  setExplicitLearnerSession(true)
+}
+
 /**
  * Kunci sementara di perangkat ini — identitas sungguhan secara kriptografis, tapi tidak tahan
  * ganti perangkat. Kalau storage tidak ada (mode privat, atau modul ini di-import dari Node),
@@ -185,6 +204,7 @@ export function createDeviceLearner (): { address: string, kind: LearnerKind } |
   if (!saved) return null
   state.identity = { address: account.address, kind: 'perangkat' }
   state.summary = null
+  setExplicitLearnerSession(true)
   return state.identity
 }
 
@@ -197,6 +217,7 @@ export async function connectWalletLearner (): Promise<{ ok: boolean, why?: stri
     writeSession(ID_KEY, JSON.stringify({ address: accounts[0], kind: 'dompet' } satisfies StoredIdentity))
     state.identity = { address: accounts[0], kind: 'dompet' }
     state.summary = null
+    setExplicitLearnerSession(true)
     return { ok: true, identity: state.identity }
   } catch (e) {
     return { ok: false, why: e instanceof Error ? e.message : String(e) }
@@ -216,6 +237,8 @@ export function forgetLearner (): void {
     state.account = null
     void import('./privy').then((p) => p.privyLogout()).catch(() => { /* token lokal tetap sudah dibuang SDK */ })
   }
+  // Sesudah penanda Privy dibuang: pendengar "sesi berubah" harus melihat keadaan akhir, bukan setengah.
+  setExplicitLearnerSession(false)
 }
 
 // ------------------------------------------------------------------ login email (Privy, B82/D57)
@@ -229,6 +252,7 @@ function adoptPrivy (id: PrivyIdentity): LearnerIdentity {
   state.identity = { address: id.address, kind: 'privy', email: id.email }
   state.summary = null
   state.lastGrade = null
+  setExplicitLearnerSession(true)
   return state.identity
 }
 

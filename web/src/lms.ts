@@ -23,9 +23,9 @@ import { auditAll, catalogStats, COURSES, findCourse, findLesson, moduleOf } fro
 import { manifestOf, rubricHashOf, shortHash } from './manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse, type CourseSummary } from './progress'
 import {
-  completeLesson, connectPrivyLearner, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner,
-  hasPrivyMark, learnerAddress, resumePrivyLearner, sendPrivyCode, setEndpoint, snapshot, submitEssay,
-  submitQuiz, syncCourse, type LearnerIdentity, type QuizReviewItem,
+  completeLesson, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner,
+  hasExplicitLearnerSession, hasPrivyMark, learnerAddress, resumePrivyLearner, setEndpoint, snapshot,
+  submitEssay, submitQuiz, syncCourse, type LearnerIdentity, type QuizReviewItem,
 } from './learning'
 
 /** Pembahasan satu penyerahan kuis: pilihan peserta + umpan balik server (B80). */
@@ -61,26 +61,17 @@ function serverLine (courseId: string): string {
       <p class="muted">Peramban ini pernah masuk dengan email; dompet tertanamnya sedang disambungkan lagi.</p></aside>`
   }
   if (!addr) {
-    // Lencana-B82 status=TERBUKA 2026-10-01 — kotak identitas menawarkan login email (Privy) sebagai jalur utama: kirim kode → masuk → dompet tertanam yang sama di perangkat mana pun; kunci perangkat dan dompet ekstensi tetap ada. Yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+    // Lencana-B82 status=TERBUKA 2026-10-01 — kotak identitas: "Masuk dengan email (Privy)" membuka modal masuk di main.ts, yang memakai alur sungguhan learning.ts (kode dari kotak masuk → dompet tertanam yang sama di perangkat mana pun); kunci perangkat dan dompet ekstensi tetap ada. Yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
     return `<aside class="note learn-id">
-      <strong>Rekaman belajar belum dimulai</strong>
-      <p>Progres di halaman ini masih catatan lokal. Supaya nilainya bisa dibaca penerbit, identitas
-      peserta harus bisa menandatangani — satu alamat, satu nonce, satu kali pakai.</p>
-      <p><strong>Masuk dengan email</strong> — alamat peserta jadi dompet tertanam yang sama di perangkat mana pun.</p>
-      <div class="actions privy-login">
-        <input type="email" data-role="privy-email" placeholder="email kamu" autocomplete="email" aria-label="Email untuk masuk">
-        <button class="primary" data-action="privy-send" data-course="${esc(courseId)}">Kirim kode</button>
-      </div>
-      <div class="actions privy-login" data-role="privy-code-row" hidden>
-        <input type="text" inputmode="numeric" maxlength="6" data-role="privy-code" placeholder="kode 6 digit" autocomplete="one-time-code" aria-label="Kode dari email">
-        <button class="primary" data-action="privy-login" data-course="${esc(courseId)}">Masuk</button>
-      </div>
-      <p class="muted">Atau tanpa akun:</p>
+      <strong>Hubungkan identitas untuk menyimpan rekaman belajar</strong>
+      <p>Kamu bisa membaca materi tanpa masuk. Untuk mengirim jawaban dan menyimpan progres pada
+      penerbit, pilih identitas peserta terlebih dahulu.</p>
       <div class="actions">
-        <button data-action="learner-device">Pakai kunci perangkat (sementara)</button>
-        <button data-action="learner-wallet">Sambungkan dompet</button>
+        <button class="primary" data-action="learner-privy" data-course="${esc(courseId)}">Masuk dengan email (Privy)</button>
+        <button data-action="learner-device" data-course="${esc(courseId)}">Pakai kunci perangkat (sementara)</button>
+        <button data-action="learner-wallet" data-course="${esc(courseId)}">Sambungkan dompet</button>
       </div>
-      <p class="muted">${ep} · ubah kalau penerbitmu berjalan di tempat lain, lalu muat ulang.</p>
+      <details><summary>Pengaturan lanjutan penerbit</summary><p class="muted">${ep} · ubah kalau penerbitmu berjalan di tempat lain, lalu muat ulang.</p></details>
     </aside>`
   }
   const sum = s.summary && s.courseId === courseId ? s.summary : null
@@ -88,20 +79,20 @@ function serverLine (courseId: string): string {
   if (!sum) {
     return `<aside class="note learn-id"><strong>Peserta:</strong> <code>${esc(addr)}</code> · ${esc(kind)}
       <p class="muted">${s.pending ? 'Menghubungi penerbit…' : esc(s.error ?? 'Rekaman di penerbit belum dibaca untuk kursus ini.')}</p>
-      <div class="actions"><button data-action="learn-sync">Baca/mulai rekaman di penerbit</button>
+      <div class="actions"><button data-action="learn-sync" data-course="${esc(courseId)}">Baca/mulai rekaman di penerbit</button>
       <button data-action="learner-forget">Ganti identitas</button></div>
-      <p class="muted">${ep}</p></aside>`
+      <details><summary>Pengaturan lanjutan penerbit</summary><p class="muted">${ep}</p></details></aside>`
   }
   const pct = sum.lessonsTotal ? Math.round((sum.lessonsCompleted / sum.lessonsTotal) * 100) : 0
   return `<aside class="note learn-id"><strong>Rekaman di penerbit</strong>
     <p>${sum.lessonsCompleted}/${sum.lessonsTotal} lesson selesai (${pct}%) ·
       ${sum.gradedAttempts} usaha dinilai · skor terbaik ${sum.bestScore ?? '—'} ·
       ${sum.allLessonsDone ? '<span class="tag ok">semua lesson selesai</span>' : '<span class="tag">belum selesai</span>'}</p>
-    <p class="muted">Angka ini yang dibaca penerbit saat menerbitkan (<code>issue --from-attempts</code>),
-      bukan angka di sampingnya. Peserta <code>${esc(addr)}</code> · ${esc(kind)} ·
-      <button class="link" data-action="learn-sync">muat ulang</button>
+    <p class="muted">Ini rekaman belajar di penerbit, bukan catatan pada perangkat ini.
+      Peserta <code>${esc(addr)}</code> · ${esc(kind)} ·
+      <button class="link" data-action="learn-sync" data-course="${esc(courseId)}">muat ulang</button>
       <button class="link" data-action="learner-forget">ganti identitas</button></p>
-    <p class="muted">${ep}</p></aside>`
+    <details><summary>Pengaturan lanjutan penerbit</summary><p class="muted">${ep}</p></details></aside>`
 }
 
 /** Status satu aksi belajar, dipakai tombol supaya kegagalan tidak hilang diam-diam. */
@@ -191,39 +182,42 @@ function pageCatalog(): string {
   const problems = auditAll()
   const cards = COURSES.map((c) => {
     const st = summarize(c.id, c.modules.flatMap((m) => m.lessons), c.weights)
+    const next = c.modules.flatMap((m) => m.lessons).find((l) => !courseProgress(c.id)[l.slug]?.done)
     return `<article class="card course">
+      <p class="eyebrow">${esc(c.level)} · ${c.modules.length} modul</p>
       <h3><a href="${link('course', c.id)}">${esc(c.title)}</a></h3>
-      <p class="muted">${esc(c.level)} · ${c.modules.length} modul · ${st.totalLessons} lesson · ±${Math.round(
+      <p class="course-meta">${st.totalLessons} lesson · ±${Math.round(
         c.modules.flatMap((m) => m.lessons).reduce((a, l) => a + l.minutes, 0) / 60,
       )} jam</p>
-      <p>${esc(c.blurb)}</p>
-      <p class="progress-line"><span style="width:${st.pct}%"></span></p>
-      <p class="muted">Progres perangkat ini: ${st.doneLessons}/${st.totalLessons} lesson (${st.pct}%)</p>
-      ${c.prereqCourseId ? `<p class="tag">prasyarat: ${esc(c.prereqCourseId)}</p>` : ''}
+      <p class="course-blurb">${esc(c.blurb)}</p>
+      <div class="course-bottom">
+        <div class="progress-label"><span>Di perangkat ini</span><strong>${st.doneLessons}/${st.totalLessons} lesson</strong></div>
+        <div class="progress-line" role="progressbar" aria-label="Progres lokal ${esc(c.title)}" aria-valuenow="${st.pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${st.pct}%"></span></div>
+        <div class="course-links"><a class="btn primary-link" href="${link('course', c.id)}">Lihat kursus</a>
+          ${next && st.doneLessons > 0 ? `<a class="text-link" href="${link('course', c.id, 'l', next.slug)}">Lanjut belajar →</a>` : ''}</div>
+      </div>
     </article>`
   }).join('')
 
-  return `<section class="hero">
-    <h2>Belajar, lalu buktikan</h2>
-    <p class="lede">Kamu membaca materinya di sini. Kelulusannya diterbitkan penerbit sebagai dokumen
-    yang bisa diperiksa orang lain <em>tanpa perlu mempercayai halaman ini</em>. Itu bedanya, dan itu
-    yang modul terakhir kursus ini latih ke kamu.</p>
-    <p class="muted">${s.courses} kursus · ${s.modules} modul · ${s.lessons} lesson · ${s.pages} halaman ·
-    ${s.quizQuestions} soal kuis · ${s.essays} esai dinilai rubrik · ±${Math.round(s.minutes / 60)} jam.
-    Angka ini dihitung dari datanya, dan diaudit <code>npm run probe</code>${
-      problems.length ? ` — <strong class="bad">${problems.length} masalah ditemukan</strong>` : ' — 0 masalah'
-    }.</p>
+  return `<section class="learn-hero">
+    <p class="eyebrow">RUANG BELAJAR LENCANA</p>
+    <h2>Belajar sungguhan.<br><span>Bukti yang bisa diperiksa.</span></h2>
+    <p>Jelajahi materi, kerjakan latihan, lalu lihat progresmu. Kredensial bukan hadiah otomatis:
+      hanya penerbit yang dapat menilai dan menerbitkannya.</p>
+    <a class="text-link" href="${link('me')}">Lihat My Learning →</a>
   </section>
-  <div class="grid">${cards}</div>
-  <section class="card"><h3>Sebelum mulai</h3>
-    <ul>${[
-      'Kamu tidak perlu wallet untuk belajar. Kamu perlu wallet untuk MENERBITkan kredensial atas namamu.',
-      'Progres disimpan di perangkat ini saja. Ganti laptop, progres hilang — dan itu memang bukan bukti.',
-      'Yang naik ke chain hanya pernyataan kelulusan dari penerbit. Tidak ada nama, tidak ada nilai mentah.',
-    ]
-      .map((t) => `<li>${esc(t)}</li>`)
-      .join('')}</ul>
-  </section>`
+  <div class="learn-section-head"><div><p class="eyebrow">KATALOG</p><h2>Pilih perjalananmu</h2></div>
+    <span>${s.courses} kursus · ${s.lessons} lesson</span></div>
+  <div class="grid course-grid">${cards}</div>
+  <details class="learn-disclosure"><summary>Bagaimana progres dan kredensial bekerja?</summary>
+    <p>Catatan di perangkat ini membantu kamu melanjutkan belajar, tetapi bukan bukti kelulusan.
+      Setelah memilih identitas peserta, tindakan belajar juga dikirim ke penerbit; lihat statusnya
+      di halaman kursus. Penerbitan kredensial, pembayaran, dan pendaftaran berbayar belum tersedia
+      lewat halaman ini.</p>
+    <p class="muted">Isi katalog: ${s.modules} modul · ${s.pages} halaman · ${s.quizQuestions} soal kuis ·
+      ${s.essays} esai · ±${Math.round(s.minutes / 60)} jam.
+      ${problems.length ? `<strong class="bad">Audit konten menemukan ${problems.length} masalah.</strong>` : 'Audit konten: tidak ada masalah terdeteksi.'}</p>
+  </details>`
 }
 
 /**
@@ -237,7 +231,7 @@ function completenessLine (st: CourseSummary, rubricRef: string): string {
       bukti untuk ${st.gradedWeights}/100 mata penilai</p>
     <p class="muted">${st.readyForCredential
       ? 'Buktinya lengkap — tapi <strong>belum ada nilai</strong>: angka akhir dihitung terhadap rubrik penerbit, bukan oleh halaman ini.'
-      : 'Belum lengkap — belum ada yang bisa dinilai.'}
+      : 'Belum semua bukti terkumpul; hasil akhir belum dapat ditentukan di halaman ini.'}
       Rubrik versi <code>${esc(rubricRef)}</code> ikut tercetak ke dokumen kredensial saat terbit,
       jadi kebijakan itu tidak bisa kami ganti setelah ijazahmu ada.</p>`
 }
@@ -245,6 +239,7 @@ function completenessLine (st: CourseSummary, rubricRef: string): string {
 function pageSyllabus(course: Course): string {
   const lessons = course.modules.flatMap((m) => m.lessons)
   const st = summarize(course.id, lessons, course.weights)
+  const next = lessons.find((l) => !courseProgress(course.id)[l.slug]?.done)
   const manifest = manifestOf(course.id)
   const rubricRef = manifest ? shortHash(rubricHashOf(manifest)) : 'tanpa manifest'
   const mods = course.modules
@@ -271,16 +266,23 @@ function pageSyllabus(course: Course): string {
     .join('')
 
   return `${breadcrumb([{ label: 'Katalog', href: link() }, { label: course.title }])}
-  <section class="card">
+  <section class="card syllabus-head">
+    <p class="eyebrow">KURSUS · ${esc(course.level)}</p>
     <h2>${esc(course.title)}</h2>
-    <p class="muted">${esc(course.institution)}</p>
-    <p>${esc(course.blurb)}</p>
-    <p class="progress-line"><span style="width:${st.pct}%"></span></p>
-    ${completenessLine(st, rubricRef)}
+    <p class="course-meta">Oleh ${esc(course.institution)} · ${course.modules.length} modul · ${lessons.length} lesson</p>
+    <p class="lede">${esc(course.blurb)}</p>
+    <div class="actions syllabus-actions">
+      <a class="btn primary-link" href="${next ? link('course', course.id, 'l', next.slug) : link('me')}">${next ? st.doneLessons ? 'Lanjutkan belajar' : 'Mulai belajar' : 'Lihat ringkasan belajar'} →</a>
+      <a class="btn" href="${link('me')}">My Learning</a>
+    </div>
+    <div class="progress-label"><span>Progres di perangkat ini</span><strong>${st.doneLessons}/${st.totalLessons} lesson</strong></div>
+    <div class="progress-line" role="progressbar" aria-label="Progres lokal kursus" aria-valuenow="${st.pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${st.pct}%"></span></div>
     ${serverLine(course.id)}
     <p data-role="learn-status" class="muted"></p>
-    <h3>Kamu akan bisa</h3>
+    <h3>Yang akan kamu kuasai</h3>
     <ul>${course.outcome.map((o) => `<li>${esc(o)}</li>`).join('')}</ul>
+    <details class="learn-disclosure"><summary>Detail penilaian dan kebijakan penerbit</summary>
+    ${completenessLine(st, rubricRef)}
     <h3>Kebijakan penilaian penerbit</h3>
     <p>${esc(course.criteria)}</p>
     <p class="muted">Bobot: kuis ${course.weights.kuis}% · praktik ${course.weights.praktik}% ·
@@ -290,6 +292,7 @@ function pageSyllabus(course: Course): string {
       <p>Kredensial "${esc(course.prereqCourseId)}" harus sudah kamu punya. Di chain ini prasyarat
       ditegakkan kontrak: kredensial yang prasyaratnya sudah dicabut, kedaluwarsa, atau bukan
       milikmu akan DITOLAK saat penerbitan — bukan diam-diam diterima lalu diam-diam mati.</p></aside>` : ''}
+    </details>
   </section>
   ${mods}`
 }
@@ -371,12 +374,12 @@ function essayHtml(course: Course, lesson: Lesson): string {
     <ul>${e.guidance.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>
     <div class="actions">
       <button data-action="save-draft" data-course="${esc(course.id)}" data-lesson="${esc(lesson.slug)}">Simpan draf</button>
-      <button class="primary" data-action="finish-essay" data-course="${esc(course.id)}" data-lesson="${esc(lesson.slug)}" data-min="${e.minWords}">Tandai selesai</button>
+      <button class="primary" data-action="finish-essay" data-course="${esc(course.id)}" data-lesson="${esc(lesson.slug)}" data-min="${e.minWords}">Kirim esai untuk dinilai</button>
     </div>
     <p class="status" data-role="essay-status" aria-live="polite"></p>
-    <aside class="note"><strong>Status esai</strong><p>Ini draf lokal. Nilai resminya keluar dari agen
-    penerbit setelah kamu mengirimnya — dan pada saat ini sistem belum mengirim ke mana-mana, jadi
-    kata "terkirim" di halaman ini belum berlaku.</p></aside>
+    <aside class="note"><strong>Draf atau kiriman?</strong><p>"Simpan draf" hanya menyimpan di perangkat ini.
+      "Kirim esai" memerlukan identitas peserta dan koneksi penerbit; status berhasil atau gagal
+      akan tampil di atas. Menulis draf saja tidak berarti sudah dinilai.</p></aside>
   </section>`
 }
 
@@ -429,37 +432,43 @@ function pageLesson(course: Course, mod: Module, lesson: Lesson, review?: QuizRe
       ${next ? `<a href="${link('course', course.id, 'l', next.l.slug)}">${esc(next.l.title)} →</a>` : `<a href="${link('me')}">Ringkasanku →</a>`}
     </nav>
     <p class="muted">Perangkat ini mencatat ${st.pct}% lesson dan bukti untuk ${st.gradedWeights}/100 mata
-    penilai. Angkanya milik localStorage kamu dan bukan bukti apa pun — yang bernilai hanya
-    pernyataan penerbit di chain.</p>
+    penilai. Catatan lokal membantu melanjutkan belajar, tetapi bukan hasil penilaian penerbit
+    atau kredensial yang sudah terbit.</p>
   </article>`
 }
 
 function pageMe(): string {
   const rows = COURSES.map((c) => {
     const st = summarize(c.id, c.modules.flatMap((m) => m.lessons), c.weights)
-    return `<tr><td><a href="${link('course', c.id)}">${esc(c.title)}</a></td>
-      <td>${st.doneLessons}/${st.totalLessons}</td>
-      <td>${st.quizAvg ?? '—'}</td>
-      <td>${st.essayDrafted ? 'ada draf' : '—'}</td>
-      <td>${st.gradedWeights}/100</td>
-      <td>${st.readyForCredential ? 'bukti lengkap, belum dinilai' : 'belum lengkap'}</td>
-      <td><button data-action="wipe" data-course="${esc(c.id)}">hapus</button></td></tr>`
+    const next = c.modules.flatMap((m) => m.lessons).find((l) => !courseProgress(c.id)[l.slug]?.done)
+    const remote = snapshot().courseId === c.id ? snapshot().summary : null
+    return `<article class="card learning-card">
+      <div class="learning-card-top"><div><p class="eyebrow">${esc(c.level)}</p>
+        <h3><a href="${link('course', c.id)}">${esc(c.title)}</a></h3></div>
+        <strong class="learning-count">${st.pct}%</strong></div>
+      <div class="progress-line" role="progressbar" aria-label="Progres lokal ${esc(c.title)}" aria-valuenow="${st.pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${st.pct}%"></span></div>
+      <p class="muted">Di perangkat ini: ${st.doneLessons}/${st.totalLessons} lesson · kuis rata-rata ${st.quizAvg ?? '—'} · ${st.essayDrafted ? 'ada draf esai' : 'belum ada draf esai'}</p>
+      <p class="record-state">${remote ? `Di penerbit: ${remote.lessonsCompleted}/${remote.lessonsTotal} lesson selesai · ${remote.gradedAttempts} usaha dinilai.` : 'Rekaman penerbit belum dibaca untuk kursus ini.'}</p>
+      <div class="course-links"><a class="btn primary-link" href="${next ? link('course', c.id, 'l', next.slug) : link('course', c.id)}">${next ? st.doneLessons ? 'Lanjutkan' : 'Mulai belajar' : 'Lihat kursus'} →</a>
+        <button class="link" data-action="wipe" data-course="${esc(c.id)}">Hapus catatan lokal</button></div>
+    </article>`
   }).join('')
 
   return `${breadcrumb([{ label: 'Katalog', href: link() }, { label: 'Saya' }])}
-  <section class="card">
-    <h2>Progres di perangkat ini</h2>
-    <table><thead><tr><th>Kursus</th><th>Lesson</th><th>Kuis</th><th>Esai</th><th>Bukti</th><th>Status</th><th></th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <aside class="note"><strong>Kenapa belum ada tombol "ajukan"</strong>
-      <p>Menyerahkan hasil belajar ke chain adalah tindakan penerbit, bukan tombol di halaman bacaan.
-      Yang bisa kami lakukan dari sini: memastikan kolom "Bukti" penuh, lalu memberi alamatmu ke
-      jalur penerbitan. Kolom itu juga yang akan ditanya lebih dulu waktu itu.</p></aside>
+  <section class="learn-hero compact">
+    <p class="eyebrow">MY LEARNING</p><h2>Perjalanan belajarmu.</h2>
+    <p>Bedakan catatan di perangkat, rekaman penerbit, dan kredensial yang sudah terbit.
+      Ketiganya bukan status yang sama.</p>
   </section>
-  <section class="card">
-    <h3>Kredensial saya di chain</h3>
-    <p class="muted">Dibaca langsung dari <code>credentialsOf(address)</code> pada resolver — tanpa backend kami.
-    Address kamu tidak dikirim ke mana-mana.</p>
+  <div class="grid learning-grid">${rows}</div>
+  <aside class="note"><strong>Belum ada tombol terbitkan otomatis</strong>
+    <p>Rekaman belajar di penerbit perlu diperiksa dan dinilai sebelum penerbitan.
+    Selesai membaca semua lesson atau mencapai 100% di perangkat ini tidak otomatis
+    berarti lulus atau memiliki kredensial.</p></aside>
+  <section class="card chain-card">
+    <p class="eyebrow">BUKTI TERBIT</p><h3>Kredensial saya di chain</h3>
+    <p class="muted">Dibaca dari kontrak resolver melalui RPC, bukan dari rekaman belajar penerbit.
+    Alamat yang kamu masukkan dikirim ke penyedia RPC untuk pencarian ini.</p>
     <label>Address peserta
       <input id="me-address" spellcheck="false" placeholder="0x…" size="44" />
     </label>
@@ -566,6 +575,12 @@ export function renderLmsRoute (): boolean {
   if (!mount) return false
 
   const hash = (location.hash || '#/').toLowerCase().split('?')[0]
+  if (isLmsRoute(hash) && !hasExplicitLearnerSession()) {
+    mount.innerHTML = ''
+    delete document.body.dataset.lmsRoute
+    window.history.replaceState(window.history.state, '', `${location.pathname}${location.search}#/`)
+    return true
+  }
   if (!isLmsRoute(hash)) {
     mount.innerHTML = ''
     delete document.body.dataset.lmsRoute
@@ -646,15 +661,6 @@ function rerender(): void {
 }
 
 export function bindLms(root: HTMLElement): void {
-  // Enter di kolom email/kode = tombol di sebelahnya; kotak identitas bukan <form>, jadi ini manual.
-  root.addEventListener('keydown', (ev) => {
-    if (ev.key !== 'Enter') return
-    const role = (ev.target as HTMLElement | null)?.dataset?.role
-    const action = role === 'privy-email' ? 'privy-send' : role === 'privy-code' ? 'privy-login' : null
-    if (!action) return
-    ev.preventDefault()
-    ;(root.querySelector(`[data-action="${action}"]`) as HTMLElement | null)?.click()
-  })
   root.addEventListener('click', async (ev) => {
     const btn = (ev.target as HTMLElement | null)?.closest?.('[data-action]') as HTMLElement | null
     if (!btn) return
@@ -675,32 +681,8 @@ export function bindLms(root: HTMLElement): void {
       return
     }
 
-    if (action === 'privy-send') {
-      const email = (root.querySelector('[data-role="privy-email"]') as HTMLInputElement | null)?.value ?? ''
-      btn.setAttribute('disabled', '')
-      learnStatus(root, 'Mengirim kode ke email…')
-      const r = await sendPrivyCode(email)
-      btn.removeAttribute('disabled')
-      if (!r.ok) { learnStatus(root, `Kode tidak terkirim: ${r.why ?? 'tidak diketahui'}`, true); return }
-      const row = root.querySelector('[data-role="privy-code-row"]') as HTMLElement | null
-      if (row) row.hidden = false
-      ;(root.querySelector('[data-role="privy-code"]') as HTMLInputElement | null)?.focus()
-      learnStatus(root, `Kode dikirim ke ${email.trim()}. Cek kotak masuk (dan folder spam), lalu ketik 6 digitnya.`)
-      return
-    }
-
-    if (action === 'privy-login') {
-      const email = (root.querySelector('[data-role="privy-email"]') as HTMLInputElement | null)?.value ?? ''
-      const code = (root.querySelector('[data-role="privy-code"]') as HTMLInputElement | null)?.value ?? ''
-      btn.setAttribute('disabled', '')
-      learnStatus(root, 'Masuk dan menyambungkan dompet tertanam…')
-      const r = await connectPrivyLearner(email, code)
-      btn.removeAttribute('disabled')
-      if (!r.ok || !r.identity) { learnStatus(root, `Gagal masuk: ${r.why ?? 'tidak diketahui'}`, true); return }
-      const cid = courseId || COURSES[0]?.id || ''
-      if (cid) await syncCourse(cid)
-      rerender()
-      learnStatus(root, `Masuk sebagai ${r.identity.address.slice(0, 10)}… — ${r.account?.note ?? 'ikatan akun belum diperiksa'}.`, r.account ? !r.account.linked : false)
+    if (action === 'learner-privy') {
+      window.dispatchEvent(new CustomEvent('lencana:open-privy', { detail: { courseId: courseId || COURSES[0]?.id || '' } }))
       return
     }
 
@@ -741,13 +723,17 @@ export function bindLms(root: HTMLElement): void {
       // Cache lokal dulu (halaman tidak boleh buta saat jaringan mati), lalu state yang sebenarnya
       // dibaca penerbit. Kalau yang kedua gagal, pesertanya harus tahu — bukan mengira sudah
       // tercatat hanya karena tombolnya sudah diklik.
+      let message = 'Selesai di perangkat ini saja. Hubungkan identitas agar rekaman tersimpan di penerbit.'
+      let failed = false
       if (learnerAddress()) {
         learnStatus(root, 'Mencatat ke penerbit…')
         const r = await completeLesson(courseId, slug, flat.findIndex((l) => l.slug === slug))
-        learnStatus(root, r.ok ? `Tercatat di penerbit: ${slug} selesai.`
-          : `Di perangkat tercatat, di penerbit TIDAK: ${r.why ?? 'tidak diketahui'}`, !r.ok)
+        message = r.ok ? 'Lesson tercatat di penerbit.'
+          : `Di perangkat tercatat, tetapi di penerbit belum: ${r.why ?? 'tidak diketahui'}`
+        failed = !r.ok
       }
       rerender()
+      learnStatus(root, message, failed)
       return
     }
 
@@ -785,11 +771,9 @@ export function bindLms(root: HTMLElement): void {
       const prev = courseProgress(courseId)[slug]
       const best = Math.max(graded.score, prev?.score ?? 0)
       recordLesson(courseId, slug, 'kuis', { done: graded.verdict === 'pass', score: best, attempts: (prev?.attempts ?? 0) + 1 })
-      if (s) {
-        s.innerHTML = `<span class="${graded.verdict === 'pass' ? 'ok' : 'bad'}">Dinilai penerbit: ${graded.correct}/${graded.total} benar = ${graded.score} · terbaik ${best} · ambang ${graded.passPct} · ${
+      const resultHtml = `<span class="${graded.verdict === 'pass' ? 'ok' : 'bad'}">Dinilai penerbit: ${graded.correct}/${graded.total} benar = ${graded.score} · terbaik ${best} · ambang ${graded.passPct} · ${
           graded.verdict === 'pass' ? 'cukup' : 'belum cukup, baca lagi alasannya lalu ulangi'
-        }<br><span class="muted">attempt_hash <code>${esc(graded.attemptHash.slice(0, 18))}…</code> — usaha ini tercatat di backend, dan angka di kertas nanti diturunkan dari baris ini.</span></span>`
-      }
+        }<br><span class="muted">Usaha ini tercatat di penerbit · referensi <code>${esc(graded.attemptHash.slice(0, 18))}…</code></span></span>`
       // Pembahasan dipasang ulang lewat render: pilihan peserta tetap terpilih, dan benar/salah +
       // alasan tiap soal diambil dari balasan server (B80) — bukan dari kunci, yang tidak ada di sini.
       const host = getMount()
@@ -797,9 +781,8 @@ export function bindLms(root: HTMLElement): void {
         const review: QuizReview = { picks: new Map(picks.map((p) => [p.itemId, p.choice])), items: graded.review }
         host.innerHTML = pageLesson(lesson.course, lesson.mod, lesson.lesson, review)
         startWordCount()
-        // Status ditulis lagi karena render ulang mengganti elemennya.
-        const s2 = host.querySelector('[data-role="quiz-status"]') as HTMLElement | null
-        if (s2 && s) s2.innerHTML = s.innerHTML
+        const visibleStatus = status('quiz-status')
+        if (visibleStatus) visibleStatus.innerHTML = resultHtml
       }
       return
     }
@@ -835,8 +818,9 @@ export function bindLms(root: HTMLElement): void {
         const rec = await submitEssay(courseId, slug, ta.value)
         if (rec) {
           recordLesson(courseId, slug, 'esai', { done: true, draft: ta.value })
-          if (s) s.innerHTML = `<span class="ok">Terkirim ke penerbit</span> ${rec.mechanicalPassed}/${rec.mechanicalTotal} tanda mekanis terpenuhi · ${rec.words} kata · <code>${esc(rec.attemptHash.slice(0, 14))}…</code><br><span class="muted">${esc(rec.note || 'Menunggu penilaian penerbit — belum ada angka, dan itu bukan nol.')}</span>`
           rerender()
+          const visibleStatus = status('essay-status')
+          if (visibleStatus) visibleStatus.innerHTML = `<span class="ok">Terkirim ke penerbit</span> ${rec.mechanicalPassed}/${rec.mechanicalTotal} tanda mekanis terpenuhi · ${rec.words} kata · <code>${esc(rec.attemptHash.slice(0, 14))}…</code><br><span class="muted">${esc(rec.note || 'Menunggu penilaian penerbit — belum ada angka, dan itu bukan nol.')}</span>`
           return
         }
         const why = snapshot().error ?? 'penerbit tidak menjawab'
@@ -844,11 +828,13 @@ export function bindLms(root: HTMLElement): void {
         recordLesson(courseId, slug, 'esai', { done: false, draft: ta.value })
         return
       }
-      recordLesson(courseId, slug, 'esai', { done: true, draft: ta.value })
+      recordLesson(courseId, slug, 'esai', { done: false, draft: ta.value })
       if (s) s.textContent = 'Dicatat di perangkat ini saja: belum ada identitas peserta, jadi karangan tidak diserahkan ke penerbit dan tidak akan ikut dinilai.'
     }
 
     if (action === 'wipe') {
+      const course = findCourse(courseId)
+      if (!window.confirm(`Hapus catatan belajar lokal untuk ${course?.title ?? 'kursus ini'}? Rekaman di penerbit dan kredensial di chain tidak ikut terhapus.`)) return
       wipeCourse(courseId)
       rerender()
       return

@@ -15,6 +15,24 @@ import { renderLmsRoute } from './lms'
 // B105 — halaman `#/publishers` membaca registri penerbit dari manifest, bukan dari angka yang
 // diketik ke HTML: kalau kursus atau penerbitnya bertambah, halamannya ikut berubah sendiri.
 import { MANIFESTS, rubricHashOf, shortHash } from './manifest'
+import {
+  learnerAddress,
+  connectWalletLearner,
+  connectPrivyLearner,
+  createDeviceLearner,
+  forgetLearner,
+  hasExplicitLearnerSession,
+  sendPrivyCode,
+  startDemoLearnerSession,
+  syncCourse,
+  snapshot,
+} from './learning'
+
+// B82 (D57): login email lewat Privy kini sungguhan — app ID publik ditulis sebagai default di
+// `privy.ts`, kode datang dari kotak masuk, dan dompet tertanamnya yang menandatangani. Cabang "mode
+// demo" di bawah (kode 123456, Google tiruan) ditulis sebelum itu dan tidak pernah berlaku lagi.
+// Sengaja TIDAK mengimpor `./privy` di sini: modul login harus tetap dimuat lambat (verify:privy E).
+const isRealPrivyConfigured = (): boolean => true
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -417,18 +435,40 @@ function setPrivacyMode(mode: 'pseudo' | 'named') {
   const btnNamed = $('btn-privacy-named')
   const learnerName = $('learner-profile-name')
   const learnerSub = $('learner-sub-info')
+  // Bila identitas nyata ada, toggle privasi tidak boleh mengembalikan nama fixture.
+  const realAddr = learnerAddress()
+  if (realAddr) {
+    const short = `${realAddr.slice(0, 6)}...${realAddr.slice(-4)}`
+    btnPseudo?.classList.toggle('active', mode === 'pseudo')
+    btnNamed?.classList.toggle('active', mode === 'named')
+    btnPseudo?.setAttribute('aria-pressed', String(mode === 'pseudo'))
+    btnNamed?.setAttribute('aria-pressed', String(mode === 'named'))
+    if (learnerName) learnerName.textContent = mode === 'named' ? `${short} ✓` : short
+    if (learnerSub) {
+      learnerSub.textContent = mode === 'named'
+        ? (currentLang === 'en' ? 'Named profile · your learning progress stays the same' : 'Profil bernama · progres belajarmu tetap sama')
+        : (currentLang === 'en' ? 'Address-only identity · no display name' : 'Identitas address saja · tanpa nama tampilan')
+    }
+    return
+  }
 
   if (mode === 'pseudo') {
     btnPseudo?.classList.add('active')
     btnNamed?.classList.remove('active')
+    btnPseudo?.setAttribute('aria-pressed', 'true')
+    btnNamed?.setAttribute('aria-pressed', 'false')
     if (learnerName) learnerName.textContent = DICTIONARIES[currentLang].coursesSection.learnerProfileName
     if (learnerSub) learnerSub.textContent = DICTIONARIES[currentLang].coursesSection.learnerSubInfo
   } else {
     btnNamed?.classList.add('active')
     btnPseudo?.classList.remove('active')
+    btnNamed?.setAttribute('aria-pressed', 'true')
+    btnPseudo?.setAttribute('aria-pressed', 'false')
     if (learnerName) learnerName.textContent = `${DICTIONARIES[currentLang].coursesSection.learnerProfileName} ✓`
     if (learnerSub) {
-      learnerSub.textContent = 'did:pkh:eip155:97:0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B (Salted Hash #8F92)'
+      learnerSub.textContent = currentLang === 'en'
+        ? 'Named profile · your learning progress stays the same'
+        : 'Profil bernama · progres belajarmu tetap sama'
     }
   }
 }
@@ -481,8 +521,10 @@ function updateEssayWordCount() {
   const essayInput = $('essay-input') as HTMLTextAreaElement | null
   const text = essayInput?.value || ''
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
-  const astTokens = Math.round(words * 1.35)
-  setText('essay-token-count', `Words: ${words} · AST Tokens: ~${astTokens} · Rubric: 100%`)
+  setText(
+    'essay-token-count',
+    currentLang === 'en' ? `${words} words · Draft ready` : `${words} kata · Draf siap`,
+  )
   updateEditorLineNumbers()
 }
 
@@ -499,6 +541,26 @@ let walletState: WalletState = {
 }
 
 function initWalletState() {
+  if (!hasExplicitLearnerSession()) {
+    // Old session data without the explicit marker is not an authenticated learner session.
+    if (learnerAddress()) forgetLearner()
+    try { sessionStorage.removeItem('lencana_wallet') } catch { /* storage may be unavailable */ }
+    walletState = { isConnected: false, address: null, isDemo: false }
+    renderWalletState()
+    return
+  }
+  const addr = learnerAddress()
+  if (addr) {
+    const s = snapshot()
+    const k = s.identity?.kind
+    walletState = {
+      isConnected: true,
+      address: addr,
+      isDemo: k === 'perangkat' || (k === 'privy' && !isRealPrivyConfigured()),
+    }
+    renderWalletState()
+    return
+  }
   try {
     const saved = sessionStorage.getItem('lencana_wallet')
     if (saved) {
@@ -516,16 +578,32 @@ function renderWalletState() {
   const portfolioAddrEl = document.querySelector('.portfolio-wallet-addr')
   const mintReceiptAddr = $('mint-receipt-recipient')
 
-  if (walletState.isConnected && walletState.address) {
+  const effectiveAddress = hasExplicitLearnerSession()
+    ? learnerAddress() || (walletState.isConnected ? walletState.address : null)
+    : null
+
+  if (effectiveAddress) {
     connectBtn?.classList.add('hidden')
     connectedPill?.classList.remove('hidden')
-    const short = `${walletState.address.slice(0, 6)}...${walletState.address.slice(-4)}`
+    const short = `${effectiveAddress.slice(0, 6)}...${effectiveAddress.slice(-4)}`
     if (addrDisplay) {
-      addrDisplay.textContent = walletState.isDemo ? `rina.bnb (${short})` : short
+      addrDisplay.textContent = walletState.isDemo ? `guest (${short})` : short
     }
-    if (learnerAddrEl) learnerAddrEl.textContent = walletState.address
-    if (portfolioAddrEl) portfolioAddrEl.textContent = walletState.address
-    if (mintReceiptAddr) mintReceiptAddr.textContent = walletState.address
+    if (learnerAddrEl) learnerAddrEl.textContent = effectiveAddress
+    if (portfolioAddrEl) portfolioAddrEl.textContent = effectiveAddress
+    if (mintReceiptAddr) mintReceiptAddr.textContent = effectiveAddress
+    // Kartu learner di storefront: nama fixture ("Rina Oktaviani", OI-5) diganti alamat
+    // nyata begitu ada identitas — ilustrasi tidak boleh menyamar jadi peserta yang masuk.
+    const cardName = $('learner-profile-name')
+    if (cardName) cardName.textContent = walletState.isDemo ? `Guest ${short}` : short
+    const cardSub = $('learner-sub-info')
+    if (cardSub) {
+      cardSub.textContent = walletState.isDemo
+        ? (currentLang === 'en' ? 'Temporary session key · progress syncs to the issuer when online' : 'Kunci sesi sementara · progres tersinkron ke penerbit saat online')
+        : (currentLang === 'en' ? 'Connected wallet · progress syncs to the issuer' : 'Dompet terhubung · progres tersinkron ke penerbit')
+    }
+    const avatar = document.querySelector('.learner-avatar-img')
+    if (avatar) avatar.textContent = effectiveAddress.slice(2, 4).toUpperCase()
   } else {
     connectBtn?.classList.remove('hidden')
     connectedPill?.classList.add('hidden')
@@ -533,21 +611,337 @@ function renderWalletState() {
     if (portfolioAddrEl) portfolioAddrEl.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
     if (mintReceiptAddr) mintReceiptAddr.textContent = '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B'
   }
+  updateLearnerNavigation()
 }
 
-function openWalletModal() {
+const learnerRouteLinkState = new WeakMap<HTMLAnchorElement, {
+  hidden: boolean
+  ariaHidden: string | null
+  tabIndex: string | null
+}>()
+
+function isProtectedRouteHref(href: string): boolean {
+  const marker = href.indexOf('#')
+  if (marker < 0) return false
+  const hash = href.slice(marker).toLowerCase().split('?')[0]
+  if (hash === '#/' || hash === '#') return false
+  if (hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login') return false
+  // Verifier publik — sama seperti guard rute: tautan "Check Proof" tetap tampil untuk tamu.
+  if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') return false
+  if (hash.startsWith('#/')) return true
+  return ['#courses', '#learn', '#course', '#submit', '#ai-evaluator', '#verifier', '#verify',
+    '#portfolio', '#ai-agents', '#agent-hub'].includes(hash)
+}
+
+/** Navigation follows the same explicit session signal as the route guard. */
+function updateLearnerNavigation(): void {
+  const authenticated = hasExplicitLearnerSession()
+  document.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((anchor) => {
+    if (!isProtectedRouteHref(anchor.getAttribute('href') ?? '')) return
+    if (!learnerRouteLinkState.has(anchor)) {
+      learnerRouteLinkState.set(anchor, {
+        hidden: anchor.classList.contains('hidden') || anchor.hidden,
+        ariaHidden: anchor.getAttribute('aria-hidden'),
+        tabIndex: anchor.getAttribute('tabindex'),
+      })
+    }
+    const original = learnerRouteLinkState.get(anchor)!
+    if (!authenticated) {
+      anchor.classList.add('hidden')
+      anchor.hidden = true
+      anchor.setAttribute('aria-hidden', 'true')
+      anchor.tabIndex = -1
+    } else {
+      anchor.classList.toggle('hidden', original.hidden)
+      anchor.hidden = original.hidden
+      if (original.ariaHidden === null) anchor.removeAttribute('aria-hidden')
+      else anchor.setAttribute('aria-hidden', original.ariaHidden)
+      if (original.tabIndex === null) anchor.removeAttribute('tabindex')
+      else anchor.setAttribute('tabindex', original.tabIndex)
+    }
+  })
+}
+
+function openWalletModal(startWithPrivy = false) {
   const modal = $('wallet-modal')
   const statusEl = $('wallet-modal-status')
+  const optionsList = $('wallet-options-list')
+  const privyPanel = $('privy-onboarding-panel')
+  const stepEmail = $('privy-step-email')
+  const stepOtp = $('privy-step-otp')
+
   if (statusEl) {
     statusEl.classList.add('hidden')
     statusEl.textContent = ''
   }
+
+  if (startWithPrivy) {
+    optionsList?.classList.add('hidden')
+    privyPanel?.classList.remove('hidden')
+    stepEmail?.classList.remove('hidden')
+    stepOtp?.classList.add('hidden')
+  } else {
+    optionsList?.classList.remove('hidden')
+    privyPanel?.classList.add('hidden')
+    stepEmail?.classList.remove('hidden')
+    stepOtp?.classList.add('hidden')
+  }
+
+  applyPrivyModeLabels()
   modal?.classList.remove('hidden')
 }
 
 function closeWalletModal() {
   const modal = $('wallet-modal')
   modal?.classList.add('hidden')
+}
+
+/**
+ * Label mode Privy: demo vs live. Tanpa App ID Privy sungguhan, "masuk dengan Privy"
+ * sebenarnya membuat kunci lokal di sesi ini — bukan dompet embedded Privy, tidak ada
+ * email yang dikirim, dan "login Google" tidak menyentuh Google. Copy di bawah membuat
+ * perbedaan itu eksplisit supaya halaman tidak berpura-pura (vault OI-5/OI-13).
+ */
+function applyPrivyModeLabels(): void {
+  if (isRealPrivyConfigured()) return
+  const en = currentLang === 'en'
+  setText('wallet-opt-privy-desc', en
+    ? 'Demo mode (no Privy App ID): local session key, not a real Privy wallet'
+    : 'Mode demo (tanpa App ID Privy): kunci sesi lokal, bukan dompet Privy sungguhan')
+  setText('privy-google-btn-text', en
+    ? 'Continue with Google (Demo — no real Google)'
+    : 'Lanjutkan dengan Google (Demo — tanpa Google sungguhan)')
+  setText('privy-otp-notice', en
+    ? 'Demo mode: any code of 4+ digits is accepted locally (123456 for quick test). No email is actually sent.'
+    : 'Mode demo: kode apa pun ≥4 digit diterima secara lokal (123456 untuk uji cepat). Tidak ada email yang benar-benar dikirim.')
+  setText('privy-step-otp-help', en
+    ? 'Demo mode: nothing was emailed. Enter any 4+ digit code (123456 for quick test) to activate a local learning address:'
+    : 'Mode demo: tidak ada yang dikirim ke email. Masukkan kode apa pun ≥4 digit (123456 untuk uji cepat) untuk mengaktifkan alamat belajar lokal:')
+  setText('privy-custody-text', en
+    ? 'Demo mode: the key is generated in this browser and dies with the session/tab. It is NOT a Privy embedded wallet and cannot be exported via Privy.'
+    : 'Mode demo: kunci dibuat di peramban ini dan hangus bersama sesi/tab. Ini BUKAN dompet embedded Privy dan tidak bisa diekspor lewat Privy.')
+}
+
+function switchToPrivyPanel() {
+  const optionsList = $('wallet-options-list')
+  const privyPanel = $('privy-onboarding-panel')
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.add('hidden')
+    statusEl.textContent = ''
+  }
+  optionsList?.classList.add('hidden')
+  privyPanel?.classList.remove('hidden')
+  $('privy-step-email')?.classList.remove('hidden')
+  $('privy-step-otp')?.classList.add('hidden')
+  const emailInput = $('privy-email-input') as HTMLInputElement | null
+  emailInput?.focus()
+}
+
+function switchToOptionsList() {
+  const optionsList = $('wallet-options-list')
+  const privyPanel = $('privy-onboarding-panel')
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.add('hidden')
+    statusEl.textContent = ''
+  }
+  privyPanel?.classList.add('hidden')
+  optionsList?.classList.remove('hidden')
+}
+
+async function handlePrivySendOtp() {
+  const emailInput = $('privy-email-input') as HTMLInputElement | null
+  const statusEl = $('wallet-modal-status')
+  const btn = $('btn-privy-send-otp') as HTMLButtonElement | null
+  const email = emailInput?.value.trim() || ''
+
+  if (!email || !email.includes('@')) {
+    if (statusEl) {
+      statusEl.textContent = currentLang === 'en'
+        ? 'Please enter a valid email address.'
+        : 'Masukkan format email yang valid.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+    return
+  }
+
+  if (btn) {
+    btn.disabled = true
+    btn.textContent = currentLang === 'en' ? 'Sending code…' : 'Mengirim kode…'
+  }
+  if (statusEl) {
+    statusEl.classList.remove('hidden')
+    const demo = !isRealPrivyConfigured()
+    statusEl.textContent = demo
+      ? (currentLang === 'en' ? 'Demo mode: preparing a local code (nothing is sent)…' : 'Mode demo: menyiapkan kode lokal (tidak ada yang dikirim)…')
+      : (currentLang === 'en' ? 'Contacting Privy Auth…' : 'Menghubungi Privy Auth…')
+    statusEl.className = 'wallet-modal-status'
+  }
+
+  try {
+    const res = await sendPrivyCode(email)
+    if (!res.ok) {
+      if (statusEl) {
+        statusEl.textContent = res.why || (currentLang === 'en' ? 'The code could not be sent.' : 'Kode tidak terkirim.')
+        statusEl.className = 'wallet-modal-status error'
+        statusEl.classList.remove('hidden')
+      }
+      return
+    }
+    if (statusEl) {
+      statusEl.textContent = currentLang === 'en'
+        ? `Code sent to ${email}. Check your inbox (and spam), then enter the 6 digits.`
+        : `Kode dikirim ke ${email}. Cek kotak masuk (dan folder spam), lalu ketik 6 digitnya.`
+      statusEl.className = 'wallet-modal-status'
+      statusEl.classList.remove('hidden')
+    }
+    // Show OTP input step
+    $('privy-step-email')?.classList.add('hidden')
+    $('privy-step-otp')?.classList.remove('hidden')
+    const otpInput = $('privy-otp-input') as HTMLInputElement | null
+    if (otpInput) {
+      otpInput.value = ''
+      otpInput.focus()
+    }
+  } catch (err: any) {
+    if (statusEl) {
+      statusEl.textContent = err?.message || 'Gagal mengirim OTP.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false
+      btn.textContent = DICTIONARIES[currentLang].wallet.privySendOtpBtn
+    }
+  }
+}
+
+async function handlePrivyVerifyOtp() {
+  const emailInput = $('privy-email-input') as HTMLInputElement | null
+  const otpInput = $('privy-otp-input') as HTMLInputElement | null
+  const statusEl = $('wallet-modal-status')
+  const btn = $('btn-privy-verify-otp') as HTMLButtonElement | null
+
+  const email = emailInput?.value.trim() || ''
+  const otp = otpInput?.value.trim() || ''
+
+  if (!otp) {
+    if (statusEl) {
+      statusEl.textContent = currentLang === 'en'
+        ? 'Please enter the 6-digit OTP code.'
+        : 'Masukkan 6 digit kode OTP.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+    return
+  }
+
+  if (btn) {
+    btn.disabled = true
+    btn.textContent = currentLang === 'en' ? 'Verifying…' : 'Memverifikasi…'
+  }
+  if (statusEl) {
+    statusEl.classList.remove('hidden')
+    statusEl.textContent = currentLang === 'en' ? 'Activating Privy Embedded Wallet…' : 'Mengaktifkan Dompet Embedded Privy…'
+    statusEl.className = 'wallet-modal-status'
+  }
+
+  try {
+    const login = await connectPrivyLearner(email, otp)
+    const res = { ok: login.ok, address: login.identity?.address, why: login.why }
+    if (!res.ok || !res.address) {
+      if (statusEl) {
+        statusEl.textContent = res.why || (currentLang === 'en' ? 'Invalid verification code.' : 'Kode verifikasi tidak valid.')
+        statusEl.className = 'wallet-modal-status error'
+        statusEl.classList.remove('hidden')
+      }
+      return
+    }
+
+    walletState = { isConnected: true, address: res.address, isDemo: false }
+    sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+    renderWalletState()
+    closeWalletModal()
+
+    const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+    if (pendingTarget) {
+      sessionStorage.removeItem('lencana_enroll_target')
+      try {
+        await syncCourse(pendingTarget)
+      } catch (err) {
+        console.warn('Sync enrollment error:', err)
+      }
+      window.location.hash = `#/course/${pendingTarget}`
+    } else {
+      window.location.hash = '#/learn'
+    }
+  } catch (err: any) {
+    if (statusEl) {
+      statusEl.textContent = err?.message || 'Verifikasi gagal.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false
+      btn.textContent = DICTIONARIES[currentLang].wallet.privyVerifyOtpBtn
+    }
+  }
+}
+
+async function handlePrivyGoogleLogin() {
+  const statusEl = $('wallet-modal-status')
+  if (statusEl) {
+    statusEl.classList.remove('hidden')
+    const demo = !isRealPrivyConfigured()
+    statusEl.textContent = demo
+      ? (currentLang === 'en' ? 'Demo mode: simulating a Google login (no real Google)…' : 'Mode demo: mensimulasikan login Google (tanpa Google sungguhan)…')
+      : (currentLang === 'en' ? 'Connecting with Google & Privy…' : 'Menghubungkan Akun Google & Privy…')
+    statusEl.className = 'wallet-modal-status'
+  }
+
+  try {
+    // Google dimatikan di app Privy Lencana (pengaturan dibaca 1 Okt), dan login tiruannya dibuang (B82).
+    const res: { ok: boolean, address?: string, why?: string } = {
+      ok: false,
+      why: currentLang === 'en' ? 'Google sign-in is not enabled for this app yet — use email.' : 'Masuk dengan Google belum diaktifkan untuk app ini — pakai email.',
+    }
+    if (!res.ok || !res.address) {
+      if (statusEl) {
+        statusEl.textContent = res.why || 'Gagal masuk dengan Google.'
+        statusEl.className = 'wallet-modal-status error'
+        statusEl.classList.remove('hidden')
+      }
+      return
+    }
+
+    walletState = { isConnected: true, address: res.address, isDemo: false }
+    sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+    renderWalletState()
+    closeWalletModal()
+
+    const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+    if (pendingTarget) {
+      sessionStorage.removeItem('lencana_enroll_target')
+      try {
+        await syncCourse(pendingTarget)
+      } catch (err) {
+        console.warn('Sync enrollment error:', err)
+      }
+      window.location.hash = `#/course/${pendingTarget}`
+    } else {
+      window.location.hash = '#/learn'
+    }
+  } catch (err: any) {
+    if (statusEl) {
+      statusEl.textContent = err?.message || 'Login Google gagal.'
+      statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
+    }
+  }
 }
 
 async function connectBrowserWallet() {
@@ -558,44 +952,67 @@ async function connectBrowserWallet() {
     statusEl.className = 'wallet-modal-status'
   }
 
-  const eth = (window as any).ethereum
-  if (!eth) {
+  const res = await connectWalletLearner()
+  if (!res.ok || !res.identity) {
     if (statusEl) {
-      statusEl.textContent = DICTIONARIES[currentLang].wallet.noExtension
-      statusEl.className = 'wallet-modal-status warn'
+      statusEl.textContent = res.why || DICTIONARIES[currentLang].wallet.noExtension
+      statusEl.className = 'wallet-modal-status error'
     }
     return
   }
 
-  try {
-    const accounts = await eth.request({ method: 'eth_requestAccounts' })
-    if (accounts && accounts.length > 0) {
-      const addr = accounts[0]
-      try {
-        const chainIdHex = await eth.request({ method: 'eth_chainId' })
-        const chainId = parseInt(chainIdHex, 16)
-        if (chainId !== 97 && chainId !== 56) {
-          await eth.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x61' }],
-          })
-        }
-      } catch {}
+  walletState = { isConnected: true, address: res.identity.address, isDemo: false }
+  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+  renderWalletState()
+  closeWalletModal()
 
-      walletState = { isConnected: true, address: addr, isDemo: false }
-      sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
-      renderWalletState()
-      closeWalletModal()
+  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+  if (pendingTarget) {
+    sessionStorage.removeItem('lencana_enroll_target')
+    try {
+      await syncCourse(pendingTarget)
+    } catch (err) {
+      console.warn('Sync enrollment error:', err)
     }
-  } catch (err: any) {
+    window.location.hash = `#/course/${pendingTarget}`
+  }
+}
+
+async function connectDeviceWallet() {
+  const id = createDeviceLearner()
+  if (!id) {
+    const statusEl = $('wallet-modal-status')
     if (statusEl) {
-      statusEl.textContent = err?.message || 'Connection rejected'
+      statusEl.textContent = currentLang === 'en'
+        ? 'Browser storage is blocked in private mode. Please connect a Web3 wallet.'
+        : 'Penyimpanan sesi browser tidak tersedia di mode privat. Silakan gunakan dompet Web3.'
       statusEl.className = 'wallet-modal-status error'
+      statusEl.classList.remove('hidden')
     }
+    return
+  }
+
+  walletState = { isConnected: true, address: id.address, isDemo: true }
+  sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
+  renderWalletState()
+  closeWalletModal()
+
+  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+  if (pendingTarget) {
+    sessionStorage.removeItem('lencana_enroll_target')
+    try {
+      await syncCourse(pendingTarget)
+    } catch (err) {
+      console.warn('Sync enrollment error:', err)
+    }
+    window.location.hash = `#/course/${pendingTarget}`
+  } else {
+    window.location.hash = '#/learn'
   }
 }
 
 function connectDemoWallet() {
+  startDemoLearnerSession()
   walletState = {
     isConnected: true,
     address: '0x5cA36D61009c2C5A0406F046FFb2B7c939Fd7c3B',
@@ -604,12 +1021,21 @@ function connectDemoWallet() {
   sessionStorage.setItem('lencana_wallet', JSON.stringify(walletState))
   renderWalletState()
   closeWalletModal()
+
+  const pendingTarget = sessionStorage.getItem('lencana_enroll_target')
+  if (pendingTarget) {
+    sessionStorage.removeItem('lencana_enroll_target')
+    window.location.hash = `#/course/${pendingTarget}`
+  }
 }
 
 function disconnectWallet() {
+  forgetLearner()
   walletState = { isConnected: false, address: null, isDemo: false }
   sessionStorage.removeItem('lencana_wallet')
+  sessionStorage.removeItem('lencana_enroll_target')
   renderWalletState()
+  handleRoute()
 }
 
 let confettiAnimId: number | null = null
@@ -982,7 +1408,7 @@ function simulateAttack(attackType: 1 | 2 | 3 | 4) {
       <div class="tamper-line trace">Original Digest: 0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa</div>
       <div class="tamper-line trace">Tampered Digest: 0x7e3a1f8d92410a5b8812c9381ea5b00918c7263bda495821038b584920491823</div>
       <div class="tamper-line">[00.22s] Calling BAS.getAttestation(0x7e3a1f8d9...) on chain 97...</div>
-      <div class="tamper-line revert">[EVM REVERT] AttestationNotFound(0x7e3a1f8d9...) · Attestation does not exist on-chain!</div>
+      <div class="tamper-line revert">[EVM REVERT] NotFound() · Attestation does not exist on-chain in BAS storage!</div>
       <div class="tamper-line">[00.32s] Calling ecrecover(0x7e3a..., v: 27, r: 0x4e2..., s: 0x71b...)...</div>
       <div class="tamper-line revert">[00.40s] Recovered Signer: 0x937Fa2... != Whitelisted Agent (0x8211...7DE)</div>
       <div class="tamper-line revert">[CRITICAL FAIL] Cryptographic signature check FAILED. Any single byte tampering breaks mathematical verification!</div>
@@ -994,7 +1420,7 @@ function simulateAttack(attackType: 1 | 2 | 3 | 4) {
       <div class="tamper-line">[00.14s] SoulboundCert queries internal lock registry: locked(1)...</div>
       <div class="tamper-line trace">locked(1) == true · Token was issued as immutable Soulbound Credential</div>
       <div class="tamper-line">[00.24s] Executing _beforeTokenTransfer(0x5cA3..., 0xAttacker..., 1)...</div>
-      <div class="tamper-line revert">[EVM REVERT] ErrLocked(1) - "ERC-5192: Soulbound non-transferable token"</div>
+      <div class="tamper-line revert">[EVM REVERT] NotTransferable() · SoulboundCert blocks transfer</div>
       <div class="tamper-line trace">Transaction reverted by EVM. Gas consumed: 21,418 gas.</div>
       <div class="tamper-line success">[SECURITY PASS] The credential remains locked to learner wallet 0x5cA3...7c3B. Secondary market sale impossible!</div>
     `
@@ -1012,7 +1438,7 @@ function simulateAttack(attackType: 1 | 2 | 3 | 4) {
     if (pill) pill.textContent = 'REVERTED: PREREQUISITE REVOKED'
     terminal.innerHTML = `
       <div class="tamper-line system">[00.05s] Attacker attempts to claim "BNB Chain Security" requiring "Web3 Dasar 2026"</div>
-      <div class="tamper-line">[00.16s] CredentialResolver checking prerequisite tree: checkPrerequisites(refUID)</div>
+      <div class="tamper-line">[00.16s] CredentialResolver validating prerequisite hook: onAttest() -> _validatePrerequisite()</div>
       <div class="tamper-line trace">Reading BAS storage for refUID: 0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2...</div>
       <div class="tamper-line trace">Found attestation: revocationTime == 1774051200 (REVOKED ON-CHAIN)</div>
       <div class="tamper-line revert">[EVM REVERT] PrerequisiteRevoked(0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2)</div>
@@ -1031,7 +1457,7 @@ function resetTamperSimulator() {
   }
   if (terminal) {
     terminal.innerHTML = `
-      <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0xe01a...) and SoulboundCert (0x96f6...).</div>
+      <div class="tamper-line">[EVM Simulator] Initialized with BSC Testnet contracts: CredentialResolver (0x7CA6...) and SoulboundCert (0xC6FD...).</div>
       <div class="tamper-line">[Ready] Select an attack scenario above to test on-chain cryptographic reverts.</div>
     `
   }
@@ -1176,6 +1602,13 @@ const RINA_CREDENTIAL_JSONLD = {
     "schema": "0x2c4e... (BAS Attestation Schema)",
     "score": "93/100 (Honors)"
   }],
+  "credentialStatus": {
+    "id": "https://lencana-edge.hansgunawan775.workers.dev/credentials/status/revocation#0b95c83b",
+    "type": "BitstringStatusListEntry",
+    "statusPurpose": "revocation",
+    "statusListIndex": "0",
+    "statusListCredential": "https://lencana-edge.hansgunawan775.workers.dev/credentials/status/revocation"
+  },
   "proof": {
     "type": "EthereumEip712Signature2021",
     "created": "2026-09-21T00:00:00Z",
@@ -1214,11 +1647,31 @@ function copyJsonLd() {
 
 function handleRoute() {
   const rawHash = window.location.hash || '#/'
-  const hash = rawHash.toLowerCase().split('?')[0]
+  let hash = rawHash.toLowerCase().split('?')[0]
 
+  const isPrivyOnboard = hash === '#/onboarding' || hash === '#onboarding' || hash === '#/login' || hash === '#login'
+  const isHomeAnchor = hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture'
+  const isHomeRoute = hash === '#/' || hash === '#'
+  // Verifier adalah utilitas PUBLIK (bukan rute learner): bukti dibagikan lewat tautan,
+  // diperiksa orang asing tanpa akun, dan kapsul hero + Scene 1 mengarah ke sini. Bukan
+  // pengecualian untuk LMS — semua rute learner di bawah tetap terkunci untuk tamu.
+  const isPublicVerify = hash === '#/verify' || hash === '#verifier' || hash === '#verify'
+  // B105: registri penerbit juga informasi publik (dibaca dari manifest), bukan rute learner.
+  const isPublicPublishers = hash === '#/publishers' || hash === '#publishers'
+  if (!hasExplicitLearnerSession() && !isHomeRoute && !isHomeAnchor && !isPrivyOnboard && !isPublicVerify && !isPublicPublishers) {
+    // Replace the attempted route before rendering so protected HTML never becomes visible.
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}#/`)
+    hash = '#/'
+  }
+  updateLearnerNavigation()
+
+  const isLms = hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me'
   let targetPageId = 'page-home'
   if (hash === '#/courses' || hash === '#courses') {
     targetPageId = 'page-courses'
+  } else if (isPrivyOnboard) {
+    targetPageId = 'page-home'
+    openWalletModal(true)
   } else if (hash === '#/submit' || hash === '#ai-evaluator' || hash === '#submit') {
     targetPageId = 'page-submit'
   } else if (hash === '#/verify' || hash === '#verifier' || hash === '#verify') {
@@ -1229,9 +1682,9 @@ function handleRoute() {
     targetPageId = 'page-agent-hub'
   } else if (hash === '#/publishers' || hash === '#publishers') {
     targetPageId = 'page-publishers'
-  } else if (hash === '#/learn' || hash.startsWith('#/course/') || hash === '#/me') {
+  } else if (isLms) {
     // Lapisan materi (src/lms.ts) menggambar di #lms-mount milik halaman courses. Route ini
-    // sengaja dipakai awalan berbeda dari #/courses Dave: yang satu tokonya, yang satu isinya.
+    // sengaja dipakai awalan berbeda dari #/courses: yang satu tokonya, yang satu isinya.
     targetPageId = 'page-courses'
   } else {
     targetPageId = 'page-home'
@@ -1239,6 +1692,7 @@ function handleRoute() {
 
   const isHome = targetPageId === 'page-home'
   document.body.classList.toggle('is-home-page', isHome)
+  document.body.classList.toggle('is-submit-page', targetPageId === 'page-submit')
   closeNexumMobileMenu()
 
   const pages = document.querySelectorAll<HTMLElement>('.page-view')
@@ -1265,7 +1719,11 @@ function handleRoute() {
   }
 
   document.querySelectorAll('.nav-links .nav-link').forEach((link) => {
-    link.classList.toggle('active', link.id === routeNavMap[targetPageId])
+    if (isLms) {
+      link.classList.toggle('active', link.id === 'nav-classroom')
+    } else {
+      link.classList.toggle('active', link.id === routeNavMap[targetPageId])
+    }
   })
 
   if (hash === '#how-it-works' || hash === '#pipeline' || hash === '#architecture') {
@@ -1349,6 +1807,7 @@ function updateStaticText() {
   // Navbar
   setText('nav-home', dict.nav.home)
   setText('nav-courses', dict.nav.courses)
+  setText('nav-classroom', dict.nav.classroom)
   setText('nav-publishers', dict.nav.publishers)
 
   // B105 — halaman penerbit: teks statis dari kamus, isinya dari manifest
@@ -1405,10 +1864,27 @@ function updateStaticText() {
   setText('pnode-5-title', dict.visualPipeline.node5)
 
   // Interactive AI Evaluator Sandbox
-  setText('ai-eval-kicker', currentLang === 'en' ? 'LIVE NEURAL EVALUATION ENGINE' : 'ENGINE EVALUASI NEURAL REAL-TIME')
+  setText('ai-eval-kicker', currentLang === 'en' ? 'SUBMIT WITH CONFIDENCE' : 'KUMPULKAN DENGAN YAKIN')
   setText('ai-eval-title', dict.aiEvaluator.sectionTitle)
   setText('ai-eval-sub', dict.aiEvaluator.sectionSub)
-  setText('ai-input-tag', currentLang === 'en' ? 'STUDENT SUBMISSION STAGE' : 'TAHAP PENGIRIMAN ESAY PESERTA')
+  setText('ai-input-tag', currentLang === 'en' ? 'YOUR WORK' : 'HASIL KERJAMU')
+  setText('submit-step-1', currentLang === 'en' ? 'Choose your work' : 'Pilih hasil kerja')
+  setText('submit-step-2', currentLang === 'en' ? 'Get clear feedback' : 'Dapatkan umpan balik jelas')
+  setText('submit-step-3', currentLang === 'en' ? 'Carry the proof' : 'Bawa buktinya')
+  setText('submit-step-badge', currentLang === 'en' ? 'STEP 1 OF 3' : 'LANGKAH 1 DARI 3')
+  setText('submit-tech-summary', currentLang === 'en' ? 'Technical checks' : 'Pemeriksaan teknis')
+  setText('submit-tech-summary-note', currentLang === 'en' ? 'Optional details for reviewers' : 'Detail opsional untuk pemeriksa')
+  setText('submit-proof-signals', currentLang === 'en' ? 'STANDARDS AND PROOF SIGNALS' : 'STANDAR DAN SINYAL BUKTI')
+  setText('ide-filename', currentLang === 'en' ? 'Capstone response' : 'Jawaban tugas akhir')
+  setText('submit-save-status', currentLang === 'en' ? 'SAVED LOCALLY' : 'TERSIMPAN LOKAL')
+  setText('submit-review-kicker', currentLang === 'en' ? 'YOUR REVIEW' : 'HASIL TINJAUANMU')
+  setText('submit-review-title', currentLang === 'en' ? 'Know what worked—and what to improve.' : 'Ketahui yang sudah kuat—dan yang perlu diperbaiki.')
+  setText('submit-review-copy', currentLang === 'en'
+    ? 'Your answer is checked against the same visible criteria every time. The result stays readable before the technical receipt.'
+    : 'Jawabanmu diperiksa dengan kriteria terbuka yang sama setiap kali. Hasilnya tetap mudah dipahami sebelum bukti teknis.')
+  setText('submit-reviewer-note', currentLang === 'en' ? 'Uses the published course criteria' : 'Menggunakan kriteria kursus yang dipublikasikan')
+  setText('submit-receipt-summary', currentLang === 'en' ? 'How this result can be trusted' : 'Mengapa hasil ini dapat dipercaya')
+  setText('submit-receipt-note', currentLang === 'en' ? 'View reviewer activity and technical receipt' : 'Lihat aktivitas peninjau dan bukti teknis')
   setText('tab-essay-web3', dict.aiEvaluator.tabWeb3)
   setText('tab-essay-security', dict.aiEvaluator.tabSecurity)
   setText('tab-essay-custom', dict.aiEvaluator.tabCustom)
@@ -1468,13 +1944,17 @@ function updateStaticText() {
   setText('c1-badge-unlocked', dict.coursesSection.badgeUnlocked)
   setText('c1-title', dict.coursesSection.course1Title)
   setText('c1-desc', dict.coursesSection.course1Desc)
-  setText('c1-agent', `${dict.coursesSection.courseIssuerAgent}: Agent-Foundations`)
+  setText('c1-agent', `${dict.coursesSection.courseIssuerAgent}: Foundations Coach`)
+  setText('btn-syllabus-c1', dict.coursesSection.btnViewSyllabus)
+  setText('btn-enroll-c1', dict.coursesSection.btnEnroll)
   setText('btn-open-study-c1', dict.coursesSection.btnOpenStudy)
   setText('c2-badge-lvl', dict.coursesSection.badgeLevelAdvanced)
   setText('c2-badge-prereq', dict.coursesSection.badgePrereqRequired)
   setText('c2-title', dict.coursesSection.course2Title)
   setText('c2-desc', dict.coursesSection.course2Desc)
-  setText('c2-agent', `${dict.coursesSection.courseIssuerAgent}: Agent-Security`)
+  setText('c2-agent', `${dict.coursesSection.courseIssuerAgent}: Security Coach`)
+  setText('btn-syllabus-c2', dict.coursesSection.btnViewSyllabus)
+  setText('btn-enroll-c2', dict.coursesSection.btnEnroll)
   setText('btn-open-study-c2', dict.coursesSection.btnOpenStudy)
   setText('study-modal-kicker', dict.coursesSection.studyModalKicker)
   setText('btn-study-proceed-eval', dict.coursesSection.studyModalProceed)
@@ -1484,17 +1964,36 @@ function updateStaticText() {
   renderStudyModal()
 
   // Verifier Section & Input Card
+  setText('verify-kicker', dict.inputSection.kicker)
   setText('verifier-title', dict.inputSection.sectionTitle)
   setText('verifier-sub', dict.inputSection.sectionSub)
+  setText('verify-step-1', dict.inputSection.journey1)
+  setText('verify-step-2', dict.inputSection.journey2)
+  setText('verify-step-3', dict.inputSection.journey3)
+  setText('verify-meaning-tag', dict.inputSection.meaningTag)
+  setText('verify-meaning-title', dict.inputSection.meaningTitle)
+  setText('verify-meaning-valid-title', dict.inputSection.meaningValidTitle)
+  setText('verify-meaning-valid-desc', dict.inputSection.meaningValidDesc)
+  setText('verify-meaning-invalid-title', dict.inputSection.meaningInvalidTitle)
+  setText('verify-meaning-invalid-desc', dict.inputSection.meaningInvalidDesc)
+  setText('verify-meaning-unknown-title', dict.inputSection.meaningUnknownTitle)
+  setText('verify-meaning-unknown-desc', dict.inputSection.meaningUnknownDesc)
+  setText('verify-result-hint', dict.inputSection.resultHint)
+  setText('verify-sheet-title', dict.inputSection.sheetTitle)
+  setText('verify-sheet-sub', dict.inputSection.sheetSub)
+  setText('verify-seal-caption', dict.inputSection.sealCaption)
+  setText('verify-inspect-kicker', dict.inputSection.inspectKicker)
+  setText('verify-inspect-title', dict.inputSection.inspectTitle)
+  setText('verify-inspect-sub', dict.inputSection.inspectSub)
   setText('lbl-input', dict.inputSection.label)
-  setText('input-hint', currentLang === 'en' ? 'credentialHash, attestation UID, tokenId, or address' : 'credentialHash, UID atestasi, tokenId, atau address')
+  setText('input-hint', currentLang === 'en' ? 'Accepts credentialHash, attestation UID, tokenId, or address' : 'Menerima credentialHash, UID atestasi, tokenId, atau address')
   if (inputEl) inputEl.placeholder = dict.inputSection.placeholder
   setText('btn-go-text', dict.inputSection.btnVerify)
   setText('clear', dict.inputSection.btnClear)
   setText('share', dict.inputSection.btnShare)
 
   // Sample Buttons
-  setText('sample-label', currentLang === 'en' ? 'Quick Samples:' : 'Contoh Cepat:')
+  setText('sample-label', currentLang === 'en' ? 'Try a sample:' : 'Coba contoh:')
   setText('sample-valid', dict.inputSection.sampleValid)
   setText('sample-revoked', dict.inputSection.sampleRevoked)
   setText('fill-sample', dict.inputSection.btnSample)
@@ -1567,10 +2066,29 @@ function updateStaticText() {
   setText('btn-wallet-text', dict.wallet.connectBtn)
   setText('wallet-modal-title', dict.wallet.modalTitle)
   setText('wallet-modal-sub', dict.wallet.modalSub)
+  setText('wallet-opt-privy-title', dict.wallet.privyOption)
+  setText('wallet-opt-privy-badge', dict.wallet.privyBadgeRecommended)
+  setText('wallet-opt-privy-desc', dict.wallet.privyOptionSub)
+  setText('btn-back-privy-text', dict.wallet.btnBack)
+  setText('privy-google-btn-text', dict.wallet.privyGoogleBtn)
+  setText('privy-or-text', dict.wallet.privyOrFastLogin)
+  setText('btn-privy-send-otp-text', dict.wallet.privySendOtpBtn)
+  setText('privy-otp-notice', dict.wallet.privyOtpNotice)
+  setText('privy-step-otp-help', dict.wallet.privyStepOtpHelp)
+  setText('btn-privy-verify-otp-text', dict.wallet.privyVerifyOtpBtn)
+  setText('privy-custody-text', dict.wallet.privyCustodyNotice)
+  const emailInp = $('privy-email-input') as HTMLInputElement | null
+  if (emailInp) emailInp.placeholder = dict.wallet.privyEmailPlaceholder
+  const otpInp = $('privy-otp-input') as HTMLInputElement | null
+  if (otpInp) otpInp.placeholder = dict.wallet.privyOtpPlaceholder
   setText('wallet-opt-browser-title', dict.wallet.browserOption)
   setText('wallet-opt-browser-desc', dict.wallet.browserOptionSub)
+  setText('wallet-opt-device-title', dict.wallet.deviceOption)
+  setText('wallet-opt-device-desc', dict.wallet.deviceOptionSub)
   setText('wallet-opt-demo-title', dict.wallet.demoOption)
   setText('wallet-opt-demo-desc', dict.wallet.demoOptionSub)
+  // Timpa label Privy bila App ID sungguhan belum dipasang (mode demo).
+  applyPrivyModeLabels()
   renderWalletState()
 
   // Mint Celebration Modal
@@ -1874,7 +2392,29 @@ function wire() {
     setTimeout(() => outEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
   })
 
-  // LMS Study Room & Course Catalog Interactions (Iteration 8)
+  // LMS Study Room & Course Catalog Interactions
+  document.querySelectorAll<HTMLButtonElement>('.btn-enroll-course').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const target = (e.currentTarget as HTMLElement).getAttribute('data-course') || 'web3-dasar-2026'
+      const addr = learnerAddress()
+      if (!addr) {
+        sessionStorage.setItem('lencana_enroll_target', target)
+        openWalletModal()
+      } else {
+        const btnEl = e.currentTarget as HTMLButtonElement
+        const orig = btnEl.textContent
+        btnEl.textContent = currentLang === 'en' ? 'Enrolling...' : 'Mendaftarkan...'
+        try {
+          await syncCourse(target)
+        } catch (err) {
+          console.warn('Sync enrollment error:', err)
+        }
+        btnEl.textContent = orig
+        window.location.hash = `#/course/${target}`
+      }
+    })
+  })
+
   $('btn-open-study-c1')?.addEventListener('click', () => {
     openStudyModal('c1', 0)
   })
@@ -1976,6 +2516,20 @@ function wire() {
 
   // Client-side Hash Router Listener
   window.addEventListener('hashchange', handleRoute)
+  window.addEventListener('lencana:learner-session-change', () => {
+    const identity = snapshot().identity
+    if (!hasExplicitLearnerSession()) {
+      walletState = { isConnected: false, address: null, isDemo: false }
+    } else if (identity) {
+      walletState = {
+        isConnected: true,
+        address: identity.address,
+        isDemo: identity.kind === 'perangkat' || (identity.kind === 'privy' && !isRealPrivyConfigured()),
+      }
+    }
+    renderWalletState()
+    if (!hasExplicitLearnerSession()) handleRoute()
+  })
 
   // Tab switching delegation on results container
   outEl.addEventListener('click', (e) => {
@@ -2006,10 +2560,36 @@ function wire() {
   $('lang-id')?.addEventListener('click', () => setLanguage('id'))
 
   // Wallet Navbar & Modal Wiring
-  $('btn-connect-wallet')?.addEventListener('click', openWalletModal)
+  $('btn-connect-wallet')?.addEventListener('click', () => openWalletModal(false))
   $('btn-close-wallet-modal')?.addEventListener('click', closeWalletModal)
   $('wallet-modal-backdrop')?.addEventListener('click', closeWalletModal)
+  $('btn-opt-privy')?.addEventListener('click', switchToPrivyPanel)
+  $('btn-back-privy')?.addEventListener('click', switchToOptionsList)
+  $('btn-privy-google')?.addEventListener('click', handlePrivyGoogleLogin)
+  // Tombol yang pasti gagal lebih buruk dari tidak ada tombol (RF3): sembunyikan sampai Google diaktifkan.
+  $('btn-privy-google')?.classList.add('hidden')
+  $('btn-privy-send-otp')?.addEventListener('click', handlePrivySendOtp)
+  $('btn-privy-resend')?.addEventListener('click', handlePrivySendOtp)
+  $('btn-privy-verify-otp')?.addEventListener('click', handlePrivyVerifyOtp)
+  $('privy-email-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handlePrivySendOtp()
+    }
+  })
+  $('privy-otp-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handlePrivyVerifyOtp()
+    }
+  })
+  window.addEventListener('lencana:open-privy', (e: any) => {
+    const cid = e.detail?.courseId
+    if (cid) sessionStorage.setItem('lencana_enroll_target', cid)
+    openWalletModal(true)
+  })
   $('btn-opt-browser-wallet')?.addEventListener('click', connectBrowserWallet)
+  $('btn-opt-device-wallet')?.addEventListener('click', connectDeviceWallet)
   $('btn-opt-demo-wallet')?.addEventListener('click', connectDemoWallet)
   $('btn-disconnect-wallet')?.addEventListener('click', disconnectWallet)
 
@@ -2413,7 +2993,7 @@ function simulateAiEvaluation() {
   if (btn) btn.disabled = true
   if (flagText) {
     flagText.textContent =
-      currentLang === 'en' ? 'Evaluating essay against on-chain rubrics...' : 'Mengevaluasi esai dengan rubrik on-chain...'
+      currentLang === 'en' ? 'Reviewing your work against the published criteria...' : 'Meninjau hasil kerjamu dengan kriteria yang dipublikasikan...'
   }
 
   // Reset Token Scanner Chips
@@ -2531,7 +3111,7 @@ function simulateAiEvaluation() {
     }
     if (flagText) {
       flagText.textContent =
-        currentLang === 'en' ? 'Evaluation Complete · EIP-712 Signed' : 'Evaluasi Selesai · Bertanda Tangan EIP-712'
+        currentLang === 'en' ? 'Review complete · signed result ready' : 'Tinjauan selesai · hasil bertanda tangan siap'
     }
     if (btn) btn.disabled = false
     isEvaluating = false

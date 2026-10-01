@@ -173,7 +173,14 @@ async function main() {
     // lagi, jadi halaman harus bisa menampilkan "tidak terdaftar" DAN "dilisting" sekaligus.
     check('agen dijatuhkan -> tidak lagi di whitelist penerbit', r6.resolver.issuerApproved === false, String(r6.resolver.issuerApproved))
     check('agen dijatuhkan -> artefaknya masih ada di tangan peserta', Boolean(r6.cert.tokenId) && Boolean(r6.cert.owner), `tokenId=${r6.cert.tokenId} owner=${r6.cert.owner}`)
-    check('agen dijatuhkan -> renderer punya label sendiri', renderReport(r6).includes('PENERBIT DILISTING'))
+    // Judul vonis milik pemilik FE: redesign verifier 29 Sep (`54b3318`, masuk lewat merge
+    // dex/lencana-fe-integration 1 Okt) mengganti "PENERBIT DILISTING" dengan bahasa konsumen. Yang
+    // dijaga di sini MAKNANYA, bukan ejaannya: delisting punya label sendiri, dan label itu bukan
+    // label "dicabut" (D30 — attestation-nya tidak dicabut).
+    const { DICTIONARIES: D } = await import('../src/i18n')
+    const delistedTitle = D.id.verdicts.ISSUER_DELISTED?.title ?? ''
+    check('agen dijatuhkan -> renderer punya label sendiri (bukan label dicabut)',
+      delistedTitle !== '' && renderReport(r6).includes(delistedTitle) && delistedTitle !== D.id.verdicts.REVOKED?.title, delistedTitle)
     check('agen dijatuhkan -> semua pembacaan berhasil', r6.readLog.every((l) => l.ok), r6.readLog.filter((l) => !l.ok).map((l) => l.label).join(', '))
   }
 
