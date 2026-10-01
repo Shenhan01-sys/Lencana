@@ -74,6 +74,9 @@ body[data-lms-route] #page-courses > .section-container:not(#lms-mount) { displa
 #lms-mount .btn, #lms-mount button { font: inherit; font-size: 13.5px; padding: 7px 12px; border: 1px solid currentColor; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
 #lms-mount .btn { text-decoration: none; display: inline-block; }
 #lms-mount button.primary { font-weight: 600; }
+/* B82: kolom email/kode login di kotak identitas. */
+#lms-mount .privy-login input { font: inherit; font-size: 13.5px; padding: 7px 10px; border: 1px solid rgba(128,128,128,.5); border-radius: 6px; background: transparent; color: inherit; min-width: 0; flex: 1 1 220px; max-width: 320px; }
+#lms-mount button[disabled] { opacity: .55; cursor: progress; }
 #lms-mount .status { font-size: 13.5px; min-height: 20px; margin: 8px 0 0; }
 #lms-mount .ids { margin-top: 14px; font-size: 12.5px; }
 #lms-mount .pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 10px; border-top: 1px solid rgba(128,128,128,.35); font-size: 13px; }

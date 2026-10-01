@@ -581,7 +581,11 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
    yang tersisa di butir ini: ulangan tak terbatas + pembahasan per soal tetap membuat kunci bisa ditebak →
    [[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]].
 6. **Identitas peserta tidak tahan lama** kalau memakai kunci perangkat: tab ditutup = alamat baru =
-   rekaman baru (B82).
+   rekaman baru (B82). **Keadaan 1 Okt malam (D57):** ada jalur ketiga — login email lewat Privy
+   (`web/src/privy.ts`) memberi dompet tertanam yang sama di perangkat mana pun, dan `POST /auth/privy`
+   mencatat ikatan alamat ↔ akun sesudah token diverifikasi dengan app secret. Kunci perangkat tetap
+   hangus bersama tab; yang belum terbukti: login dari dua peramban → alamat sama (uji builder) →
+   [[09-Testing/T41 - signer privy-check.js (B82 login Privy)]].
 7. **Tidak ada pembayaran kursus**, dan premi tenggat tidak tersambung ke halaman (bagian 11).
 8. **Penerbit tidak bisa mendaftar sendiri**, dan halaman penerbit belum membaca data hidup (B105).
 9. **Jalur hangus premi** hanya terbukti di uji kontrak, tidak di chain publik.

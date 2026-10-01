@@ -299,6 +299,41 @@ export async function freeTestProofKey (key) {
   return { freed, heldBy }
 }
 
+/* ------------------------------------------------------------------ akun login peserta (B82, D57) */
+
+// Lencana-B82 status=TERBUKA 2026-10-01 — alamat peserta diikat ke akun Privy hanya oleh pemanggil yang sudah memverifikasi token login dan kepemilikan dompet tertanam (src/privy.js); yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/**
+ * Mengikat satu alamat peserta ke akun login (migrasi 0012). Pemanggil WAJIB sudah membuktikan dua hal
+ * (`src/privy.js`): token login sah untuk app kita, dan alamat ini dompet tertanam milik user token itu.
+ * Satu alamat hanya bisa terikat ke satu akun — mencoba mengikatnya ke akun lain ditolak, bukan ditimpa.
+ *
+ * Dua langkah, masing-masing atomik di Postgres, supaya dua permintaan serentak tidak bisa saling
+ * menimpa (versi pertama 1 Okt membaca dulu lalu upsert merge — di antara keduanya ada celah):
+ *   1. INSERT … ON CONFLICT DO NOTHING RETURNING — baris lahir hanya kalau alamat itu belum terikat;
+ *   2. kalau sudah ada, UPDATE last_seen_at dengan filter account_id yang SAMA — akun lain tidak cocok
+ *      filter, tidak ada baris yang tersentuh, dan itu jawaban "conflict".
+ */
+export async function bindLearnerAccount ({ learner, accountId }) {
+  const addr = getAddress(learner)
+  const inserted = await rest('learner_accounts', {
+    method: 'POST', query: '?on_conflict=learner', prefer: 'resolution=ignore-duplicates,return=representation',
+    body: [{ learner: addr, provider: 'privy', account_id: accountId, wallet_type: 'privy-embedded' }],
+  })
+  if (inserted?.length) return { ok: true, learner: addr, created: true }
+  const touched = await rest('learner_accounts', {
+    method: 'PATCH', query: `?learner=eq.${addr}&account_id=eq.${encodeURIComponent(accountId)}`, prefer: 'return=representation',
+    body: { last_seen_at: new Date().toISOString() },
+  })
+  if (touched?.length) return { ok: true, learner: addr, created: false }
+  return { ok: false, kind: 'conflict', why: `learner ${addr} is already bound to a different account` }
+}
+
+export async function learnerAccount (learner) {
+  const rows = await rest('learner_accounts', { query: `?learner=eq.${getAddress(learner)}&select=provider,wallet_type,linked_at,last_seen_at` })
+  return rows?.[0] ?? null
+}
+
 /** Dua gerbang dibaca terpisah, bukan digabung (bar 6). */
 export async function courseGates (learner, courseId) {
   const q = `?learner=eq.${encodeURIComponent(getAddress(learner))}&course_id=eq.${encodeURIComponent(courseId)}&select=*`

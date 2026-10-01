@@ -82,6 +82,8 @@ const HARNESS = [
   { id: 'praktik', label: 'verify:praktik (slot praktik dinilai chain, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:praktik']], re: /PRAKTIK (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B80 status=SELESAI 2026-10-01 — kunci jawaban kuis di luar bundel browser ikut jadi sumber angka: harness membangun bundel web, memindainya, dan menguji /grade. Buktikan ulang: npm run sync:numbers -- --only=quizkeys. JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'quizkeys', label: 'verify:quizkeys (kunci kuis di luar bundel browser)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:quizkeys']], re: /KUNCI KUIS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B82 status=TERBUKA 2026-10-01 — login Privy ikut jadi sumber angka: app secret diuji ke API users Privy (dengan kontrol secret palsu), token palsu ditolak, ikatan alamat ↔ akun atomik, RLS, bundel web; yang belum: jalur positif dengan kode email sungguhan (uji dua peramban oleh builder). Buktikan ulang: npm run sync:numbers -- --only=privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'privy', label: 'verify:privy (login Privy: token, ikatan akun, bundel)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:privy']], re: /LOGIN PRIVY (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -201,6 +203,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'praktik', want: (m) => new RegExp(`PRAKTIK HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:praktik di QR' },
   { file: '09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis).md', metric: 'quizkeys', want: (m) => `KUNCI KUIS HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T39 (kunci kuis)' },
   { file: 'Quick-Reference.md', metric: 'quizkeys', want: (m) => new RegExp(`KUNCI KUIS HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:quizkeys di QR' },
+  { file: '09-Testing/T41 - signer privy-check.js (B82 login Privy).md', metric: 'privy', want: (m) => `LOGIN PRIVY HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T41 (login Privy)' },
+  { file: 'Quick-Reference.md', metric: 'privy', want: (m) => new RegExp(`LOGIN PRIVY HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:privy di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

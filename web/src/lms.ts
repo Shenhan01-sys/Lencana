@@ -23,8 +23,9 @@ import { auditAll, catalogStats, COURSES, findCourse, findLesson, moduleOf } fro
 import { manifestOf, rubricHashOf, shortHash } from './manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse, type CourseSummary } from './progress'
 import {
-  completeLesson, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner, learnerAddress,
-  setEndpoint, snapshot, submitEssay, submitQuiz, syncCourse, type QuizReviewItem,
+  completeLesson, connectPrivyLearner, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner,
+  hasPrivyMark, learnerAddress, resumePrivyLearner, sendPrivyCode, setEndpoint, snapshot, submitEssay,
+  submitQuiz, syncCourse, type LearnerIdentity, type QuizReviewItem,
 } from './learning'
 
 /** Pembahasan satu penyerahan kuis: pilihan peserta + umpan balik server (B80). */
@@ -38,24 +39,52 @@ type QuizReview = { picks: Map<string, number>, items: QuizReviewItem[] }
  * Menyembunyikan yang pertama akan membuat halaman lebih bersih dan lebih sulit dipahami: peserta
  * perlu tahu angka mana yang tidak punya konsekuensi.
  */
+/**
+ * Label jenis identitas. Login email menyebut dua hal yang memang beda dari dua jalur lain: alamatnya
+ * sama di perangkat mana pun, dan apakah penerbit sudah mencatat ikatan akunnya (`POST /auth/privy`).
+ */
+function identityLabel (id: LearnerIdentity | null): string {
+  if (id?.kind === 'privy') {
+    const acc = snapshot().account
+    const link = acc ? (acc.linked ? ' · tertaut di penerbit' : ` · ikatan akun belum tercatat (${acc.note})`) : ''
+    return `login email${id.email ? ` ${id.email}` : ''} · dompet tertanam, sama di perangkat mana pun${link}`
+  }
+  return id?.kind === 'dompet' ? 'dompet' : 'kunci perangkat (hangus bersama tab ini)'
+}
+
 function serverLine (courseId: string): string {
   const s = snapshot()
   const addr = learnerAddress()
   const ep = `<input id="signer-endpoint" class="ep" data-role="signer-endpoint" value="${esc(endpoint())}" aria-label="URL penerbit">`
+  if (!addr && s.restoring) {
+    return `<aside class="note learn-id"><strong>Memulihkan login email…</strong>
+      <p class="muted">Peramban ini pernah masuk dengan email; dompet tertanamnya sedang disambungkan lagi.</p></aside>`
+  }
   if (!addr) {
+    // Lencana-B82 status=TERBUKA 2026-10-01 — kotak identitas menawarkan login email (Privy) sebagai jalur utama: kirim kode → masuk → dompet tertanam yang sama di perangkat mana pun; kunci perangkat dan dompet ekstensi tetap ada. Yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
     return `<aside class="note learn-id">
       <strong>Rekaman belajar belum dimulai</strong>
       <p>Progres di halaman ini masih catatan lokal. Supaya nilainya bisa dibaca penerbit, identitas
       peserta harus bisa menandatangani — satu alamat, satu nonce, satu kali pakai.</p>
+      <p><strong>Masuk dengan email</strong> — alamat peserta jadi dompet tertanam yang sama di perangkat mana pun.</p>
+      <div class="actions privy-login">
+        <input type="email" data-role="privy-email" placeholder="email kamu" autocomplete="email" aria-label="Email untuk masuk">
+        <button class="primary" data-action="privy-send" data-course="${esc(courseId)}">Kirim kode</button>
+      </div>
+      <div class="actions privy-login" data-role="privy-code-row" hidden>
+        <input type="text" inputmode="numeric" maxlength="6" data-role="privy-code" placeholder="kode 6 digit" autocomplete="one-time-code" aria-label="Kode dari email">
+        <button class="primary" data-action="privy-login" data-course="${esc(courseId)}">Masuk</button>
+      </div>
+      <p class="muted">Atau tanpa akun:</p>
       <div class="actions">
-        <button class="primary" data-action="learner-device">Pakai kunci perangkat (sementara)</button>
+        <button data-action="learner-device">Pakai kunci perangkat (sementara)</button>
         <button data-action="learner-wallet">Sambungkan dompet</button>
       </div>
       <p class="muted">${ep} · ubah kalau penerbitmu berjalan di tempat lain, lalu muat ulang.</p>
     </aside>`
   }
   const sum = s.summary && s.courseId === courseId ? s.summary : null
-  const kind = s.identity?.kind === 'dompet' ? 'dompet' : 'kunci perangkat (hangus bersama tab ini)'
+  const kind = identityLabel(s.identity)
   if (!sum) {
     return `<aside class="note learn-id"><strong>Peserta:</strong> <code>${esc(addr)}</code> · ${esc(kind)}
       <p class="muted">${s.pending ? 'Menghubungi penerbit…' : esc(s.error ?? 'Rekaman di penerbit belum dibaca untuk kursus ini.')}</p>
@@ -525,6 +554,7 @@ function kickSync (courseId: string): void {
 }
 
 let delegated = false
+let resumeTried = false
 
 /**
  * Dipanggil `handleRoute()` di main.ts pada SETIAP perpindahan rute. Fungsi ini tahu sendiri
@@ -547,6 +577,12 @@ export function renderLmsRoute (): boolean {
     delegated = true
   }
   document.body.dataset.lmsRoute = 'active'
+  // Tab baru di peramban yang sudah login email: pulihkan sekali per muat halaman. Bendera
+  // `resumeTried` mencegah putaran render → pulihkan → render kalau pemulihannya gagal.
+  if (!resumeTried && !learnerAddress() && hasPrivyMark()) {
+    resumeTried = true
+    void resumePrivyLearner().then(() => rerender())
+  }
 
   const seg = parse(hash)
   if (seg[0] === 'learn') {
@@ -610,6 +646,15 @@ function rerender(): void {
 }
 
 export function bindLms(root: HTMLElement): void {
+  // Enter di kolom email/kode = tombol di sebelahnya; kotak identitas bukan <form>, jadi ini manual.
+  root.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Enter') return
+    const role = (ev.target as HTMLElement | null)?.dataset?.role
+    const action = role === 'privy-email' ? 'privy-send' : role === 'privy-code' ? 'privy-login' : null
+    if (!action) return
+    ev.preventDefault()
+    ;(root.querySelector(`[data-action="${action}"]`) as HTMLElement | null)?.click()
+  })
   root.addEventListener('click', async (ev) => {
     const btn = (ev.target as HTMLElement | null)?.closest?.('[data-action]') as HTMLElement | null
     if (!btn) return
@@ -627,6 +672,35 @@ export function bindLms(root: HTMLElement): void {
       learnStatus(root, `Identitas perangkat dibuat: ${id.address.slice(0, 10)}… — kunci ini hangus bersama tab, bukan identitas tahan lama.`)
       if (courseId) await syncCourse(courseId)
       rerender()
+      return
+    }
+
+    if (action === 'privy-send') {
+      const email = (root.querySelector('[data-role="privy-email"]') as HTMLInputElement | null)?.value ?? ''
+      btn.setAttribute('disabled', '')
+      learnStatus(root, 'Mengirim kode ke email…')
+      const r = await sendPrivyCode(email)
+      btn.removeAttribute('disabled')
+      if (!r.ok) { learnStatus(root, `Kode tidak terkirim: ${r.why ?? 'tidak diketahui'}`, true); return }
+      const row = root.querySelector('[data-role="privy-code-row"]') as HTMLElement | null
+      if (row) row.hidden = false
+      ;(root.querySelector('[data-role="privy-code"]') as HTMLInputElement | null)?.focus()
+      learnStatus(root, `Kode dikirim ke ${email.trim()}. Cek kotak masuk (dan folder spam), lalu ketik 6 digitnya.`)
+      return
+    }
+
+    if (action === 'privy-login') {
+      const email = (root.querySelector('[data-role="privy-email"]') as HTMLInputElement | null)?.value ?? ''
+      const code = (root.querySelector('[data-role="privy-code"]') as HTMLInputElement | null)?.value ?? ''
+      btn.setAttribute('disabled', '')
+      learnStatus(root, 'Masuk dan menyambungkan dompet tertanam…')
+      const r = await connectPrivyLearner(email, code)
+      btn.removeAttribute('disabled')
+      if (!r.ok || !r.identity) { learnStatus(root, `Gagal masuk: ${r.why ?? 'tidak diketahui'}`, true); return }
+      const cid = courseId || COURSES[0]?.id || ''
+      if (cid) await syncCourse(cid)
+      rerender()
+      learnStatus(root, `Masuk sebagai ${r.identity.address.slice(0, 10)}… — ${r.account?.note ?? 'ikatan akun belum diperiksa'}.`, r.account ? !r.account.linked : false)
       return
     }
 

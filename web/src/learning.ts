@@ -16,12 +16,21 @@
  *     `sessionStorage`, mati bersama tabnya. Itu identitas sungguhan secara kriptografis dan tidak
  *     pernah meninggalkan mesin peserta, tapi BUKAN identitas tahan lama: ganti perangkat = alamat
  *     baru = rekaman baru. UI menyebutnya, tidak menyembunyikannya.
+ *     [Tambahan 1 Okt, B82/D57] Yang ketiga: **login email lewat Privy** (`privy.ts`). Peserta
+ *     mendapat dompet tertanam yang sama di perangkat mana pun, jadi rekamannya ikut pindah; tulisan
+ *     tetap ditandatangani per permintaan seperti dua jalur lain, dan penerbit mencatat ikatan
+ *     alamat ↔ akun hanya sesudah memverifikasi token login dengan app secret (`POST /auth/privy`).
  *  2. **Angka kuis TIDAK dihitung di browser lagi.** Yang dikirim adalah PILIHAN (`picks`), dan
  *     server yang menilai terhadap kunci di manifest (`signer/src/quiz.js`). Sebelumnya halaman ini
  *     menghitung sendiri (`lms.ts` action `grade`) lalu mengirim angkanya ke mana pun — itu peserta
  *     menilai dirinya sendiri. ⚠️ Yang TIDAK berubah: kunci jawaban tetap ada di bundel browser,
  *     jadi soal tetap bisa dijawab dengan kunci. Yang hilang adalah pelaporan angka oleh peserta,
  *     bukan keterbukaan soalnya.
+ *     [Koreksi 1 Okt, B80/D56: kalimat ⚠️ di atas basi sejak B80 ditutup — kunci jawaban sudah
+ *     keluar dari bundel browser (hanya `manifest-keys.ts` di server yang memegangnya), dan
+ *     `/grade` membalas pembahasan per soal tanpa indeks jawaban. Bukti: `npm run verify:quizkeys`
+ *     di signer/, termasuk `--deployed` untuk bundel yang tayang. Kalimatnya dibiarkan supaya
+ *     koreksinya terlihat.]
  *  3. **Draf esai tetap di perangkat.** Teks karangan tidak dikirim lewat jalur ini. Yang ditulis ke
  *     server adalah progres bacaan dan hasil kuis yang dinilai server; penilaian esai tetap milik
  *     penerbit (`issue --essay --judge`), dan antrean penilaiannya belum ada (B81 di backlog).
@@ -34,19 +43,28 @@
 // Lencana-B58 status=SELESAI 2026-09-29 — Ini yang menentukan urutan kerja front-end. Kalau FE dibangun lebih dulu, FE menyimpan state yang tidak dimiliki core — dan di produk yang menjual "bukti tidak bisa dik Buktikan ulang: npm run verify:attempts:live. JANGAN dibalik/diulang tanpa membuka kembali baris B58 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { stringToHex, type Hex } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import type { PrivyIdentity } from './privy'
 
 const EP_KEY = 'lencana-signer-url'
 const ID_KEY = 'lencana-learner-v1'
 const DEFAULT_EP = 'http://127.0.0.1:8787'
+/** localStorage: "peramban ini punya sesi login email" — supaya tab baru tahu ada yang bisa dipulihkan. Tanpa data pribadi. */
+const PRIVY_MARK = 'lencana-privy-v1'
 
-export type LearnerKind = 'dompet' | 'perangkat'
+export type LearnerKind = 'dompet' | 'perangkat' | 'privy'
+export type LearnerIdentity = { address: string, kind: LearnerKind, email?: string | null }
 
 type StoredIdentity = {
   address: string
   kind: LearnerKind
   /** Hanya ada untuk kind 'perangkat'; sessionStorage, hilang bersama tab. */
   pk?: Hex
+  /** Hanya untuk kind 'privy': email akun, untuk ditampilkan ke pemiliknya sendiri. Tidak dikirim ke penerbit. */
+  email?: string
 }
+
+/** Ikatan alamat ↔ akun login di penerbit (`POST /auth/privy`), seperti yang dijawab penerbit. */
+export type AccountLink = { linked: boolean, note: string }
 
 export type ServerSummary = {
   enrollmentId: number
@@ -71,7 +89,11 @@ export type GradeResult = {
 
 export type LearningSnapshot = {
   endpoint: string
-  identity: { address: string, kind: LearnerKind } | null
+  identity: LearnerIdentity | null
+  /** Sesi login email sedang dipulihkan (tab baru); halaman menampilkan "memulihkan", bukan "belum ada identitas". */
+  restoring: boolean
+  /** Hasil `POST /auth/privy` terakhir; null untuk identitas yang bukan login email. */
+  account: AccountLink | null
   summary: ServerSummary | null
   courseId: string | null
   pending: boolean
@@ -86,6 +108,8 @@ export type LearningSnapshot = {
 let state: LearningSnapshot = {
   endpoint: readLocal(EP_KEY) ?? DEFAULT_EP,
   identity: readIdentity(),
+  restoring: false,
+  account: null,
   summary: null,
   courseId: null,
   pending: false,
@@ -96,7 +120,7 @@ let state: LearningSnapshot = {
 }
 
 /**
- * Semua akses storage lewat empat helper ini.
+ * Semua akses storage lewat helper di bawah ini.
  *
  * Bukan gaya-gayaan: `src/verify.ts` sengaja bisa di-import dari Node supaya `npm run probe`
  * memeriksa berkas yang sama seperti yang dijalankan browser. Kalau `sessionStorage` disentuh
@@ -110,6 +134,9 @@ function readLocal (k: string): string | null {
 function writeLocal (k: string, v: string): void {
   try { localStorage.setItem(k, v) } catch { /* mode privat: endpoint tetap dari default */ }
 }
+function dropLocal (k: string): void {
+  try { localStorage.removeItem(k) } catch { /* mode privat: memang tidak ada */ }
+}
 function readSession (k: string): string | null {
   try { return sessionStorage.getItem(k) } catch { return null }
 }
@@ -120,15 +147,18 @@ function dropSession (k: string): void {
   try { sessionStorage.removeItem(k) } catch { /* sudah kosong */ }
 }
 
-function readIdentity (): { address: string, kind: LearnerKind } | null {
+function readIdentity (): LearnerIdentity | null {
   try {
     const raw = readSession(ID_KEY)
     if (!raw) return null
     const p = JSON.parse(raw) as StoredIdentity
     if (!p?.address) return null
+    if (p.kind === 'privy') return { address: p.address, kind: 'privy', email: p.email ?? null }
     return { address: p.address, kind: p.kind === 'dompet' ? 'dompet' : 'perangkat' }
   } catch { return null }
 }
+
+const errText = (e: unknown): string => e instanceof Error ? e.message : String((e as { message?: unknown })?.message ?? e)
 
 export function endpoint (): string { return state.endpoint }
 export function setEndpoint (url: string): void {
@@ -174,10 +204,90 @@ export async function connectWalletLearner (): Promise<{ ok: boolean, why?: stri
 }
 
 export function forgetLearner (): void {
+  const wasPrivy = state.identity?.kind === 'privy' || hasPrivyMark()
   dropSession(ID_KEY)
   state.identity = null
   state.summary = null
   state.lastGrade = null
+  if (wasPrivy) {
+    // "Ganti identitas" pada login email = keluar dari Privy juga; kalau tidak, tab berikutnya
+    // memulihkan sesi yang sama dan tombol ini tampak tidak bekerja.
+    dropLocal(PRIVY_MARK)
+    state.account = null
+    void import('./privy').then((p) => p.privyLogout()).catch(() => { /* token lokal tetap sudah dibuang SDK */ })
+  }
+}
+
+// ------------------------------------------------------------------ login email (Privy, B82/D57)
+
+// Lencana-B82 status=TERBUKA 2026-10-01 — identitas ketiga peserta: login email Privy → dompet tertanam yang sama di perangkat mana pun; tanda tangan tetap per permintaan, ikatan alamat ↔ akun dicatat penerbit lewat POST /auth/privy; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+export function hasPrivyMark (): boolean { return readLocal(PRIVY_MARK) === '1' }
+
+function adoptPrivy (id: PrivyIdentity): LearnerIdentity {
+  writeSession(ID_KEY, JSON.stringify({ address: id.address, kind: 'privy', email: id.email ?? undefined } satisfies StoredIdentity))
+  writeLocal(PRIVY_MARK, '1')
+  state.identity = { address: id.address, kind: 'privy', email: id.email }
+  state.summary = null
+  state.lastGrade = null
+  return state.identity
+}
+
+/**
+ * Minta penerbit memverifikasi login ini dan mencatat ikatan alamat ↔ akun. Kegagalannya TIDAK
+ * mencabut identitas: dompet tertanam tetap bisa menandatangani, dan setiap tulisan tetap diperiksa
+ * tanda tangannya. Yang hilang kalau gagal hanya catatan ikatannya — dan halaman menyebut itu.
+ */
+async function linkPrivyAccount (): Promise<AccountLink> {
+  const addr = learnerAddress()
+  let token: string | null = null
+  try { token = await (await import('./privy')).privyAccessToken() } catch { token = null }
+  if (!addr || !token) {
+    state.account = { linked: false, note: 'token login tidak tersedia, ikatan akun tidak dikirim ke penerbit' }
+    return state.account
+  }
+  const r = await call('/auth/privy', { method: 'POST', body: { learner: addr, accessToken: token } })
+  state.account = r.status === 200
+    ? { linked: true, note: 'akun email tertaut ke alamat ini di penerbit' }
+    : { linked: false, note: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return state.account
+}
+
+export async function sendPrivyCode (email: string): Promise<{ ok: boolean, why?: string }> {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return { ok: false, why: 'Itu bukan alamat email.' }
+  try {
+    await (await import('./privy')).privySendCode(email)
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, why: errText(e) }
+  }
+}
+
+export async function connectPrivyLearner (email: string, code: string): Promise<{ ok: boolean, why?: string, identity?: LearnerIdentity, account?: AccountLink }> {
+  if (!/^\d{6}$/.test(code.trim())) return { ok: false, why: 'Kodenya 6 digit angka dari email.' }
+  try {
+    const id = adoptPrivy(await (await import('./privy')).privyLogin(email, code))
+    const account = await linkPrivyAccount()
+    return { ok: true, identity: id, account }
+  } catch (e) {
+    return { ok: false, why: errText(e) }
+  }
+}
+
+/** Tab baru di peramban yang sudah login email: pulihkan identitasnya tanpa meminta kode lagi. */
+export async function resumePrivyLearner (): Promise<LearnerIdentity | null> {
+  if (state.identity || state.restoring || !hasPrivyMark()) return null
+  state.restoring = true
+  try {
+    const id = await (await import('./privy')).privyRestore()
+    if (!id) { dropLocal(PRIVY_MARK); return null }
+    adoptPrivy(id)
+    await linkPrivyAccount()
+    return state.identity
+  } catch {
+    return null
+  } finally {
+    state.restoring = false
+  }
 }
 
 function newNonce (): string {
@@ -194,6 +304,13 @@ async function signMessage (message: string): Promise<{ signature?: string, why?
     const raw = (() => { try { return JSON.parse(readSession(ID_KEY) ?? '{}') as StoredIdentity } catch { return null } })()
     if (!raw?.pk) return { why: 'Kunci perangkat tidak ada di sesi ini (tab baru?). Buat lagi identitasnya.' }
     return { signature: await privateKeyToAccount(raw.pk).signMessage({ message }) }
+  }
+  if (id.kind === 'privy') {
+    try {
+      return { signature: await (await import('./privy')).privySign(message, id.address) }
+    } catch (e) {
+      return { why: errText(e) }
+    }
   }
   const eth = (window as unknown as { ethereum?: { request: (a: { method: string, params?: unknown[] }) => Promise<string> } }).ethereum
   if (!eth) return { why: 'Dompet tidak lagi tersedia di peramban ini.' }

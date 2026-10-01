@@ -11,6 +11,12 @@ learner who has never held a chain address, that is not an onboarding flow — i
 there is still no profile, no "my courses", and no difference between a signed-in and an anonymous visit
 (RF1.5).
 
+> **1 Okt malam (D57, B82):** builder memilih jalur ini — login email lewat **Privy** terpasang
+> (`web/src/privy.ts`, `POST /auth/privy`), dompet tertanam = alamat peserta, kunci perangkat dan dompet ekstensi
+> tetap ada sebagai jalan keluar tanpa penyedia. Dua hal di halaman ini yang dijalankan berbeda, sengaja dan
+> tertulis di D57: app ID dikomit sebagai default publik (bukan env-only), dan belum ada rute `#/onboarding`
+> maupun langkah profil — login hidup di kotak identitas halaman belajar. → [[09-Testing/T41 - signer privy-check.js (B82 login Privy)]]
+
 ## What the identity actually has to be
 
 The system's unit of identity is **an address**, because the credential's subject id is derived from one:

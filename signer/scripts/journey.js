@@ -25,6 +25,8 @@
  *
  * Yang TIDAK dipura-purakan: core tidak punya akun peserta, enrollment, atau endpoint pengumpulan
  * jawaban. Journey melaporkannya sebagai baris "TIDAK ADA DI CORE", tidak menghitungnya lulus.
+ * [Koreksi 1 Okt: kalimat di atas basi — enrollment dan pengumpulan jawaban ada sejak B72, login email
+ * (Privy) sejak B82. Yang masih tidak ada di core: pembelian kursus. Baris gap di bawah memuat rinciannya.]
  *
  * Biaya nyata: 2 attestation + 1 mintBatch + 1 revoke (+ re-anchor). Testnet 97; setiap nilai dibaca
  * ulang dari chain sesudahnya.
@@ -133,11 +135,16 @@ console.log(`  peserta B: ${learnerB.address}`)
 console.log(`  agen     : ${privateKeyToAccount(env.ISSUER_PRIVATE_KEY).address} (EOA penanda tangan attestation)`)
 // Koreksi 1 Okt: teks gap ini sampai hari itu masih berkata core tidak punya enrollment atau penyimpanan
 // jawaban — basi sejak B72 (28-29 Sep). Yang memang masih tidak ada ditulis apa adanya di bawah.
-gaps.push('akun peserta: core TIDAK punya akun/login — identitas peserta adalah kunci penanda tangan (kunci '
-  + 'perangkat yang hangus bersama tab, atau dompet; B82). Enrollment, progres, dan jawaban SUDAH disimpan core '
-  + 'sejak B72 (Postgres lewat /enroll, /progress, /grade, /essay, /praktik), tapi journey ini menerbitkan lewat '
-  + 'CLI penerbit, bukan dari rekaman itu — alur rekaman diuji `npm run verify:attempts:live`. Pembelian kursus '
-  + 'juga belum ada: tabel `orders` tidak pernah ditulis, jadi enrollment belum terikat pembayaran (RF5).')
+// Koreksi kedua 1 Okt (malam, B82/D57): "core TIDAK punya akun/login" juga basi — login email lewat Privy
+// ada sejak malam itu. Identitas yang menandatangani tetap kunci; yang bertambah adalah cara memegang kunci
+// yang SAMA lintas perangkat. Journey ini sendiri tidak login (ia menerbitkan lewat CLI), jadi barisnya tetap gap.
+gaps.push('akun peserta: login email lewat Privy ADA (B82, TERBUKA sampai builder login dari dua peramban) — dompet '
+  + 'tertanam yang sama di perangkat mana pun, dan penerbit mencatat ikatan alamat ↔ akun hanya sesudah token login '
+  + 'diverifikasi (POST /auth/privy, `npm run verify:privy`). Journey ini TIDAK login: pesertanya kunci acak. '
+  + 'Enrollment, progres, dan jawaban SUDAH disimpan core sejak B72 (Postgres lewat /enroll, /progress, /grade, '
+  + '/essay, /praktik), tapi journey ini menerbitkan lewat CLI penerbit, bukan dari rekaman itu — alur rekaman diuji '
+  + '`npm run verify:attempts:live`. Pembelian kursus belum ada: tabel `orders` tidak pernah ditulis, jadi '
+  + 'enrollment belum terikat pembayaran (RF5).')
 
 // ---------------------------------------------------------------- 2. belajar
 head('belajar — permukaan yang bisa dibaca core dari katalog penerbit')

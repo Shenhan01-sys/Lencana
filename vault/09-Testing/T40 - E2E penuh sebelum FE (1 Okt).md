@@ -49,6 +49,8 @@ validator pihak ketiga di chain.
   dibaca ulang dari chain oleh mode tanpa gas (27/0).
 - **Layar FE** — halaman belajar memanggil `/praktik` (B121, OI-20), layar sewa/tagihan agen (OI-19), identitas lintas
   perangkat (B82), registri penerbit live (B105). Itu pekerjaan fase berikutnya, bukan kegagalan BE.
+- *(Koreksi 1 Okt malam, B82/D57: "akun/login" di kalimat berikut basi beberapa jam sesudah T40 — login email lewat
+  Privy terpasang sesudahnya, [[09-Testing/T41 - signer privy-check.js (B82 login Privy)]]; teks gap `journey.js` ikut dikoreksi.)*
 - **Yang memang tidak ada di core**, dicetak journey apa adanya: akun/login (identitas = kunci penanda tangan) dan
   pembelian kursus (tabel `orders` tidak pernah ditulis). Teks gap journey sebelumnya juga berkata "core tidak punya
   enrollment atau penyimpanan jawaban" — **basi sejak B72**; dikoreksi di `signer/scripts/journey.js` malam ini.

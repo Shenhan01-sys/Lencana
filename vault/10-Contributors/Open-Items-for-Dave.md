@@ -517,3 +517,24 @@ tidak mengirim indeks jawaban, hanya benar/salah + alasan; (2) jangan tulis "kui
 diulang, jadi kunci bisa ditebak lewat beberapa usaha. Kalau kelak ada batas usaha atau pembahasan ditunda, itu
 keputusan produk baru, bukan sisa B80. Satu catatan deploy: bundel yang tayang di Vercel baru bersih **sesudah**
 dideploy ulang dari commit B80 — `npm run verify:quizkeys -- --deployed=https://lencana-psi.vercel.app/` mengukurnya.
+
+## OI-22 — kotak identitas belajar kini punya login email (Privy) — B82, 1 Okt malam
+
+Builder meminta login Privy dipasang sebelum fase FE (D57). Supaya bisa dipakai, kotak "Rekaman belajar"
+di `#/learn`/`#/course/…` **kusentuh secukupnya** — tata letak dan gayanya tetap milikmu, dan builder
+menahan pekerjaan FE lain sampai ia meng-acc:
+
+| berkas | perubahan |
+|---|---|
+| `web/src/privy.ts` (baru) | pembungkus SDK vanilla Privy — dimuat lambat lewat `import()`, membuat iframe tersembunyi dompet tertanam, OTP email, `personal_sign` |
+| `web/src/learning.ts` | jenis identitas ketiga `'privy'` (`sendPrivyCode`, `connectPrivyLearner`, `resumePrivyLearner`, `hasPrivyMark`), `snapshot().account` = jawaban `POST /auth/privy`, `snapshot().restoring` |
+| `web/src/lms.ts` | `serverLine()`: kolom email + "Kirim kode" (primary), baris kode 6 digit + "Masuk" (tersembunyi sampai kode terkirim), tombol kunci perangkat **tidak lagi primary**; label identitas `login email … · dompet tertanam`; Enter di kolom = klik tombolnya; sesi dipulihkan sekali per muat halaman |
+| `web/src/lms.css` | dua aturan di bawah `#lms-mount`: `.privy-login input` dan `button[disabled]` |
+| `web/package.json` + `web/.npmrc` (baru) | `@privy-io/js-sdk-core` 0.77.0; `legacy-peer-deps=true` karena SDK mematok peer opsional `viem` 2.56.0 persis (kita 2.56.5) — alasannya ditulis di berkasnya |
+
+**Tidak disentuh:** `index.html`, `main.ts`, `render.ts`, `style.css`, `i18n.ts`. Teks kotak masih bahasa
+Indonesia saja (belum lewat `i18n.ts` — itu berkasmu). Hook yang bisa kamu pakai untuk menata ulang:
+`data-action="privy-send"`, `"privy-login"`, `data-role="privy-email"`, `"privy-code"`, `"privy-code-row"`.
+Yang belum terbukti dan bukan urusan tata letak: login positif belum diuji dua peramban oleh builder
+([[09-Testing/T41 - signer privy-check.js (B82 login Privy)]]).
+

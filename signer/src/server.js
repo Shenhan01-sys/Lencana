@@ -50,6 +50,8 @@ import {
 import { essayLesson, gradeQuiz } from './quiz.js'
 // Lencana-B121 status=TERBUKA 2026-10-01 — core: POST /praktik membaca ulang chain 97 sebelum usaha praktik tersimpan, dan POST /attempts menolak skor kuis/esai/praktik kiriman peserta; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { praktikLesson, checkPraktik } from './praktik.js'
+// Lencana-B82 status=TERBUKA 2026-10-01 — rute POST /auth/privy: ikatan alamat peserta ke akun login Privy sesudah token dan kepemilikan dompet tertanam diverifikasi dengan app secret; yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { privyConfigured, linkPrivyLearner } from './privy.js'
 import {
   findEnrollment as dbFindEnrollment, claimPraktikProof as dbClaimPraktikProof,
   attachPraktikProof as dbAttachPraktikProof, releasePraktikProof as dbReleasePraktikProof,
@@ -420,7 +422,8 @@ const server = createServer(async (req, res) => {
     //    ada di KITA (tanda tangan nonce atas nama peserta), bukan di database;
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
-      || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review') {
+      || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
+      || path === '/auth/privy') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -641,6 +644,16 @@ const server = createServer(async (req, res) => {
           reviewer: out.reviewer, judgeModel: out.judgeModel,
           reviewerAgentId: out.reviewerAgent?.agentId ?? null, label: out.label ?? null, charge,
         }))
+      }
+
+      if (path === '/auth/privy') {
+        // B82 (D57): ikatan alamat peserta ↔ akun login Privy. Tidak memberi sesi apa pun — tulisan atas
+        // nama peserta tetap butuh tanda tangan dompetnya per permintaan (`authorizeLearner`).
+        if (!privyConfigured()) return send(res, 503, jsonBody({ error: 'Privy login is not configured on this server (PRIVY_APP_ID / PRIVY_APP_SECRET)' }))
+        const out = await linkPrivyLearner({ learner: body.learner, accessToken: body.accessToken })
+        return out.ok
+          ? send(res, 200, jsonBody({ learner: out.learner, linked: true, created: out.created, provider: 'privy' }))
+          : send(res, out.status, jsonBody({ error: out.why }))
       }
 
       if (path === '/praktik') {
