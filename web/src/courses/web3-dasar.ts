@@ -219,6 +219,7 @@ export const web3Dasar: Course = {
           title: 'Praktik 1 — Dompet sekali-pakai dan faucet',
           minutes: 18,
           kind: 'praktik',
+          proof: { type: 'balance', chainId: 97 },
           summary:
             'Membuat dompet yang boleh kamu korbankan, lalu mengisi testnet BNB — termasuk syarat yang membuat faucet resmi menolak dompet baru.',
           blocks: [
@@ -390,6 +391,8 @@ export const web3Dasar: Course = {
           title: 'Praktik 2 — Kirim, tunggu, baca receipt',
           minutes: 20,
           kind: 'praktik',
+          // 0,001 tBNB — jumlah yang disebut teks lesson ini sendiri
+          proof: { type: 'tx-receipt', chainId: 97, minValueWei: '1000000000000000' },
           summary: 'Satu transfer kecil, lalu buktikan sendiri bahwa ia terjadi — tanpa membuka dompet.',
           blocks: [
             { t: 'p', text: 'Kirim 0,001 tBNB ke address lain milikmu, lalu baca ulang dari chain. Yang dilatih di sini bukan mengirimnya, tapi MEMBUKTIKAN mengirimnya dengan alat yang tidak kamu percayai.' },
@@ -482,6 +485,16 @@ export const web3Dasar: Course = {
           title: 'Praktik 3 — Baca kontrak kita tanpa wallet',
           minutes: 22,
           kind: 'praktik',
+          // tiga panggilan yang sama persis dengan blok kode di bawah; jawabannya keluaran mentah `cast call`
+          proof: {
+            type: 'eth-call',
+            chainId: 97,
+            reads: [
+              { id: 'schemaUID', to: '0x7CA624caFDe5cA3A27b33d26be56F73a90792065', signature: 'schemaUID()', args: [] },
+              { id: 'isIssuer', to: '0x7CA624caFDe5cA3A27b33d26be56F73a90792065', signature: 'isIssuer(address)', args: ['0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE'] },
+              { id: 'statusOf', to: '0x7CA624caFDe5cA3A27b33d26be56F73a90792065', signature: 'statusOf(bytes32)', args: ['0x0b95c83b9bd94923ab299446e9c9fd72d03529d3d1b8472eef6d39effcb367fa'] },
+            ],
+          },
           summary:
             'Panggil `isIssuer`, `isDelisted`, `schemaUID`, dan `statusOf` pada deployment publik kami lewat RPC biasa.',
           blocks: [

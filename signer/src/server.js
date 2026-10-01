@@ -48,6 +48,12 @@ import {
   setLessonProgress as dbSetProgress, progressSummary as dbProgressSummary, authorizeLearner as dbAuthorize,
 } from './db.js'
 import { essayLesson, gradeQuiz } from './quiz.js'
+// Lencana-B121 status=TERBUKA 2026-10-01 — core: POST /praktik membaca ulang chain 97 sebelum usaha praktik tersimpan, dan POST /attempts menolak skor kuis/esai/praktik kiriman peserta; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { praktikLesson, checkPraktik } from './praktik.js'
+import {
+  findEnrollment as dbFindEnrollment, claimPraktikProof as dbClaimPraktikProof,
+  attachPraktikProof as dbAttachPraktikProof, releasePraktikProof as dbReleasePraktikProof,
+} from './db.js'
 import { gradeAgainstRubric } from './grade.js'
 import { submitEssay as dbSubmitEssay, judgeEssay as dbJudgeEssay, addReviewer as dbAddReviewer, reviewEssay as dbReviewEssay } from './db.js'
 import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
@@ -413,7 +419,7 @@ const server = createServer(async (req, res) => {
     //  - secret key DB melewati RLS, jadi pemeriksaan "siapa yang boleh menulis untuk alamat ini"
     //    ada di KITA (tanda tangan nonce atas nama peserta), bukan di database;
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
-    if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade'
+    if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
@@ -634,6 +640,63 @@ const server = createServer(async (req, res) => {
         }))
       }
 
+      if (path === '/praktik') {
+        /**
+         * Praktik (B121). Peserta mengirim apa yang ia kerjakan/baca di chain, BUKAN angka; server
+         * membaca ulang chain 97 (`src/praktik.js`) dan menyimpan usaha hanya kalau semua cocok.
+         * Urutan: tanda tangan peserta → enrollment → baca chain → klaim kunci bukti → simpan usaha →
+         * ikat bukti. Kunci yang sudah dipakai (transaksi/dompet yang sama) = 409, tanpa usaha baru.
+         */
+        for (const banned of ['score', 'verdict', 'components', 'rubricHash']) {
+          if (body[banned] !== undefined) {
+            return send(res, 400, jsonBody({ error: `/praktik does not accept ${banned}: send what you did on chain, the server checks it` }))
+          }
+        }
+        if (!body.course || !body.lesson) return send(res, 400, jsonBody({ error: 'requires course + lesson (practice slug)' }))
+        const found = praktikLesson(body.course, body.lesson)
+        if (found.error) return send(res, 400, jsonBody({ error: found.error }))
+        if (typeof body.message !== 'string' || !body.message.includes(`lesson=${body.lesson}`)) {
+          return send(res, 401, jsonBody({ error: `signed message must state lesson=${body.lesson}` }))
+        }
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'praktik' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        if (!(await dbFindEnrollment(body.learner, body.course))) {
+          return send(res, 422, jsonBody({ error: 'learner not enrolled in this course — no row to attach the practice attempt to' }))
+        }
+        const checked = await checkPraktik({
+          rpcUrl: RPC_URL, courseId: body.course, lessonSlug: body.lesson, learner: body.learner,
+          answers: body.answers, walletSignature: body.walletSignature,
+        })
+        if (!checked.ok) return send(res, checked.status, jsonBody({ error: checked.why, failed: checked.failed }))
+        const claim = await dbClaimPraktikProof({ courseId: body.course, lessonKey: body.lesson, learner: body.learner, proof: checked.proof })
+        if (!claim.ok) return send(res, claim.kind === 'used' ? 409 : 500, jsonBody({ error: claim.why }))
+        let stored
+        try {
+          const attemptNo = await dbNextAttemptNo(body.learner, body.course, body.lesson, 'praktik')
+          stored = await dbStoreAttempt({
+            learner: body.learner, courseId: body.course, lessonKey: body.lesson, kind: 'praktik',
+            attemptNo, score: 100, verdict: 'pass', rubricHash: rubricHashOf(found.manifest), deductions: [],
+            components: checked.checks.map((c) => ({ itemId: c.id, score: 100, weight: 1, gradedBy: 'chain' })),
+          })
+        } catch (e) {
+          // klaim yang belum terikat dilepas, supaya kegagalan DB tidak memakan bukti peserta
+          await dbReleasePraktikProof(claim.id)
+          throw e
+        }
+        if (!stored.ok) {
+          await dbReleasePraktikProof(claim.id)
+          return send(res, 422, jsonBody({ error: stored.why }))
+        }
+        const attemptNo = stored.attempt?.attempt_no
+        await dbAttachPraktikProof(claim.id, stored.attempt?.id)
+        return send(res, 201, jsonBody({
+          attemptHash: stored.attemptHash, attemptId: stored.attempt?.id, attemptNo, lesson: body.lesson, kind: 'praktik',
+          rubricHash: rubricHashOf(found.manifest), score: 100, verdict: 'pass', gradedBy: 'chain',
+          proofType: checked.proof.type, proofKey: checked.proof.key, blockNumber: checked.proof.blockNumber,
+          checks: checked.checks.map((c) => c.id),
+        }))
+      }
+
       const out = await dbRecordAttempt({
         learner: body.learner, courseId: body.course, lessonKey: body.lesson ?? '-', kind: body.kind,
         attemptNo: body.attempt ?? 1, score: body.score, verdict: body.verdict,
@@ -643,7 +706,7 @@ const server = createServer(async (req, res) => {
       })
       return out.ok
         ? send(res, 201, jsonBody({ attemptHash: out.attemptHash, attemptId: out.attempt?.id, score: out.attempt?.score, verdict: out.attempt?.verdict }))
-        : send(res, 401, jsonBody({ error: out.why }))
+        : send(res, out.kind === 'refused' ? 400 : 401, jsonBody({ error: out.why }))
     }
     // Agen sewaan (B119, D54): tabel harga, sewa oleh penerbit, dan tagihan per aktivitas penilaian.
     if (path.startsWith('/agents/') || path.startsWith('/agent-charges/')) {

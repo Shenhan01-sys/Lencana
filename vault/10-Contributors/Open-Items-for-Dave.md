@@ -464,3 +464,30 @@ penerbit — jangan beri penerbit kontrol mengubahnya; (2) **tarif dasar milik A
 registry, kenaikan 5%/tingkat milik Lencana — dua sumber itu sebaiknya terlihat terpisah; (3) agen **bukan
 penanda tangan kertas** — jangan tulis "kredensial ditandatangani agen". Yang tidak kusentuh: berkas FE
 milikmu (`main.ts`, `render.ts`, `index.html`, `style.css`, `i18n.ts`).
+
+## OI-20 — lesson praktik harus memanggil `POST /praktik`; tanpa itu peserta halaman tidak bisa lulus (B121, 1 Okt)
+
+Sejak 1 Okt slot praktik hanya terisi dari **bacaan chain** yang dilakukan server
+([[09-Testing/T38 - signer praktik-check.js (B121 praktik dinilai chain)]]), dan `POST /attempts` menolak skor praktik.
+Halaman belajar belum punya tombol penyerahan praktik sama sekali (pemanggil `/attempts` di `web/src` = 0,
+diukur 1 Okt), jadi peserta yang hanya memakai halaman tetap berhenti di "praktik: belum dikerjakan".
+Yang dibutuhkan layar lesson praktik: satu formulir sesuai `lesson.proof.type` dari manifest, lalu
+`POST /praktik` dengan `{ learner, course, lesson, answers, walletSignature?, message, signature }` —
+`message` ditandatangani kunci peserta dan wajib memuat `lesson=<slug>` + `nonce=<hex>`.
+
+| `proof.type` | lesson | isi `answers` | dompet menandatangani? |
+|---|---|---|---|
+| `balance` | web3-dasar Praktik 1 | `{ wallet, balanceWei, balanceBnb }` (koma atau titik) | ya |
+| `tx-receipt` | web3-dasar Praktik 2 | `{ wallet, txHash, blockNumber, blockTimestamp, gasUsed, balanceDeltaWei }` | ya, dengan `tx=<hash>` |
+| `eth-call` | web3-dasar Praktik 3 | `{ results: { schemaUID, isIssuer, statusOf } }` — keluaran mentah `cast call` | tidak |
+| `allowance` | web3-lanjut Praktik 1 | `{ wallet, token, balance, allowances: [{ spender, allowance }, …≥2] }` | ya |
+
+Pesan yang ditandatangani **dompet latihan** (bukan kunci peserta): `lencana-praktik course=<id>
+lesson=<slug> learner=<alamat peserta, huruf kecil> wallet=<dompet, huruf kecil>` (+ ` tx=<hash>` untuk
+transfer) — fungsi `walletBindingMessage` di `signer/src/praktik.js`, sebaiknya disalin bentuknya, bukan
+ditebak. Balasan: 201 `{ attemptHash, gradedBy: 'chain', checks }`; 422 `{ failed: ['gas-used', …] }` —
+**hanya nama pemeriksaan**, tanpa nilai yang benar, jadi layar sebaiknya menerjemahkan nama itu ke
+petunjuk ("selisih saldo belum menghitung biaya gas"), bukan menampilkan angka; 409 = transaksi/dompet itu
+sudah dipakai peserta lain. Dua hal dari keputusan, bukan selera: jangan tulis "praktik terverifikasi"
+untuk `eth-call` (jawabannya sama untuk semua orang, bisa disalin), dan jangan minta peserta menempel
+kunci privat dompet — tanda tangan pesan dari dompet (mis. lewat ekstensi) sudah cukup.

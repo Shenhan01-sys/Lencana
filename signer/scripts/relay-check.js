@@ -22,6 +22,7 @@ import { createPublicClient, http, keccak256, toBytes } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
+import { freePort } from '../src/ports.js'
 import { encodeCredentialData, readDelegationContext, signDelegatedAttestation } from '../src/delegation.js'
 import { RELAY_MAX_BATCH, RELAY_MAX_DEADLINE_SECONDS } from '../src/relay.js'
 import { credentialResolverAbi, EMPTY_UID } from '../../web/src/abi.ts'
@@ -64,12 +65,7 @@ if (warmBefore) {
 }
 
 const coldDir = mkdtempSync(join(tmpdir(), 'lencana-relay-'))
-async function freePort (from) {
-  for (let p = from; p < from + 14; p++) {
-    try { await fetch(`http://127.0.0.1:${p}/healthz`, { signal: AbortSignal.timeout(600) }) } catch { return p }
-  }
-  return from
-}
+// port dicari dengan uji bind, bukan dengan /healthz yang bisa lambat (src/ports.js, temuan B121)
 const PORT = Number(process.env.RELAY_PROBE_PORT ?? await freePort(8837))
 const BASE = `http://127.0.0.1:${PORT}`
 // `--live` = SATU siaran nyata dari antrean (gas testnet, dibayar kunci platform). Tanpa bendera itu

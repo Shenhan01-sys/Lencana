@@ -22,6 +22,7 @@ import { dirname, resolve } from 'node:path'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
+import { freePort } from '../src/ports.js'
 import { attemptsFor, computeAttemptHash, courseGates, dbConfigured, dbMissingReason, usedNonceExists } from '../src/db.js'
 import { evidenceFromAttempts } from '../src/fromAttempts.js'
 
@@ -32,7 +33,9 @@ if (!dbConfigured()) {
   process.exit(2)
 }
 
-const PORT = Number(process.env.DB_PROBE_PORT ?? 8792)
+// Port dicari dengan uji bind (src/ports.js, temuan B121): port tetap + server yatim = probe berbicara
+// dengan kode lama sementara server barunya gagal bind tanpa suara.
+const PORT = Number(process.env.DB_PROBE_PORT ?? await freePort(8792))
 const BASE = `http://127.0.0.1:${PORT}`
 const COURSE = 'web3-dasar-2026'
 

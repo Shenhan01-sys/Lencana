@@ -1,18 +1,37 @@
 ---
 tags: [testing, "T22"]
 status: active
-updated: 2026-09-30
+updated: 2026-10-01
 command: npm run verify:attempts (hitung-saja) + npm run verify:attempts:live (Postgres + chain 97)
-measured: 2026-09-30 (offline dan live)
-result: 38/0 offline (30 Sep malam; 31/0 sebelum B104) · 82/0 live (30 Sep malam, lewat rantai pengesahan B104; 67/0 pada 29 Sep) · verify:edge 10/0 (30 Sep)
+measured: 2026-10-01 (offline dan live)
+result: 39/0 offline (1 Okt; 38/0 sebelum B121, 31/0 sebelum B104) · live 1 Okt 73 / 4 gagal — keempatnya hilir dari crash publish:edge sesudah kertas terbit, bagian h diulang 16/16 · 82/0 live (30 Sep malam, lewat rantai pengesahan B104; 67/0 pada 29 Sep) · verify:edge 10/0 (30 Sep)
 ---
 
 # T22 - signer attempts-check.js (satu alur: peserta → rekaman → kertas → dokumen hasil)
 
-**Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B62, B62-b, B72, **B104** di
+**Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B62, B62-b, B72, **B104**, **B121** di
 [[07-Backlog/03 - Findings and Tasks 2026-09-26|status dan tugas terbaru]] · **Bar:**
 [[00-Overview/11 - Product Bar]] 3, 4, 6, 7, 8 · **Pasangan:** [[09-Testing/T21 - signer db-probe.js]] ·
-**Ringkas:** belum ada berkasnya (B77 ditahan builder)
+[[09-Testing/T38 - signer praktik-check.js (B121 praktik dinilai chain)]] · **Ringkas:** belum ada berkasnya (B77 ditahan builder)
+
+> **1 Okt — B121 (praktik dinilai chain).** Lapis hitung-saja **38 → 39**: satu fixture baru — baris
+> praktik laporan peserta (komponen mekanis, bentuk yang dulu ditulis `POST /attempts`) **tidak** mengisi
+> slot praktik dan catatannya menyebut B121; dua fixture lama yang mengisi slot kini membawa komponen
+> `graded_by: 'chain'`. Lapis `--live` mengubah satu langkah: praktik tidak lagi dikirim lewat
+> `/attempts` (yang kini 400) tapi lewat `POST /praktik` lesson `praktik-eth-call` — tiga `eth_call`
+> dibaca harness dengan ABI-nya sendiri, server membaca ulang. Dua run live hari itu:
+> 1. **Merah palsu, tanpa kertas:** server yatim 30 Sep di port 8795 dijawab sebagai server baru
+>    (`freePort` menganggap `/healthz` yang lambat = port kosong) → `/praktik` 404, `/attempts` praktik
+>    201, `issue` berhenti "bukti belum lengkap". Diperbaiki dengan `signer/src/ports.js` (uji bind).
+> 2. **73 / 4 gagal, kertas terbit:** `0x372c2518a3bd7aa19ffe45b1e3f6c23b9abe06d172c7574547057159112efd38`
+>    (peserta uji `0xAbCA6C091e0797DB920dC744F904d260C3dEED2d`). Hijau semua sampai `issue`, termasuk
+>    `jalur lama POST /attempts untuk praktik -> 400` dan `usaha praktik tercatat lewat HTTP, dinilai chain
+>    (POST /praktik praktik-eth-call -> 201, 3 pemeriksaan cocok)`. Empat merah: `publish:edge` keluar
+>    **134** ("Native stack trace") dan tiga pemeriksaan tepi yang bergantung padanya. `publish:edge` diulang
+>    langsung → **PUBLISH HIJAU 74/75**; bagian h diulang dengan predikat yang sama terhadap kertas itu →
+>    **16/16** (+1 pemeriksaan B121: komponen praktik di dokumen hasil yang terhidang `gradedBy chain`).
+>    Run ketiga sengaja **tidak** dijalankan: ia menerbitkan kertas uji lagi hanya untuk mengganti angka
+>    yang sudah dibuktikan dari kertas yang sama. Enrollment peserta itu ditandai `origin=demo` (aturan B104).
 
 > **30 Sep malam, sesudah catatan di bawah ini ditulis — lapis `--live` DIJALANKAN (builder minta diuji
 > langsung): 82 / 0.** Esai di lapis live sekarang lewat rantai tiga lapis, bukan lagi dinilai penerbit

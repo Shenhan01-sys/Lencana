@@ -25,6 +25,7 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
+import { freePort } from '../src/ports.js'
 import { credentialHashOf } from '../src/credential.js'
 import { deadlinePolicyOf, finalizeInnerHash, depositAbi, courseIdOf, DEADLINE_TIERS } from '../src/deposit.js'
 import { credentialResolverAbi, basAbi, EMPTY_UID } from '../../web/src/abi.ts'
@@ -86,12 +87,7 @@ const cfg = { chainId: Number(env.CHAIN_ID ?? 97), depositAddress: DEPOSIT, toke
 const local = deadlinePolicyOf(COURSE, cfg)
 
 const coldDir = mkdtempSync(join(tmpdir(), 'lencana-deposit-'))
-async function freePort (from) {
-  for (let p = from; p < from + 14; p++) {
-    try { await fetch(`http://127.0.0.1:${p}/healthz`, { signal: AbortSignal.timeout(600) }) } catch { return p }
-  }
-  return from
-}
+// port dicari dengan uji bind, bukan dengan /healthz yang bisa lambat (src/ports.js, temuan B121)
 const PORT = Number(env.DEPOSIT_PROBE_PORT ?? await freePort(8857))
 const BASE = `http://127.0.0.1:${PORT}`
 const childEnv = { ...env, LANCENA_STORE: coldDir, PORT: String(PORT), HOST: '127.0.0.1', BASE_URL: BASE }

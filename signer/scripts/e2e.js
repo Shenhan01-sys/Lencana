@@ -26,6 +26,7 @@ import { gunzipSync } from 'node:zlib'
 import { createPublicClient, http } from 'viem'
 
 import { loadFileEnvReport } from '../src/env.js'
+import { freePort } from '../src/ports.js'
 import { EDGE_ROUTES, PURPOSES } from '../src/edgeKeys.js'
 import { REVOCATION, SUSPENSION, decodeBit, LIST_BITS } from '../src/statusList.js'
 import { listCredentials } from '../src/store.js'
@@ -33,7 +34,8 @@ import { makeDocumentLoader, verifyDocument } from '../src/sign.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const SKIP_VALIDATOR = process.argv.includes('--skip-validator')
-const PORT = Number(process.env.E2E_PORT ?? 8799)
+// port dicari dengan uji bind, bukan angka tetap (src/ports.js, temuan B121)
+const PORT = Number(process.env.E2E_PORT ?? await freePort(8799))
 const LOCAL = `http://127.0.0.1:${PORT}`
 
 await loadFileEnvReport('e2e')

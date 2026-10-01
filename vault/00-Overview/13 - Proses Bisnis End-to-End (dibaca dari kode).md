@@ -235,7 +235,12 @@ Aturan yang ditegakkan kode di alur ini:
 |---|---|---|
 | **kuis** | server, terhadap kunci di manifest penerbit | komponen per soal tersimpan |
 | **esai** | penerbit: lewat model, atau manusia | tanda tangan EOA penerbit; kalau dari model, tambah tanda tangan reviewer |
-| **praktik** | **peserta sendiri** — `POST /attempts` menerima angka kiriman klien | hanya tanda tangan peserta. Ini lubang, lihat bagian 13 |
+| **praktik** | ~~**peserta sendiri** — `POST /attempts` menerima angka kiriman klien~~ → sejak 1 Okt (B121 core, D55): **chain** — server membaca ulang apa yang peserta kerjakan (transfer, saldo, `eth_call`, izin token) lewat `POST /praktik` | ~~hanya tanda tangan peserta~~ → komponen `graded_by='chain'` + baris `praktik_proofs` berisi nilai yang dibaca server; satu transaksi/dompet hanya untuk satu peserta. Halaman belajar belum memanggilnya — lihat bagian 13 |
+
+*(Koreksi 1 Okt, B121 — baris praktik di atas dicoret, bukan dihapus. Yang juga ketemu saat mengerjakannya:
+`POST /attempts` dulu menerima skor **kuis dan esai** juga, bukan hanya praktik, dan `fromAttempts` memakai
+baris itu; kolom "siapa yang menghitung" untuk kuis dan esai di tabel ini benar untuk rute yang dipakai
+halaman, tidak untuk siapa pun yang memanggil HTTP langsung. Sejak B121 ketiganya ditolak di `/attempts`.)*
 
 ```mermaid
 sequenceDiagram
@@ -557,6 +562,12 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
    (`grep -rn "/attempts" web/src` → nol pemanggil; harness memanggilnya langsung). Jadi peserta yang
    memakai halaman saja akan berhenti di "praktik: belum dikerjakan" saat penerbitan. Dan rute itu
    sendiri menerima angka kiriman peserta. Dicatat sebagai **B121** (1 Okt).
+   **Keadaan 1 Okt malam (B121 core, D55):** setengahnya tertutup. Praktik sekarang punya jalur yang
+   menilai dari chain (`POST /praktik`), `/attempts` menolak skor slot rubrik dari peserta, dan satu
+   kertas uji (`0x372c2518…`) terbit dengan komponen praktik `gradedBy chain` di dokumen hasilnya. Yang
+   masih putus: **halaman belajar tetap tidak memanggil rute penyerahan praktik** (pemanggil `/attempts`
+   dan `/praktik` di `web/src` = 0, diukur 1 Okt) — OI-20, fase FE →
+   [[09-Testing/T38 - signer praktik-check.js (B121 praktik dinilai chain)]].
 2. **Penerbitan tidak dipicu peserta.** Tidak ada rute "saya sudah selesai, terbitkan". Penerbit
    menjalankan `npm run issue` per peserta.
 3. **Penerbit dan platform satu mesin.** Kunci agen ada di `signer/.keys/` dan `.env` platform. Jalur

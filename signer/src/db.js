@@ -27,6 +27,9 @@
 // Lencana-B78 status=SELESAI 2026-09-30 — setiap enrollment membawa origin (demo|test|unknown; default unknown) supaya baris harness bisa dibedakan dari baris demo, dan view course_gates ikut mengeluarkannya (migrasi 0008). Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B78 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // Lencana-B81 status=SELESAI 2026-09-29 — esai/praktik masuk sebagai rekaman + antrean penilaian penerbit; angka tidak diterima dari klien. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B81 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Koreksi 1 Okt (B121), dibiarkan di sebelah marker supaya terbaca: untuk PRAKTIK kalimat marker B81 di
+// atas tidak benar sampai 1 Okt — `POST /attempts` masih menerima angka praktik (dan kuis/esai) kiriman
+// peserta. B121 menutupnya: `recordAttempt` menolak ketiga slot rubrik, praktik lewat `POST /praktik`.
 
 // Lencana-B72 status=SELESAI 2026-09-29 — state belajar hidup di Postgres (server-side), bukan localStorage browser. Buktikan ulang: npm run verify:db. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { keccak256, encodeAbiParameters, getAddress } from 'viem'
@@ -172,9 +175,19 @@ export function computeAttemptHash ({ learner, courseId, lessonKey, kind, attemp
  * Batas yang harus disebut: jalur ini memercayai ANGKA yang dikirim. Untuk kuis itu tidak lagi
  * boleh — angkanya dihitung server (`POST /grade`, `src/quiz.js`), karena kalau browser yang
  * mengirim skor, peserta menilai dirinya sendiri dan `attempt_hash` cuma membekukan angka itu.
+ *
+ * Koreksi 1 Okt (B121): kalimat di atas benar untuk ANGKA yang dihitung `/grade`, tapi fungsi ini
+ * sampai hari itu tetap menerima `kind` kuis/esai/praktik dengan skor kiriman peserta, dan
+ * `fromAttempts` memakainya kalau komponennya ada. Sejak B121 ketiga slot rubrik ditolak di sini —
+ * masing-masing punya jalur yang dinilai pihak lain (`/grade`, `/essay`, `/praktik`); yang tersisa
+ * untuk jalur ini hanya `ujian`, yang tidak punya slot di rubrik (`unmapped` di `fromAttempts`).
  */
+export const SELF_REPORT_REFUSED = { kuis: 'POST /grade', esai: 'POST /essay', praktik: 'POST /praktik' }
 export async function recordAttempt ({ learner, courseId, lessonKey = '-', kind, attemptNo = 1, score, verdict,
   rubricHash, judgeModel, judgeTemp, deductions, components, message, signature }) {
+  if (SELF_REPORT_REFUSED[kind]) {
+    return { ok: false, kind: 'refused', why: `/attempts does not accept ${kind} scores from the learner — ${kind} is graded through ${SELF_REPORT_REFUSED[kind]}` }
+  }
   const auth = await authorizeLearner({ learner, message, signature })
   if (!auth.ok) return { ok: false, why: auth.why }
   return storeAttempt({ learner, courseId, lessonKey, kind, attemptNo, score, verdict,
@@ -224,6 +237,66 @@ export async function storeAttempt ({ learner, courseId, lessonKey = '-', kind, 
     })
   }
   return { ok: true, attempt, attemptHash }
+}
+
+/* ------------------------------------------------------------------ bukti praktik (B121) */
+
+// Lencana-B121 status=TERBUKA 2026-10-01 — core: kunci bukti praktik diklaim sebelum usaha disimpan, diikat sesudahnya, dilepas kalau penyimpanan gagal; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/**
+ * Mengklaim satu bukti praktik SEBELUM usahanya disimpan (migrasi 0011). `proof_key` unik, jadi
+ * transaksi atau dompet yang sudah dipakai peserta lain ditolak database, bukan oleh pengecekan
+ * "select dulu" yang bisa didahului permintaan lain. Bukti tanpa kunci (eth-call) selalu lolos.
+ * @returns {Promise<{ok:true,id:number} | {ok:false,kind:'used'|'error',why:string}>}
+ */
+export async function claimPraktikProof ({ courseId, lessonKey, learner, proof }) {
+  try {
+    const rows = await rest('praktik_proofs', {
+      method: 'POST', prefer: 'return=representation',
+      body: [{
+        course_id: courseId, lesson_key: lessonKey, learner: getAddress(learner), proof_type: proof.type,
+        proof_key: proof.key ?? null, wallet: proof.wallet ? getAddress(proof.wallet) : null, chain_id: proof.chainId,
+        block_number: proof.blockNumber ?? null, tx_hash: proof.txHash ?? null, observed: proof.observed ?? {},
+      }],
+    })
+    return { ok: true, id: rows?.[0]?.id }
+  } catch (e) {
+    const msg = String(e.message ?? e)
+    if (/duplicate|already exists|409|23505/i.test(msg)) return { ok: false, kind: 'used', why: `this proof (${proof.key}) was already used for a practice attempt` }
+    return { ok: false, kind: 'error', why: `could not record the proof: ${msg.slice(0, 90)}` }
+  }
+}
+
+export async function attachPraktikProof (proofId, attemptId) {
+  await rest('praktik_proofs', { method: 'PATCH', query: `?id=eq.${Number(proofId)}`, prefer: 'return=minimal', body: { attempt_id: Number(attemptId) } })
+}
+
+export async function releasePraktikProof (proofId) {
+  await rest('praktik_proofs', { method: 'DELETE', query: `?id=eq.${Number(proofId)}&attempt_id=is.null`, prefer: 'return=minimal' })
+}
+
+export async function praktikProofsFor (attemptId) {
+  return (await rest('praktik_proofs', { query: `?attempt_id=eq.${Number(attemptId)}&select=*` })) ?? []
+}
+
+/**
+ * Khusus harness: lepaskan kunci bukti yang dipegang peserta ber-`origin=test` dari run sebelumnya,
+ * supaya bukti tetap (dompet/transaksi yang sama) bisa diuji ulang. Kunci yang dipegang peserta
+ * demo/unknown TIDAK disentuh — fungsi ini melaporkannya, dan harness yang memutuskan merah.
+ * Usahanya sendiri dibiarkan; `npm run cleanup` yang membersihkannya bersama baris uji lain.
+ */
+export async function freeTestProofKey (key) {
+  const rows = (await rest('praktik_proofs', { query: `?proof_key=eq.${encodeURIComponent(key)}&select=id,learner,course_id` })) ?? []
+  let freed = 0
+  const heldBy = []
+  for (const r of rows) {
+    const e = await findEnrollment(r.learner, r.course_id)
+    if (e?.origin === 'test') {
+      await rest('praktik_proofs', { method: 'DELETE', query: `?id=eq.${Number(r.id)}`, prefer: 'return=minimal' })
+      freed++
+    } else heldBy.push({ learner: r.learner, origin: e?.origin ?? null })
+  }
+  return { freed, heldBy }
 }
 
 /** Dua gerbang dibaca terpisah, bukan digabung (bar 6). */

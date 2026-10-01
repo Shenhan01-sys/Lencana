@@ -198,14 +198,21 @@ export function evidenceFromAttempts (manifest, attempts) {
     track('esai', a, raw)
   }
 
-  // — praktik: rubrik hanya bertanya ada/tidaknya bukti yang dinilai
-  const praktikAttempt = bestGraded(rows, 'praktik')
+  // — praktik: rubrik hanya bertanya ada/tidaknya bukti yang dinilai.
+  // Lencana-B121 status=TERBUKA 2026-10-01 — praktik hanya dihitung kalau dinilai CHAIN (komponen graded_by='chain', lahir dari POST /praktik); usaha praktik laporan peserta dari jalur lama /attempts tidak lagi membuat slot terisi. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  const praktikRows = rows.filter((a) => a.kind === 'praktik')
+  const chainChecked = praktikRows.filter((a) => (a.attempt_components ?? []).some((c) => c?.graded_by === 'chain'))
+  const selfReported = praktikRows.filter((a) => !chainChecked.includes(a) && String(a.verdict ?? 'incomplete') !== 'incomplete')
+  if (selfReported.length) {
+    notes.push(`praktik: ${selfReported.length} usaha tanpa komponen graded_by chain (laporan peserta lewat /attempts lama) — tidak dihitung sejak B121`)
+  }
+  const praktikAttempt = bestGraded(chainChecked, 'praktik')
   const praktikCompleted = Boolean(praktikAttempt)
   let praktikRaw = null
   if (praktikAttempt) {
     praktikRaw = rawFromComponents(praktikAttempt.attempt_components)
     if (praktikRaw) track('praktik', praktikAttempt, praktikRaw)
-    else notes.push(`praktik "${praktikAttempt.lesson_key ?? '-'}': dinilai tanpa komponen; rubrik praktik hanya butuh ada/tidaknya`)
+    notes.push(`praktik "${praktikAttempt.lesson_key ?? '-'}": dinilai chain (${(praktikAttempt.attempt_components ?? []).length} pemeriksaan cocok)`)
   }
 
   const unmappedKinds = {}

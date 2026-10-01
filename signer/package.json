@@ -14,6 +14,8 @@
     "admit": "tsx scripts/admit.js",
     "verify:agents": "tsx scripts/agents-check.js",
     "verify:agents:live": "tsx scripts/agents-check.js --live",
+    "verify:praktik": "tsx scripts/praktik-check.js",
+    "verify:praktik:live": "tsx scripts/praktik-check.js --live",
     "verify:agent": "tsx scripts/agent-identity-check.js",
     "adopt": "node scripts/adopt.js --demo",
     "check": "node scripts/check.js",

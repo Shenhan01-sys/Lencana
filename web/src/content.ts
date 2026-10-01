@@ -67,6 +67,26 @@ export type Essay = {
   guidance: string[]
 }
 
+/**
+ * Bukti praktik yang DIBACA ULANG server dari chain (B121), bukan dilaporkan peserta. Penerbit
+ * menulis jenis buktinya di sini; `signer/src/praktik.js` yang memeriksanya, dan usaha praktik
+ * hanya tersimpan kalau semua yang dikirim peserta sama dengan yang dibaca server.
+ *
+ *   balance     saldo dompet belajar dalam wei DAN dalam BNB, > 0
+ *   tx-receipt  satu transfer dari dompet belajar: nomor blok, waktu blok, gas terpakai, selisih saldo
+ *   eth-call    hasil mentah beberapa `eth_call` ke kontrak publik (sama untuk semua peserta)
+ *   allowance   `balanceOf` + beberapa `allowance` satu token atas dompet belajar
+ *
+ * Dompet belajar dibuktikan milik peserta lewat tanda tangan dompet itu atas pesan yang menyebut
+ * alamat peserta. Sengaja TIDAK ikut `rubricHashOf`/`manifestHashOf`: memasukkannya menggeser hash
+ * kertas yang sudah terbit — keputusan itu milik builder, dicatat di baris B121.
+ */
+export type PraktikProof =
+  | { type: 'balance'; chainId: number }
+  | { type: 'tx-receipt'; chainId: number; minValueWei: string }
+  | { type: 'eth-call'; chainId: number; reads: { id: string; to: Address; signature: string; args: string[] }[] }
+  | { type: 'allowance'; chainId: number; minSpenders: number }
+
 export type Lesson = {
   slug: string
   title: string
@@ -76,6 +96,8 @@ export type Lesson = {
   blocks: Block[]
   quiz?: Quiz
   essay?: Essay
+  // Lencana-B121 status=TERBUKA 2026-10-01 — jenis bukti praktik yang diperiksa server dari chain; halaman belajar belum mengirimnya ke POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  proof?: PraktikProof
 }
 
 export type Module = {

@@ -22,9 +22,10 @@ import { spawn } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
-import { createPublicClient, http, getAddress, parseAbi, keccak256, toBytes } from 'viem'
+import { createPublicClient, http, getAddress, parseAbi, keccak256, toBytes, encodeFunctionData } from 'viem'
 
 import { loadFileEnvReport } from '../src/env.js'
+import { freePort } from '../src/ports.js'
 import { credentialHashOf } from '../src/credential.js'
 import { manifestOf, rubricHashOf } from '../../web/src/manifest.ts'
 import { computeScore, formatScore } from '../../web/src/score.ts'
@@ -83,7 +84,8 @@ const full = evidenceFromAttempts(fakeManifest(), [
   attempt({ kind: 'kuis', lesson_key: 'kuis-satu', attempt_components: [comp('q1', 100, 50), comp('q2', 60, 50)] }),
   attempt({ kind: 'kuis', lesson_key: 'kuis-dua', attempt_components: [comp('q1', 80, 100)] }),
   attempt({ kind: 'esai', lesson_key: 'esai-satu', attempt_components: [comp('k1', 90, 10, 'model'), comp('k2', 70, 30, 'model')] }),
-  attempt({ kind: 'praktik', lesson_key: 'praktik-satu', attempt_components: [comp('build', 100, 1)] }),
+  // B121: praktik hanya terhitung kalau dinilai chain (komponen lahir dari POST /praktik)
+  attempt({ kind: 'praktik', lesson_key: 'praktik-satu', attempt_components: [comp('eth-call:schemaUID', 100, 1, 'chain')] }),
 ])
 check('kuis = rata-rata berbobot per lesson (100/50+60/50 -> 80; 80)',
   JSON.stringify(full.evidence.quizScores) === JSON.stringify([80, 80]), JSON.stringify(full.evidence.quizScores))
@@ -128,6 +130,16 @@ const ungraded = evidenceFromAttempts(fakeManifest(), [attempt({ kind: 'kuis', l
 check('usaha verdict=incomplete tidak dihitung (belum dinilai != nol)',
   ungraded.ok === false || ungraded.evidence.quizScores.length === 0, JSON.stringify(ungraded.evidence))
 
+// B121 — praktik laporan peserta (bentuk baris yang dulu ditulis POST /attempts: komponen mekanis,
+// verdict pass, angka 100 kiriman klien) tidak lagi mengisi slot praktik; dan itu tercatat, bukan diam.
+const selfReported = evidenceFromAttempts(fakeManifest(), [
+  attempt({ kind: 'kuis', lesson_key: 'kuis-satu', attempt_components: [comp('q1', 80, 1)] }),
+  attempt({ kind: 'praktik', lesson_key: 'praktik-satu', score: 100, verdict: 'pass', attempt_components: [comp('build', 100, 1)] }),
+])
+check('praktik laporan peserta (komponen mekanis dari /attempts lama) TIDAK mengisi slot praktik, dan catatannya menyebut B121',
+  selfReported.ok && selfReported.evidence.praktikCompleted === false && /B121/.test(selfReported.notes.join(' ')),
+  JSON.stringify({ praktik: selfReported.evidence.praktikCompleted, notes: selfReported.notes }))
+
 head('satu jalan masuk: bukti palsu -> computeScore, hasil harus sama dengan jalur CLI')
 const ev = full.evidence
 const viaAttempts = computeScore(fakeManifest(), ev)
@@ -158,7 +170,7 @@ const realRows = [
     // B104: angka model hanya ikut kalau disahkan manusia — tanpa baris ini peserta "lengkap" ini ditolak.
     judgement_reviews: [{ decision: 'approved', reviewer: REVIEWER, proposed: 92, final_score: 92, judge_model: 'groq:test' }],
   })),
-  attempt({ kind: 'praktik', lesson_key: slugs.praktik[0] ?? '-', score: 100, attempt_hash: '0xpraktik', attempt_components: [comp('build', 100, 1)] }),
+  attempt({ kind: 'praktik', lesson_key: slugs.praktik[0] ?? '-', score: 100, verdict: 'pass', attempt_hash: '0xpraktik', attempt_components: [comp('balance-wei', 100, 1, 'chain')] }),
 ]
 const realEv = evidenceFromAttempts(real, realRows)
 check('peserta lengkap pada manifest asli -> bukti lengkap, verdict LULUS',
@@ -378,16 +390,12 @@ async function live () {
    * dari run pertama yang baris `taskkill`-nya tidak sempat merapikan anak terakhir, jadi dua
    * proses berebut satu port dan `POST /progress` saya menjawab timeout. Selama harness memakai
    * port tetap, kegagalannya akan selalu terlihat seperti bug produk. (Pelajaran B86, dipakai.)
+   *
+   * Koreksi 1 Okt (B121): versi di sini menganggap port kosong kalau `/healthz` tidak menjawab dalam
+   * 700 ms — padahal `/healthz` membaca chain. Server yatim 30 Sep di 8795 terbaca "kosong", server
+   * baru gagal bind tanpa suara, dan lapis HTTP berbicara dengan kode lama (7 merah palsu). Sekarang
+   * port diuji dengan bind (`src/ports.js`).
    */
-  async function freePort (from) {
-    for (let p = from; p < from + 12; p++) {
-      try {
-        await fetch(`http://127.0.0.1:${p}/healthz`, { signal: AbortSignal.timeout(700) })
-        console.log(`      port ${p} masih dipegang proses lain — coba berikutnya`)
-      } catch { return p }
-    }
-    return from
-  }
   const PORT = Number(process.env.ATTEMPTS_PROBE_PORT ?? await freePort(8795))
   const BASE = `http://127.0.0.1:${PORT}`
   const child = spawn('npm', ['run', 'serve'], {
@@ -614,14 +622,31 @@ async function live () {
         JSON.stringify({ graded: gatesGraded?.graded_attempts, best: gatesGraded?.best_score }))
     }
   }
-  const praktikSlug = slugs.praktik[0] ?? lessons[0].slug
-  const pr = await post('/attempts', {
-    learner: learner.address, course: COURSE, lesson: praktikSlug, kind: 'praktik', attempt: 1,
+  // B121: praktik tidak lagi lewat /attempts (yang menerima angka peserta) — peserta menjalankan
+  // tiga `eth_call` lesson "praktik-eth-call" seperti `cast call`, mengirim keluarannya mentah, dan
+  // server membaca ulang chain 97. Calldata dibangun di sini dengan ABI sendiri, bukan meminjam
+  // fungsi pemeriksa server, supaya yang diuji memang dua pembacaan yang independen.
+  const oldPath = await post('/attempts', {
+    learner: learner.address, course: COURSE, lesson: slugs.praktik[0], kind: 'praktik', attempt: 1,
     score: 100, verdict: 'pass', rubricHash, components: [{ itemId: 'build', score: 100, weight: 1, gradedBy: 'mechanical' }],
-    ...await sign(`lencana-attempt ${COURSE} ${praktikSlug} nonce=${nonce()}`),
+    ...await sign(`lencana-attempt ${COURSE} ${slugs.praktik[0]} nonce=${nonce()}`),
   })
-  check('usaha praktik tercatat lewat HTTP', pr.status === 201 && /^0x[0-9a-f]{64}$/.test(pr.body?.attemptHash ?? ''),
-    `${pr.status} ${JSON.stringify(pr.body).slice(0, 120)}`)
+  check('jalur lama POST /attempts untuk praktik -> 400 (angka praktik kiriman peserta ditolak, B121)',
+    oldPath.status === 400 && /POST \/praktik/.test(oldPath.body?.error ?? ''), `${oldPath.status} ${JSON.stringify(oldPath.body).slice(0, 120)}`)
+  const praktikSlug = 'praktik-eth-call'
+  const proofSpec = lessons.find((l) => l.slug === praktikSlug)?.proof
+  const results = {}
+  for (const r of proofSpec?.reads ?? []) {
+    const { data } = await client.call({ to: r.to, data: encodeFunctionData({ abi: parseAbi([`function ${r.signature}`]), functionName: r.signature.slice(0, r.signature.indexOf('(')), args: r.args }) })
+    results[r.id] = data
+  }
+  const pr = await post('/praktik', {
+    learner: learner.address, course: COURSE, lesson: praktikSlug, answers: { results },
+    ...await sign(`lencana-praktik-submit course=${COURSE} lesson=${praktikSlug} nonce=${nonce()}`),
+  })
+  check(`usaha praktik tercatat lewat HTTP, dinilai chain (POST /praktik ${praktikSlug} -> 201, ${pr.body?.checks?.length ?? 0} pemeriksaan cocok)`,
+    pr.status === 201 && /^0x[0-9a-f]{64}$/.test(pr.body?.attemptHash ?? '') && pr.body?.gradedBy === 'chain' && pr.body?.verdict === 'pass',
+    `${pr.status} ${JSON.stringify(pr.body).slice(0, 160)}`)
 
   // — f. hash yang dihitung ulang dari barisnya: yang masuk dokumen harus yang bisa direproduksi
   const rows = await attemptsFor(learner.address, COURSE)

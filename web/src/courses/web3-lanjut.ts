@@ -104,6 +104,8 @@ export const web3Lanjut: Course = {
           title: 'Praktik 1 — Memetakan siapa yang boleh mengambil',
           minutes: 25,
           kind: 'praktik',
+          // `balanceOf` + paling sedikit dua `allowance`; tiga kalimat kesimpulannya tidak diperiksa mesin
+          proof: { type: 'allowance', chainId: 97, minSpenders: 2 },
           summary: 'Bangun daftar pemegang izin pada satu token, lalu simpulkan sendiri risikonya.',
           blocks: [
             { t: 'p', text: 'Latihan ini menghasilkan satu dokumen pendek yang akan kamu pakai lagi di esai. Tidak ada alat khusus: RPC dan satu loop.' },

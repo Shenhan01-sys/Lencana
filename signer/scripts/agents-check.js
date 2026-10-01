@@ -22,6 +22,7 @@ import { createPublicClient, createWalletClient, http, getAddress, parseAbi, kec
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
+import { freePort } from '../src/ports.js'
 import { readAgent } from '../src/erc8004.js'
 import { priceFor, rateCard, LADDER, LADDER_HASH, DIFFICULTY_LABELS } from '../src/pricing.js'
 import { buildClientPayment, encodePaymentHeader } from '../src/x402.js'
@@ -62,12 +63,7 @@ const essayLesson = manifest.course.modules.flatMap((m) => m.lessons).find((l) =
 const rubric = essayLesson.essay.rubric
 
 // --- server sendiri, baris uji bertanda origin=test ---------------------------------------------
-async function freePort (from) {
-  for (let p = from; p < from + 14; p++) {
-    try { await fetch(`http://127.0.0.1:${p}/healthz`, { signal: AbortSignal.timeout(600) }) } catch { return p }
-  }
-  return from
-}
+// port dicari dengan uji bind, bukan dengan /healthz yang bisa lambat (src/ports.js, temuan B121)
 const PORT = Number(env.AGENTS_PROBE_PORT ?? await freePort(8867))
 const BASE = `http://127.0.0.1:${PORT}`
 const child = spawn('npm', ['run', 'serve'], {

@@ -33,6 +33,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { loadFileEnvReport } from '../src/env.js'
+import { freePort } from '../src/ports.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const SIGNER = resolve(HERE, '..')
@@ -67,15 +68,7 @@ console.log(`\nprobe:cold — store hangat ${warmHashes.length} hash · objek uj
 
 // --- 1. nyalakan server dengan store DINGIN di luar repo ------------------------------------
 const coldDir = mkdtempSync(join(tmpdir(), 'lencana-cold-'))
-async function freePort (from) {
-  for (let p = from; p < from + 14; p++) {
-    try {
-      await fetch(`http://127.0.0.1:${p}/healthz`, { signal: AbortSignal.timeout(600) })
-      console.log(`      port ${p} dipegang proses lain — coba berikutnya`)
-    } catch { return p }
-  }
-  return from
-}
+// port dicari dengan uji bind, bukan dengan /healthz yang bisa lambat (src/ports.js, temuan B121)
 const PORT = Number(process.env.COLD_PROBE_PORT ?? await freePort(8817))
 const BASE = `http://127.0.0.1:${PORT}`
 
