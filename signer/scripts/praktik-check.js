@@ -29,7 +29,7 @@ import { freePort } from '../src/ports.js'
 import { walletBindingMessage } from '../src/praktik.js'
 import { attemptsFor, courseGates, praktikProofsFor, freeTestProofKey } from '../src/db.js'
 import { evidenceFromAttempts } from '../src/fromAttempts.js'
-import { manifestOf } from '../../web/src/manifest.ts'
+import { manifestOf } from '../../web/src/manifest-keys.ts'
 
 const SIGNER = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const LIVE = process.argv.includes('--live')

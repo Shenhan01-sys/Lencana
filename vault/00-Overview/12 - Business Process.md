@@ -293,7 +293,10 @@ flowchart LR
 Yang membuat rute ini berarti: `verdict` dihitung dari `lesson.quiz.passPct` **milik penerbit**, dan
 jawaban memuat `attemptNo` + `rubricHash` supaya klien bisa menghitung ulang hash tanpa secret key.
 Batas yang jujur: kunci tetap terbundel ke browser (B80) — yang dihapus adalah *laporan angka oleh
-peserta*, bukan *keterbukaan soal*.
+peserta*, bukan *keterbukaan soal*. *(Koreksi 1 Okt, B80 ditutup: kunci kini hanya di server —
+`courses/*.keys.ts` lewat `manifest-keys.ts` — dan `/grade` membalas pembahasan per soal sesudah
+penyerahan; bundel 0/28 teks `why`. Yang tersisa: ulangan tak terbatas membuat kunci bisa ditebak —
+[[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]].)*
 
 ### DFD-2 · P4 Penerbitan dari rekaman — `issue --from-attempts`
 
@@ -605,7 +608,7 @@ ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **88/0** (2
 | batasan | keadaan sebenarnya | kalimat yang boleh dipakai |
 |---|---|---|
 | **B81 sudah ditutup untuk esai — sisanya **praktik**** | Esai: `POST /essay` + `POST /essay/judgement` + `npm run grade:essay` (29 Sep). Praktik: belum punya rute sendiri — kalau suatu hari butuh bukti berupa berkas/tautan, itu tabel + rute baru, bukan kolom tambahan di `attempts` | "esai diserahkan ke penerbit dan dinilai dengan kunci penerbit; praktik belum punya permukaan penyerahan" |
-| **B80 — kunci kuis ada di bundel browser** | `web/src/manifest.ts` menyalin `answer`; `/grade` menghapus **laporan angka oleh peserta**, bukan keterbukaan soalnya | "peserta tidak bisa melaporkan nilainya sendiri" — bukan "kuis tidak bisa dicurangi" |
+| ~~**B80 — kunci kuis ada di bundel browser**~~ → ditutup 1 Okt (D56) | ~~`web/src/manifest.ts` menyalin `answer`~~ → kunci hanya di server; `/grade` membalas pembahasan per soal sesudah penyerahan, tanpa indeks jawaban | "kunci jawaban kuis tidak ada di bundel; pembahasan dibuka sesudah menyerahkan" — tetap **bukan** "kuis tidak bisa dicurangi" (ulangan tak terbatas) |
 | **B82 — tidak ada pemulihan akun** | identitas = alamat penandatangan; "kunci perangkat" viem di `sessionStorage` hangus bersama tab | "identitas peserta hari ini adalah alamat EVM-nya; dompet = akun" + sebut bahwa ini tahap awal |
 | **Tidak ada peran learner/publisher/mentor sebagai produk** | Yang SUDAH ada: `publisher` punya padanan on-chain berupa **allowlist** (`addIssuer`/`delistIssuer`/`isIssuer` di `CredentialResolver.sol`). Yang belum: identitas **staf** (signer hanya mengenali tanda tangan peserta), tabel peran, dan custodia kunci agen (hari ini di `signer/.keys/` mesin ini). Tiga jalur + biayanya ada di **B87** — termasuk jalur mentor yang tidak menyentuh chain dan hanya ±½ hari | jangan sebut multi-institusi, onboarding self-service, atau peran mentor. Yang boleh: "penerbit terdaftar di allowlist on-chain; otoritas menilai tetap di sisi penerbit" |
 | **Testnet 97 saja** | atas pilihan sadar (aturan hackathon membolehkan testnet); nol dana asli | "prototipe di BSC testnet; tidak ada dana riil di jalur ini" |

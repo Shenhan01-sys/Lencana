@@ -37,7 +37,7 @@ import { dirname, resolve } from 'node:path'
 import { createPublicClient, http } from 'viem'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
-import { manifestOf } from '../../web/src/manifest.ts'
+import { manifestOf } from '../../web/src/manifest-keys.ts'
 import { loadFileEnvReport } from '../src/env.js'
 import { EDGE_ROUTES, PURPOSES } from '../src/edgeKeys.js'
 import { REVOCATION, decodeBit } from '../src/statusList.js'

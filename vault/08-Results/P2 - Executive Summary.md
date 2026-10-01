@@ -30,7 +30,8 @@ implemented yet".
 
 **What is not true yet, in one breath (as of 30 Sep).** One fictitious issuer on BNB Chain **testnet**, no
 real institution, the demo issuer's agent key is held by the platform, quiz answer keys ship in the browser
-bundle, a learner's identity is a device key with no recovery, we are our own payment facilitator, and
+bundle *(1 Oct correction, B80: no longer — the keys live on the server only and `/grade` returns per-question
+feedback after submission; retakes are unlimited, so a learner can still converge on the keys)*, a learner's identity is a device key with no recovery, we are our own payment facilitator, and
 contract source is not verified on the explorer. Detail and dates: [[08-Results/01 - Evidence and Limits]]
 and [[10-Contributors/Claims-Cheat-Sheet]].
 

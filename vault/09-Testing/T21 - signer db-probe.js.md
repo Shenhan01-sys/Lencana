@@ -221,7 +221,9 @@ tidak ada UI maupun CLI untuk mengesahkan, hanya rute HTTP.
 
 - **Kunci jawaban tetap ada di bundel browser.** `/grade` menghapus *laporan angka oleh peserta*,
   bukan *kemampuan membaca kunci*. Yang menjual "kuis tidak bisa dicurangi" salah — lihat
-  [[10-Contributors/Claims-Cheat-Sheet]]. (B80)
+  [[10-Contributors/Claims-Cheat-Sheet]]. (B80) *(1 Okt: kunci tidak lagi di bundel — B80 ditutup,
+  [[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]]; "tidak bisa dicurangi" tetap salah
+  karena ulangan tak terbatas.)*
 - **Angka esai dan praktik masih datang dari klien** (`POST /attempts`) karena penerbit belum punya
   antrean penilaian untuk keduanya. Peserta uji di atas memang memakai jalur itu. (B81)
 - `used_nonces` belum punya TTL/pembersihan, dan progres tidak punya batas staleness seperti kolom

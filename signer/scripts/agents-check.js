@@ -28,7 +28,7 @@ import { priceFor, rateCard, LADDER, LADDER_HASH, DIFFICULTY_LABELS } from '../s
 import { buildClientPayment, encodePaymentHeader } from '../src/x402.js'
 import { attemptsFor, courseGates, agentHiresFor, reviewerAgentsFor } from '../src/db.js'
 import { evidenceFromAttempts } from '../src/fromAttempts.js'
-import { manifestOf } from '../../web/src/manifest.ts'
+import { manifestOf } from '../../web/src/manifest-keys.ts'
 
 const SIGNER = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const LIVE = process.argv.includes('--live')

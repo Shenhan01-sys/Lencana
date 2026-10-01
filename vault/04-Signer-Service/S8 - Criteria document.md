@@ -47,6 +47,11 @@ every credential, so publishing `answer` would hand out the exam in exchange for
 The response carries per-question `passPct`, `questionCount`, the prompts, the essay rubric and the
 guidance — everything a learner already sees, nothing they must not.
 
+*(1 Oct, B80: until that day the same keys this document withholds were shipped in the browser bundle —
+28 of 28, measured on the deployed bundle. They now live only on the server, so this document and the
+bundle finally agree on what is public. The `rubricHash` it prints is unchanged and is the value the
+public manifest carries → [[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]].)*
+
 `serve-probe.js` asserts exactly that: the literal string `"answer"` must appear nowhere in the body
 ([[09-Testing/T8 - signer serve-probe.js]]). A guard, not a comment: the day someone "helpfully" forwards
 the manifest into this document, the run goes red.

@@ -30,6 +30,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-17 | tombol "Penerbit Didelisting" dan contoh "kadaluarsa" boleh dipasang lagi: spesimennya sekarang ada dan diukur (B102, 30 Sep) — dua hash siap tempel, dan `check:samples` mengadili begitu dipasang |
 | OI-18 | laporan verifikasi sekarang membawa identitas ERC-8004 agen penerbit (`report.issuerAgent`, B118, 1 Okt); panel di halaman belum ada, dan kartu agen di `index.html` masih mencetak angka tanpa sumber. *Koreksi 1 Okt sore (D54): agen bukan penanda tangan — `walletIsAttester` diharapkan `false`* |
 | OI-19 | sewa agen per aktivitas (B119) dan reviewer agen (B120) hidup di penerbit lewat empat rute baru; belum ada layar kartu tarif, sewa, dan bayar tagihan |
+| OI-21 | kunci kuis keluar dari bundel (B80): berkas `web/` yang disentuh (`courses`, `content.ts`, `manifest.ts`, `manifest-keys.ts`, `learning.ts`, `lms.ts`, `probe.ts`) dan yang tidak (`main.ts`, `render.ts`, `index.html`, `style.css`, `i18n.ts`); jangan tandai opsi benar, jangan tulis "anti-curang" |
 | OI-20 | lesson praktik harus memanggil `POST /praktik` (B121): slot praktik kini hanya terisi dari bacaan chain, dan halaman belum punya formulir penyerahan praktik — peserta halaman tidak bisa lulus tanpanya |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di

@@ -33,7 +33,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 
 import { credentialHashOf } from './credential.js'
 import { credentialResolverAbi, basAbi, EMPTY_UID } from '../../web/src/abi.ts'
-import { manifestOf, manifestHashOf, rubricHashOf } from '../../web/src/manifest.ts'
+import { manifestOf, manifestHashOf, rubricHashOf } from '../../web/src/manifest-keys.ts'
 
 export const DEPOSIT_MAX_BPS = 10000
 export const FINALIZE_PREFIX = keccak256(stringToBytes('LENCANA-DEPOSIT-FINALIZE'))

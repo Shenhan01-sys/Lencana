@@ -14,10 +14,17 @@
  * bukan "kuis tidak bisa dijawab dengan kunci". Kursus ini memang publik by design; yang membuat
  * kertasnya bernilai adalah penilaian esai/praktik oleh penerbit dan rekaman yang tidak bisa
  * ditulis ulang — bukan kerahasiaan soal.
+ *
+ * Koreksi 1 Okt (B80), paragraf di atas dibiarkan terbaca: kunci jawaban **tidak lagi** ada di bundel
+ * browser. Ia hidup di `web/src/courses/*.keys.ts` dan hanya sampai ke sini lewat `manifest-keys.ts`.
+ * Batas yang menggantikannya: sesudah menyerahkan, peserta menerima benar/salah + alasan per soal
+ * (bukan indeks jawabannya), dan penyerahan boleh diulang — jadi kunci bisa ditebak lewat beberapa
+ * usaha. Yang terhapus adalah "kunci terbaca sebelum mencoba", bukan "kuis tidak bisa dicurangi".
  */
 
 // Lencana-B72 status=SELESAI 2026-09-29 — kuis dinilai SERVER dari picks; teks klien tidak menentukan angka. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B72 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { manifestOf, rubricHashOf } from '../../web/src/manifest.ts'
+// Lencana-B80 status=SELESAI 2026-10-01 — kunci dibaca dari manifest berkunci sisi server; penilaian menolak (fail-closed) kalau kunci tidak termuat, dan balasan /grade membawa review per soal (benar/salah + alasan) tanpa indeks jawaban. Buktikan ulang: npm run verify:quizkeys. JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { manifestOf, rubricHashOf } from '../../web/src/manifest-keys.ts'
 
 /** Lesson mana saja yang merupakan kuis, dengan soalnya — dibaca dari katalog penerbit. */
 export function quizLesson (courseId, lessonSlug) {
@@ -55,6 +62,10 @@ export function gradeQuiz ({ courseId, lessonSlug, picks }) {
   if (found.error) return { ok: false, why: found.error }
   const { manifest, lesson } = found
   const questions = lesson.quiz.questions
+  // B80: tanpa kunci setiap pilihan bernilai 0 dan hasilnya TERLIHAT sah. Tolak, jangan nilai.
+  if (questions.some((q) => !Number.isInteger(q.answer))) {
+    return { ok: false, why: `answer keys for quiz "${lessonSlug}" are not loaded on this server — refusing to grade (every pick would score 0)` }
+  }
 
   if (!Array.isArray(picks) || picks.length === 0) {
     return { ok: false, why: 'requires picks: a list of { itemId, choice } — empty means nothing was answered' }
@@ -96,6 +107,9 @@ export function gradeQuiz ({ courseId, lessonSlug, picks }) {
     // `lesson.quiz.passPct` yang ada di manifest.
     verdict: score >= passPct ? 'pass' : 'fail',
     components,
+    // B80: umpan balik SESUDAH penyerahan — benar/salah + alasan per soal. Indeks jawaban yang benar
+    // sengaja tidak dikirim; halaman menampilkan alasan, bukan kunci.
+    review: questions.map((q) => ({ itemId: q.id, correct: chosen.get(q.id) === q.answer, why: q.why })),
     rubricHash: rubricHashOf(manifest),
     lessonKind: lesson.kind ?? 'kuis',
   }

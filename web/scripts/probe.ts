@@ -251,6 +251,11 @@ async function main() {
     const none = computeScore(mf, { quizScores: [], praktikCompleted: false, essayScore: null })
     check(`  tanpa bukti -> menolak, BUKAN nol`, none.verdict === 'BELUM_LENGKAP' && none.total === null, String(none.total))
   }
+  // Lencana-B80 status=SELESAI 2026-10-01 — data kursus yang diimpor halaman tidak membawa kunci jawaban; pemindaian bundel lengkapnya ada di npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  const soal = COURSES.flatMap((c) => c.modules.flatMap((m) => m.lessons)).flatMap((l) => l.quiz?.questions ?? [])
+  check(`B80: ${soal.length} soal kuis yang diimpor halaman tanpa answer/why (kunci hanya di sisi server)`,
+    soal.length > 0 && soal.every((q) => q.answer === undefined && q.why === undefined),
+    soal.filter((q) => q.answer !== undefined || q.why !== undefined).map((q) => q.id).join(','))
 
   // ---------------------------------------------------------------- halaman penerbit (B105)
   // Yang dijaga di sini bukan "halamannya cantik", tapi dua hal yang paling mudah hilang
@@ -376,6 +381,12 @@ async function main() {
         attemptHash: `0x${'ab'.repeat(32)}`, attemptId: 11, attemptNo: 1, lesson: body?.lesson, kind: 'kuis',
         rubricHash: `0x${'cd'.repeat(32)}`, score: 60, correct: 3, total: 5, passPct: 80, verdict: 'fail',
         gradedBy: 'server', components: 5,
+        // B80: pembahasan sesudah penyerahan; butir ketiga sengaja berbentuk salah dan harus dibuang
+        review: [
+          { itemId: 'q1', correct: true, why: 'alasan satu' },
+          { itemId: 'q2', correct: false, why: 'alasan dua' },
+          { itemId: 'q3', correct: 'ya' },
+        ],
       }, 201)
     }
     return json({ error: 'stub: rute tidak dikenal' }, 500)
@@ -432,6 +443,9 @@ async function main() {
       gradeCall ? JSON.stringify(Object.keys(gradeCall.body ?? {})) : 'tidak ada panggilan /grade')
     check('verdict datang dari ambang penerbit, bukan dari perasaan halaman',
       graded?.verdict === 'fail' && graded.passPct === 80, JSON.stringify(graded))
+    check('B80: pembahasan diambil dari balasan /grade (benar/salah + alasan), butir berbentuk salah dibuang',
+      graded?.review.length === 2 && graded.review[0].correct === true && graded.review[1].why === 'alasan dua',
+      JSON.stringify(graded?.review))
 
     sent.length = 0
     progressMode = 'ok'

@@ -17,7 +17,7 @@ import { createPublicClient, http, getAddress, parseAbi } from 'viem'
 
 import { loadFileEnvReport } from '../src/env.js'
 import { ERC8004, identityAbi, readAgent, REGISTRATION_TYPE, agentRegistryId } from '../src/erc8004.js'
-import { MANIFESTS } from '../../web/src/manifest.ts'
+import { MANIFESTS } from '../../web/src/manifest-keys.ts'
 import { verify, defaultEndpoint } from '../../web/src/verify.ts'
 
 const SIGNER = resolve(dirname(fileURLToPath(import.meta.url)), '..')

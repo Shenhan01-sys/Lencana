@@ -27,7 +27,7 @@ import { createPublicClient, http, getAddress, parseAbi, keccak256, toBytes, enc
 import { loadFileEnvReport } from '../src/env.js'
 import { freePort } from '../src/ports.js'
 import { credentialHashOf } from '../src/credential.js'
-import { manifestOf, rubricHashOf } from '../../web/src/manifest.ts'
+import { manifestOf, rubricHashOf } from '../../web/src/manifest-keys.ts'
 import { computeScore, formatScore } from '../../web/src/score.ts'
 import { evidenceFromAttempts, lessonSlugs, formatEvidence } from '../src/fromAttempts.js'
 import { resultDocument } from '../src/results.js'

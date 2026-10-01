@@ -31,6 +31,12 @@ material that graded them. The split is asserted by `npx tsx scripts/rubric-chec
   content, not by the count (`:61-63`); essays sort by slug with the rubric sorted by label.
 - `rubricHashOf` = `keccak256(toBytes(canonicalPolicy(m)))` (`:102-104`): **policy only** — schema,
   courseId, criteria, weights, passMark, validDays, prereq, quiz keys, essay rubrics.
+- **Since 1 Oct (B80, D56) the quiz keys are not in the public manifest.** They live in
+  `web/src/courses/*.keys.ts` and are merged only by `web/src/manifest-keys.ts` (server + Node scripts).
+  `canonicalPolicy`/`manifestHashOf` now **throw** on a keyless manifest; `rubricHashOf` on the public
+  manifest returns the publisher's **published** `rubricHash`, and `manifest-keys.ts` refuses to load if
+  its computation differs. Both hashes of both courses are unchanged (measured against HEAD and the edge
+  criteria documents) → [[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]].
 - `manifestHashOf` (`:112-124`) = the policy string **plus** issuer, `publishedAt` and every lesson's
   blocks. Separated deliberately: fixing a typo in the material must not invalidate an issued
   diploma, and swapping an answer key must not look like nothing happened (`:106-111`).

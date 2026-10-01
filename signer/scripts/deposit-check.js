@@ -29,7 +29,7 @@ import { freePort } from '../src/ports.js'
 import { credentialHashOf } from '../src/credential.js'
 import { deadlinePolicyOf, finalizeInnerHash, depositAbi, courseIdOf, DEADLINE_TIERS } from '../src/deposit.js'
 import { credentialResolverAbi, basAbi, EMPTY_UID } from '../../web/src/abi.ts'
-import { manifestOf, manifestHashOf, rubricHashOf } from '../../web/src/manifest.ts'
+import { manifestOf, manifestHashOf, rubricHashOf } from '../../web/src/manifest-keys.ts'
 
 const SIGNER = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const LIVE = process.argv.includes('--live')

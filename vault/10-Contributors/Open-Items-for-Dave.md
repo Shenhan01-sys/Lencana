@@ -391,7 +391,8 @@ semua. memindahkan *perhitungan* ke server sudah menghapus "peserta melaporkan a
 browser dan tampilkan alasan per soal hanya **setelah** penyerahan (server sudah mengembalikan
 `correct/total`, jadi tinggal menambah flag reveal), atau (b) terima dan tulis di UI bahwa kuis
 berbentuk latihan terbuka. Aku memilih tidak memutuskan ini diam-diam; angka submission tetap menyebut
-yang (b) sampai kamu pilih.
+yang (b) sampai kamu pilih. *(1 Okt: builder memilih (a) — "Okedeh opsi 1" — dan sudah dikerjakan; apa yang
+berubah di berkas FE dan apa yang tidak disentuh ada di **OI-21** di bawah.)*
 
 
 
@@ -491,3 +492,28 @@ petunjuk ("selisih saldo belum menghitung biaya gas"), bukan menampilkan angka; 
 sudah dipakai peserta lain. Dua hal dari keputusan, bukan selera: jangan tulis "praktik terverifikasi"
 untuk `eth-call` (jawabannya sama untuk semua orang, bisa disalin), dan jangan minta peserta menempel
 kunci privat dompet — tanda tangan pesan dari dompet (mis. lewat ekstensi) sudah cukup.
+
+## OI-21 — kunci kuis keluar dari bundel: yang berubah di berkas `web/` dan yang tidak (B80, 1 Okt)
+
+Builder memilih opsi (a) dari OI-16. Berkas FE yang **kusentuh** (bukan daftar milikmu, tapi tetap FE):
+
+| berkas | perubahan |
+|---|---|
+| `web/src/courses/web3-dasar.ts`, `web3-lanjut.ts` | `answer` dan `why` keluar (56 baris), pindah ke `courses/*.keys.ts` — **jangan impor berkas `.keys.ts` dari kode halaman** |
+| `web/src/content.ts` | `QuizQuestion.answer`/`why` jadi opsional (hanya ada di manifest berkunci sisi server); tipe `QuizKeys` |
+| `web/src/manifest.ts` | manifest publik membawa `rubricHash` terbit; `rubricHashOf` membaca nilai itu kalau kuncinya tidak ada |
+| `web/src/manifest-keys.ts` (baru) | manifest berkunci untuk server — **jangan impor dari halaman** |
+| `web/src/learning.ts` | `GradeResult.review: { itemId, correct, why }[]` dari balasan `/grade` |
+| `web/src/lms.ts` | `quizHtml`/`pageLesson` menerima `review`: pilihan peserta tetap terpilih (disabled), ✓/✗ + "Kenapa." per soal; atribut `data-answer` dibuang; pesan status dipasang ulang sesudah render |
+| `web/scripts/probe.ts` | +2 asersi B80 (88/0) |
+
+Yang **tidak** kusentuh: `main.ts`, `render.ts`, `index.html`, `style.css`, `i18n.ts`. `main.ts:1336` tetap
+memanggil `rubricHashOf(mf)` dan tetap mencetak hash yang sama — sekarang dibaca dari nilai terbit. Kelas
+`ok`/`bad` yang dipakai tanda ✓/✗ adalah kelas yang sudah dipakai `lms.ts` untuk status; kalau tampilannya
+perlu gaya sendiri, itu keputusanmu di `style.css`.
+
+Dua hal untuk layar, dari keputusan D56, bukan selera: (1) **jangan tandai opsi yang benar** — server sengaja
+tidak mengirim indeks jawaban, hanya benar/salah + alasan; (2) jangan tulis "kuis anti-curang": penyerahan boleh
+diulang, jadi kunci bisa ditebak lewat beberapa usaha. Kalau kelak ada batas usaha atau pembahasan ditunda, itu
+keputusan produk baru, bukan sisa B80. Satu catatan deploy: bundel yang tayang di Vercel baru bersih **sesudah**
+dideploy ulang dari commit B80 — `npm run verify:quizkeys -- --deployed=https://lencana-psi.vercel.app/` mengukurnya.

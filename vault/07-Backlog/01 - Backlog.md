@@ -165,10 +165,10 @@ in 13 days:
 Diurutkan **paling murah → paling mahal**. Sumber keadaan: `03 - Findings and Tasks 2026-09-26.md`
 — **terukur ulang 30 Sep sesudah B112, B114, B84, dan B115 ditutup**, dengan logika penjaga (status
 hanya dari sel pertama, ID rangkap dimenangkan yang TERBUKA): 82 baris tabel / **76 ID berbeda** =
-**59 SELESAI · 8 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
-B80 B82 B87 B99 B105 **B116** **B121**. Angka 59 ini **sepakat dengan yang dicetak
-`check:labels`** ("125 marker di 56 ID · 76 baris backlog · 59 tertutup"), jadi dua alat berbeda memberi
-angka yang sama. *(Sebelum core B121 dikerjakan 1 Okt malam: 117 marker di 55 ID — delapan marker baru
+**60 SELESAI · 7 TERBUKA · 9 bergembok** (B49 B63 B64 B65 B66 B73 B75 B77 B95); yang TERBUKA: B59
+B82 B87 B99 B105 **B116** **B121**. Angka 60 ini **sepakat dengan yang dicetak
+`check:labels`** ("136 marker di 57 ID · 76 baris backlog · 60 tertutup"), jadi dua alat berbeda memberi
+angka yang sama. *(Sebelum B80 ditutup 1 Okt malam: 59 · 8, dan 125 marker di 56 ID.)* *(Sebelum core B121 dikerjakan 1 Okt malam: 117 marker di 55 ID — delapan marker baru
 semuanya `Lencana-B121 status=TERBUKA`, jadi jumlah tertutup tidak bergerak.)* *(Sebelum B119 dan B120 ditutup 1 Okt: 57 · 10, dan 104 marker di 53 ID.)* *(Sebelum B118 ditutup 1 Okt: 56 · 11, dan 97 marker di 52 ID.)* *(1 Okt: empat baris baru — B118–B120 dari keputusan builder D53, B121 dari halaman
 proses bisnis 00-Overview/13 — menaikkan TERBUKA 7 → 11 tanpa mengubah jumlah tertutup. Sebelumnya 72 ID.)* *(Sebelum B104 ditutup malam 30 Sep: 55 · 8, dan 94 marker di 51 ID.)* *(Sebelum B78 ditutup malam 30 Sep: 54 · 9, dan 93 marker.)* *(Sebelum B90 ditutup malam 30 Sep: 53 · 10, dan 88 marker di 50 ID.)* *(Sebelum B102
 ditutup malam yang sama: 52 · 11, dan 87 marker.)* *(Sebelum itu lagi
@@ -191,7 +191,7 @@ perintahnya pada hari ia dikutip (AGENTS #1).
 | 9 | **B90** ✅ SELESAI 30 Sep malam — `CourseDeposit` ter-deploy di chain 97 (`0xbeB5…E6c3`), tiga rute `/deposit/…`, `policyHash` dari manifest, `issuedAt` dari BAS; `verify:deposit` **27/0**, satu setoran nyata sampai selesai `verify:deposit:live` **38/0**, `forge` 16/16 tetap hijau → [[09-Testing/T34 - signer deposit-check.js]]. Tetap bukan klaim produk: tidak ada di halaman, jalur hangus hanya terbukti di `forge test` | ~~paruh dua kontrak durasi-cahaya~~ | — | — |
 | 10 | **B97** ✅ SELESAI 30 Sep malam — `POST /relay` + antrean idempoten + penjaga pra-gas (`verify:relay` **31/0**) dan satu siaran nyata dari antrean di chain 97 (`verify:relay:live` **17/0**, 347.059 gas) → [[09-Testing/T33 - signer relay-check.js]] | ~~relayer masih skrip~~ | — | — |
 | 11 | **B82** | identitas lintas perangkat hilang | ekspor/import terkunci frase lewat tes dua browser | ½ h |
-| 12 | **B80** | 🔴 kunci kuis terbundel ke browser | `publicManifest` tanpa `answer` + `probe.ts) tetap hijau + rute kuis teruji server | ½ h |
+| 12 | **B80** ✅ SELESAI 1 Okt (D56) — kunci kuis di `courses/*.keys.ts` (hanya server lewat `manifest-keys.ts`), bundel 0/28 teks `why` + 0 literal `answer` (sebelumnya 28/28 di Vercel), `rubricHash` kertas terbit tidak bergeser, `/grade` membalas pembahasan per soal tanpa indeks jawaban; `verify:quizkeys` **30/0**, probe web **88/0** → [[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]] · [[08-Results/B80 - Executive Summary]]. Bukan "anti-curang": ulangan tak terbatas tetap membocorkan kunci pelan-pelan. Riwayat: 🔴 | ~~kunci kuis terbundel ke browser~~ | ~~`publicManifest` tanpa `answer` + `probe.ts) tetap hijau + rute kuis teruji server~~ | — |
 | 13 | **B59** | perkakas menyimpan kebenaran sebagai salinan basi | tiap harness punya gerbang sendiri, bukan angka di berkas catatan | sisa |
 | 14 | **B87** | peran | **sudah diputuskan (D42)** → kerjanya #7 + #8; baris ini tidak punya pekerjaan sendiri. *(1 Okt: D53 menambah peran Agent Owner dan mengubah makna "manusia mengesahkan" — pekerjaannya #15–#17)* | — |
 | 15 | **B118** ✅ SELESAI 1 Okt (F1 identitas) — agen penerbit = agen ERC-8004 **#2534** di IdentityRegistry BNB chain 97, pemilik Agent Owner `0x067c…0c4f`, `agentWallet` = attester; `verify:agent` **23/0**; F2 reputasi dan F3 validasi bukan bagian penutupan → [[09-Testing/T35 - signer agent-identity-check.js]]. *(Koreksi 1 Okt sore, keputusan D54 opsi B: kalimat "`agentWallet` = attester" dan "23/0" di sel ini adalah keadaan sebelum D54. Sesudahnya penerbit tetap attester, `agentWallet` #2534 dipindah ke kunci operasional agen sendiri, gerbang `admit` dibalik — menolak kunci agen — dan `verify:agent` **24/0**.)* Riwayat: 🔴 dicatat 1 Okt (D53) | ~~agen belum punya identitas ERC-8004; narasi menjanjikannya, kode nol~~ | F1: agen terdaftar di IdentityRegistry BNB (`0x8004A818…`) dengan `agentWallet` = attester, berkas registrasi terbaca, `addIssuer` hanya untuk identitas ERC-8004, halaman verifikasi menampilkan `agentId`; F2 reputasi; F3 validasi ditunda | belum diukur |
@@ -205,8 +205,8 @@ Dua sebab, dan keduanya punya alasannya sendiri di baris masing-masing: **aksi m
 ulang jendela replay selama pesan yang ditandatangani belum memuat `ts=`), B73, B75, B77, B95.
 *(Baris ini tadinya menyebut tujuh ID — B66 dan B77 ketinggalan, padahal keduanya bergembok.)*
 
-**Gerbang wajib sebelum menyebut apa pun "selesai":** `npm run sync:numbers` (**20 harness** sejak `verify:praktik` masuk, B121; 19 sejak `verify:agents`, B119/B120; 18 sejak `verify:agent`, B118; 17 sejak `verify:deposit`, B90; 16 sejak `verify:relay`, B97) lalu
-`-- --verify` (**36 klaim halaman**, dicetak alatnya 1 Okt malam; 25 → 26 → 28 → 30 → 32 → 34 → 36) → `npm run audit` (**12 pemeriksaan**, termasuk A9 marker↔baris
+**Gerbang wajib sebelum menyebut apa pun "selesai":** `npm run sync:numbers` (**21 harness** sejak `verify:quizkeys` masuk, B80; 20 sejak `verify:praktik`, B121; 19 sejak `verify:agents`, B119/B120; 18 sejak `verify:agent`, B118; 17 sejak `verify:deposit`, B90; 16 sejak `verify:relay`, B97) lalu
+`-- --verify` (**38 klaim halaman**, dicetak alatnya 1 Okt malam; 25 → 26 → 28 → 30 → 32 → 34 → 36 → 38) → `npm run audit` (**12 pemeriksaan**, termasuk A9 marker↔baris
 dan A10 angka README) → `npm run check:labels` (**8 pemeriksaan** + `--self-test` 12 fixture) →
 `check-links` 0 rusak + `check-lang` 0 CJK + `check-mermaid` 0 hazard → komit (tanpa atribusi AI)
 → dorong **hanya** atas kata builder. *(Baris ini tadinya menulis "13 harness" dan "audit (10)" —

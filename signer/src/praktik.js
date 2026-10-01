@@ -28,7 +28,7 @@ import {
 } from 'viem'
 import { verifyMessage } from 'viem/utils'
 
-import { manifestOf } from '../../web/src/manifest.ts'
+import { manifestOf } from '../../web/src/manifest-keys.ts'
 
 export const PROOF_TYPES = ['balance', 'tx-receipt', 'eth-call', 'allowance']
 const ERC20 = parseAbi(['function balanceOf(address) view returns (uint256)', 'function allowance(address,address) view returns (uint256)'])

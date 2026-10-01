@@ -24,8 +24,11 @@ import { manifestOf, rubricHashOf, shortHash } from './manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse, type CourseSummary } from './progress'
 import {
   completeLesson, connectWalletLearner, createDeviceLearner, endpoint, forgetLearner, learnerAddress,
-  setEndpoint, snapshot, submitEssay, submitQuiz, syncCourse,
+  setEndpoint, snapshot, submitEssay, submitQuiz, syncCourse, type QuizReviewItem,
 } from './learning'
+
+/** Pembahasan satu penyerahan kuis: pilihan peserta + umpan balik server (B80). */
+type QuizReview = { picks: Map<string, number>, items: QuizReviewItem[] }
 
 /**
  * Baris state yang DIPERCAYAI: milik penerbit di Postgres, bukan milik browser.
@@ -284,22 +287,28 @@ function pageModule(course: Course, mod: Module): string {
   </section>`
 }
 
-function quizHtml(lesson: Lesson, reveal: boolean): string {
+// Lencana-B80 status=SELESAI 2026-10-01 — halaman kuis tidak lagi membaca kunci (item.answer/item.why tidak ada di bundel); pembahasan sesudah penyerahan diambil dari review balasan /grade: pilihan peserta, benar/salah, dan alasan — tanpa menandai opsi yang benar. Buktikan ulang: npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+function quizHtml(lesson: Lesson, review?: QuizReview): string {
   const q = lesson.quiz
   if (!q) return ''
+  const fb = new Map((review?.items ?? []).map((r) => [r.itemId, r]))
   const rows = q.questions
     .map((item, qi) => {
+      const mine = review?.picks.get(item.id)
       const opts = item.options
         .map(
           (o, oi) => `<label class="opt"><input type="radio" name="${esc(item.id)}" value="${oi}" ${
-            reveal ? 'disabled' : ''
-          }/><span>${esc(o)}</span></label>`,
+            review ? 'disabled' : ''
+          } ${mine === oi ? 'checked' : ''}/><span>${esc(o)}</span></label>`,
         )
         .join('')
-      const picked = reveal ? item.answer : -1
-      const why = reveal ? `<p class="why"><strong>Kenapa.</strong> ${esc(item.why)}</p>` : ''
-      return `<div class="question" data-answer="${picked}">
-        <p class="q"><strong>${qi + 1}.</strong> ${esc(item.prompt)}</p>${opts}${why}</div>`
+      // Pembahasan datang dari server SESUDAH penyerahan (B80): benar/salah + alasannya. Kunci
+      // jawabannya sendiri tidak pernah ada di halaman ini, jadi opsi yang benar tidak ditandai.
+      const r = fb.get(item.id)
+      const verdict = r ? `<p class="${r.correct ? 'ok' : 'bad'}"><strong>${r.correct ? '✓ Benar.' : '✗ Belum tepat.'}</strong></p>` : ''
+      const why = r ? `<p class="why"><strong>Kenapa.</strong> ${esc(r.why)}</p>` : ''
+      return `<div class="question">
+        <p class="q"><strong>${qi + 1}.</strong> ${esc(item.prompt)}</p>${opts}${verdict}${why}</div>`
     })
     .join('')
   return `<section class="quiz" data-lesson="${esc(lesson.slug)}">
@@ -342,7 +351,7 @@ function essayHtml(course: Course, lesson: Lesson): string {
   </section>`
 }
 
-function pageLesson(course: Course, mod: Module, lesson: Lesson, reveal: boolean): string {
+function pageLesson(course: Course, mod: Module, lesson: Lesson, review?: QuizReview): string {
   const idx = mod.lessons.findIndex((l) => l.slug === lesson.slug)
   const cp = courseProgress(course.id)
   const rec = cp[lesson.slug]
@@ -377,7 +386,7 @@ function pageLesson(course: Course, mod: Module, lesson: Lesson, reveal: boolean
       ${typeof rec?.score === 'number' ? `<p class="tag">kuis terakhir: ${rec.score} · percobaan ${rec.attempts}</p>` : ''}
     </header>
     ${lesson.blocks.map(renderBlock).join('')}
-    ${lesson.quiz ? quizHtml(lesson, reveal) : ''}
+    ${lesson.quiz ? quizHtml(lesson, review) : ''}
     ${lesson.essay ? essayHtml(course, lesson) : ''}
     ${lesson.kind === 'kuis' || lesson.kind === 'esai' ? '' : `
     <div class="actions">
@@ -573,7 +582,7 @@ export function renderLmsRoute (): boolean {
         mount.innerHTML = notFound('Lesson tidak ditemukan', `Lesson "${seg[3]}" bukan bagian dari ${course.id}. Route lengkapnya #/course/${course.id}/l/<slug>.`)
         return true
       }
-      mount.innerHTML = pageLesson(course, found.module, found.lesson, false)
+      mount.innerHTML = pageLesson(course, found.module, found.lesson)
       startWordCount()
       kickSync(course.id)
       return true
@@ -707,11 +716,16 @@ export function bindLms(root: HTMLElement): void {
           graded.verdict === 'pass' ? 'cukup' : 'belum cukup, baca lagi alasannya lalu ulangi'
         }<br><span class="muted">attempt_hash <code>${esc(graded.attemptHash.slice(0, 18))}…</code> — usaha ini tercatat di backend, dan angka di kertas nanti diturunkan dari baris ini.</span></span>`
       }
-      // Reveal dipasang ulang lewat render supaya alasan tiap soal ikut muncul.
+      // Pembahasan dipasang ulang lewat render: pilihan peserta tetap terpilih, dan benar/salah +
+      // alasan tiap soal diambil dari balasan server (B80) — bukan dari kunci, yang tidak ada di sini.
       const host = getMount()
       if (host) {
-        host.innerHTML = pageLesson(lesson.course, lesson.mod, lesson.lesson, true)
+        const review: QuizReview = { picks: new Map(picks.map((p) => [p.itemId, p.choice])), items: graded.review }
+        host.innerHTML = pageLesson(lesson.course, lesson.mod, lesson.lesson, review)
         startWordCount()
+        // Status ditulis lagi karena render ulang mengganti elemennya.
+        const s2 = host.querySelector('[data-role="quiz-status"]') as HTMLElement | null
+        if (s2 && s) s2.innerHTML = s.innerHTML
       }
       return
     }

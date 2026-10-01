@@ -575,7 +575,11 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
 4. **Reviewer adalah alamat.** Tidak ada identitas, tidak ada pencabutan penunjukan, tidak ada UI —
    hanya rute HTTP.
 5. **Kunci jawaban kuis ada di bundel browser** (B80). Angka kuis tidak dilaporkan peserta, tetapi
-   soalnya bisa dijawab dengan membaca bundel.
+   soalnya bisa dijawab dengan membaca bundel. **Keadaan 1 Okt malam (B80 ditutup, D56):** kunci kini
+   hanya di server (`web/src/courses/*.keys.ts` → `manifest-keys.ts`); bundel 0/28 teks `why` (sebelumnya
+   28/28 di Vercel); `/grade` membalas benar/salah + alasan per soal **sesudah** penyerahan. Sambungan
+   yang tersisa di butir ini: ulangan tak terbatas + pembahasan per soal tetap membuat kunci bisa ditebak →
+   [[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]].
 6. **Identitas peserta tidak tahan lama** kalau memakai kunci perangkat: tab ditutup = alamat baru =
    rekaman baru (B82).
 7. **Tidak ada pembayaran kursus**, dan premi tenggat tidak tersambung ke halaman (bagian 11).

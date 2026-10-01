@@ -6,9 +6,9 @@
  * pertama berkas ini menaruh dua asumsi salah di dalamnya (jumlah kuis = 5, dan letak lesson esai
  * di indeks tetap) dan keduanya ketahuan oleh run pertama — itu justru alasan ia ditulis.
  */
-import { manifestOf, rubricHashOf, canonicalPolicy, manifestHashOf } from '../src/manifest.ts'
+import { manifestOf, rubricHashOf, canonicalPolicy, manifestHashOf } from '../src/manifest-keys.ts'
 import { computeScore, formatScore, quizCount, essayCount } from '../src/score.ts'
-import type { CourseManifest } from '../src/manifest.ts'
+import type { CourseManifest } from '../src/manifest-keys.ts'
 
 let ran = 0
 let bad = 0
@@ -105,7 +105,8 @@ const flipped = JSON.parse(JSON.stringify(m)) as CourseManifest
   const quiz = flipped.course.modules.flatMap((x) => x.lessons).find((l) => l.quiz)
   if (!quiz?.quiz) throw new Error('kursus tidak punya kuis')
   const q = quiz.quiz
-  q.questions[0].answer = (q.questions[0].answer + 1) % q.questions[0].options.length
+  // manifest berkunci (B80: diimpor dari manifest-keys.ts) — kuncinya pasti ada
+  q.questions[0].answer = (q.questions[0].answer! + 1) % q.questions[0].options.length
 }
 check('kunci jawaban diubah = rubricHash BERUBAH', rubricHashOf(flipped) !== h1)
 

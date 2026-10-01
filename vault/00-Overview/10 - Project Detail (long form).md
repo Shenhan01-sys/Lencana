@@ -529,7 +529,9 @@ journey
 A quiz is **inline on the lesson page**, not a modal and not a separate exam screen: answering reveals
 the `why`, because the explanation is the learning moment and a quiz without reasons only trains
 guessing. The answer key is stored as an index and validated against the option count, so a re-ordered
-option list turns the harness red instead of silently inverting the correct answer.
+option list turns the harness red instead of silently inverting the correct answer. *(1 Oct, B80: the key
+and the `why` no longer ship to the browser — they live in `web/src/courses/*.keys.ts`, loaded only by the
+server, and the `why` comes back from `POST /grade` after the learner submits.)*
 
 The graded essay is a judgement task, not a summary task — this is the actual prompt, translated:
 

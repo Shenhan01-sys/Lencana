@@ -23,7 +23,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
 import { readAgent } from '../src/erc8004.js'
-import { MANIFESTS } from '../../web/src/manifest.ts'
+import { MANIFESTS } from '../../web/src/manifest-keys.ts'
 
 await loadFileEnvReport('admit')
 const env = process.env

@@ -186,7 +186,8 @@ Kertas itu lalu diperiksa pihak ketiga: `npm run validator -- --hash 0xd1dcb1ffâ
 
 - **Kuis tidak bisa dicurangi.** Kunci jawaban tetap terbundel ke browser (`web/src/manifest.ts`
   memuat `answer`). `/grade` menghapus *peserta melaporkan angkanya*, bukan *peserta membaca
-  kuncinya*. (B80)
+  kuncinya*. (B80) *(1 Okt: kunci tidak lagi di bundel â€” B80 ditutup; kalimat "tidak bisa dicurangi"
+  tetap tidak dibuktikan, karena ulangan tak terbatas + pembahasan per soal.)*
 - **Angka esai/praktik di run ini masih laporan klien** (`POST /attempts`). Run memakai jalur itu
   karena penerbit belum punya antrean penilaian untuk keduanya (B81). Yang berubah hari ini hanya
   kuis.

@@ -45,17 +45,28 @@ export type Block =
   /** "perintilan" yang bikin LMS terasa nyata: instruksi dikerjakan, bukan dibaca. */
   | { t: 'try'; prompt: string; hint?: string }
 
+// Lencana-B80 status=SELESAI 2026-10-01 — kunci jawaban kuis (answer + why) keluar dari data kursus publik: soal di sini tanpa kunci, kunci hidup di courses/*.keys.ts yang hanya diimpor server lewat manifest-keys.ts. Buktikan ulang: npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 export type QuizQuestion = {
   id: string
   prompt: string
   options: string[]
-  /** Indeks jawaban benar. Divalidasi `auditCourse` — jawaban di luar rentang adalah bug sunyi. */
-  answer: number
-  /** Kenapa. Kuis yang tidak menjelaskan alasan hanya melatih menebak. */
-  why: string
+  /**
+   * Indeks jawaban benar — **hanya ada di manifest berkunci sisi server** (`manifest-keys.ts`, B80).
+   * Berkas kursus publik dan bundel browser tidak pernah memuatnya; `canonicalPolicy` menolak
+   * menghitung `rubricHash` tanpa nilai ini, supaya hash tidak berubah diam-diam.
+   */
+  answer?: number
+  /** Kenapa. Kuis yang tidak menjelaskan alasan hanya melatih menebak. Ikut kunci: dikirim `/grade` SESUDAH penyerahan. */
+  why?: string
 }
 
 export type Quiz = { questions: QuizQuestion[]; passPct: number }
+
+/** Kunci satu soal. Sisi server saja (B80). */
+export type QuizKey = { answer: number; why: string }
+
+/** Kunci satu kursus: slug lesson kuis → id soal → kunci. Berkasnya `courses/<kursus>.keys.ts`. */
+export type QuizKeys = Record<string, Record<string, QuizKey>>
 
 export type RubricItem = { label: string; max: number }
 
@@ -279,11 +290,14 @@ export function auditCourse(course: Course): Problem[] {
           if (qids.has(item.id)) bad(wq, 'id soal duplikat')
           qids.add(item.id)
           if (item.options.length < 2) bad(wq, `hanya ${item.options.length} pilihan — bukan pilihan ganda`)
-          if (item.answer < 0 || item.answer >= item.options.length) {
+          if (item.options.some((o) => !o.trim())) bad(wq, 'ada pilihan kosong')
+          // B80: kunci (answer + why) tidak ada di data publik. Kalau ada — berarti manifest berkunci
+          // sisi server — ia diaudit di sini juga; kelengkapannya dituntut `auditAnswerKeys`
+          // (`manifest-keys.ts`), yang menolak soal tanpa kunci dan kunci tanpa soal.
+          if (item.answer !== undefined && (item.answer < 0 || item.answer >= item.options.length)) {
             bad(wq, `kunci jawaban ${item.answer} di luar rentang 0..${item.options.length - 1}`)
           }
-          if (item.options.some((o) => !o.trim())) bad(wq, 'ada pilihan kosong')
-          if (!item.why.trim()) bad(wq, 'tanpa penjelasan kenapa — kuis hanya melatih menebak')
+          if (item.why !== undefined && !item.why.trim()) bad(wq, 'tanpa penjelasan kenapa — kuis hanya melatih menebak')
         }
       }
 

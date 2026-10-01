@@ -21,6 +21,13 @@
  * (kunci diurutkan, field dibuang/ditambah kelihatan), BUKAN canonical JSON standar (JCS/RDFDS).
  * Dua pihak yang ingin saling menguji harus memakai fungsi ini, dan itu wajar karena keduanya
  * memang membaca dokumen kita.
+ *
+ * Sejak B80 (1 Okt) satu hal berubah dan harus dibaca bersama paragraf di atas: kunci jawaban kuis
+ * tidak lagi ikut data publik (`courses/*.keys.ts`, hanya server). `rubricHash` tetap MENGIKAT —
+ * mengganti satu kunci menggeser hash, dan hash lama sudah tercetak di kertas — tapi menghitung
+ * ulangnya sekarang butuh kunci. Orang luar memeriksa komitmen itu dengan membandingkan hash di
+ * kertas dengan `rubricHash` dokumen criteria/manifest hari ini, bukan dengan menghitung dari bundel.
+ * Membuka kunci untuk audit adalah keputusan penerbit (D56).
  */
 
 // Lencana-B55 status=SELESAI 2026-09-29 — Kertas Web3 Lanjut pertama kita (0x44d4946e…) menyebut prasyarat di criteria-nya tanpa tautan on-chain. Peserta itu memang memegang Web3 Dasarnya di chain (holderOf sam Buktikan ulang: lihat baris B55 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md. JANGAN dibalik/diulang tanpa membuka kembali baris B55 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
@@ -54,6 +61,21 @@ export type CourseManifest = {
   /** ISO-8601, detik saja: menit/detik nol bukan masalah, tapi zona waktu TIDAK boleh hilang */
   publishedAt: string
   course: Course
+  /**
+   * `rubricHash` yang DITERBITKAN penerbit (B80). Kunci jawaban kuis tidak lagi ikut data publik, jadi
+   * browser tidak bisa menghitung hash ini sendiri — ia membaca nilai ini. Server menghitungnya dari
+   * kunci (`manifest-keys.ts`) dan **menolak naik** kalau hasilnya beda dari nilai ini; gerbang
+   * `npm run verify:quizkeys` menuntut hal yang sama. Tidak ikut `manifestHashOf`.
+   */
+  rubricHash?: Hex
+}
+
+// Lencana-B80 status=SELESAI 2026-10-01 — rubricHash hanya dihitung dari manifest berkunci (canonicalPolicy melempar kalau kunci tidak ada, supaya hash tidak berubah diam-diam); manifest publik membawa rubricHash terbit untuk browser. Buktikan ulang: npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/** Apakah setiap soal kuis di manifest ini membawa kunci jawaban (= manifest berkunci sisi server). */
+export function hasAnswerKeys (m: CourseManifest): boolean {
+  return m.course.modules.flatMap((mod) => mod.lessons).every((l) =>
+    (l.quiz?.questions ?? []).every((q) => typeof q.answer === 'number'))
 }
 
 /**
@@ -62,6 +84,11 @@ export type CourseManifest = {
  * hanya karena seseorang menata ulang berkas, dan itu membuat komitmen lama terlihat rusak.
  */
 export function canonicalPolicy(m: CourseManifest): string {
+  // B80: tanpa kunci, `JSON.stringify` membuang `answer: undefined` dan hash-nya BERUBAH DIAM-DIAM —
+  // kegagalan paling jahat dari seluruh pemisahan kunci. Jadi: lempar, jangan hitung.
+  if (!hasAnswerKeys(m)) {
+    throw new Error(`canonicalPolicy(${m.course.id}) needs the quiz answer keys — public manifests do not carry them; use web/src/manifest-keys.ts`)
+  }
   const c = m.course
   const quizzes = c.modules
     .flatMap((mod) => mod.lessons)
@@ -109,9 +136,17 @@ export function canonicalPolicy(m: CourseManifest): string {
   })
 }
 
-/** Hash KEBIJAKAN PENILAIAN. Yang boleh disebut kredensial sebagai "rubrik versi ini". */
+/**
+ * Hash KEBIJAKAN PENILAIAN. Yang boleh disebut kredensial sebagai "rubrik versi ini".
+ *
+ * Dua keadaan (B80): manifest **berkunci** (server, skrip Node) → dihitung dari `canonicalPolicy`;
+ * manifest **publik** (browser) → nilai yang diterbitkan penerbit (`m.rubricHash`), karena kuncinya
+ * memang tidak ada di sana. Kedua angka itu dipaksa sama oleh `manifest-keys.ts` saat dimuat.
+ */
 export function rubricHashOf (m: CourseManifest): Hex {
-  return keccak256(toBytes(canonicalPolicy(m)))
+  if (hasAnswerKeys(m)) return keccak256(toBytes(canonicalPolicy(m)))
+  if (m.rubricHash) return m.rubricHash
+  throw new Error(`rubricHashOf(${m.course.id}): no answer keys and no published rubricHash`)
 }
 
 /**
@@ -171,11 +206,14 @@ export const MANIFESTS: CourseManifest[] = [
     issuer: YAYASAN,
     publishedAt: '2026-09-22T00:00:00Z',
     course: web3Dasar,
+    // = rubricHashOf(manifest berkunci); nilai yang sama dengan kertas web3-dasar yang sudah terbit (B80)
+    rubricHash: '0x2a45d0d00bc46f3dc27a15b7084a70b4471802d43e010862da0fb7d164677fc8',
   },
   {
     schema: MANIFEST_SCHEMA,
     issuer: YAYASAN,
     publishedAt: '2026-09-22T00:00:00Z',
     course: web3Lanjut,
+    rubricHash: '0xc608de2ada85646653099317957a8f92228b9a0ec7baf6a25b5c549de2a9f76d',
   },
 ]

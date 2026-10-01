@@ -59,9 +59,14 @@ export type ServerSummary = {
   bestScore: number | null
 }
 
+/** Umpan balik satu soal SESUDAH penyerahan (B80): benar/salah + alasan; indeks jawaban tidak dikirim server. */
+export type QuizReviewItem = { itemId: string, correct: boolean, why: string }
+
 export type GradeResult = {
   score: number, correct: number, total: number, passPct: number, verdict: string,
-  attemptHash: string, lesson: string, gradedBy: string
+  attemptHash: string, lesson: string, gradedBy: string,
+  // Lencana-B80 status=SELESAI 2026-10-01 — pembahasan kuis datang dari balasan /grade (benar/salah + alasan per soal), bukan dari kunci di bundel browser. Buktikan ulang: npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  review: QuizReviewItem[]
 }
 
 export type LearningSnapshot = {
@@ -345,6 +350,11 @@ export async function submitQuiz (courseId: string, lessonSlug: string, picks: {
     passPct: Number(r.json.passPct), verdict: String(r.json.verdict ?? ''),
     attemptHash: String(r.json.attemptHash ?? ''), lesson: String(r.json.lesson ?? lessonSlug),
     gradedBy: String(r.json.gradedBy ?? 'server'),
+    // Hanya butir yang bentuknya benar yang dipakai: balasan server lama (tanpa `review`) → daftar
+    // kosong, dan halaman tetap jalan tanpa pembahasan, bukan jatuh.
+    review: (Array.isArray(r.json.review) ? r.json.review : [])
+      .filter((x: unknown): x is QuizReviewItem => !!x && typeof (x as QuizReviewItem).itemId === 'string'
+        && typeof (x as QuizReviewItem).correct === 'boolean' && typeof (x as QuizReviewItem).why === 'string'),
   }
   state.lastGrade = g
   state.error = null

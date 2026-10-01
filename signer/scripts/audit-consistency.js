@@ -54,7 +54,9 @@ const FORBIDDEN = [
   { re: /\blolos\s+sertifikasi\b|\bcertified\b|\btersertifikasi\s+1EdTech\b|\bconformant\b|\b1EdTech\s+compatible\b/i, why: 'kita tidak bisa menunjuk badan penerbit sertifikat', bolehNegasi: true },
   { re: /\bunforgeable\b|\btamper[- ]proof\b|\btidak bisa dipalsukan\b/i, why: 'yang tidak bisa dipalsukan hanya yang kami uji (byte dibalik → tanda tangan mati)' },
   { re: /\bblockchain-secured\b|\bdiamankan blockchain\b/i, why: 'frase tanpa mekanik: dokumen hidup di luar chain' },
-  { re: /\banti[- ]curang\b/i, why: 'kunci jawaban kuis tetap terbundel (B80)' },
+  // B80 (1 Okt) menutup "kunci terbaca di bundel", BUKAN kecurangan: pembahasan per soal datang sesudah
+  // penyerahan dan penyerahan boleh diulang, jadi kunci bisa ditebak lewat beberapa usaha. Larangannya tetap.
+  { re: /\banti[- ]curang\b/i, why: 'kunci tidak lagi di bundel (B80), tapi pembahasan per soal + ulangan tak terbatas membuat kunci bisa ditebak' },
   { re: /\bdi chain\b(?=[^\n]{0,40}(dokumen|teks karangan|berkas lengkap))/i, why: 'dokumen tidak pernah masuk chain' },
   { re: /semua (?:artefak|kertas) (?:kami )?(?:selalu )?publik/i, why: 'ukur dengan verify:edge, jangan klaim tanpa angka' },
 ]

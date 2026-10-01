@@ -28,7 +28,7 @@ import { renderList, servedHashes, REVOCATION, SUSPENSION } from '../src/lists.j
 import { listCredentials, knownHashes } from '../src/store.js'
 import { criteriaDocument } from '../src/criteria.js'
 import { resultDocument } from '../src/results.js'
-import { manifestOf, rubricHashOf, manifestHashOf, MANIFESTS } from '../../web/src/manifest.ts'
+import { manifestOf, rubricHashOf, manifestHashOf, MANIFESTS } from '../../web/src/manifest-keys.ts'
 import { KV_KEYS, EDGE_ROUTES, PURPOSES } from '../src/edgeKeys.js'
 import { loadFileEnvReport } from '../src/env.js'
 

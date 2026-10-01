@@ -56,7 +56,7 @@ import {
 } from './db.js'
 import { gradeAgainstRubric } from './grade.js'
 import { submitEssay as dbSubmitEssay, judgeEssay as dbJudgeEssay, addReviewer as dbAddReviewer, reviewEssay as dbReviewEssay } from './db.js'
-import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest.ts'
+import { manifestOf, manifestHashOf, rubricHashOf, MANIFESTS } from '../../web/src/manifest-keys.ts'
 import { paymentRequirements, decodePaymentHeader, settlePayment, encodePaymentHeader } from './x402.js'
 import { verify as verifyCredential, defaultEndpoint } from '../../web/src/verify.ts'
 // Lencana-B97 status=SELESAI 2026-09-30 — rute POST /relay dan GET /relay/<id>: pintu bagi agen pihak ketiga untuk menyerahkan delegasi bertanda tangan; siaran hanya kalau RELAY_BROADCAST=1. Buktikan ulang: npm run verify:relay. JANGAN dibalik/diulang tanpa membuka kembali baris B97 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
@@ -495,6 +495,9 @@ const server = createServer(async (req, res) => {
           score: graded.score, correct: graded.correct, total: graded.total,
           passPct: graded.passPct, verdict: graded.verdict, gradedBy: 'server',
           components: graded.components.length,
+          // B80: umpan balik sesudah penyerahan — benar/salah + alasan per soal, tanpa indeks jawaban.
+          // Halaman belajar menampilkan ini; kuncinya sendiri tidak pernah meninggalkan server.
+          review: graded.review,
         }))
       }
       if (path === '/essay') {
