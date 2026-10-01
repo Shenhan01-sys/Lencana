@@ -3,14 +3,109 @@
  * di-port ke model konten core (FE7): kartu membaca `blurb`, `level`, `prereqCourseId`, dan menit dari
  * lesson kursus core — bukan dari model `ClassData` cabang itu. Tautan "kode sumber" menunjuk repo
  * proyek, bukan halaman depan GitHub.
+ *
+ * 2 Okt (permintaan builder): gambar di kanan hero diganti kartu kredensial "LENCANA" dari beranda
+ * sebelumnya (`proof-plate`, commit `6f2c4cb`, 26 Sep) — markup dan kelas CSS-nya sama, gerak miringnya
+ * dipindah dari `initHeroCardTilt` di `main.ts` (yang terikat ke hero lama). Isinya bukan contoh karangan:
+ * kartu menunjuk kredensial `SAMPLE_HASHES.valid` milik verifier (dijaga `npm run check:samples`).
  */
 import { h } from '../lib/ui'
 import { COURSES, findCourse } from '../courses/index'
 import type { Course } from '../content'
 import { getSavedLanguage, DICTIONARIES } from '../i18n'
-import { classLink } from '../lesson-views'
+import { classLink, verifyLink } from '../lesson-views'
 
 const REPO_URL = 'https://github.com/Shenhan01-sys/Lencana'
+/** Logo resmi (Logo-Fix1 dari builder, 2 Okt) — JPEG berlatar putih, jadi selalu ditaruh di ubin terang. */
+const LOGO_URL = '/lencana-logo.jpg'
+
+/**
+ * Kredensial yang dipamerkan kartu hero. Diisi `main.ts` dari `SAMPLE_HASHES.valid` — satu sumber yang
+ * diadili `check:samples` (terbit di tepi DAN berlaku di chain), jadi label "VERIFIED" di kartu tidak bisa
+ * basi diam-diam. Kursus dan nilai di kartu adalah isi dokumen kredensial itu di tepi, dibaca 2 Okt:
+ * "Web3 Dasar untuk Praktisi", nilai 92 — ganti keduanya bersama hash-nya.
+ */
+let heroCredential = ''
+export function setHeroCredential (credentialHash: string): void { heroCredential = credentialHash }
+
+/** Kartu kredensial "LENCANA" (`proof-plate`) — markup yang sama dengan beranda 26 Sep supaya CSS-nya berlaku. */
+function renderProofCard (): HTMLElement {
+  const hash = heroCredential
+  const short = hash ? `${hash.slice(0, 10)}…${hash.slice(-8)}` : '—'
+  return h('figure', { class: 'proof-stage', 'aria-label': 'Interactive Lencana credential' },
+    h('div', { class: 'proof-plate-wrap' },
+      h('article', { class: 'proof-plate' },
+        h('span', { class: 'proof-rim', 'aria-hidden': 'true' }),
+        ...['a', 'b', 'c', 'd'].map((x) => h('span', { class: `proof-rivet rivet-${x}`, 'aria-hidden': 'true' })),
+        h('div', { class: 'proof-plate-grid' },
+          h('div', { class: 'proof-identity' },
+            h('span', { class: 'proof-micro' }, 'VERIFIABLE LEARNING CREDENTIAL'),
+            h('strong', { class: 'proof-plate-brand' }, 'LENCANA'),
+            h('span', { class: 'proof-course' }, 'WEB3 DASAR · 2026'),
+            h('span', { class: 'proof-serial' }, `HASH ${short}`),
+          ),
+          h('div', { class: 'proof-status-list' },
+            h('div', { class: 'proof-status-row' }, h('span', null, '01 · COURSE'), h('strong', null, 'COMPLETED')),
+            h('div', { class: 'proof-status-row' }, h('span', null, '02 · FINAL SCORE'), h('strong', { class: 'gold' }, '92 / 100')),
+            h('a', {
+              class: 'proof-status-row proof-status-button',
+              href: hash ? verifyLink(hash) : '#/verify',
+              title: 'Verify this credential on chain',
+            }, h('span', null, '03 · PUBLIC PROOF'), h('strong', { class: 'verified' }, h('i', null), ' VERIFIED · LOCKED')),
+          ),
+        ),
+        // Segel kartu memuat logo resmi Lencana (2 Okt), menggantikan tanda ✕ bawaan.
+        h('div', { class: 'proof-seal proof-seal--logo', 'aria-hidden': 'true' },
+          h('img', { class: 'proof-seal-logo', src: LOGO_URL, alt: '' }),
+        ),
+        h('div', { class: 'proof-plate-foot' }, 'SOULBOUND / PUBLIC PROOF / OPEN BADGES 3.0'),
+      ),
+    ),
+    h('figcaption', null, 'MOVE TO INSPECT · SELECT A PROOF TO VERIFY'),
+  )
+}
+
+/**
+ * Kartu miring mengikuti kursor (dipindah dari `initHeroCardTilt`, `main.ts`): easing lewat rAF, kembali
+ * ke posisi diam saat kursor keluar; tidak bergerak untuk reduced-motion dan layar sentuh. Dipasang ulang
+ * setiap render karena landing dibangun ulang — elemen lama ikut dibuang bersama pendengarnya.
+ */
+function bindProofTilt (hero: HTMLElement, stage: HTMLElement): void {
+  if (typeof window === 'undefined' || !window.matchMedia) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  if (window.matchMedia('(hover: none)').matches) return
+  const maxTilt = 9
+  let raf = 0
+  let targetRx = 4
+  let targetRy = -6
+  let currentRx = 4
+  let currentRy = -6
+  const render = () => {
+    currentRx += (targetRx - currentRx) * 0.12
+    currentRy += (targetRy - currentRy) * 0.12
+    stage.style.setProperty('--proof-rx', `${currentRx.toFixed(2)}deg`)
+    stage.style.setProperty('--proof-ry', `${currentRy.toFixed(2)}deg`)
+    raf = Math.abs(targetRx - currentRx) > 0.01 || Math.abs(targetRy - currentRy) > 0.01 ? requestAnimationFrame(render) : 0
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(render) }
+  hero.addEventListener('mousemove', (e) => {
+    const rect = stage.getBoundingClientRect()
+    const px = (e.clientX - rect.left) / Math.max(rect.width, 1) - 0.5
+    const py = (e.clientY - rect.top) / Math.max(rect.height, 1) - 0.5
+    targetRy = -6 + px * maxTilt * 2
+    targetRx = 4 - py * maxTilt * 2
+    stage.style.setProperty('--proof-mx', `${((px + 0.5) * 100).toFixed(1)}%`)
+    stage.style.setProperty('--proof-my', `${((py + 0.5) * 100).toFixed(1)}%`)
+    kick()
+  })
+  hero.addEventListener('mouseleave', () => {
+    targetRx = 4
+    targetRy = -6
+    stage.style.setProperty('--proof-mx', '50%')
+    stage.style.setProperty('--proof-my', '38%')
+    kick()
+  })
+}
 
 function getCourseImage (id: string): string {
   if (id.includes('security') || id.includes('lanjut')) return '/course-security.jpg'
@@ -48,8 +143,9 @@ function renderCourseCard (c: Course, index: number): HTMLElement {
 
 export function renderLanding (): HTMLElement {
   const t = DICTIONARIES[getSavedLanguage()].lmsV2
+  const card = renderProofCard()
 
-  return h('div', { class: 'landing-shell' },
+  const shell = h('div', { class: 'landing-shell' },
     h('section', { class: 'hero-editorial-section' },
       h('div', { class: 'hero-editorial-grid' },
         h('div', { class: 'hero-editorial-content' },
@@ -61,12 +157,7 @@ export function renderLanding (): HTMLElement {
             h('a', { href: '#/verify', class: 'btn-editorial btn-editorial-secondary' }, t.btnVerify),
           ),
         ),
-        h('div', { class: 'hero-editorial-visual' },
-          h('div', { class: 'hero-image-wrapper' },
-            h('img', { src: '/hero.jpg', alt: 'Abstract Soulbound Token', class: 'hero-image' }),
-            h('div', { class: 'hero-image-overlay' }),
-          ),
-        ),
+        h('div', { class: 'hero-editorial-visual hero-editorial-visual--proof' }, card),
       ),
     ),
 
@@ -105,4 +196,7 @@ export function renderLanding (): HTMLElement {
       ),
     ),
   )
+  const hero = shell.querySelector('.hero-editorial-section') as HTMLElement | null
+  if (hero) bindProofTilt(hero, card)
+  return shell
 }

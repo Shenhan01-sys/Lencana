@@ -74,6 +74,8 @@ const SAMPLE_HASHES = {
   revoked: '0xf34bdc454438f193929207aee75c94b01f8bad0bd65f5041b37b3e2b66b256f2',
   format: '0x123',
 }
+// Kartu kredensial di hero landing menunjuk sampel "valid" yang sama — satu sumber, diadili check:samples.
+setHeroCredential(SAMPLE_HASHES.valid)
 
 /**
  * Tempat dokumen kredensial kita BENAR-BENAR disajikan: Worker + KV yang diisi
@@ -1653,6 +1655,7 @@ function copyJsonLd() {
 }
 
 import { mountNewApp } from './new-app'
+import { setHeroCredential } from './pages/landing'
 
 function handleRoute() {
   const rawHash = window.location.hash || '#/'

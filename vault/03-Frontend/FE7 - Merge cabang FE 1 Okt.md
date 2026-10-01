@@ -80,3 +80,18 @@ riwayat `a6d0662` tidak masuk `main`:
 `web/src` yang mengimpor kunci), `verify:privy` (modul login tetap lambat), `check:labels` 8/0, `npm run audit` 0 temuan,
 dan **uji peramban sungguhan** — [[09-Testing/T42 - Uji peramban ruang kelas (FE7)]]. Uji peramban itu menemukan **B122** (preflight CORS 405: halaman belajar tidak
 pernah bisa menulis dari peramban) dan dua bug halaman yang terbawa dari `lms.ts`; ketiganya ditutup di port ini.
+
+## 2 Okt — hero: kartu kredensial "LENCANA" + logo resmi (permintaan builder)
+
+- **Gambar kanan hero diganti kartu `proof-plate`** dari beranda 26 Sep (commit `6f2c4cb`, Stylenecy — "movable credential
+  card"): markup dan kelas CSS yang sama, gerak miring dipindah dari `initHeroCardTilt` (`main.ts`, terikat ke hero lama)
+  ke `pages/landing.ts`. Isinya bukan karangan: kartu menunjuk `SAMPLE_HASHES.valid` milik verifier — satu sumber yang
+  diadili `check:samples` — dan menampilkan isi dokumen kredensial itu di tepi (Web3 Dasar, nilai 92); "03 · PUBLIC PROOF"
+  membuka verifier dengan hash itu. Teks contoh lama ("AI EVALUATION 93 / 100 · HONORS") tidak dipakai.
+- Ukuran wordmark diikat ke lebar kartu (`cqw`): ukuran dasar `6vw` meluber ke kolom status di kolom hero ini (terukur:
+  teks berakhir di 1063px, kolom status mulai 1114px sesudah perbaikan). Tidak ada geser horizontal di 500px.
+- **Logo resmi** (`Logo-Fix1.jpeg` dari builder → `web/public/lencana-logo.jpg`) menggantikan ikon belah ketupat di navbar
+  dan tanda ✕ di segel kartu. JPEG-nya berlatar putih, jadi ditaruh di ubin terang (bagian hitamnya hilang di latar gelap).
+- Uji: `tsc` bersih, build, probe web 88/0, `check:samples` (sampel valid/revoked cocok di tepi dan chain), audit 0 temuan;
+  peramban: kartu tampil di 1440px dan 500px, gerak miring mengikuti kursor (`rx 12.7° / ry 2.7°` di pojok kanan atas,
+  kembali ke `4° / −6°` saat kursor keluar) dan diam untuk `prefers-reduced-motion`.
