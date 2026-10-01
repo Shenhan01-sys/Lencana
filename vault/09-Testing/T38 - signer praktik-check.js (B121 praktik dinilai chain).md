@@ -176,3 +176,10 @@ yang yatim (bukti eth-call milik pemegang kertas `0x372c2518…`, terikat ke usa
 - 6 baris praktik `origin=demo` dari jalur lama (laporan peserta, 28–30 Sep) tetap di Postgres dan **tidak
   lagi mengisi slot praktik** kalau kertas diterbitkan ulang dari rekaman itu. Kertas yang sudah terbit
   tidak berubah.
+- **Server harness masih tertinggal sesudah harness selesai** (diamati 1 Okt malam, sesudah commit `af7ad3e`):
+  lima proses `app/signer/src/server.js` masih mendengar di 8795, 8837, 8857, 8867, 8887 — milik
+  `attempts-check`, `relay-check`, `deposit-check`, `agents-check`, `praktik-check` — dan dimatikan tangan.
+  Artinya `taskkill /T` di harness tidak selalu menumbangkan cucu proses `npm run serve` di Windows; itulah
+  asal yatim 28/30 Sep. `src/ports.js` membuat run berikutnya **tidak** lagi berbicara dengan kode lama,
+  tapi yatimnya tetap menumpuk (14 port per harness; sesudah itu `freePort` melempar dengan pesan yang
+  menyuruh mematikannya). Sebabnya belum diselidiki — dicatat, tidak ditebak.
