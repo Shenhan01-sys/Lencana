@@ -69,7 +69,7 @@ const child = spawn('npm', ['run', 'serve'], {
   // B78: server yang DINYALAKAN probe ini memperkenalkan dirinya sebagai test. Tanpa ini, baris yang
   // ia tulis jatuh ke default 'unknown' dan 'sisa = 0' tetap tidak bisa dibuktikan — klaimku
   // sebelumnya bahwa probe "menumpang server 8787" salah: ia spawn server sendiri di 8792.
-  env: { ...process.env, PORT: String(PORT), BASE_URL: BASE, LANCENA_ORIGIN: 'test' },
+  env: { ...process.env, PORT: String(PORT), BASE_URL: BASE, LANCENA_ORIGIN: 'test', ENROLL_PAYWALL: 'off' },
   // stdout ikut di-pipe, bukan diabaikan. Versi pertama mengabaikan stdout dan meninggalkan
   // errBuf kosong saat server anak gagal — akibatnya "server tidak naik" tidak bisa diagnosis,
   // padahal npm/tsx kerap menulis masalahnya ke stdout lewat cangkang shell.

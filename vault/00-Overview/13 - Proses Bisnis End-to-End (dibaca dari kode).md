@@ -530,6 +530,8 @@ penilai (`hire`, `signer/src/agents.js`) — lalu sekali lagi saat pengesahan (`
 baru ditambahkan 1 Okt sore, sesudah baris residu sebuah run harness ditemukan melanggarnya
 ([[09-Testing/T37 - signer agents-check.js (B120 reviewer agen)]]).
 
+*(Koreksi 2 Okt, B125: kalimat di bawah benar sampai B125. Sekarang pembelian kursus ada — `POST /enroll` kursus berbayar menjawab 402, peserta menandatangani izin token, settlement + pembagian lewat `SettlementSplit`, `orders` = paid, baru enrollment; [[08-Results/B125 - Executive Summary]].)*
+
 **Yang tidak ada:** pembelian kursus. Tabel `orders` ada di skema tetapi tidak ada kode yang menulisnya;
 peserta mendaftar tanpa membayar, dan kontrak premi tidak dipanggil halaman mana pun.
 

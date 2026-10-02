@@ -15394,6 +15394,11 @@ p {
   border-top: 1px solid var(--color-border);
   padding-top: 24px;
 }
+/* B125: harga kursus (web/src/pricing.ts) di kartu katalog */
+.course-card-price {
+  color: var(--accent-gold, #f0b90b);
+  font-weight: 700;
+}
 
 /* 3. How It Works — diganti alur bisnis 3D (FE8): src/pages/flow3d.css */
 

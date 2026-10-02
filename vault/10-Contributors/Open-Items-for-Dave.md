@@ -615,3 +615,18 @@ hidup di berkas baru (`web/src/pages/dashboard.ts`, `course-detail.ts`, `dashboa
 
 **Untukmu:** tampilan dashboard dan detail kursus memakai palet landing tapi kelasnya sendiri (`.app-*`, `.cd-*`, `.app-welcome`);
 silakan ditata ulang — yang harus tetap: rute `#/app…` di balik akun, dan angka nilai hanya dari `POST /me/records`.
+
+## OI-26 — kursus berbayar: harga di katalog, panel bayar, kelas berbayar menunjuk halaman bayar (B125, D60, 2 Okt)
+
+Rencana: RF7 langkah B. Logika bayar ada di `web/src/learning.ts` (`payAndEnroll`, `claimTestCoins`, `tokenBalance`) dan harga di
+`web/src/pricing.ts`; tampilan baru di `pages/course-detail.ts` + `pages/dashboard.ts`. Berkasmu yang ikut tersentuh:
+
+| berkas | perubahan |
+|---|---|
+| `web/src/main.ts` | `onSignedIn`: kursus yang dituju dibuka di halaman kursus (`#/course/<id>`, tempat membayar), bukan langsung ke kelas |
+| `web/src/pages/landing.ts` | kartu katalog menampilkan harga (`.course-card-price`, dari `pricing.ts`) |
+| `web/src/style.css` | `.course-card-price` (emas, tebal) di bawah `.course-card-footer` |
+| `web/src/lesson-views.ts` | `serverLine`: kalau penerbit menjawab 402 untuk kursus itu, kotak identitas menjadi "Kursus ini berbayar" + tautan ke halaman bayar |
+
+**Yang harus tetap:** harga hanya dari `web/src/pricing.ts` (server membacanya juga), dan tidak ada tombol yang membuka kelas berbayar
+tanpa jawaban 200 dari `POST /enroll`.

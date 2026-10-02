@@ -15,6 +15,7 @@ import type { Course } from '../content'
 import { getSavedLanguage, DICTIONARIES } from '../i18n'
 import { verifyLink } from '../lesson-views'
 import { renderFlow3D } from './flow3d'
+import { PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
 
 const REPO_URL = 'https://github.com/Shenhan01-sys/Lencana'
 /** Logo resmi (Logo-Fix1 dari builder, 2 Okt) — JPEG berlatar putih, jadi selalu ditaruh di ubin terang. */
@@ -137,6 +138,7 @@ function renderCourseCard (c: Course, index: number): HTMLElement {
       h('div', { class: 'course-card-footer' },
         h('span', null, `${minutes} ${t.tagMinutes}`),
         h('span', null, `${c.modules.length} ${t.tagModules} · ${lessons.length} ${t.tagLessons}`),
+        priceOf(c.id) !== null ? h('span', { class: 'course-card-price' }, `${formatLdc(priceOf(c.id) as bigint)} ${PAY_TOKEN_SYMBOL}`) : null,
       ),
     ),
   )

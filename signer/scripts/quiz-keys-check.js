@@ -141,7 +141,7 @@ console.log('\n— C. POST /grade: pembahasan sesudah penyerahan, tanpa indeks j
 const PORT = Number(env.QUIZKEYS_PROBE_PORT ?? await freePort(8907))
 const BASE = `http://127.0.0.1:${PORT}`
 const child = spawn('npm', ['run', 'serve'], {
-  cwd: SIGNER, env: { ...env, PORT: String(PORT), HOST: '127.0.0.1', BASE_URL: BASE, LANCENA_ORIGIN: 'test' }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
+  cwd: SIGNER, env: { ...env, PORT: String(PORT), HOST: '127.0.0.1', BASE_URL: BASE, LANCENA_ORIGIN: 'test', ENROLL_PAYWALL: 'off' }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
 })
 let errBuf = ''
 child.stdout.on('data', () => {})

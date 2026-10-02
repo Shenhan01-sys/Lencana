@@ -6,6 +6,10 @@ updated: 2026-09-26
 
 # RF5 - Enrollment and the Paid Path
 
+> **Koreksi 2 Okt (B125, D60):** paragraf di bawah benar pada 26 Sep. Sejak B125 enrollment kursus berbayar adalah objek yang dibayar:
+> `POST /enroll` menjawab 402, peserta menandatangani izin token, penerbit menyiarkan settlement + pembagian `SettlementSplit`, dan
+> `orders` ditulis `paid` sebelum kelas terbuka — [[08-Results/B125 - Executive Summary]].
+
 **There is no enrollment, so there is nothing to pay for.** `btnEnroll` is a translated word with no
 handler (RF1.1). That is the reason the money path looks disconnected from the product: the x402 machinery
 is real, but it is bolted to the one action a learner never has to buy.

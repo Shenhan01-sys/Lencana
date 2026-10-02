@@ -83,7 +83,7 @@ async function pg (method, path, body, key = env.SUPABASE_SECRET_KEY) {
 async function serve (port, extra = {}) {
   const base = `http://127.0.0.1:${port}`
   const child = spawn('npm', ['run', 'serve'], {
-    cwd: SIGNER, env: { ...env, PORT: String(port), HOST: '127.0.0.1', BASE_URL: base, LANCENA_ORIGIN: 'test', ...extra }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
+    cwd: SIGNER, env: { ...env, PORT: String(port), HOST: '127.0.0.1', BASE_URL: base, LANCENA_ORIGIN: 'test', ENROLL_PAYWALL: 'off', ...extra }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
   })
   let errBuf = ''
   child.stdout.on('data', () => {})

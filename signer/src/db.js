@@ -141,6 +141,11 @@ export async function enroll ({ learner, courseId, lessonsTotal = 0, message, si
   if (!Number.isInteger(total) || total < 0) return { ok: false, why: `lessons_total invalid: ${lessonsTotal}` }
   const existing = await findEnrollment(learner, courseId)
   if (existing) return { ok: true, enrollment: existing, created: false }
+  return { ok: true, enrollment: await insertEnrollment(learner, courseId, total), created: true }
+}
+
+/** Baris enrollment baru. Pemanggil yang memutuskan bolehkah (tanda tangan, dan untuk kursus berbayar: lunas). */
+async function insertEnrollment (learner, courseId, total) {
   const rows = await rest('enrollments', {
     method: 'POST',
     query: '?on_conflict=learner,course_id',
@@ -152,7 +157,37 @@ export async function enroll ({ learner, courseId, lessonsTotal = 0, message, si
       // menyamar jadi demo. Harness yang menyalakan servernya sendiri mengirim LANCENA_ORIGIN=test.
       origin: process.env.LANCENA_ORIGIN || 'unknown' }],
   })
-  return { ok: true, enrollment: rows?.[0] ?? null, created: true }
+  return rows?.[0] ?? null
+}
+
+/**
+ * Enrollment kursus BERBAYAR (B125). Dipanggil sesudah tanda tangan peserta diverifikasi DAN settlement x402 sukses —
+ * baris order mencatat jumlah, aset, dan tx settlement; uangnya sendiri ada di chain, bukan klaim tabel ini.
+ */
+export async function enrollPaid ({ learner, courseId, lessonsTotal = 0, asset, amount, txHash }) {
+  const existing = await findEnrollment(learner, courseId)
+  const enrollment = existing ?? await insertEnrollment(learner, courseId, Number(lessonsTotal) || 0)
+  if (!enrollment) return { ok: false, why: 'enrollment row was not returned' }
+  const orders = await rest('orders', {
+    method: 'POST',
+    prefer: 'return=representation',
+    body: [{ enrollment_id: enrollment.id, asset: getAddress(asset), amount: String(amount), state: 'paid', tx_hash: txHash }],
+  })
+  return { ok: true, enrollment, order: orders?.[0] ?? null, created: !existing }
+}
+
+/** Kapan alamat ini terakhir menerima koin uji dalam `hours` jam terakhir (nonce faucet yang terpakai), atau null. */
+export async function recentFaucetGrant (learner, hours) {
+  const since = new Date(Date.now() - hours * 3_600_000).toISOString()
+  const q = `?learner=eq.${encodeURIComponent(getAddress(learner))}&scope=eq.faucet&used_at=gte.${encodeURIComponent(since)}`
+    + '&select=used_at&order=used_at.desc&limit=1'
+  const rows = await rest('used_nonces', { query: q })
+  return rows?.[0]?.used_at ?? null
+}
+
+/** Lepaskan nonce yang sudah terpakai (dipakai faucet kalau pencetakan gagal: peserta tidak boleh terkunci 24 jam tanpa koin). */
+export async function forgetNonce (nonce) {
+  await rest('used_nonces', { method: 'DELETE', query: `?nonce=eq.${encodeURIComponent(nonce)}` })
 }
 
 /* ------------------------------------------------------------------ hash usaha (bar 7) */
@@ -391,7 +426,9 @@ export async function learnerRecords (learner) {
         review: r ? { decision: r.decision, finalScore: r.final_score ?? null, at: r.reviewed_at ?? null } : null,
       }
     })
-    courses.push({ courseId: e.course_id, status: e.status, enrolledAt: e.enrolled_at, summary, attempts })
+    const orders = ((await rest('orders', { query: `?enrollment_id=eq.${e.id}&select=asset,amount,state,tx_hash,created_at&order=created_at.asc` })) ?? [])
+      .map((o) => ({ asset: o.asset, amount: String(o.amount), state: o.state, tx: o.tx_hash ?? null, at: o.created_at }))
+    courses.push({ courseId: e.course_id, status: e.status, enrolledAt: e.enrolled_at, summary, attempts, orders })
   }
   return { learner: addr, courses }
 }

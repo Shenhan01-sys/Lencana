@@ -36,6 +36,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-23 | bagian "Certification Flow" diganti alur bisnis 3D (FE8, 2 Okt): `main.ts` kini menggambar ulang landing saat bahasa diganti, `new-app.ts` menggambar landing untuk `#how-it-works`, salinan tiga langkah dibuang dari `i18n.ts` dan CSS-nya dari `style.css`; ruang kelas sengaja tidak digambar ulang (draf esai), `#pipeline`/`#architecture` masih kosong |
 | OI-24 | pintu masuk berakun + permukaan publik tanpa simulasi (B123, D59, 2 Okt): modal lama dan tiga pintu tanpa akun dibuang, dialog masuk baru di `pages/login.ts`, nav "Dashboard" untuk akun, Tamper Playground/konsol x402/bitstring dibuang; `#page-home`, `#page-submit`, `#page-portfolio` tak terjangkau tapi markupnya masih ada |
 | OI-25 | area internal peserta `#/app` + onboarding + detail kursus publik (B124, 2 Okt): nav Dashboard → `#/app`, `#/me` dialihkan, `#/course/<id>` publik, kartu katalog menunjuk detail kursus; berkas baru `pages/dashboard.ts`, `course-detail.ts`, `dashboard.css` |
+| OI-26 | kursus berbayar (B125, D60, 2 Okt): harga di kartu katalog (`.course-card-price`), `onSignedIn` membuka halaman kursus untuk membayar, kotak identitas kelas berbayar menunjuk halaman bayar; logika bayar di `learning.ts`, harga di `pricing.ts` |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
 [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15

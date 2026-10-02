@@ -17,11 +17,12 @@ import type { Course } from '../content'
 import { forgetLearner, learnerAddress, readMyRecords, snapshot, type MyAttempt, type MyCourseRecord } from '../learning'
 import { classLink, readMyCredentials } from '../lesson-views'
 import { ROLES } from './flow3d-data'
+import { PAY_TOKEN_SYMBOL, formatLdc } from '../pricing'
 
 // Lencana-B124 status=TERBUKA 2026-10-02 — area internal peserta: sidebar (Ringkasan · Kelas saya · Nilai & tugas · Kredensial saya · Akun), onboarding login pertama (tiga peran, dua berlabel segera), data dari POST /me/records bertanda tangan. Buktikan ulang: cd web && npm run probe, lalu uji peramban T44. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 type Lang = 'en' | 'id'
-type Section = 'overview' | 'classes' | 'grades' | 'credentials' | 'account' | 'welcome'
+type Section = 'overview' | 'classes' | 'grades' | 'credentials' | 'payments' | 'account' | 'welcome'
 
 const COPY = {
   overview: { en: 'Overview', id: 'Ringkasan' },
@@ -29,6 +30,14 @@ const COPY = {
   grades: { en: 'Grades & work', id: 'Nilai & tugas' },
   credentials: { en: 'My credentials', id: 'Kredensial saya' },
   account: { en: 'Account', id: 'Akun' },
+  payments: { en: 'Payments', id: 'Pembayaran' },
+  noPayments: { en: 'No payments yet. Courses enrolled before prices applied stay open without one.', id: 'Belum ada pembayaran. Kursus yang kamu ikuti sebelum harga berlaku tetap terbuka tanpa pembayaran.' },
+  course: { en: 'Course', id: 'Kursus' },
+  amount: { en: 'Amount', id: 'Jumlah' },
+  orderState: { en: 'Status', id: 'Status' },
+  txLink: { en: 'Transaction', id: 'Transaksi' },
+  paidState: { en: 'paid', id: 'lunas' },
+  payNote: { en: 'Each payment is a transaction on BNB testnet you can open yourself; the amount is split on chain between the publisher and the platform.', id: 'Setiap pembayaran adalah transaksi di BNB testnet yang bisa kamu buka sendiri; jumlahnya dibagi di chain antara penerbit dan platform.' },
   hello: { en: 'Hi', id: 'Halo' },
   helloSub: { en: 'Everything here is yours alone — no one else can open this page.', id: 'Semua di sini milikmu sendiri — orang lain tidak bisa membuka halaman ini.' },
   loading: { en: 'Reading your records from the publisher…', id: 'Membaca rekamanmu dari penerbit…' },
@@ -91,6 +100,7 @@ const NAV: { id: Exclude<Section, 'welcome'>, href: string, icon: string }[] = [
   { id: 'classes', href: '#/app/classes', icon: 'M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4zm16 0h-4a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h5z' },
   { id: 'grades', href: '#/app/grades', icon: 'M4 20V10m6 10V4m6 16v-7m6 7H2' },
   { id: 'credentials', href: '#/app/credentials', icon: 'M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm-3.5 3.5L7 22l5-2 5 2-1.5-3.5' },
+  { id: 'payments', href: '#/app/payments', icon: 'M3 6h18v12H3zM3 10h18M7 15h4' },
   { id: 'account', href: '#/app/account', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0' },
 ]
 
@@ -116,7 +126,7 @@ async function records (): Promise<{ ok: boolean, why?: string, courses?: MyCour
 
 function sectionOf (routeHash: string): Section {
   const seg = routeHash.replace(/^#\/?/, '').split('/')[1] ?? ''
-  if (seg === 'classes' || seg === 'grades' || seg === 'credentials' || seg === 'account' || seg === 'welcome') return seg
+  if (seg === 'classes' || seg === 'grades' || seg === 'credentials' || seg === 'payments' || seg === 'account' || seg === 'welcome') return seg
   return 'overview'
 }
 
@@ -179,6 +189,7 @@ export function renderApp (routeHash: string): HTMLElement {
       if (section === 'overview') body.appendChild(renderOverview(lang, r.courses))
       if (section === 'classes') body.appendChild(renderClasses(lang, r.courses))
       if (section === 'grades') body.appendChild(renderGrades(lang, r.courses))
+      if (section === 'payments') body.appendChild(renderPayments(lang, r.courses))
     })
   }
   load()
@@ -299,6 +310,24 @@ function renderGrades (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
   return wrap
 }
 
+function renderPayments (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
+  const T = (k: keyof typeof COPY) => COPY[k][lang]
+  const rows = courses.flatMap((c) => c.orders.map((o) => ({ course: findCourse(c.courseId)?.title ?? c.courseId, o })))
+  const wrap = h('div', { class: 'app-stack' }, h('p', { class: 'app-note' }, T('payNote')))
+  if (!rows.length) { wrap.appendChild(h('div', { class: 'app-card' }, h('p', null, T('noPayments')))); return wrap }
+  wrap.appendChild(h('div', { class: 'app-card' }, h('div', { class: 'app-table-wrap' }, h('table', { class: 'app-table' },
+    h('thead', null, h('tr', null, h('th', null, T('course')), h('th', null, T('amount')), h('th', null, T('orderState')), h('th', null, T('when')), h('th', null, T('txLink')))),
+    h('tbody', null, ...rows.map(({ course, o }) => h('tr', null,
+      h('td', null, course),
+      h('td', null, `${formatLdc(BigInt(o.amount))} ${PAY_TOKEN_SYMBOL}`),
+      h('td', { class: `app-res ${o.state === 'paid' ? 'ok' : 'wait'}` }, o.state === 'paid' ? T('paidState') : o.state),
+      h('td', null, o.at ? new Date(o.at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID') : '—'),
+      h('td', null, o.tx ? h('a', { href: `https://testnet.bscscan.com/tx/${o.tx}`, target: '_blank', rel: 'noopener noreferrer' }, `${o.tx.slice(0, 10)}…`) : '—'),
+    ))),
+  ))))
+  return wrap
+}
+
 function renderCredentials (lang: Lang, addr: string | null): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const list = h('div', { class: 'app-creds lesson-engine' }, h('p', { class: 'app-muted' }, T('loading')))
@@ -343,7 +372,7 @@ function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
     // Tamu yang menekan "Daftar" di halaman kursus lalu login pertama kali: sesudah onboarding kembali ke kursus itu.
     let pending: string | null = null
     try { pending = sessionStorage.getItem('lencana_enroll_target'); if (pending) sessionStorage.removeItem('lencana_enroll_target') } catch { /* tanpa storage */ }
-    window.location.hash = to === '#/app' && pending ? classLink(pending) : to
+    window.location.hash = to === '#/app' && pending ? `#/course/${encodeURIComponent(pending)}` : to
   }
 
   const stepRoles = () => {

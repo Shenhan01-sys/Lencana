@@ -85,6 +85,7 @@ const HARNESS = [
   // Lencana-B82 status=TERBUKA 2026-10-01 — login Privy ikut jadi sumber angka: app secret diuji ke API users Privy (dengan kontrol secret palsu), token palsu ditolak, ikatan alamat ↔ akun atomik, RLS, bundel web; yang belum: jalur positif dengan kode email sungguhan (uji dua peramban oleh builder). Buktikan ulang: npm run sync:numbers -- --only=privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'privy', label: 'verify:privy (login Privy: token, ikatan akun, bundel)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:privy']], re: /LOGIN PRIVY (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'records', label: 'verify:records (rekaman milik peserta, bertanda tangan)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:records']], re: /REKAMAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'paywall', label: 'verify:paywall (bayar dulu baru masuk kelas, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:paywall']], re: /PAYWALL (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -206,6 +207,7 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'quizkeys', want: (m) => new RegExp(`KUNCI KUIS HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:quizkeys di QR' },
   { file: '09-Testing/T41 - signer privy-check.js (B82 login Privy).md', metric: 'privy', want: (m) => `LOGIN PRIVY HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T41 (login Privy)' },
   { file: '09-Testing/T45 - signer records-check.js (B124 rekaman milik peserta).md', metric: 'records', want: (m) => `REKAMAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T45 (rekaman milik peserta)' },
+  { file: '09-Testing/T46 - signer paywall-check.js (B125 bayar dulu).md', metric: 'paywall', want: (m) => `PAYWALL HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T46 (bayar dulu baru masuk kelas)' },
   { file: 'Quick-Reference.md', metric: 'privy', want: (m) => new RegExp(`LOGIN PRIVY HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:privy di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]

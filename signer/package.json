@@ -18,6 +18,8 @@
     "verify:praktik:live": "tsx scripts/praktik-check.js --live",
     "verify:quizkeys": "tsx scripts/quiz-keys-check.js",
     "verify:records": "tsx scripts/records-check.js",
+    "verify:paywall": "tsx scripts/paywall-check.js",
+    "verify:paywall:live": "tsx scripts/paywall-check.js --live",
     "verify:privy": "node scripts/privy-check.js",
     "verify:agent": "tsx scripts/agent-identity-check.js",
     "adopt": "node scripts/adopt.js --demo",

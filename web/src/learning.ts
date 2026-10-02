@@ -41,7 +41,8 @@
  */
 
 // Lencana-B58 status=SELESAI 2026-09-29 — Ini yang menentukan urutan kerja front-end. Kalau FE dibangun lebih dulu, FE menyimpan state yang tidak dimiliki core — dan di produk yang menjual "bukti tidak bisa dik Buktikan ulang: npm run verify:attempts:live. JANGAN dibalik/diulang tanpa membuka kembali baris B58 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { stringToHex, type Hex } from 'viem'
+import { createPublicClient, http, stringToHex, type Hex } from 'viem'
+import { defaultEndpoint } from './verify'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import type { PrivyIdentity } from './privy'
 
@@ -104,6 +105,8 @@ export type LearningSnapshot = {
   lastGrade: GradeResult | null
   /** Tanda terima penyerahan esai dari SERVER: tanpa angka, dan halaman tidak boleh membuatnya tampak ada. */
   lastEssay: EssayReceipt | null
+  /** B125: kursus yang menolak enrollment karena belum dibayar (penerbit menjawab 402) — kelasnya menunjuk ke halaman bayar. */
+  needsPayment: string | null
 }
 
 let state: LearningSnapshot = {
@@ -118,6 +121,7 @@ let state: LearningSnapshot = {
   lastSync: null,
   lastGrade: null,
   lastEssay: null,
+  needsPayment: null,
 }
 
 /**
@@ -374,13 +378,13 @@ async function signMessage (message: string): Promise<{ signature?: string, why?
   }
 }
 
-async function call (path: string, init?: { method?: string, body?: unknown }): Promise<{ status: number, json: Record<string, unknown> | null, why?: string }> {
+async function call (path: string, init?: { method?: string, body?: unknown, headers?: Record<string, string>, timeoutMs?: number }): Promise<{ status: number, json: Record<string, unknown> | null, why?: string }> {
   try {
     const r = await fetch(state.endpoint + path, {
       method: init?.method ?? 'GET',
-      headers: init?.body ? { 'content-type': 'application/json' } : undefined,
+      headers: init?.body ? { 'content-type': 'application/json', ...(init.headers ?? {}) } : init?.headers,
       body: init?.body ? JSON.stringify(init.body) : undefined,
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(init?.timeoutMs ?? 15_000),
     })
     let json: Record<string, unknown> | null = null
     try { json = await r.json() as Record<string, unknown> } catch { /* bukan JSON */ }
@@ -404,6 +408,9 @@ function fail (why: string): null {
 export async function syncCourse (courseId: string): Promise<ServerSummary | null> {
   const addr = learnerAddress()
   if (!addr) return fail('Belum ada identitas peserta.')
+  // Ringkasan kursus lain tidak boleh tampil sebagai ringkasan kursus ini (terlihat saat B125: kelas berbayar memperlihatkan
+  // angka kursus sebelumnya, dan catatan "kursus berbayar" tertutup olehnya).
+  if (state.courseId !== courseId) state.summary = null
   state.pending = true
   state.courseId = courseId
   const got = await call(`/progress?learner=${encodeURIComponent(addr)}&course=${encodeURIComponent(courseId)}`)
@@ -420,7 +427,13 @@ export async function syncCourse (courseId: string): Promise<ServerSummary | nul
   const s = await signMessage(message)
   if (!s.signature) return fail(s.why ?? 'tidak bisa menandatangani')
   const en = await call('/enroll', { method: 'POST', body: { learner: addr, course: courseId, message, signature: s.signature } })
+  if (en.status === 402) {
+    // B125: kursus berbayar — kelas terbuka sesudah peserta membayar di halaman kursus, bukan didaftarkan otomatis.
+    state.needsPayment = courseId
+    return fail('Kursus ini berbayar: kelasnya terbuka sesudah kamu membayar di halaman kursus.')
+  }
   if (en.status !== 200) return fail(en.json?.error as string ?? en.why ?? `enroll ditolak (${en.status})`)
+  if (state.needsPayment === courseId) state.needsPayment = null
   const again = await call(`/progress?learner=${encodeURIComponent(addr)}&course=${encodeURIComponent(courseId)}`)
   if (again.status !== 200 || !again.json) return fail(again.why ?? `server menjawab ${again.status}`)
   state.summary = normalizeSummary(again.json)
@@ -442,7 +455,8 @@ export type MyAttempt = {
   at: string
   review: { decision: string, finalScore: number | null, at: string | null } | null
 }
-export type MyCourseRecord = { courseId: string, status: string, enrolledAt: string, summary: ServerSummary | null, attempts: MyAttempt[] }
+export type MyOrder = { asset: string, amount: string, state: string, tx: string | null, at: string }
+export type MyCourseRecord = { courseId: string, status: string, enrolledAt: string, summary: ServerSummary | null, attempts: MyAttempt[], orders: MyOrder[] }
 
 /**
  * Rekaman belajar milik akun ini di penerbit (B124): semua kursus yang diikuti, ringkasannya, dan usaha yang dinilai.
@@ -466,8 +480,176 @@ export async function readMyRecords (): Promise<{ ok: boolean, why?: string, cou
       enrolledAt: String(c.enrolledAt ?? ''),
       summary: c.summary ? normalizeSummary(c.summary as Record<string, unknown>) : null,
       attempts: (c.attempts as MyAttempt[] | undefined) ?? [],
+      orders: (c.orders as MyOrder[] | undefined) ?? [],
     })),
   }
+}
+
+/* ------------------------------------------------------------------ bayar & daftar (B125) */
+
+const PERMIT2 = '0x000000000022D473030F116dDEE9F6B43aC78BA3'
+const X402_EXACT_PROXY = '0x402085c248EeA27D92E8b30b2C58ed07f9E20001'
+/** Nama domain EIP-2612 token (sama dengan `signer/src/x402.js`; salah satu huruf = tanda tangan sah bentuknya, ditolak kontraknya). */
+const TOKEN_DOMAIN_NAME = 'Lencana Demo Coin'
+const PERMIT_TYPES = {
+  Permit: [
+    { name: 'owner', type: 'address' }, { name: 'spender', type: 'address' }, { name: 'value', type: 'uint256' },
+    { name: 'nonce', type: 'uint256' }, { name: 'deadline', type: 'uint256' },
+  ],
+}
+const PERMIT_WITNESS_TYPES = {
+  TokenPermissions: [{ name: 'token', type: 'address' }, { name: 'amount', type: 'uint256' }],
+  Witness: [{ name: 'to', type: 'address' }, { name: 'validAfter', type: 'uint256' }],
+  PermitWitnessTransferFrom: [
+    { name: 'permitted', type: 'TokenPermissions' }, { name: 'spender', type: 'address' }, { name: 'nonce', type: 'uint256' },
+    { name: 'deadline', type: 'uint256' }, { name: 'witness', type: 'Witness' },
+  ],
+}
+const ERC20_READ = [
+  { type: 'function', name: 'balanceOf', stateMutability: 'view', inputs: [{ name: 'a', type: 'address' }], outputs: [{ type: 'uint256' }] },
+  { type: 'function', name: 'nonces', stateMutability: 'view', inputs: [{ name: 'o', type: 'address' }], outputs: [{ type: 'uint256' }] },
+] as const
+
+type TypedData = {
+  domain: { name?: string, version?: string, chainId?: number, verifyingContract?: Hex }
+  types: Record<string, { name: string, type: string }[]>
+  primaryType: string
+  message: Record<string, unknown>
+}
+type PayRequirement = { network: string, maxAmountRequired: string, payTo: Hex, asset: Hex, resource: string, maxTimeoutSeconds?: number }
+
+const chainRead = () => createPublicClient({ transport: http(defaultEndpoint().rpcUrl, { timeout: 25_000, retryCount: 1 }) })
+const bigJson = (v: unknown) => JSON.stringify(v, (_k, x) => (typeof x === 'bigint' ? x.toString() : x))
+
+/** JSON `eth_signTypedData_v4`: menyertakan `EIP712Domain` sesuai field domain yang benar-benar ada. */
+function eip712Json (td: TypedData): string {
+  const d = td.domain
+  const EIP712Domain = [
+    ...(d.name !== undefined ? [{ name: 'name', type: 'string' }] : []),
+    ...(d.version !== undefined ? [{ name: 'version', type: 'string' }] : []),
+    ...(d.chainId !== undefined ? [{ name: 'chainId', type: 'uint256' }] : []),
+    ...(d.verifyingContract !== undefined ? [{ name: 'verifyingContract', type: 'address' }] : []),
+  ]
+  return bigJson({ ...td, types: { EIP712Domain, ...td.types } })
+}
+
+/** Tanda tangan EIP-712 atas nama identitas aktif — bentuknya sama dengan `buildClientPayment` di server. */
+async function signTyped (td: TypedData): Promise<{ signature?: Hex, why?: string }> {
+  const id = state.identity
+  if (!id) return { why: 'Belum ada akun yang masuk.' }
+  try {
+    if (id.kind === 'perangkat') {
+      const raw = (() => { try { return JSON.parse(readSession(ID_KEY) ?? '{}') as StoredIdentity } catch { return null } })()
+      if (!raw?.pk) return { why: 'Kunci perangkat tidak ada di sesi ini.' }
+      return { signature: await privateKeyToAccount(raw.pk).signTypedData(td as Parameters<ReturnType<typeof privateKeyToAccount>['signTypedData']>[0]) }
+    }
+    if (id.kind === 'privy') return { signature: await (await import('./privy')).privySignTypedData(eip712Json(td), id.address) as Hex }
+    const eth = (window as unknown as { ethereum?: { request: (a: { method: string, params?: unknown[] }) => Promise<string> } }).ethereum
+    if (!eth) return { why: 'Dompet tidak lagi tersedia di peramban ini.' }
+    return { signature: await eth.request({ method: 'eth_signTypedData_v4', params: [id.address, eip712Json(td)] }) as Hex }
+  } catch (e) {
+    return { why: errText(e) }
+  }
+}
+
+/** Saldo token di dompet akun ini, dibaca dari chain (bukan dari penerbit). null = gagal baca. */
+export async function tokenBalance (token: string): Promise<bigint | null> {
+  const addr = learnerAddress()
+  if (!addr) return null
+  try {
+    return await chainRead().readContract({ address: token as Hex, abi: ERC20_READ, functionName: 'balanceOf', args: [addr as Hex] })
+  } catch {
+    return null
+  }
+}
+
+/** Sudah terdaftar di kursus ini? (rekaman di penerbit ada) — null = penerbit tidak terjangkau. */
+export async function isEnrolled (courseId: string): Promise<boolean | null> {
+  const addr = learnerAddress()
+  if (!addr) return false
+  const r = await call(`/progress?learner=${encodeURIComponent(addr)}&course=${encodeURIComponent(courseId)}`)
+  if (r.status === 200) return true
+  if (r.status === 404) return false
+  return null
+}
+
+export type PayResult = { ok: boolean, why?: string, needCoins?: boolean, paid?: { amount: string, settleTx: string, splitTx: string } }
+
+/**
+ * Bayar lalu daftar (B125): penerbit menjawab 402 dengan syarat x402 → peserta menandatangani izin token (EIP-2612) dan
+ * saksi Permit2 — dua tanda tangan, NOL transaksi dari dompet peserta — lalu `POST /enroll` dengan `X-PAYMENT`. Penerbit
+ * yang menyiarkan settlement + pembagian dan membayar gasnya. Kursus gratis atau yang sudah diikuti lewat jalur biasa.
+ */
+export async function payAndEnroll (courseId: string): Promise<PayResult> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const quote = await call('/enroll', { method: 'POST', body: { learner: addr, course: courseId } })
+  if (quote.status !== 402) {
+    const sum = await syncCourse(courseId)
+    return sum ? { ok: true } : { ok: false, why: state.error ?? 'pendaftaran gagal' }
+  }
+  const req = (quote.json?.accepts as PayRequirement[] | undefined)?.[0]
+  if (!req) return { ok: false, why: 'Syarat pembayaran dari penerbit tidak terbaca.' }
+  const amount = BigInt(req.maxAmountRequired)
+  const chainId = Number(req.network.split(':')[1])
+  let balance: bigint
+  let tokenNonce: bigint
+  try {
+    const client = chainRead()
+    ;[balance, tokenNonce] = await Promise.all([
+      client.readContract({ address: req.asset, abi: ERC20_READ, functionName: 'balanceOf', args: [addr as Hex] }),
+      client.readContract({ address: req.asset, abi: ERC20_READ, functionName: 'nonces', args: [addr as Hex] }),
+    ])
+  } catch (e) {
+    return { ok: false, why: `saldo tidak terbaca dari chain: ${errText(e)}` }
+  }
+  if (balance < amount) return { ok: false, needCoins: true, why: 'Saldo koin belum cukup untuk harga kursus ini.' }
+  const now = Math.floor(Date.now() / 1000)
+  const deadline = now + Number(req.maxTimeoutSeconds ?? 600)
+  const permitNonce = Date.now()
+  const permit = await signTyped({
+    domain: { name: TOKEN_DOMAIN_NAME, version: '1', chainId, verifyingContract: req.asset },
+    primaryType: 'Permit', types: PERMIT_TYPES,
+    message: { owner: addr, spender: PERMIT2, value: amount, nonce: tokenNonce, deadline: BigInt(deadline) },
+  })
+  if (!permit.signature) return { ok: false, why: permit.why ?? 'izin token tidak ditandatangani' }
+  const witness = await signTyped({
+    domain: { name: 'Permit2', chainId, verifyingContract: PERMIT2 },
+    primaryType: 'PermitWitnessTransferFrom', types: PERMIT_WITNESS_TYPES,
+    message: {
+      permitted: { token: req.asset, amount }, spender: X402_EXACT_PROXY, nonce: BigInt(permitNonce),
+      deadline: BigInt(deadline), witness: { to: req.payTo, validAfter: BigInt(now - 5) },
+    },
+  })
+  if (!witness.signature) return { ok: false, why: witness.why ?? 'pembayaran tidak ditandatangani' }
+  const message = `lencana-enroll ${courseId} nonce=${newNonce()}`
+  const sig = await signMessage(message)
+  if (!sig.signature) return { ok: false, why: sig.why ?? 'pendaftaran tidak ditandatangani' }
+  const payload = {
+    token: req.asset, amount: String(amount), payer: addr, nonce: permitNonce, deadline, validAfter: now - 5,
+    payTo: req.payTo, resource: req.resource, eip2612: permit.signature, witnessSig: witness.signature,
+  }
+  const header = btoa(bigJson({ x402Version: 1, scheme: 'exact', network: req.network, payload }))
+  const r = await call('/enroll', {
+    method: 'POST', body: { learner: addr, course: courseId, message, signature: sig.signature },
+    headers: { 'x-payment': header }, timeoutMs: 180_000,
+  })
+  if (r.status !== 200) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  state.needsPayment = null
+  await syncCourse(courseId)
+  return { ok: true, paid: r.json?.paid as PayResult['paid'] }
+}
+
+/** Koin uji testnet ke dompet akun ini (B125) — penerbit mencetak dan membayar gasnya; sekali per alamat per jendela waktu. */
+export async function claimTestCoins (): Promise<{ ok: boolean, why?: string, tx?: string, balance?: bigint, lastAt?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-faucet nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/faucet', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 120_000 })
+  if (r.status === 200) return { ok: true, tx: String(r.json?.tx ?? ''), balance: BigInt(String(r.json?.balance ?? '0')) }
+  return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}`, lastAt: r.json?.lastAt as string | undefined }
 }
 
 function normalizeSummary (j: Record<string, unknown>): ServerSummary {

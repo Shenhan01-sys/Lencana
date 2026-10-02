@@ -640,7 +640,8 @@ async function onSignedIn(address: string) {
     } catch (err) {
       console.warn('Sync enrollment error:', err)
     }
-    window.location.hash = `#/class/${encodeURIComponent(pendingTarget)}`
+    // B125: kursus berbayar dibayar di halaman kursus; yang gratis/sudah diikuti langsung punya tombol "mulai belajar" di sana.
+    window.location.hash = `#/course/${encodeURIComponent(pendingTarget)}`
   } else {
     window.location.hash = '#/app'
   }

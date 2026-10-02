@@ -167,6 +167,19 @@ export async function privySign (message: string, expected: string): Promise<str
   return await current.provider.request({ method: 'personal_sign', params: [stringToHex(message), current.address] }) as string
 }
 
+/**
+ * Tanda tangan EIP-712 (`eth_signTypedData_v4`) dengan dompet tertanam — dipakai izin token saat membayar kursus (B125).
+ * `typedDataJson` sudah lengkap dengan `EIP712Domain`; alamatnya wajib sama dengan sesi aktif, seperti `privySign`.
+ */
+export async function privySignTypedData (typedDataJson: string, expected: string): Promise<string> {
+  const id = await privyRestore()
+  if (!id || !current) throw new Error('Sesi login tidak ada lagi di peramban ini — masuk ulang.')
+  if (id.address.toLowerCase() !== expected.toLowerCase()) {
+    throw new Error(`Sesi login sekarang milik dompet lain (${id.address.slice(0, 10)}…) — keluar lalu masuk ulang.`)
+  }
+  return await current.provider.request({ method: 'eth_signTypedData_v4', params: [current.address, typedDataJson] }) as string
+}
+
 export async function privyAccessToken (): Promise<string | null> {
   const { privy } = await client()
   return privy.getAccessToken()

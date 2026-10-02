@@ -47,7 +47,11 @@ import {
   nextAttemptNo as dbNextAttemptNo,
   setLessonProgress as dbSetProgress, progressSummary as dbProgressSummary, authorizeLearner as dbAuthorize,
   learnerRecords as dbLearnerRecords,
+  enrollPaid as dbEnrollPaid, recentFaucetGrant as dbRecentFaucet, forgetNonce as dbForgetNonce,
 } from './db.js'
+// Lencana-B125 status=TERBUKA 2026-10-02 — bayar dulu baru masuk kelas: harga dari web/src/pricing.ts, POST /enroll kursus berbayar menjawab 402 + syarat x402, settlement + SettlementSplit sebelum enrollment, orders = paid; POST /faucet koin uji sekali per alamat per jendela; ENROLL_PAYWALL=off hanya untuk server harness. Buktikan ulang: npm run verify:paywall (dan --live). JANGAN dibalik/diulang tanpa membuka kembali baris B125 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { priceOf, FAUCET_AMOUNT, FAUCET_COOLDOWN_HOURS, PAY_TOKEN_SYMBOL, PAY_TOKEN_DECIMALS } from '../../web/src/pricing.ts'
+import { mintTestCoins } from './faucet.js'
 import { essayLesson, gradeQuiz } from './quiz.js'
 // Lencana-B121 status=TERBUKA 2026-10-01 — core: POST /praktik membaca ulang chain 97 sebelum usaha praktik tersimpan, dan POST /attempts menolak skor kuis/esai/praktik kiriman peserta; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { praktikLesson, checkPraktik } from './praktik.js'
@@ -101,6 +105,9 @@ const PAY_SPLIT = process.env.SPLIT_ADDRESS
 // Yang dibayar adalah PENERBIT. Platform mengambil bagiannya lewat kontrak pembagian,
 // bukan dengan menulis alamatnya sendiri sebagai penerima.
 const PAY_PAYEE = process.env.ISSUER_ADDRESS
+// B125: kursus berbayar hanya bisa diikuti sesudah lunas. "off" hanya untuk server yang dinyalakan harness — harness itu
+// menguji penilaian, bukan pembayaran; /healthz melaporkan keadaannya supaya server sungguhan bisa diperiksa dari luar.
+const PAYWALL = process.env.ENROLL_PAYWALL !== 'off'
 const TIMEOUT_SECONDS = Number(process.env.X402_TIMEOUT ?? 600)
 
 // Setoran tenggat (B90). Premi yang hangus mengalir ke PENERBIT, sama seperti bayaran verifikasi.
@@ -240,6 +247,69 @@ function accepts () {
   })]
 }
 
+/** 402 untuk enrollment kursus berbayar: syarat x402 yang sama dengan /verify, dengan jumlah = harga kursus. */
+function notPaidEnroll (res, courseId, price, why) {
+  return send(res, 402, {
+    x402Version: 1,
+    error: why,
+    course: courseId,
+    price: { amount: String(price), symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
+    accepts: [paymentRequirements({
+      tokenAddress: PAY_TOKEN, payTo: PAY_SPLIT, amount: price, chainId: CHAIN_ID,
+      resource: `${BASE_URL}/enroll/${encodeURIComponent(courseId)}`, maxTimeoutSeconds: TIMEOUT_SECONDS,
+      description: `Pendaftaran kursus ${courseId}: satu pembayaran membuka kelas untuk akun ini.`,
+    })],
+  }, 'application/json', { 'www-authenticate': 'X-PAYMENT realm="x402", error="insufficient_payment"' })
+}
+
+/**
+ * Enrollment kursus berbayar (B125). Urutannya sengaja: pemeriksaan murah dulu, lalu TANDA TANGAN PESERTA (nonce
+ * sekali-pakai) — baru gas keluar. Permintaan yang bukan dari pemilik alamat tidak boleh membuat kami menyiarkan apa pun.
+ * Settlement dan pembagian memakai jalur yang sama dengan /verify (`settlePayment`), lalu baris enrollment + order.
+ */
+async function enrollPaidRoute (req, res, body, lessonsTotal, price) {
+  if (!PAY_TOKEN || !PAY_SPLIT || !PAY_PAYEE) {
+    return send(res, 500, { error: 'DEMO_TOKEN_ADDRESS / SPLIT_ADDRESS / ISSUER_ADDRESS not set — paid enrollment cannot be served' })
+  }
+  const header = req.headers['x-payment']
+  if (!header) return notPaidEnroll(res, body.course, price, 'this course is paid: the class opens after payment')
+  const payment = decodePaymentHeader(header)
+  if (!payment) return notPaidEnroll(res, body.course, price, 'X-PAYMENT is not valid base64(JSON)')
+  const p = payment.payload ?? {}
+  const why = checkPayment(p, price)
+  if (why) return notPaidEnroll(res, body.course, price, why)
+  if (String(p.payer ?? '').toLowerCase() !== String(body.learner ?? '').toLowerCase()) {
+    return notPaidEnroll(res, body.course, price, 'the payer must be the learner who enrolls')
+  }
+  const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'enroll' })
+  if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+  let settled
+  try {
+    settled = await settlePayment({
+      rpcUrl: RPC_URL, facilitatorPk: process.env.DEPLOYER_PRIVATE_KEY,
+      payment, split: PAY_SPLIT, payee: PAY_PAYEE,
+      splitRefSalt: `enroll:${body.course}:${String(p.payer).toLowerCase()}:${p.nonce}`,
+    })
+  } catch (err) {
+    return notPaidEnroll(res, body.course, price, `settlement failed: ${String(err.message ?? err).split('\n')[0]}`)
+  }
+  const out = await dbEnrollPaid({
+    learner: body.learner, courseId: body.course, lessonsTotal, asset: p.token, amount: String(p.amount), txHash: settled.settleTx,
+  })
+  if (!out.ok) {
+    return send(res, 500, jsonBody({ error: `paid (${settled.settleTx}) but the enrollment could not be written: ${out.why} — keep this transaction hash` }))
+  }
+  return send(res, 200, jsonBody({
+    enrolled: true, created: out.created, enrollmentId: out.enrollment?.id, course: body.course,
+    paid: { amount: String(p.amount), token: p.token, settleTx: settled.settleTx, splitTx: settled.splitTx },
+  }), 'application/json', {
+    'x-payment-response': encodePaymentHeader({
+      x402Version: 1, success: true, network: `eip155:${CHAIN_ID}`, transaction: settled.settleTx, payer: p.payer,
+      settlement: { settleTx: settled.settleTx, splitTx: settled.splitTx, splitRef: settled.splitRef },
+    }),
+  })
+}
+
 function notPaid (res, why) {
   return send(res, 402, { x402Version: 1, error: why, accepts: accepts() }, 'application/json', {
     'www-authenticate': 'X-PAYMENT realm="x402", error="insufficient_payment"',
@@ -358,7 +428,7 @@ function pickHashes (body) {
   return { list }
 }
 
-function checkPayment (p) {
+function checkPayment (p, price = PRICE) {
   if (String(p.token ?? '').toLowerCase() !== PAY_TOKEN.toLowerCase()) return 'token pembayaran bukan yang kami terima'
   if (String(p.payTo ?? '').toLowerCase() !== PAY_SPLIT.toLowerCase()) return 'pembayaran tidak ditujukan ke kontrak pembagian kami'
   if (!Number.isInteger(Number(p.nonce))) return 'nonce pembayaran bukan bilangan bulat'
@@ -368,7 +438,7 @@ function checkPayment (p) {
   } catch {
     return 'jumlah pembayaran bukan bilangan bulat'
   }
-  if (amount < PRICE) return `jumlah di bawah harga (${PRICE})`
+  if (amount < price) return `jumlah di bawah harga (${price})`
   if (Number(p.deadline ?? 0) * 1000 < Date.now()) return 'pembayaran sudah kedaluwarsa'
   if (!p.eip2612 || !p.witnessSig) return 'payload pembayaran tidak membawa tanda tangan'
   return null
@@ -436,7 +506,7 @@ const server = createServer(async (req, res) => {
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
-      || path === '/auth/privy' || path === '/me/records') {
+      || path === '/auth/privy' || path === '/me/records' || path === '/faucet') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -456,6 +526,28 @@ const server = createServer(async (req, res) => {
       const body = await readJsonBody(req)
       if (!body || typeof body !== 'object') return send(res, 400, jsonBody({ error: 'body must be a JSON object' }))
       // Lencana-B124 status=TERBUKA 2026-10-02 — rute POST /me/records: rekaman belajar milik peserta (enrollment, ringkasan, usaha dinilai) untuk dashboard; hanya pemilik alamat (tanda tangan + nonce, pesan khusus), tanpa teks esai. Buktikan ulang: npm run verify:records. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+      if (path === '/faucet') {
+        // B125: koin uji LDC-demo (testnet) ke dompet peserta; platform membayar gas. Sekali per alamat per jendela waktu,
+        // dicatat lewat nonce bertanda tangan — bukan memori proses yang hilang saat server dinyalakan ulang.
+        if (typeof body.message !== 'string' || !/^lencana-faucet nonce=[0-9a-f]{12,}$/.test(body.message)) {
+          return send(res, 400, jsonBody({ error: 'message must be "lencana-faucet nonce=<hex>"' }))
+        }
+        if (!PAY_TOKEN || !process.env.DEPLOYER_PRIVATE_KEY) return send(res, 503, jsonBody({ error: 'test-coin faucet is not configured on this server' }))
+        if (typeof body.learner !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(body.learner)) return send(res, 400, jsonBody({ error: 'invalid learner address' }))
+        const last = await dbRecentFaucet(body.learner, FAUCET_COOLDOWN_HOURS)
+        if (last) return send(res, 429, jsonBody({ error: `test coins were already sent to this address in the last ${FAUCET_COOLDOWN_HOURS} hours`, lastAt: last }))
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'faucet' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        try {
+          const minted = await mintTestCoins({ rpcUrl: RPC_URL, minterPk: process.env.DEPLOYER_PRIVATE_KEY, token: PAY_TOKEN, to: body.learner, amount: FAUCET_AMOUNT })
+          return send(res, 200, jsonBody({ sent: String(FAUCET_AMOUNT), symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS, tx: minted.tx, balance: String(minted.balance) }))
+        } catch (err) {
+          // Gagal mencetak = jangan kunci peserta 24 jam tanpa koin.
+          const nonce = /nonce=([0-9a-f]{12,})/.exec(body.message)?.[1]
+          if (nonce) await dbForgetNonce(nonce).catch(() => {})
+          return send(res, 502, jsonBody({ error: `mint failed: ${String(err.message ?? err).split('\n')[0].slice(0, 160)}` }))
+        }
+      }
       if (path === '/me/records') {
         // Pesan harus menyebut keperluannya: tanda tangan untuk enroll/kuis tidak boleh dipakai ulang untuk membaca nilai.
         if (typeof body.message !== 'string' || !/^lencana-records nonce=[0-9a-f]{12,}$/.test(body.message)) {
@@ -483,6 +575,12 @@ const server = createServer(async (req, res) => {
         const courseManifest = manifestOf(body.course)
         const lessonsTotal = courseManifest?.course?.modules?.reduce((n, m) => n + (m.lessons?.length ?? 0), 0) ?? 0
         if (!courseManifest) return send(res, 400, jsonBody({ error: `course ${body.course} is not in the catalogue`, known: Object.keys(MANIFESTS) }))
+        // B125: kursus berbayar — yang belum terdaftar membayar dulu. Yang sudah terdaftar (termasuk sebelum harga berlaku)
+        // tetap lewat jalur biasa: enroll idempoten, tidak ada tagihan kedua.
+        const price = PAYWALL ? priceOf(body.course) : null
+        if (price !== null && !(await dbFindEnrollment(body.learner, body.course))) {
+          return enrollPaidRoute(req, res, body, lessonsTotal, price)
+        }
         const out = await dbEnroll({
           learner: body.learner, courseId: body.course, lessonsTotal,
           message: body.message, signature: body.signature,
@@ -886,6 +984,8 @@ const server = createServer(async (req, res) => {
       const s = await buildList(SUSPENSION)
       return send(res, 200, {
         ok: true, baseUrl: BASE_URL, resolver: RESOLVER, rpc: RPC_URL,
+        // B125: kursus berbayar ditegakkan di server ini? ("off" hanya untuk server yang dinyalakan harness)
+        paywall: PAYWALL ? 'on' : 'off',
         agent: AGENT_SLUG,
         // Semua identitas yang kami sajikan, supaya "kredensial ini menunjuk ke mana" bisa
         // dijawab dari satu permintaan, bukan dari tebakan slug.
@@ -946,6 +1046,7 @@ server.listen(PORT, HOST, () => {
   console.log(`        ${BASE_URL}/credentials/status/${SUSPENSION}`)
   console.log(`        ${BASE_URL}/verify  (POST, x402 exact, harga ${PRICE} @ eip155:${CHAIN_ID})`)
   console.log(`resolver ${RESOLVER ?? '(belum diisi)'} via ${RPC_URL ?? '(belum diisi)'}`)
+  if (!PAYWALL) console.warn('PERINGATAN: ENROLL_PAYWALL=off — kursus berbayar bisa diikuti tanpa bayar di server ini (hanya untuk server harness)')
 })
 
 export { server, buildList }

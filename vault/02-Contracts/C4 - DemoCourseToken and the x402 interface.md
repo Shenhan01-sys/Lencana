@@ -13,6 +13,10 @@ EIP-2612 `permit` and an open `mint()`, deployed on chain 97 so the money path c
 at their real addresses. Neither file carries credential semantics, and the honesty of every paid-path claim depends on keeping that line
 visible.
 
+> **Koreksi 2 Okt:** komentar di `contracts/DemoCourseToken.sol` menyebut 6 desimal "seperti USDT di BSC". USDT di BSC mainnet
+> (`0x55d3…7955`) membaca `decimals()` = **18** (dibaca 2 Okt lewat RPC publik); 6 desimal adalah USDT di Ethereum/Tron. Desimal LDC-demo
+> sendiri benar 6. Sumber kontrak tidak diubah — mengubah komentar menggeser hash metadata kontrak yang sudah dideploy.
+
 **Key points:**
 - `contract DemoCourseToken is ERC20, ERC20Permit` (`:27`), with `function mint(address to, uint256 amount) external` and **no access control**
   (`:30-32`), and a constructor `ERC20("Lencana Demo Coin", "LDC-demo")` plus `_mint(msg.sender, 1_000_000e6)` (`:34-35`). Supply is unbounded

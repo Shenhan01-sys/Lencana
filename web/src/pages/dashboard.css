@@ -105,6 +105,7 @@
 .app-shell .app-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .app-shell .app-table th { padding: 8px 10px; border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1)); color: var(--text-secondary, #a9b0ba); font-size: 12px; font-weight: 600; text-align: left; text-transform: uppercase; letter-spacing: 0.06em; }
 .app-shell .app-table td { padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.app-shell .app-table a { color: #f0b90b; font-family: var(--font-mono, ui-monospace, monospace); }
 .app-shell .app-res.ok { color: #37d67a; }
 .app-shell .app-res.wait { color: #f0b90b; }
 .app-shell .app-creds { min-height: 40px; }
@@ -211,10 +212,24 @@
 .course-detail .cd-cta:hover { box-shadow: 0 10px 30px rgba(240, 185, 11, 0.25); }
 .course-detail .cd-cta:active { transform: scale(0.98); }
 .course-detail .cd-cta-note { margin: 0; color: var(--text-secondary, #a9b0ba); font-size: 13px; line-height: 1.5; }
+.course-detail .cd-cta:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.course-detail .cd-price { display: grid; gap: 2px; padding-bottom: 6px; }
+.course-detail .cd-price span { color: var(--text-secondary, #a9b0ba); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.course-detail .cd-price strong { color: #f4f1ea; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+.course-detail .cd-price small { color: var(--text-secondary, #a9b0ba); font-size: 12px; line-height: 1.4; }
+.course-detail .cd-pay { display: grid; gap: 10px; }
+.course-detail .cd-ghost { min-height: 44px; border: 1px solid rgba(240, 185, 11, 0.45); border-radius: 999px; background: transparent; color: #f0b90b; font: inherit; font-size: 14.5px; font-weight: 650; cursor: pointer; }
+.course-detail .cd-ghost:hover:not(:disabled) { background: rgba(240, 185, 11, 0.1); }
+.course-detail .cd-ghost[hidden] { display: none; }
+.course-detail .cd-pay-balance { margin: 0; color: #d9d8cd; font: 600 13px var(--font-mono, ui-monospace, monospace); }
+.course-detail .cd-pay-status { margin: 0; min-height: 18px; color: var(--text-secondary, #a9b0ba); font-size: 13px; line-height: 1.5; }
+.course-detail .cd-pay-status.bad { color: #ff6b6b; }
+.course-detail .cd-pay-status.ok { color: #37d67a; }
 .course-detail .cd-cta-note a { color: #f0b90b; }
 .course-detail .cd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .course-detail .cd-card {
   display: grid;
+  align-content: start;
   gap: 12px;
   padding: 22px 24px;
   border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));

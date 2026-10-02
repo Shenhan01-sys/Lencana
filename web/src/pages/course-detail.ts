@@ -2,15 +2,16 @@
  * `course-detail.ts` — halaman detail kursus PUBLIK `#/course/<id>` (RF7 langkah A2, B124).
  *
  * Orang yang belum masuk boleh melihat apa yang akan ia pelajari dan apa yang dibuktikan kredensialnya — silabus,
- * penerbit, aturan penilaian — tetapi isi kelasnya tetap di balik akun. Harga dan pembayaran menyusul di langkah B
- * (RF5): halaman ini sengaja tidak menyebut harga apa pun sampai jalur bayarnya ada.
+ * penerbit, aturan penilaian, HARGA — tetapi isi kelasnya tetap di balik akun dan, sejak B125, di balik pembayaran:
+ * "Bayar & daftar" menandatangani izin token (tanpa gas) dan penerbit menyelesaikan pembayarannya sebelum kelas terbuka.
  */
 import './dashboard.css'
 import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
 import { findCourse } from '../courses/index'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
-import { hasExplicitLearnerSession } from '../learning'
+import { claimTestCoins, hasExplicitLearnerSession, isEnrolled, payAndEnroll, tokenBalance } from '../learning'
+import { PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
 import { KIND_LABEL, classLink } from '../lesson-views'
 import { openLogin } from './login'
 
@@ -39,14 +40,81 @@ const COPY = {
     id: 'Kuis beserta kuncinya, rubrik esai, bobot, dan ambang lulus di-hash bersama; penerbit tidak bisa menggantinya diam-diam, dan setiap kredensial mencetak hash ini.',
   },
   prereq: { en: 'Prerequisite', id: 'Prasyarat' },
+  price: { en: 'Price', id: 'Harga' },
+  coinNote: { en: 'test coin on BNB testnet — on mainnet the same price is paid in a stablecoin', id: 'koin uji di BNB testnet — di mainnet harga yang sama dibayar dengan stablecoin' },
+  checking: { en: 'Checking your enrollment…', id: 'Memeriksa pendaftaranmu…' },
+  enrolledAlready: { en: 'You are enrolled in this course.', id: 'Kamu sudah terdaftar di kursus ini.' },
+  balance: { en: 'Your balance', id: 'Saldomu' },
+  pay: { en: 'Pay & enroll', id: 'Bayar & daftar' },
+  paying: { en: 'Sign the payment, then the publisher settles it on chain (a few seconds)…', id: 'Tandatangani pembayarannya, lalu penerbit menyelesaikannya di chain (beberapa detik)…' },
+  paidOk: { en: 'Paid — opening the class…', id: 'Lunas — membuka kelas…' },
+  needCoins: { en: 'Your balance is below the price. Get test coins first.', id: 'Saldomu di bawah harga. Ambil koin uji dulu.' },
+  faucet: { en: 'Get test coins', id: 'Ambil koin uji' },
+  faucetSending: { en: 'Sending test coins to your wallet…', id: 'Mengirim koin uji ke dompetmu…' },
+  faucetOk: { en: 'Test coins arrived.', id: 'Koin uji sudah masuk.' },
+  failed: { en: 'Did not go through:', id: 'Belum berhasil:' },
+  gasNote: { en: 'You only sign — no gas, no wallet top-up. The publisher broadcasts the payment.', id: 'Kamu hanya menandatangani — tanpa gas, tanpa isi saldo BNB. Penerbit yang menyiarkan pembayarannya.' },
   quiz: { en: 'quiz', id: 'kuis' },
   essay: { en: 'essay', id: 'esai' },
   practice: { en: 'practice', id: 'praktik' },
 } satisfies Record<string, Record<Lang, string>>
 
+/**
+ * Panel bayar untuk akun yang sudah masuk (B125): sudah terdaftar → mulai belajar; belum → saldo koin dari chain,
+ * "Ambil koin uji" bila kurang, dan "Bayar & daftar". Semua angka di sini dibaca (chain atau penerbit), tidak diketik.
+ */
+function payPanel (courseId: string, price: bigint, T: (k: keyof typeof COPY) => string): HTMLElement {
+  const status = h('p', { class: 'cd-pay-status', role: 'status', 'aria-live': 'polite' }, T('checking'))
+  const balanceLine = h('p', { class: 'cd-pay-balance' })
+  const payBtn = h('button', { type: 'button', class: 'cd-cta', disabled: true }, `${T('pay')} · ${formatLdc(price)} ${PAY_TOKEN_SYMBOL}`) as HTMLButtonElement
+  const faucetBtn = h('button', { type: 'button', class: 'cd-ghost', hidden: true }, T('faucet')) as HTMLButtonElement
+  const panel = h('div', { class: 'cd-pay' }, payBtn, faucetBtn, balanceLine, status, h('p', { class: 'cd-cta-note' }, T('gasNote')))
+  const say = (text: string, bad = false) => { status.textContent = text; status.classList.toggle('bad', bad) }
+  const refreshBalance = async () => {
+    const bal = await tokenBalance(PAY_TOKEN_ADDRESS)
+    balanceLine.textContent = bal === null ? '' : `${T('balance')}: ${formatLdc(bal)} ${PAY_TOKEN_SYMBOL}`
+    const short = bal !== null && bal < price
+    faucetBtn.hidden = !short
+    payBtn.disabled = short
+    if (short) say(T('needCoins'))
+    return bal
+  }
+  void isEnrolled(courseId).then(async (enrolled) => {
+    if (!panel.isConnected) return
+    if (enrolled) {
+      panel.innerHTML = ''
+      panel.appendChild(h('p', { class: 'cd-pay-status ok' }, T('enrolledAlready')))
+      panel.appendChild(h('a', { class: 'cd-cta', href: classLink(courseId) }, T('start')))
+      return
+    }
+    say('')
+    await refreshBalance()
+  })
+  payBtn.addEventListener('click', async () => {
+    payBtn.disabled = true
+    faucetBtn.disabled = true
+    say(T('paying'))
+    const r = await payAndEnroll(courseId)
+    faucetBtn.disabled = false
+    if (r.ok) { say(T('paidOk')); setTimeout(() => { window.location.hash = classLink(courseId) }, 900); return }
+    if (r.needCoins) { await refreshBalance(); return }
+    payBtn.disabled = false
+    say(`${T('failed')} ${r.why ?? ''}`.trim(), true)
+  })
+  faucetBtn.addEventListener('click', async () => {
+    faucetBtn.disabled = true
+    say(T('faucetSending'))
+    const r = await claimTestCoins()
+    faucetBtn.disabled = false
+    if (r.ok) { say(T('faucetOk')); await refreshBalance(); return }
+    say(`${T('failed')} ${r.why ?? ''}`.trim(), true)
+  })
+  return panel
+}
+
 export function renderCourseDetail (courseId: string): HTMLElement {
   const lang: Lang = getSavedLanguage() === 'en' ? 'en' : 'id'
-  const T = (k: keyof typeof COPY) => COPY[k][lang]
+  const T = (k: keyof typeof COPY): string => COPY[k][lang]
   const course = findCourse(courseId)
   if (!course) {
     return h('div', { class: 'course-detail' },
@@ -59,8 +127,14 @@ export function renderCourseDetail (courseId: string): HTMLElement {
   const signedIn = hasExplicitLearnerSession()
   const prereq = course.prereqCourseId ? findCourse(course.prereqCourseId) : undefined
 
+  const price = priceOf(course.id)
+  const priceLine = price === null ? null : h('div', { class: 'cd-price' },
+    h('span', null, T('price')),
+    h('strong', null, `${formatLdc(price)} ${PAY_TOKEN_SYMBOL}`),
+    h('small', null, T('coinNote')),
+  )
   const cta = signedIn
-    ? h('a', { class: 'cd-cta', href: classLink(course.id) }, T('start'))
+    ? (price === null ? h('a', { class: 'cd-cta', href: classLink(course.id) }, T('start')) : payPanel(course.id, price, T))
     : h('button', {
       type: 'button',
       class: 'cd-cta',
@@ -68,7 +142,7 @@ export function renderCourseDetail (courseId: string): HTMLElement {
         try { sessionStorage.setItem('lencana_enroll_target', course.id) } catch { /* tanpa storage: kembali ke dashboard */ }
         openLogin()
       },
-    }, T('enroll'))
+    }, price === null ? T('enroll') : `${T('enroll')} · ${formatLdc(price)} ${PAY_TOKEN_SYMBOL}`)
 
   return h('div', { class: 'course-detail' },
     h('a', { class: 'cd-link', href: '#catalog' }, `← ${T('back')}`),
@@ -85,6 +159,7 @@ export function renderCourseDetail (courseId: string): HTMLElement {
         ),
       ),
       h('div', { class: 'cd-cta-box' },
+        priceLine,
         cta,
         signedIn ? null : h('p', { class: 'cd-cta-note' }, T('enrollNote')),
         prereq ? h('p', { class: 'cd-cta-note' }, `${T('prereq')}: `, h('a', { href: `#/course/${encodeURIComponent(prereq.id)}` }, prereq.title)) : null,

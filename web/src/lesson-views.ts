@@ -125,6 +125,12 @@ export function serverLine (courseId: string): string {
   }
   const sum = s.summary && s.courseId === courseId ? s.summary : null
   const kind = identityLabel(s.identity)
+  if (!sum && s.needsPayment === courseId) {
+    // B125: kursus berbayar — penerbit menolak enrollment sebelum lunas; bayarnya di halaman kursus.
+    return `<aside class="note learn-id"><strong>Kursus ini berbayar</strong>
+      <p>Kelasnya terbuka sesudah kamu membayar. Pembayarannya hanya tanda tangan — tanpa gas.</p>
+      <div class="actions"><a class="primary" href="#/course/${encodeURIComponent(courseId)}">Bayar &amp; daftar di halaman kursus</a></div></aside>`
+  }
   if (!sum) {
     return `<aside class="note learn-id"><strong>Peserta:</strong> <code>${esc(addr)}</code> · ${esc(kind)}
       <p class="muted">${s.pending ? 'Menghubungi penerbit…' : esc(s.error ?? 'Rekaman di penerbit belum dibaca untuk kursus ini.')}</p>

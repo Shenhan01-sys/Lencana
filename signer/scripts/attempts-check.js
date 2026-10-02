@@ -399,7 +399,7 @@ async function live () {
   const PORT = Number(process.env.ATTEMPTS_PROBE_PORT ?? await freePort(8795))
   const BASE = `http://127.0.0.1:${PORT}`
   const child = spawn('npm', ['run', 'serve'], {
-    cwd: resolve(HERE, '..'), env: { ...process.env, PORT: String(PORT), BASE_URL: BASE, LANCENA_ORIGIN: 'test' }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
+    cwd: resolve(HERE, '..'), env: { ...process.env, PORT: String(PORT), BASE_URL: BASE, LANCENA_ORIGIN: 'test', ENROLL_PAYWALL: 'off' }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
   })
   let serverLog = ''
   child.stdout?.on('data', (d) => { serverLog += d.toString() })

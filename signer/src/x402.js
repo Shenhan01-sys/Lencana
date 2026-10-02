@@ -57,13 +57,16 @@ const PERMIT_WITNESS_TYPES = {
 }
 
 /** `accepts[]` skema `exact`, sesuai bentuk yang dibaca klien/SDK x402 — bukan bentuk karangan kita. */
-export function paymentRequirements ({ tokenAddress, payTo, amount, chainId, resource, maxTimeoutSeconds = 600 }) {
+export function paymentRequirements ({
+  tokenAddress, payTo, amount, chainId, resource, maxTimeoutSeconds = 600,
+  description = 'Satu pembayaran = satu laporan verifikasi: status dari resolver, artefak, rantai prasyarat, dan penerbit.',
+}) {
   return {
     scheme: 'exact',
     network: `eip155:${chainId}`,
     maxAmountRequired: String(amount),
     resource,
-    description: 'Satu pembayaran = satu laporan verifikasi: status dari resolver, artefak, rantai prasyarat, dan penerbit.',
+    description,
     mimeType: 'application/json',
     payTo,
     paymentTimeout: maxTimeoutSeconds,
