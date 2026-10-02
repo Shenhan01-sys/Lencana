@@ -1,25 +1,40 @@
 ---
 tags: [frontend, hub]
 status: active
-updated: 2026-09-25
+updated: 2026-10-03
 ---
 
 # 01 - Frontend
 
-`../web/` — two surfaces in one page, deliberately different in kind.
+`../web/` — ~~two surfaces in one page, deliberately different in kind~~. *(Koreksi 3 Okt: sejak FE7 dan B123–B130 bukan
+dua permukaan lagi. Yang ada sekarang, dibaca dari `web/src/main.ts:1007` (`handleRoute`) dan `web/src/new-app.ts:40`: halaman **publik**
+— beranda + katalog (`#/`, `#/courses`), detail kursus `#/course/<id>` (B124), verifier `#/verify`, registri penerbit
+`#/publishers`, Trust & Limits `#/agent-hub`; **ruang kelas** `#/class/<kursus>[/<modul>/<lesson>]` (FE7); dan **area internal**
+berakun `#/app` dengan sidebar (B124) — Ringkasan, `#/app/courses` (B127), `#/app/classes`, `#/app/grades`, `#/app/credentials`,
+`#/app/wallet` (Dompet, D61 — `web/src/pages/dashboard.ts:126`), `#/app/account`, onboarding `#/app/welcome` — plus dasbor penerbit `#/app/pub` (B129) dan dasbor
+Agent Owner `#/app/owner` (B130). Semua rute peserta tertutup untuk tamu; masuk hanya lewat login Privy (D59/B123). Yang tetap
+benar dari dua butir di bawah: verifier tetap DOM-free dan bisa diadili dari Node.)*
 
 1. **The verifier** (`#/verify`, `?q=`): reads chain state directly from the browser over JSON-RPC,
    no server, no wallet. Its honesty depends on one design rule — `src/verify.ts` is **pure and
    DOM-free**, so the same file the page imports can be driven from Node by `scripts/probe.ts`. The
    moment someone wraps a component around the fetch, the probe becomes theatre
    → [[Concepts/DOM-free Verification Module]].
-2. **The learning surface** (`#/learn`, `#/course/*`, `#/me`): hash-routed templates over typed
-   course data, no UI framework. **34 pages** measured by `npm run inventory`, not counted by hand
+2. **The learning surface** (~~`#/learn`, `#/course/*`, `#/me`~~): hash-routed templates over typed
+   course data, no UI framework. ~~**34 pages** measured by `npm run inventory`, not counted by hand~~
    → [[05-Course-Content/01 - Course Content]].
+   *(Koreksi 3 Okt: FE7 membuang `lms.ts`/`renderLmsRoute`; `#/learn` kini dialihkan ke kelas pertama dan
+   `#/course/<id>/l/<slug>` ke lesson yang sama di `#/class/…` (`web/src/lesson-views.ts:51`, `legacyLearnRoute`), sedangkan
+   `#/course/<id>` sendiri adalah detail kursus **publik** sejak B124; `#/me` dialihkan ke `#/app`. Katalog publik bertambah
+   sejak B127 — jumlah halamannya hanya dari [[09-Testing/T13 - npm run inventory]], bukan dari halaman ini.)*
 
-Bilingual (`src/i18n.ts`, EN/ID, persisted). The rest of the routes (`#/`, `#/courses`, `#/submit`,
-`#/portfolio`, `#/agent-hub`) are the frontend maintainer's — see
+Bilingual (`src/i18n.ts`, EN/ID, persisted). The rest of the routes (`#/`, `#/courses`, ~~`#/submit`,
+`#/portfolio`~~, `#/agent-hub`) are the frontend maintainer's — see
 [[FE4 - Mount contract with the maintainer]] before editing anything in this folder.
+*(Koreksi 3 Okt: sejak B123 (D59) `#/submit`, `#ai-evaluator`, dan `#/portfolio` — studio esai tiruan dan portofolio fiktif —
+bukan halaman lagi: `web/src/main.ts:1019` mengalihkannya ke `#/app` bersama `#/me` lama. Rute area internal, dasbor penerbit, dan
+dasbor Agent Owner (`web/src/pages/dashboard.ts`, `publisher.ts`, `owner.ts`) dibangun di core — lihat
+[[08-Results/B124 - Executive Summary]], [[08-Results/B129 - Executive Summary]], [[08-Results/B130 - Executive Summary]].)*
 
 ## Parts
 

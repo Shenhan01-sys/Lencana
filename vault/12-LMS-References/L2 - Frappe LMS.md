@@ -1,7 +1,7 @@
 ---
 tags: [lms-reference, "L2"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # L2 - Frappe LMS
@@ -66,6 +66,17 @@ A Frappe Framework app, so the model **is** the DocType: one folder per entity w
 **By code** (verified in `app/`): **free, wallet-less public verification** — `verify()` reads `statusOf(bytes32)` over a public RPC (`web/src/verify.ts:281`, `:510`) and prints the raw `cast`/`curl` a reader can re-run (`web/src/verify.ts:756-766`). Frappe's equivalent needs a session on its own server.
 
 ## 4. What Frappe LMS has that Lencana lacks
+
+> ⚠️ **State as of 26 Sep — partly stale (correction 3 Oct).** Rows 1–2 of the design table and the whole
+> implementation list below describe Lencana before these changes: an enrolment record (`public.enrollments`,
+> `POST /enroll`) and server-side progress per learner address (`lesson_progress`, `POST /progress`) exist and the
+> page calls them (28 Sep, B72); learners sign in by email through Privy, with the embedded wallet as the learning
+> address bound to an account in `learner_accounts` (D57), and since B123 (D59, 2 Oct) that is the only way in on
+> the UI — wallet connect is gone from it; the internal area `#/app` and the public course page `#/course/<id>`
+> exist since B124 and are linked from the navigation; paid courses are paid for before enrolment since B125
+> (D60). `web/src/lms.ts`, cited below, no longer exists (FE7: `#/learn` → `#/class/<course>`). Still true when
+> re-read 3 Oct: no mentor anywhere in `web/`. Current gap list: [[12-LMS-References/L8 - Lencana vs LMS]] §C and
+> [[00-Overview/11 - Product Bar]].
 
 **DESIGN gaps** — we never decided to have these:
 

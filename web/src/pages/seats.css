@@ -32,6 +32,27 @@
 .seat-switch.n3 a { padding: 0 7px; font-size: 10px; letter-spacing: 0.03em; }
 .seat-switch a:hover { color: #f4f1ea; }
 .seat-switch a.on { background: #f0b90b; color: #14110a; box-shadow: 0 6px 18px rgba(240, 185, 11, 0.25); }
+/* B131: pemilih kursi hanya untuk akun dev — tandanya terlihat, supaya tidak terbaca sebagai fitur akun biasa */
+.seat-dev {
+  display: inline-block;
+  margin: 8px 0 0 6px;
+  padding: 2px 8px;
+  border: 1px dashed rgba(240, 185, 11, 0.45);
+  border-radius: 999px;
+  color: #f0b90b;
+  font: 700 10px var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.seat-apply-warn {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 2px solid #f0b90b;
+  background: rgba(240, 185, 11, 0.06);
+  color: var(--text-secondary, #a9b0ba);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
 
 /* ---------------------------------------------------------------- kotak pengajuan */
 .seat-apply { display: grid; gap: 10px; }
@@ -64,6 +85,12 @@
 .seat-apply-state.bad .seat-dot { background: #ff6b6b; }
 @keyframes seat-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 185, 11, 0.5); } 50% { box-shadow: 0 0 0 6px rgba(240, 185, 11, 0); } }
 @media (prefers-reduced-motion: reduce) { .seat-apply-state.wait .seat-dot { animation: none; } }
+
+/* B131: kartu pilih peran — catatan, tombol, dan status bertumpuk, bukan berdesakan dalam satu baris */
+.app-welcome .wel-seat-act { flex-wrap: wrap; align-items: center; gap: 10px; }
+.app-welcome .wel-seat-act > .seat-apply-note,
+.app-welcome .wel-seat-act > .seat-apply-status { flex: 1 1 100%; }
+.app-welcome .wel-seat-act > .seat-apply-status:empty { display: none; }
 
 /* onboarding: kotak pengajuan di kartu kursi */
 .app-welcome .wel-seat-act .seat-apply { width: 100%; }

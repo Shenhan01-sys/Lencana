@@ -7,6 +7,8 @@ result: 7 checks / 0 failed; hollow = 8/100
 
 # T11 - `npm run judge` (penilai model + kontrol negatif)
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P5 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Bagian:** [[04-Signer-Service/S5 - Grading and the model judge]] · **Pasangan:** [[09-Testing/T12 - npm run judge-variance]]
+
 **Perintah:** `cd signer && npm run judge` (kunci lewat env; tanpa kunci dia **melempar**, tidak
 mundur diam-diam). **Harness penuh terakhir:** 24 Sep — `7 / 0 gagal`.
 

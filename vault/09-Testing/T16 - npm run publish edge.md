@@ -6,6 +6,8 @@ updated: 2026-09-28
 
 # T16 - `npm run publish:edge`
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P1, P6 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Backlog:** B51 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] · **Bagian:** [[04-Signer-Service/S10 - Edge surface]] · **Pasangan:** [[09-Testing/T18 - signer verify-edge.js]]
+
 Harness yang menutup **B51**: menerbitkan hasil signer ke tepi sajian permanen, lalu **membacanya
 kembali lewat worker**. Lihat [[04-Signer-Service/S10 - Edge surface]] untuk kenapa lapis itu ada.
 

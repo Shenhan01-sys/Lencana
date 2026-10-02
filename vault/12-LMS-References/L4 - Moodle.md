@@ -1,7 +1,7 @@
 ---
 tags: [lms-reference, "L4"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # L4 - Moodle
@@ -80,6 +80,19 @@ updated: 2026-09-26
 *By code* — verified present in `app/`: the typed content model with six interaction kinds and a DOM-free auditor (`web/src/content.ts:26,34`), the manifest registry (`web/src/manifest.ts`), the three-verdict scorer (`web/src/score.ts:39-40`), the delegated signer (`signer/src/delegation.js`), the two status lists (`signer/src/statusList.js`), four deployed contracts (`contracts/{CredentialResolver,SoulboundCert,SettlementSplit,DemoCourseToken}.sol`).
 
 ## 6. What Moodle has that Lencana lacks
+
+> ⚠️ **Keadaan per 26 Sep — sebagian basi (koreksi 3 Okt).** Kolom "our state" dan daftar implementation gap di
+> bawah adalah potret sebelum perubahan ini: baris enrollment (`public.enrollments`, `POST /enroll`) ada sejak
+> 28 Sep (B72), jadi baris pertama tabel desain tidak lagi "none"; peran produk ada di core sejak B128 (2 Okt) —
+> peserta, anggota penerbit (keanggotaan ditandatangani kunci penerbit), Agent Owner (`ownerOf` ERC-8004) — dengan
+> dasbor Penerbit `#/app/pub` (B129) dan Agent Owner `#/app/owner` (B130); simulasi x402 bertimer
+> (`simulateX402Batch`) dibuang B123 (D59) dan sejak B125 (D60) kursus berbayar dibayar sebelum enrollment lewat
+> panel bayar sungguhan (402 → settlement x402 + `SettlementSplit` → `orders` = paid); identitas peserta = login
+> email lewat Privy dengan dompet tertanam (D57), satu-satunya pintu di UI sejak B123 — bukan lagi "connect a
+> wallet"; area internal `#/app` dan detail kursus `#/course/<id>` ada sejak B124 dan tertaut dari navigasi; rute
+> `#/learn` diganti ruang kelas `#/class/<kursus>` (FE7) dan `web/src/lms.ts` sudah tidak ada. Masih benar saat
+> dibaca ulang 3 Okt: tidak ada mentor di `web/`, dan kalimat statis RF1.5 masih di `web/src/i18n.ts:1034`.
+> Daftar kekurangan yang berlaku: [[12-LMS-References/L8 - Lencana vs LMS]] §C dan [[00-Overview/11 - Product Bar]].
 
 **Design gaps** — never decided; each needs a decision, and some should stay "no".
 

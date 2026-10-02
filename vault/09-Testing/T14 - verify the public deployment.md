@@ -7,6 +7,8 @@ result: 15 claims / 0 mismatch
 
 # T14 - `npm run verify:deploy` (alamat yang dikutip form, dibaca dari chain)
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P1 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Bagian:** [[02-Contracts/01 - Contracts]]
+
 **Perintah:** `cd signer && npm run verify:deploy`. Dibuat 28 Sep.
 **Hasil run pertama:** 15/15 cocok; **pada saat dibuat ia merah 2 baris** — dan itu temuan, bukan
 kegagalan skrip (lihat di bawah).

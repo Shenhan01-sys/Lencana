@@ -1,8 +1,9 @@
 ---
 tags: [testing, "T18"]
 command: npm run verify:edge
-measured: 2026-09-28
-result: 5 checks / 0 failed + satu angka yang tidak enak dibaca
+measured: 2026-10-03 (run terpisah; di baterai sync:numbers tercatat tak terbaca); isi halaman di bawah adalah run 2026-09-28
+result: TEPI MERAH — 10 checks / 1 failed (3 Okt) karena umur state tepi 30,3 jam melewati ambang 26 jam, perbaikannya npm run publish:edge oleh builder; 26 dari 26 kertas tetap terbaca · koreksi 3 Okt, nilai lama yang tadinya tertulis di sini — 5 checks / 0 failed + satu angka yang tidak enak dibaca (28 Sep)
+updated: 2026-10-03
 ---
 
 # T18 - signer verify-edge.js

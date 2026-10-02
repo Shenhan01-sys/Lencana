@@ -6,6 +6,8 @@ updated: 2026-09-28
 
 # T15 - The 1EdTech validator, run for real
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P1, P6, P7 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Backlog:** B41 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] · **Sesi:** [[Notes/Session-2026-09-27-B41-validator]]
+
 The run that [[07-Backlog/03 - Findings and Tasks 2026-09-26|B41]] existed for. Recorded **as returned**,
 pass or fail, because the whole point of this project is that a number we do not like is still a number.
 

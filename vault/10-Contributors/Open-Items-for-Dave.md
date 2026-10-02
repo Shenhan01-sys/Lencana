@@ -1,7 +1,7 @@
 ---
 tags: [contributor, open-item, hub]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # Open Items for the Frontend
@@ -15,9 +15,14 @@ the command that shows it. Nothing here is a style opinion.
 [[10-Contributors/Open-Items/00 - Hub Open Items]] untuk membacanya berurutan.
 
 **Ownership:** `web/index.html`, `web/src/main.ts`, `render.ts`, `style.css`, `i18n.ts` are yours and
-your version wins on merge (`-X theirs` for those files), then the harnesses get re-run. What must not
+your version wins on merge (`-X theirs` for those files), then the harnesses get re-run. ~~What must not
 disappear is `#lms-mount` (`web/index.html:518`) and the `renderLmsRoute()` call (`web/src/main.ts:1180`)
-— without them the learning surface renders nothing. Never `--force` `main`; prove a push with
+— without them the learning surface renders nothing.~~ *(Koreksi 3 Okt: sejak FE7 (1 Okt malam) `lms.ts` dan
+`renderLmsRoute` tidak ada lagi — ruang belajar adalah `web/src/pages/class.ts` + `web/src/lesson-views.ts`, dipasang
+`mountNewApp()` (`web/src/new-app.ts:14`, yang membuat `#page-new-app` bila belum ada) dan dipanggil dari `web/src/main.ts:1072`.
+Yang tidak boleh hilang sekarang adalah panggilan itu beserta impornya (`web/src/main.ts:1004`); `#lms-mount` masih ada di
+`web/index.html:596` tetapi tidak lagi menjadi titik pasang — lihat [[03-Frontend/FE4 - Mount contract with the maintainer]] dan
+[[03-Frontend/FE7 - Merge cabang FE 1 Okt]].)* Never `--force` `main`; prove a push with
 `git ls-remote origin refs/heads/main` vs `git rev-parse HEAD`, not with silence.
 
 ## Peta dokumen
@@ -46,21 +51,37 @@ tumbuh — jadi pakai nama simbolnya, bukan nomornya.
 | # | keadaan 30 Sep | yang terukur |
 |---|---|---|
 | OI-1 | **SEBAGIAN** | `generateCanonicalJsonLd` dan dokumen demo bertanda tangan palsu sudah dibuang (B94, B100); panel itu kini `fetch` dokumen asli dari tepi. Yang tersisa: `RINA_CREDENTIAL_JSONLD` di `main.ts` masih objek ketikan tangan (`urn:uuid:…`, `did:pkh:…`) dan masih dipakai dua kali |
-| OI-2 | **OPEN** | `/api/v1/verify/batch` masih ada: `index.html` 1, `i18n.ts` 2 |
-| OI-3 | **OPEN** | `toggleBitstringState` / "Simulate State Flip" masih ada: `index.html` 1, `main.ts` 2, `i18n.ts` 1 |
-| OI-4 | **OPEN** | `AttestationNotFound` / `ErrLocked` / `checkPrerequisites` masih ada: `index.html` 1, `main.ts` 3, `i18n.ts` 2 |
+| OI-2 | ~~**OPEN**~~ *(TUTUP 3 Okt — tabel di bawah)* | `/api/v1/verify/batch` masih ada: `index.html` 1, `i18n.ts` 2 |
+| OI-3 | ~~**OPEN**~~ *(TUTUP 3 Okt — tabel di bawah)* | `toggleBitstringState` / "Simulate State Flip" masih ada: `index.html` 1, `main.ts` 2, `i18n.ts` 1 |
+| OI-4 | ~~**OPEN**~~ *(TUTUP 3 Okt — tabel di bawah)* | `AttestationNotFound` / `ErrLocked` / `checkPrerequisites` masih ada: `index.html` 1, `main.ts` 3, `i18n.ts` 2 |
 | OI-5 | **OPEN** | `Rina Oktaviani` masih ada (`index.html` 3, `main.ts` 2, `i18n.ts` 6), begitu juga `#0x91a7` / `93/100`. Yang sudah hilang: angka kartu agen 1,420 / 856 / 640 (B101) |
 | OI-6 | **TUTUP** di berkas yang disajikan (B100) | `lencana.io` tinggal di komentar sejarah `main.ts`; nol di `index.html`, `render.ts`, `i18n.ts`. Masih satu di `FRONTEND_ITERATION.md` |
-| OI-7 | **OPEN** | `tBNB` masih ada: `index.html` 1, `main.ts` 1, `i18n.ts` 2 |
+| OI-7 | ~~**OPEN**~~ *(TUTUP di panel bayar 3 Okt — tabel di bawah)* | `tBNB` masih ada: `index.html` 1, `main.ts` 1, `i18n.ts` 2 |
 | OI-8 | **literal tidak ditemukan lagi** | nol kemunculan `DAO-GOVERNED`, `FULLY ON-CHAIN DIPLOMAS`, `autonomous domain AI agent`, `on-chain mastery` di `index.html` dan `i18n.ts`. Aku tidak menelusuri komit mana yang menghapusnya |
 | OI-9 | **OPEN** | tiga tautan `file:///` masih di `FRONTEND_ITERATION.md` (tercatat di `vault/scripts/link-exceptions.txt`) |
 | OI-10 | **OPEN** | kedua alamat preset itu masih ada: `config.ts` 4, `index.html` 1 |
-| OI-11 | **OPEN** | `simulateX402Batch` masih ada dan masih berjalan di atas timer. Satu-satunya `fetch(` di `main.ts` milik panel dokumen (OI-1), bukan panel pembayaran |
+| OI-11 | ~~**OPEN**~~ *(TUTUP 3 Okt — tabel di bawah)* | `simulateX402Batch` masih ada dan masih berjalan di atas timer. Satu-satunya `fetch(` di `main.ts` milik panel dokumen (OI-1), bukan panel pembayaran |
 | OI-12 | **TUTUP** (B68) | nol `credentialStatus: [` di berkas FE |
 | OI-13 | **TUTUP** (B69, B100) | tombolnya memanggil `runSpecAudit()`; string "14/14 … (12ms)" tinggal di komentar sejarah |
 | OI-14 | **TUTUP** (B71) | nol `../_research/` di kedua `package.json` |
 | OI-15 | **TUTUP** (B70) | nol "belum disiarkan ke chain" |
 | OI-16 | catatan, bukan cacat | keputusan kunci kuis di bundel tetap terbuka sebagai B80 |
+
+*(Koreksi 3 Okt — tabel di atas adalah keadaan 30 Sep dan sebagian sudah dilampaui.* B123 (D59, 2 Okt; lihat OI-24 di bawah)
+*membuang Tamper Playground, konsol x402, dan matriks bitstring dari halaman. Dihitung ulang 3 Okt dengan grep atas
+`web/index.html` + seluruh `web/src`:*
+
+| # | keadaan 3 Okt | yang terukur |
+|---|---|---|
+| OI-2 | **TUTUP** (B123) | nol `/api/v1/verify/batch` |
+| OI-3 | **TUTUP** (B123) | nol `toggleBitstringState`, nol "Simulate State Flip" |
+| OI-4 | **TUTUP** (B123) | nol `AttestationNotFound` / `ErrLocked` / `checkPrerequisites` |
+| OI-5 | **OPEN** | `Rina Oktaviani` masih ada (`index.html` 3, `i18n.ts` 6, `main.ts` 1), begitu juga `#0x91a7` dan `93/100`. Di `index.html` dua kemunculan nama ada di halaman yang tidak lagi punya rute (`#page-home` `:654`, `#page-portfolio` `:1325`); yang ketiga di modal ijazah (`:1902`), yang namanya diisi `main.ts:864` — keterjangkauan modal itu tidak kutelusuri |
+| OI-7 | **TUTUP** di panel bayar (B123) | nol `tBNB` di `index.html`, `main.ts`, `i18n.ts`; yang tersisa hanya teks lesson praktik (`courses/web3-dasar.ts`) dan saldo gas di `pages/owner.ts`, keduanya memang tBNB |
+| OI-10 | **OPEN** | kedua alamat preset tinggal di `config.ts` (2), nol di `index.html` |
+| OI-11 | **TUTUP** (B123) | nol `simulateX402Batch`; CSS `.x402-*` masih tersisa di `style.css` (dicatat di OI-24) |
+
+*Butir lain tidak diukur ulang hari ini. OI-17 dan OI-19 punya koreksinya di bagiannya masing-masing.)*
 
 ## OI-1 — the hand-typed documents
 
@@ -154,8 +175,10 @@ D15), and the judge is a model whose measured spread is 9 points on the same ess
 portfolio pages — 6 pages" while `web/src/main.ts` has no `#/developer` route, and its links are written
 as `file:///C:/Project_Dave/lencana/…`, which resolves on exactly one machine. Make them repo-relative
 (`vault/…`), and mark which of the six are intent rather than shipped — a judge who clicks a dead nav
-item stops believing the pages that work. (The vault's own "email login" line is fixed: identity here is
-a wallet, `main.ts:184`.)
+item stops believing the pages that work. (The vault's own "email login" line is fixed: ~~identity here is
+a wallet, `main.ts:184`.~~) *(Koreksi 3 Okt: sejak D57 (1 Okt malam) dan B123/D59 (2 Okt) identitas peserta adalah akun
+login email lewat Privy, dan alamat belajarnya = dompet tertanam yang dibuatkan Privy; kunci perangkat dan dompet ekstensi
+sudah keluar dari UI — lihat [[08-Results/B123 - Executive Summary]] dan [[08-Results/B82 - Executive Summary]].)*
 
 ## OI-10 — a preset pointing at addresses that are not ours
 
@@ -309,6 +332,10 @@ lalu `outcome: VALID`. Kalau seseorang mengembalikan array di `credential.js`, p
 
 ## Re-run before you push
 
+> *(Koreksi 3 Okt: angka di komentar blok di bawah adalah cetakan 28 Sep dan sudah basi — korpus dan jumlah pemeriksaan
+> tumbuh sesudahnya. Jangan kutip dari blok ini; angka terkini ada di [[Quick-Reference]] dan `vault/09-Testing/numbers.json`
+> (ditulis `npm run sync:numbers`). Perintahnya sendiri tetap berlaku.)*
+
 ```powershell
 cd app/web && npx tsc --noEmit && npm run build && npm run probe   # clean, clean, 59 checks / 0 failed (28 Sep)
 cd app/signer && node scripts/check.js                              # 76 checks / 0 failed (28 Sep)
@@ -324,8 +351,10 @@ for ourselves, including "1EdTech compatible" — yang boleh ditulis sejak 28 Se
 this backend passes the 1EdTech OB 3.0 validator — 0 errors, 0 warnings"*, dan tetap bukan
 "certified"/"conformant" (validator member, bukan sertifikasi konformansi; responsnya melaporkan jumlah
 tanpa merinci pemeriksaan mana yang lulus). Yang TIDAK boleh lagi ditulis tanpa menyebut angkanya:
-"semua artefak dapat diverifikasi publik" — `verify:edge` mengukur **2 dari 8** kertas kita hari ini
-(B54). [[08-Results/01 - Evidence and Limits]]. Depth on the page itself:
+"semua artefak dapat diverifikasi publik" — ~~`verify:edge` mengukur **2 dari 8** kertas kita hari ini~~
+(B54). *(Koreksi 3 Okt: "2 dari 8" adalah pengukuran lama; baris bertanggal 1 Okt malam di
+[[10-Contributors/Claims-Cheat-Sheet]] mencatat **26 dari 26** kertas yang kita pegang dapat diperiksa orang sampai
+tuntas — jalannya di baris itu. Kalimatnya tetap wajib membawa angka dan tanggal run.)* [[08-Results/01 - Evidence and Limits]]. Depth on the page itself:
 [[03-Frontend/FE6 - Quirks and open defects]].
 
 ## OI-15 — halaman yang bisa dibuka pengunjung masih berkata "lapis on-chain kami belum disiarkan"
@@ -407,7 +436,10 @@ malam spesimennya **ada dan diukur** (`npm run check:samples` → 9/0; asal-usul
 | `expired` | `0x202f8edf1a46ee6ed2fb9e99026a2bdcf957e654b786c46213112e5caf0afdcc` | 200 | expired (penerbit masih sah) |
 | `delisted` | `0xaa379627438fb47b6a6c2a5fefc421d26f3168ce941e82c19a591c773d849c0f` | 200 | delisted, **tidak** revoked |
 
-Yang **tidak** kulakukan: memasang tombolnya. `web/index.html` dan `SAMPLE_HASHES` di `web/src/main.ts`
+~~Yang **tidak** kulakukan: memasang tombolnya.~~ *(Koreksi 3 Okt: tombol delisting sudah dipasang lewat B123 (D59,
+2 Okt) — `SAMPLE_HASHES.delisted` di `web/src/main.ts:73` menunjuk spesimen `0xaa379627…`, tombol Trust Center memeriksanya
+di verifier, dan `check:samples` mengadilinya (AC-B123#6, [[08-Results/B123 - Executive Summary]]). Contoh `expired` belum
+dipasang: `SAMPLE_HASHES` hari ini tidak punya kunci `expired`.)* `web/index.html` dan `SAMPLE_HASHES` di `web/src/main.ts`
 milikmu, dan builder menunda FE. Di `main.ts` yang kusentuh hanya baris komentar (marker B102 dan catatan
 di atas `SAMPLE_HASHES`). Kalau dipasang: tambahkan kunci `expired` / `delisted` ke `SAMPLE_HASHES` dengan
 dua hash di atas — nama kuncinya harus sama dengan label chain, karena `check:samples` membandingkan
@@ -447,10 +479,17 @@ Kalau kartunya dipertahankan, `agentId` 2534 dan dompetnya bisa jadi isi yang te
 
 ## OI-19 — sewa agen per aktivitas sudah hidup di penerbit; belum ada satu layar pun (B119, B120, 1 Okt)
 
+> *(Koreksi 3 Okt: "belum ada satu layar pun" basi sejak 2 Okt — dibangun core, bukan di berkasmu. Sejak B129 anggota
+> penerbit menyewa agen penilai (`hire=1`) dan menunjuk agen pengesah (`appoint=1`) dari dasbor `#/app/pub` dengan tanda
+> tangannya sendiri sesuai hibah, jadi tombol "sewa" tidak lagi hanya pesan bertanda tangan penerbit. Sejak B130 pemilik
+> agen melihat tangga tarif tujuh tingkat dan mengubah tarif dasar (`setMetadata`) dari dasbor `#/app/owner`. Yang tetap
+> tanpa layar: **membayar tagihan agen** (`POST /agent-charges/<id>/pay`) — masih kunci penerbit lewat CLI/rute. Lihat
+> [[08-Results/B129 - Executive Summary]] dan [[08-Results/B130 - Executive Summary]].)*
+
 Penerbit sekarang bisa menyewa agen penilai ERC-8004 per mata kuliah, agen menandatangani nilainya sendiri
 lengkap dengan **label tingkat berat yang ia pilih**, dan tiap aktivitas jadi tagihan yang dibayar lewat
-x402 ke dompet agen. Reviewer juga boleh agen (agen lain, pemilik lain). Semua itu baru bisa disentuh lewat
-HTTP dan harness `npm run verify:agents` (34/0 tanpa gas, 40/0 dengan dua pembayaran nyata —
+x402 ke dompet agen. Reviewer juga boleh agen (agen lain, pemilik lain). Semua itu ~~baru bisa disentuh lewat
+HTTP dan~~ *(per 1 Okt; sewa/tunjuk dan tarif kini juga dari dasbor — koreksi di atas)* bisa disentuh lewat HTTP dan harness `npm run verify:agents` (34/0 tanpa gas, 40/0 dengan dua pembayaran nyata —
 [[09-Testing/T36 - signer agents-check.js (B119 sewa agen)]], [[09-Testing/T37 - signer agents-check.js (B120 reviewer agen)]]).
 
 | rute | untuk layar apa |

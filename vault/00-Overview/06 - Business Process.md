@@ -1,7 +1,7 @@
 ---
 tags: [overview, business, diagram]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # 06 - Business Process
@@ -14,12 +14,18 @@ berjalan sebagai bisnis** versus yang **belum**. Mekanisme di balik setiap baris
 > **Koreksi 30 Sep (B117) — halaman ini memotret 26 Sep, dan empat barisnya sudah bergerak.** Tabel dan
 > warna diagram di bawah tidak kutimpa; yang berubah sejak itu: (1) **akun/rekaman belajar** — bukan lagi
 > "belum": enrollment, progres dan usaha peserta tercatat di server di bawah tanda tangan peserta sejak
-> 28 Sep (identitasnya masih kunci perangkat, belum akun yang bisa dipulihkan); (2) **bukti dibaca pemeriksa
+> 28 Sep (~~identitasnya masih kunci perangkat, belum akun yang bisa dipulihkan~~ *(Koreksi 3 Okt: sejak 1–2 Okt
+> peserta masuk dengan email lewat layanan login pihak ketiga, dan alamat belajarnya sama di perangkat mana pun; pintu
+> tanpa akun sudah ditutup dari halaman — D57, D59. Uji masuk dari dua peramban oleh builder masih terbuka.)*); (2) **bukti dibaca pemeriksa
 > asing** — baris yang menyebut "2 error" adalah run pertama 27 Sep; sejak itu validator menjawab VALID
 > dengan 0 error; (3) **orang luar memeriksa tanpa menghubungi kami** — 19 dari 19 kertas bisa dibuka
 > publik; (4) **pengumpulan esai** — sekarang diserahkan ke penerbit dan dinilai dengan kunci penerbit.
-> Yang **tetap** merah: peserta membayar kursus, penerbit bergabung sendiri, dan layanan yang berjalan tanpa
-> operator. Versi teknis dan terkini: [[00-Overview/12 - Business Process]].
+> Yang **tetap** merah: ~~peserta membayar kursus~~, penerbit bergabung sendiri, dan layanan yang berjalan tanpa
+> operator. *(Koreksi 3 Okt: "peserta membayar kursus" tidak merah lagi sejak 2 Okt — kursus berbayar dibayar dulu,
+> baru kelasnya terbuka, dengan koin uji di jaringan uji (B125, D60). "Penerbit bergabung sendiri" tetap merah: sejak
+> 2 Okt sebuah akun bisa mengajukan diri menjadi anggota penerbit, tetapi yang menyetujui tetap penerbit (B129).)*
+> Versi teknis ~~dan terkini~~: [[00-Overview/12 - Business Process]] *(Koreksi 3 Okt: halaman 12 kini juga sebagian
+> basi; yang terkini dibaca dari kode: [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].)*
 
 Status per **26 September 2026**. "Sudah" di halaman ini berarti *sudah berjalan dan bisa diperagakan*.
 Ia **tidak** berarti *sudah dipakai orang sungguhan* — tidak ada satu pun peserta nyata atau penerbit

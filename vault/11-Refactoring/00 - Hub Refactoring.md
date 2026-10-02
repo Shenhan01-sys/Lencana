@@ -1,7 +1,7 @@
 ---
 tags: [refactoring, hub]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # 00 - Hub Refactoring
@@ -26,8 +26,8 @@ logged-in state look identical, so everything appears to be dummy data — and a
 | **RF3** | [[RF3 - Onboarding and Identity]] | wallet-only login → onboarding + profile; Privy as the embedded-wallet route and what it costs us in claims |
 | **RF4** | [[RF4 - Learning Surface Target Shape]] | the real learning page: chapters, inline interactivity, mentor sidebar; catalog beyond web3; six LMS references |
 | **RF5** | [[RF5 - Enrollment and the Paid Path]] | enrollment is the chargeable event; what exists on chain today and what does not |
-| **RF6** | [[RF6 - Core System, Backend and Contracts]] | our own side: four structural holes (no idempotency, no index, signer is a process not a service, money not attached to a user action), contract by contract, and the priority with four days left |
-| **RF7** | [[RF7 - Halaman publik vs internal, dashboard per peran, onboarding]] | halaman publik vs internal (eksklusif login), dashboard per peran (Peserta, Penerbit, Agent Owner), onboarding login pertama, dan urutan langkah A → A2 → B → C (draf, 2 Okt) |
+| **RF6** | [[RF6 - Core System, Backend and Contracts]] | our own side: four structural holes (no idempotency, no index, signer is a process not a service, ~~money not attached to a user action~~), contract by contract, and the priority with four days left *(Koreksi 3 Okt: sejak B125 (D60, 2 Okt) uang menempel ke aksi peserta — kursus berbayar dibayar sebelum enrollment, `POST /enroll` → 402 → settlement x402 + `SettlementSplit` → `orders` = paid; lihat [[08-Results/B125 - Executive Summary]].)* |
+| **RF7** | [[RF7 - Halaman publik vs internal, dashboard per peran, onboarding]] | halaman publik vs internal (eksklusif login), dashboard per peran (Peserta, Penerbit, Agent Owner), onboarding login pertama, dan urutan langkah A → A2 → B → C ~~(draf, 2 Okt)~~ *(Koreksi 3 Okt: bukan draf lagi — urutannya di-acc builder 2 Okt dan langkah A–C3 dikerjakan 2 Okt sebagai B123–B130: A = B123, A2 = B124, B = B125, C1–C3 = B128–B130 (ringkasan per item di [[08-Results/00 - Hub Results]]); yang tersisa per langkah ditulis di RF7.)* |
 
 Rules of engagement, inherited from [[Conventions]]:
 
@@ -37,7 +37,7 @@ Rules of engagement, inherited from [[Conventions]]:
   in the same change — a claim the site makes that the vault forbids is the exact defect this whole
   folder exists to remove.
 - Existing findings raised against `web/` are tracked in [[10-Contributors/Open-Items-for-Dave]]
-  (OI-1…OI-10) and are **not** repeated here; this folder covers consumer shape, not citation errors.
+  ~~(OI-1…OI-10)~~ *(koreksi 3 Okt: kini OI-1…OI-28, peta di [[10-Contributors/Open-Items/00 - Hub Open Items]])* and are **not** repeated here; this folder covers consumer shape, not citation errors.
 
 ## RF-0 — my audit ran against a stale checkout; the correction is the finding
 

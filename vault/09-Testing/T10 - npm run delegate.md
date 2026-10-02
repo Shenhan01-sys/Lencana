@@ -7,6 +7,8 @@ result: batch 1.024.813 gas / single 370.131
 
 # T10 - `npm run delegate` (agen menandatangani, platform menyiarkan)
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P1, P11 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Bagian:** [[04-Signer-Service/S4 - Delegated issuance]]
+
 **Perintah:** `cd signer && npm run delegate`. **Belum dijalankan ulang sejak 23 Sep** — dicatat
 dengan tanggal aslinya, tidak diberi tanggal hari ini hanya supaya tabelnya terlihat segar.
 

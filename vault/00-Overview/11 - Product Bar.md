@@ -1,7 +1,7 @@
 ---
 tags: [product-bar, roadmap, ordering, database]
 status: active — read this before choosing work
-updated: 2026-09-28
+updated: 2026-10-03
 ---
 
 # 11 - Product Bar: penuhi standar umum dulu, baru jual pembeda kita
@@ -20,23 +20,25 @@ ini terverifikasi 28 Sep dengan **membaca kode**, bukan membaca catatan lama.
 |---|---|---|---|
 | 1 | hierarki konten dengan id stabil | ✅ `content.ts` Course/Module/Lesson | — |
 | 2 | gating sebagai data, ditegak server-side | ⚠️ prasyarat antar-kursus ditegak **chain** (`PrerequisiteRevoked`), gating per bab belum ada | aturan urutan per bab |
-| 3 | **rekaman enrollment per peserta** | ✅ tabel + `POST /enroll` bertanda tangan peserta, nonce di DB (bukan memori proses), idempoten, `lessons_total` dihitung dari katalog; **halaman belajar sudah memanggilnya** (`web/src/learning.ts`) *(koreksi 1 Okt malam, B122: memanggil, tapi dari peramban sungguhan tidak pernah sampai — preflight CORS 405 — sampai 1 Okt malam; sekarang terbukti di [[09-Testing/T42 - Uji peramban ruang kelas (FE7)]])* dan `issue --from-attempts` membacanya — `verify:db` 28/0 + satu alur HTTP di [[09-Testing/T22 - signer attempts-check.js]] (28 Sep) | pemulihan akun lintas perangkat (identitas hari ini = alamat penandatangan) |
-| 4 | progres per peserta + state machine | ✅ `POST /progress` + mesin status ditegak server (lompat ilegal → 422, status sama → noop) + `progress_events`; **FE tidak lagi menjadikannya satu-satunya tempat state** — `#/learn` mengirim unlocked→started→completed lewat HTTP (terukur 57 POST pada run 28 Sep), `localStorage` tinggal cache yang diberi label "di perangkat ini" | draf esai masih lokal saja (sengaja, lihat B81) |
+| 3 | **rekaman enrollment per peserta** | ✅ tabel + `POST /enroll` bertanda tangan peserta, nonce di DB (bukan memori proses), idempoten, `lessons_total` dihitung dari katalog; **halaman belajar sudah memanggilnya** (`web/src/learning.ts`) *(koreksi 1 Okt malam, B122: memanggil, tapi dari peramban sungguhan tidak pernah sampai — preflight CORS 405 — sampai 1 Okt malam; sekarang terbukti di [[09-Testing/T42 - Uji peramban ruang kelas (FE7)]])* dan `issue --from-attempts` membacanya — `verify:db` 28/0 + satu alur HTTP di [[09-Testing/T22 - signer attempts-check.js]] (28 Sep) | ~~pemulihan akun lintas perangkat (identitas hari ini = alamat penandatangan)~~ *(Koreksi 3 Okt: sejak D57/B123 satu-satunya pintu di UI adalah login email Privy, dan alamat peserta = dompet tertanam yang sama di perangkat mana pun; ikatan alamat ↔ akun di `learner_accounts`. Yang tersisa: login dari dua peramban belum diuji builder — baris B82 masih terbuka, [[08-Results/B82 - Executive Summary]])* |
+| 4 | progres per peserta + state machine | ✅ `POST /progress` + mesin status ditegak server (lompat ilegal → 422, status sama → noop) + `progress_events`; **FE tidak lagi menjadikannya satu-satunya tempat state** — ~~`#/learn`~~ *(Koreksi 3 Okt: rute itu kini ruang kelas `#/class/<kursus>` (FE7) di dalam area `#/app` (B124); `#/learn` lama dialihkan ke kelas)* mengirim unlocked→started→completed lewat HTTP (terukur 57 POST pada run 28 Sep), `localStorage` tinggal cache yang diberi label "di perangkat ini" | draf esai masih lokal saja (sengaja, lihat B81) |
 | 5 | rubric dengan skala eksplisit | ⚠️ `RubricItem{label,max}` itu bobot, bukan skala | skala berlabel-titik seperti ORA |
 | 6 | **dua gerbang: selesai ≠ lulus** | ✅ view `course_gates` memisahkan `all_lessons_done` dan `best_score`, dan **penerbitan memakainya**: `issue --from-attempts` menolak kalau salah satu belum lewat (`NULL` = belum tahu = belum selesai). UI masih punya `readyForCredential` sendiri — itu tampilan, bukan keputusan | pindahkan label UI ke angka gerbang server |
 | 7 | asal-usul nilai (siapa/apa yang menghasilkan angka) | ⚠️ **per jalur.** Kuis: `POST /grade` — klien mengirim *pilihan*, server yang menghitung terhadap kunci manifest, menyimpan komponen per soal, dan `attempt_hash` ikut tercetak di dokumen hasil (`…/results/…`) yang dirujuk `result[0].id`. Esai/praktik: angkanya masih laporan klien (`POST /attempts`). **Koreksi 30 Sep (B117):** untuk esai itu berhenti benar 29 Sep (B81) — esai masuk tanpa angka lewat `POST /essay`, angkanya hanya lewat tanda tangan EOA penerbit (`POST /essay/judgement`); tinggal praktik yang laporan klien. **Koreksi 1 Okt (B121 core):** praktik sekarang dinilai **chain** lewat `POST /praktik` (server membaca ulang transfer/saldo/`eth_call`/izin token), dan `POST /attempts` menolak skor kuis/esai/praktik peserta — yang terakhir ini juga koreksi atas kalimat "esai berhenti benar 29 Sep": `/attempts` masih menerima skor esai sampai 1 Okt, hanya tidak ada halaman yang memanggilnya | rute penyerahan praktik ✅ (core, 1 Okt) — halaman belum memanggilnya (OI-20) + gradebook |
 | 8 | alur penilaian (manusia/model) dengan lock/regrade | ⚠️ *(tadinya ❌)* `judge.js` fail-closed + kontrol negatif; sejak 29 Sep ada antrean esai (tabel `submissions`, `npm run grade:essay`, B81) dan penilaian ulang melaporkan `replacedHash`. Belum: kunci/lease penilaian, pengesahan manusia. **30 Sep malam (B104 ditutup):** pengesahan manusia sekarang ada — angka model baru dihitung gerbang sesudah reviewer yang ditunjuk penerbit menandatangani `approved`/`adjusted` (`verify:db` 70/0); dan satu kertas uji terbit lewat rantai itu (`verify:attempts:live` 82/0); yang tetap belum: kunci/lease penilaian dan UI reviewer. *(1 Okt, D53: pengesah tidak harus manusia — reviewer diperlakukan sebagai penilai, boleh agen AI; B120)* | kunci penilaian; UI reviewer |
 | 9 | hasil akhir yang bisa dicek orang asing | ✅ **pembeda kita** (bagian 2) | — |
-| 10 | harga + jalur bayar, dihitung server-side | ✅ *(2 Okt, B125)* harga satu sumber (`web/src/pricing.ts`), dihitung server: `POST /enroll` kursus berbayar menjawab 402, settlement x402 + `SettlementSplit` sebelum enrollment, `orders` = paid (`verify:paywall` 23/0, `--live` 31/0). Batasnya: koin uji LDC-demo di testnet (C4) — bukan pendapatan | stablecoin sungguhan di mainnet |
-| 11 | peran & izin | ⚠️ *(2 Okt, B128)* peran akun di core: peserta, anggota penerbit (hibah bertanda tangan kunci penerbit, wewenang sewa agen / tunjuk agen pengesah), Agent Owner (`ownerOf` ERC-8004) — sejak B129 (2 Okt) akun bisa mengajukan keanggotaan (disetujui kunci penerbit) dan dasbor Penerbit `#/app/pub` ada; dasbor Agent Owner belum (C3) *(B130, 2 Okt: dasbor Agent Owner `#/app/owner` ada; agen untuk akun dicetak platform dan dompetnya diisi pemiliknya)*; sebelumnya: whitelist issuer + `onlyOwner` di chain, tanpa peran produk | roles learner/publisher/mentor |
+| 10 | harga + jalur bayar, dihitung server-side | ✅ *(2 Okt, B125)* harga satu sumber (`web/src/pricing.ts`), dihitung server: `POST /enroll` kursus berbayar menjawab 402, settlement x402 + `SettlementSplit` sebelum enrollment, `orders` = paid (`verify:paywall` ~~23/0~~ **24/0** *(Koreksi 3 Okt: dicetak `sync:numbers` 3 Okt; +1 kelas uji B126)*, `--live` 31/0 (2 Okt)). Batasnya: koin uji LDC-demo di testnet (C4) — bukan pendapatan | stablecoin sungguhan di mainnet |
+| 11 | peran & izin | ⚠️ *(2 Okt, B128)* peran akun di core: peserta, anggota penerbit (hibah bertanda tangan kunci penerbit, wewenang sewa agen / tunjuk agen pengesah), Agent Owner (`ownerOf` ERC-8004) — sejak B129 (2 Okt) akun bisa mengajukan keanggotaan (disetujui kunci penerbit) dan dasbor Penerbit `#/app/pub` ada; dasbor Agent Owner belum (C3) *(B130, 2 Okt: dasbor Agent Owner `#/app/owner` ada; agen untuk akun dicetak platform dan dompetnya diisi pemiliknya)* *(B131, 3 Okt, D66: satu akun nyata = satu peran — dipilih sekali bertanda tangan, aksi peran lain ditolak server; hanya akun dev builder yang memegang beberapa kursi dan melihat pemilih kursi)*; sebelumnya: whitelist issuer + `onlyOwner` di chain, tanpa peran produk | roles learner/publisher/mentor |
 | 12 | katalog yang bukan satu topik | ⚠️ *(2 Okt, B127)* 7 kursus publik, 3 di antaranya non-teknis (keuangan, keamanan akun, menulis) — tetapi kelas singkat 31–39 menit, belum program; sebelumnya praktis 2 kursus web3 | authoring tooling |
 
 Urutan pengerjaan yang masuk akal terhadap bar ini = urutan yang sudah diurutkan di
 [[12-LMS-References/L8 - Lencana vs LMS]] §C: **1 enrollment → 2 progres server-side → 3 kuis
 dibobot server → 4 dua gerbang → 5 panel bayar nyata → 6 guard idempotensi → 7 gradebook**.
 Keadaan 28 Sep sore: **1, 2, 3, 4, 6 selesai dan terukur** (satu alurnya lewat HTTP,
-[[09-Testing/T22 - signer attempts-check.js]]), yang tersisa **5** (panel bayar nyata, OI-11) dan
-**7** (gradebook) — ditambah angka esai/praktik yang masih laporan klien (B81) *(30 Sep: esai sudah
+[[09-Testing/T22 - signer attempts-check.js]]), yang tersisa ~~**5** (panel bayar nyata, OI-11) dan~~
+**7** (gradebook) *(Koreksi 3 Okt: **5 selesai 2 Okt lewat B125** — kursus berbayar menjawab 402 di `POST /enroll`, peserta
+membayar dengan tanda tangan lewat x402 + `SettlementSplit`, order `paid`, baru kelas terbuka; panel bayar timer OI-11 sudah
+dibuang B123. Lihat [[08-Results/B125 - Executive Summary]] dan baris 10 di atas.)* — ditambah angka esai/praktik yang masih laporan klien (B81) *(30 Sep: esai sudah
 tidak — lihat koreksi di baris 7; tinggal praktik)* *(1 Okt, B121 core: praktik dinilai chain di server;
 yang tersisa halaman memanggilnya)*. Jangan membaca daftar
 ini sebagai "kerangka umum sudah penuh": bar 2, 5, 8, 11, 12 masih ⚠️/❌ di tabel di atas.
@@ -119,8 +121,12 @@ Tiga pembeda, masing-masing dengan perintah yang mencetak buktinya (hari ini sem
 2. **Status/cabut dibaca dari chain publik dan ter-anchor** — dua daftar (revocation permanen,
    suspension pulih); pembanding terukur: Moodle `// Signed is not implemented yet.`, Chamilo JSON
    tanpa `@context`/tanda tangan, LearnHouse tanpa kolom status.
-3. **Agen milik institusi menandatangani sendiri, tanpa dompet dan tanpa gas** (`attestByDelegation`;
-   platform menyiarkan dan membayar).
+3. ~~**Agen milik institusi menandatangani sendiri, tanpa dompet dan tanpa gas** (`attestByDelegation`;
+   platform menyiarkan dan membayar).~~ *(Koreksi 3 Okt: kalimat ini bertentangan dengan D54 dan termasuk yang
+   dilarang di [[10-Contributors/Claims-Cheat-Sheet]] baris "agen milik institusi menandatangani sendiri". Yang boleh:
+   **kredensial ditandatangani kunci penerbit, tanpa gas untuk penerbit** — `attestByDelegation`, platform menyiarkan dan
+   membayar gasnya; pada deployment ini platform yang menjalankan `addIssuer` dan memegang kunci penerbit. Agen penilai
+   ERC-8004 hanya menilai dan mengusulkan angka, tidak pernah menandatangani kredensial.)*
 
 **Table stakes — jangan pernah dipakai sebagai nilai jual:** "bisa diverifikasi siapa pun", "tanpa
 login", "ada URL checker gratis", "blockchain-secured". **Dilarang:** "compatible 1EdTech",

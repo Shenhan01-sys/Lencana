@@ -1,7 +1,7 @@
 ---
 tags: [contract, hub]
 status: active
-updated: 2026-09-25
+updated: 2026-10-03
 ---
 
 # 01 - Contracts
@@ -28,6 +28,7 @@ address in a document ([[06-Spec-Research/R5 - x402 exact Permit2 and the proxy]
 - [[C2 - SoulboundCert]] — why `mint()` only admits `owner()`, the four conditions a credential must satisfy to become an artifact, `NotTransferable()`
 - [[C3 - SettlementSplit]] — `sharesOf()` flooring the platform share, `splitDone[ref]`, one-way `platformBps`, and the deliberate absence of a debt ledger
 - [[C4 - DemoCourseToken and the x402 interface]] — what a demo token may and may not be used to claim, and how the proxy interface was derived
+- [[C5 - CourseDeposit]] — the deadline-premium escrow (B90, D52): `deposit` / `finalize` / `forfeit` / `refundAll`, what the publisher's signature binds, and what only `forge test` has exercised *(catatan ditambahkan 3 Okt; sampai hari itu kontrak kelima tidak punya catatan bagian sendiri)*
 
 ## Reproduce
 

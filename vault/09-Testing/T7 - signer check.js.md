@@ -1,8 +1,9 @@
 ---
 tags: [testing, "T7"]
 command: node scripts/check.js
-measured: 2026-09-28
-result: 74 checks / 0 failed
+measured: 2026-10-03 (baterai sync:numbers); isi halaman di bawah adalah run 2026-09-28
+result: 106 checks / 0 failed (dicetak sync:numbers 3 Okt) · koreksi 3 Okt, nilai lama yang tadinya tertulis di sini — 74 checks / 0 failed (28 Sep)
+updated: 2026-10-03
 ---
 
 # T7 - signer check.js

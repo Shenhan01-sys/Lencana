@@ -7,6 +7,8 @@ result: 7 courses, 15 modules, 46 lessons, 585 min (katalog publik, 2 Okt; 26 Se
 
 # T13 - `npm run inventory` (ukuran permukaan belajar, dicetak dari data)
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P6 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Summary:** [[08-Results/B127 - Executive Summary]] (katalog 7 kursus) · **Bagian:** [[05-Course-Content/01 - Course Content]]
+
 **Perintah:** `cd web && npm run inventory` (= `npx tsx scripts/inventory.ts`).
 **Terakhir dijalankan:** 2 Okt 2026 (B127). Keluaran 26 Sep dibiarkan di bawah sebagai catatan.
 

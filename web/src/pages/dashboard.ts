@@ -14,8 +14,8 @@ import './dash-viz.css'
 import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
 import { COURSES, LISTED_COURSES, findCourse } from '../courses/index'
-import { forgetLearner, learnerAddress, readMyRecords, snapshot, type MyCourseRecord, type MyRoles, type OwnedAgent } from '../learning'
-import { seats, mountSeatSwitch, applyBox, navIcon } from './seats'
+import { chooseMyRole, forgetLearner, learnerAddress, readMyRecords, snapshot, type MyCourseRecord, type MyRoles, type OwnedAgent } from '../learning'
+import { seats, mountSeatSwitch, applyBox, navIcon, guardSeat, homeOf } from './seats'
 import { renderPublisherApp } from './publisher'
 import { renderOwnerApp } from './owner'
 import { formatLdc, PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL } from '../pricing'
@@ -81,8 +81,8 @@ const COPY = {
   seatsTitle: { en: 'Seats on this account', id: 'Kursi di akun ini' },
   unread: { en: 'Unread', id: 'Tak terbaca' },
   seatsSource: {
-    en: 'Read from facts, not from a choice on this page: the publisher key and the memberships it signed, and ownerOf in the ERC-8004 registry on chain 97.',
-    id: 'Dibaca dari fakta, bukan dari pilihan di halaman ini: kunci penerbit dan keanggotaan yang ia tandatangani, serta ownerOf di registry ERC-8004 chain 97.',
+    en: 'The role is chosen once and signed by your account; the seat still needs its facts: the publisher key and the memberships it signed, and ownerOf in the ERC-8004 registry on chain 97.',
+    id: 'Peran dipilih sekali dan ditandatangani akunmu; kursinya tetap butuh fakta: kunci penerbit dan keanggotaan yang ia tandatangani, serta ownerOf di registry ERC-8004 chain 97.',
   },
   recheck: { en: 'Check again', id: 'Periksa ulang' },
   checking: { en: 'Checking your seats…', id: 'Memeriksa kursimu…' },
@@ -91,6 +91,42 @@ const COPY = {
   held: { en: 'Yours', id: 'Kursimu' },
   notHeld: { en: 'Not yet', id: 'Belum' },
   learnerHeld: { en: 'Active — every account is a learner.', id: 'Aktif — setiap akun adalah peserta.' },
+  learnerOnly: { en: 'Active — take courses, do the work, receive credentials.', id: 'Aktif — ikuti kursus, kerjakan tugas, terima kredensial.' },
+  ownerChosenNone: {
+    en: 'You chose Agent Owner. The seat opens when this account’s wallet owns an ERC-8004 agent identity — in this demo the platform mints one for you.',
+    id: 'Kamu memilih Agent Owner. Kursinya terbuka saat dompet akun ini memiliki identitas agen ERC-8004 — di demo ini platform mencetaknya untukmu.',
+  },
+  devNote: {
+    en: 'Developer account: it holds every seat its facts give it and can switch between them. Real accounts hold one role.',
+    id: 'Akun pengembang: memegang semua kursi yang diberikan faktanya dan bisa berpindah kursi. Akun nyata memegang satu peran.',
+  },
+  yourRole: { en: 'Your role:', id: 'Peranmu:' },
+  toDashboard: { en: 'Go to my dashboard', id: 'Ke dasborku' },
+  chooseSub: {
+    en: 'One account holds one role. Your choice is signed by your account and cannot be changed — for another role, use another account.',
+    id: 'Satu akun memegang satu peran. Pilihanmu ditandatangani akunmu dan tidak bisa diganti — untuk peran lain, pakai akun lain.',
+  },
+  notePh: { en: 'Optional note for the publisher (who you are, why) — max 280 characters', id: 'Catatan untuk penerbit (opsional: siapa kamu, untuk apa) — maks. 280 karakter' },
+  pickLearner: { en: 'Choose Learner', id: 'Pilih Peserta' },
+  pickPublisher: { en: 'Choose Publisher and apply', id: 'Pilih Penerbit & ajukan' },
+  pickOwner: { en: 'Choose Agent Owner', id: 'Pilih Agent Owner' },
+  confirm: { en: 'Sure? Sign this choice', id: 'Yakin? Tandatangani pilihan ini' },
+  final: { en: 'This cannot be changed later.', id: 'Pilihan ini tidak bisa diganti nanti.' },
+  signing: { en: 'Signing and sending…', id: 'Menandatangani dan mengirim…' },
+  ownerChooseLine: {
+    en: 'Rent out an ERC-8004 grading agent to publishers. The seat opens when this account’s wallet owns an agent identity — in this demo the platform mints one for you.',
+    id: 'Sewakan agen penilai ERC-8004 ke penerbit. Kursinya terbuka saat dompet akun ini memiliki identitas agen — di demo ini platform mencetaknya untukmu.',
+  },
+  devKicker: { en: 'DEVELOPER ACCOUNT', id: 'AKUN PENGEMBANG' },
+  noRoleTitle: { en: 'No role yet', id: 'Belum berperan' },
+  noRole: { en: 'This account has not chosen its role. Taking a course makes it a learner.', id: 'Akun ini belum memilih peran. Mengikuti kursus langsung menjadikannya Peserta.' },
+  chooseRole: { en: 'Choose your role', id: 'Pilih peranmu' },
+  oneRole: { en: 'One account holds one role — this one:', id: 'Satu akun memegang satu peran — peran akun ini:' },
+  viaChosen: { en: 'chosen and signed by this account', id: 'dipilih dan ditandatangani akun ini' },
+  viaRecords: { en: 'because this account already takes courses', id: 'karena akun ini sudah mengikuti kursus' },
+  viaIssuerRole: { en: 'because this account is the publisher key', id: 'karena akun ini kunci penerbit' },
+  viaMembership: { en: 'because this account is a publisher member', id: 'karena akun ini anggota penerbit' },
+  viaAgents: { en: 'because this wallet owns an ERC-8004 agent', id: 'karena dompet ini memiliki agen ERC-8004' },
   viaIssuer: { en: 'You hold the publisher key of', id: 'Kamu memegang kunci penerbit' },
   viaMember: { en: 'Member of', id: 'Anggota' },
   grantedBy: { en: 'granted by publisher key', id: 'diberikan oleh kunci penerbit' },
@@ -202,7 +238,7 @@ export function renderApp (routeHash: string): HTMLElement {
   main.appendChild(topSlot)
 
   if (section === 'account') { main.appendChild(renderAccount(lang, addr)); mountSwitch(); return shell }
-  if (section === 'credentials') { main.appendChild(renderCredentials(lang, addr)); mountSwitch(); return shell }
+  if (section === 'credentials') { main.appendChild(renderCredentials(lang, addr)); guardSeat('learner', mountSwitch); return shell }
 
   // Ringkasan, kelas, nilai, dan dompet membutuhkan rekaman dari penerbit (dompet juga saldo dari chain). Selama
   // memuat: kerangka berbentuk isinya + tahap yang benar-benar dilalui (tanda tangan → penerbit), bukan teks diam.
@@ -219,12 +255,18 @@ export function renderApp (routeHash: string): HTMLElement {
       // menyusul dari rekaman penerbit tanpa menggambar ulang pencarian yang sedang diketik.
       const view = renderCatalog(lang, undefined, openId)
       body.replaceChildren(view)
-      // Kursi dibaca SESUDAH rekaman: dua permintaan tanda tangan serentak ke dompet tertanam tidak perlu diuji nasibnya.
-      void records().then((r) => { if (view.isConnected) view.setRecords(r.ok && r.courses ? r.courses : null) }).finally(mountSwitch)
+      // B131: kursi dibaca dulu (akun Penerbit / Agent Owner dikirim ke dasbornya), lalu rekaman — berurutan, karena dua
+      // permintaan tanda tangan serentak ke dompet tertanam tidak perlu diuji nasibnya.
+      guardSeat('learner', () => {
+        void records().then((r) => { if (view.isConnected) view.setRecords(r.ok && r.courses ? r.courses : null) }).finally(mountSwitch)
+      })
       return
     }
     const progress = steps([T('stepSign'), T('stepRead')])
     body.replaceChildren(h('div', { class: 'app-loading' }, progress, skeleton(shape, T('loading'))))
+    guardSeat('learner', () => fill(progress))
+  }
+  const fill = (progress: ReturnType<typeof steps>) => {
     const balance = section === 'wallet' ? readBalance(true) : section === 'overview' ? readBalance() : Promise.resolve(null)
     void Promise.all([records((st) => progress.set(st)), balance]).then(([r, bal]) => {
       if (!body.isConnected) return
@@ -354,8 +396,9 @@ function seatRows (lang: Lang, r: MyRoles, onChange: () => void): HTMLElement[] 
     : a.tariff.token.toLowerCase() === PAY_TOKEN_ADDRESS.toLowerCase()
       ? `${formatLdc(BigInt(a.tariff.amount))} ${PAY_TOKEN_SYMBOL}`
       : `${a.tariff.amount} @ ${short(a.tariff.token)}`
-  return [
-    row(ROLES[0].name[lang], true, h('p', null, T('learnerHeld'))),
+  const learnerRow = () => row(ROLES[0].name[lang], true, h('p', null, r.account.dev ? T('learnerHeld') : T('learnerOnly')))
+  const rows = [
+    learnerRow(),
     p
       ? row(ROLES[1].name[lang], true,
         h('p', null, `${p.via === 'issuer' ? T('viaIssuer') : T('viaMember')} `, h('strong', null, institution)),
@@ -377,9 +420,22 @@ function seatRows (lang: Lang, r: MyRoles, onChange: () => void): HTMLElement[] 
           tariff(a) ? h('span', null, `${T('tariff')} ${tariff(a)}`) : null,
           h('a', { href: agentScan(a), target: '_blank', rel: 'noopener noreferrer' }, 'BscScan ↗')))),
         h('a', { class: 'app-btn small primary', href: '#/app/owner' }, T('openOwner')))
-      : row(ROLES[2].name[lang], false, h('p', { class: 'app-muted' }, T('ownerNone'))),
+      : row(ROLES[2].name[lang], false, h('p', { class: 'app-muted' }, r.account.dev ? T('ownerNone') : T('ownerChosenNone'))),
   ]
+  // B131 (D66): akun dev memegang semua kursi menurut fakta; akun nyata memegang satu peran — hanya kursi itu yang tampil.
+  if (r.account.dev) return [h('p', { class: 'role-dev' }, T('devNote')), ...rows]
+  const a = r.account
+  if (!a.role) {
+    return [h('div', { class: 'role-row' },
+      h('div', { class: 'role-name' }, h('strong', null, T('noRoleTitle')), h('span', { class: 'role-state' }, T('notHeld'))),
+      h('div', { class: 'role-body' }, h('p', { class: 'app-muted' }, T('noRole')), h('a', { class: 'app-btn small primary', href: '#/app/welcome' }, T('chooseRole'))))]
+  }
+  const since = a.chosenAt ? ` · ${when(a.chosenAt)}` : ''
+  const viaLine = h('p', { class: 'role-dev' }, `${T('oneRole')} ${T(VIA_COPY[a.via ?? 'chosen'])}${since}`)
+  return [viaLine, rows[a.role === 'learner' ? 0 : a.role === 'publisher' ? 1 : 2]]
 }
+
+const VIA_COPY = { chosen: 'viaChosen', records: 'viaRecords', issuer: 'viaIssuerRole', membership: 'viaMembership', agents: 'viaAgents', dev: 'viaChosen' } as const
 
 function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
@@ -393,12 +449,102 @@ function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
     window.location.hash = to === '#/app' && pending ? `#/course/${encodeURIComponent(pending)}` : to
   }
 
+  // B131 (D66): kursi dibaca dulu. Akun dev → tiga kursi menurut fakta (perilaku B128–B130); akun yang sudah berperan →
+  // perannya; akun yang belum → memilih sekali, bertanda tangan, dengan konfirmasi karena tidak bisa diganti.
   const stepRoles = () => {
     root.innerHTML = ''
     root.appendChild(h('div', { class: 'wel-head' },
       h('span', { class: 'app-kicker' }, T('welcomeKicker')),
       h('h1', null, T('welcomeTitle')),
-      h('p', { class: 'app-muted' }, T('welcomeSub')),
+      h('p', { class: 'app-muted' }, T('checking')),
+    ))
+    root.appendChild(skeleton('cards', T('checking')))
+    void seats().then((r) => {
+      if (!root.isConnected) return
+      if (!r.ok || !r.roles) {
+        root.replaceChildren(h('div', { class: 'wel-head' }, h('h1', null, T('welcomeTitle')), h('p', { class: 'app-muted' }, `${T('seatsFailed')} ${r.why ?? ''}`)),
+          h('div', { class: 'app-actions' }, h('button', { type: 'button', class: 'app-btn primary', onClick: () => { void seats(true).then(stepRoles) } }, T('recheck'))),
+          h('button', { type: 'button', class: 'wel-skip', onClick: () => finish('#/app') }, T('skip')))
+        return
+      }
+      const acct = r.roles.account
+      if (acct.dev) stepDevSeats()
+      else if (acct.role) stepYourRole(r.roles)
+      else stepChoose(r.roles)
+    })
+  }
+
+  const stepYourRole = (roles: MyRoles) => {
+    const a = roles.account
+    const idx = a.role === 'learner' ? 0 : a.role === 'publisher' ? 1 : 2
+    root.replaceChildren(
+      h('div', { class: 'wel-head' },
+        h('span', { class: 'app-kicker' }, T('welcomeKicker')),
+        h('h1', null, `${T('yourRole')} ${ROLES[idx].name[lang]}`),
+        h('p', { class: 'app-muted' }, `${T('oneRole')} ${T(VIA_COPY[a.via ?? 'chosen'])}.`)),
+      h('div', { class: 'app-actions' }, a.role === 'learner'
+        ? h('button', { type: 'button', class: 'app-btn primary', onClick: stepTour }, T('start'))
+        : h('button', { type: 'button', class: 'app-btn primary', onClick: () => finish(homeOf(roles)) }, T('toDashboard'))),
+      h('button', { type: 'button', class: 'wel-skip', onClick: () => finish(homeOf(roles)) }, T('skip')))
+  }
+
+  const stepChoose = (roles: MyRoles) => {
+    root.replaceChildren(h('div', { class: 'wel-head' },
+      h('span', { class: 'app-kicker' }, T('welcomeKicker')),
+      h('h1', null, T('welcomeTitle')),
+      h('p', { class: 'app-muted' }, T('chooseSub')),
+    ))
+    const issuer = roles.issuer?.address
+    const note = h('textarea', { class: 'seat-apply-note', maxlength: 280, rows: 2, placeholder: T('notePh'), 'aria-label': T('notePh') }) as HTMLTextAreaElement
+    const buttons: HTMLButtonElement[] = []
+    const card = (idx: 0 | 1 | 2, role: 'learner' | 'publisher' | 'owner', line: string, label: string, extra: HTMLElement | null) => {
+      const status = h('p', { class: 'seat-apply-status', role: 'status' })
+      const btn = h('button', { type: 'button', class: 'app-btn primary' }, label) as HTMLButtonElement
+      buttons.push(btn)
+      let armed = false
+      btn.addEventListener('click', () => {
+        // Klik pertama mempersenjatai (pilihan tidak bisa diganti), klik kedua menandatangani.
+        if (!armed) {
+          armed = true
+          btn.textContent = T('confirm')
+          status.className = 'seat-apply-status bad'
+          status.textContent = T('final')
+          return
+        }
+        buttons.forEach((b) => { b.disabled = true })
+        status.className = 'seat-apply-status'
+        status.textContent = T('signing')
+        void chooseMyRole(role, { issuer, note: role === 'publisher' ? note.value : undefined }).then(async (out) => {
+          if (!out.ok) {
+            buttons.forEach((b) => { b.disabled = false })
+            status.className = 'seat-apply-status bad'
+            status.textContent = out.why ?? ''
+            return
+          }
+          await seats(true)
+          if (role === 'learner') stepTour()
+          else finish(role === 'publisher' ? '#/app/pub' : '#/app/owner')
+        })
+      })
+      return h('div', { class: 'wel-seat active' },
+        h('div', { class: 'wel-seat-top' }, h('strong', null, ROLES[idx].name[lang])),
+        h('p', null, line),
+        h('div', { class: 'wel-seat-act' }, ...(extra ? [extra] : []), btn, status))
+    }
+    root.appendChild(h('div', { class: 'wel-seats' },
+      card(0, 'learner', T('learnerRole'), T('pickLearner'), null),
+      issuer ? card(1, 'publisher', T('publisherRole'), T('pickPublisher'), note) : null,
+      card(2, 'owner', T('ownerChooseLine'), T('pickOwner'), null),
+    ))
+    root.appendChild(h('button', { type: 'button', class: 'wel-skip', onClick: () => finish('#/app') }, T('later')))
+  }
+
+  const stepDevSeats = () => {
+    root.innerHTML = ''
+    root.appendChild(h('div', { class: 'wel-head' },
+      h('span', { class: 'app-kicker' }, `${T('welcomeKicker')} · ${T('devKicker')}`),
+      h('h1', null, T('welcomeTitle')),
+      h('p', { class: 'app-muted' }, T('devNote')),
     ))
     // B128: kursi Penerbit dan Agent Owner menunggu fakta dari penerbit (tanda tangan lencana-roles), lalu menjadi
     // "kursimu" atau "belum". B129: Penerbit yang dipegang membuka dasbor penerbit; yang belum bisa diajukan dari sini.

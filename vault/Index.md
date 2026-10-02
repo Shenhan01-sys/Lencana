@@ -24,7 +24,7 @@ Structural entry point: every layer, one line each. For orientation and the coun
 |---|---|---|
 | 00 | [[00-Overview/01 - Briefing]] | product, personas, demo scenes, decisions, corrections |
 | 01 | [[01-Architecture/01 - Architecture]] | the layers, who owns each, why BAS, the EAS gap we close |
-| 02 | [[02-Contracts/01 - Contracts]] | 4 contracts, function by function, with their revert names |
+| 02 | [[02-Contracts/01 - Contracts]] | ~~4 contracts~~ 5 deployed contracts *(Koreksi 3 Okt: yang kelima, `CourseDeposit`, dideploy 30 Sep malam — B90, [[09-Testing/T34 - signer deposit-check.js]])*, function by function, with their revert names |
 | 03 | [[03-Frontend/01 - Frontend]] | verifier page + learning surface; what the router mounts on |
 | 04 | [[04-Signer-Service/01 - Signer Service]] | the document, the two status lists, delegation, grading, payment |
 | 05 | [[05-Course-Content/01 - Course Content]] | course data, issuer manifest, who is allowed to decide a grade |

@@ -7,6 +7,8 @@ result: idempotent: 0 anchor baru, 14 watched
 
 # T9 - `npm run anchor` (hash daftar status di-timestamp di chain)
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P1 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Bagian:** [[04-Signer-Service/S2 - Status lists from chain state]]
+
 **Perintah:** `cd signer && npm run anchor` (tanpa `--dry-run` menulis; `--dry-run` hanya membaca).
 **Terakhir dijalankan:** 28 Sep 2026 — `14` kredensial dipantau, kedua hash yang SAAT INI tersaji
 sudah ter-anchor, dan run melaporkan **"0 anchor baru ditulis"** (idempoten, bukan tidak melakukan apa-apa).

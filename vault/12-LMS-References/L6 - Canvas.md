@@ -1,7 +1,7 @@
 ---
 tags: [lms-reference, "L6"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # L6 - Canvas
@@ -96,6 +96,17 @@ Both present. **Mastery paths** are `ConditionalRelease`: a `Rule` has one `trig
 ## 8. What Canvas has that Lencana lacks
 
 **Design gap** = never decided, needs a decision before code. **Implementation gap** = decided and not built, or built and not wired. Every Lencana line below was re-read in `app/` on 26 Sep.
+
+> ⚠️ **State as of 26 Sep — partly stale (correction 3 Oct).** The four implementation rows at the bottom of this
+> table have moved: an enrolment record (`public.enrollments`, `POST /enroll`) and server-side progress
+> (`lesson_progress`, `POST /progress`) exist and the page calls them (28 Sep, B72); the card's "Start course" button
+> now has a handler (`web/src/main.ts:1727`); paid courses are paid for before enrolment since B125 (D60) — 402 →
+> x402 settlement + `SettlementSplit` → `orders` = paid; the learning surface is reachable — "Dashboard" to the
+> internal area `#/app` (`web/index.html:41`, B124) and "Study Room" links redirected to the classroom
+> `#/class/<course>` (FE7). In the "five enrolment types" row, "wallet-connect and nothing else" is stale too: learners
+> sign in by email through Privy with an embedded wallet (D57), the only way in on the UI since B123 (D59), and account
+> roles exist in core since B128 (learner, publisher member, Agent Owner). Still true when re-read 3 Oct: zero
+> `mentor` in `web/`. Current gap list: [[12-LMS-References/L8 - Lencana vs LMS]] §C and [[00-Overview/11 - Product Bar]].
 
 | what Canvas has | gap | our state, cited |
 |---|---|---|

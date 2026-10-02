@@ -1,7 +1,7 @@
 ---
 tags: [refactoring, "RF4"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # RF4 - Learning Surface Target Shape
@@ -42,9 +42,15 @@ rubric, fail-closed) and `signer/src/grade.js` (mechanical scoring that refuses 
 Two constraints, because this is the part most likely to become an overstated claim:
 
 1. **Who rents the agent is a product decision the UI must state.** The vault's current position is that
-   the **publisher/issuer** owns the agent and the platform fronts its gas
+   ~~the **publisher/issuer** owns the agent~~ and the platform fronts its gas
    ([[00-Overview/03 - Decisions]] D31, [[01-Architecture/A5 - Gas fronted and recovered]]). A "mentor you
    pay for" is a different arrangement and must be decided, not implied.
+   *(Koreksi 3 Okt: posisi itu berubah 1 Okt. D53 — agen penilai dimiliki peran **Agent Owner** dengan identitas
+   ERC-8004 di registry BNB, dan penerbit **menyewanya per aktivitas penilaian**; D54 — penerbit tetap penanda tangan dan
+   pencabut kredensial, agen hanya menilai dan mengusulkan angka. Sejak B129 anggota penerbit menyewa dari dasbor
+   `#/app/pub`, dan sejak B130 platform bisa mencetak agen untuk sebuah akun yang lalu memilikinya. "Mentor yang kamu
+   bayar" tetap belum diputuskan; pengesah esai adalah agen AI, bukan mentor (D63). Lihat
+   [[08-Results/B119 - Executive Summary]], [[08-Results/B130 - Executive Summary]].)*
 2. **A mentor is a model.** Its number has a measured spread ([[09-Testing/T12 - npm run judge-variance]]),
    so the panel is advice, never assessment, and the UI must keep those two words apart.
 

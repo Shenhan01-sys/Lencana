@@ -20,6 +20,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { loadFileEnvReport } from '../src/env.js'
 import { ERC8004, identityAbi, registrationFile, toDataUri, readAgent, TARIFF_KEY, encodeTariff } from '../src/erc8004.js'
 import { recordPlatformAgent, platformAgents, dbConfigured, dbMissingReason } from '../src/db.js'
+import { accountOf, roleRefusal } from '../src/account.js'
 
 await loadFileEnvReport('agent:mint')
 const env = process.env
@@ -51,6 +52,12 @@ for (const [why, bad] of [
   ['akun tujuan = penerbit (attester) — D54: penerbit dan Agent Owner pihak berbeda', to.toLowerCase() === env.ISSUER_ADDRESS.toLowerCase()],
   ['akun tujuan = kunci platform sendiri', to.toLowerCase() === platform.address.toLowerCase()],
 ]) if (bad) { console.error(`berhenti: ${why}`); process.exit(2) }
+// B131 (D66): satu akun nyata satu peran — agen hanya dicetak untuk akun berperan Agent Owner, yang belum berperan, atau akun dev.
+{
+  const acct = await accountOf(to, { issuer: env.ISSUER_ADDRESS })
+  const refused = roleRefusal(acct, 'owner')
+  if (refused && !arg('agent-id')) { console.error(`berhenti: ${refused} (peran ${acct.role} lewat ${acct.via})`); process.exit(2) }
+}
 
 console.log(`registry ${REG} (chain ${chainId}) · ${APPLY ? 'MENULIS (--apply)' : 'hanya rencana'}`)
 console.log(`  platform    : ${platform.address} · saldo ${formatEther(await client.getBalance({ address: platform.address }))} tBNB`)

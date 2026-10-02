@@ -26,7 +26,7 @@ import { formatLdc, PAY_TOKEN_SYMBOL, PAY_TOKEN_DECIMALS } from '../pricing'
 import { coin } from '../lib/coin'
 import { odometer } from '../lib/odometer'
 import { skeleton, steps } from '../lib/loading'
-import { mountSeatSwitch, navIcon } from './seats'
+import { mountSeatSwitch, navIcon, guardSeat } from './seats'
 
 type Lang = 'en' | 'id'
 
@@ -48,6 +48,10 @@ const COPY = {
     id: 'Kursi ini milik akun yang dompetnya memiliki identitas agen ERC-8004 (ownerOf di registry). Di demo ini platform mencetak agen untuk sebuah akun lalu memindahkannya ke sana; pemiliknya kemudian memverifikasi dompet agen di halaman ini.',
   },
   backLearner: { en: 'Back to the learner dashboard', id: 'Kembali ke dasbor peserta' },
+  noAgentYet: {
+    en: 'You chose Agent Owner. The seat opens when this account’s wallet owns an ERC-8004 agent identity — in this demo the platform mints one and transfers it to you; you then verify its wallet here.',
+    id: 'Kamu memilih Agent Owner. Kursinya terbuka saat dompet akun ini memiliki identitas agen ERC-8004 — di demo ini platform mencetaknya lalu memindahkannya ke akunmu; sesudah itu kamu memverifikasi dompetnya di sini.',
+  },
   gas: { en: 'Gas for your transactions', id: 'Gas untuk transaksimu' },
   gasLow: { en: 'running low', id: 'menipis' },
   askGas: { en: 'Request test gas', id: 'Minta gas uji' },
@@ -135,12 +139,14 @@ export function renderOwnerApp (lang: Lang): HTMLElement {
     if (!fresh && memo?.addr === addr) { body.replaceChildren(renderAgents(lang, memo.data, () => load(true))); return }
     const progress = steps([T('stepSign'), T('stepRead')])
     body.replaceChildren(h('div', { class: 'app-loading' }, progress, skeleton('cards', T('loading'))))
-    void readOwnerOverview((i) => progress.set(i)).then((r) => {
+    // B131: akun nyata berperan lain dikirim ke dasbor perannya sendiri; kursi dibaca dulu, lalu dasbor — berurutan.
+    guardSeat('owner', (s) => void readOwnerOverview((i) => progress.set(i)).then((r) => {
       if (!body.isConnected) return
       if (r.status === 403) {
+        const chosen = s.ok && s.roles?.account.role === 'owner' && !s.roles.account.dev
         body.replaceChildren(h('section', { class: 'app-card pb-noseat' },
-          h('h2', null, T('noSeatTitle')), h('p', { class: 'app-muted' }, T('noSeatBody')),
-          h('a', { class: 'app-btn small', href: '#/app' }, T('backLearner'))))
+          h('h2', null, T('noSeatTitle')), h('p', { class: 'app-muted' }, chosen ? T('noAgentYet') : T('noSeatBody')),
+          chosen ? null : h('a', { class: 'app-btn small', href: '#/app' }, T('backLearner'))))
         return
       }
       if (!r.ok || !r.data) {
@@ -149,7 +155,7 @@ export function renderOwnerApp (lang: Lang): HTMLElement {
       }
       memo = { addr, data: r.data }
       body.replaceChildren(renderAgents(lang, r.data, () => load(true)))
-    })
+    }))
   }
   load(false)
   return shell

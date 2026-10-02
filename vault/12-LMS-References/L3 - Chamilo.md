@@ -1,7 +1,7 @@
 ---
 tags: [lms-reference, "L3"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # L3 - Chamilo
@@ -65,6 +65,15 @@ Worth keeping even so: their issuance row carries `validation_status`, non-zero 
 **By code** (all in `app/`): OB 3.0 / VC 2.0 document with `type: ['VerifiableCredential','OpenBadgeCredential']`, `validFrom`/`validUntil`, `AchievementSubject`, `achievement.criteria`, `result[]` (`signer/src/credential.js:46,68-72,112`); two chain-derived status lists anchored on BAS (`signer/src/statusList.js:30-31,91-92,130-139`, `signer/src/anchor.js:63-84`, `signer/src/chainStatus.js`); a third-party agent signing an EIP-712 BAS digest while the platform broadcasts and pays gas, `attester` being the agent's own address (`signer/src/delegation.js:2-19,108-116`, [[01-Architecture/A5 - Gas fronted and recovered]]); `rubricHash` printed into the credential (`web/src/manifest.ts:53-104`, `signer/scripts/issue.js:235-252`); wallet-less free verification from the browser against a public RPC (`web/src/verify.ts:159-191`) beside paid machine verification over x402 — `402`, Permit2 settlement, split through `SettlementSplit`, batch ≤ 25 (`signer/src/server.js:39,131,229-263`, `signer/src/x402.js:60-221`, [[04-Signer-Service/S6 - x402 paid verification]]); and `BELUM_LENGKAP` with `total: null` (`web/src/score.ts:8-13,39-41`).
 
 ## 5. What Chamilo has that Lencana lacks
+
+> ⚠️ **State as of 26 Sep — partly stale (correction 3 Oct).** Four of the five implementation bullets below
+> have moved: an enrolment record (`public.enrollments`, `POST /enroll`) and server-side progress
+> (`lesson_progress`, `POST /progress`) exist and the page calls them (28 Sep, B72) — `localStorage` is a labelled
+> cache, not the record; paid courses are paid for before enrolment since B125 (D60) — the learner pays from a
+> pay panel, the server answers `POST /enroll` with 402 and settles through `SettlementSplit`; the internal area
+> `#/app` and the public course page `#/course/<id>` exist since B124 and are linked from the navigation, and the
+> public simulations were removed by B123 (D59). Still true when re-read 3 Oct: no mentor or coach anywhere in
+> `web/`. Current gap list: [[12-LMS-References/L8 - Lencana vs LMS]] §C and [[00-Overview/11 - Product Bar]].
 
 **Implementation gaps** — we decided to have these; they are not built or not wired (all logged in [[11-Refactoring/RF1 - Consumer Readiness Audit]]):
 

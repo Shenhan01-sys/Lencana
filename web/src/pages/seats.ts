@@ -46,7 +46,18 @@ const COPY = {
     id: 'Demo: kunci penerbit ada di mesin platform — tim menyetujui dengan npm run grant:member.',
   },
   noIssuer: { en: 'This server has no publisher configured.', id: 'Server ini tidak punya penerbit yang dikonfigurasi.' },
+  devTag: { en: 'dev account', id: 'akun dev' },
+  devTitle: {
+    en: 'Developer account: holds every seat its facts give it. Real accounts hold one role.',
+    id: 'Akun pengembang: memegang semua kursi menurut faktanya. Akun nyata memegang satu peran.',
+  },
+  choosesRole: {
+    en: 'Applying chooses the Publisher role for this account. One account holds one role — this cannot be changed, and the account will not take courses.',
+    id: 'Mengajukan = memilih peran Penerbit untuk akun ini. Satu akun memegang satu peran — tidak bisa diganti, dan akun ini tidak mengikuti kursus.',
+  },
 } satisfies Record<string, Record<Lang, string>>
+
+const T = (lang: Lang, k: keyof typeof COPY) => COPY[k][lang]
 
 /** Ikon garis untuk menu samping (dipakai cangkang peserta dan penerbit). */
 export function navIcon (d: string): HTMLElement {
@@ -59,14 +70,43 @@ const when = (lang: Lang, iso: string | null) => (iso ? new Date(iso).toLocaleSt
 
 export type SeatId = 'learner' | 'publisher' | 'owner'
 
-/** Kursi yang dipegang akun, dari jawaban `/me/roles` (B128). Peserta selalu. */
+// Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata satu peran (D66): pemilih kursi hanya untuk akun dev (dummy builder); akun lain diarahkan ke dasbor perannya, dan kotak pengajuan memperingatkan bahwa mengajukan = memilih peran Penerbit. Buktikan ulang: cd signer && npm run verify:account, lalu uji peramban T57. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/**
+ * Kursi yang dipegang akun, dari jawaban `/me/roles`. Sejak B131 (D66) hanya akun dev yang memegang lebih dari satu kursi;
+ * akun nyata memegang kursi perannya saja, dan kursi itu tetap butuh faktanya (keanggotaan / ownerOf).
+ */
 export function heldSeats (roles: MyRoles | undefined | null): { publisher: boolean, owner: boolean } {
-  return { publisher: Boolean(roles?.publisher), owner: Boolean(roles?.agents.length) }
+  const facts = { publisher: Boolean(roles?.publisher), owner: Boolean(roles?.agents.length) }
+  if (!roles || roles.account.dev) return facts
+  return { publisher: roles.account.role === 'publisher' && facts.publisher, owner: roles.account.role === 'owner' && facts.owner }
+}
+
+/** Dasbor untuk peran akun ini (B131): Penerbit → `#/app/pub`, Agent Owner → `#/app/owner`, selain itu dasbor peserta. */
+export function homeOf (roles: MyRoles | undefined | null): string {
+  const role = roles && !roles.account.dev ? roles.account.role : null
+  return role === 'publisher' ? '#/app/pub' : role === 'owner' ? '#/app/owner' : '#/app'
+}
+
+/**
+ * Penjaga cangkang (B131): akun nyata yang membuka dasbor peran lain dikirim ke dasbor perannya sendiri. Akun dev dan akun
+ * yang belum berperan tidak dipindahkan (yang belum berperan boleh belajar — belajar menjadikannya Peserta). Kursi yang
+ * tidak terbaca tidak memindahkan siapa pun: server tetap menolak aksi peran lain.
+ */
+export function guardSeat (active: SeatId, then: (r: SeatsRead) => void): void {
+  void seats().then((r) => {
+    const acct = r.ok ? r.roles?.account : null
+    if (acct && !acct.dev && acct.role && acct.role !== active) {
+      window.location.hash = homeOf(r.roles)
+      return
+    }
+    then(r)
+  })
 }
 
 /**
  * Pemilih kursi (B129, tiga arah sejak B130): Peserta selalu ada; Penerbit dan Agent Owner hanya bila kursinya dipegang
- * menurut fakta. Tidak ditampilkan sama sekali kalau akun hanya peserta.
+ * menurut fakta. Sejak B131 hanya untuk akun dev — akun nyata memegang satu peran, jadi tidak ada yang dipilih.
  */
 export function seatSwitch (lang: Lang, active: SeatId, held: { publisher: boolean, owner: boolean }): HTMLElement | null {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
@@ -84,10 +124,11 @@ export function seatSwitch (lang: Lang, active: SeatId, held: { publisher: boole
 export function mountSeatSwitch (lang: Lang, active: SeatId, slots: HTMLElement[]): void {
   void seats().then((r) => {
     const held = heldSeats(r.ok ? r.roles : null)
+    const dev = Boolean(r.ok && r.roles?.account.dev)
     for (const slot of slots) {
       if (!slot.isConnected) continue
-      const el = seatSwitch(lang, active, held)
-      slot.replaceChildren(...(el ? [el] : []))
+      const el = dev ? seatSwitch(lang, active, held) : null
+      slot.replaceChildren(...(el ? [el, h('span', { class: 'seat-dev', title: T(lang, 'devTitle') }, T(lang, 'devTag'))] : []))
     }
   })
 }
@@ -133,6 +174,8 @@ export function applyBox (lang: Lang, roles: MyRoles, opts: { withNote?: boolean
     })
   })
   if (note) box.appendChild(note)
+  // B131: akun yang belum berperan memilih peran Penerbit dengan mengajukan — katakan sebelum ia menandatangani.
+  if (!roles.account.dev && !roles.account.role) box.appendChild(h('p', { class: 'seat-apply-warn' }, T('choosesRole')))
   box.appendChild(h('div', { class: 'seat-apply-row' }, btn, status))
   box.appendChild(h('p', { class: 'app-muted seat-apply-how' }, opts.withNote ? T('how') : T('howShort')))
   return box

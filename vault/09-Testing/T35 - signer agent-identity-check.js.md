@@ -7,6 +7,16 @@ measured: 2026-10-01
 result: AGEN HIJAU — 24 pemeriksaan / 0 gagal (baca-saja, chain 97, sesudah D54; pagi hari yang sama 23/0 dengan model lama)
 ---
 
+# T35 - signer agent-identity-check.js (agen penerbit punya identitas ERC-8004 yang bisa diperiksa orang lain)
+
+**Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B118 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
+**Keputusan:** D53, D54 di [[00-Overview/03 - Decisions]] · **Arsitektur:** [[01-Architecture/01 - Architecture]] ·
+**Proses bisnis:** [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]] · **AC:** —
+
+*(3 Okt: judul dan baris peta dipindah ke atas spanduk koreksi supaya peta terbaca lebih dulu, sesuai aturan #3 —
+isinya tidak diubah selain menambahkan D54. "Agen penerbit" di judul adalah istilah sebelum D54: agen hanya menilai,
+kunci penerbit yang menandatangani.)*
+
 > **KOREKSI 1 Okt, sore — D54 (opsi B).** Halaman di bawah ditulis untuk model pagi itu: `agentWallet` agen
 > #2534 = **attester** (kunci penerbit), dan `npm run admit` hanya menerima dompet agen. Builder lalu
 > memilih "penerbit tetap attester, agen hanya penilai yang dibayar". Yang berubah, di chain dan di kode:
@@ -20,12 +30,6 @@ result: AGEN HIJAU — 24 pemeriksaan / 0 gagal (baca-saja, chain 97, sesudah D5
 >
 > Harness-nya ditulis ulang untuk model itu → **24/0**. Tabel transaksi dan jebakan di bawah tetap benar
 > sebagai sejarah; kalimat "agentWallet = attester" di bawah ini adalah keadaan pagi 1 Okt.
-
-# T35 - signer agent-identity-check.js (agen penerbit punya identitas ERC-8004 yang bisa diperiksa orang lain)
-
-**Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B118 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Keputusan:** D53 di [[00-Overview/03 - Decisions]] · **Arsitektur:** [[01-Architecture/01 - Architecture]] ·
-**Proses bisnis:** [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]] · **AC:** —
 
 ## Kenapa harness ini ada
 

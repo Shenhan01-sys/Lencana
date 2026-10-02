@@ -1,10 +1,22 @@
 ---
 tags: [overview, submission, documentation, long-form]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # 10 - Project Detail, long form (reference)
+
+> ⚠️ **Keadaan per 26–28 Sep — sebagian basi (banner 3 Okt).** This page was written before the learning record moved
+> to the server and before B123–B130. Since then: enrolment, per-lesson progress and graded attempts are recorded in
+> Postgres under the learner's signature (since 28 Sep); learners log in by email through Privy and their address is the
+> embedded wallet (D57, 1 Okt), and since B123/D59 (2 Okt) that is the only way in; `#/learn` and `lms.ts` were replaced
+> by the classroom `#/class/<course>` (FE7) and the internal area `#/app` (B124); paid courses are paid **before**
+> enrolment — `POST /enroll` answers 402 → x402 settlement + `SettlementSplit` → order paid → class opens (B125, D60);
+> an `EXPIRED` specimen exists since B102 (30 Sep); account roles, the publisher dashboard `#/app/pub` and the Agent
+> Owner dashboard `#/app/owner` exist since B128–B130. Since D54 (1 Okt) AI agents only grade and propose scores — the
+> publisher key signs and revokes credentials. Lines that contradict this carry a dated correction where they stand;
+> numbers on this page are the dated records of their day, current ones are in [[Quick-Reference]] and
+> `09-Testing/numbers.json`. Current flow read from code: [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].
 
 **Plafon field "Project Detail" ternyata 5,600 karakter, bukan 68k.** Teks yang benar-benar kita tempel
 ke formulir ada di [[00-Overview/10 - Project Detail (long form) - Copy]] — **5,486 karakter**, 91 baris,
@@ -357,9 +369,11 @@ Nothing in this document is a claim without a command behind it. From a clone of
 | `cd signer && node scripts/anchor.js --dry-run` | what is being anchored, and that re-anchoring is idempotent | 14 watched; hash daftar yang **sekarang** tersaji (`0x168c327e1ef3cf81…` / `0x6256f66398be99a7…`) keduanya sudah ter-anchor sejak jam 1790492833 / 1790492842, dan dijalankan ulang hari ini melaporkan **"0 anchor baru ditulis"** | 27 Sep |
 
 The verdicts the page can return. The first four are the cases `probe.ts` asserts against the public
-network; `EXPIRED` is implemented in `verify.ts` and covered by tests, but **no seeded demo credential is
+network; `EXPIRED` is implemented in `verify.ts` and covered by tests, but ~~**no seeded demo credential is
 expired**, so it is not part of what the probe measures (and should not be shown in the video without
-seeding one first).
+seeding one first)~~ *(Koreksi 3 Okt: since B102 (30 Sep) an expired specimen exists on chain 97, `0x202f8edf…`, and
+`npm run check:samples` demands a specimen for each of valid / revoked / expired / delisted →
+[[09-Testing/T26 - signer sample-check.js]]. It has no sample button on the page, so paste it by hand.)*.
 
 | input | verdict | why it is interesting |
 |---|---|---|
@@ -367,7 +381,7 @@ seeding one first).
 | a revoked one | `REVOKED` | the publisher cannot un-say it |
 | a delisted publisher's credential | `ISSUER_DELISTED` | a judgement about the *issuer*, not the learner |
 | valid, but its prerequisite was revoked | valid + chained warning | **the rule EAS itself does not enforce** — it checks a prerequisite exists, not that it is still alive |
-| an expired one | `EXPIRED` | validity days come from the issuer's manifest — implemented and tested, **not seeded** |
+| an expired one | `EXPIRED` | validity days come from the issuer's manifest — implemented and tested, ~~**not seeded**~~ *(Koreksi 3 Okt: seeded since B102 — specimen `0x202f8edf…`)* |
 
 ## 10. Limits — what this is **not** yet
 
@@ -378,10 +392,15 @@ We would rather you read this than discover it.
   essays in the demo are our own fixtures.
 - **We are the facilitator on the paid path.** No third-party facilitator, no outside payer, no SLA,
   and the fee token is a demo ERC-20 with an open `mint`.
-- **Verification is free and needs no account; the learner product has no enrolment record.** Progress is
+- **Verification is free and needs no account; ~~the learner product has no enrolment record.~~** ~~Progress is
   `localStorage` and is labelled *not evidence*. The event a learner would actually pay for does not
   exist yet — that is the largest gap in the product, and it is in our backlog, not in this document's
-  claims.
+  claims.~~ *(Koreksi 3 Okt: since 28 Sep enrolment, per-lesson progress and server-graded quiz attempts are written to
+  Postgres under the learner's signature (`POST /enroll`, `POST /progress`, `POST /grade`), and the publisher issues
+  from that record; `web/src/progress.ts` still keeps a device-side copy that proves nothing. Since B125 (2 Okt, D60) the
+  paid event exists too: a paid course answers `POST /enroll` with 402 until the learner pays — x402 settlement +
+  `SettlementSplit`, an `orders` row marked paid, then the class opens. Limits that remain: test coins on testnet only,
+  we are the facilitator — [[08-Results/B125 - Executive Summary]].)*
 - **Model-graded numbers have a range** (§ table above): the score is not bit-reproducible; the
   pass/fail decision was stable in what we measured, which is a weaker claim and the only one we make.
 - **Testnet only.** Nothing on BSC mainnet, nothing on opBNB. Contract source is not verified on the
@@ -555,8 +574,13 @@ secret is a guess, not an assessment.
 
 ### The learner path, as it exists
 
-`#/learn` (catalog) → course syllabus (outcome, audience, rubric, modules) → module page → lesson page
-(reading + inline quiz, or essay editor with the rubric visible) → `#/me` portfolio → verifier link.
+~~`#/learn` (catalog) → course syllabus (outcome, audience, rubric, modules) → module page → lesson page
+(reading + inline quiz, or essay editor with the rubric visible) → `#/me` portfolio → verifier link.~~
+*(Koreksi 3 Okt: routes changed. FE7 (1 Okt) replaced `#/learn` and `lms.ts` with the classroom `#/class/<course>`;
+B123/B124 (2 Okt) added email login as the only way in, the public course detail `#/course/<id>`, and the internal area
+`#/app` with sidebar (`#/me` and `#/portfolio` now redirect there, `web/src/main.ts:1019`); B125 put "Bayar & daftar"
+before the class for paid courses; B127 added the Kursus page `#/app/courses` with search. Old `#/learn` links are
+redirected to the classroom, `web/src/main.ts:1011`.)*
 A hash router over typed data, **no UI framework** — the same reason `verify.ts` stays DOM-free and
 therefore probeable from Node.
 
@@ -570,7 +594,7 @@ part still on the list.
 
 | absent | status | why it matters for reading our claims |
 |---|---|---|
-| server-side enrolment record | **the largest hole** | progress is `localStorage`, labelled *not evidence*; the paid event a real LMS bills for does not exist |
+| ~~server-side enrolment record~~ | ~~**the largest hole**~~ | ~~progress is `localStorage`, labelled *not evidence*; the paid event a real LMS bills for does not exist~~ *(Koreksi 3 Okt: no longer absent — enrolment and progress are recorded server-side since 28 Sep, and the paid event exists since B125 (2 Okt): pay first, then the class opens.)* |
 | self-serve authoring UI | not built | courses are TypeScript objects reviewed like code; an issuer today edits with a pull request |
 | proctoring / video / SCORM / cohorts | not built, deliberately | we sell the proof layer, not the content pipeline — and no social or invigilation claim appears anywhere |
 
@@ -1089,10 +1113,10 @@ Not a wishlist — the holes a reviewer would find in a week, named before they 
 | **B39** | artefact granularity undecided | lesson-level credentials exist; ~24 artefacts per learner per course would turn a portfolio into noise |
 | **B40** | no batch mint | issuance gas scales per credential while settlement already batches ≤25 |
 | **B42** | no cold-store probe | exactly how a "green 20/20" once hid a real path failure |
-| — | **no enrolment record** | the paid event of an e-course does not exist; progress is `localStorage` and is labelled *not evidence* |
+| — | ~~**no enrolment record**~~ | ~~the paid event of an e-course does not exist; progress is `localStorage` and is labelled *not evidence*~~ *(Koreksi 3 Okt: paid — server-side enrolment and progress since 28 Sep, pay-before-enrol since B125, 2 Okt.)* |
 | — | **issuance is a script, not a service** | no queue, no idempotency key, no retry semantics; a person runs it |
 | — | **no index the platform controls** | `credentialsOf` grows unbounded per address with no pagination (BAS ships no BSC indexer), so a hosted "my certificates" page still needs backend work |
-| — | **the money has no user action attached to it** | no checkout, no enrolment event, no third-party facilitator — see §10 and **RF5** |
+| — | ~~**the money has no user action attached to it**~~ *(Koreksi 3 Okt: partly paid — since B125 a learner's "Bayar & daftar" on a paid course triggers the x402 settlement + split before enrolment; still true: no third-party facilitator, test coins on testnet)* | ~~no checkout, no enrolment event,~~ no third-party facilitator — see §10 and **RF5** |
 
 ### If you have five minutes as a judge
 

@@ -1,7 +1,7 @@
 ---
 tags: [refactoring, "RF7", information-architecture]
 status: active — urutan A → A2 → B → C di-acc builder 2 Okt
-updated: 2026-10-02
+updated: 2026-10-03
 ---
 
 # RF7 - Halaman publik vs internal, dashboard per peran, onboarding
@@ -39,7 +39,10 @@ OI-5). Item nav `.student-only` itu dipasang port `97bd106` tanpa menutup pintu 
 4. Dialog login mengikuti referensi builder (`References/b4492ab0d444891b66419c4717283b4f.jpg`: kartu terbelah, form di kiri,
    potongan kertas berlapis di kanan; di ponsel kartu kaca menimpa ilustrasi) dengan palet Lencana.
 5. **Target:** halaman dibagi publik vs internal; internal = dashboard ber-sidebar per peran + onboarding saat login pertama.
-6. **Target:** kursus diakses sesudah bayar (RF5) — belum dibangun (Product Bar #10 ⚠️; `POST /enroll` hari ini gratis).
+6. **Target:** kursus diakses sesudah bayar (RF5) — ~~belum dibangun (Product Bar #10 ⚠️; `POST /enroll` hari ini gratis)~~.
+   *(Koreksi 3 Okt: dibangun 2 Okt sebagai langkah B — B125, D60: kursus berbayar menjawab `POST /enroll` dengan 402 +
+   syarat x402, settlement + `SettlementSplit`, `orders` = paid, baru kelas terbuka; tersisa bayar lewat login sungguhan
+   (AC-B125#11) — [[08-Results/B125 - Executive Summary]].)*
 
 ## Peta halaman
 
@@ -48,8 +51,8 @@ OI-5). Item nav `.student-only` itu dipasang port `97bd106` tanpa menutup pintu 
 | halaman | rute | isi | hari ini |
 |---|---|---|---|
 | Beranda | `#/` | hero + kartu kredensial, katalog ringkas, alur 3D tiga kursi, trust | ada |
-| Katalog | `#/courses` | kartu kursus: durasi, modul, penerbit, **harga** | ada, tanpa harga |
-| Detail kursus | `#/course/<id>` | silabus per modul, apa yang dibuktikan, penerbit, harga, tombol Daftar | **belum** — rute itu sekarang langsung ke ruang kelas (perlu login); harga menunggu B |
+| Katalog | `#/courses` | kartu kursus: durasi, modul, penerbit, **harga** | ~~ada, tanpa harga~~ *(koreksi 3 Okt: ada, dengan harga sejak B125; katalog publik 7 kursus sejak B127)* |
+| Detail kursus | `#/course/<id>` | silabus per modul, apa yang dibuktikan, penerbit, harga, tombol Daftar | ~~**belum** — rute itu sekarang langsung ke ruang kelas (perlu login); harga menunggu B~~ *(koreksi 3 Okt: ada sejak B124 — `web/src/pages/course-detail.ts`; harga + panel bayar sejak B125)* |
 | Cek bukti | `#/verify` | tempel hash/UID → status dari chain | ada; simulasinya dibuang di langkah A |
 | Penerbit | `#/publishers` | registri dari manifest | ada |
 | Trust & Limits | `#/agent-hub` | batas yang jujur | ada; simulasi dibuang di langkah A |
@@ -60,9 +63,9 @@ OI-5). Item nav `.student-only` itu dipasang port `97bd106` tanpa menutup pintu 
 
 | peran | sidebar | dasar di core hari ini |
 |---|---|---|
-| **Peserta** | Ringkasan · Kelas saya · Nilai & tugas (kuis, esai menunggu pengesahan, praktik) · Kredensial saya (milik sendiri, tombol bagikan) · Pembayaran (B) · Akun | semua rute ada: `/auth/privy`, `/enroll`, `/progress`, `/grade`, `/essay`, `/praktik`; kredensial dibaca dari chain per alamat |
-| **Penerbit** | Ringkasan · Kursus (manifest + `rubricHash`) · Antrean esai & pengesahan · Agen disewa & tagihan · Terbit & cabut · Pendapatan · Akun | aksi ada (`/essay/judgement`, `/essay/reviewers`, `/essay/review`, `/agents/hire`, `/agent-charges`) tetapi diotorisasi **kunci penerbit**, bukan akun; terbit/cabut masih CLI; tidak ada rute daftar antrean esai |
-| **Agent Owner** | Ringkasan · Agen saya (identitas ERC-8004, dompet) · Tarif · Sewa aktif · Pekerjaan bertanda tangan · Pendapatan · Akun | `GET /agents/<id>/rates` membaca registry; tarif = metadata yang ditulis pemilik NFT di chain; tidak ada akun atau layar |
+| **Peserta** | Ringkasan · Kelas saya · Nilai & tugas (kuis, esai menunggu pengesahan, praktik) · Kredensial saya (milik sendiri, tombol bagikan) · ~~Pembayaran (B)~~ *(koreksi 3 Okt: bagian Dompet menggantikan Pembayaran — D61, B126; riwayat pembayaran pindah ke dalamnya; menu Kursus ditambah B127)* · Akun | semua rute ada: `/auth/privy`, `/enroll`, `/progress`, `/grade`, `/essay`, `/praktik`; kredensial dibaca dari chain per alamat |
+| **Penerbit** | Ringkasan · Kursus (manifest + `rubricHash`) · Antrean esai & pengesahan · Agen disewa & tagihan · Terbit & cabut · Pendapatan · Akun | aksi ada (`/essay/judgement`, `/essay/reviewers`, `/essay/review`, `/agents/hire`, `/agent-charges`) ~~tetapi diotorisasi **kunci penerbit**, bukan akun~~; terbit/cabut masih CLI; ~~tidak ada rute daftar antrean esai~~ *(koreksi 3 Okt: sejak B129 ada dasbor `#/app/pub` — Ringkasan, Kursus, Peserta, Esai, Agen, Pendapatan — dari `POST /publisher/overview`, tanpa teks esai; anggota penerbit menyewa agen penilai dan menunjuk agen pengesah dengan tanda tangannya sendiri sesuai hibah. Yang tetap kunci penerbit: menyetujui anggota, membayar tagihan agen, dan terbit/cabut kredensial — [[08-Results/B129 - Executive Summary]])* |
+| **Agent Owner** | Ringkasan · Agen saya (identitas ERC-8004, dompet) · Tarif · Sewa aktif · Pekerjaan bertanda tangan · Pendapatan · Akun | `GET /agents/<id>/rates` membaca registry; tarif = metadata yang ditulis pemilik NFT di chain; ~~tidak ada akun atau layar~~ *(koreksi 3 Okt: sejak B128 kursi Agent Owner dibaca dari `ownerOf`, dan sejak B130 ada dasbor `#/app/owner` dari `POST /owner/overview` — identitas, dompet agen yang diverifikasi pemiliknya sendiri (EIP-712 + `setAgentWallet`), tangga tarif dan ubah tarif (`setMetadata`), tempat bekerja, aktivitas, bayaran; agen dicetak platform untuk akun lewat `npm run agent:mint` — [[08-Results/B130 - Executive Summary]])* |
 
 Model peran produk belum ada di core (Product Bar #11 ⚠️) — dashboard Penerbit dan Agent Owner bergantung padanya.
 *(2 Okt, B128: kini ada — `POST /me/roles` membaca kursi dari fakta: kunci penerbit, keanggotaan yang ditandatangani kunci itu, dan `ownerOf` ERC-8004. Lihat langkah C1 di bawah.)*
@@ -97,4 +100,5 @@ Model peran produk belum ada di core (Product Bar #11 ⚠️) — dashboard Pene
 | **A** (di-acc 2 Okt; dikerjakan 2 Okt — B123, tersisa uji login sungguhan oleh builder) | tutup pintu tanpa akun; dialog login baru (Google bila aktif + email, tanpa kata Privy); simulasi publik dibuang; nav tamu = halaman publik; sesudah login nav = "Dashboard" (sementara ke `#/me`); `#/submit` dan `#/portfolio` dialihkan | tsc + build + probe + `verify:privy`, uji peramban tamu vs login, OI untuk berkas maintainer |
 | **A2** (dikerjakan 2 Okt — B124, tersisa uji login sungguhan oleh builder) | cangkang dashboard (sidebar) + onboarding + dashboard Peserta dari data yang ada; **diputuskan 2 Okt:** onboarding menampilkan ketiga peran — Penerbit dan Agent Owner berlabel "segera" (syaratnya dijelaskan, tanpa tombol yang pura-pura mendaftarkan) — dan **detail kursus publik** (silabus, penerbit, apa yang dibuktikan, tombol Daftar) masuk A2, harganya menyusul di B; status esai butuh satu rute baca baru di core | sama + uji onboarding |
 | **B** (dikerjakan 2 Okt — B125, tersisa bayar lewat login sungguhan oleh builder) | enrollment berbayar + halaman detail kursus publik dengan harga (RF5); **diputuskan 2 Okt:** harga Web3 Dasar 10 LDC-demo, Web3 Lanjut 25 LDC-demo (koin uji testnet, disimpan di luar hash manifest); tombol "Ambil koin uji" (server mencetak ke dompet peserta, sekali per alamat per hari, berlabel testnet); enrollment yang sudah ada sebelum harga berlaku tetap boleh lanjut; bayar tanpa gas lewat izin EIP-2612 + Permit2 (x402) ke `SettlementSplit`, `orders` = paid; premi tenggat (`CourseDeposit`) tetap terpisah | harness bayar → enrollment lunas; server menolak belajar tanpa lunas |
-| **C** (dipecah 2 Okt, D63: C1 → C2 → C3, acc per langkah) | **C1** peran di core (dikerjakan 2 Okt — B128, tersisa uji login sungguhan oleh builder) · **C2** dashboard Penerbit + aksi anggota (sewa agen penilai, tunjuk agen pengesah) dengan tanda tangan anggota (dikerjakan 2 Okt — B129, D64: plus pengajuan anggota "ajukan → disetujui kunci penerbit" dan pemilih kursi; tersisa uji login sungguhan) · **C3** dashboard Agent Owner + agen ERC-8004 baru untuk akun builder (dikerjakan 2 Okt — B130, D65: agen #2547 dicetak untuk akun 2; tersisa verifikasi dompetnya oleh builder) | harness peran (`verify:roles` 39/0) + uji peramban per peran (T51 untuk C1) |
+| **C** (dipecah 2 Okt, D63: C1 → C2 → C3, acc per langkah) | **C1** peran di core (dikerjakan 2 Okt — B128, tersisa uji login sungguhan oleh builder) · **C2** dashboard Penerbit + aksi anggota (sewa agen penilai, tunjuk agen pengesah) dengan tanda tangan anggota (dikerjakan 2 Okt — B129, D64: plus pengajuan anggota "ajukan → disetujui kunci penerbit" dan pemilih kursi; tersisa uji login sungguhan) · **C3** dashboard Agent Owner + agen ERC-8004 baru untuk akun builder (dikerjakan 2 Okt — B130, D65: agen #2547 dicetak untuk akun 2; ~~tersisa verifikasi dompetnya oleh builder~~ *(koreksi 3 Okt: diverifikasi builder 2 Okt malam dari dompet Privy akun 2 — `setAgentWallet` `0xfd0486d2…`, AC-B130#4 PASS; yang tersisa: akun 1 menyewa #2547 dari dasbor penerbit, AC-B130#8 sebagian — [[08-Results/B130 - Executive Summary]])*) | harness peran (`verify:roles` 39/0) + uji peramban per peran (T51 untuk C1) |
+| **C4** (permintaan builder 2 Okt malam, acc 3 Okt — B131, D66) | **satu akun nyata = satu peran**: peran dipilih sekali saat onboarding (bertanda tangan, tidak bisa diganti), server menolak aksi peran lain, akun lama mendapat perannya dari rekaman/fakta; pemilih kursi C2/C3 kini **hanya untuk akun dev** (dua akun dummy builder). Ini mengoreksi langkah 2 onboarding di atas ("Kamu datang sebagai…" menampilkan kursi dari fakta): kini akun memilih, dan pilihannya final | `verify:account` 50/0 + uji peramban T57 |

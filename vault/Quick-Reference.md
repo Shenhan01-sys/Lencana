@@ -1,7 +1,7 @@
 ---
 tags: [reference, commands]
 status: active
-updated: 2026-09-28
+updated: 2026-10-03
 ---
 
 # Quick Reference
@@ -13,11 +13,16 @@ command and a page disagree, the run wins.**
 > bertanggal** — kolom `last` menyebut hari angkanya dicetak, dan sebagian besar barisnya 28 Sep (mis. web
 > probe 59/0, `verify:edge` 5/0 dengan 8 dari 14). Itu bukan angka hari ini dan tidak dijaga alat. **Klaim
 > kini** ada di tabel kedua ("Perintah yang ditambahkan 29 Sep") yang dijaga `npm run sync:numbers -- --verify`,
-> dan di `09-Testing/numbers.json`: 1 Okt malam (sesudah E2E penuh) web probe 88/0 · `check` 106/0 · `serve-probe` 50/0 ·
+> dan di `09-Testing/numbers.json`: 1 Okt malam (sesudah E2E penuh) web probe ~~88/0~~ · `check` 106/0 · `serve-probe` 50/0 ·
 > `verify:edge` 10/0 (26 dari 26) · `verify:live-cert` 47/0 · `e2e` 47/0 *(sore 1 Okt: probe 86/0, `check` 100/0, 23 dari 23,
 > `verify:live-cert` 35/0, `e2e` 46/0)* *(30 Sep malam, sebelum kertas uji B121:
 > `check` 98/0 dan 22 dari 22; sebelum kertas uji B104: 96/0 dan 21 dari 21)*. (Siang 30 Sep, sebelum
 > dua kertas spesimen B102: `check` 91/0 · `serve-probe` 49/0 · `verify:edge` 9/0 dengan 19 dari 19.)
+> *(Koreksi 3 Okt: web probe kini **118/0** — dicetak `sync:numbers` 3 Okt; naik ke 92 dan 118 pada 2 Okt lewat B126/B127.
+> Baterai yang sama: `check` 106/0 · `serve-probe` 50/0 · `verify:live-cert` 47/0 · `e2e` 47/0 tidak berubah; `verify:edge`
+> tak terbaca di baterai — run terpisah 3 Okt: **TEPI MERAH 10 pemeriksaan, 1 gagal**, karena umur state tepi 30,3 jam melewati
+> ambang 26 jam, sedang 26 dari 26 kertas tetap terbaca; perbaikannya `npm run publish:edge` oleh builder. Ringkasan baterai:
+> baris "baterai" di [[09-Testing/00 - Hub Testing]].)*
 
 | command (from `app/`) | prints | last |
 |---|---|---|
@@ -75,12 +80,14 @@ never retyped.
 | `npm run verify:agent` | identitas agen penilai ERC-8004 (B118, sesudah D54): registry BNB, pemilik = Agent Owner, dompet agen = kunci operasional agen dan **bukan** penerbit, berkas registrasi, halaman verifikasi, gerbang `admit`; baca-saja | AGEN HIJAU — 24 pemeriksaan, 0 gagal *(23 pagi 1 Okt, model lama: dompet agen = attester)* |
 | `npm run verify:agents` / `:live` | B119 sewa agen per aktivitas + B120 reviewer agen: tabel harga dari tarif Agent Owner, sewa, penilaian agen dengan label, tagihan, pengesahan agen; `:live` membayar dua tagihan lewat x402 | AGEN SEWA HIJAU — 34 pemeriksaan, 0 gagal · live 40/0 |
 | `npm run verify:praktik` / `:live` | B121 core: `/attempts` menolak skor kuis/esai/praktik peserta; `POST /praktik` membaca ulang chain 97 untuk saldo, transfer, `eth_call`, izin token; jawaban salah hanya dibalas nama pemeriksaannya; satu bukti satu peserta; `:live` mengirim satu transfer 0,001 tBNB baru (tanpa `:live` memakai transfer tetap `KNOWN_TX`) | PRAKTIK HIJAU — 32 pemeriksaan, 0 gagal · live 32/0 |
-| `npm run verify:quizkeys` / `-- --deployed=<url>` | B80: kunci kuis lengkap di sisi server, `rubricHash` hitungan = terbit = criteria di tepi, bangun bundel web lalu pindai JS + source map (teks `why`, literal `answer`, dengan kontrol positif teks soal), penjaga impor, dan `/grade` membalas pembahasan tanpa indeks jawaban; `--deployed` memindai bundel yang sedang tayang | KUNCI KUIS HIJAU — 30 pemeriksaan, 0 gagal · bundel lama Vercel (sebelum deploy ulang) → MERAH 33/2 |
+| `npm run verify:quizkeys` / `-- --deployed=<url>` | B80: kunci kuis lengkap di sisi server, `rubricHash` hitungan = terbit = criteria di tepi, bangun bundel web lalu pindai JS + source map (teks `why`, literal `answer`, dengan kontrol positif teks soal), penjaga impor, dan `/grade` membalas pembahasan tanpa indeks jawaban; `--deployed` memindai bundel yang sedang tayang | ~~KUNCI KUIS HIJAU — 30 pemeriksaan, 0 gagal~~ **KUNCI KUIS MERAH — 66 pemeriksaan, 6 gagal** (60 lulus; dicetak `sync:numbers` 3 Okt) *(Koreksi 3 Okt: 30/0 adalah run 1 Okt dengan dua kursus. Merahnya bukan kunci yang bocor ke bundel: dokumen criteria kelas uji B126 dan lima kursus B127 belum terbit di tepi, jadi `rubricHash` = criteria di tepi belum bisa dibuktikan untuk kursus itu — perbaikannya `npm run publish:edge` oleh builder)* · bundel lama Vercel (sebelum deploy ulang) → MERAH 33/2 |
 | `npm run verify:privy` / `-- --deployed=<url>` | B82 (D57): login Privy — app secret diuji ke API users Privy (kontrol: secret palsu → 401), token palsu ditolak (lib + HTTP), saringan dompet tertanam, `POST /auth/privy` gagal tertutup tanpa secret (503), ikatan alamat ↔ akun atomik di Postgres + RLS, bundel web: SDK di chunk lambat dan secret 0 kemunculan; `--deployed` memindai bundel yang tayang. Jalur positif (token sah) hanya berjalan kalau app Privy punya akun uji | LOGIN PRIVY HIJAU — 41 pemeriksaan, 0 gagal (termasuk 3 preflight CORS, B122) · jalur positif TIDAK diuji (app belum punya akun uji) |
 | `npm run verify:records` | B124: `POST /me/records` hanya untuk pemilik alamat (pesan `lencana-records`), proyeksi tanpa teks esai, peserta lain tidak melihat baris ini | REKAMAN HIJAU — 17 pemeriksaan, 0 gagal |
 | `npm run verify:paywall` / `:live` | B125 (D60): kursus berbayar menjawab 402 + syarat x402; bayar = izin token + pesan enroll, penerbit menyiarkan settlement + pembagian; koin uji sekali per alamat per 24 jam | PAYWALL HIJAU — 24 pemeriksaan, 0 gagal |
 | `npm run verify:roles` | B128 (D63): kursi akun dari fakta — kunci penerbit, keanggotaan bertanda tangan kunci penerbit, `ownerOf` ERC-8004 | PERAN HIJAU — 39 pemeriksaan, 0 gagal |
-| `npm run verify:publisher` | B129 (D64): pengajuan anggota → disetujui kunci penerbit, dasbor penerbit (potongan dari chain, tanpa teks esai), aksi anggota sewa/tunjuk agen | KURSI PENERBIT HIJAU — 53 pemeriksaan, 0 gagal |
+| `npm run verify:publisher` | B129 (D64): pengajuan anggota → disetujui kunci penerbit, dasbor penerbit (potongan dari chain, tanpa teks esai), aksi anggota sewa/tunjuk agen | ~~53 pemeriksaan~~ KURSI PENERBIT HIJAU — 57 pemeriksaan, 0 gagal *(3 Okt, sesudah B131: +2 kunci tim dijadikan akun dev sementara, +1 peran pemohon tercatat, +1 bersih-bersih)* |
+| `npm run verify:account` | B131 (D66): satu akun nyata satu peran — dipilih sekali bertanda tangan, aksi peran lain ditolak server, peran lama dari rekaman/fakta, akun dev memegang semua kursi | SATU PERAN HIJAU — 50 pemeriksaan, 0 gagal |
+| `npm run account:dev -- --list` · `<alamat> [--note "…"] [--off] --apply` | B131: tandai/lepas akun dev (dummy builder) — hanya lewat CLI platform, tidak ada rute HTTP | 2 akun dev (akun dummy 1 dan 2 builder) |
 | `npm run verify:owner` | B130 (D65): dasbor Agent Owner hanya untuk alamat yang `ownerOf`-nya memegang agen yang dikenal platform; identitas/dompet/tarif dari registry, sewa/aktivitas/tagihan = hitungan database; gas hanya untuk pemilik agen cetakan platform; dompet kosong sesudah pemindahan = belum layak sewa | AGENT OWNER HIJAU — 32 pemeriksaan, 0 gagal |
 | `npm run agent:mint -- --to <alamat> [--tariff 2000] [--apply]` | B130: platform mencetak agen ERC-8004 untuk sebuah akun (register, berkas registrasi, tarif, `transferFrom`, gas) dan mencatatnya di `platform_agents`; dompet agen diisi pemiliknya sendiri dari `#/app/owner` | #2546 (akun uji, T55) · #2547 (akun 2 builder) |
 | `npm run grant:member -- --list` · `<alamat> [--hire] [--appoint]` · `--reject` · `--revoke` | B128/B129: keputusan keanggotaan penerbit dengan kunci penerbit (pesan + tanda tangan disimpan) | — |

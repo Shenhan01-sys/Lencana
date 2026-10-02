@@ -62,6 +62,18 @@ Quizzes are graded server-side, per question: `services/courses/activities/assig
 
 ## 4. What LearnHouse has that Lencana lacks
 
+> ⚠️ **State as of 26 Sep — partly stale (correction 3 Oct).** Read the Lencana side of this section as a
+> snapshot. Since then: enrolment (`public.enrollments`, `POST /enroll`) and server-side progress
+> (`lesson_progress`, `POST /progress`) exist and the page calls them (28 Sep, B72), and quizzes are graded by the
+> server (`POST /grade`); the quiz answer key left the browser bundle on 1 Oct (B80, D56) — so design gap 4 below
+> no longer holds as written; learners sign in by email through Privy and their learning address is the embedded
+> wallet, bound to an account in `learner_accounts` (D57), and since B123 (D59, 2 Oct) that is the only way in on
+> the UI — no wallet-only path; the internal area `#/app` (sidebar, first-login onboarding) and the public course
+> page `#/course/<id>` exist since B124 and are linked from the navigation; paid courses are paid for before
+> enrolment since B125 (D60). `web/src/lms.ts`, cited below, no longer exists — FE7 replaced `#/learn` with the
+> classroom `#/class/<course>`. Not re-measured here: the remaining items. Current gap list:
+> [[12-LMS-References/L8 - Lencana vs LMS]] §C and [[00-Overview/11 - Product Bar]].
+
 **Design gap** — never decided; each needs a decision, not a ticket.
 1. **Two gates instead of one.** We collapse "done" and "earned" into `readyForCredential` (`web/src/progress.ts:132`), true when *every component has some evidence* — not when the learner passed. `computeScore` produces the verdict, but the surface shows the first number; RF4 already flags the misleading column ([[11-Refactoring/RF4 - Learning Surface Target Shape]]).
 2. **Formative work.** Their `ungraded` assignment (`assignments.py:81`) is satisfied by handing in and never blocks a certificate. All six of our lesson kinds feed `gradedWeights`; we cannot mark one "practice, not assessed".

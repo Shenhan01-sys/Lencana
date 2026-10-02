@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-02T11:55:37.574Z",
+  "capturedAt": "2026-10-02T18:08:45.922Z",
   "note": "Dihasilkan npm run sync:numbers. Halaman vault yang mengutip angka harness wajib cocok dengan berkas ini (verify: npm run sync:numbers -- --verify).",
   "items": {
     "check": {
@@ -39,14 +39,10 @@
       "pass": 39
     },
     "edge": {
-      "total": 10,
+      "total": 0,
       "fail": 0,
-      "skipped": 0,
-      "pass": 10,
-      "ratio": {
-        "a": 26,
-        "b": 26
-      }
+      "pass": 0,
+      "error": "Command failed: npm run verify:edge\n"
     },
     "forgeOffline": {
       "total": 65,
@@ -158,16 +154,22 @@
       "pass": 39
     },
     "publisher": {
-      "total": 53,
+      "total": 57,
       "fail": 0,
       "skipped": 0,
-      "pass": 53
+      "pass": 57
     },
     "owner": {
       "total": 32,
       "fail": 0,
       "skipped": 0,
       "pass": 32
+    },
+    "account": {
+      "total": 50,
+      "fail": 0,
+      "skipped": 0,
+      "pass": 50
     }
   }
 }

@@ -93,6 +93,9 @@ import { overview as publisherOverview, readPlatformBps } from './publisher.js'
 import { ownerOverview, nativeBalance, sendGasDrip, GAS_LOW, GAS_DRIP } from './owner.js'
 import { ownedAgentFacts } from './agents.js'
 import { ownerRecords as dbOwnerRecords, platformAgents as dbPlatformAgents, platformAgentIds as dbPlatformAgentIds } from './db.js'
+// Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata = satu peran (D66): POST /me/role (pilih sekali, bertanda tangan), /me/roles mengembalikan peran efektif, rute peserta/penerbit/Agent Owner menolak akun berperan lain kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { accountOf, roleRefusal } from './account.js'
+import { chooseRole as dbChooseRole, recordRole as dbRecordRole } from './db.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -283,8 +286,25 @@ async function rolesOf (address) {
   const agents = await ownedAgents
   // B129: penerbit yang bisa dilamar — halaman menandatangani `lencana-member-request issuer=<alamat ini>`.
   const publisherIssuer = PAY_PAYEE ? { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null } : null
-  return { address: addr, roles: { learner: true, publisher, agentOwner: agents.length ? { agents } : null }, publisherRequest: request, publisherIssuer }
+  // B131 (D66): `roles` tetap fakta mentah (B128); `account` = peran efektif — satu peran untuk akun nyata, semua kursi
+  // menurut fakta hanya untuk akun dev. Halaman menampilkan kursi dari `account`, bukan dari `roles`.
+  const account = await accountOf(addr, { issuer: PAY_PAYEE ?? null, ownsAgent: async () => agents.length > 0 })
+  return { address: addr, roles: { learner: true, publisher, agentOwner: agents.length ? { agents } : null }, account, publisherRequest: request, publisherIssuer }
 }
+
+/** Peran efektif tanpa bacaan chain — untuk penjaga rute yang dipanggil sering (B131). */
+const accountCheap = (address) => accountOf(address, { issuer: PAY_PAYEE ?? null })
+
+/** Peran efektif lengkap (dengan ownerOf atas agen yang dikenal) — untuk keputusan yang jarang: memilih peran, hibah anggota. */
+async function accountFull (address) {
+  const ownsAgent = AGENTS_READY
+    ? async (a) => (await agentsOwnedBy(AGENTS_CFG, a, [...MANIFESTS.map((m) => m.issuer.agent?.agentId).filter(Boolean), ...await dbKnownAgentIds()])).length > 0
+    : null
+  return accountOf(address, { issuer: PAY_PAYEE ?? null, ownsAgent })
+}
+
+// B131: rute yang hanya untuk peran Peserta. Akun Penerbit / Agent Owner (bukan dev) ditolak sebelum tanda tangannya dipakai.
+const LEARNER_ROUTES = new Set(['/enroll', '/progress', '/grade', '/essay', '/praktik', '/faucet'])
 
 /** Kursi Penerbit satu alamat: pemegang kunci penerbit (`issuer`) atau anggota aktif (`member`), atau null. */
 async function publisherSeat (address) {
@@ -561,7 +581,7 @@ const server = createServer(async (req, res) => {
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
       || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members'
       || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
-      || path === '/owner/overview' || path === '/owner/gas') {
+      || path === '/owner/overview' || path === '/owner/gas' || path === '/me/role') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -580,6 +600,32 @@ const server = createServer(async (req, res) => {
       }
       const body = await readJsonBody(req)
       if (!body || typeof body !== 'object') return send(res, 400, jsonBody({ error: 'body must be a JSON object' }))
+      // B131 (D66): akun yang berperan Penerbit / Agent Owner tidak belajar, membayar kursus, atau meminta koin uji.
+      // Akun tanpa peran boleh — belajar menjadikannya Peserta (rekaman mendahului fakta di `accountOf`).
+      if (LEARNER_ROUTES.has(path) && isAddress(String(body.learner ?? ''))) {
+        // Murah dulu (database); bacaan chain (ownerOf) hanya bila akun belum berperan menurut database — dalam praktik
+        // hanya enroll / koin uji pertama, karena sesudah enroll rekaman sudah menjadikannya Peserta.
+        let acct = await accountCheap(body.learner)
+        if (!acct.dev && !acct.role) acct = await accountFull(body.learner)
+        const refused = roleRefusal(acct, 'learner')
+        if (refused) return send(res, 403, jsonBody({ error: refused }))
+      }
+      if (path === '/me/role') {
+        // B131: pilih peran sekali. Ditolak sebelum tanda tangan dipakai bila akun sudah berperan menurut pilihan, rekaman,
+        // atau fakta — pilihan kedua juga ditolak kunci primer `account_roles` di database.
+        if (!isAddress(String(body.learner ?? ''))) return send(res, 400, jsonBody({ error: 'learner must be the address of the account that signs' }))
+        const before = await accountFull(body.learner)
+        if (before.dev) return send(res, 409, jsonBody({ error: 'developer accounts hold every seat their facts give them and do not choose a role', account: before }))
+        if (before.role) {
+          return send(res, 409, jsonBody({ error: `this account already holds the ${before.role} role (${before.via}) — one account holds one role`, account: before }))
+        }
+        const out = await dbChooseRole({
+          address: getAddress(String(body.learner).toLowerCase()), role: body.role, issuer: PAY_PAYEE ?? null, note: body.note ?? null,
+          message: body.message, signature: body.signature,
+        })
+        if (!out.ok) return send(res, ({ auth: 401, conflict: 409 })[out.kind] ?? 400, jsonBody({ error: out.why }))
+        return send(res, 201, jsonBody({ role: out.role, chosenAt: out.chosenAt, request: out.request, account: await accountCheap(body.learner) }))
+      }
       // Lencana-B124 status=TERBUKA 2026-10-02 — rute POST /me/records: rekaman belajar milik peserta (enrollment, ringkasan, usaha dinilai) untuk dashboard; hanya pemilik alamat (tanda tangan + nonce, pesan khusus), tanpa teks esai. Buktikan ulang: npm run verify:records. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
       if (path === '/faucet') {
         // B125: koin uji LDC-demo (testnet) ke dompet peserta; platform membayar gas. Sekali per alamat per jendela waktu,
@@ -627,6 +673,11 @@ const server = createServer(async (req, res) => {
         if (String(body.issuer ?? '').toLowerCase() !== PAY_PAYEE.toLowerCase()) {
           return send(res, 401, jsonBody({ error: `memberships are granted by the configured publisher (${PAY_PAYEE})` }))
         }
+        // B131: hibah hanya untuk akun yang berperan Penerbit atau belum berperan (atau akun dev) — satu akun satu peran.
+        if (body.revoke !== true && body.reject !== true && isAddress(String(body.member ?? ''))) {
+          const refused = roleRefusal(await accountFull(body.member), 'publisher')
+          if (refused) return send(res, 409, jsonBody({ error: `membership not granted: ${refused}` }))
+        }
         const out = body.revoke === true
           ? await dbRevokeMember({ issuer: body.issuer, member: body.member, message: body.message, signature: body.signature })
           : body.reject === true
@@ -643,9 +694,19 @@ const server = createServer(async (req, res) => {
       if (path === '/me/member-request') {
         // B129: akun mengajukan diri dengan tanda tangannya sendiri; pengajuan tidak memberi wewenang apa pun.
         if (!PAY_PAYEE) return send(res, 503, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher to apply to' }))
+        // B131: hanya akun berperan Penerbit, akun dev, atau akun yang belum berperan. Untuk yang terakhir, pengajuan yang
+        // diterima ADALAH pilihan peran Penerbit — dicatat dengan pesan + tanda tangan pengajuan itu (kontrak rute B129 tetap).
+        let chooses = false
+        if (isAddress(String(body.learner ?? ''))) {
+          const acct = await accountFull(body.learner)
+          const refused = roleRefusal(acct, 'publisher')
+          if (refused) return send(res, 403, jsonBody({ error: refused }))
+          chooses = !acct.dev && !acct.role
+        }
         const out = await dbRequestMembership({ issuer: PAY_PAYEE, applicant: body.learner, note: body.note ?? null, message: body.message, signature: body.signature })
         if (!out.ok) return send(res, ({ auth: 401, conflict: 409 })[out.kind] ?? 400, jsonBody({ error: out.why, ...(out.request ? { request: out.request } : {}) }))
-        return send(res, 201, jsonBody({ request: out.request }))
+        const role = chooses ? await dbRecordRole({ address: body.learner, role: 'publisher', message: body.message, signature: body.signature }) : null
+        return send(res, 201, jsonBody({ request: out.request, ...(role ? { role: 'publisher', chosenAt: role.chosen_at } : {}) }))
       }
       if (path === '/publisher/overview') {
         // B129: dasbor penerbit — hanya untuk pemegang kursi Penerbit (kunci penerbit atau anggota aktif).
@@ -654,6 +715,8 @@ const server = createServer(async (req, res) => {
         }
         const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'publisher' })
         if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        const refusedRole = roleRefusal(await accountCheap(body.learner), 'publisher')
+        if (refusedRole) return send(res, 403, jsonBody({ error: refusedRole }))
         const seat = await publisherSeat(body.learner)
         if (!seat) return send(res, 403, jsonBody({ error: 'this account holds no publisher seat — apply for membership first' }))
         const manifests = MANIFESTS.filter((m) => !m.issuer.eoa || String(m.issuer.eoa).toLowerCase() === PAY_PAYEE.toLowerCase())
@@ -682,6 +745,8 @@ const server = createServer(async (req, res) => {
         if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
         if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent identities are not configured on this server', missing: dbMissingReason() }))
         const addr = getAddress(String(body.learner).toLowerCase())
+        const refusedRole = roleRefusal(await accountCheap(addr), 'owner')
+        if (refusedRole) return send(res, 403, jsonBody({ error: refusedRole }))
         if (isGas) {
           if (!process.env.DEPLOYER_PRIVATE_KEY) return send(res, 503, jsonBody({ error: 'gas drip is not configured on this server' }))
           // Hanya pemilik agen yang DICETAK platform (ownerOf sekarang = alamat ini), dan hanya bila saldonya menipis.
@@ -711,6 +776,8 @@ const server = createServer(async (req, res) => {
         // menyebut kursus + agen (+ dompet pengesah) diperiksa `hireAgent` / `addReviewer`, nonce sekali-pakai seperti jalur penerbit.
         if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent hiring is not configured on this server', missing: dbMissingReason() }))
         if (!isAddress(String(body.member ?? ''))) return send(res, 400, jsonBody({ error: 'member must be the address of the account that signs' }))
+        const refusedRole = roleRefusal(await accountCheap(body.member), 'publisher')
+        if (refusedRole) return send(res, 403, jsonBody({ error: refusedRole }))
         const seat = await publisherSeat(body.member)
         if (!seat) return send(res, 403, jsonBody({ error: 'this account holds no publisher seat' }))
         const isHire = path === '/publisher/agents/hire'

@@ -7,6 +7,8 @@ result: substantive 91-100, decision stable 5/5
 
 # T12 - `npm run judge-variance` (berapa jauh angka model bergerak)
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P5 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Bagian:** [[04-Signer-Service/S5 - Grading and the model judge]] · **Pasangan:** [[09-Testing/T11 - npm run judge]]
+
 **Perintah:** `cd signer && npm run judge-variance`. **Terakhir dijalankan:** 24 Sep (5 run per fixture).
 
 | fixture | rentang skor | spread | keputusan |

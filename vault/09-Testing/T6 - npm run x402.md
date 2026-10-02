@@ -7,6 +7,8 @@ result: 20 checks / 0 failed
 
 # T6 - `npm run x402` (paid verification path)
 
+**Hub:** [[09-Testing/00 - Hub Testing]] · **AC:** kriteria P3 di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Bagian:** [[04-Signer-Service/S6 - x402 paid verification]]
+
 **Perintah:** `cd signer && npm run x402` — butuh `npm run serve` hidup di terminal lain.
 **Terakhir dijalankan:** 28 Sep 2026 · **20 pemeriksaan / 0 gagal** · token demo 6-desimal yang baru.
 

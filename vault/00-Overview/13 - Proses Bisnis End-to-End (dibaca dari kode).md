@@ -1,7 +1,7 @@
 ---
 tags: [overview, business-process, diagrams]
 status: active
-updated: 2026-09-30
+updated: 2026-10-03
 ---
 
 # 13 - Proses Bisnis End-to-End (dibaca dari kode)
@@ -34,6 +34,12 @@ updated: 2026-09-30
 > pencabut kredensial (opsi B); agen hanya menilai. Bagian 2, 7, 11, 12, dan 13 di bawah sudah memuat
 > perubahan itu (ditandai "D54"); bagian lain tidak berubah.
 >
+> ⚠️ **Banner 3 Okt — B123–B130 (2 Okt) belum tergambar di teks aslinya.** Sejak itu: akun hanya lewat login
+> email Privy, alamat = dompet tertanam (D57, D59/B123); area internal `#/app`, ruang kelas `#/class/<course>`, detail
+> kursus publik `#/course/<id>` (FE7, B124); kursus berbayar dibayar sebelum enrollment (B125, D60); kursi akun dari
+> fakta (B128), anggota penerbit + dasbor `#/app/pub` (B129), agen untuk akun + dasbor `#/app/owner` (B130). Bagian 2, 3,
+> 4, 6, 9, 11, 13, dan 14 memuat koreksi bertanggal 3 Okt di tempatnya; teks lama dicoret, bukan dihapus.
+>
 > Halaman ini sengaja hampir tanpa angka. Angka harness hidup di `09-Testing/numbers.json`
 > (`npm run sync:numbers`).
 
@@ -50,18 +56,21 @@ dicabut, kadaluarsa, atau penerbit-didelisting dibaca dari chain.
 
 ## 2. Siapa saja, dan kunci apa yang mereka pegang
 
-Di Lencana **otoritas = kunci**. Tidak ada akun dan kata sandi di sisi server; setiap tulisan dibuktikan
-dengan tanda tangan.
+Di Lencana **otoritas = kunci**. ~~Tidak ada akun dan kata sandi di sisi server~~ *(Koreksi 3 Okt: sejak D57
+(1 Okt malam) server mencatat akun — `POST /auth/privy` memverifikasi token login Privy lalu mengikat alamat dompet
+tertanam ke akun itu di tabel `learner_accounts` (migrasi 0012). Kata sandi tetap tidak ada, dan otoritas tetap kunci.)*;
+setiap tulisan dibuktikan dengan tanda tangan.
 
 | aktor | kunci yang dipegang | yang boleh ia lakukan | yang TIDAK bisa ia lakukan |
 |---|---|---|---|
-| **Peserta** | alamat EVM: dompet ekstensi, atau "kunci perangkat" yang dibuat browser dan mati bersama tab (`web/src/learning.ts`) | mendaftar, mencatat progres, mengirim jawaban kuis dan teks esai | mengirim angka nilai kuis atau esai; menerbitkan apa pun |
+| **Peserta** | alamat EVM: ~~dompet ekstensi, atau "kunci perangkat" yang dibuat browser dan mati bersama tab (`web/src/learning.ts`)~~ *(Koreksi 3 Okt: sejak D59/B123 halaman hanya menawarkan login email Privy; alamatnya dompet tertanam yang dibuatkan Privy, sama di perangkat mana pun (D57, `web/src/privy.ts`). Dompet ekstensi dan kunci perangkat keluar dari UI.)* | mendaftar, mencatat progres, mengirim jawaban kuis dan teks esai *(tambahan 3 Okt: membayar kursus berbayar sebelum mendaftar dan meminta koin uji — B125; mengajukan keanggotaan penerbit — B129)* | mengirim angka nilai kuis atau esai; menerbitkan apa pun |
 | **Penerbit kursus** (institusi) | **EOA agen** (secp256k1, tercatat sebagai `attester`) dan **kunci dokumen** Ed25519 (`signer/src/issuer.js`) | menetapkan rubrik lewat manifest, menilai esai, menunjuk reviewer, menerbitkan dan mencabut kredensial | mengesahkan angka modelnya sendiri; menerbitkan kalau alamatnya tidak ada di daftar resolver |
 | **Reviewer** | EOA yang ditunjuk penerbit per kursus | menandatangani `approved` / `adjusted` / `rejected` atas angka usulan model | menilai esai yang bukan usulan model; mengesahkan esainya sendiri |
 | **Platform Lencana** | kunci owner resolver = kunci pembayar gas (`DEPLOYER_PRIVATE_KEY`) | mendaftarkan dan mendelisting penerbit, menyiarkan transaksi atas nama agen, menyegel daftar status, mencetak artefak soulbound, menyajikan dokumen | **mencabut** kredensial penerbit, mengubah isi klaim, menilai peserta |
 | **Pemeriksa** (HRD, kampus lain, siapa pun) | tidak ada | membaca status dari chain, membuka dokumen dari tepi publik | — |
 | **Klien mesin** | EOA pemegang token | membayar per permintaan untuk verifikasi massal (`POST /verify`) | — |
-| ***Agent Owner*** — D53/D54, **dibangun (B118–B120)** | pemilik NFT identitas ERC-8004 agen (penilai #2534 `0x067c…0c4f`; reviewer #2542 `0x99b1…0C72`) | merawat berkas registrasi, dompet operasional agen, dan **tarif dasar** (metadata `lencana.baseTariff`) | menandatangani atau mencabut kredensial (D54); disewa tanpa identitas ERC-8004 |
+| ***Agent Owner*** — D53/D54, **dibangun (B118–B120)** | pemilik NFT identitas ERC-8004 agen (penilai #2534 `0x067c…0c4f`; reviewer #2542 `0x99b1…0C72`) *(tambahan 3 Okt, B130/D65: juga akun yang menerima agen cetakan platform — #2546 akun uji, #2547 akun 2 builder — lewat `npm run agent:mint`, tercatat di `platform_agents`)* | merawat berkas registrasi, dompet operasional agen, dan **tarif dasar** (metadata `lencana.baseTariff`) *(sejak B130 dari dasbor `#/app/owner`: memverifikasi dompet agen sendiri — EIP-712 + `setAgentWallet`, karena EIP-8004 mengosongkannya saat NFT berpindah — dan mengubah tarif dasar)* | menandatangani atau mencabut kredensial (D54); disewa tanpa identitas ERC-8004 |
+| **Anggota penerbit** — *baris baru 3 Okt (B128/B129, D63/D64)* | akun (dompet tertanamnya) yang keanggotaannya ditandatangani kunci penerbit (`publisher_members`, migrasi 0013); pengajuan dari halaman tercatat di `member_requests` (migrasi 0014) dan tidak memberi wewenang | memantau dasbor `#/app/pub` (`POST /publisher/overview`); bila hibahnya `hire=1` menyewa agen penilai, bila `appoint=1` menunjuk agen pengesah — dengan tanda tangannya sendiri | menyetujui keanggotaannya sendiri; menerbitkan atau mencabut kredensial (tidak ikut keanggotaan); membayar tagihan agen dari halaman (tetap kunci penerbit) |
 | **Agen penilai / agen reviewer** (D54) | dompet operasional agen (`agentWallet` di registry) | menilai atau mengesahkan esai untuk kursus yang menyewanya, **memilih label tingkat berat** di pesan yang ia tandatangani, menerima sewa per aktivitas | menjadi attester; reviewer agen tidak boleh agen pengusul atau satu pemilik dengannya |
 
 ⚠️ **Yang harus dibaca bersama tabel ini.** Di demo hari ini kunci agen penerbit (`ISSUER_PRIVATE_KEY`
@@ -112,11 +121,16 @@ flowchart LR
 Dua hal yang gambar ini sengaja tunjukkan: halaman verifikasi **tidak lewat server kita** (ia membaca
 resolver langsung), dan pemeriksa punya **dua jalan** yang sama-sama tidak butuh laptop kami.
 
+*(Koreksi 3 Okt: simpul "Peserta — dompet atau kunci perangkat" di gambar ini basi sejak D59/B123 — peserta masuk lewat
+login email Privy dengan dompet tertanam (D57). Gambar juga belum memuat anggota penerbit (B129), Agent Owner sebagai
+akun (B130), dan panah "peserta membayar kursus" ke `SettlementSplit` (B125); tabel bagian 2 dan Alur B di bagian 6
+sudah memuatnya.)*
+
 ## 4. Data tinggal di mana, dan siapa yang dipercaya untuknya
 
 | # | tempat | isinya | siapa yang bisa menulis | siapa yang dipercaya pembaca |
 |---|---|---|---|---|
-| D1 | **Postgres** (Supabase) | `enrollments`, `lesson_progress`, `progress_events`, `attempts`, `attempt_components`, `submissions` (teks esai), `used_nonces`, `review_roles`, `judgement_reviews`, view `course_gates` | signer service saja (secret key). RLS aktif tanpa policy, jadi kunci publik tidak membaca apa pun | platform — ini rekaman kerja, bukan bukti publik |
+| D1 | **Postgres** (Supabase) | `enrollments`, `lesson_progress`, `progress_events`, `attempts`, `attempt_components`, `submissions` (teks esai), `used_nonces`, `review_roles`, `judgement_reviews`, view `course_gates` *(tambahan 3 Okt, dibaca dari `supabase/migrations/`: `orders` — ada sejak 0001, baru ditulis sejak B125 saat kursus lunas; `agent_hires` + `agent_charges` (0010, B119); `praktik_proofs` (0011, B121); `learner_accounts` (0012, D57); `publisher_members` (0013, B128); `member_requests` (0014, B129); `platform_agents` (0015, B130). Migrasi 0016 `account_roles` milik B131 yang masih TERBUKA)* | signer service saja (secret key). RLS aktif tanpa policy, jadi kunci publik tidak membaca apa pun | platform — ini rekaman kerja, bukan bukti publik |
 | D2 | `signer/.store/state.json` | kredensial yang dipantau, nomor bit tiap kredensial, rekaman penerbitan + dokumen bertanda tangan | perintah penerbitan di mesin signer | platform |
 | D3 | `signer/.keys/` | kunci dokumen Ed25519 tiap agen | `npm run agent` | penerbit (hari ini: di mesin platform) |
 | D4 | **Workers KV** di tepi | dokumen kredensial, dokumen hasil, dokumen kriteria, dokumen penerbit, dua daftar status | `npm run publish:edge` | siapa pun bisa membaca; tanda tangan dokumennya yang dipercaya, bukan host-nya |
@@ -213,6 +227,39 @@ sequenceDiagram
   S->>S: periksa tanda mekanis
   S->>DB: attempts (skor kosong) + submissions
   S-->>W: menunggu penilaian penerbit
+```
+
+*(Koreksi 3 Okt: langkah pertama diagram di atas — "pilih identitas (dompet atau kunci perangkat)" — basi sejak D59/B123,
+dan diagram itu tidak punya langkah bayar. Sejak B125 (D60) kursus berbayar menjawab `POST /enroll` dengan 402 sampai
+lunas (`signer/src/server.js:324`, `:343`); halaman bayar ada di detail kursus `#/course/<id>` dan halaman Kursus
+`#/app/courses`. Urutan masuk + bayar yang berlaku sekarang, sebelum loop progres di atas:)*
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant P as Peserta
+  participant PV as Privy (login email)
+  participant W as Halaman (detail kursus)
+  participant S as Signer service
+  participant CH as Chain 97
+  participant DB as Postgres
+
+  P->>PV: masuk dengan email + kode
+  PV-->>W: token login + dompet tertanam (alamat belajar)
+  W->>S: POST /auth/privy (alamat, token)
+  S->>DB: learner_accounts (ikatan alamat dengan akun)
+  W->>S: POST /enroll tanpa pembayaran
+  S-->>W: 402 + syarat x402 (harga, token, tujuan = kontrak pembagian)
+  opt saldo koin uji kurang
+    W->>S: POST /faucet (pesan bertanda tangan)
+    S->>CH: cetak koin uji ke alamat peserta
+  end
+  P->>W: Bayar dan daftar
+  W->>S: POST /enroll + X-PAYMENT + pesan enroll bertanda tangan
+  S->>S: pembayar = peserta? jumlah cukup? nonce sekali pakai
+  S->>CH: settlement + pembagian SettlementSplit (server membayar gas)
+  S->>DB: enrollments + orders (lunas, tx settlement)
+  S-->>W: terdaftar, ruang kelas terbuka
 ```
 
 Aturan yang ditegakkan kode di alur ini:
@@ -400,7 +447,10 @@ flowchart TD
 ```
 
 Sejak 1 Okt (B118) halaman juga membaca **identitas ERC-8004 agen penerbit**: manifest penerbit menyebut
-`agentId`, lalu halaman membuktikan ke registry BNB bahwa `agentWallet` identitas itu = attester kertas.
+`agentId`, lalu halaman membuktikan ke registry BNB bahwa ~~`agentWallet` identitas itu = attester kertas~~
+*(Koreksi 3 Okt: itu model pagi 1 Okt, sebelum D54. Sejak D54 halaman membuktikan bahwa `agentWallet` agen itu **bukan**
+attester kertas — `walletIsAttester === false` = sesuai model, `web/src/verify.ts:811`; penerbit yang menandatangani, agen
+hanya menilai.)*
 Hasilnya satu kalimat alasan; verdict di bawah **tidak** berubah karenanya.
 
 Urutannya disengaja: fakta tentang **kredensial** (dicabut, kadaluarsa) menang atas penilaian tentang
@@ -442,7 +492,12 @@ tidak lagi diterima sebagai prasyarat penerbitan baru.
 
 ## 11. Alur G — uang
 
-Verifikasi oleh manusia **gratis**. Dua tempat uang bergerak, dan keduanya memakai token demo.
+Verifikasi oleh manusia **gratis**. ~~Dua tempat uang bergerak, dan keduanya memakai token demo.~~
+*(Koreksi 3 Okt: kalimat itu ditulis 30 Sep. Sekarang **empat** tempat uang bergerak, semuanya token demo di testnet:
+**a.** verifikasi massal berbayar `POST /verify` (x402); **b.** premi tenggat `CourseDeposit` (B90 — rute HTTP, tanpa
+UI); **c.** tagihan agen sewaan `POST /agent-charges/<id>/pay` (B119 — x402 ke dompet agen, 10% ke platform lewat
+`SettlementSplit`; dibayar kunci penerbit, tanpa UI); **d.** pembayaran kursus sebelum enrollment `POST /enroll` → 402
+(B125 — urutannya di Alur B, bagian 6; koreksi di akhir bagian ini).)*
 
 **a. Verifikasi massal berbayar (x402).** Yang dijual bukan datanya — status chain memang publik —
 melainkan pekerjaan membaca banyak kredensial sekaligus.
@@ -574,8 +629,12 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
    menjalankan `npm run issue` per peserta.
 3. **Penerbit dan platform satu mesin.** Kunci agen ada di `signer/.keys/` dan `.env` platform. Jalur
    untuk memisahkannya ada (`/relay`), belum dipakai penerbit sungguhan.
-4. **Reviewer adalah alamat.** Tidak ada identitas, tidak ada pencabutan penunjukan, tidak ada UI —
-   hanya rute HTTP.
+4. **Reviewer adalah alamat.** ~~Tidak ada identitas, tidak ada pencabutan penunjukan, tidak ada UI —
+   hanya rute HTTP.~~ *(Koreksi 3 Okt: sejak B120 (1 Okt) reviewer boleh agen ERC-8004 — agen reviewer #2542, identitas
+   dan pemiliknya dibaca dari registry, wajib Agent Owner lain dari agen pengusul; sejak B129 (2 Okt) anggota penerbit
+   dengan wewenang `appoint=1` menunjuk agen pengesah dari dasbor `#/app/pub` dengan tanda tangannya sendiri
+   (`POST /publisher/reviewers`). Yang tetap benar: reviewer yang bukan agen tetap sekadar alamat, dan pencabutan
+   penunjukan tidak ada — tidak ada rute atau kolom untuk itu di `review_roles`, migrasi 0009.)*
 5. **Kunci jawaban kuis ada di bundel browser** (B80). Angka kuis tidak dilaporkan peserta, tetapi
    soalnya bisa dijawab dengan membaca bundel. **Keadaan 1 Okt malam (B80 ditutup, D56):** kunci kini
    hanya di server (`web/src/courses/*.keys.ts` → `manifest-keys.ts`); bundel 0/28 teks `why` (sebelumnya
@@ -585,20 +644,37 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
 6. **Identitas peserta tidak tahan lama** kalau memakai kunci perangkat: tab ditutup = alamat baru =
    rekaman baru (B82). **Keadaan 1 Okt malam (D57):** ada jalur ketiga — login email lewat Privy
    (`web/src/privy.ts`) memberi dompet tertanam yang sama di perangkat mana pun, dan `POST /auth/privy`
-   mencatat ikatan alamat ↔ akun sesudah token diverifikasi dengan app secret. Kunci perangkat tetap
-   hangus bersama tab; yang belum terbukti: login dari dua peramban → alamat sama (uji builder) →
+   mencatat ikatan alamat ↔ akun sesudah token diverifikasi dengan app secret. ~~Kunci perangkat tetap
+   hangus bersama tab~~ *(Koreksi 3 Okt: sejak D59/B123 halaman tidak lagi menawarkan kunci perangkat maupun dompet
+   ekstensi; login Privy satu-satunya pintu, [[08-Results/B123 - Executive Summary]])*; yang belum terbukti: login dari dua peramban → alamat sama (uji builder) →
    [[09-Testing/T41 - signer privy-check.js (B82 login Privy)]].
-7. **Tidak ada pembayaran kursus**, dan premi tenggat tidak tersambung ke halaman (bagian 11).
-8. **Penerbit tidak bisa mendaftar sendiri**, dan halaman penerbit belum membaca data hidup (B105).
+7. ~~**Tidak ada pembayaran kursus**~~, dan premi tenggat tidak tersambung ke halaman (bagian 11).
+   *(Koreksi 3 Okt: sejak B125 (2 Okt, D60) kursus berbayar dibayar sebelum enrollment — 402 → settlement + pembagian →
+   `orders` lunas → kelas terbuka; lihat Alur B dan [[08-Results/B125 - Executive Summary]]. Premi tenggat tetap tanpa
+   halaman: tidak ada pemanggil `/deposit` di `web/src`, diperiksa 3 Okt.)*
+8. **Penerbit tidak bisa mendaftar sendiri**, ~~dan halaman penerbit belum membaca data hidup (B105)~~.
+   *(Koreksi 3 Okt: sejak B129 (D64) ada dasbor Penerbit `#/app/pub` yang membaca data hidup lewat satu permintaan
+   bertanda tangan `POST /publisher/overview` — hanya untuk pemegang kursi, potongan platform dibaca dari
+   `SettlementSplit` di chain, tanpa teks esai. "Tidak bisa mendaftar sendiri" tetap benar: akun boleh MENGAJUKAN dari
+   halaman, tetapi yang menyetujui hanya kunci penerbit — [[08-Results/B129 - Executive Summary]].)*
 9. **Jalur hangus premi** hanya terbukti di uji kontrak, tidak di chain publik.
-10. **Dua kursus, satu penerbit demo.** Penerbitnya fiktif dan disebut fiktif di namanya sendiri
+10. ~~**Dua kursus, satu penerbit demo.**~~ Penerbitnya fiktif dan disebut fiktif di namanya sendiri
     (`web/src/manifest.ts`); kursus kedua (`web3-lanjut-2026`) mensyaratkan yang pertama.
+    *(Koreksi 3 Okt: sejak B126/B127 (2 Okt) `MANIFESTS` memuat delapan kursus — tujuh di katalog publik dan satu kelas
+    uji `uji-bayar-2026` yang `unlisted` — semuanya dari satu penerbit demo yang sama (`web/src/manifest.ts:209`, dibaca
+    3 Okt). Jumlah modul/lesson/menit: `npx tsx scripts/inventory.ts`, bukan halaman ini.)*
 11. ~~**"Agen" belum punya identitas di luar resolver kita.**~~ **Ditutup 1 Okt (B118 F1):** agen penerbit
-    sekarang agen ERC-8004 #2534 di IdentityRegistry BNB, pemiliknya Agent Owner, dompetnya = attester, dan
-    halaman verifikasi membuktikannya per kertas. **Sore 1 Okt, D54:** sewa per aktivitas (**B119**) dan
+    sekarang agen ERC-8004 #2534 di IdentityRegistry BNB, pemiliknya Agent Owner, ~~dompetnya = attester, dan
+    halaman verifikasi membuktikannya per kertas~~ *(Koreksi 3 Okt: itu model pagi 1 Okt. Sejak D54 dompet agen
+    **bukan** attester, dan halaman verifikasi membuktikan per kertas bahwa agen itu bukan penanda tangannya —
+    `web/src/verify.ts:811`)*. **Sore 1 Okt, D54:** sewa per aktivitas (**B119**) dan
     reviewer agen (**B120**) juga sudah dibangun — penerbit tetap attester, agen hanya menilai. Yang masih
     putus di jalur ini: reputasi (B118 F2), pencerminan ke ValidationRegistry (belum ada di 97), dan
-    **UI** untuk menyewa, menilai, dan membayar — semuanya baru rute HTTP.
+    ~~**UI** untuk menyewa, menilai, dan membayar — semuanya baru rute HTTP~~ *(Koreksi 3 Okt: sejak B129 anggota
+    penerbit menyewa agen penilai dan menunjuk agen pengesah dari `#/app/pub`; sejak B130 pemilik agen memverifikasi
+    dompet agen dan mengubah tarif dari `#/app/owner`. Yang masih tanpa UI: **membayar** tagihan agen (kunci penerbit) dan
+    **menilai** oleh agen — penilaian agen ditandatangani dompet agen dan belum ada layar untuk itu,
+    [[08-Results/B130 - Executive Summary]].)*
 
 ## 14. Cara membuktikan ulang tiap alur
 
@@ -616,3 +692,18 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
 | A/E identitas agen ERC-8004 | `npm run verify:agent` | [[09-Testing/T35 - signer agent-identity-check.js]] |
 | C/G sewa agen + reviewer agen | `npm run verify:agents` · `npm run verify:agents:live` | [[09-Testing/T36 - signer agents-check.js (B119 sewa agen)]] · [[09-Testing/T37 - signer agents-check.js (B120 reviewer agen)]] |
 | kontrak | `forge test` (di `app/`) | [[09-Testing/T1 - forge test on chain 97]] |
+
+*(Tambahan 3 Okt — harness B80–B130 yang belum ada di tabel ini. Hanya perintah dan apa yang dibuktikannya; jumlah
+pemeriksaannya sengaja tidak ditulis di sini — yang berlaku dicetak `npm run sync:numbers` ke `09-Testing/numbers.json`
+dan dikutip di [[Quick-Reference]].)*
+
+| alur | perintah (dari `app/signer/`) | apa yang dibuktikannya | halaman uji |
+|---|---|---|---|
+| B identitas (D57) | `npm run verify:privy` | token login palsu ditolak, ikatan alamat ↔ akun di `learner_accounts` hanya sesudah token diverifikasi, secret tidak ada di bundel; jalur positif (token sah) tidak diuji | [[09-Testing/T41 - signer privy-check.js (B82 login Privy)]] |
+| B/C kuis (D56) | `npm run verify:quizkeys` | kunci kuis hanya di server, `rubricHash` hitungan = terbit = criteria di tepi, bundel web tanpa teks `why`; merah selama criteria kursus baru belum diterbitkan ke tepi | [[09-Testing/T39 - signer quiz-keys-check.js (B80 kunci kuis)]] |
+| C praktik dari chain (D55) | `npm run verify:praktik` · `npm run verify:praktik:live` | `/attempts` menolak skor kiriman peserta; `POST /praktik` membaca ulang chain 97 | [[09-Testing/T38 - signer praktik-check.js (B121 praktik dinilai chain)]] |
+| B rekaman milik peserta | `npm run verify:records` | `POST /me/records` hanya untuk pemilik alamat, tanpa teks esai | [[09-Testing/T45 - signer records-check.js (B124 rekaman milik peserta)]] |
+| B/G bayar dulu (D60) | `npm run verify:paywall` · `npm run verify:paywall:live` | kursus berbayar menjawab 402 + syarat x402; settlement + pembagian sebelum enrollment; koin uji dibatasi per alamat | [[09-Testing/T46 - signer paywall-check.js (B125 bayar dulu)]] |
+| kursi akun (D63) | `npm run verify:roles` | kursi dari fakta: kunci penerbit, keanggotaan bertanda tangan kunci penerbit, `ownerOf` ERC-8004 | [[09-Testing/T50 - signer roles-check.js (B128 peran akun)]] |
+| kursi Penerbit (D64) | `npm run verify:publisher` | pengajuan anggota → keputusan kunci penerbit, dasbor penerbit, aksi anggota sewa/tunjuk agen sesuai hibah | [[09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit)]] |
+| kursi Agent Owner (D65) | `npm run verify:owner` | dasbor hanya untuk pemilik agen yang dikenal platform; identitas, dompet, tarif dari registry; dompet kosong sesudah pemindahan = belum layak sewa | [[09-Testing/T54 - signer owner-check.js (B130 kursi Agent Owner)]] |

@@ -19,6 +19,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
 import { grantMember, revokeMember, membershipsOf, pendingRequests, rejectRequest, dbConfigured, dbMissingReason } from '../src/db.js'
+import { accountOf, roleRefusal } from '../src/account.js'
 
 await loadFileEnvReport('grant:member')
 const env = process.env
@@ -50,6 +51,12 @@ if (!who || !isAddress(who)) {
 const nonce = randomBytes(10).toString('hex')
 const revoke = args.includes('--revoke')
 const reject = args.includes('--reject')
+// B131 (D66): satu akun nyata satu peran — keanggotaan hanya untuk akun berperan Penerbit, yang belum berperan, atau akun dev.
+if (!revoke && !reject) {
+  const acct = await accountOf(who, { issuer: publisher.address })
+  const refused = roleRefusal(acct, 'publisher')
+  if (refused) { console.error(`DITOLAK: ${refused} (peran ${acct.role} lewat ${acct.via})`); process.exit(1) }
+}
 const hire = args.includes('--hire')
 const appoint = args.includes('--appoint')
 const message = revoke

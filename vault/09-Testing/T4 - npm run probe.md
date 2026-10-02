@@ -1,8 +1,9 @@
 ---
 tags: [testing, "T4"]
 command: npx tsx scripts/probe.ts
-measured: 2026-09-25
-result: 59 checks / 0 failed against public chain 97
+measured: 2026-10-03 (baterai sync:numbers); isi halaman di bawah adalah run 2026-09-25
+result: 118 checks / 0 failed against public chain 97 (dicetak sync:numbers 3 Okt) · koreksi 3 Okt, nilai lama yang tadinya tertulis di sini — 59 checks / 0 failed (25 Sep)
+updated: 2026-10-03
 ---
 
 # T4 - npm run probe

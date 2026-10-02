@@ -2,7 +2,11 @@
 
 ## One paragraph
 
-**Lencana** is a micro-course platform where **the issuer of the certificate is an AI agent**.
+**Lencana** is a micro-course platform where ~~**the issuer of the certificate is an AI agent**~~
+*(Correction 3 Oct, D54: AI agents only **grade and propose scores**; the **publisher's key** signs and
+revokes every credential. The grading agents have ERC-8004 identities (#2534 grader, #2542 reviewer) and
+are hired per grading activity — see D54 in [[00-Overview/03 - Decisions]] and
+[[10-Contributors/Claims-Cheat-Sheet]].)*.
 The credential it produces follows the **Open Badges 3.0 / W3C Verifiable Credentials 2.0**
 standard, while **who is allowed to issue** and **whether a certificate has been revoked** are
 recorded on BNB Chain. The result: a recruiter can confirm a certificate **in a browser** — no
@@ -28,7 +32,7 @@ mechanical questions instead. See [[01-Architecture/01 - Architecture|01 - Archi
 | | who | relationship to crypto |
 |---|---|---|
 | **Rina, 24** — learner | takes the course, submits work, receives a certificate | **none.** Never sees a seed phrase, never signs a transaction, never pays for the certificate |
-| **A training institution** — issuer and sponsor | writes the course, sets the pass standard | owns the agent, therefore owns the **issuance** key. It is a third party to us: we admit it, and we can delist it, but we cannot sign, speak or revoke on its behalf. *(Koreksi 1 Okt, **D53**: agen tidak lagi dimiliki institusi — pemiliknya peran baru **Agent Owner**, dan institusi menyewa agen per aktivitas penilaian. Belum ada di kode; lihat B118/B119.)* |
+| **A training institution** — issuer and sponsor | writes the course, sets the pass standard | owns the agent, therefore owns the **issuance** key. It is a third party to us: we admit it, and we can delist it, but we cannot sign, speak or revoke on its behalf. *(Koreksi 1 Okt, **D53**: agen tidak lagi dimiliki institusi — pemiliknya peran baru **Agent Owner**, dan institusi menyewa agen per aktivitas penilaian. ~~Belum ada di kode; lihat B118/B119.~~)* *(Koreksi 3 Okt: dibangun 1 Okt — agen penilai #2534, agen reviewer #2542, sewa per aktivitas (B118–B120); sejak B129 anggota penerbit menyewa/menunjuk agen dari dasbor `#/app/pub`, dan sejak B130 platform mencetak agen ERC-8004 untuk akun yang pemiliknya memverifikasi dompet agen dan menetapkan tarif dari `#/app/owner` — [[08-Results/B130 - Executive Summary]]. Yang menandatangani dan mencabut kredensial tetap kunci penerbit, bukan agen (D54); membayar tagihan agen masih lewat CLI.)* |
 | **Bagas, HR** — verifier | receives hundreds of applicants, wants to know which are real | **none.** Opens a URL, pastes a code |
 
 The hackathon track literally reads *"social, gaming and loyalty with **seamless UX**"*. Wallet-free
@@ -40,9 +44,15 @@ avoid ERC-4337 / paymasters, because their availability on BSC was never verifie
 
 ## The real flow, step by step
 
-**1. Sign in.** Email login. The backend creates an address for the learner; they never hold its
-key. They see a catalogue with **one real course we wrote ourselves** — not an empty marketplace,
-because a platform with no content cannot be demonstrated.
+**1. Sign in.** Email login. ~~The backend creates an address for the learner; they never hold its
+key.~~ They see a catalogue with ~~**one real course we wrote ourselves**~~ — not an empty marketplace,
+because a platform with no content cannot be demonstrated. *(Correction 3 Oct: since D57/B123 the
+login is Privy email login, and it is the only way in through the UI. The address is the learner's
+**embedded wallet, created client-side by Privy at login** — not by our backend; the publisher records
+the address ↔ account binding (`learner_accounts`) only after verifying the login token. Lencana does
+not hold that key; Privy's infrastructure (a third party) guards it. The public catalogue is now seven
+courses we wrote ourselves (B127; `npx tsx scripts/inventory.ts`, 2 Oct — [[09-Testing/T13 - npm run inventory]]),
+and paid courses open only after payment (B125, [[08-Results/B125 - Executive Summary]]).)*
 
 **2. Learn.** Modules and quizzes. Our own content. (Storing material in IPFS/Greenfield is a later
 option, not a critical-path item.)
@@ -57,11 +67,17 @@ output   : a score per criterion, written feedback, PASS / NOT YET
 recorded : hash(evidence) on-chain + the agent's signature over the credential it produced
 ```
 
+*(Correction 3 Oct, D54: the last line no longer holds. The grading agent signs its **grading label and
+proposed score**, never the credential; a model's essay score stays a proposal until a second grader
+appointed by the publisher approves or adjusts it (B104/B120), and the **publisher's key** signs the
+credential. The quiz score is computed by the publisher (`POST /grade`), and practice is graded from
+chain reads (`POST /praktik`, B121).)*
+
 **4. Issued.** Three objects come out of one flow:
 
 | object | what it is |
 |---|---|
-| **the credential** | an `OpenBadgeCredential` JSON-LD document, signed by the agent's key. **Off-chain**, portable to any verifier that understands the standard |
+| **the credential** | an `OpenBadgeCredential` JSON-LD document, signed by ~~the agent's key~~ *(Correction 3 Oct, D54: the **publisher's key** — on this deployment the platform holds it, `signer/.keys/agent-edge.json`; grading agents never sign credentials)*. **Off-chain**, portable to any verifier that understands the standard |
 | **what reaches the chain** | `keccak256(document)` → an attestation on **BAS**, through our `CredentialResolver` |
 | **the artifact** | a soulbound NFT appears in the learner's collection. `mint()` **refuses when the credential is not live** — this is what separates our artifact from a bolted-on NFT |
 
@@ -87,7 +103,10 @@ gets a verdict, all the raw evidence, and — **commands to repeat the check wit
    The public page stays free forever.
 4. **The document is a standard, not our format.** Consequence: our credential should open in
    somebody else's validator. Status of that proof: [[08-Results/01 - Evidence and Limits|01 - Evidence and Limits]]
-   — **not run yet**.
+   — ~~**not run yet**~~ *(Correction 3 Oct: run 27–28 Sep — the 1EdTech OB 3.0 validator (`vc.1ed.tech`)
+   returned `outcome: VALID`, 0 errors / 0 warnings, for credentials from this backend, recorded verbatim in
+   [[09-Testing/T15 - 1EdTech validator]]. A member validator, not a certification — say "passes", never
+   "certified" or "conformant".)*
 
 ## The demo, as designed
 
@@ -96,7 +115,7 @@ Five minutes, four scenes. Each scene exists because it answers one of the four 
 | # | scene | what the audience sees |
 |---|---|---|
 | 1 | **Verification without a wallet** | paste a code → `REVOKED`; another → `EXPIRED`. No wallet is opened during the scene |
-| 2 | **Issued by the agent** | essay → agent scores it → signs → credential issued → appears on the learner's device. **Then: revoke the base, try to issue the advanced one → REVERT, live** |
+| 2 | ~~**Issued by the agent**~~ **Graded by the agent, issued by the publisher** *(Correction 3 Oct, D54)* | essay → agent scores it → ~~signs~~ *(a second appointed grader approves; the publisher's key signs)* → credential issued → appears on the learner's device. **Then: revoke the base, try to issue the advanced one → REVERT, live** |
 | 3 | **Forgery fails** | transfer the artifact → revert · change one byte of the document → signature fails · mint from an unapproved address → revert |
 | 4 | **The economy** | the agent pays for issuance; a recruiter pays for verification; **then show the public page still free, no payment** |
 

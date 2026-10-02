@@ -1,13 +1,19 @@
 ---
 tags: [results, summary]
 status: active
-updated: 2026-09-28
+updated: 2026-10-03
 ---
 
 # P2 - Executive summary
 
+**Hub:** [[08-Results/00 - Hub Results]] · **Backlog:** [[07-Backlog/01 - Backlog]] ·
+**AC:** kriteria P2 (clarity of the problem) di [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Testing:** [[09-Testing/00 - Hub Testing]] ·
+**Bukti dan batas:** [[08-Results/01 - Evidence and Limits]]
+
 **What Lencana is.** A micro-course platform whose output is a credential that keeps working after the
-issuing institution's website is gone. The institution's own agent grades and signs; Lencana broadcasts
+issuing institution's website is gone. ~~The institution's own agent grades and signs~~ *(Correction 3 Oct,
+D54: AI grading agents — ERC-8004 identities hired per activity — only grade and propose scores; the
+**publisher's key** signs and revokes the credential)*; Lencana broadcasts
 and pays the gas; anyone can check the result from a public chain without an account.
 
 **The problem it removes.** A course certificate today is a file whose meaning depends on asking the
@@ -31,7 +37,10 @@ implemented yet".
 **What is not true yet, in one breath (as of 30 Sep).** One fictitious issuer on BNB Chain **testnet**, no
 real institution, the demo issuer's agent key is held by the platform, quiz answer keys ship in the browser
 bundle *(1 Oct correction, B80: no longer — the keys live on the server only and `/grade` returns per-question
-feedback after submission; retakes are unlimited, so a learner can still converge on the keys)*, a learner's identity is a device key with no recovery, we are our own payment facilitator, and
+feedback after submission; retakes are unlimited, so a learner can still converge on the keys)*, ~~a learner's identity is a device key with no recovery~~ *(Correction 3 Oct, D57/B123: a learner signs in
+with email through Privy, and their address is the embedded wallet Privy creates for that account — the
+device key and extension-wallet paths were removed from the UI; sign-in from two browsers is not yet tested
+by the builder, so B82 stays open)*, we are our own payment facilitator, and
 contract source is not verified on the explorer. Detail and dates: [[08-Results/01 - Evidence and Limits]]
 and [[10-Contributors/Claims-Cheat-Sheet]].
 

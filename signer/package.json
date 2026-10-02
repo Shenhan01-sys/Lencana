@@ -23,6 +23,8 @@
     "verify:roles": "tsx scripts/roles-check.js",
     "verify:publisher": "tsx scripts/publisher-check.js",
     "grant:member": "node scripts/grant-member.js",
+    "account:dev": "node scripts/account-dev.js",
+    "verify:account": "tsx scripts/account-check.js",
     "verify:paywall": "tsx scripts/paywall-check.js",
     "verify:paywall:live": "tsx scripts/paywall-check.js --live",
     "verify:privy": "node scripts/privy-check.js",

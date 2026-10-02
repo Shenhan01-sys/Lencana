@@ -31,7 +31,7 @@ import { coin } from '../lib/coin'
 import { emblem, topicColor } from '../lib/emblem'
 import { odometer } from '../lib/odometer'
 import { skeleton, steps } from '../lib/loading'
-import { seats, mountSeatSwitch, applyBox, navIcon } from './seats'
+import { mountSeatSwitch, applyBox, navIcon, guardSeat } from './seats'
 
 type Lang = 'en' | 'id'
 type PubSection = 'overview' | 'courses' | 'learners' | 'essays' | 'agents' | 'revenue'
@@ -245,7 +245,8 @@ export function renderPublisherApp (lang: Lang, routeHash: string): HTMLElement 
   const load = (fresh: boolean) => {
     const progress = steps([T('stepSign'), T('stepRead')])
     body.replaceChildren(h('div', { class: 'app-loading' }, progress, skeleton(section === 'overview' ? 'stats' : 'list', T('loading'))))
-    void seats().then((s) => {
+    // B131: akun nyata berperan lain dikirim ke dasbor perannya sendiri (guardSeat); akun dev dan yang belum berperan tidak.
+    guardSeat('publisher', (s) => {
       if (!body.isConnected) return
       if (!s.ok || !s.roles) {
         body.replaceChildren(h('div', { class: 'app-card app-error' }, h('p', null, `${T('failed')} ${s.why ?? ''}`), h('button', { type: 'button', class: 'app-btn', onClick: () => load(true) }, T('retry'))))
@@ -257,7 +258,8 @@ export function renderPublisherApp (lang: Lang, routeHash: string): HTMLElement 
           h('h2', null, T('noSeatTitle')),
           h('p', { class: 'app-muted' }, T('noSeatBody')),
           applyBox(lang, s.roles, { withNote: true, onChange: () => load(false) }),
-          h('a', { class: 'app-btn small', href: '#/app' }, T('backLearner'))))
+          // B131: akun berperan Penerbit tidak punya dasbor peserta untuk dituju.
+          s.roles.account.role === 'publisher' && !s.roles.account.dev ? null : h('a', { class: 'app-btn small', href: '#/app' }, T('backLearner'))))
         return
       }
       void overview(fresh, (i) => progress.set(i)).then((r) => {

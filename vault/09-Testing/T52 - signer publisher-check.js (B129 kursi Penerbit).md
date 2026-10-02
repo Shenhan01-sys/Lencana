@@ -1,11 +1,18 @@
 ---
 tags: [testing, "T52"]
 status: active
-updated: 2026-10-02
+updated: 2026-10-03
 command: npm run verify:publisher
-measured: 2026-10-02
-result: KURSI PENERBIT HIJAU — 53 pemeriksaan / 0 gagal (2 Okt, B129; run pertama 51 / 0 hijau, +2 sesudah aturan "menunggu pengesahan" disamakan dengan view gerbang 0009)
+measured: 2026-10-03
+result: KURSI PENERBIT HIJAU — 57 pemeriksaan / 0 gagal (3 Okt, sesudah B131 +4 pemeriksaan; 2 Okt, B129 53 / 0 — run pertama 51 / 0 hijau, +2 sesudah aturan "menunggu pengesahan" disamakan dengan view gerbang 0009)
 ---
+
+> **3 Okt, B131 (D66):** satu akun nyata = satu peran. Kunci pemilik agen tim berperan Agent Owner, jadi tidak bisa diberi
+> keanggotaan. Supaya aturan "anggota tidak menyewa/menunjuk agennya sendiri" tetap teruji (aturan itu masih berlaku untuk akun
+> dev), harness ini menjadikan kedua kunci itu **akun dev selama run** (+2 pemeriksaan) dan menghapus tandanya di F (+1:
+> `account_roles` sisa 0). Pengajuan pertama pemohon kini juga mencatat peran Penerbit (+1). Lihat
+> [[09-Testing/T56 - signer account-check.js (B131 satu akun satu peran)]]: harness ini tidak boleh berjalan bersamaan dengan
+> harness lain yang memakai kunci tim yang sama.
 
 # T52 - signer publisher-check.js — B129: kursi Penerbit end-to-end
 

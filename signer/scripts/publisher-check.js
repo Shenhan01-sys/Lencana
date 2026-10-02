@@ -108,6 +108,14 @@ try {
   }
   if (up?.status !== 200) throw new Error(`server tidak naik: ${errBuf.slice(-200)}`)
 
+  // B131 (D66): kunci pemilik agen tim berperan Agent Owner, jadi tidak bisa diberi keanggotaan. Aturan "anggota tidak menyewa
+  // atau menunjuk agennya sendiri" tetap berlaku untuk akun dev (dummy builder), maka keduanya dijadikan akun dev SELAMA
+  // harness ini (baris origin=test, dihapus di F).
+  for (const a of [graderOwner.address, reviewerOwner.address]) {
+    const d = await pg('/account_roles', { method: 'POST', headers: { prefer: 'return=minimal' }, body: json([{ address: a, dev: true, dev_note: 'publisher-check (sementara)', origin: 'test' }]) })
+    check(`kunci pemilik agen ${a.slice(0, 6)}… dijadikan akun dev sementara`, d.status === 201, `HTTP ${d.status}`)
+  }
+
   console.log('\n— A. pengajuan anggota: diajukan akun, diputuskan hanya kunci penerbit')
   const wrongIssuer = await apply(applicant, null, `lencana-member-request issuer=${stranger.address.toLowerCase()} nonce=${nonce()}`)
   check('pesan menyebut penerbit lain → 400', wrongIssuer.status === 400, wrongIssuer.text.slice(0, 160))
@@ -117,6 +125,7 @@ try {
   check('catatan > 280 karakter → 400', tooLong.status === 400, tooLong.text.slice(0, 160))
   const a1 = await apply(applicant, 'Staf kurikulum Yayasan (harness)')
   check('pengajuan sah → 201 status pending dengan catatan', a1.status === 201 && a1.body?.request?.status === 'pending' && a1.body.request.note === 'Staf kurikulum Yayasan (harness)', a1.text.slice(0, 200))
+  check('B131: pengajuan pertama akun tanpa peran = memilih peran Penerbit', a1.body?.role === 'publisher', a1.text.slice(0, 200))
   const dup = await apply(applicant)
   check('pengajuan kedua selagi menunggu → 409 + menunjuk pengajuan yang ada', dup.status === 409 && dup.body?.request?.id === a1.body?.request?.id, dup.text.slice(0, 200))
   const r1 = (await roles(applicant)).body
@@ -228,6 +237,8 @@ try {
     ['agent_hires', `course_id=eq.${COURSE}&hired_by=in.${who}`],
     ['publisher_members', `member=in.${who}&origin=eq.test`],
     ['member_requests', `applicant=in.${who}&origin=eq.test`],
+    // B131: pilihan peran pemohon (pengajuan pertama = memilih Penerbit) dan tanda dev sementara kunci tim.
+    ['account_roles', `address=in.${who}&origin=eq.test`],
   ]
   for (const [table, filter] of steps) {
     const del = await pg(`/${table}?${filter}`, { method: 'DELETE' })

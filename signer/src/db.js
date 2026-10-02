@@ -906,6 +906,108 @@ export async function rejectRequest ({ issuer, applicant, message, signature }) 
   return { ok: true, request: projectRequest(rows[0]) }
 }
 
+/* ------------------------------------------------------------------ peran akun (B131, D66) */
+// Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata = satu peran: pilihan bertanda tangan akun (`lencana-role role=…`), sekali, tidak bisa diganti; memilih Penerbit sekaligus mengajukan keanggotaan; akun dev (dummy builder) hanya ditulis CLI platform. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+export const ACCOUNT_ROLES = Object.freeze(['learner', 'publisher', 'owner'])
+
+/** Baris `account_roles` satu alamat (pilihan atau tanda dev), atau null. */
+export async function accountRoleRow (address) {
+  const rows = await rest('account_roles', {
+    query: `?address=eq.${getAddress(String(address).toLowerCase())}&select=address,role,dev,chosen_at,dev_note,origin`,
+  })
+  return rows?.[0] ?? null
+}
+
+/** Sudah pernah mendaftar kursus? ("akun lama yang sudah belajar = Peserta", pilihan builder 3 Okt.) */
+export async function hasEnrollment (address) {
+  const rows = await rest('enrollments', { query: `?learner=eq.${getAddress(String(address).toLowerCase())}&select=id&limit=1` })
+  return Boolean(rows?.length)
+}
+
+/** Bentuk pesan pilihan peran. Penerbit menyebut penerbitnya: memilih Penerbit = mengajukan keanggotaan ke penerbit itu. */
+export const roleMessagePrefix = (role, issuer = null) => (role === 'publisher'
+  ? `lencana-role role=publisher issuer=${String(issuer).toLowerCase()}`
+  : `lencana-role role=${role}`)
+
+/**
+ * Tulis pilihan peran (pesan + tanda tangan akun yang SUDAH diverifikasi pemanggil). null bila akun sudah punya baris —
+ * kunci primer yang menegakkan "sekali", bukan pemeriksaan sebelumnya. Dipakai `chooseRole` dan pengajuan anggota pertama
+ * (`POST /me/member-request` dari akun tanpa peran = memilih Penerbit; kontrak rute B129 tetap).
+ */
+export async function recordRole ({ address, role, message, signature }) {
+  try {
+    return (await rest('account_roles', {
+      method: 'POST', prefer: 'return=representation',
+      body: [{ address: getAddress(String(address).toLowerCase()), role, dev: false, message, signature, origin: process.env.LANCENA_ORIGIN || 'unknown' }],
+    }))?.[0] ?? null
+  } catch (e) {
+    if (/23505|duplicate key/.test(String(e.message))) return null
+    throw e
+  }
+}
+
+/**
+ * Akun memilih perannya, sekali (pilihan builder 3 Okt, D66). Pesan ditandatangani akun itu; baris yang sudah ada (pilihan
+ * lain, atau tanda dev) membuat pilihan kedua ditolak oleh kunci primer, bukan oleh pemeriksaan yang bisa dilangkahi.
+ * Pemanggil (server) yang memastikan akun belum berperan menurut rekaman/fakta sebelum memanggil ini.
+ * Memilih Penerbit menulis pengajuan anggota dengan tanda tangan yang sama — kursinya tetap lahir hanya dari hibah kunci penerbit.
+ */
+export async function chooseRole ({ address, role, issuer = null, note = null, message, signature }) {
+  if (typeof address !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(address)) return { ok: false, kind: 'input', why: 'address must be a 20-byte address' }
+  if (!ACCOUNT_ROLES.includes(role)) return { ok: false, kind: 'input', why: `role must be one of ${ACCOUNT_ROLES.join(', ')}` }
+  if (role === 'publisher' && !issuer) return { ok: false, kind: 'input', why: 'this server has no publisher to apply to' }
+  if (note != null && (typeof note !== 'string' || note.length > 280)) return { ok: false, kind: 'input', why: 'note must be text of at most 280 characters' }
+  const want = roleMessagePrefix(role, issuer)
+  if (typeof message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "${want} nonce=<hex>"` }
+  }
+  const auth = await authorizeLearner({ learner: address, message, signature, scope: 'role' })
+  if (!auth.ok) return { ok: false, kind: 'auth', why: auth.why }
+  const origin = process.env.LANCENA_ORIGIN || 'unknown'
+  const row = await recordRole({ address, role, message, signature })
+  if (!row) return { ok: false, kind: 'conflict', why: 'this account already has a role — one account holds one role' }
+  let request = null
+  if (role === 'publisher') {
+    try {
+      const rows = await rest('member_requests', {
+        method: 'POST', prefer: 'return=representation',
+        body: [{ issuer: getAddress(issuer), applicant: getAddress(address), note: note?.trim() || null, message, signature, origin }],
+      })
+      request = projectRequest(rows?.[0])
+    } catch (e) {
+      if (!/23505|duplicate key/.test(String(e.message))) throw e
+      request = await latestRequest(issuer, address)
+    }
+  }
+  return { ok: true, role, chosenAt: row?.chosen_at ?? null, request }
+}
+
+/**
+ * Tandai/lepas akun dev (dummy builder): boleh memegang semua kursi menurut fakta + pemilih kursi. Hanya CLI platform
+ * (`npm run account:dev`) — tidak ada rute HTTP yang memanggil ini. Melepas tanda dev dari baris tanpa pilihan menghapus barisnya.
+ */
+export async function setDevAccount ({ address, dev = true, note = null }) {
+  const addr = getAddress(String(address).toLowerCase())
+  const row = await accountRoleRow(addr)
+  if (dev) {
+    await rest('account_roles', {
+      method: 'POST', query: '?on_conflict=address', prefer: 'resolution=merge-duplicates,return=minimal',
+      body: [{ address: addr, dev: true, dev_note: note ?? null, ...(row ? {} : { origin: process.env.LANCENA_ORIGIN || 'unknown' }) }],
+    })
+  } else if (row?.role) {
+    await rest('account_roles', { method: 'PATCH', query: `?address=eq.${addr}`, body: { dev: false, dev_note: null } })
+  } else if (row) {
+    await rest('account_roles', { method: 'DELETE', query: `?address=eq.${addr}` })
+  }
+  return accountRoleRow(addr)
+}
+
+/** Semua akun dev (untuk `npm run account:dev -- --list`). */
+export async function devAccounts () {
+  return (await rest('account_roles', { query: '?dev=is.true&select=address,role,dev_note,chosen_at,origin&order=chosen_at.asc' })) ?? []
+}
+
 /**
  * Bahan dasbor penerbit (B129): baris mentah untuk kursus-kursus penerbit itu. Yang SENGAJA tidak dibaca: teks esai,
  * kunci jawaban, pesan + tanda tangan. Baris harness (`origin=test`) disaring kecuali diminta — angka demo tidak boleh

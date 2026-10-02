@@ -504,7 +504,18 @@ export type OwnedAgent = { agentId: string, registry: string, wallet: string | n
 /** B129: pengajuan anggota penerbit terakhir akun ini (menunggu / ditolak / disetujui). */
 export type MemberRequest = { id: number, status: 'pending' | 'approved' | 'rejected', note: string | null, createdAt: string, decidedAt: string | null }
 export type PublisherRef = { address: string, slug: string | null, name: string | null }
-export type MyRoles = { address: string, publisher: PublisherSeat | null, agents: OwnedAgent[], request: MemberRequest | null, issuer: PublisherRef | null }
+/**
+ * B131 (D66): peran efektif akun — satu peran untuk akun nyata; akun dev (dummy builder) memegang semua kursi menurut fakta.
+ * `via`: 'chosen' (pilihan bertanda tangan), 'records' (sudah belajar), 'issuer' / 'membership' / 'agents' (fakta), 'dev'.
+ */
+export type AccountRole = {
+  role: 'learner' | 'publisher' | 'owner' | null
+  via: 'chosen' | 'records' | 'issuer' | 'membership' | 'agents' | 'dev' | null
+  dev: boolean
+  canChoose: boolean
+  chosenAt: string | null
+}
+export type MyRoles = { address: string, publisher: PublisherSeat | null, agents: OwnedAgent[], request: MemberRequest | null, issuer: PublisherRef | null, account: AccountRole }
 
 /**
  * Kursi akun ini (B128, RF7 langkah C1), dibaca penerbit dari fakta: kunci penerbit, keanggotaan bertanda tangan kunci
@@ -525,8 +536,28 @@ export async function readMyRoles (): Promise<{ ok: boolean, why?: string, roles
     roles: {
       address: String(r.json.address ?? addr), publisher: roles.publisher ?? null, agents: roles.agentOwner?.agents ?? [],
       request: (r.json.publisherRequest as MemberRequest | null | undefined) ?? null, issuer: (r.json.publisherIssuer as PublisherRef | null | undefined) ?? null,
+      account: (r.json.account as AccountRole | undefined) ?? { role: null, via: null, dev: false, canChoose: false, chosenAt: null },
     },
   }
+}
+
+// Lencana-B131 status=TERBUKA 2026-10-03 — akun memilih perannya sekali (pesan lencana-role bertanda tangan akun, POST /me/role); memilih Penerbit sekaligus mengajukan keanggotaan. Buktikan ulang: cd signer && npm run verify:account, lalu uji peramban T57. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/**
+ * B131 (D66): pilih peran akun ini — sekali, tidak bisa diganti. Pesan menyebut perannya; untuk Penerbit juga penerbitnya,
+ * karena memilih Penerbit adalah mengajukan keanggotaan ke penerbit itu (kursinya tetap lahir dari persetujuan kunci penerbit).
+ */
+export async function chooseMyRole (role: 'learner' | 'publisher' | 'owner', opts: { issuer?: string, note?: string } = {}): Promise<{ ok: boolean, why?: string, request?: MemberRequest }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  if (role === 'publisher' && !opts.issuer) return { ok: false, why: 'Server ini tidak punya penerbit untuk dilamar.' }
+  const message = role === 'publisher'
+    ? `lencana-role role=publisher issuer=${String(opts.issuer).toLowerCase()} nonce=${newNonce()}`
+    : `lencana-role role=${role} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/me/role', { method: 'POST', body: { learner: addr, role, note: opts.note?.trim() || null, message, signature: s.signature } })
+  if (r.status !== 201) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, request: (r.json?.request as MemberRequest | null | undefined) ?? undefined }
 }
 
 /**

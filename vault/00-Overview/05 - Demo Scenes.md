@@ -1,7 +1,7 @@
 ---
 tags: [overview, demo]
 status: active
-updated: 2026-09-25
+updated: 2026-10-03
 ---
 
 # 05 - Demo Scenes
@@ -19,13 +19,24 @@ happen** — a scene with no runnable trigger is a slide, not a demo.
 
 ## What the designed script says vs what exists
 
-The briefing's original scene 1 said "another → `EXPIRED`". **`EXPIRED` is not seeded**: `SeedDemo`
+The briefing's original scene 1 said "another → `EXPIRED`". ~~**`EXPIRED` is not seeded**: `SeedDemo`
 produces four states (valid, revoked, issuer-delisted, valid-while-its-prerequisite-is-revoked), and
 the expiry path is covered in tests, not by a demo credential. Either seed one for the video or show
-`ISSUER_DELISTED` in that slot — do not narrate a verdict the audience cannot paste.
+`ISSUER_DELISTED` in that slot~~ *(Koreksi 3 Okt: since B102 (closed 30 Sep) an `EXPIRED` specimen exists on chain 97 —
+`0x202f8edf…`, issued with a deliberately short validity, alongside a `delisted` specimen; `npm run check:samples`
+demands a specimen for all four states → [[09-Testing/T26 - signer sample-check.js]]. The page has no sample button
+for it (`SAMPLE_HASHES` at `web/src/main.ts:68` holds valid, revoked, delisted, format), so paste the hash by hand in
+that slot.)* — do not narrate a verdict the audience cannot paste.
 
 Scene 2's "appears on the learner's device" is honest only for the demo wallet whose key is in the
-harness; there is no account system.
+harness; ~~there is no account system~~ *(Koreksi 3 Okt: an account system exists since D57 (1 Okt) — email login
+through Privy, the learner's address is the embedded wallet, bound to the account in `learner_accounts` — and since
+B123/D59 (2 Okt) it is the only way into the page. Scene 2 itself still runs on harness fixtures, so its artefact goes
+to the harness wallet, not to a logged-in account.)*
+
+*(Koreksi 3 Okt, D54 — for scene 2: "the agent … signs" means the **publisher's** signing key, named `agent-*` in
+`signer/.keys/`, not an ERC-8004 AI agent. Since D54 (1 Okt) AI agents only grade and propose scores; the publisher key
+signs and revokes credentials — see [[10-Contributors/Claims-Cheat-Sheet]].)*
 
 ## Prep checklist before recording
 

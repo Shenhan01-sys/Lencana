@@ -1,7 +1,7 @@
 ---
 tags: [lms-reference, "L5"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # L5 - Open edX
@@ -111,6 +111,16 @@ Both directions of the assessment graph are fetched — assessments *given* and 
 - **Per-attempt history and a grading-method choice.** They keep every attempt and let the author pick last / first / highest / average (`capa_block.py:94-101`, `:296-307`); we keep `attempts: number` and the last score (`web/src/progress.ts:23-24`), and `computeScore` means every quiz taken (`web/src/score.ts:57-88`).
 - **Rubric levels with prose.** Their option is `{name, label, explanation, points}` (`serializers.py:52-59`); our `RubricItem` is `{label, max}` (`web/src/content.ts:60`) — a weight, not a scale. Nearest equivalent is `Essay.guidance`, a course-wide list of what will not be accepted (`web/src/content.ts:67`), which our judge does receive.
 - **Typed access refusals.** They return an `error_code` plus separate developer and user messages for every reason (`access_response.py:11-40`); we render "not found" and "not configured".
+
+> ⚠️ **Keadaan per 26 Sep — sebagian basi (koreksi 3 Okt).** Daftar implementation gap di bawah ini mendahului:
+> enrollment dan progres di server (`POST /enroll`, `POST /progress`, 28 Sep — B72), bayar sebelum enrollment untuk
+> kursus berbayar (B125, D60 — 402 → settlement x402 + `SettlementSplit` → `orders` = paid), login email lewat Privy
+> dengan dompet tertanam (D57) yang sejak B123 (D59) menjadi satu-satunya pintu di UI — bukan "wallet-connect only",
+> simulasi publik dibuang (B123), dan area internal `#/app` + detail kursus `#/course/<id>` yang tertaut dari
+> navigasi (B124). Rute `#/learn` diganti ruang kelas `#/class/<kursus>` (FE7) dan `web/src/lms.ts` yang dikutip di
+> bawah sudah tidak ada; `#/submit` dan `#/portfolio` kini dialihkan ke `#/app` (`web/src/main.ts:1019`). Masih benar
+> saat dibaca ulang 3 Okt: tidak ada mentor atau asisten di `web/`. Daftar yang berlaku:
+> [[12-LMS-References/L8 - Lencana vs LMS]] §C dan [[00-Overview/11 - Product Bar]].
 
 *Implementation gaps — decided, not built* (all logged in [[11-Refactoring/RF1 - Consumer Readiness Audit]]): no enrolment handler (`btnEnroll` unreferenced) · no payment step · no mentor or assistant anywhere · wallet-connect only · progress in `localStorage` · no demo-vs-real separation · the learning surface is not reachable from the navigation — `web/index.html:44-49` links `#/`, `#/courses`, `#/submit`, `#/verify`, `#/portfolio`, `#/agent-hub`, while the `#/learn` router exists and works (`web/src/lms.ts:441-460`).
 

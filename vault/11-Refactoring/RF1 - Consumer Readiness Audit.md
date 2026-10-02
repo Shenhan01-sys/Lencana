@@ -1,13 +1,33 @@
 ---
 tags: [refactoring, "RF1"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # RF1 - Consumer Readiness Audit
 
 What the shipped `web/` does today, measured by reading it on 26 Sep. Severity is judged against one
 question only: **would a non-technical Indonesian learner know what to do next?**
+
+> ⚠️ **State as of 26 Sep — partly stale (correction 3 Oct).** Five of the nine defects below are resolved;
+> the table is kept as it was measured. Re-read in `app/` on 3 Oct:
+> - **1.1** — enrolment exists since 28 Sep (B72: the page calls `POST /enroll`); the course-card button now has a
+>   handler (`web/src/main.ts:1727`); since B125 a paid course is paid for before enrolment, from the course page.
+> - **1.3** — the learning surface is reachable: FE7 replaced `#/learn` with the classroom `#/class/<course>` (old
+>   links redirect, `web/src/main.ts:1011`), and since B124 the nav after login has "Dashboard" → `#/app`
+>   (`web/index.html:41`).
+> - **1.4** — `#/submit`, `#ai-evaluator` and `#/portfolio` are no longer pages: B123 (D59) redirected them, and they
+>   now land on `#/app` (`web/src/main.ts:1019`).
+> - **1.5** — the sentence quoted below sits on the portfolio page (`web/index.html:1414`), which no route shows any
+>   more; the internal area `#/app` (B124) draws the learner's state from `POST /me/records` instead. The string
+>   itself is still in `web/src/i18n.ts:1034`.
+> - **1.9** — the diploma modal's button is on that same portfolio page (`web/index.html:1389`), so the hand-typed
+>   document has no route left; its markup and handler (`web/src/main.ts:852`) are still in the tree.
+>
+> Still true: **1.6** (zero `mentor` in `web/`). Not re-measured: 1.2, 1.7, 1.8. The inventory and `src/lms.ts` in
+> "What is *not* broken" are 26 Sep: the public catalogue is 7 courses since B127, and `lms.ts` no longer exists
+> (FE7). See [[08-Results/B123 - Executive Summary]], [[08-Results/B124 - Executive Summary]],
+> [[08-Results/B125 - Executive Summary]], [[03-Frontend/FE7 - Merge cabang FE 1 Okt]].
 
 ## Verified defects
 
@@ -40,7 +60,10 @@ browse → enroll (paid) → study per chapter → interact → submit → agent
        → credential → portfolio → free public verification
 ```
 
-Today it is: `landing (fixtures) → verifier → modal (typed document)`. RF3 supplies the front door,
+Today it is: ~~`landing (fixtures) → verifier → modal (typed document)`~~ *(correction 3 Oct: that was 26 Sep. Since
+B123–B125 the flow is login (Privy) → onboarding `#/app/welcome` → course page `#/course/<id>` → pay (paid courses) →
+classroom `#/class/<course>` → internal area `#/app`; the typed-document modal has no route — see the banner above.)*
+RF3 supplies the front door,
 RF4 the study loop, RF5 the money step.
 
 **Part of:** [[11-Refactoring/00 - Hub Refactoring]]

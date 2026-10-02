@@ -1,7 +1,7 @@
 ---
 tags: [refactoring, "RF6"]
 status: active
-updated: 2026-09-26
+updated: 2026-10-03
 ---
 
 # RF6 - Core System, Backend, Contracts and Chain Tooling
@@ -61,6 +61,16 @@ Refactor, in the order that buys the most:
 | **Key handling** | the issuer key moves out of a flat `.env` into whatever the host provides, with the rotation path written down | an agent that signs on behalf of a third party holding a key in a text file is the part of this design that ages worst |
 
 ### 4. Money is proven but not attached to anything a user does
+
+> ⚠️ **Keadaan per 26 Sep — sebagian basi (koreksi 3 Okt).** Sejak B125 (D60, 2 Okt) uang menempel ke aksi peserta:
+> kursus berbayar menjawab `POST /enroll` dengan 402 + syarat x402, peserta membayar dari panel bayar dengan tanda
+> tangan saja, penerbit menyiarkan settlement + pembagian `SettlementSplit`, `orders` = paid, baru kelas terbuka —
+> jadi butir pertama di bawah sudah dikerjakan. Butir kedua berhenti benar: konsol x402 bertimer dibuang B123 (D59) dan
+> halaman memanggil rute penerbit lewat `web/src/learning.ts` (`POST /enroll` dengan `X-PAYMENT`, `:867-920`). Butir
+> ketiga bergeser: sejak B119 (1 Okt) agen penilai dibayar per aktivitas lewat x402 **langsung ke dompet agen**, 10% ke
+> platform lewat kontrak pembagian — bukan dari bagian penerbit; membayar tagihan agen tetap tanpa UI (kunci penerbit).
+> Butir keempat dikerjakan: harga dibaca server dari `web/src/pricing.ts` (`signer/src/server.js:754`), bukan dari
+> klien. Lihat [[08-Results/B125 - Executive Summary]], [[08-Results/B119 - Executive Summary]].
 
 The settlement path is real and measured ([[09-Testing/T6 - npm run x402]]): `402` → client signs two
 EIP-712 objects → canonical proxy settles → `SettlementSplit` divides → report returned, client sends

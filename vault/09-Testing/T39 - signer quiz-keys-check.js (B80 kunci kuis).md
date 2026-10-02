@@ -1,10 +1,10 @@
 ---
 tags: [testing, "T39"]
 status: active
-updated: 2026-10-01
+updated: 2026-10-03
 command: npm run verify:quizkeys · npm run verify:quizkeys -- --deployed=<url halaman>
-measured: 2026-10-01
-result: KUNCI KUIS HIJAU — 30 pemeriksaan / 0 gagal (bundel dibangun dari kode ini) · kontrol negatif terhadap bundel yang masih tayang di Vercel sebelum deploy ulang: MERAH 33 / 2 gagal (28 dari 28 teks why, 28 literal answer) · sesudah deploy 16:32 dengan --deployed: HIJAU 33 / 0 (0 dari 28)
+measured: 2026-10-03 (baterai sync:numbers); run di bawah halaman ini 2026-10-01
+result: KUNCI KUIS MERAH — 66 pemeriksaan / 6 gagal, 60 lulus (dicetak sync:numbers 3 Okt; merah karena dokumen criteria kelas uji B126 dan lima kursus B127 belum terbit di tepi — menunggu npm run publish:edge oleh builder, bukan kunci yang bocor) · koreksi 3 Okt, nilai lama yang tadinya tertulis di sini — KUNCI KUIS HIJAU — 30 pemeriksaan / 0 gagal (1 Okt, dua kursus; bundel dibangun dari kode ini) · kontrol negatif terhadap bundel yang masih tayang di Vercel sebelum deploy ulang: MERAH 33 / 2 gagal (28 dari 28 teks why, 28 literal answer) · sesudah deploy 16:32 dengan --deployed: HIJAU 33 / 0 (0 dari 28)
 ---
 
 # T39 - signer quiz-keys-check.js — B80: kunci jawaban kuis tidak lagi sampai ke browser

@@ -1,16 +1,29 @@
 ---
 tags: [overview, business-process, diagrams]
 status: active
-updated: 2026-09-29
+updated: 2026-10-03
 ---
 
 # 12 - Proses bisnis Lencana, dengan diagram yang bisa diperiksa
 
 **Peta:** [[START-HERE]] · **Bar:** [[00-Overview/11 - Product Bar]] · **Arsitektur:** [[01-Architecture/01 - Architecture]] · **Perintah + angkanya:** [[09-Testing/00 - Hub Testing]] · **Klaim yang dilarang:** [[10-Contributors/Claims-Cheat-Sheet]]
 
+> ⚠️ **Keadaan per 29 Sep — sebagian basi (banner 3 Okt).** Halaman ini menggambar alur sebelum B123–B130 (2 Okt).
+> Sejak itu: peserta masuk **hanya** lewat login email Privy dan alamat belajarnya adalah dompet tertanam (D57; D59/B123 —
+> kunci perangkat dan dompet ekstensi keluar dari UI); `#/learn` diganti ruang kelas `#/class/<course>` (FE7) dan area
+> internal `#/app` dengan detail kursus publik `#/course/<id>` (B124); kursus berbayar dibayar **sebelum** enrollment —
+> `POST /enroll` menjawab 402, settlement x402 + `SettlementSplit`, baris `orders` ditulis lunas (B125, D60); praktik punya
+> rute `POST /praktik` yang menilai dari bacaan chain, meski halaman belum punya formulirnya (B121); kursi akun dibaca dari
+> fakta (B128), anggota penerbit dengan dasbor `#/app/pub` (B129), dan dasbor Agent Owner `#/app/owner` (B130). Angka
+> bertanggal di halaman ini adalah rekaman hari itu, bukan angka kini — yang kini ada di [[Quick-Reference]] dan
+> `09-Testing/numbers.json`. Koreksi per baris ada di tempatnya; alur terkini yang dibaca dari kode:
+> [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].
+
 Halaman ini menjelaskan **apa yang sebenarnya terjadi** ketika seseorang mendaftar, belajar, lulus,
 dan ketika orang lain memeriksa kertasnya. Setiap panah di bawah punya alamat: nama rute, nama tabel,
-atau nama fungsi kontrak. Tidak ada panah yang menggambarkan sesuatu yang belum ada — dan bagian
+atau nama fungsi kontrak. ~~Tidak ada panah yang menggambarkan sesuatu yang belum ada~~ *(Koreksi 3 Okt: benar
+per 29 Sep; sejak B123 dua simpul BPMN menggambarkan pintu yang sudah tidak ada di halaman — dompet ekstensi dan kunci
+perangkat — dan langkah bayar B125 tidak tergambar sama sekali; lihat catatan di atas §2.)* — dan bagian
 terakhir halaman ini justru mencatat apa yang **tidak** bisa dilakukan sistem, supaya diagramnya tidak
 dibaca lebih dari yang ditegakkan kode.
 
@@ -37,6 +50,16 @@ hilang, attestation dan daftar status tetap terbaca di BSC.
 
 Bentuknya BPMN-ish: tiap `subgraph` adalah jalur satu pihak, gerbang keputusan adalah tempat sistem
 menolak (bukan memaafkan).
+
+> ⚠️ **Koreksi 3 Okt — dua simpul diagram ini basi dan satu langkah hilang.** Simpul `P1` "buka #/learn" → sejak FE7
+> rutenya ruang kelas `#/class/<course>` (`#/learn` lama dialihkan ke kelas, `web/src/main.ts:1011`), dan sejak B124 kursus
+> dipilih dari detail publik `#/course/<id>` atau halaman Kursus `#/app/courses` (B127). Simpul `P2a` "dompet ekstensi ATAU
+> kunci perangkat sementara" → sejak D59/B123 satu-satunya pintu adalah login email Privy, dan alamatnya dompet tertanam
+> (D57). Di antara `P2` dan `P3` kini ada langkah **bayar** untuk kursus berbayar (B125, D60): `POST /enroll` tanpa
+> pembayaran menjawab 402 + syarat x402 (`signer/src/server.js:324`); peserta menandatangani izin token + pesan enroll;
+> server menyiarkan settlement + pembagian `SettlementSplit`, lalu menulis enrollment dan baris `orders`
+> (`signer/src/server.js:343`). Diagram dibiarkan seperti 29 Sep supaya kekeliruannya tetap terbaca; alur terkini ada di
+> [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]] §6 (Alur B).
 
 ```mermaid
 flowchart TB
@@ -430,10 +453,14 @@ flowchart LR
   Y6 --> MA
 ```
 
-Uangnya mengalir di sini, dan ini satu-satunya proses yang menyebut angka pembagian: 10% platform,
+Uangnya mengalir di sini, dan ~~ini satu-satunya proses yang menyebut angka pembagian~~ *(Koreksi 3 Okt: sejak
+B119 tagihan agen sewaan — `POST /agent-charges/<id>/pay`, `signer/src/server.js:1110` — dan sejak B125 pembayaran kursus
+— `POST /enroll` — memakai syarat x402 yang sama dengan `payTo` = kontrak pembagian; ini bukan lagi satu-satunya)*: 10% platform,
 sisanya ke penerbit, **dieksekusi kontrak yang kita tulis** — bukan oleh kode Node kita. Karena itu
-kalimat "pembagiannya bisa diaudit" benar, dan kalimat "kami menarik biaya kursus" belum (bar 10,
-OI-11: enrollment belum menempel ke harga).
+kalimat "pembagiannya bisa diaudit" benar, dan ~~kalimat "kami menarik biaya kursus" belum (bar 10,
+OI-11: enrollment belum menempel ke harga)~~ *(Koreksi 3 Okt: sejak B125 (2 Okt, D60) kursus berbayar dibayar sebelum
+enrollment — 402 → settlement + pembagian → `orders` lunas → kelas terbuka; harga dari `web/src/pricing.ts`, koin uji
+testnet. Lihat [[08-Results/B125 - Executive Summary]].)*
 
 ### DFD-2 · P8 Penyerahan esai + antrean penilaian — `POST /essay`, `POST /essay/judgement`
 
@@ -536,7 +563,12 @@ flowchart TD
 
 ## 6. Dua proses kedua yang juga nyata
 
-### 6a. Verifikasi berbayar antar-mesin (x402) — satu-satunya jalur yang menghasilkan uang
+### 6a. Verifikasi berbayar antar-mesin (x402) — ~~satu-satunya jalur yang menghasilkan uang~~
+
+*(Koreksi 3 Okt: judul ini benar per 29 Sep. Sejak 1–2 Okt ada tiga jalur uang lain: tagihan agen sewaan dibayar x402 ke
+dompet agen dengan 10% ke platform lewat kontrak pembagian (B119), pembayaran kursus sebelum enrollment (B125), dan setoran
+premi-tenggat di `CourseDeposit` (B90 — rute HTTP, tanpa UI). Daftarnya:
+[[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].)*
 
 ```mermaid
 sequenceDiagram
@@ -607,10 +639,10 @@ ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **88/0** (2
 
 | batasan | keadaan sebenarnya | kalimat yang boleh dipakai |
 |---|---|---|
-| **B81 sudah ditutup untuk esai — sisanya **praktik**** | Esai: `POST /essay` + `POST /essay/judgement` + `npm run grade:essay` (29 Sep). Praktik: belum punya rute sendiri — kalau suatu hari butuh bukti berupa berkas/tautan, itu tabel + rute baru, bukan kolom tambahan di `attempts` | "esai diserahkan ke penerbit dan dinilai dengan kunci penerbit; praktik belum punya permukaan penyerahan" |
+| **B81 sudah ditutup untuk esai — sisanya **praktik**** | Esai: `POST /essay` + `POST /essay/judgement` + `npm run grade:essay` (29 Sep). Praktik: ~~belum punya rute sendiri — kalau suatu hari butuh bukti berupa berkas/tautan, itu tabel + rute baru, bukan kolom tambahan di `attempts`~~ *(Koreksi 3 Okt: sejak B121 (1 Okt, D55) ada `POST /praktik` — `signer/src/server.js:1021`, tabel `praktik_proofs` migrasi 0011 — yang menilai praktik dari bacaan ulang chain 97; halaman belajar belum punya formulirnya, `web/src/pages/class.ts:173`, OI-20)* | ~~"esai diserahkan ke penerbit dan dinilai dengan kunci penerbit; praktik belum punya permukaan penyerahan"~~ *(Koreksi 3 Okt: "praktik dinilai server dari bacaan chain lewat rute HTTP; halaman belajar belum mengirimnya" — batas lengkapnya di [[10-Contributors/Claims-Cheat-Sheet]])* |
 | ~~**B80 — kunci kuis ada di bundel browser**~~ → ditutup 1 Okt (D56) | ~~`web/src/manifest.ts` menyalin `answer`~~ → kunci hanya di server; `/grade` membalas pembahasan per soal sesudah penyerahan, tanpa indeks jawaban | "kunci jawaban kuis tidak ada di bundel; pembahasan dibuka sesudah menyerahkan" — tetap **bukan** "kuis tidak bisa dicurangi" (ulangan tak terbatas) |
 | **B82 — tidak ada pemulihan akun** *(1 Okt malam, D57: ada — login email Privy; baris tetap TERBUKA sampai uji dua peramban)* | identitas = alamat penandatangan; "kunci perangkat" viem di `sessionStorage` hangus bersama tab. **Sejak 1 Okt malam:** login email lewat Privy memberi dompet tertanam yang sama di perangkat mana pun; penerbit mencatat ikatan alamat ↔ akun sesudah memverifikasi token (`POST /auth/privy`) | "identitas peserta hari ini adalah alamat EVM-nya; dompet = akun" + sebut bahwa ini tahap awal. **Sejak D57:** "peserta bisa masuk dengan email; alamat belajarnya dompet yang dibuatkan untuknya oleh Privy" — jangan "kami tidak pernah memegang kuncimu" dan jangan "login teruji lintas perangkat" sebelum builder menguji dua peramban |
-| **Tidak ada peran learner/publisher/mentor sebagai produk** | Yang SUDAH ada: `publisher` punya padanan on-chain berupa **allowlist** (`addIssuer`/`delistIssuer`/`isIssuer` di `CredentialResolver.sol`). Yang belum: identitas **staf** (signer hanya mengenali tanda tangan peserta), tabel peran, dan custodia kunci agen (hari ini di `signer/.keys/` mesin ini). Tiga jalur + biayanya ada di **B87** — termasuk jalur mentor yang tidak menyentuh chain dan hanya ±½ hari | jangan sebut multi-institusi, onboarding self-service, atau peran mentor. Yang boleh: "penerbit terdaftar di allowlist on-chain; otoritas menilai tetap di sisi penerbit" |
+| ~~**Tidak ada peran learner/publisher/mentor sebagai produk**~~ *(Koreksi 3 Okt: sejak B128 (D63) `POST /me/roles` membaca kursi akun dari fakta — peserta, anggota penerbit yang keanggotaannya ditandatangani kunci penerbit (`publisher_members`), Agent Owner lewat `ownerOf` ERC-8004; B129 menambah pengajuan anggota + dasbor `#/app/pub` tempat anggota menyewa agen penilai dan menunjuk agen pengesah; B130 menambah agen cetakan platform untuk akun + dasbor `#/app/owner`. Yang tetap tidak ada: pendaftaran swalayan penerbit, terbit/cabut kredensial oleh anggota, dan pembayaran tagihan agen dari halaman — lihat [[08-Results/B128 - Executive Summary]], [[08-Results/B129 - Executive Summary]], [[08-Results/B130 - Executive Summary]].)* | Yang SUDAH ada: `publisher` punya padanan on-chain berupa **allowlist** (`addIssuer`/`delistIssuer`/`isIssuer` di `CredentialResolver.sol`). Yang belum: identitas **staf** (signer hanya mengenali tanda tangan peserta), tabel peran, dan custodia kunci agen (hari ini di `signer/.keys/` mesin ini). Tiga jalur + biayanya ada di **B87** — termasuk jalur mentor yang tidak menyentuh chain dan hanya ±½ hari | jangan sebut multi-institusi, onboarding self-service, atau peran mentor. Yang boleh: "penerbit terdaftar di allowlist on-chain; otoritas menilai tetap di sisi penerbit" |
 | **Testnet 97 saja** | atas pilihan sadar (aturan hackathon membolehkan testnet); nol dana asli | "prototipe di BSC testnet; tidak ada dana riil di jalur ini" |
 | **Reproducibility dari clone ada batasnya** | suite offline + `rubric`/`inventory` jalan dari clone; yang menyentuh chain butuh `.env`, kunci agen, dan store | "perintahnya ada di repo; angkanya dicetak oleh `.env` kami" — jangan "siapa pun bisa mengulang angka kami" |
 | **Angka harness yang berubah sudah dijelaskan, bukan dihindari** | `check.js` 88 → 94 → 84. Sebab (29 Sep): pemeriksaan daftar sajian berlipat **per entri** `credentialStatus`; 5 dokumen lama masih array dua entri (22 entri) lalu dinormalkan jadi satu objek (17 entri) → 22−17 = 5 × 2 = **tepat 10**. `check.js` sekarang mencetak `info : 17 rekaman · 17 entri status × 2 = 34 pemeriksaan daftar sajian` supaya jumlahnya bisa direkonstruksi (B85 tertutup) | "84/0 pada 29 Sep, dan jumlah itu mengikuti bentuk korpus — baris `info` mencetak rinciannya" |
@@ -621,8 +653,13 @@ ujinya sendiri di `npm run probe` (web) **73/0** dan `npm run check` **88/0** (2
 
 1. **Masalah (10 dtk).** Ijazah digital hari ini adalah gambar: tidak ada yang bisa menjawab "masih
    sahkah ini, dari rubrik yang mana, dan angkanya dari mana".
-2. **Standar umum dulu (20 dtk).** Buka `#/learn`: daftar → progres per lesson tercatat di backend →
-   kuis dinilai **server** → progres dan usaha terbaca di kotak "Rekaman di penerbit".
+2. **Standar umum dulu (20 dtk).** ~~Buka `#/learn`: daftar → progres per lesson tercatat di backend →
+   kuis dinilai **server** → progres dan usaha terbaca di kotak "Rekaman di penerbit".~~
+   *(Koreksi 3 Okt: rute dan layarnya berubah. Naskah yang cocok dengan halaman sekarang: masuk dengan email (B123) →
+   detail kursus `#/course/<id>` → "Bayar & daftar" dengan koin uji (B125) → ruang kelas `#/class/<course>` (FE7): progres
+   per lesson tercatat di backend, kuis dinilai **server** → progres dan usaha terbaca di kotak "Rekaman di penerbit" di
+   ruang kelas (`web/src/lesson-views.ts:142`, dipanggil `web/src/pages/class.ts:206`) dan di area internal `#/app`, bagian
+   "Nilai & tugas" (B124, `POST /me/records`).)*
 3. **Sisipan on-chain (25 dtk).** `issue --from-attempts` → dua gerbang → attestation BAS → kertas
    Open Badges 3.0 ditandatangani **kunci institusi**, platform yang bayar gas → artefak soulbound.
 4. **Yang bisa diperiksa orang (20 dtk).** `verify:edge` 17/17 · `vc.1ed.tech` `outcome: VALID` ·
