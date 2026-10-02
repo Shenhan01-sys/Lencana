@@ -65,6 +65,7 @@ OI-5). Item nav `.student-only` itu dipasang port `97bd106` tanpa menutup pintu 
 | **Agent Owner** | Ringkasan · Agen saya (identitas ERC-8004, dompet) · Tarif · Sewa aktif · Pekerjaan bertanda tangan · Pendapatan · Akun | `GET /agents/<id>/rates` membaca registry; tarif = metadata yang ditulis pemilik NFT di chain; tidak ada akun atau layar |
 
 Model peran produk belum ada di core (Product Bar #11 ⚠️) — dashboard Penerbit dan Agent Owner bergantung padanya.
+*(2 Okt, B128: kini ada — `POST /me/roles` membaca kursi dari fakta: kunci penerbit, keanggotaan yang ditandatangani kunci itu, dan `ownerOf` ERC-8004. Lihat langkah C1 di bawah.)*
 
 ### Onboarding — sekali, saat login pertama
 
@@ -72,14 +73,20 @@ Model peran produk belum ada di core (Product Bar #11 ⚠️) — dashboard Pene
 2. "Kamu datang sebagai…": **Peserta** (langsung) · **Penerbit** (ajukan → platform yang memutuskan, karena masuk daftar
    penerbit di chain adalah `addIssuer` milik platform) · **Agent Owner** (hubungkan agen: `agentId` ERC-8004 → dibuktikan
    `ownerOf(agentId)` = alamat akunmu).
+   *(Koreksi 2 Okt, D63: kursi Penerbit di dashboard = **anggota** penerbit yang diberi keanggotaan oleh kunci penerbit, bukan
+   pengajuan ke platform; masuk daftar penerbit di chain tetap `addIssuer` milik platform dan tidak berubah. Sejak B128
+   onboarding menampilkan kursi yang dipegang dari fakta, bukan label "segera".)*
 3. Tur singkat per peran — langkahnya sama dengan stasiun alur 3D di beranda ([[03-Frontend/FE8 - Business flow 3D (brief)]]) —
    lalu masuk dashboard.
 
 ## Yang harus dibangun di core (tidak bisa di FE saja)
 
 - **Peran akun:** peserta (bawaan), penerbit (keanggotaan pada issuer, diberikan platform), agent owner (terbukti dari `ownerOf`).
+  *(D63, dikerjakan B128: keanggotaan diberikan **kunci penerbit**, bukan platform — `publisher_members`, `npm run grant:member`.)*
 - Otorisasi aksi penerbit lewat akun — misalnya akun anggota penerbit ditunjuk sebagai reviewer (`/essay/reviewers`) sehingga
   pengesahan bisa dari dashboard dengan dompet akunnya.
+  *(Koreksi 2 Okt, D63: pengesah esai adalah agen AI ERC-8004 (B120), bukan akun anggota. Anggota **menunjuk** agen pengesah
+  dan menyewa agen penilai bila hibahnya menyatakan `appoint=1`/`hire=1` — itu langkah C2.)*
 - `GET` antrean esai per penerbit; terbit-dari-rekaman lewat rute (sekarang `issue --from-attempts` di CLI); ringkasan pendapatan dari settlement.
 - Enrollment berbayar (RF5) untuk langkah B.
 
@@ -90,4 +97,4 @@ Model peran produk belum ada di core (Product Bar #11 ⚠️) — dashboard Pene
 | **A** (di-acc 2 Okt; dikerjakan 2 Okt — B123, tersisa uji login sungguhan oleh builder) | tutup pintu tanpa akun; dialog login baru (Google bila aktif + email, tanpa kata Privy); simulasi publik dibuang; nav tamu = halaman publik; sesudah login nav = "Dashboard" (sementara ke `#/me`); `#/submit` dan `#/portfolio` dialihkan | tsc + build + probe + `verify:privy`, uji peramban tamu vs login, OI untuk berkas maintainer |
 | **A2** (dikerjakan 2 Okt — B124, tersisa uji login sungguhan oleh builder) | cangkang dashboard (sidebar) + onboarding + dashboard Peserta dari data yang ada; **diputuskan 2 Okt:** onboarding menampilkan ketiga peran — Penerbit dan Agent Owner berlabel "segera" (syaratnya dijelaskan, tanpa tombol yang pura-pura mendaftarkan) — dan **detail kursus publik** (silabus, penerbit, apa yang dibuktikan, tombol Daftar) masuk A2, harganya menyusul di B; status esai butuh satu rute baca baru di core | sama + uji onboarding |
 | **B** (dikerjakan 2 Okt — B125, tersisa bayar lewat login sungguhan oleh builder) | enrollment berbayar + halaman detail kursus publik dengan harga (RF5); **diputuskan 2 Okt:** harga Web3 Dasar 10 LDC-demo, Web3 Lanjut 25 LDC-demo (koin uji testnet, disimpan di luar hash manifest); tombol "Ambil koin uji" (server mencetak ke dompet peserta, sekali per alamat per hari, berlabel testnet); enrollment yang sudah ada sebelum harga berlaku tetap boleh lanjut; bayar tanpa gas lewat izin EIP-2612 + Permit2 (x402) ke `SettlementSplit`, `orders` = paid; premi tenggat (`CourseDeposit`) tetap terpisah | harness bayar → enrollment lunas; server menolak belajar tanpa lunas |
-| **C** | peran di core + dashboard Penerbit + dashboard Agent Owner | harness peran + uji peramban per peran |
+| **C** (dipecah 2 Okt, D63: C1 → C2 → C3, acc per langkah) | **C1** peran di core (dikerjakan 2 Okt — B128, tersisa uji login sungguhan oleh builder) · **C2** dashboard Penerbit + aksi anggota (sewa agen penilai, tunjuk agen pengesah) dengan tanda tangan anggota · **C3** dashboard Agent Owner + agen ERC-8004 baru untuk akun builder | harness peran (`verify:roles` 39/0) + uji peramban per peran (T51 untuk C1) |

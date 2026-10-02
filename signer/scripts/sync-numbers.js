@@ -48,12 +48,13 @@ const texts = new Map()
 const tailOf = (id, n = 12) => (texts.get(id) ?? '').split(/\r?\n/).filter((s) => s.trim()).slice(-n)
 
 /** Harness yang jadi sumber angka. `re` wajib menangkap "lulus / gagal". */
+// Lencana-B128 status=TERBUKA 2026-10-02 — lima pola pertama dulu hanya cocok dengan "HIJAU", jadi run merah (mis. "CHECK MERAH — 106 pemeriksaan, 1 gagal", 2 Okt) dilaporkan "tidak berjalan" alih-alih jumlah gagalnya; kini HIJAU|MERAH seperti harness lain. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 const HARNESS = [
-  { id: 'check', label: 'check.js', cwd: SIGNER, cmd: ['npm', ['run', 'check']], re: /CHECK HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
-  { id: 'verifyDb', label: 'verify:db', cwd: SIGNER, cmd: ['npm', ['run', 'verify:db']], re: /DB HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
-  { id: 'serveProbe', label: 'serve-probe', needs: 'signer lokal hidup — jalankan npm run serve lebih dulu (probe ini menguji proses yang sedang berjalan, bukan menyalakannya)', cwd: SIGNER, cmd: ['npm', ['run', 'probe:serve']], re: /PROBE SERVE HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
-  { id: 'e2e', label: 'e2e', cwd: SIGNER, cmd: ['npm', ['run', 'e2e']], re: /E2E HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
-  { id: 'liveCert', label: 'verify:live-cert', cwd: SIGNER, cmd: ['npm', ['run', 'verify:live-cert']], re: /LAPIS ARTEFAK HIJAU — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'check', label: 'check.js', cwd: SIGNER, cmd: ['npm', ['run', 'check']], re: /CHECK (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'verifyDb', label: 'verify:db', cwd: SIGNER, cmd: ['npm', ['run', 'verify:db']], re: /DB (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'serveProbe', label: 'serve-probe', needs: 'signer lokal hidup — jalankan npm run serve lebih dulu (probe ini menguji proses yang sedang berjalan, bukan menyalakannya)', cwd: SIGNER, cmd: ['npm', ['run', 'probe:serve']], re: /PROBE SERVE (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'e2e', label: 'e2e', cwd: SIGNER, cmd: ['npm', ['run', 'e2e']], re: /E2E (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'liveCert', label: 'verify:live-cert', cwd: SIGNER, cmd: ['npm', ['run', 'verify:live-cert']], re: /LAPIS ARTEFAK (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'attempts', label: 'verify:attempts (offline)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m },
   { id: 'edge', label: 'verify:edge', cwd: SIGNER, cmd: ['npm', ['run', 'verify:edge']], re: /TEPI HIJAU — (\d+) pemeriksaan, (\d+) gagal/, also: /terukur : (\d+) dari (\d+)/ },
   // Lencana-B114 status=SELESAI 2026-09-30 — perintah harness ini sekarang PERSIS perintah yang
@@ -86,6 +87,7 @@ const HARNESS = [
   { id: 'privy', label: 'verify:privy (login Privy: token, ikatan akun, bundel)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:privy']], re: /LOGIN PRIVY (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'records', label: 'verify:records (rekaman milik peserta, bertanda tangan)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:records']], re: /REKAMAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'paywall', label: 'verify:paywall (bayar dulu baru masuk kelas, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:paywall']], re: /PAYWALL (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'roles', label: 'verify:roles (peran akun: penerbit, anggota, Agent Owner)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:roles']], re: /PERAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -208,6 +210,7 @@ const DOC_CLAIMS = [
   { file: '09-Testing/T41 - signer privy-check.js (B82 login Privy).md', metric: 'privy', want: (m) => `LOGIN PRIVY HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T41 (login Privy)' },
   { file: '09-Testing/T45 - signer records-check.js (B124 rekaman milik peserta).md', metric: 'records', want: (m) => `REKAMAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T45 (rekaman milik peserta)' },
   { file: '09-Testing/T46 - signer paywall-check.js (B125 bayar dulu).md', metric: 'paywall', want: (m) => `PAYWALL HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T46 (bayar dulu baru masuk kelas)' },
+  { file: '09-Testing/T50 - signer roles-check.js (B128 peran akun).md', metric: 'roles', want: (m) => `PERAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T50 (peran akun)' },
   { file: 'Quick-Reference.md', metric: 'privy', want: (m) => new RegExp(`LOGIN PRIVY HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:privy di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]

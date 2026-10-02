@@ -79,6 +79,12 @@ import {
   rates as agentRates, hire as agentHireRoute, agentJudge, appointReviewerAgent, chargeReview,
   payCharge as payAgentCharge, getCharge as getAgentCharge,
 } from './agents.js'
+// Lencana-B128 status=TERBUKA 2026-10-02 — peran akun: POST /me/roles (peserta; penerbit lewat alamat penerbit atau keanggotaan bertanda tangan penerbit; Agent Owner lewat ownerOf di registry ERC-8004) dan POST /publisher/members (hibah/cabut bertanda tangan kunci penerbit). Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { getAddress } from 'viem'
+import { agentsOwnedBy } from './agents.js'
+import {
+  grantMember as dbGrantMember, revokeMember as dbRevokeMember, membershipsOf as dbMembershipsOf, knownAgentIds as dbKnownAgentIds,
+} from './db.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -245,6 +251,36 @@ function accepts () {
     tokenAddress: PAY_TOKEN, payTo: PAY_SPLIT, amount: PRICE,
     chainId: CHAIN_ID, resource: `${BASE_URL}/verify`, maxTimeoutSeconds: TIMEOUT_SECONDS,
   })]
+}
+
+/**
+ * Peran satu alamat (B128), dari fakta yang bisa diperiksa ulang — bukan dari pilihan di halaman:
+ *   peserta     setiap akun;
+ *   penerbit    alamat = `ISSUER_ADDRESS`, atau keanggotaan aktif yang ditandatangani kunci penerbit (`publisher_members`);
+ *   Agent Owner `ownerOf(agentId)` di registry ERC-8004 = alamat ini, untuk agen yang dikenal platform.
+ */
+async function rolesOf (address) {
+  const addr = getAddress(String(address).toLowerCase())
+  const issuer = MANIFESTS[0]?.issuer
+  const isIssuer = Boolean(PAY_PAYEE) && addr.toLowerCase() === PAY_PAYEE.toLowerCase()
+  // Keanggotaan (database) dan kepemilikan agen (chain) tidak saling bergantung — dibaca bersamaan.
+  const ownedAgents = (async () => {
+    if (!AGENTS_READY) return []
+    const ids = [...MANIFESTS.map((m) => m.issuer.agent?.agentId).filter(Boolean), ...await dbKnownAgentIds()]
+    return agentsOwnedBy(AGENTS_CFG, addr, ids)
+  })()
+  // Ditunggu di bawah; penangan kosong ini hanya mencegah penolakan dini (sebelum `await`) terbaca "unhandled" dan mematikan proses.
+  ownedAgents.catch(() => {})
+  const membership = isIssuer || !PAY_PAYEE
+    ? null
+    : (await dbMembershipsOf(addr)).find((m) => String(m.issuer).toLowerCase() === PAY_PAYEE.toLowerCase()) ?? null
+  const publisher = isIssuer
+    ? { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, since: null }
+    : membership
+      ? { issuer: getAddress(membership.issuer), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'member', canHire: membership.can_hire === true, canAppoint: membership.can_appoint === true, since: membership.granted_at }
+      : null
+  const agents = await ownedAgents
+  return { address: addr, roles: { learner: true, publisher, agentOwner: agents.length ? { agents } : null } }
 }
 
 /** 402 untuk enrollment kursus berbayar: syarat x402 yang sama dengan /verify, dengan jumlah = harga kursus. */
@@ -506,7 +542,7 @@ const server = createServer(async (req, res) => {
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
-      || path === '/auth/privy' || path === '/me/records' || path === '/faucet') {
+      || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -556,6 +592,31 @@ const server = createServer(async (req, res) => {
         const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'records' })
         if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
         return send(res, 200, jsonBody(await dbLearnerRecords(body.learner)))
+      }
+      if (path === '/me/roles') {
+        // B128: tanda tangan khusus peran — tanda tangan untuk rekaman/enroll tidak bisa dipakai ulang di sini.
+        if (typeof body.message !== 'string' || !/^lencana-roles nonce=[0-9a-f]{12,}$/.test(body.message)) {
+          return send(res, 400, jsonBody({ error: 'message must be "lencana-roles nonce=<hex>"' }))
+        }
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'roles' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        return send(res, 200, jsonBody(await rolesOf(body.learner)))
+      }
+      if (path === '/publisher/members') {
+        // B128: hanya kunci penerbit yang memberi atau mencabut keanggotaan; terbit/cabut kredensial tidak ikut didelegasikan.
+        if (!PAY_PAYEE) return send(res, 503, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher to grant membership' }))
+        if (String(body.issuer ?? '').toLowerCase() !== PAY_PAYEE.toLowerCase()) {
+          return send(res, 401, jsonBody({ error: `memberships are granted by the configured publisher (${PAY_PAYEE})` }))
+        }
+        const out = body.revoke === true
+          ? await dbRevokeMember({ issuer: body.issuer, member: body.member, message: body.message, signature: body.signature })
+          : await dbGrantMember({
+            issuer: body.issuer, member: body.member, canHire: body.canHire === true, canAppoint: body.canAppoint === true,
+            message: body.message, signature: body.signature,
+          })
+        if (!out.ok) return send(res, out.kind === 'auth' ? 401 : 400, jsonBody({ error: out.why }))
+        const { ok, kind, ...granted } = out
+        return send(res, 200, jsonBody(granted))
       }
       if (path === '/progress') {
         const out = await dbSetProgress({

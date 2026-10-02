@@ -14,7 +14,7 @@
 // Lencana-B120 status=SELESAI 2026-10-01 — penunjukan reviewer agen: identitas ERC-8004 yang berbeda agentId DAN berbeda Agent Owner dari setiap agen penilai yang disewa untuk kursus itu; aktivitas pengesahannya ikut ditagih. Buktikan ulang: npm run verify:agents. JANGAN dibalik/diulang tanpa membuka kembali baris B120 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, http, getAddress, isAddress } from 'viem'
 
-import { readAgent, REGISTRATION_TYPE } from './erc8004.js'
+import { readAgent, REGISTRATION_TYPE, ERC8004, identityAbi } from './erc8004.js'
 import { priceFor, rateCard, LADDER, LADDER_HASH } from './pricing.js'
 import {
   hireAgent, agentHire, agentHiresFor, reviewerAgentsFor, agentJudgeEssay, addReviewer, insertCharge, getCharge, markChargePaid,
@@ -39,6 +39,32 @@ export async function agentFacts (cfg, agentId) {
   if (cfg.token && !same(a.tariff.token, cfg.token)) return fail(422, `agent ${agentId} tariff is in ${a.tariff.token}, not the token this platform settles in`)
   if (same(a.wallet, cfg.publisher) || same(a.owner, cfg.publisher)) return fail(422, `agent ${agentId} is controlled by the publisher — under D54 the publisher stays the attester and the agent is a separate party`)
   return { ok: true, agent: a }
+}
+
+/**
+ * Agen yang NFT identitasnya dimiliki `address` (B128): peran Agent Owner dibaca dari `ownerOf` di registry ERC-8004,
+ * bukan dari tombol atau tabel. Registry tidak bisa ditanya "milik siapa saja", jadi yang diperiksa adalah daftar agen
+ * yang dikenal platform (agen penerbit di manifest + yang pernah disewa/ditunjuk); agen yang gagal dibaca dilewati.
+ */
+export async function agentsOwnedBy (cfg, address, agentIds) {
+  if (!isAddress(String(address ?? ''))) return []
+  const client = clientOf(cfg)
+  const registry = ERC8004[cfg.chainId]?.identity
+  if (!registry) return []
+  // Dua tahap supaya akun yang tidak memiliki agen (kebanyakan) cukup satu putaran ke RPC: `ownerOf` semua agen
+  // serentak, lalu baca lengkap (dompet, tarif) hanya untuk yang dimiliki alamat ini. Diukur 2 Okt: 1,6–4,2 detik → lihat T50.
+  const ids = [...new Set(agentIds.map(String))].filter((id) => /^\d+$/.test(id))
+  const owners = await Promise.all(ids.map((id) => client.readContract({ address: registry, abi: identityAbi, functionName: 'ownerOf', args: [BigInt(id)] }).catch(() => null)))
+  const owned = ids.filter((_, i) => same(owners[i], address))
+  const read = await Promise.all(owned.map(async (id) => {
+    const a = await readAgent(client, { chainId: cfg.chainId, agentId: id }).catch(() => null)
+    if (!a?.ok || !same(a.owner, address)) return null
+    return {
+      agentId: a.agentId, registry: a.registry, wallet: a.wallet ?? null,
+      tariff: a.tariff ? { token: a.tariff.token, amount: a.tariff.amount.toString() } : null,
+    }
+  }))
+  return read.filter((x) => x !== null)
 }
 
 /** Tabel harga satu agen: tarif dasar Agent Owner × tangga Lencana. */

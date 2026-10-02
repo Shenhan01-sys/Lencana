@@ -760,6 +760,72 @@ export async function addReviewer ({ courseId, reviewer, issuer, message, signat
   return { ok: true, courseId, reviewer: getAddress(reviewer), addedBy: getAddress(issuer), agentId: agent ? String(agent.agentId) : null }
 }
 
+/* ------------------------------------------------------------------ anggota penerbit (B128, D63) */
+// Lencana-B128 status=TERBUKA 2026-10-02 — hibah dan cabut keanggotaan penerbit hanya dari pesan bertanda tangan kunci penerbit yang menyebut alamat anggota dan wewenangnya; peran dibaca lewat POST /me/roles. Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/**
+ * Penerbit memberi keanggotaan ke satu akun (opsi 2 builder, 2 Okt): anggota memantau dashboard penerbit dan — kalau
+ * pesannya menyatakan — boleh menyewa agen penilai (`hire=1`) dan menunjuk agen pengesah (`appoint=1`) atas nama
+ * penerbit. Menerbitkan dan mencabut kredensial TIDAK pernah didelegasikan lewat sini.
+ * Pesan wajib menyebut anggota dan kedua wewenangnya: tanda tangan atas nonce saja bisa ditempelkan ke siapa pun.
+ */
+export async function grantMember ({ issuer, member, canHire, canAppoint, message, signature }) {
+  if (typeof member !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(member)) return { ok: false, kind: 'input', why: 'member must be a 20-byte address' }
+  if (member.toLowerCase() === String(issuer).toLowerCase()) {
+    return { ok: false, kind: 'input', why: 'the publisher address is the publisher itself — membership is for other accounts' }
+  }
+  const wants = `member=${member.toLowerCase()} hire=${canHire ? 1 : 0} appoint=${canAppoint ? 1 : 0}`
+  // Bentuk pesan tepat, bukan "mengandung": `hire=1` tidak boleh lolos dari `hire=10` atau dari teks lain di pesan.
+  if (typeof message !== 'string' || !new RegExp(`^lencana-member grant ${wants} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "lencana-member grant ${wants} nonce=<hex>"` }
+  }
+  const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'member' })
+  if (!auth.ok) return auth
+  await rest('publisher_members', {
+    method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
+    body: [{
+      issuer: getAddress(issuer), member: getAddress(member), can_hire: Boolean(canHire), can_appoint: Boolean(canAppoint),
+      message, signature, granted_at: new Date().toISOString(), revoked_at: null, revoke_message: null, revoke_signature: null,
+      origin: process.env.LANCENA_ORIGIN || 'unknown',
+    }],
+  })
+  return { ok: true, issuer: getAddress(issuer), member: getAddress(member), canHire: Boolean(canHire), canAppoint: Boolean(canAppoint) }
+}
+
+/** Cabut keanggotaan: pesan `lencana-member revoke member=… nonce=…` bertanda tangan penerbit. Baris tetap ada sebagai jejak. */
+export async function revokeMember ({ issuer, member, message, signature }) {
+  if (typeof member !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(member)) return { ok: false, kind: 'input', why: 'member must be a 20-byte address' }
+  if (typeof message !== 'string' || !new RegExp(`^lencana-member revoke member=${member.toLowerCase()} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "lencana-member revoke member=${member.toLowerCase()} nonce=<hex>"` }
+  }
+  const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'member' })
+  if (!auth.ok) return auth
+  const rows = await rest('publisher_members', {
+    method: 'PATCH', prefer: 'return=representation',
+    query: `?issuer=eq.${getAddress(issuer)}&member=eq.${getAddress(member)}&revoked_at=is.null`,
+    body: { revoked_at: new Date().toISOString(), revoke_message: message, revoke_signature: signature },
+  })
+  if (!rows?.length) return { ok: false, kind: 'input', why: 'no active membership for this member' }
+  return { ok: true, issuer: getAddress(issuer), member: getAddress(member), revokedAt: rows[0].revoked_at }
+}
+
+/** Keanggotaan aktif satu alamat (bisa lebih dari satu penerbit). */
+export async function membershipsOf (address) {
+  const rows = await rest('publisher_members', {
+    query: `?member=eq.${getAddress(String(address).toLowerCase())}&revoked_at=is.null&select=issuer,member,can_hire,can_appoint,granted_at&order=granted_at.asc`,
+  })
+  return rows ?? []
+}
+
+/** Agen yang dikenal platform dari rekaman: yang pernah disewa atau ditunjuk sebagai pengesah. Kepemilikan tetap dibaca dari chain. */
+export async function knownAgentIds () {
+  const [hires, reviewers] = await Promise.all([
+    rest('agent_hires', { query: '?select=agent_id' }),
+    rest('review_roles', { query: '?agent_id=not.is.null&select=agent_id' }),
+  ])
+  return [...new Set([...(hires ?? []), ...(reviewers ?? [])].map((r) => String(r.agent_id)))]
+}
+
 /**
  * Pengesahan manusia atas satu usulan model.
  *

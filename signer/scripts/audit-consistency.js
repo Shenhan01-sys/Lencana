@@ -398,6 +398,8 @@ async function collect () {
         'npm run check:identity': 'identity', 'forge test': 'forgeOffline',
         // Lencana-B82 status=TERBUKA 2026-10-01 — baris README `verify:privy` diadili terhadap numbers.json sejak hari ia ditulis. (Ditemukan sambil menambahkannya: baris verify:quizkeys/praktik/relay/deposit/agent/agents di README punya metrik di numbers.json tapi tidak ada di peta ini — dicatat di T41, belum dikerjakan.) Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:privy': 'privy',
+        // Lencana-B128 status=TERBUKA 2026-10-02 — baris README `verify:roles` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        'npm run verify:roles': 'roles',
       }
       const salah = []
       let banding = 0

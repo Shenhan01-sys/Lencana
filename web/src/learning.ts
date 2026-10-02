@@ -490,6 +490,36 @@ export async function readMyRecords (onStep?: (step: 0 | 1) => void): Promise<{ 
   }
 }
 
+/** Kursi penerbit akun ini (B128): pemegang kunci penerbit (`issuer`) atau anggota yang diberi kunci itu (`member`). */
+export type PublisherSeat = {
+  issuer: string
+  slug: string | null
+  name: string | null
+  via: 'issuer' | 'member'
+  canHire: boolean
+  canAppoint: boolean
+  since: string | null
+}
+export type OwnedAgent = { agentId: string, registry: string, wallet: string | null, tariff: { token: string, amount: string } | null }
+export type MyRoles = { address: string, publisher: PublisherSeat | null, agents: OwnedAgent[] }
+
+/**
+ * Kursi akun ini (B128, RF7 langkah C1), dibaca penerbit dari fakta: kunci penerbit, keanggotaan bertanda tangan kunci
+ * itu, dan `ownerOf` di registry ERC-8004. Permintaannya bertanda tangan (`lencana-roles`) karena keanggotaan adalah
+ * data akun — tanda tangan untuk keperluan lain tidak diterima rute ini.
+ */
+export async function readMyRoles (): Promise<{ ok: boolean, why?: string, roles?: MyRoles }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-roles nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/me/roles', { method: 'POST', body: { learner: addr, message, signature: s.signature } })
+  if (r.status !== 200 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  const roles = (r.json.roles ?? {}) as { publisher?: PublisherSeat | null, agentOwner?: { agents?: OwnedAgent[] } | null }
+  return { ok: true, roles: { address: String(r.json.address ?? addr), publisher: roles.publisher ?? null, agents: roles.agentOwner?.agents ?? [] } }
+}
+
 /* ------------------------------------------------------------------ bayar & daftar (B125) */
 
 const PERMIT2 = '0x000000000022D473030F116dDEE9F6B43aC78BA3'

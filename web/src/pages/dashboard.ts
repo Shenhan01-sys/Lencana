@@ -5,16 +5,17 @@
  * Datanya dibaca dari penerbit lewat `POST /me/records` yang ditandatangani pemilik akun: nilai adalah data pribadi,
  * jadi tidak ada satu pun angka di sini yang dibaca dari rute publik atau ditulis tangan.
  *
- * Onboarding menampilkan ketiga kursi (keputusan builder 2 Okt): Peserta aktif; Penerbit dan Agent Owner berlabel
- * "segera" dengan syarat yang sebenarnya, tanpa tombol yang pura-pura mendaftarkan — model peran di core baru datang di
- * langkah C.
+ * Onboarding menampilkan ketiga kursi (keputusan builder 2 Okt). Sejak B128 (RF7 C1) kursi Penerbit dan Agent Owner
+ * dibaca dari fakta lewat `POST /me/roles` — kunci penerbit, keanggotaan yang ia tandatangani, `ownerOf` di registry
+ * ERC-8004 — dan tampil sebagai "kursimu" atau "belum" beserta syaratnya; tetap tanpa tombol yang pura-pura mendaftarkan.
  */
 import './dashboard.css'
 import './dash-viz.css'
 import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
 import { COURSES, LISTED_COURSES, findCourse } from '../courses/index'
-import { forgetLearner, learnerAddress, readMyRecords, snapshot, type MyCourseRecord } from '../learning'
+import { forgetLearner, learnerAddress, readMyRecords, readMyRoles, snapshot, type MyCourseRecord, type MyRoles, type OwnedAgent } from '../learning'
+import { formatLdc, PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL } from '../pricing'
 import { classLink, readMyCredentials } from '../lesson-views'
 import { ROLES } from './flow3d-data'
 import { renderGrades } from './grades'
@@ -29,6 +30,8 @@ import { renderCatalog } from './catalog'
 // Lencana-B126 status=TERBUKA 2026-10-02 — Dompet menggantikan Pembayaran (saldo dari chain + koin uji + riwayat), Nilai & tugas bergrafik (grades.ts), kerangka isi + tahap muat sungguhan menggantikan teks memuat, kelas uji bertanda di Kursus lain. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // Lencana-B127 status=TERBUKA 2026-10-02 — sidebar Kursus (#/app/courses, pratinjau #/app/courses/<id>) dan Ringkasan baru (overview.ts); label pendek di tab ponsel karena menunya kini tujuh. Buktikan ulang: cd web && npm run build, lalu uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+// Lencana-B128 status=TERBUKA 2026-10-02 — kursi akun dibaca dari fakta lewat POST /me/roles (kunci penerbit, keanggotaan bertanda tangan penerbit, ownerOf ERC-8004): kartu "Kursi di akun ini" di Akun dan kursi onboarding "Kursimu"/"Belum"/"Tak terbaca". Buktikan ulang: cd signer && npm run verify:roles, lalu uji peramban T51. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 type Lang = 'en' | 'id'
 type Section = 'overview' | 'courses' | 'classes' | 'grades' | 'credentials' | 'wallet' | 'account' | 'welcome'
@@ -70,9 +73,37 @@ const COPY = {
   welcomeTitle: { en: 'Which seat are you taking?', id: 'Kamu datang sebagai apa?' },
   welcomeSub: { en: 'Lencana has three seats. Each has its own flow — the same one shown on the home page.', id: 'Lencana punya tiga kursi. Masing-masing punya alurnya sendiri — sama dengan yang ditunjukkan di beranda.' },
   learnerRole: { en: 'Learn, do the work, and receive a credential anyone can check.', id: 'Belajar, kerjakan tugas, dan terima kredensial yang bisa diperiksa siapa pun.' },
-  publisherRole: { en: 'Publish courses and issue credentials in your institution’s name. Requirement: you apply, and the platform adds your institution to the on-chain issuer list.', id: 'Terbitkan kursus dan kredensial atas nama lembagamu. Syarat: kamu mengajukan, lalu platform memasukkan lembagamu ke daftar penerbit di chain.' },
-  ownerRole: { en: 'Rent out your ERC-8004 grading agent to publishers. Requirement: prove you own the agent (its identity owner is your wallet).', id: 'Sewakan agen penilai ERC-8004 milikmu ke penerbit. Syarat: buktikan kamu pemilik agen itu (pemilik identitasnya adalah dompetmu).' },
-  soon: { en: 'Coming soon', id: 'Segera' },
+  publisherRole: { en: 'Monitor your institution’s courses, learners and revenue; hire grading agents and appoint reviewer agents in its name. Requirement: the institution’s publisher key grants you membership with a signed message.', id: 'Pantau kursus, peserta, dan pendapatan lembagamu; sewa agen penilai dan tunjuk agen pengesah atas namanya. Syarat: kunci penerbit lembaga memberimu keanggotaan lewat pesan bertanda tangan.' },
+  ownerRole: { en: 'Rent out your ERC-8004 grading agent to publishers. Requirement: the agent’s identity NFT is owned by this account’s wallet (ownerOf in the registry).', id: 'Sewakan agen penilai ERC-8004 milikmu ke penerbit. Syarat: NFT identitas agen itu dimiliki dompet akun ini (ownerOf di registry).' },
+  seatsTitle: { en: 'Seats on this account', id: 'Kursi di akun ini' },
+  unread: { en: 'Unread', id: 'Tak terbaca' },
+  seatsSource: {
+    en: 'Read from facts, not from a choice on this page: the publisher key and the memberships it signed, and ownerOf in the ERC-8004 registry on chain 97.',
+    id: 'Dibaca dari fakta, bukan dari pilihan di halaman ini: kunci penerbit dan keanggotaan yang ia tandatangani, serta ownerOf di registry ERC-8004 chain 97.',
+  },
+  recheck: { en: 'Check again', id: 'Periksa ulang' },
+  checking: { en: 'Checking your seats…', id: 'Memeriksa kursimu…' },
+  checkingShort: { en: 'Checking…', id: 'Memeriksa…' },
+  seatsFailed: { en: 'Your seats could not be read:', id: 'Kursimu tidak terbaca:' },
+  held: { en: 'Yours', id: 'Kursimu' },
+  notHeld: { en: 'Not yet', id: 'Belum' },
+  learnerHeld: { en: 'Active — every account is a learner.', id: 'Aktif — setiap akun adalah peserta.' },
+  viaIssuer: { en: 'You hold the publisher key of', id: 'Kamu memegang kunci penerbit' },
+  viaMember: { en: 'Member of', id: 'Anggota' },
+  grantedBy: { en: 'granted by publisher key', id: 'diberikan oleh kunci penerbit' },
+  since: { en: 'since', id: 'sejak' },
+  permWatch: { en: 'Monitor courses, learners, revenue', id: 'Pantau kursus, peserta, pendapatan' },
+  permHire: { en: 'Hire grading agents', id: 'Sewa agen penilai' },
+  permAppoint: { en: 'Appoint reviewer agents', id: 'Tunjuk agen pengesah' },
+  permIssueKey: { en: 'Issue / revoke credentials (CLI, with this key)', id: 'Terbitkan / cabut kredensial (CLI, dengan kunci ini)' },
+  permIssue: { en: 'Issue / revoke credentials — stays with the publisher key', id: 'Terbitkan / cabut kredensial — tetap kunci penerbit' },
+  publisherNone: { en: 'Requirement: the institution’s publisher key grants you membership with a signed message.', id: 'Syarat: kunci penerbit lembaga memberimu keanggotaan lewat pesan bertanda tangan.' },
+  ownerHeld: { en: 'Agents whose ERC-8004 identity this wallet owns:', id: 'Agen yang identitas ERC-8004-nya dimiliki dompet ini:' },
+  ownerNone: { en: 'Requirement: the ERC-8004 identity NFT of an agent is owned by this account’s wallet.', id: 'Syarat: NFT identitas ERC-8004 sebuah agen dimiliki dompet akun ini.' },
+  agentWallet: { en: 'agent wallet', id: 'dompet agen' },
+  tariff: { en: 'base tariff', id: 'tarif dasar' },
+  dashSoon: { en: 'The dashboard for this seat comes next.', id: 'Dashboard untuk kursi ini menyusul.' },
+  seeSeat: { en: 'See it in Account', id: 'Lihat di Akun' },
   start: { en: 'Start as a learner', id: 'Mulai sebagai peserta' },
   skip: { en: 'Skip', id: 'Lewati' },
   tourTitle: { en: 'How a course becomes proof', id: 'Bagaimana kursus menjadi bukti' },
@@ -124,6 +155,25 @@ async function records (onStep?: (step: 0 | 1) => void): Promise<{ ok: boolean, 
   inflight ??= readMyRecords((st) => stepListeners.forEach((fn) => fn(st))).finally(() => { inflight = null; stepListeners.clear() })
   return inflight
 }
+
+/**
+ * Kursi akun (B128). Berubah hanya kalau kunci penerbit memberi/mencabut keanggotaan atau NFT agen berpindah tangan,
+ * jadi dibaca sekali per muat halaman dan dipakai bersama Akun dan onboarding — satu tanda tangan, bukan satu per
+ * bagian. "Periksa ulang" membaca segar.
+ */
+type SeatsRead = { ok: boolean, why?: string, roles?: MyRoles }
+let seatsMemo: { addr: string, value: SeatsRead } | null = null
+let seatsInflight: Promise<SeatsRead> | null = null
+function seats (fresh = false): Promise<SeatsRead> {
+  const addr = learnerAddress()
+  if (!fresh && addr && seatsMemo?.addr === addr) return Promise.resolve(seatsMemo.value)
+  seatsInflight ??= readMyRoles().then((v) => { if (addr && v.ok) seatsMemo = { addr, value: v }; return v }).finally(() => { seatsInflight = null })
+  return seatsInflight
+}
+
+const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`
+/** NFT identitas agen di BscScan testnet: registry `eip155:97:0x…` → halaman token dengan id-nya. */
+const agentScan = (a: OwnedAgent) => `https://testnet.bscscan.com/token/${a.registry.split(':').pop()}?a=${encodeURIComponent(a.agentId)}`
 
 function sectionOf (routeHash: string): Section {
   const seg = routeHash.replace(/^#\/?/, '').split('/')[1] ?? ''
@@ -266,7 +316,70 @@ function renderAccount (lang: Lang, addr: string | null): HTMLElement {
       h('p', { class: 'app-muted' }, T('walletNote')),
       h('button', { type: 'button', class: 'app-btn danger', onClick: () => { forgetLearner(); window.location.hash = '#/' } }, T('signOut')),
     ),
+    renderSeats(lang),
   )
+}
+
+/** Kartu "Kursimu" (B128): tiga kursi, masing-masing dengan fakta yang membuatnya dipegang atau syarat yang belum. */
+function renderSeats (lang: Lang): HTMLElement {
+  const T = (k: keyof typeof COPY) => COPY[k][lang]
+  const list = h('div', { class: 'app-roles' }, skeleton('list', T('checking')))
+  const recheck = h('button', { type: 'button', class: 'app-btn small' }, T('recheck')) as HTMLButtonElement
+  const fill = (fresh: boolean) => {
+    recheck.disabled = true
+    if (fresh) list.replaceChildren(skeleton('list', T('checking')))
+    void seats(fresh).then((r) => {
+      recheck.disabled = false
+      list.replaceChildren(...(r.ok && r.roles ? seatRows(lang, r.roles) : [h('p', { class: 'app-muted' }, `${T('seatsFailed')} ${r.why ?? ''}`)]))
+    })
+  }
+  recheck.addEventListener('click', () => fill(true))
+  fill(false)
+  return h('section', { class: 'app-card app-seats', 'aria-label': T('seatsTitle') },
+    h('span', { class: 'app-kicker' }, T('seatsTitle')),
+    list,
+    h('div', { class: 'role-foot' }, h('p', { class: 'app-muted' }, T('seatsSource')), recheck),
+  )
+}
+
+function seatRows (lang: Lang, r: MyRoles): HTMLElement[] {
+  const T = (k: keyof typeof COPY) => COPY[k][lang]
+  const when = (iso: string) => new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium' })
+  const row = (name: string, held: boolean, ...body: (HTMLElement | null)[]) => h('div', { class: `role-row${held ? ' held' : ''}` },
+    h('div', { class: 'role-name' }, h('strong', null, name), h('span', { class: `role-state${held ? ' on' : ''}` }, held ? T('held') : T('notHeld'))),
+    h('div', { class: 'role-body' }, ...body))
+  const perm = (on: boolean, label: string) => h('li', { class: on ? 'on' : 'off' }, label)
+  const p = r.publisher
+  const institution = p ? (p.name ?? p.slug ?? short(p.issuer)) : ''
+  const tariff = (a: OwnedAgent) => !a.tariff
+    ? null
+    : a.tariff.token.toLowerCase() === PAY_TOKEN_ADDRESS.toLowerCase()
+      ? `${formatLdc(BigInt(a.tariff.amount))} ${PAY_TOKEN_SYMBOL}`
+      : `${a.tariff.amount} @ ${short(a.tariff.token)}`
+  return [
+    row(ROLES[0].name[lang], true, h('p', null, T('learnerHeld'))),
+    p
+      ? row(ROLES[1].name[lang], true,
+        h('p', null, `${p.via === 'issuer' ? T('viaIssuer') : T('viaMember')} `, h('strong', null, institution)),
+        p.via === 'member'
+          ? h('p', { class: 'app-muted' }, `${T('grantedBy')} `, h('code', null, short(p.issuer)), p.since ? ` · ${T('since')} ${when(p.since)}` : '')
+          : null,
+        h('ul', { class: 'role-perms' },
+          perm(true, T('permWatch')), perm(p.canHire, T('permHire')), perm(p.canAppoint, T('permAppoint')),
+          perm(p.via === 'issuer', p.via === 'issuer' ? T('permIssueKey') : T('permIssue'))),
+        h('p', { class: 'app-muted' }, T('dashSoon')))
+      : row(ROLES[1].name[lang], false, h('p', { class: 'app-muted' }, T('publisherNone'))),
+    r.agents.length
+      ? row(ROLES[2].name[lang], true,
+        h('p', null, T('ownerHeld')),
+        h('ul', { class: 'role-agents' }, ...r.agents.map((a) => h('li', null,
+          h('code', { class: 'role-agent-id' }, `#${a.agentId}`),
+          a.wallet ? h('span', null, `${T('agentWallet')} `, h('code', null, short(a.wallet))) : null,
+          tariff(a) ? h('span', null, `${T('tariff')} ${tariff(a)}`) : null,
+          h('a', { href: agentScan(a), target: '_blank', rel: 'noopener noreferrer' }, 'BscScan ↗')))),
+        h('p', { class: 'app-muted' }, T('dashSoon')))
+      : row(ROLES[2].name[lang], false, h('p', { class: 'app-muted' }, T('ownerNone'))),
+  ]
 }
 
 function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
@@ -288,19 +401,37 @@ function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
       h('h1', null, T('welcomeTitle')),
       h('p', { class: 'app-muted' }, T('welcomeSub')),
     ))
-    const seat = (name: string, line: string, active: boolean) => h('div', { class: `wel-seat ${active ? 'active' : 'soon'}` },
-      h('div', { class: 'wel-seat-top' }, h('strong', null, name), active ? null : h('span', { class: 'wel-badge' }, T('soon'))),
-      h('p', null, line),
-      active
-        ? h('button', { type: 'button', class: 'app-btn primary', onClick: stepTour }, T('start'))
-        : h('button', { type: 'button', class: 'app-btn', disabled: true }, T('soon')),
-    )
+    // B128: kursi Penerbit dan Agent Owner menunggu fakta dari penerbit (tanda tangan lencana-roles), lalu menjadi
+    // "kursimu" atau "belum". Yang dipegang menunjuk ke kartu Kursimu; dashboard-nya sendiri menyusul (C2/C3).
+    const badge = (el: HTMLElement, text: string, on = false) => { el.textContent = text; el.classList.toggle('on', on) }
+    const seat = (name: string, line: string) => {
+      const tag = h('span', { class: 'wel-badge' }, T('checkingShort'))
+      const action = h('div', { class: 'wel-seat-act' })
+      const el = h('div', { class: 'wel-seat soon' }, h('div', { class: 'wel-seat-top' }, h('strong', null, name), tag), h('p', null, line), action)
+      // null = kursi tidak terbaca (tanda tangan ditolak, penerbit tidak menjawab): jangan tampil "belum" yang belum tentu benar.
+      // Kursi yang belum dipegang tidak diberi tombol — syaratnya dipenuhi di luar halaman ini, bukan lewat formulir.
+      return { el, set: (held: boolean | null) => {
+        el.className = `wel-seat ${held ? 'active held' : 'soon'}`
+        badge(tag, held === null ? T('unread') : held ? T('held') : T('notHeld'), held === true)
+        action.replaceChildren(...(held ? [h('button', { type: 'button', class: 'app-btn', onClick: () => finish('#/app/account') }, T('seeSeat'))] : []))
+      } }
+    }
+    const pub = seat(ROLES[1].name[lang], T('publisherRole'))
+    const own = seat(ROLES[2].name[lang], T('ownerRole'))
     root.appendChild(h('div', { class: 'wel-seats' },
-      seat(ROLES[0].name[lang], T('learnerRole'), true),
-      seat(ROLES[1].name[lang], T('publisherRole'), false),
-      seat(ROLES[2].name[lang], T('ownerRole'), false),
+      h('div', { class: 'wel-seat active' },
+        h('div', { class: 'wel-seat-top' }, h('strong', null, ROLES[0].name[lang]), h('span', { class: 'wel-badge on' }, T('held'))),
+        h('p', null, T('learnerRole')),
+        h('button', { type: 'button', class: 'app-btn primary', onClick: stepTour }, T('start'))),
+      pub.el,
+      own.el,
     ))
     root.appendChild(h('button', { type: 'button', class: 'wel-skip', onClick: () => finish('#/app') }, T('skip')))
+    void seats().then((r) => {
+      if (!r.ok || !r.roles) { pub.set(null); own.set(null); return }
+      pub.set(Boolean(r.roles.publisher))
+      own.set(r.roles.agents.length > 0)
+    })
   }
 
   let i = 0

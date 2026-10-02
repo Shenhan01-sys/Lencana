@@ -112,6 +112,32 @@
 .app-shell .app-res.wait { color: #f0b90b; }
 .app-shell .app-creds { min-height: 40px; }
 
+/* ---------------------------------------------------------------- kursi akun (B128) */
+.app-shell .app-seats { gap: 4px; }
+.app-shell .app-roles { display: grid; }
+.app-shell .role-row { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 18px; padding: 16px 0; border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.08)); }
+.app-shell .role-row:first-child { border-top: 0; }
+.app-shell .role-name { display: grid; align-content: start; gap: 8px; }
+.app-shell .role-name strong { font-size: 16px; }
+.app-shell .role-state { width: fit-content; padding: 3px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); color: var(--text-secondary, #a9b0ba); font: 700 10.5px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; }
+.app-shell .role-state.on { background: rgba(240, 185, 11, 0.14); color: #f0b90b; }
+.app-shell .role-body { display: grid; align-content: start; gap: 10px; min-width: 0; }
+.app-shell .role-body > p { margin: 0; font-size: 14.5px; line-height: 1.55; }
+.app-shell .role-body code { font: 600 12.5px var(--font-mono, ui-monospace, monospace); color: #d9d8cd; }
+.app-shell .role-perms { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.app-shell .role-perms li { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1)); border-radius: 999px; font-size: 12.5px; line-height: 1.3; }
+.app-shell .role-perms li::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #f0b90b; flex: none; }
+.app-shell .role-perms li.on { border-color: rgba(240, 185, 11, 0.4); }
+.app-shell .role-perms li.off { color: var(--text-secondary, #a9b0ba); border-style: dashed; }
+.app-shell .role-perms li.off::before { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.3); }
+.app-shell .role-agents { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.app-shell .role-agents li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 10px 14px; border: 1px solid rgba(240, 185, 11, 0.25); border-radius: 12px; background: rgba(240, 185, 11, 0.04); font-size: 13.5px; color: var(--text-secondary, #a9b0ba); }
+.app-shell .role-agents .role-agent-id { color: #f0b90b; font-size: 15px; font-weight: 800; }
+.app-shell .role-agents a { margin-left: auto; color: #f0b90b; font: 600 12.5px var(--font-mono, ui-monospace, monospace); text-decoration: none; }
+.app-shell .role-agents a:hover { text-decoration: underline; }
+.app-shell .role-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding-top: 14px; border-top: 1px dashed var(--color-border, rgba(255, 255, 255, 0.1)); }
+.app-shell .role-foot .app-muted { flex: 1 1 320px; font-size: 13px; }
+
 /* ---------------------------------------------------------------- onboarding */
 .app-welcome {
   display: grid;
@@ -140,7 +166,9 @@
 .app-welcome .wel-seat.soon { opacity: 0.85; }
 .app-welcome .wel-seat p { margin: 0; color: var(--text-secondary, #a9b0ba); font-size: 14px; line-height: 1.55; }
 .app-welcome .wel-seat-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 18px; }
-.app-welcome .wel-badge { padding: 3px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: #d9d8cd; font: 700 10.5px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; }
+.app-welcome .wel-badge { padding: 3px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: #d9d8cd; font: 700 10.5px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+.app-welcome .wel-badge.on { background: rgba(240, 185, 11, 0.16); color: #f0b90b; }
+.app-welcome .wel-seat-act { display: flex; }
 .app-welcome .wel-dots { display: flex; gap: 8px; }
 .app-welcome .wel-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); transition: background 0.2s ease, transform 0.2s ease; }
 .app-welcome .wel-dots span.on { background: #f0b90b; transform: scale(1.25); }
@@ -281,6 +309,9 @@
   .app-shell .app-side .nav-short { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .app-shell .app-stats { grid-template-columns: 1fr 1fr 1fr; }
   .app-shell .app-facts { grid-template-columns: 1fr 1fr; }
+  .app-shell .role-row { grid-template-columns: 1fr; gap: 10px; }
+  .app-shell .role-name { grid-auto-flow: column; justify-content: space-between; align-items: center; }
+  .app-shell .role-agents a { margin-left: 0; }
   .app-welcome { padding: 32px 16px 80px; }
   .app-welcome .wel-seats, .app-welcome .wel-courses { grid-template-columns: 1fr; }
   .course-detail { padding: 24px 16px 80px; }
