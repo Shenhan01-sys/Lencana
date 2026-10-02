@@ -180,6 +180,37 @@ export async function privySignTypedData (typedDataJson: string, expected: strin
   return await current.provider.request({ method: 'eth_signTypedData_v4', params: [current.address, typedDataJson] }) as string
 }
 
+/**
+ * B130: transaksi dari dompet tertanam — pemilik agen mengisi dompet agennya (`setAgentWallet`) atau mengubah tarif.
+ * Ditandatangani di sini (`eth_signTransaction`) lalu disiarkan lewat RPC chain 97 milik halaman (`broadcast`), jadi
+ * tidak bergantung pada RPC yang dikonfigurasi Privy. Hanya kalau dompet tertanam MENOLAK metode tanda tangan itu, kita
+ * jatuh ke `eth_sendTransaction` — tidak pernah sesudah tanda tangan berhasil, supaya satu transaksi tidak terkirim dua kali.
+ */
+export async function privySendTransaction (
+  tx: { to: string, data: string, gas: bigint, gasPrice: bigint, nonce: number, chainId: number },
+  expected: string,
+  broadcast: (raw: `0x${string}`) => Promise<string>,
+): Promise<string> {
+  const id = await privyRestore()
+  if (!id || !current) throw new Error('Sesi login tidak ada lagi di peramban ini — masuk ulang.')
+  if (id.address.toLowerCase() !== expected.toLowerCase()) {
+    throw new Error(`Sesi login sekarang milik dompet lain (${id.address.slice(0, 10)}…) — keluar lalu masuk ulang.`)
+  }
+  const hex = (n: bigint | number) => `0x${n.toString(16)}`
+  const req = {
+    from: current.address, to: tx.to, data: tx.data, value: '0x0',
+    gas: hex(tx.gas), gasPrice: hex(tx.gasPrice), nonce: hex(tx.nonce), chainId: hex(tx.chainId),
+  }
+  let raw: string | null = null
+  try {
+    raw = await current.provider.request({ method: 'eth_signTransaction', params: [req] }) as string
+  } catch {
+    raw = null
+  }
+  if (raw) return broadcast(raw as `0x${string}`)
+  return await current.provider.request({ method: 'eth_sendTransaction', params: [req] }) as string
+}
+
 export async function privyAccessToken (): Promise<string | null> {
   const { privy } = await client()
   return privy.getAccessToken()

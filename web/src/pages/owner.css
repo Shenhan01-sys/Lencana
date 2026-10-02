@@ -1,0 +1,107 @@
+/* owner.css — dasbor Agent Owner #/app/owner (B130). Benda: kartu identitas NFT, slot dompet yang "disegel" pemilik,
+   tangga tarif tujuh anak tangga. Palet Lencana: emas = milik pemilik, hijau = terverifikasi/lunas, jingga = menunggu. */
+
+.app-shell .ow { gap: 18px; }
+.app-shell .ow-agent { display: grid; gap: 16px; }
+
+/* ---------------------------------------------------------------- gas */
+.app-shell .ow-gas { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 14px; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1)); border-radius: 14px; background: rgba(255, 255, 255, 0.02); font-size: 13.5px; }
+.app-shell .ow-gas b { font-family: var(--font-mono, ui-monospace, monospace); color: #f4f1ea; }
+.app-shell .ow-gas em { color: #ff9f43; font-style: normal; }
+.app-shell .ow-gas-dot { width: 9px; height: 9px; border-radius: 50%; background: #f0b90b; }
+.app-shell .ow-gas .app-btn:last-child { margin-left: auto; }
+
+/* ---------------------------------------------------------------- kartu identitas + slot dompet */
+.app-shell .ow-hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
+.app-shell .ow-id {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 22px 24px;
+  overflow: hidden;
+  border: 1px solid rgba(240, 185, 11, 0.45);
+  border-radius: 22px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(240, 185, 11, 0.16), transparent 55%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 12px),
+    #12161c;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+.app-shell .ow-id-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.app-shell .ow-id-chip { padding: 3px 10px; border-radius: 999px; background: #f0b90b; color: #14110a; font: 800 11px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.12em; }
+.app-shell .ow-id-scan { color: #f0b90b; font: 600 12px var(--font-mono, ui-monospace, monospace); text-decoration: none; }
+.app-shell .ow-id-scan:hover { text-decoration: underline; }
+.app-shell .ow-id-num { color: #f0b90b; font: 800 clamp(40px, 6vw, 58px)/1 var(--font-mono, ui-monospace, monospace); letter-spacing: -0.02em; }
+.app-shell .ow-id-name { font-size: 17px; }
+.app-shell .ow-id-desc { margin: 0; color: var(--text-secondary, #a9b0ba); font-size: 13px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.app-shell .ow-id-facts { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; color: #d9d8cd; font-size: 12.5px; }
+.app-shell .ow-id-facts li.ok::before { content: '✓ '; color: #37d67a; }
+.app-shell .ow-id-facts li.bad { color: #ff6b6b; }
+.app-shell .ow-id-facts code { font: 600 12px var(--font-mono, ui-monospace, monospace); }
+.app-shell .ow-id-facts a { color: #f0b90b; font-family: var(--font-mono, ui-monospace, monospace); text-decoration: none; }
+.app-shell .ow-hire { width: fit-content; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+.app-shell .ow-hire.ok { background: rgba(55, 214, 122, 0.12); color: #37d67a; }
+.app-shell .ow-hire.wait { background: rgba(255, 159, 67, 0.12); color: #ff9f43; }
+
+.app-shell .ow-wallet { gap: 12px; align-content: start; }
+.app-shell .ow-wallet [hidden] { display: none !important; }
+.app-shell .ow-slot { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 2px dashed rgba(255, 159, 67, 0.55); border-radius: 16px; background: rgba(255, 159, 67, 0.05); }
+.app-shell .ow-slot > div { display: grid; gap: 4px; min-width: 0; }
+.app-shell .ow-slot code { overflow-wrap: anywhere; color: #d9d8cd; font: 600 12px var(--font-mono, ui-monospace, monospace); }
+.app-shell .ow-slot-key {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  color: #ff9f43;
+  background: radial-gradient(circle at 50% 50%, currentColor 0 4px, transparent 5px);
+}
+.app-shell .ow-wallet.owner .ow-slot { border: 2px solid rgba(55, 214, 122, 0.55); background: rgba(55, 214, 122, 0.06); }
+.app-shell .ow-wallet.owner .ow-slot-key { color: #37d67a; background: radial-gradient(circle at 50% 50%, currentColor 0 7px, transparent 8px); }
+.app-shell .ow-wallet.other .ow-slot { border: 2px solid rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.03); }
+.app-shell .ow-wallet.other .ow-slot-key { color: #a9b0ba; }
+
+/* ---------------------------------------------------------------- tangga tarif */
+.app-shell .ow-steps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 8px; height: 190px; margin: 4px 0 0; padding: 0; list-style: none; }
+.app-shell .ow-steps li { display: grid; grid-template-rows: auto 1fr auto; height: 100%; gap: 6px; text-align: center; }
+.app-shell .ow-step-amt { color: #f4f1ea; font: 700 11.5px var(--font-mono, ui-monospace, monospace); }
+.app-shell .ow-step-bar {
+  position: relative;
+  align-self: end;
+  height: var(--h, 40%);
+  border-radius: 8px 8px 3px 3px;
+  background: linear-gradient(180deg, #ffe14d, #f0b90b 60%, #c98f00);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transform-origin: 50% 100%;
+  animation: ow-rise 0.7s cubic-bezier(0.2, 0.9, 0.25, 1.05) both;
+  animation-delay: calc(var(--k, 0) * 70ms);
+}
+.app-shell .ow-step-used { position: absolute; top: -9px; right: -6px; min-width: 18px; padding: 1px 5px; border-radius: 999px; background: #37d67a; color: #0c0f13; font: 800 10.5px var(--font-mono, ui-monospace, monospace); font-style: normal; }
+.app-shell .ow-steps small { color: var(--text-secondary, #a9b0ba); font-size: 10.5px; line-height: 1.2; text-transform: capitalize; }
+@keyframes ow-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .app-shell .ow-step-bar { animation: none; } }
+.app-shell .ow-tariff { grid-template-columns: minmax(0, 1fr) auto; margin-top: 6px; }
+.app-shell .ow-stale { color: #ff9f43 !important; }
+
+/* ---------------------------------------------------------------- aktivitas + bayaran */
+.app-shell .ow-counts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.app-shell .ow-counts div { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.03); }
+.app-shell .ow-counts b { color: #f0b90b; font: 800 26px/1 var(--font-mono, ui-monospace, monospace); }
+/* anak langsung saja: odometer di dalam <b> juga terdiri dari <span> (pelajaran B126) */
+.app-shell .ow-counts div > span { color: var(--text-secondary, #a9b0ba); font-size: 12.5px; }
+.app-shell .ow-money { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.app-shell .ow-money > div { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.03); }
+.app-shell .ow-money > div b { font: 700 15px var(--font-mono, ui-monospace, monospace); }
+.app-shell .ow-money > div > span { grid-column: 1 / -1; color: var(--text-secondary, #a9b0ba); font-size: 12.5px; }
+.app-shell .ow-money .paid b { color: #37d67a; }
+.app-shell .ow-money .due b { color: #ff9f43; }
+.app-shell .ow-money .due { grid-template-columns: 1fr; }
+
+@media (max-width: 860px) {
+  .app-shell .ow-hero { grid-template-columns: 1fr; }
+  .app-shell .ow-steps { height: 160px; gap: 5px; }
+  .app-shell .ow-steps small { font-size: 9px; }
+  .app-shell .ow-gas .app-btn:last-child { margin-left: 0; }
+}

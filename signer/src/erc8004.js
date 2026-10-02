@@ -50,6 +50,9 @@ export const identityAbi = parseAbi([
   'function ownerOf(uint256 tokenId) view returns (address)',
   'function tokenURI(uint256 tokenId) view returns (string)',
   'function balanceOf(address owner) view returns (uint256)',
+  // B130: platform mencetak identitas lalu memindahkannya ke akun Agent Owner. Spesifikasi EIP-8004: saat dipindah,
+  // `agentWallet` dikosongkan dan hanya pemilik baru yang bisa mengisinya lagi (`setAgentWallet`).
+  'function transferFrom(address from, address to, uint256 tokenId)',
   'function eip712Domain() view returns (bytes1, string, string, uint256, address, bytes32, uint256[])',
   'event Registered(uint256 indexed agentId, string agentURI, address indexed owner)',
 ])
@@ -89,6 +92,13 @@ const ROLE_TEXT = Object.freeze({
     description: 'Grades essays against the publisher rubric for Lencana courses on BNB Smart Chain testnet. '
       + 'For every grading activity it proposes a score and a difficulty label, and it is paid per activity. '
       + 'It never signs or revokes credentials: the publisher does. Testnet demo: the Agent Owner role is held by the Lencana team.',
+  },
+  // B130: agen yang dicetak platform untuk akun Lencana lalu dipindahkan ke akun itu — pemiliknya bukan tim.
+  'grader-account': {
+    name: 'Lencana essay grading agent (account-owned)',
+    description: 'Grades essays against the publisher rubric for Lencana courses on BNB Smart Chain testnet, proposing a score and a difficulty label '
+      + 'per grading activity and paid per activity. It never signs or revokes credentials: the publisher does. Testnet demo: the identity was minted '
+      + 'by the Lencana platform and transferred to the Lencana account that owns it; that owner verifies the agent wallet itself.',
   },
   reviewer: {
     name: 'Lencana essay review agent',

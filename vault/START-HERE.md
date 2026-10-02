@@ -27,7 +27,8 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 > berat, harga = tarif Agent Owner + 5%/tingkat, dibayar lewat x402 ke dompet agen (B118, B119, B120 —
 > `npm run verify:agent`, `npm run verify:agents`). Belum ada UI untuk semua itu. *(Koreksi 2 Okt: sejak B129 anggota penerbit
 > menyewa agen penilai dan menunjuk agen pengesah dari dasbor `#/app/pub` dengan tanda tangannya sendiri; membayar tagihan agen
-> tetap tanpa UI, dan dasbor Agent Owner adalah C3 — [[08-Results/B129 - Executive Summary]].)* Di demo semua peran masih
+> tetap tanpa UI, dan dasbor Agent Owner adalah C3 — [[08-Results/B129 - Executive Summary]].)* *(B130, 2 Okt: dasbor Agent Owner
+> `#/app/owner` ada; platform mencetak agen untuk akun, pemiliknya mengisi dompet agen sendiri — [[08-Results/B130 - Executive Summary]].)* Di demo semua peran masih
 > dijalankan tim kita di satu mesin. Gambaran alur dari kode:
 > [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].
 

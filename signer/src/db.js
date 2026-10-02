@@ -947,11 +947,55 @@ export async function membersOf (issuer) {
 
 /** Agen yang dikenal platform dari rekaman: yang pernah disewa atau ditunjuk sebagai pengesah. Kepemilikan tetap dibaca dari chain. */
 export async function knownAgentIds () {
-  const [hires, reviewers] = await Promise.all([
+  const [hires, reviewers, minted] = await Promise.all([
     rest('agent_hires', { query: '?select=agent_id' }),
     rest('review_roles', { query: '?agent_id=not.is.null&select=agent_id' }),
+    // B130: agen yang dicetak platform untuk sebuah akun — belum disewa siapa pun, tapi kursi Agent Owner-nya harus terbaca.
+    rest('platform_agents', { query: '?select=agent_id' }),
   ])
-  return [...new Set([...(hires ?? []), ...(reviewers ?? [])].map((r) => String(r.agent_id)))]
+  return [...new Set([...(hires ?? []), ...(reviewers ?? []), ...(minted ?? [])].map((r) => String(r.agent_id)))]
+}
+
+/* ------------------------------------------------------------------ Agent Owner (B130, D65) */
+// Lencana-B130 status=TERBUKA 2026-10-02 — jejak agen yang dicetak platform (platform_agents) dan bahan dasbor Agent Owner: sewa, penunjukan, aktivitas, dan tagihan per agen — kepemilikan selalu dari ownerOf di chain, bukan dari tabel. Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/** Catat satu agen yang dicetak platform (`npm run agent:mint`); idempoten per agentId. */
+export async function recordPlatformAgent ({ agentId, registry, role, mintedBy, registerTx, ownerTo = null, transferTx = null, gasTx = null }) {
+  await rest('platform_agents', {
+    method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
+    body: [{
+      agent_id: String(agentId), registry, role, minted_by: getAddress(mintedBy), register_tx: registerTx,
+      owner_to: ownerTo ? getAddress(ownerTo) : null, transfer_tx: transferTx, gas_tx: gasTx,
+      origin: process.env.LANCENA_ORIGIN || 'unknown',
+    }],
+  })
+}
+
+/** Semua agentId yang pernah dicetak platform (untuk menyaring siapa yang boleh menerima tetes gas). */
+export async function platformAgentIds () {
+  return ((await rest('platform_agents', { query: '?select=agent_id' })) ?? []).map((r) => String(r.agent_id))
+}
+
+export async function platformAgents (agentIds) {
+  if (!agentIds?.length) return []
+  return (await rest('platform_agents', { query: `?agent_id=in.(${agentIds.map((x) => encodeURIComponent(String(x))).join(',')})&select=*` })) ?? []
+}
+
+/**
+ * Bahan dasbor Agent Owner untuk agen-agen yang (menurut chain) dimiliki pembaca: di mana agen disewa/ditunjuk, berapa
+ * aktivitasnya, dan tagihannya. Tanpa teks esai, tanpa pesan + tanda tangan.
+ */
+export async function ownerRecords (agentIds) {
+  if (!agentIds?.length) return { hires: [], reviewers: [], charges: [], graded: [], reviews: [] }
+  const ids = `(${agentIds.map((x) => encodeURIComponent(String(x))).join(',')})`
+  const [hires, reviewers, charges, graded, reviews] = await Promise.all([
+    rest('agent_hires', { query: `?agent_id=in.${ids}&select=course_id,agent_id,agent_wallet,hired_by,hired_at&order=hired_at.desc` }),
+    rest('review_roles', { query: `?agent_id=in.${ids}&select=course_id,agent_id,reviewer,added_by,added_at&order=added_at.desc` }),
+    rest('agent_charges', { query: `?agent_id=in.${ids}&select=id,attempt_id,activity,agent_id,agent_wallet,label,amount,token,status,settle_tx,created_at,paid_at&order=created_at.desc&limit=500` }),
+    rest('attempts', { query: `?graded_by_agent=in.${ids}&select=graded_by_agent,difficulty_label,created_at&limit=2000` }),
+    rest('judgement_reviews', { query: `?reviewer_agent_id=in.${ids}&select=reviewer_agent_id,decision,difficulty_label,reviewed_at&limit=2000` }),
+  ])
+  return { hires: hires ?? [], reviewers: reviewers ?? [], charges: charges ?? [], graded: graded ?? [], reviews: reviews ?? [] }
 }
 
 /**

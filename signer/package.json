@@ -11,6 +11,8 @@
   "scripts": {
     "agent": "node scripts/agent.js",
     "agent:identity": "node scripts/agent-identity.js",
+    "agent:mint": "node scripts/agent-mint.js",
+    "verify:owner": "tsx scripts/owner-check.js",
     "admit": "tsx scripts/admit.js",
     "verify:agents": "tsx scripts/agents-check.js",
     "verify:agents:live": "tsx scripts/agents-check.js --live",

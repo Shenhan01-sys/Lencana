@@ -26,6 +26,7 @@ export function seats (fresh = false): Promise<SeatsRead> {
 const COPY = {
   learner: { en: 'Learner', id: 'Peserta' },
   publisher: { en: 'Publisher', id: 'Penerbit' },
+  owner: { en: 'Agent Owner', id: 'Agent Owner' },
   seatAria: { en: 'Seat', id: 'Kursi' },
   apply: { en: 'Apply for membership', id: 'Ajukan jadi anggota' },
   applyAgain: { en: 'Apply again', id: 'Ajukan lagi' },
@@ -56,13 +57,39 @@ export function navIcon (d: string): HTMLElement {
 
 const when = (lang: Lang, iso: string | null) => (iso ? new Date(iso).toLocaleString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '')
 
-/** Pemilih kursi: hanya ditampilkan untuk akun yang memegang kursi Penerbit. */
-export function seatSwitch (lang: Lang, active: 'learner' | 'publisher', extraClass = ''): HTMLElement {
+export type SeatId = 'learner' | 'publisher' | 'owner'
+
+/** Kursi yang dipegang akun, dari jawaban `/me/roles` (B128). Peserta selalu. */
+export function heldSeats (roles: MyRoles | undefined | null): { publisher: boolean, owner: boolean } {
+  return { publisher: Boolean(roles?.publisher), owner: Boolean(roles?.agents.length) }
+}
+
+/**
+ * Pemilih kursi (B129, tiga arah sejak B130): Peserta selalu ada; Penerbit dan Agent Owner hanya bila kursinya dipegang
+ * menurut fakta. Tidak ditampilkan sama sekali kalau akun hanya peserta.
+ */
+export function seatSwitch (lang: Lang, active: SeatId, held: { publisher: boolean, owner: boolean }): HTMLElement | null {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
-  return h('div', { class: `seat-switch ${extraClass}`.trim(), role: 'group', 'aria-label': T('seatAria') },
-    h('a', { href: '#/app', class: active === 'learner' ? 'on' : '', 'aria-current': active === 'learner' ? 'page' : 'false' }, T('learner')),
-    h('a', { href: '#/app/pub', class: active === 'publisher' ? 'on' : '', 'aria-current': active === 'publisher' ? 'page' : 'false' }, T('publisher')),
-  )
+  const seatsList: { id: SeatId, href: string, label: string }[] = [
+    { id: 'learner', href: '#/app', label: T('learner') },
+    ...(held.publisher || active === 'publisher' ? [{ id: 'publisher' as const, href: '#/app/pub', label: T('publisher') }] : []),
+    ...(held.owner || active === 'owner' ? [{ id: 'owner' as const, href: '#/app/owner', label: T('owner') }] : []),
+  ]
+  if (seatsList.length < 2) return null
+  return h('div', { class: `seat-switch n${seatsList.length}`, role: 'group', 'aria-label': T('seatAria') },
+    ...seatsList.map((s) => h('a', { href: s.href, class: s.id === active ? 'on' : '', 'aria-current': s.id === active ? 'page' : 'false' }, s.label)))
+}
+
+/** Isi dua slot pemilih kursi (menu samping + atas isi untuk ponsel) sesudah kursi terbaca. */
+export function mountSeatSwitch (lang: Lang, active: SeatId, slots: HTMLElement[]): void {
+  void seats().then((r) => {
+    const held = heldSeats(r.ok ? r.roles : null)
+    for (const slot of slots) {
+      if (!slot.isConnected) continue
+      const el = seatSwitch(lang, active, held)
+      slot.replaceChildren(...(el ? [el] : []))
+    }
+  })
 }
 
 /**

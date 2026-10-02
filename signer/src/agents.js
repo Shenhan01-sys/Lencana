@@ -28,17 +28,43 @@ function clientOf (cfg) {
   return createPublicClient({ transport: http(cfg.rpcUrl) })
 }
 
+/**
+ * Kenapa agen yang sudah terbaca dari registry belum layak disewa — null kalau layak. Fungsi murni (B130): dasbor Agent
+ * Owner memakai aturan yang sama dengan sewa tanpa membaca chain dua kali.
+ */
+export function hireProblem (cfg, a) {
+  const agentId = a.agentId
+  if (a.registrationType !== REGISTRATION_TYPE || !a.pointsBack) return `agent ${agentId} registration file is missing or does not point back to it`
+  if (!a.wallet) return `agent ${agentId} has no agentWallet`
+  if (!a.tariff) return `agent ${agentId} has published no base tariff (metadata lencana.baseTariff)`
+  if (cfg.token && !same(a.tariff.token, cfg.token)) return `agent ${agentId} tariff is in ${a.tariff.token}, not the token this platform settles in`
+  if (same(a.wallet, cfg.publisher) || same(a.owner, cfg.publisher)) return `agent ${agentId} is controlled by the publisher — under D54 the publisher stays the attester and the agent is a separate party`
+  return null
+}
+
 /** Identitas agen yang layak disewa: ada, registrasinya sah dan menunjuk balik, punya dompet dan tarif. */
 export async function agentFacts (cfg, agentId) {
   if (!/^\d+$/.test(String(agentId ?? ''))) return fail(422, 'agentId must be a non-negative integer')
   const a = await readAgent(clientOf(cfg), { chainId: cfg.chainId, agentId })
   if (!a.ok) return fail(404, a.why)
-  if (a.registrationType !== REGISTRATION_TYPE || !a.pointsBack) return fail(422, `agent ${agentId} registration file is missing or does not point back to it`)
-  if (!a.wallet) return fail(422, `agent ${agentId} has no agentWallet`)
-  if (!a.tariff) return fail(422, `agent ${agentId} has published no base tariff (metadata lencana.baseTariff)`)
-  if (cfg.token && !same(a.tariff.token, cfg.token)) return fail(422, `agent ${agentId} tariff is in ${a.tariff.token}, not the token this platform settles in`)
-  if (same(a.wallet, cfg.publisher) || same(a.owner, cfg.publisher)) return fail(422, `agent ${agentId} is controlled by the publisher — under D54 the publisher stays the attester and the agent is a separate party`)
-  return { ok: true, agent: a }
+  const problem = hireProblem(cfg, a)
+  return problem ? fail(422, problem) : { ok: true, agent: a }
+}
+
+/**
+ * B130: identitas lengkap agen-agen yang `ownerOf`-nya alamat ini (dua tahap seperti `agentsOwnedBy`), masing-masing
+ * dengan alasan kenapa belum layak disewa (null = layak). Untuk dasbor Agent Owner.
+ */
+export async function ownedAgentFacts (cfg, address, agentIds) {
+  if (!isAddress(String(address ?? ''))) return []
+  const client = clientOf(cfg)
+  const registry = ERC8004[cfg.chainId]?.identity
+  if (!registry) return []
+  const ids = [...new Set(agentIds.map(String))].filter((id) => /^\d+$/.test(id))
+  const owners = await Promise.all(ids.map((id) => client.readContract({ address: registry, abi: identityAbi, functionName: 'ownerOf', args: [BigInt(id)] }).catch(() => null)))
+  const owned = ids.filter((_, i) => same(owners[i], address))
+  const read = await Promise.all(owned.map((id) => readAgent(client, { chainId: cfg.chainId, agentId: id }).catch(() => null)))
+  return read.filter((a) => a?.ok && same(a.owner, address)).map((a) => ({ agent: a, problem: hireProblem(cfg, a) }))
 }
 
 /**

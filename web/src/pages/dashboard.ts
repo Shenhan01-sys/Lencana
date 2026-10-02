@@ -15,8 +15,9 @@ import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
 import { COURSES, LISTED_COURSES, findCourse } from '../courses/index'
 import { forgetLearner, learnerAddress, readMyRecords, snapshot, type MyCourseRecord, type MyRoles, type OwnedAgent } from '../learning'
-import { seats, seatSwitch, applyBox, navIcon } from './seats'
+import { seats, mountSeatSwitch, applyBox, navIcon } from './seats'
 import { renderPublisherApp } from './publisher'
+import { renderOwnerApp } from './owner'
 import { formatLdc, PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL } from '../pricing'
 import { classLink, readMyCredentials } from '../lesson-views'
 import { ROLES } from './flow3d-data'
@@ -104,9 +105,9 @@ const COPY = {
   ownerNone: { en: 'Requirement: the ERC-8004 identity NFT of an agent is owned by this account’s wallet.', id: 'Syarat: NFT identitas ERC-8004 sebuah agen dimiliki dompet akun ini.' },
   agentWallet: { en: 'agent wallet', id: 'dompet agen' },
   tariff: { en: 'base tariff', id: 'tarif dasar' },
-  dashSoon: { en: 'The dashboard for this seat comes next.', id: 'Dashboard untuk kursi ini menyusul.' },
   seeSeat: { en: 'See it in Account', id: 'Lihat di Akun' },
   openPub: { en: 'Open the publisher dashboard', id: 'Buka dasbor penerbit' },
+  openOwner: { en: 'Open the Agent Owner dashboard', id: 'Buka dasbor Agent Owner' },
   start: { en: 'Start as a learner', id: 'Mulai sebagai peserta' },
   skip: { en: 'Skip', id: 'Lewati' },
   tourTitle: { en: 'How a course becomes proof', id: 'Bagaimana kursus menjadi bukti' },
@@ -178,6 +179,8 @@ export function renderApp (routeHash: string): HTMLElement {
   const addr = learnerAddress()
   // B129: kursi Penerbit punya cangkangnya sendiri (`#/app/pub…`, `pages/publisher.ts`).
   if (/^#\/?app\/pub(\/|$)/.test(routeHash)) return renderPublisherApp(lang, routeHash)
+  // B130: kursi Agent Owner juga punya cangkangnya sendiri (`#/app/owner`, `pages/owner.ts`).
+  if (/^#\/?app\/owner(\/|$)/.test(routeHash)) return renderOwnerApp(lang)
   const section = sectionOf(routeHash)
 
   if (section === 'welcome') return renderWelcome(lang, addr)
@@ -187,11 +190,7 @@ export function renderApp (routeHash: string): HTMLElement {
   // lebar, di atas isi untuk ponsel (menu samping ponsel menjadi tab bawah).
   const sideSlot = h('div', { class: 'seat-slot side' })
   const topSlot = h('div', { class: 'seat-slot top' })
-  const mountSwitch = () => void seats().then((r) => {
-    if (!r.ok || !r.roles?.publisher || !sideSlot.isConnected) return
-    sideSlot.replaceChildren(seatSwitch(lang, 'learner'))
-    topSlot.replaceChildren(seatSwitch(lang, 'learner'))
-  })
+  const mountSwitch = () => mountSeatSwitch(lang, 'learner', [sideSlot, topSlot])
   const shell = h('div', { class: 'app-shell' },
     h('nav', { class: 'app-side', 'aria-label': 'Dashboard' },
       sideSlot,
@@ -377,7 +376,7 @@ function seatRows (lang: Lang, r: MyRoles, onChange: () => void): HTMLElement[] 
           a.wallet ? h('span', null, `${T('agentWallet')} `, h('code', null, short(a.wallet))) : null,
           tariff(a) ? h('span', null, `${T('tariff')} ${tariff(a)}`) : null,
           h('a', { href: agentScan(a), target: '_blank', rel: 'noopener noreferrer' }, 'BscScan ↗')))),
-        h('p', { class: 'app-muted' }, T('dashSoon')))
+        h('a', { class: 'app-btn small primary', href: '#/app/owner' }, T('openOwner')))
       : row(ROLES[2].name[lang], false, h('p', { class: 'app-muted' }, T('ownerNone'))),
   ]
 }
@@ -423,7 +422,7 @@ function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
       pub.set(Boolean(roles.publisher), roles.publisher
         ? [h('button', { type: 'button', class: 'app-btn primary', onClick: () => finish('#/app/pub') }, T('openPub'))]
         : [applyBox(lang, roles, { onChange: () => fillSeats(false) })])
-      own.set(roles.agents.length > 0, roles.agents.length ? [h('button', { type: 'button', class: 'app-btn', onClick: () => finish('#/app/account') }, T('seeSeat'))] : [])
+      own.set(roles.agents.length > 0, roles.agents.length ? [h('button', { type: 'button', class: 'app-btn primary', onClick: () => finish('#/app/owner') }, T('openOwner'))] : [])
     })
     root.appendChild(h('div', { class: 'wel-seats' },
       h('div', { class: 'wel-seat active' },

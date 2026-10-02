@@ -404,6 +404,8 @@ async function collect () {
         'npm run verify:roles': 'roles',
         // Lencana-B129 status=TERBUKA 2026-10-02 — baris README `verify:publisher` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:publisher': 'publisher',
+        // Lencana-B130 status=TERBUKA 2026-10-02 — baris README `verify:owner` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        'npm run verify:owner': 'owner',
       }
       const salah = []
       let banding = 0

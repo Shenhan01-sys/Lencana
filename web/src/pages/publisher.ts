@@ -31,7 +31,7 @@ import { coin } from '../lib/coin'
 import { emblem, topicColor } from '../lib/emblem'
 import { odometer } from '../lib/odometer'
 import { skeleton, steps } from '../lib/loading'
-import { seats, seatSwitch, applyBox, navIcon } from './seats'
+import { seats, mountSeatSwitch, applyBox, navIcon } from './seats'
 
 type Lang = 'en' | 'id'
 type PubSection = 'overview' | 'courses' | 'learners' | 'essays' | 'agents' | 'revenue'
@@ -228,13 +228,16 @@ export function renderPublisherApp (lang: Lang, routeHash: string): HTMLElement 
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const section = sectionOf(routeHash)
   const main = h('main', { class: 'dash-main pb-main' })
+  const sideSlot = h('div', { class: 'seat-slot side' })
+  const topSlot = h('div', { class: 'seat-slot top' })
   const shell = h('div', { class: 'app-shell pb-shell' },
     h('nav', { class: 'app-side', 'aria-label': T('nav') },
-      h('div', { class: 'seat-slot side' }, seatSwitch(lang, 'publisher')),
+      sideSlot,
       ...NAV.map((n) => h('a', { href: n.href, class: n.id === section ? 'active' : '', 'aria-current': n.id === section ? 'page' : 'false' },
         navIcon(n.icon), h('span', { class: 'nav-full' }, T(n.id)), h('span', { class: 'nav-short', 'aria-hidden': 'true' }, SHORT[n.id][lang])))),
     main)
-  main.appendChild(h('div', { class: 'seat-slot top' }, seatSwitch(lang, 'publisher')))
+  main.appendChild(topSlot)
+  mountSeatSwitch(lang, 'publisher', [sideSlot, topSlot])
   const head = h('header', { class: 'app-head pb-head' }, h('span', { class: 'app-kicker' }, T('kicker')), h('h1', null, T(section)))
   const body = h('div', { class: 'app-body' })
   main.append(head, body)

@@ -698,6 +698,139 @@ async function signTyped (td: TypedData): Promise<{ signature?: Hex, why?: strin
   }
 }
 
+/* ------------------------------------------------------------------ Agent Owner (B130, D65) */
+
+/** Bentuk jawaban `POST /owner/overview` (B130). Jumlah uang dalam satuan terkecil token, sebagai string. */
+export type OwnerAgent = {
+  agentId: string
+  registry: string
+  name: string | null
+  description: string | null
+  pointsBack: boolean
+  wallet: string | null
+  walletState: 'unset' | 'owner' | 'other'
+  tariff: { token: string, amount: string, inPlatformToken: boolean } | null
+  rateCard: { label: string, amount: string }[]
+  hireable: boolean
+  problem: string | null
+  hires: { courseId: string, hiredBy: string | null, byPublisherKey: boolean, at: string, walletAtHire: string, stale: boolean }[]
+  appointments: { courseId: string, reviewer: string, addedBy: string, byPublisherKey: boolean, at: string, stale: boolean }[]
+  activity: { graded: number, reviews: number, labels: Record<string, number> }
+  charges: {
+    due: { count: number, amount: string }, paid: { count: number, amount: string }
+    recent: { id: number, activity: string, label: string | null, amount: string, status: string, paidTo: string, tx: string | null, at: string }[]
+  }
+  minted: { by: string, registerTx: string, transferTx: string | null, gasTx: string | null, ownerTo: string | null, at: string } | null
+}
+export type OwnerOverview = {
+  address: string
+  chainId: number
+  token: { address: string | null, symbol: string, decimals: number }
+  generatedAt: string
+  gas: { balance: string, low: boolean }
+  ladder: { labels: string[], stepBps: number }
+  agents: OwnerAgent[]
+}
+
+/** B130: dasbor Agent Owner — hanya untuk alamat yang `ownerOf`-nya memegang agen yang dikenal platform. */
+export async function readOwnerOverview (onStep?: (step: 0 | 1) => void): Promise<{ ok: boolean, status?: number, why?: string, data?: OwnerOverview }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-owner nonce=${newNonce()}`
+  onStep?.(0)
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  onStep?.(1)
+  const r = await call('/owner/overview', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 40_000 })
+  if (r.status !== 200 || !r.json) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, data: r.json as unknown as OwnerOverview }
+}
+
+/** B130: minta platform mengisi gas (testnet) — hanya pemilik agen yang dicetak platform, dan hanya bila saldonya menipis. */
+export async function requestOwnerGas (): Promise<{ ok: boolean, why?: string, tx?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-owner-gas nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/owner/gas', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 90_000 })
+  return r.status === 200 ? { ok: true, tx: r.json?.tx as string } : { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+}
+
+/**
+ * Kirim satu transaksi kontrak dari dompet akun ini (B130) — pemilik agen yang membayar gasnya sendiri. Perangkat:
+ * ditandatangani kunci sesi lalu disiarkan; Privy: `privySendTransaction`; dompet ekstensi: `eth_sendTransaction`.
+ */
+async function sendContractTx (to: Hex, data: Hex): Promise<{ hash?: Hex, why?: string }> {
+  const id = state.identity
+  if (!id) return { why: 'Belum ada akun yang masuk.' }
+  const client = chainRead()
+  try {
+    const chainId = await client.getChainId()
+    if (id.kind === 'dompet') {
+      const eth = (window as unknown as { ethereum?: { request: (a: { method: string, params?: unknown[] }) => Promise<string> } }).ethereum
+      if (!eth) return { why: 'Dompet tidak lagi tersedia di peramban ini.' }
+      return { hash: await eth.request({ method: 'eth_sendTransaction', params: [{ from: id.address, to, data, chainId: `0x${chainId.toString(16)}` }] }) as Hex }
+    }
+    const [nonce, gasPrice, gasEst] = await Promise.all([
+      client.getTransactionCount({ address: id.address as Hex, blockTag: 'pending' }),
+      client.getGasPrice(),
+      client.estimateGas({ account: id.address as Hex, to, data }),
+    ])
+    const gas = (gasEst * 12n) / 10n // ruang 20% — estimasi atas keadaan sekarang, bukan janji
+    if (id.kind === 'perangkat') {
+      const raw = (() => { try { return JSON.parse(readSession(ID_KEY) ?? '{}') as StoredIdentity } catch { return null } })()
+      if (!raw?.pk) return { why: 'Kunci perangkat tidak ada di sesi ini.' }
+      const serializedTransaction = await privateKeyToAccount(raw.pk).signTransaction({ to, data, nonce, gas, gasPrice, chainId, type: 'legacy' })
+      return { hash: await client.sendRawTransaction({ serializedTransaction }) }
+    }
+    const hash = await (await import('./privy')).privySendTransaction(
+      { to, data, gas, gasPrice, nonce, chainId }, id.address,
+      async (raw) => client.sendRawTransaction({ serializedTransaction: raw }),
+    )
+    return { hash: hash as Hex }
+  } catch (e) {
+    return { why: errText(e) }
+  }
+}
+
+async function minedOk (hash: Hex): Promise<{ ok: boolean, why?: string, tx: string }> {
+  const r = await chainRead().waitForTransactionReceipt({ hash, timeout: 120_000 })
+  return r.status === 'success' ? { ok: true, tx: hash } : { ok: false, why: `transaksi revert di chain (${hash.slice(0, 10)}…)`, tx: hash }
+}
+
+/**
+ * B130 (D65): pemilik mengisi dompet agennya dengan dompet akun ini. EIP-8004 menuntut bukti kendali atas dompet baru
+ * (tanda tangan EIP-712 `AgentWalletSet`) dan hanya pemilik yang boleh mengirim `setAgentWallet` — di sini keduanya
+ * dompet yang sama, jadi satu tanda tangan + satu transaksi.
+ */
+export async function verifyAgentWallet (agentId: string, onStep?: (step: 0 | 1 | 2) => void): Promise<{ ok: boolean, why?: string, tx?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const { agentWalletTypedData, setAgentWalletData, IDENTITY_REGISTRY_97 } = await import('./erc8004')
+  const client = chainRead()
+  const [chainId, block] = await Promise.all([client.getChainId(), client.getBlock()])
+  const deadline = block.timestamp + 240n // kontrak menolak tenggat > 5 menit
+  // Tahap yang benar-benar dilalui: tanda tangan EIP-712 → kirim transaksi → tunggu struk.
+  onStep?.(0)
+  const s = await signTyped(agentWalletTypedData({ chainId, agentId, newWallet: addr, owner: addr, deadline }) as unknown as TypedData)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  onStep?.(1)
+  const sent = await sendContractTx(IDENTITY_REGISTRY_97, setAgentWalletData(agentId, addr, deadline, s.signature))
+  if (!sent.hash) return { ok: false, why: sent.why }
+  onStep?.(2)
+  return minedOk(sent.hash)
+}
+
+/** B130: pemilik mengubah tarif dasar agennya (metadata `lencana.baseTariff` di registry), dibayar gasnya sendiri. */
+export async function setAgentTariff (agentId: string, token: string, amount: bigint): Promise<{ ok: boolean, why?: string, tx?: string }> {
+  if (amount <= 0n) return { ok: false, why: 'Tarif harus lebih dari nol.' }
+  const { setTariffData, IDENTITY_REGISTRY_97 } = await import('./erc8004')
+  const sent = await sendContractTx(IDENTITY_REGISTRY_97, setTariffData(agentId, token, amount))
+  if (!sent.hash) return { ok: false, why: sent.why }
+  return minedOk(sent.hash)
+}
+
 /** Saldo token di dompet akun ini, dibaca dari chain (bukan dari penerbit). null = gagal baca. */
 export async function tokenBalance (token: string): Promise<bigint | null> {
   const addr = learnerAddress()

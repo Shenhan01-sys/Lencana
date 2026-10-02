@@ -89,6 +89,10 @@ import {
 } from './db.js'
 // Lencana-B129 status=TERBUKA 2026-10-02 — kursi Penerbit end-to-end: POST /me/member-request (pengajuan bertanda tangan akun), POST /publisher/overview (dasbor untuk penerbit + anggota aktif), POST /publisher/agents/hire dan POST /publisher/reviewers (aksi anggota dengan tanda tangannya sendiri bila hibahnya menyatakan hire=1 / appoint=1). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { overview as publisherOverview, readPlatformBps } from './publisher.js'
+// Lencana-B130 status=TERBUKA 2026-10-02 — kursi Agent Owner end-to-end: POST /owner/overview (dasbor untuk alamat yang ownerOf-nya memegang agen yang dikenal platform) dan POST /owner/gas (platform mengisi gas pemilik agen yang ia cetak, hanya bila saldonya menipis). Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { ownerOverview, nativeBalance, sendGasDrip, GAS_LOW, GAS_DRIP } from './owner.js'
+import { ownedAgentFacts } from './agents.js'
+import { ownerRecords as dbOwnerRecords, platformAgents as dbPlatformAgents, platformAgentIds as dbPlatformAgentIds } from './db.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -556,7 +560,8 @@ const server = createServer(async (req, res) => {
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
       || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members'
-      || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers') {
+      || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
+      || path === '/owner/overview' || path === '/owner/gas') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -663,6 +668,41 @@ const server = createServer(async (req, res) => {
           issuer: { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null },
           seat: { via: seat.via, canHire: seat.canHire, canAppoint: seat.canAppoint, since: seat.since },
           manifests, priceOf, records, platformBps, members, pending, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null,
+          token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
+        })))
+      }
+      if (path === '/owner/overview' || path === '/owner/gas') {
+        // B130: kursi Agent Owner — dibaca dari ownerOf di registry ERC-8004, bukan dari tabel.
+        const isGas = path === '/owner/gas'
+        const want = isGas ? 'lencana-owner-gas' : 'lencana-owner'
+        if (typeof body.message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(body.message)) {
+          return send(res, 400, jsonBody({ error: `message must be "${want} nonce=<hex>"` }))
+        }
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: isGas ? 'owner-gas' : 'owner' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent identities are not configured on this server', missing: dbMissingReason() }))
+        const addr = getAddress(String(body.learner).toLowerCase())
+        if (isGas) {
+          if (!process.env.DEPLOYER_PRIVATE_KEY) return send(res, 503, jsonBody({ error: 'gas drip is not configured on this server' }))
+          // Hanya pemilik agen yang DICETAK platform (ownerOf sekarang = alamat ini), dan hanya bila saldonya menipis.
+          const mine = await ownedAgentFacts(AGENTS_CFG, addr, await dbPlatformAgentIds())
+          if (!mine.length) return send(res, 403, jsonBody({ error: 'gas is only sent to owners of agents the platform minted' }))
+          const before = await nativeBalance(RPC_URL, addr)
+          if (before >= GAS_LOW) return send(res, 409, jsonBody({ error: 'balance is still enough for an owner transaction', balance: String(before) }))
+          try {
+            const sent = await sendGasDrip({ rpcUrl: RPC_URL, pk: process.env.DEPLOYER_PRIVATE_KEY, to: addr, value: GAS_DRIP })
+            return send(res, 200, jsonBody({ tx: sent.tx, sent: String(GAS_DRIP), balance: String(sent.balance) }))
+          } catch (err) {
+            return send(res, 502, jsonBody({ error: `gas drip failed: ${String(err.message ?? err).split('\n')[0].slice(0, 160)}` }))
+          }
+        }
+        const ids = [...MANIFESTS.map((m) => m.issuer.agent?.agentId).filter(Boolean), ...await dbKnownAgentIds()]
+        const owned = await ownedAgentFacts(AGENTS_CFG, addr, ids)
+        if (!owned.length) return send(res, 403, jsonBody({ error: 'this account owns no ERC-8004 agent known to the platform' }))
+        const agentIds = owned.map((o) => o.agent.agentId)
+        const [records, minted, balance] = await Promise.all([dbOwnerRecords(agentIds), dbPlatformAgents(agentIds), nativeBalance(RPC_URL, addr).catch(() => 0n)])
+        return send(res, 200, jsonBody(ownerOverview({
+          address: addr, owned, records, minted, balance, gasLow: balance < GAS_LOW, chainId: CHAIN_ID, publisher: PAY_PAYEE ?? null,
           token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
         })))
       }
