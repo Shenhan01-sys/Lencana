@@ -4932,6 +4932,11 @@ table.log th {
   display: none !important;
 }
 
+/* Footer baru terlihat sesudah menggulir: halaman yang sedang tampil setinggi minimal satu viewport (builder, 2 Okt). */
+.page-view:not(.hidden) {
+  min-height: 100vh;
+}
+
 @keyframes pageFadeIn {
   from {
     opacity: 0;

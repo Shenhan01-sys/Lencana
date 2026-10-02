@@ -2,16 +2,26 @@
    Palet sama dengan landing: latar gelap, teks gading, aksen emas. Semua aturan dikunci di kelas akar masing-masing. */
 
 /* ---------------------------------------------------------------- cangkang internal */
+/* Sidebar = rel penuh di tepi kiri (di bawah navbar sticky 70 px), konten mengisi sisa lebar layar. */
 .app-shell {
   display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
-  gap: 32px;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 112px 24px 96px;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: calc(100vh - 76px);
   color: var(--text-primary, #f4f1ea);
 }
-.app-shell .app-side { position: sticky; top: 104px; align-self: start; display: flex; flex-direction: column; gap: 4px; }
+.app-shell .app-side {
+  position: sticky;
+  top: 70px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: calc(100vh - 70px);
+  padding: 28px 14px;
+  overflow-y: auto;
+  border-right: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.015);
+}
 .app-shell .app-side a {
   display: flex;
   align-items: center;
@@ -27,7 +37,7 @@
 .app-shell .app-side a:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
 .app-shell .app-side a.active { background: rgba(240, 185, 11, 0.12); color: #f0b90b; }
 .app-shell .app-ic { display: inline-grid; place-items: center; }
-.app-shell .app-main { min-width: 0; }
+.app-shell .dash-main { min-width: 0; max-width: 1280px; padding: 36px 48px 96px; }
 .app-shell .app-head h1 { margin: 0; font-size: clamp(28px, 3vw, 38px); font-weight: 700; letter-spacing: -0.02em; }
 .app-shell .app-head { display: grid; gap: 6px; margin-bottom: 20px; }
 .app-shell .app-stack { display: grid; gap: 16px; }
@@ -105,7 +115,7 @@
   gap: 22px;
   max-width: 980px;
   margin: 0 auto;
-  padding: 120px 24px 96px;
+  padding: 48px 24px 96px;
   color: var(--text-primary, #f4f1ea);
 }
 .app-welcome .wel-head { display: grid; gap: 10px; }
@@ -157,7 +167,7 @@
   gap: 18px;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 112px 24px 96px;
+  padding: 36px 24px 96px;
   color: var(--text-primary, #f4f1ea);
 }
 .course-detail .cd-link { width: fit-content; color: var(--text-secondary, #a9b0ba); font-size: 14px; text-decoration: none; }
@@ -232,12 +242,16 @@
 .course-detail .cd-muted { color: var(--text-secondary, #a9b0ba) !important; font-size: 13.5px; }
 
 @media (max-width: 860px) {
-  .app-shell { grid-template-columns: 1fr; padding: 96px 16px 110px; }
+  .app-shell { grid-template-columns: 1fr; }
+  .app-shell .dash-main { padding: 24px 16px 110px; }
   /* Ponsel: sidebar menjadi tab bawah. */
   .app-shell .app-side {
     position: fixed;
     inset: auto 0 0 0;
     z-index: 60;
+    height: auto;
+    overflow: visible;
+    border-right: 0;
     flex-direction: row;
     justify-content: space-around;
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
@@ -248,9 +262,9 @@
   .app-shell .app-side a { flex-direction: column; gap: 3px; padding: 6px 4px; font-size: 10.5px; text-align: center; }
   .app-shell .app-stats { grid-template-columns: 1fr 1fr 1fr; }
   .app-shell .app-facts { grid-template-columns: 1fr 1fr; }
-  .app-welcome { padding: 96px 16px 80px; }
+  .app-welcome { padding: 32px 16px 80px; }
   .app-welcome .wel-seats, .app-welcome .wel-courses { grid-template-columns: 1fr; }
-  .course-detail { padding: 96px 16px 80px; }
+  .course-detail { padding: 24px 16px 80px; }
   .course-detail .cd-hero { grid-template-columns: 1fr; padding: 22px; }
   .course-detail .cd-grid { grid-template-columns: 1fr; }
   .course-detail .cd-lessons { margin-left: 0; }

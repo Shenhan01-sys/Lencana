@@ -611,6 +611,7 @@ hidup di berkas baru (`web/src/pages/dashboard.ts`, `course-detail.ts`, `dashboa
 | `web/src/new-app.ts` | rute `#/app…` → `renderApp`, `#/course/<id>` → `renderCourseDetail` |
 | `web/src/pages/landing.ts` | kartu katalog menunjuk detail kursus `#/course/<id>`, bukan ruang kelas |
 | `web/src/lesson-views.ts` | `legacyLearnRoute`: `#/course/<id>` sendiri tidak lagi dialihkan ke kelas (`#/course/<id>/l/<slug>` tetap) |
+| `web/src/style.css` | (2 Okt, permintaan builder) `.page-view:not(.hidden) { min-height: 100vh }` — footer baru terlihat sesudah menggulir di semua halaman; dashboard memakai `.dash-main` karena `.app-main` milik wadah global (`body.is-home-page .app-main { padding: 0 !important }`) |
 
 **Untukmu:** tampilan dashboard dan detail kursus memakai palet landing tapi kelasnya sendiri (`.app-*`, `.cd-*`, `.app-welcome`);
 silakan ditata ulang — yang harus tetap: rute `#/app…` di balik akun, dan angka nilai hanya dari `POST /me/records`.

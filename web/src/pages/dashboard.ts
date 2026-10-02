@@ -150,7 +150,7 @@ export function renderApp (routeHash: string): HTMLElement {
 
   if (section === 'welcome') return renderWelcome(lang, addr)
 
-  const main = h('main', { class: 'app-main' })
+  const main = h('main', { class: 'dash-main' })
   const shell = h('div', { class: 'app-shell' },
     h('nav', { class: 'app-side', 'aria-label': 'Dashboard' },
       ...NAV.map((n) => h('a', { href: n.href, class: n.id === section ? 'active' : '', 'aria-current': n.id === section ? 'page' : 'false' }, icon(n.icon), h('span', null, T(n.id)))),
