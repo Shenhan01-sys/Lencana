@@ -214,6 +214,11 @@ const DOC_CLAIMS = [
   { file: '09-Testing/T50 - signer roles-check.js (B128 peran akun).md', metric: 'roles', want: (m) => `PERAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T50 (peran akun)' },
   { file: '09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit).md', metric: 'publisher', want: (m) => `KURSI PENERBIT HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T52 (kursi Penerbit)' },
   { file: 'Quick-Reference.md', metric: 'privy', want: (m) => new RegExp(`LOGIN PRIVY HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:privy di QR' },
+  // 2 Okt: empat harness yang tercantum di QR hari ini juga dijaga di sana, bukan hanya di halaman T-nya.
+  { file: 'Quick-Reference.md', metric: 'records', want: (m) => new RegExp(`REKAMAN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:records di QR' },
+  { file: 'Quick-Reference.md', metric: 'paywall', want: (m) => new RegExp(`PAYWALL HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:paywall di QR' },
+  { file: 'Quick-Reference.md', metric: 'roles', want: (m) => new RegExp(`PERAN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:roles di QR' },
+  { file: 'Quick-Reference.md', metric: 'publisher', want: (m) => new RegExp(`KURSI PENERBIT HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:publisher di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

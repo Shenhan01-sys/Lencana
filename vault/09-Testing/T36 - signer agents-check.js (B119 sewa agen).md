@@ -114,5 +114,7 @@ antara angka dan string. Keduanya dibetulkan di harness; angka di atas dari run 
 - Siapa pun boleh membayar tagihan (tidak harus penerbit yang menyewa); tagihan lunas tetap lunas.
 - Pembayaran diselesaikan di chain **sebelum** baris tagihan ditandai lunas; kalau penandaan gagal sesudah
   settlement, rute melaporkan 409 dengan hash settlement-nya — uang sudah pindah, catatannya yang tertinggal.
-- Belum ada UI untuk penerbit menyewa atau membayar; semua lewat rute HTTP.
+- Belum ada UI untuk penerbit menyewa atau membayar; semua lewat rute HTTP. *(Koreksi 2 Okt, B129: anggota penerbit kini menyewa agen penilai
+  dan menunjuk agen pengesah dari dasbor `#/app/pub` dengan tanda tangannya sendiri — [[09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit)]].
+  Membayar tagihan agen tetap tanpa UI.)*
 - Token demo ber-`mint` terbuka; bukan uang sungguhan.

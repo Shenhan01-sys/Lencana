@@ -25,7 +25,9 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 > **hanya menilai**. Agen penilai ERC-8004 **#2534** dan agen reviewer **#2542** (dua Agent Owner berbeda)
 > terdaftar di registry BNB; penerbit menyewa agen per aktivitas penilaian, agen memilih label tingkat
 > berat, harga = tarif Agent Owner + 5%/tingkat, dibayar lewat x402 ke dompet agen (B118, B119, B120 —
-> `npm run verify:agent`, `npm run verify:agents`). Belum ada UI untuk semua itu. Di demo semua peran masih
+> `npm run verify:agent`, `npm run verify:agents`). Belum ada UI untuk semua itu. *(Koreksi 2 Okt: sejak B129 anggota penerbit
+> menyewa agen penilai dan menunjuk agen pengesah dari dasbor `#/app/pub` dengan tanda tangannya sendiri; membayar tagihan agen
+> tetap tanpa UI, dan dasbor Agent Owner adalah C3 — [[08-Results/B129 - Executive Summary]].)* Di demo semua peran masih
 > dijalankan tim kita di satu mesin. Gambaran alur dari kode:
 > [[00-Overview/13 - Proses Bisnis End-to-End (dibaca dari kode)]].
 
@@ -33,8 +35,8 @@ chain-facing numbers need an issuer key, a funded testnet wallet and `npm run is
 
 | | |
 |---|---|
-| Today | **30 September 2026** — hari tenggat *(koreksi 30 Sep, B117: baris ini tadinya "29 September" dengan "1 day left" — basi sehari)* |
-| Submission deadline | **30 September 2026, 23:59 WIB** — **hari ini** |
+| Today | **2 Oktober 2026** *(koreksi 2 Okt: baris ini menulis "30 September 2026 — hari tenggat" sejak 30 Sep; pekerjaan berlanjut 1–2 Okt, B118–B129. Sebelumnya, koreksi 30 Sep B117: "29 September" dengan "1 day left")* |
+| Submission deadline | **30 September 2026, 23:59 WIB** — **hari ini** *(basi sejak 1 Okt; tanggalnya sendiri tidak diubah di sini)* |
 | Repository | `github.com/Shenhan01-sys/Lencana` (public) |
 | Chain | BSC **testnet 97**. Nothing on mainnet, by choice: testnet satisfies the rules |
 | On-chain layer | 5 contracts deployed (4 sampai 30 Sep sore; yang kelima `CourseDeposit` `0xbeB5…E6c3`, dideploy 30 Sep malam — B90, [[09-Testing/T34 - signer deposit-check.js]]) · **104 Foundry tests pass / 0 fail** on forks of **both 97 and 56** (re-run 28 Sep) · 30 Sep, fork 97 saja: **120 / 0** dalam 6 suite — 16 tambahannya milik `CourseDeposit` (saat angka ini diukur kontraknya belum dideploy; sejak 30 Sep malam sudah — B90 ditutup); fork 56 tidak diulang hari ini → [`09-Testing/`](09-Testing/) |
