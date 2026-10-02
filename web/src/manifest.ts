@@ -182,6 +182,11 @@ export function manifestOf (courseId: string): CourseManifest | undefined {
 import { web3Dasar } from './courses/web3-dasar'
 import { web3Lanjut } from './courses/web3-lanjut'
 import { ujiBayar } from './courses/uji-bayar'
+import { literasiKeuangan } from './courses/literasi-keuangan'
+import { keamananAkun } from './courses/keamanan-akun'
+import { menulisLaporan } from './courses/menulis-laporan'
+import { membacaBscscan } from './courses/membaca-bscscan'
+import { tokenIzin } from './courses/token-izin'
 
 /**
  * Institusi contoh. Namanya fiktif dan ditulis demikian di dalam judul course-nya sendiri —
@@ -226,4 +231,11 @@ export const MANIFESTS: CourseManifest[] = [
     course: ujiBayar,
     rubricHash: '0x6d33c95b4ecca44482eaa56b36b89dbc6f0d58ffd74c291f3ae1b95e45cc68f0',
   },
+  // B127: lima kelas singkat — tiga non-teknis (bobot praktik 0) dan dua teknis (praktik dinilai chain). Hash dihitung dari
+  // manifest berkunci 2 Okt; `manifest-keys.ts` memaksanya sama saat dimuat.
+  { schema: MANIFEST_SCHEMA, issuer: YAYASAN, publishedAt: '2026-10-02T00:00:00Z', course: literasiKeuangan, rubricHash: '0x9912a11ffe46afad6a0e2dd96d9e6934e4b14400da22b05963a2b7c4958a2403' },
+  { schema: MANIFEST_SCHEMA, issuer: YAYASAN, publishedAt: '2026-10-02T00:00:00Z', course: keamananAkun, rubricHash: '0xd3003a87269ea7d6e2f2da804845c7329952fedeb800f176145f1b6ff9aa6d65' },
+  { schema: MANIFEST_SCHEMA, issuer: YAYASAN, publishedAt: '2026-10-02T00:00:00Z', course: menulisLaporan, rubricHash: '0xfd74d372342f4194260c90261c8ebbace27e834f1ef0befd1dab81eb0e7fd5d6' },
+  { schema: MANIFEST_SCHEMA, issuer: YAYASAN, publishedAt: '2026-10-02T00:00:00Z', course: membacaBscscan, rubricHash: '0x1e04a8bab6b70bda88bbe0c0a02d2610bbfbc76f4f858fb761a17d0c4285803f' },
+  { schema: MANIFEST_SCHEMA, issuer: YAYASAN, publishedAt: '2026-10-02T00:00:00Z', course: tokenIzin, rubricHash: '0xceee57ae037ad7de1a923e5cd2cac6d7eb41bd86032de89cbe631d268c211384' },
 ]

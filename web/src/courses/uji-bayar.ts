@@ -25,6 +25,7 @@ export const ujiBayar: Course = {
   institution: 'Yayasan Literasi Digital Nusantara (institusi demo, fiktif)',
   level: 'dasar',
   unlisted: true,
+  topic: 'Web3',
   blurb:
     'Kelas pendek untuk menguji alur bayar dengan akun sungguhan: ambil koin uji, bayar dengan tanda tangan, buka ' +
     'kelas, kerjakan kuisnya. Isinya menjelaskan apa yang baru saja terjadi saat kamu membayar.',

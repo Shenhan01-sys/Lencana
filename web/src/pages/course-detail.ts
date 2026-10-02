@@ -129,6 +129,18 @@ function payPanel (courseId: string, price: bigint, T: (k: keyof typeof COPY) =>
   return panel
 }
 
+/**
+ * B127: panel bayar yang sama, dipasang di luar halaman ini (pratinjau di halaman Kursus). Dibungkus `.course-detail
+ * .cd-embed` supaya gayanya ikut tanpa tata letak halaman. null = kursus tanpa harga.
+ */
+export function embeddedPayPanel (courseId: string): HTMLElement | null {
+  const price = priceOf(courseId)
+  if (price === null) return null
+  const lang: Lang = getSavedLanguage() === 'en' ? 'en' : 'id'
+  const T = (k: keyof typeof COPY): string => COPY[k][lang]
+  return h('div', { class: 'course-detail cd-embed' }, payPanel(courseId, price, T))
+}
+
 export function renderCourseDetail (courseId: string): HTMLElement {
   const lang: Lang = getSavedLanguage() === 'en' ? 'en' : 'id'
   const T = (k: keyof typeof COPY): string => COPY[k][lang]

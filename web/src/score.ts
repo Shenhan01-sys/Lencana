@@ -74,11 +74,16 @@ export function computeScore (m: CourseManifest, ev: Evidence): Score {
   const missing: string[] = []
   const rubricHash = rubricHashOf(m)
 
+  // Lencana-B127 status=TERBUKA 2026-10-02 — komponen berbobot 0 tidak dinilai rubrik penerbit, jadi ketiadaan buktinya bukan "belum lengkap" (kursus non-teknis tanpa praktik di chain); bobot >0 tanpa lesson jenisnya ditolak auditCourse. Buktikan ulang: cd web && npm run probe && npm run rubric. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Bobot 0 = penerbit memutuskan komponen itu tidak ikut menilai. Menuntut buktinya membuat kursus tanpa praktik di
+  // chain tidak pernah bisa lulus; nilai yang diberikan tetap diperiksa rentangnya.
   const need = quizCount(m)
   const given = ev.quizScores.filter((s) => Number.isFinite(s))
   const quizRaw = given.length ? mean(given) : null
-  if (!given.length) missing.push(`kuis: 0/${need} dikerjakan`)
-  else if (given.length < need) missing.push(`kuis: ${given.length}/${need} dikerjakan — kriteria penerbit menuntut semuanya`)
+  if (w.kuis > 0) {
+    if (!given.length) missing.push(`kuis: 0/${need} dikerjakan`)
+    else if (given.length < need) missing.push(`kuis: ${given.length}/${need} dikerjakan — kriteria penerbit menuntut semuanya`)
+  }
   given.forEach((s) => {
     if (s < 0 || s > 100) missing.push(`kuis: nilai ${s} di luar 0..100`)
   })
@@ -86,13 +91,13 @@ export function computeScore (m: CourseManifest, ev: Evidence): Score {
   const essayRaw = typeof ev.essayScore === 'number' && Number.isFinite(ev.essayScore) ? ev.essayScore : null
   if (essayRaw === null) {
     const n = essayCount(m)
-    missing.push(n > 1 ? `esai: ${n} tugas esai belum ada yang menilai` : 'esai: belum ada yang menilai (seam judge kosong)')
+    if (w.esai > 0) missing.push(n > 1 ? `esai: ${n} tugas esai belum ada yang menilai` : 'esai: belum ada yang menilai (seam judge kosong)')
   } else if (essayRaw < 0 || essayRaw > 100) {
     missing.push(`esai: nilai ${essayRaw} di luar 0..100`)
   }
 
   const praktikRaw = ev.praktikCompleted ? 100 : null
-  if (praktikRaw === null) missing.push('praktik: belum dikerjakan')
+  if (praktikRaw === null && w.praktik > 0) missing.push('praktik: belum dikerjakan')
 
   const clamp = (x: number | null): number | null =>
     x === null ? null : Math.max(0, Math.min(100, x))

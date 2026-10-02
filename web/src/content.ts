@@ -127,6 +127,8 @@ export type Course = {
   level: 'dasar' | 'menengah' | 'lanjutan'
   /** Kelas uji (B126): tidak tampil di katalog publik, tetap terbuka lewat tautannya dan di dashboard peserta. Tidak ikut hash. */
   unlisted?: boolean
+  /** Topik untuk mencari dan menyaring di halaman Kursus (B127), mis. "Web3", "Keuangan". Tidak ikut hash. */
+  topic?: string
   blurb: string
   audience: string[]
   /** Yang bisa dilakukan peserta sesudah lulus — ditulis sebagai kerjaan, bukan sebagai topik. */
@@ -231,6 +233,14 @@ export function auditCourse(course: Course): Problem[] {
   const w = course.weights
   const sum = w.kuis + w.esai + w.praktik
   if (sum !== 100) bad(course.id, `bobot penilaian berjumlah ${sum}, bukan 100`)
+
+  // B127: bobot dan jenis lesson harus saling menunjuk. Komponen berbobot tanpa satu pun lesson jenisnya tidak pernah
+  // bisa punya bukti (kursus yang tak bisa lulus); lesson dinilai di komponen berbobot 0 adalah kerja yang tidak dihitung.
+  const gradedKinds = new Set(course.modules.flatMap((m) => m.lessons.map((l) => l.kind)))
+  for (const k of ['kuis', 'esai', 'praktik'] as const) {
+    if (w[k] > 0 && !gradedKinds.has(k)) bad(course.id, `bobot ${k} ${w[k]} tanpa satu pun lesson ${k} — komponen ini tidak pernah bisa punya bukti`)
+    if (w[k] === 0 && gradedKinds.has(k)) bad(course.id, `ada lesson ${k} tetapi bobot ${k} 0 — kerja peserta yang tidak dihitung`)
+  }
 
   if (course.prereqCourseId && course.prereqCourseId === course.id) {
     bad(course.id, 'kursus menjadikan dirinya sendiri prasyarat')

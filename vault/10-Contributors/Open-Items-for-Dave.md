@@ -647,3 +647,17 @@ tersentuh:
 
 **Yang harus tetap:** saldo hanya dari `balanceOf` di chain (`balance.ts`), angka rapor hanya dari `POST /me/records` dan
 `computeScore`, dan pita pemuatan mengikuti permintaan sungguhan — bukan timer.
+
+## OI-28 — halaman Kursus, kelas singkat, Ringkasan berisi (B127, D62, 2 Okt)
+
+Permintaan builder 2 Okt. Tampilan baru hidup di berkas baru (`web/src/pages/catalog.ts`, `pages/overview.ts`,
+`pages/dash-catalog.css`, `lib/emblem.ts`). Berkasmu yang ikut tersentuh:
+
+| berkas | perubahan |
+|---|---|
+| `web/src/lib/ui.ts` | `h()`: kunci gaya yang diawali `--` dipasang lewat `style.setProperty` — `Object.assign` mengabaikannya diam-diam, jadi `--tc`/`--i` tidak pernah terpasang sejak B126 |
+| `web/src/pages/landing.ts` | `getCourseImage` mengembalikan `null` untuk kursus tanpa gambar khusus; kartunya menampilkan emblem lencana kursus itu (bukan satu `/hero.jpg` yang diulang lima kali) |
+| `web/src/style.css` | `.course-card-image-wrap.is-emblem` (kisi tipis + cahaya warna topik, emblem berputar saat disorot) |
+
+**Yang harus tetap:** harga hanya dari `web/src/pricing.ts`; status "terdaftar" hanya dari `POST /me/records`; panel pratinjau memakai
+panel bayar yang sama dengan halaman kursus (`embeddedPayPanel`), tidak ada jalur bayar kedua.

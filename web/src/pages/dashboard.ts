@@ -14,7 +14,6 @@ import './dash-viz.css'
 import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
 import { COURSES, LISTED_COURSES, findCourse } from '../courses/index'
-import type { Course } from '../content'
 import { forgetLearner, learnerAddress, readMyRecords, snapshot, type MyCourseRecord } from '../learning'
 import { classLink, readMyCredentials } from '../lesson-views'
 import { ROLES } from './flow3d-data'
@@ -22,17 +21,21 @@ import { renderGrades } from './grades'
 import { renderWallet } from './wallet'
 import { readBalance } from '../balance'
 import { skeleton, steps } from '../lib/loading'
-import { odometer } from '../lib/odometer'
+import { renderOverview } from './overview'
+import { renderCatalog } from './catalog'
 
 // Lencana-B124 status=TERBUKA 2026-10-02 — area internal peserta: sidebar (Ringkasan · Kelas saya · Nilai & tugas · Kredensial saya · Akun), onboarding login pertama (tiga peran, dua berlabel segera), data dari POST /me/records bertanda tangan. Buktikan ulang: cd web && npm run probe, lalu uji peramban T44. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // Lencana-B126 status=TERBUKA 2026-10-02 — Dompet menggantikan Pembayaran (saldo dari chain + koin uji + riwayat), Nilai & tugas bergrafik (grades.ts), kerangka isi + tahap muat sungguhan menggantikan teks memuat, kelas uji bertanda di Kursus lain. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
+// Lencana-B127 status=TERBUKA 2026-10-02 — sidebar Kursus (#/app/courses, pratinjau #/app/courses/<id>) dan Ringkasan baru (overview.ts); label pendek di tab ponsel karena menunya kini tujuh. Buktikan ulang: cd web && npm run build, lalu uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 type Lang = 'en' | 'id'
-type Section = 'overview' | 'classes' | 'grades' | 'credentials' | 'wallet' | 'account' | 'welcome'
+type Section = 'overview' | 'courses' | 'classes' | 'grades' | 'credentials' | 'wallet' | 'account' | 'welcome'
 
 const COPY = {
   overview: { en: 'Overview', id: 'Ringkasan' },
+  courses: { en: 'Courses', id: 'Kursus' },
   classes: { en: 'My classes', id: 'Kelas saya' },
   grades: { en: 'Grades & work', id: 'Nilai & tugas' },
   credentials: { en: 'My credentials', id: 'Kredensial saya' },
@@ -41,19 +44,14 @@ const COPY = {
   stepSign: { en: 'Signing the request', id: 'Menandatangani permintaan' },
   stepRead: { en: 'Reading your records from the publisher', id: 'Membaca rekaman dari penerbit' },
   testTag: { en: 'test class', id: 'kelas uji' },
-  hello: { en: 'Hi', id: 'Halo' },
   helloSub: { en: 'Everything here is yours alone — no one else can open this page.', id: 'Semua di sini milikmu sendiri — orang lain tidak bisa membuka halaman ini.' },
   loading: { en: 'Reading your records from the publisher…', id: 'Membaca rekamanmu dari penerbit…' },
   failed: { en: 'Your records could not be read:', id: 'Rekamanmu tidak terbaca:' },
   retry: { en: 'Try again', id: 'Coba lagi' },
-  enrolled: { en: 'Courses taken', id: 'Kursus diikuti' },
-  lessonsDone: { en: 'Lessons completed', id: 'Lesson selesai' },
-  graded: { en: 'Graded attempts', id: 'Usaha dinilai' },
-  continue: { en: 'Continue learning', id: 'Lanjutkan belajar' },
   next: { en: 'Next', id: 'Berikutnya' },
-  allDone: { en: 'All lessons completed — the publisher can now issue from your records.', id: 'Semua lesson selesai — penerbit kini bisa menerbitkan dari rekamanmu.' },
   noCourse: { en: 'You have not taken a course yet.', id: 'Kamu belum mengikuti kursus.' },
-  browse: { en: 'Browse the catalogue', id: 'Jelajahi katalog' },
+  moreCourses: { en: 'more courses you have not taken yet — search them, preview what they prove, and enroll on the Courses page.', id: 'kursus lain belum kamu ikuti — cari, lihat apa yang dibuktikannya, lalu daftar di halaman Kursus.' },
+  toCatalog: { en: 'Open the Courses page', id: 'Buka halaman Kursus' },
   open: { en: 'Open class', id: 'Buka kelas' },
   details: { en: 'Course page', id: 'Halaman kursus' },
   others: { en: 'Other courses', id: 'Kursus lain' },
@@ -86,12 +84,24 @@ const COPY = {
 
 const NAV: { id: Exclude<Section, 'welcome'>, href: string, icon: string }[] = [
   { id: 'overview', href: '#/app', icon: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z' },
+  { id: 'courses', href: '#/app/courses', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm3.6 5.4-2.1 5.1-5.1 2.1 2.1-5.1z' },
   { id: 'classes', href: '#/app/classes', icon: 'M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4zm16 0h-4a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h5z' },
   { id: 'grades', href: '#/app/grades', icon: 'M4 20V10m6 10V4m6 16v-7m6 7H2' },
   { id: 'credentials', href: '#/app/credentials', icon: 'M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm-3.5 3.5L7 22l5-2 5 2-1.5-3.5' },
   { id: 'wallet', href: '#/app/wallet', icon: 'M3 7.5A2.5 2.5 0 0 1 5.5 5H18v3M3 7.5V18a2 2 0 0 0 2 2h15V9H5.5A2.5 2.5 0 0 1 3 7.5zM16.5 14.5h.01' },
   { id: 'account', href: '#/app/account', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0' },
 ]
+
+/** Label pendek untuk tab bawah di ponsel — tujuh menu tidak muat dengan label penuh. */
+const SHORT: Record<Exclude<Section, 'welcome'>, Record<Lang, string>> = {
+  overview: { en: 'Overview', id: 'Ringkasan' },
+  courses: { en: 'Courses', id: 'Kursus' },
+  classes: { en: 'Classes', id: 'Kelas' },
+  grades: { en: 'Grades', id: 'Nilai' },
+  credentials: { en: 'Credentials', id: 'Kredensial' },
+  wallet: { en: 'Wallet', id: 'Dompet' },
+  account: { en: 'Account', id: 'Akun' },
+}
 
 const ONBOARD_KEY = (addr: string) => `lencana-onboarded-v1:${addr.toLowerCase()}`
 /** Login pertama di peramban ini untuk akun ini? (keadaan tampilan, bukan klaim apa pun ke penerbit) */
@@ -118,7 +128,7 @@ async function records (onStep?: (step: 0 | 1) => void): Promise<{ ok: boolean, 
 function sectionOf (routeHash: string): Section {
   const seg = routeHash.replace(/^#\/?/, '').split('/')[1] ?? ''
   if (seg === 'payments') return 'wallet' // tautan B125 lama
-  if (seg === 'classes' || seg === 'grades' || seg === 'credentials' || seg === 'wallet' || seg === 'account' || seg === 'welcome') return seg
+  if (seg === 'courses' || seg === 'classes' || seg === 'grades' || seg === 'credentials' || seg === 'wallet' || seg === 'account' || seg === 'welcome') return seg
   return 'overview'
 }
 
@@ -126,17 +136,6 @@ function icon (d: string): HTMLElement {
   const el = h('span', { class: 'app-ic', 'aria-hidden': 'true' })
   el.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`
   return el
-}
-
-/** Lesson berikutnya yang belum selesai, dalam urutan kursus. */
-function nextLesson (course: Course, rec: MyCourseRecord): { href: string, title: string } | null {
-  const done = new Set(rec.summary?.completed ?? [])
-  for (const m of course.modules) {
-    for (const l of m.lessons) {
-      if (!done.has(l.slug)) return { href: classLink(course.id, m.id, l.slug), title: l.title }
-    }
-  }
-  return null
 }
 
 export function renderApp (routeHash: string): HTMLElement {
@@ -150,7 +149,8 @@ export function renderApp (routeHash: string): HTMLElement {
   const main = h('main', { class: 'dash-main' })
   const shell = h('div', { class: 'app-shell' },
     h('nav', { class: 'app-side', 'aria-label': 'Dashboard' },
-      ...NAV.map((n) => h('a', { href: n.href, class: n.id === section ? 'active' : '', 'aria-current': n.id === section ? 'page' : 'false' }, icon(n.icon), h('span', null, T(n.id)))),
+      ...NAV.map((n) => h('a', { href: n.href, class: n.id === section ? 'active' : '', 'aria-current': n.id === section ? 'page' : 'false' },
+        icon(n.icon), h('span', { class: 'nav-full' }, T(n.id)), h('span', { class: 'nav-short', 'aria-hidden': 'true' }, SHORT[n.id][lang]))),
     ),
     main,
   )
@@ -163,12 +163,22 @@ export function renderApp (routeHash: string): HTMLElement {
   const body = h('div', { class: 'app-body' })
   main.appendChild(h('header', { class: 'app-head' }, h('h1', null, T(section)), section === 'overview' ? h('p', { class: 'app-muted' }, T('helloSub')) : null))
   main.appendChild(body)
-  const shape = section === 'grades' ? 'grades' : section === 'wallet' ? 'wallet' : section === 'classes' ? 'cards' : 'stats'
+  const shape = section === 'grades' ? 'grades' : section === 'wallet' ? 'wallet' : section === 'classes' || section === 'courses' ? 'cards' : 'stats'
+  // #/app/courses/<id> membuka pratinjau kursus itu langsung (dari "Kursus untukmu" di Ringkasan).
+  const openId = section === 'courses' ? decodeURIComponent(routeHash.replace(/^#\/?/, '').split('/')[2] ?? '') || undefined : undefined
   const load = () => {
     if (!addr) return
+    if (section === 'courses') {
+      // Katalog tidak butuh rekaman untuk tampil (pratinjau dari tautan langsung terbuka seketika); status "terdaftar"
+      // menyusul dari rekaman penerbit tanpa menggambar ulang pencarian yang sedang diketik.
+      const view = renderCatalog(lang, undefined, openId)
+      body.replaceChildren(view)
+      void records().then((r) => { if (view.isConnected) view.setRecords(r.ok && r.courses ? r.courses : null) })
+      return
+    }
     const progress = steps([T('stepSign'), T('stepRead')])
     body.replaceChildren(h('div', { class: 'app-loading' }, progress, skeleton(shape, T('loading'))))
-    const balance = section === 'wallet' ? readBalance(true) : Promise.resolve(null)
+    const balance = section === 'wallet' ? readBalance(true) : section === 'overview' ? readBalance() : Promise.resolve(null)
     void Promise.all([records((st) => progress.set(st)), balance]).then(([r, bal]) => {
       if (!body.isConnected) return
       body.innerHTML = ''
@@ -178,7 +188,7 @@ export function renderApp (routeHash: string): HTMLElement {
           h('button', { type: 'button', class: 'app-btn', onClick: load }, T('retry'))))
         return
       }
-      if (section === 'overview') body.appendChild(renderOverview(lang, r.courses))
+      if (section === 'overview') body.appendChild(renderOverview(lang, r.courses, bal))
       if (section === 'classes') body.appendChild(renderClasses(lang, r.courses))
       if (section === 'grades') body.appendChild(renderGrades(lang, r.courses))
       if (section === 'wallet') body.appendChild(renderWallet(lang, r.courses, bal))
@@ -186,39 +196,6 @@ export function renderApp (routeHash: string): HTMLElement {
   }
   load()
   return shell
-}
-
-function renderOverview (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
-  const T = (k: keyof typeof COPY) => COPY[k][lang]
-  const email = snapshot().identity?.email
-  const lessonsDone = courses.reduce((n, c) => n + (c.summary?.lessonsCompleted ?? 0), 0)
-  const graded = courses.reduce((n, c) => n + (c.summary?.gradedAttempts ?? 0), 0)
-  const wrap = h('div', { class: 'app-stack' })
-  wrap.appendChild(h('p', { class: 'app-hello' }, `${T('hello')}${email ? `, ${email}` : ''}.`))
-  // Angka terisi dengan bergulir dari nol saat rekaman datang (Counter, React Bits).
-  wrap.appendChild(h('div', { class: 'app-stats' },
-    h('div', { class: 'app-stat lc-enter' }, h('b', null, odometer(String(courses.length), { from: '0' })), h('span', null, T('enrolled'))),
-    h('div', { class: 'app-stat lc-enter', style: { '--i': '1' } }, h('b', null, odometer(String(lessonsDone), { from: '0' })), h('span', null, T('lessonsDone'))),
-    h('div', { class: 'app-stat lc-enter', style: { '--i': '2' } }, h('b', null, odometer(String(graded), { from: '0' })), h('span', null, T('graded'))),
-  ))
-  if (!courses.length) {
-    wrap.appendChild(h('div', { class: 'app-card' }, h('p', null, T('noCourse')), h('a', { class: 'app-btn', href: '#catalog' }, T('browse'))))
-    return wrap
-  }
-  for (const rec of courses) {
-    const course = findCourse(rec.courseId)
-    if (!course) continue
-    const nxt = nextLesson(course, rec)
-    wrap.appendChild(h('div', { class: 'app-card app-continue' },
-      h('span', { class: 'app-kicker' }, T('continue')),
-      h('h2', null, course.title),
-      progressBar(rec),
-      nxt
-        ? h('a', { class: 'app-btn primary', href: nxt.href }, `${T('next')}: ${nxt.title}`)
-        : h('p', { class: 'app-ok' }, T('allDone')),
-    ))
-  }
-  return wrap
 }
 
 function progressBar (rec: MyCourseRecord): HTMLElement {
@@ -248,14 +225,11 @@ function renderClasses (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
       ),
     ))
   }
-  // Kelas uji (B126, `unlisted`) tidak tampil di katalog publik; di sini ia tampil terakhir dan bertanda.
-  const others = COURSES.filter((c) => !taken.has(c.id)).sort((a, b) => Number(Boolean(a.unlisted)) - Number(Boolean(b.unlisted)))
-  if (others.length) {
-    wrap.appendChild(h('h2', { class: 'app-sub' }, T('others')))
-    for (const c of others) {
-      wrap.appendChild(h('a', { class: 'app-card app-other', href: `#/course/${encodeURIComponent(c.id)}` },
-        h('strong', null, c.title, c.unlisted ? h('span', { class: 'app-tag' }, T('testTag')) : null), h('span', { class: 'app-muted' }, c.blurb)))
-    }
+  // B127: mencari dan mendaftar pindah ke halaman Kursus; di sini cukup satu jalan ke sana.
+  const others = COURSES.filter((c) => !taken.has(c.id)).length
+  if (others) {
+    wrap.appendChild(h('a', { class: 'app-card app-other', href: '#/app/courses' },
+      h('strong', null, T('others')), h('span', { class: 'app-muted' }, `${others} ${T('moreCourses')}`), h('span', { class: 'app-btn small' }, T('toCatalog'))))
   }
   return wrap
 }

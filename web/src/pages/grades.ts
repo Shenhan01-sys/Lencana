@@ -84,7 +84,7 @@ const COPY = {
   browse: { en: 'Browse the catalogue', id: 'Jelajahi katalog' },
 } satisfies Record<string, Record<Lang, string>>
 
-type Row = {
+export type Row = {
   lesson: Lesson
   moduleId: string
   kind: Kind
@@ -116,7 +116,7 @@ function dateOf (lang: Lang, iso: string | null): string {
 }
 
 /** Baris per tugas yang dinilai + bukti untuk `computeScore`, dengan aturan pemilihan yang sama dengan penerbit. */
-function evaluate (lang: Lang, course: Course, attempts: MyAttempt[]): { rows: Row[], score: Score | null, pendingEssays: number } {
+export function evaluate (lang: Lang, course: Course, attempts: MyAttempt[]): { rows: Row[], score: Score | null, pendingEssays: number } {
   const T = (k: keyof typeof COPY): string => COPY[k][lang]
   const rows: Row[] = []
   const quizScores: number[] = []
@@ -191,7 +191,8 @@ function gaugeOf (lang: Lang, score: Score, rows: Row[], pendingEssays: number):
   const quizRows = rows.filter((r) => r.kind === 'kuis')
   const given = quizRows.filter((r) => r.best !== null).length
   const label = (k: Kind): string => T(k)
-  const parts: GaugePart[] = score.components.map((c) => {
+  // B127: komponen berbobot 0 tidak dinilai penerbit — tidak tampil di timbangan maupun legendanya.
+  const parts: GaugePart[] = score.components.filter((c) => c.weight > 0).map((c) => {
     const pts = `${c.earned.toFixed(1)} ${T('points')}`
     let note: string
     if (c.name === 'kuis') note = c.raw === null ? T('noQuiz') : `${T('avgOf')} ${Math.round(c.raw)} · ${given}/${quizRows.length} ${T('quizzesOf')} → ${pts}`

@@ -38,6 +38,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-25 | area internal peserta `#/app` + onboarding + detail kursus publik (B124, 2 Okt): nav Dashboard → `#/app`, `#/me` dialihkan, `#/course/<id>` publik, kartu katalog menunjuk detail kursus; berkas baru `pages/dashboard.ts`, `course-detail.ts`, `dashboard.css` |
 | OI-26 | kursus berbayar (B125, D60, 2 Okt): harga di kartu katalog (`.course-card-price`), `onSignedIn` membuka halaman kursus untuk membayar, kotak identitas kelas berbayar menunjuk halaman bayar; logika bayar di `learning.ts`, harga di `pricing.ts` |
 | OI-27 | kelas uji, saldo, rapor bergrafik, pita pemuatan (B126, D61, 2 Okt): chip saldo di navbar (`#nav-balance`), `installFetchTracking` di `main.ts`, katalog beranda memakai `LISTED_COURSES`; tampilan baru di berkas baru (`balance.ts`, `lib/loading.ts`, `lib/charts.ts`, `lib/odometer.ts`, `lib/coin.ts`, `pages/grades.ts`, `pages/wallet.ts`, `pages/dash-viz.css`) |
+| OI-28 | halaman Kursus + Ringkasan (B127, D62, 2 Okt): `h()` di `lib/ui.ts` memasang custom property lewat `setProperty`; kartu katalog beranda tanpa gambar khusus memakai emblemnya (`landing.ts`); `.course-card-image-wrap.is-emblem` di `style.css`; tampilan baru di berkas baru (`pages/catalog.ts`, `pages/overview.ts`, `pages/dash-catalog.css`, `lib/emblem.ts`) |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
 [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15

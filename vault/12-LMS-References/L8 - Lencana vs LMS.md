@@ -30,7 +30,7 @@ the code today**, and where our implementation is short. Every cell traces to on
 | capability | them | us |
 |---|---|---|
 | course → chapter → lesson model | all six | ✅ `web/src/content.ts` (`Course`/`Module`/`Lesson`, six lesson kinds) |
-| authored content volume | — | ✅ 2 courses · 7 modules · 24 lessons · 34 pages · 412 min · 28 quiz · 2 essays (`npm run inventory`, 26 Sep) |
+| authored content volume | — | ✅ 2 courses · 7 modules · 24 lessons · 34 pages · 412 min · 28 quiz · 2 essays (`npm run inventory`, 26 Sep) · **2 Okt (B127):** 7 courses · 15 modules · 46 lessons · 69 pages · 585 min · 48 quiz · 7 essays, three of them non-technical |
 | issuer-owned rubric + hash in the artifact | edX hashes but does not enforce | ✅ `web/src/manifest.ts`, `rubricHashOf()`; 17 checks (`npm run rubric`) |
 | composite scoring with an honest "incomplete" | Moodle pins *ungraded renders empty, never zero*; Chamilo separates `complete` from `finished` | ✅ `score.ts` mengembalikan `BELUM_LENGKAP`, dan **dua gerbang dipisah di tempat yang memutuskan**: view `course_gates` (`all_lessons_done` + `best_score`) dibaca `issue --from-attempts` sebelum gas (28 Sep, [[09-Testing/T22 - signer attempts-check.js]]) |
 | signed credential + revocable status + anchor | none of the six | ✅ `signer/`, 53 checks; 20 over HTTP; 11 credentials watched on chain 97 |

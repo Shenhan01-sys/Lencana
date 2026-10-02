@@ -26,7 +26,7 @@ from what all six actually implement — not from product marketing — with our
 | 9 | **Completion → an artifact whose validity a stranger can check** | all six produce something; **none** produces a signed, revocable, third-party-checkable document (see [[L8 - Lencana vs LMS]] §A) | ✅ the differentiator: OB 3.0 / VC 2.0 + `eddsa-rdfc-2022`, two bitstring lists from chain state, anchored to BAS |
 | 10 | **A price and a payment path, with the price computed server-side** | Moodle `enrol_fee` recomputes the amount and refuses a mismatch; edX mode + entitlement; Frappe `paid_course`; LearnHouse groups (EE) | ⚠️ the money path works on chain (`SettlementSplit`, x402) but is attached to verification, not enrolment — and the browser panel is an animation |
 | 11 | **Roles and permissions** | Canvas/Moodle/Chamilo role tables; LearnHouse `Rights` buckets; Frappe DocType permissions | ⚠️ issuer whitelist + `onlyOwner` on chain; no product-level roles (learner/publisher/mentor) |
-| 12 | **A catalogue that is not one topic** | all six are topic-agnostic by construction | ⚠️ structurally agnostic, practically two web3 courses — the limit is authorial, not technical |
+| 12 | **A catalogue that is not one topic** | all six are topic-agnostic by construction | ⚠️ structurally agnostic, practically two web3 courses — the limit is authorial, not technical · **2 Okt (B127):** katalog publik kini 7 kursus, 3 non-teknis (keuangan, keamanan akun, menulis laporan) — kelas singkat 31–39 menit; komponen yang tak punya bukti di chain berbobot 0 dan tidak dituntut `computeScore` |
 
 ## What this means for our screens
 

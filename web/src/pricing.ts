@@ -12,6 +12,11 @@
 import { WEB3_DASAR_ID } from './courses/web3-dasar'
 import { WEB3_LANJUT_ID } from './courses/web3-lanjut'
 import { UJI_BAYAR_ID } from './courses/uji-bayar'
+import { LITERASI_KEUANGAN_ID } from './courses/literasi-keuangan'
+import { KEAMANAN_AKUN_ID } from './courses/keamanan-akun'
+import { MENULIS_LAPORAN_ID } from './courses/menulis-laporan'
+import { MEMBACA_BSCSCAN_ID } from './courses/membaca-bscscan'
+import { TOKEN_IZIN_ID } from './courses/token-izin'
 
 export const PAY_TOKEN_SYMBOL = 'LDC-demo'
 export const PAY_TOKEN_DECIMALS = 6
@@ -24,6 +29,13 @@ export const COURSE_PRICES: Record<string, bigint> = {
   [WEB3_LANJUT_ID]: 25_000_000n,
   // B126: kelas uji untuk menguji bayar dengan akun sungguhan — angka kecil yang dipilih untuk uji, bukan keputusan harga produk.
   [UJI_BAYAR_ID]: 5_000_000n,
+  // B127: lima kelas singkat yang bisa didaftari builder dari halaman Kursus. Angka kecil yang dipilih untuk uji (bukan
+  // keputusan harga produk): jumlahnya 40, jadi satu kali koin uji (50) cukup untuk kelimanya + kelas uji.
+  [LITERASI_KEUANGAN_ID]: 4_000_000n,
+  [MEMBACA_BSCSCAN_ID]: 6_000_000n,
+  [TOKEN_IZIN_ID]: 8_000_000n,
+  [KEAMANAN_AKUN_ID]: 10_000_000n,
+  [MENULIS_LAPORAN_ID]: 12_000_000n,
 }
 
 export function priceOf (courseId: string): bigint | null {

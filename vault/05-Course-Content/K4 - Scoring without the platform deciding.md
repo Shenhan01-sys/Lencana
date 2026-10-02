@@ -31,6 +31,10 @@ leaves the pipeline signed by an agent's key.
   the manifest rather than the learner — `manifest rusak, tidak ada nilai yang boleh diterbitkan`
   (`:112-121`). Asserted by `web/scripts/rubric-check.ts:64-69`, which sets `esai` to 30 and requires
   the refusal.
+- **Koreksi 2 Okt (B127): komponen berbobot 0 tidak dinilai.** Sampai B127 setiap komponen tanpa bukti masuk `missing`,
+  termasuk yang bobotnya 0 — kursus tanpa praktik di chain tidak pernah bisa lulus. Sekarang `computeScore` hanya menuntut
+  bukti untuk komponen berbobot >0 (`web/src/score.ts`), dan `auditCourse` (`web/src/content.ts`) menolak bobot >0 tanpa lesson
+  jenisnya serta lesson dinilai di komponen berbobot 0. Ditegakkan `npm run probe` (asersi B127); `npm run rubric` tetap 17/0.
 - The threshold is tested on both sides of the rounding: 0.4·62 + 0.4·62 + 0.2·100 = 69.6 → **70 →
   LULUS** at `passMark` 70, and 68.8 → **69 → TIDAK_LULUS** (`web/scripts/rubric-check.ts:45-53`; the
   rounding is `Math.round` at `web/src/score.ts:127-129`).

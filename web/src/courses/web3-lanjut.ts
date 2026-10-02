@@ -36,6 +36,7 @@ export const web3Lanjut: Course = {
   criteria:
     'Nilai akhir >= 70 dari 100. Komposisi: kuis 30%, praktik 30%, esai 40%. Prasyarat: kredensial ' +
     'Web3 Dasar. Yang dicatat di chain hanyalah pernyataan kelulusan penerbit — kualitasnya urusan rubrik ini.',
+  topic: 'Web3',
   weights: { kuis: 30, esai: 40, praktik: 30 },
   passMark: 70,
   validDays: 730,

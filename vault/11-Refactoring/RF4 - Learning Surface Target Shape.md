@@ -56,6 +56,8 @@ stop describing the product as "web3 courses" in learner-facing copy. Web3 is wh
 content can be anything with a rubric (which is also what a real marketplace pitch would need, and what
 [[08-Results/01 - Evidence and Limits]] currently forbids us to claim we have).
 
+*(2 Okt, B127: langkah pertama dikerjakan — tiga kelas singkat non-teknis di katalog publik; praktiknya berbobot 0 karena tidak ada yang bisa dibaca dari chain, dan sejak itu `computeScore` tidak menuntut komponen berbobot 0. [[08-Results/B127 - Executive Summary]].)*
+
 ## Reference structures (design stays Lencana)
 
 Looked at as *information architecture*, not as UI. Not audited at code level in this pass — treat as a

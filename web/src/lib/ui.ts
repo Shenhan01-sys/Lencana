@@ -15,7 +15,11 @@ export function h(tag: string | Function, props?: Props | null, ...children: Chi
       } else if (k === 'className' || k === 'class') {
         el.className = v;
       } else if (k === 'style' && typeof v === 'object') {
-        Object.assign(el.style, v);
+        // Custom property (`--tc`, `--i`) tidak bisa diisi lewat Object.assign — harus setProperty (B127, 2 Okt).
+        for (const [sk, sv] of Object.entries(v)) {
+          if (sk.startsWith('--')) el.style.setProperty(sk, String(sv));
+          else (el.style as unknown as Record<string, unknown>)[sk] = sv;
+        }
       } else if (k === 'dataset' && typeof v === 'object') {
         for (const [dk, dv] of Object.entries(v)) {
           el.dataset[dk] = String(dv);

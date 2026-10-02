@@ -415,10 +415,15 @@ export async function learnerRecords (learner) {
   const addr = getAddress(learner)
   const q = `?learner=eq.${encodeURIComponent(addr)}&select=id,course_id,status,enrolled_at&order=enrolled_at.asc`
   const enrollments = (await rest('enrollments', { query: q })) ?? []
-  const courses = []
-  for (const e of enrollments) {
-    const summary = await progressSummary(addr, e.course_id)
-    const attempts = (await attemptsFor(addr, e.course_id)).map((a) => {
+  // B127: tiap kursus dibaca serentak (dan tiga bacaan per kursus juga serentak). Berurutan, empat kursus butuh >9 detik
+  // (terukur 2 Okt di halaman Kursus); urutan hasil tetap urutan enrollment.
+  const courses = await Promise.all(enrollments.map(async (e) => {
+    const [summary, rawAttempts, rawOrders] = await Promise.all([
+      progressSummary(addr, e.course_id),
+      attemptsFor(addr, e.course_id),
+      rest('orders', { query: `?enrollment_id=eq.${e.id}&select=asset,amount,state,tx_hash,created_at&order=created_at.asc` }),
+    ])
+    const attempts = rawAttempts.map((a) => {
       const r = (a.judgement_reviews ?? [])[0] ?? null
       return {
         lesson: a.lesson_key, kind: a.kind, attemptNo: a.attempt_no, score: a.score, verdict: a.verdict,
@@ -429,10 +434,10 @@ export async function learnerRecords (learner) {
         chainChecked: (a.attempt_components ?? []).some((c) => c?.graded_by === 'chain'),
       }
     })
-    const orders = ((await rest('orders', { query: `?enrollment_id=eq.${e.id}&select=asset,amount,state,tx_hash,created_at&order=created_at.asc` })) ?? [])
+    const orders = (rawOrders ?? [])
       .map((o) => ({ asset: o.asset, amount: String(o.amount), state: o.state, tx: o.tx_hash ?? null, at: o.created_at }))
-    courses.push({ courseId: e.course_id, status: e.status, enrolledAt: e.enrolled_at, summary, attempts, orders })
-  }
+    return { courseId: e.course_id, status: e.status, enrolledAt: e.enrolled_at, summary, attempts, orders }
+  }))
   return { learner: addr, courses }
 }
 

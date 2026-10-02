@@ -1,14 +1,22 @@
 ---
 tags: [testing, "T13"]
 command: npm run inventory
-measured: 2026-09-26
-result: 2 courses, 7 modules, 24 lessons, 412 min
+measured: 2026-10-02
+result: 7 courses, 15 modules, 46 lessons, 585 min (katalog publik, 2 Okt; 26 Sep: 2 courses, 7 modules, 24 lessons, 412 min)
 ---
 
 # T13 - `npm run inventory` (ukuran permukaan belajar, dicetak dari data)
 
 **Perintah:** `cd web && npm run inventory` (= `npx tsx scripts/inventory.ts`).
-**Terakhir dijalankan:** 26 Sep 2026.
+**Terakhir dijalankan:** 2 Okt 2026 (B127). Keluaran 26 Sep dibiarkan di bawah sebagai catatan.
+
+```
+2 Okt (B127, katalog publik — kelas uji tidak dihitung):
+kursus 7 · modul 15 · lesson 46 · halaman 69 · menit 585 (~9.8 jam) · soal kuis 48 · esai rubrik 7
+per jenis: {"bacaan":17,"kuis":10,"esai":7,"praktik":6,"kasus":3,"referensi":3}
+```
+
+26 Sep:
 
 ```
 2 kursus · 7 modul · 24 lesson · 34 halaman · 412 menit · 28 soal kuis · 2 esai bernilai rubrik

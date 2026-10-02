@@ -16,6 +16,7 @@ import { getSavedLanguage, DICTIONARIES } from '../i18n'
 import { verifyLink } from '../lesson-views'
 import { renderFlow3D } from './flow3d'
 import { PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
+import { emblem, topicColor } from '../lib/emblem'
 
 const REPO_URL = 'https://github.com/Shenhan01-sys/Lencana'
 /** Logo resmi (Logo-Fix1 dari builder, 2 Okt) — JPEG berlatar putih, jadi selalu ditaruh di ubin terang. */
@@ -109,10 +110,11 @@ function bindProofTilt (hero: HTMLElement, stage: HTMLElement): void {
   })
 }
 
-function getCourseImage (id: string): string {
+/** Gambar khusus kursus; null = tidak punya, kartu menampilkan lencananya sendiri (B127 — bukan satu gambar cadangan yang diulang). */
+function getCourseImage (id: string): string | null {
   if (id.includes('security') || id.includes('lanjut')) return '/course-security.jpg'
   if (id.includes('dasar')) return '/course-web3.jpg'
-  return '/hero.jpg'
+  return null
 }
 
 function renderCourseCard (c: Course, index: number): HTMLElement {
@@ -120,14 +122,15 @@ function renderCourseCard (c: Course, index: number): HTMLElement {
   const lessons = c.modules.flatMap((m) => m.lessons)
   const minutes = lessons.reduce((a, l) => a + l.minutes, 0)
   const prereq = c.prereqCourseId ? findCourse(c.prereqCourseId) : undefined
+  const img = getCourseImage(c.id)
 
   return h('a', {
     href: `#/course/${encodeURIComponent(c.id)}`,
     class: `course-card-editorial ${index === 0 ? 'course-card-large' : ''}`,
   },
-    h('div', { class: 'course-card-image-wrap' },
-      h('img', { src: getCourseImage(c.id), alt: c.title, class: 'course-card-image' }),
-    ),
+    img
+      ? h('div', { class: 'course-card-image-wrap' }, h('img', { src: img, alt: c.title, class: 'course-card-image' }))
+      : h('div', { class: 'course-card-image-wrap is-emblem', style: { '--tc': topicColor(c.topic) } }, emblem(c, 132)),
     h('div', { class: 'course-card-content' },
       h('div', { class: 'course-card-meta' },
         h('span', { class: 'course-card-tag' }, c.level),

@@ -29,7 +29,7 @@ ini terverifikasi 28 Sep dengan **membaca kode**, bukan membaca catatan lama.
 | 9 | hasil akhir yang bisa dicek orang asing | ✅ **pembeda kita** (bagian 2) | — |
 | 10 | harga + jalur bayar, dihitung server-side | ✅ *(2 Okt, B125)* harga satu sumber (`web/src/pricing.ts`), dihitung server: `POST /enroll` kursus berbayar menjawab 402, settlement x402 + `SettlementSplit` sebelum enrollment, `orders` = paid (`verify:paywall` 23/0, `--live` 31/0). Batasnya: koin uji LDC-demo di testnet (C4) — bukan pendapatan | stablecoin sungguhan di mainnet |
 | 11 | peran & izin | ⚠️ whitelist issuer + `onlyOwner` di chain; tanpa peran produk | roles learner/publisher/mentor |
-| 12 | katalog yang bukan satu topik | ⚠️ struktural netral, praktis 2 kursus web3 | authoring tooling |
+| 12 | katalog yang bukan satu topik | ⚠️ *(2 Okt, B127)* 7 kursus publik, 3 di antaranya non-teknis (keuangan, keamanan akun, menulis) — tetapi kelas singkat 31–39 menit, belum program; sebelumnya praktis 2 kursus web3 | authoring tooling |
 
 Urutan pengerjaan yang masuk akal terhadap bar ini = urutan yang sudah diurutkan di
 [[12-LMS-References/L8 - Lencana vs LMS]] §C: **1 enrollment → 2 progres server-side → 3 kuis

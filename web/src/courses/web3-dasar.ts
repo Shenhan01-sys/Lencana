@@ -39,6 +39,7 @@ export const web3Dasar: Course = {
     'Nilai akhir >= 70 dari 100. Komposisi: kuis 40%, tugas praktik 20%, esai dinilai agen penerbit 40%. ' +
     'Semua kuis harus dikerjakan; kuis bukan gerbang, tapi tanpa semuanya tidak ada yang bisa dinilai. ' +
     'Esai dinilai terhadap rubrik yang sama yang dipakai penerbit, dan rubriknya dibuka di depan peserta.',
+  topic: 'Web3',
   weights: { kuis: 40, esai: 40, praktik: 20 },
   passMark: 70,
   validDays: 730,

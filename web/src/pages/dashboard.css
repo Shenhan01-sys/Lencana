@@ -37,6 +37,8 @@
 .app-shell .app-side a:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
 .app-shell .app-side a.active { background: rgba(240, 185, 11, 0.12); color: #f0b90b; }
 .app-shell .app-ic { display: inline-grid; place-items: center; }
+/* B127: label pendek hanya untuk tab bawah di ponsel (tujuh menu). */
+.app-shell .app-side .nav-short { display: none; }
 .app-shell .dash-main { min-width: 0; max-width: 1280px; padding: 36px 48px 96px; }
 .app-shell .app-head h1 { margin: 0; font-size: clamp(28px, 3vw, 38px); font-weight: 700; letter-spacing: -0.02em; }
 .app-shell .app-head { display: grid; gap: 6px; margin-bottom: 20px; }
@@ -274,7 +276,9 @@
     background: rgba(12, 15, 19, 0.94);
     backdrop-filter: blur(12px);
   }
-  .app-shell .app-side a { flex-direction: column; gap: 3px; padding: 6px 4px; font-size: 10.5px; text-align: center; }
+  .app-shell .app-side a { flex: 1 1 0; flex-direction: column; gap: 3px; min-width: 0; padding: 6px 2px; font-size: 10px; text-align: center; }
+  .app-shell .app-side .nav-full { display: none; }
+  .app-shell .app-side .nav-short { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .app-shell .app-stats { grid-template-columns: 1fr 1fr 1fr; }
   .app-shell .app-facts { grid-template-columns: 1fr 1fr; }
   .app-welcome { padding: 32px 16px 80px; }

@@ -10,8 +10,16 @@ import { auditCatalog, courseStats, lessonsOf } from '../content'
 import { web3Dasar } from './web3-dasar'
 import { web3Lanjut } from './web3-lanjut'
 import { ujiBayar } from './uji-bayar'
+import { literasiKeuangan } from './literasi-keuangan'
+import { keamananAkun } from './keamanan-akun'
+import { menulisLaporan } from './menulis-laporan'
+import { membacaBscscan } from './membaca-bscscan'
+import { tokenIzin } from './token-izin'
 
-export const COURSES: Course[] = [web3Dasar, web3Lanjut, ujiBayar]
+// Lencana-B127 status=TERBUKA 2026-10-02 — lima kelas singkat (tiga non-teknis berbobot praktik 0, dua teknis berpraktik chain) masuk katalog dan halaman Kursus. Buktikan ulang: cd web && npm run probe, lalu cd ../signer && npm run verify:quizkeys && npm run verify:paywall. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+export const COURSES: Course[] = [
+  web3Dasar, web3Lanjut, literasiKeuangan, keamananAkun, menulisLaporan, membacaBscscan, tokenIzin, ujiBayar,
+]
 
 /**
  * Katalog publik: tanpa kelas uji (`unlisted`, B126). Beranda, onboarding, dan angka inventaris/README memakai ini;

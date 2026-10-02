@@ -258,6 +258,27 @@ async function main() {
     const none = computeScore(mf, { quizScores: [], praktikCompleted: false, essayScore: null })
     check(`  tanpa bukti -> menolak, BUKAN nol`, none.verdict === 'BELUM_LENGKAP' && none.total === null, String(none.total))
   }
+
+  // Lencana-B127 status=TERBUKA 2026-10-02 — komponen berbobot 0 tidak menahan keputusan, dan audit menolak bobot tanpa lesson jenisnya (dua arah). Buktikan ulang: cd web && npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  const { auditCourse } = await import('../src/content')
+  const zeroWeight = COURSES.filter((c) => c.weights.praktik === 0)
+  check(`B127: katalog memuat kursus tanpa praktik di chain (bobot praktik 0): ${zeroWeight.length}`, zeroWeight.length >= 1, zeroWeight.map((c) => c.id).join(', '))
+  for (const c of zeroWeight) {
+    const mf = manifestOf(c.id)
+    if (!mf) continue
+    const s = computeScore(mf, { quizScores: Array.from({ length: quizCount(mf) }, () => 90), praktikCompleted: false, essayScore: 90 })
+    check(`  ${c.id}: kuis + esai lengkap tanpa praktik -> keputusan (praktik berbobot 0 tidak dinilai)`,
+      s.verdict !== 'BELUM_LENGKAP' && s.total === 90, `${s.verdict} ${s.total} ${s.missing.join(' | ')}`)
+  }
+  const lanjutBase = findCourse('web3-lanjut-2026')
+  if (lanjutBase) {
+    const tanpaPraktik = { ...lanjutBase, modules: lanjutBase.modules.map((m) => ({ ...m, lessons: m.lessons.filter((l) => l.kind !== 'praktik') })) }
+    check('B127: audit menolak bobot praktik >0 tanpa satu pun lesson praktik',
+      auditCourse(tanpaPraktik).some((p) => p.what.includes('bobot praktik')), JSON.stringify(auditCourse(tanpaPraktik).map((p) => p.what)))
+    const praktikTakDihitung = { ...lanjutBase, weights: { kuis: 40, esai: 60, praktik: 0 } }
+    check('B127: audit menolak lesson praktik di komponen berbobot 0 (kerja yang tidak dihitung)',
+      auditCourse(praktikTakDihitung).some((p) => p.what.includes('bobot praktik 0')), JSON.stringify(auditCourse(praktikTakDihitung).map((p) => p.what)))
+  }
   // Lencana-B80 status=SELESAI 2026-10-01 — data kursus yang diimpor halaman tidak membawa kunci jawaban; pemindaian bundel lengkapnya ada di npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B80 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   const soal = COURSES.flatMap((c) => c.modules.flatMap((m) => m.lessons)).flatMap((l) => l.quiz?.questions ?? [])
   check(`B80: ${soal.length} soal kuis yang diimpor halaman tanpa answer/why (kunci hanya di sisi server)`,

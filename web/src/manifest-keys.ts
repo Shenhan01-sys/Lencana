@@ -33,12 +33,22 @@ import {
 import { web3DasarKeys } from './courses/web3-dasar.keys'
 import { web3LanjutKeys } from './courses/web3-lanjut.keys'
 import { ujiBayarKeys } from './courses/uji-bayar.keys'
+import { literasiKeuanganKeys } from './courses/literasi-keuangan.keys'
+import { keamananAkunKeys } from './courses/keamanan-akun.keys'
+import { menulisLaporanKeys } from './courses/menulis-laporan.keys'
+import { membacaBscscanKeys } from './courses/membaca-bscscan.keys'
+import { tokenIzinKeys } from './courses/token-izin.keys'
 
 /** Kunci per kursus. Kursus tanpa kuis cukup `{}`; kursus berkuis tanpa entri di sini gagal diaudit. */
 export const ANSWER_KEYS: Record<string, QuizKeys> = {
   'web3-dasar-2026': web3DasarKeys,
   'web3-lanjut-2026': web3LanjutKeys,
   'uji-bayar-2026': ujiBayarKeys,
+  'literasi-keuangan-2026': literasiKeuanganKeys,
+  'keamanan-akun-2026': keamananAkunKeys,
+  'menulis-laporan-2026': menulisLaporanKeys,
+  'membaca-bscscan-2026': membacaBscscanKeys,
+  'token-izin-2026': tokenIzinKeys,
 }
 
 /** Manifest publik + kunci → manifest berkunci (salinan; manifest publik tidak disentuh). */
