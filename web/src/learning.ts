@@ -785,13 +785,21 @@ async function sendContractTx (to: Hex, data: Hex): Promise<{ hash?: Hex, why?: 
       return { hash: await client.sendRawTransaction({ serializedTransaction }) }
     }
     const hash = await (await import('./privy')).privySendTransaction(
-      { to, data, gas, gasPrice, nonce, chainId }, id.address,
+      { to, data, gas, fee: gasPrice, nonce, chainId }, id.address,
       async (raw) => client.sendRawTransaction({ serializedTransaction: raw }),
     )
     return { hash: hash as Hex }
   } catch (e) {
-    return { why: errText(e) }
+    return { why: chainErrText(e) }
   }
+}
+
+/** Galat viem dari RPC panjang (URL, badan permintaan, versi) — yang berguna bagi orang hanya `details`/`shortMessage`. */
+function chainErrText (e: unknown): string {
+  const x = e as { details?: unknown, shortMessage?: unknown }
+  if (typeof x?.details === 'string' && x.details) return `Ditolak jaringan: ${x.details}`
+  if (typeof x?.shortMessage === 'string' && x.shortMessage) return x.shortMessage
+  return errText(e).split('\n')[0]
 }
 
 async function minedOk (hash: Hex): Promise<{ ok: boolean, why?: string, tx: string }> {

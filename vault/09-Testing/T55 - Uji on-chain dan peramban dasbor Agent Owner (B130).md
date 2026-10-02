@@ -25,6 +25,10 @@ Tanggal: 2 Okt. Identitas uji sekali-pakai **dibuat di dalam peramban**: pemilik
 | 8 | konsol, enam rute (Ringkasan, Akun, onboarding, Agent Owner, Penerbit tanpa kursi, Agent Owner) | 0 error, 0 peringatan |
 | 9 | `LANCENA_ORIGIN=demo npm run agent:mint -- --to 0x632D…38AF --apply` (akun 2 builder) | agen **#2547**: `register` `0xb09e38a0…`, berkas `0x4166c658…`, tarif `0x0a5def38…`, `transferFrom` `0x0fddd6fb…`, gas `0xef1c9b75…`; pemilik = akun 2, `agentWallet` kosong — **diisi builder sendiri** |
 
+| 10 | **akun 2 builder, dompet Privy (2 Okt malam)** — percobaan pertama "Verifikasi dompet agen" | tanda tangan EIP-712 lewat Privy berhasil, tetapi transaksi **ditolak node**: "max priority fee per gas is 0". Raw tx-nya tipe `0x02` dengan `maxFeePerGas` = `maxPriorityFeePerGas` = 0: dompet tertanam menandatangani EIP-1559 dan **mengabaikan `gasPrice`** yang kita kirim |
+| 11 | perbaikan `web/src/privy.ts`: field EIP-1559 dikirim eksplisit (tip = maks = `eth_gasPrice`; BSC `baseFee` = 0), jatuh ke `eth_sendTransaction` hanya bila node menolak karena fee | bentuk fee diuji sendiri dari kunci platform: transfer 0 tipe `0x02` `0x011c9c2e…` **sukses** |
+| 12 | builder mencoba lagi | `setAgentWallet` **`0xfd0486d2…4e2b`** (blok 134471322, 67.528 gas, EIP-1559) dari `0x632D…38AF`; dibaca balik dari chain: `ownerOf(2547)` = `agentWallet` = akun 2 |
+
 **Bersih-bersih:** baris sewa uji (#2546 di `uji-bayar-2026`) dan keanggotaan uji `0x1D75…` dihapus. Baris `platform_agents` #2546
 (`origin=test`) **sengaja dibiarkan** sebagai jejak: NFT-nya tetap di chain, dimiliki kunci uji yang hilang bersama tabnya.
 
@@ -35,6 +39,7 @@ atas. (c) Tahap verifikasi sudah menyala sebelum tombol ditekan — kini muncul 
 menulis, sebelum uji: tahap verifikasi versi pertama digerakkan timer, bukan langkah sungguhan (kini `onStep` dari fungsinya); sewa oleh
 kunci penerbit tertulis "oleh anggota" (kini `byPublisherKey`).
 
-**Yang tidak diuji:** transaksi dari dompet tertanam **Privy** (`eth_signTransaction`, jatuh ke `eth_sendTransaction` bila ditolak) —
-hanya bisa diuji builder dengan login akun 2 untuk agen #2547. Agen milik akun belum menilai apa pun: penilaian agen ditandatangani
+**Yang tidak diuji:** ~~transaksi dari dompet tertanam **Privy** (`eth_signTransaction`, jatuh ke `eth_sendTransaction` bila ditolak) —
+hanya bisa diuji builder dengan login akun 2 untuk agen #2547.~~ *(Koreksi 2 Okt malam: diuji builder — gagal sekali karena fee 0, diperbaiki,
+lalu berhasil; langkah 10–12.)* Sewa #2547 oleh akun 1 belum dilaporkan. Agen milik akun belum menilai apa pun: penilaian agen ditandatangani
 dompet agen dan belum ada layar untuk itu.

@@ -40,6 +40,8 @@ updated: 2026-10-02
 
 ## 3. Yang belum
 
-Akun 2 builder memverifikasi dompet agen #2547 dari dompet Privy-nya (AC-B130#8) — transaksi dari dompet tertanam Privy belum pernah
-diuji; kalau `eth_signTransaction` ditolak, halaman jatuh ke `eth_sendTransaction`. Agen milik akun belum menilai apa pun: penilaian
+~~Akun 2 builder memverifikasi dompet agen #2547 dari dompet Privy-nya (AC-B130#8) — transaksi dari dompet tertanam Privy belum pernah
+diuji; kalau `eth_signTransaction` ditolak, halaman jatuh ke `eth_sendTransaction`.~~ *(Koreksi 2 Okt malam: dicoba builder — ditolak sekali
+karena dompet tertanam menandatangani EIP-1559 dengan fee 0; sesudah fee EIP-1559 dikirim eksplisit, `setAgentWallet` `0xfd0486d2…`
+berhasil dan `agentWallet` #2547 = akun 2.)* Yang tersisa: akun 1 menyewa #2547 dari dasbor penerbit. Agen milik akun belum menilai apa pun: penilaian
 agen ditandatangani dompet agen dan belum ada layar untuk itu.

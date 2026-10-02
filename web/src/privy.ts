@@ -187,7 +187,7 @@ export async function privySignTypedData (typedDataJson: string, expected: strin
  * jatuh ke `eth_sendTransaction` — tidak pernah sesudah tanda tangan berhasil, supaya satu transaksi tidak terkirim dua kali.
  */
 export async function privySendTransaction (
-  tx: { to: string, data: string, gas: bigint, gasPrice: bigint, nonce: number, chainId: number },
+  tx: { to: string, data: string, gas: bigint, fee: bigint, nonce: number, chainId: number },
   expected: string,
   broadcast: (raw: `0x${string}`) => Promise<string>,
 ): Promise<string> {
@@ -197,9 +197,12 @@ export async function privySendTransaction (
     throw new Error(`Sesi login sekarang milik dompet lain (${id.address.slice(0, 10)}…) — keluar lalu masuk ulang.`)
   }
   const hex = (n: bigint | number) => `0x${n.toString(16)}`
+  // Dompet tertanam menandatangani tipe EIP-1559 dan MENGABAIKAN `gasPrice` gaya lama — diukur 2 Okt: tx-nya keluar dengan
+  // maxFeePerGas = maxPriorityFeePerGas = 0, dan node BSC testnet menolak ("max priority fee per gas is 0"). Jadi kedua
+  // field EIP-1559 dikirim eksplisit; di BSC baseFee = 0, sehingga tip = harga gas yang dianjurkan node.
   const req = {
-    from: current.address, to: tx.to, data: tx.data, value: '0x0',
-    gas: hex(tx.gas), gasPrice: hex(tx.gasPrice), nonce: hex(tx.nonce), chainId: hex(tx.chainId),
+    from: current.address, to: tx.to, data: tx.data, value: '0x0', type: '0x2',
+    gas: hex(tx.gas), maxFeePerGas: hex(tx.fee), maxPriorityFeePerGas: hex(tx.fee), nonce: hex(tx.nonce), chainId: hex(tx.chainId),
   }
   let raw: string | null = null
   try {
@@ -207,7 +210,15 @@ export async function privySendTransaction (
   } catch {
     raw = null
   }
-  if (raw) return broadcast(raw as `0x${string}`)
+  if (raw) {
+    try {
+      return await broadcast(raw as `0x${string}`)
+    } catch (e) {
+      // Ditolak node karena fee (tidak tersiar, jadi tidak ada risiko terkirim dua kali): biarkan dompet tertanam mengirim
+      // sendiri dengan perhitungan fee-nya. Penolakan lain diteruskan apa adanya.
+      if (!/fee|underpriced|gas price/i.test(String((e as { message?: unknown })?.message ?? e))) throw e
+    }
+  }
   return await current.provider.request({ method: 'eth_sendTransaction', params: [req] }) as string
 }
 
