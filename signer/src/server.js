@@ -98,6 +98,10 @@ import { accountOf, roleRefusal } from './account.js'
 import { chooseRole as dbChooseRole, recordRole as dbRecordRole } from './db.js'
 // Lencana-B133 status=TERBUKA 2026-10-03 — Penerbit menyusun kursus: POST /publisher/drafts (daftar), /publisher/drafts/save dan /publisher/drafts/submit (anggota berhak susun, tanda tangan atas hash isi); kursus yang diterbitkan kunci penerbit digabung ke katalog proses ini (GET /catalog/published tanpa kunci). Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { refreshCatalog, publishedCatalog } from './catalog.js'
+// Lencana-B132 status=TERBUKA 2026-10-03 — robot agen: templat registrasi publik, klaim agen yang didaftarkan pemiliknya sendiri (struk dibaca dari chain), gas untuk akun Agent Owner yang belum punya agen. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { registrationFile, ERC8004 } from './erc8004.js'
+import { verifySelfRegistration } from './owner.js'
+import { recordPlatformAgent as dbRecordPlatformAgent } from './db.js'
 import { prepareDraft } from './drafts.js'
 import {
   saveDraft as dbSaveDraft, submitDraft as dbSubmitDraft, draftsOf as dbDraftsOf, projectDraft,
@@ -596,7 +600,7 @@ const server = createServer(async (req, res) => {
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
       || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members'
       || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
-      || path === '/owner/overview' || path === '/owner/gas' || path === '/me/role'
+      || path === '/owner/overview' || path === '/owner/gas' || path === '/owner/agents/claim' || path === '/me/role'
       || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
@@ -790,14 +794,21 @@ const server = createServer(async (req, res) => {
         if (!out.ok) return send(res, ({ auth: 401, forbidden: 403, missing: 404, conflict: 409, unprocessable: 422 })[out.kind] ?? 400, jsonBody({ error: out.why }))
         return send(res, 200, jsonBody({ draft: projectDraft(out.draft, { withKeys: true }) }))
       }
-      if (path === '/owner/overview' || path === '/owner/gas') {
+      if (path === '/owner/overview' || path === '/owner/gas' || path === '/owner/agents/claim') {
         // B130: kursi Agent Owner — dibaca dari ownerOf di registry ERC-8004, bukan dari tabel.
         const isGas = path === '/owner/gas'
-        const want = isGas ? 'lencana-owner-gas' : 'lencana-owner'
+        const isClaim = path === '/owner/agents/claim'
+        // Bentuk dulu, baru dipakai di pola pesan — kiriman tidak boleh menjadi bagian regex sebelum terbukti angka/hash.
+        if (isClaim && (!/^\d{1,12}$/.test(String(body.agentId ?? '')) || !/^0x[0-9a-fA-F]{64}$/.test(String(body.registerTx ?? '')))) {
+          return send(res, 400, jsonBody({ error: 'agentId must be a number and registerTx a transaction hash' }))
+        }
+        const want = isGas
+          ? 'lencana-owner-gas'
+          : isClaim ? `lencana-owner-claim agent=${String(body.agentId ?? '')} tx=${String(body.registerTx ?? '').toLowerCase()}` : 'lencana-owner'
         if (typeof body.message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(body.message)) {
           return send(res, 400, jsonBody({ error: `message must be "${want} nonce=<hex>"` }))
         }
-        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: isGas ? 'owner-gas' : 'owner' })
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: isGas ? 'owner-gas' : isClaim ? 'owner-claim' : 'owner' })
         if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
         if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent identities are not configured on this server', missing: dbMissingReason() }))
         const addr = getAddress(String(body.learner).toLowerCase())
@@ -806,8 +817,15 @@ const server = createServer(async (req, res) => {
         if (isGas) {
           if (!process.env.DEPLOYER_PRIVATE_KEY) return send(res, 503, jsonBody({ error: 'gas drip is not configured on this server' }))
           // Hanya pemilik agen yang DICETAK platform (ownerOf sekarang = alamat ini), dan hanya bila saldonya menipis.
+          // B132: juga akun yang memilih peran Agent Owner (atau akun dev) dan belum memiliki agen apa pun — gas untuk mendaftarkan
+          // agennya sendiri (register + setAgentURI + tarif dari dompetnya).
           const mine = await ownedAgentFacts(AGENTS_CFG, addr, await dbPlatformAgentIds())
-          if (!mine.length) return send(res, 403, jsonBody({ error: 'gas is only sent to owners of agents the platform minted' }))
+          if (!mine.length) {
+            const acct = await accountFull(addr)
+            const startsOwn = (acct.dev || (acct.role === 'owner' && acct.via === 'chosen'))
+              && !(await ownedAgentFacts(AGENTS_CFG, addr, [...MANIFESTS.map((m) => m.issuer.agent?.agentId).filter(Boolean), ...await dbKnownAgentIds()])).length
+            if (!startsOwn) return send(res, 403, jsonBody({ error: 'gas is only sent to owners of agents the platform minted, or to an Agent Owner account registering its first agent' }))
+          }
           const before = await nativeBalance(RPC_URL, addr)
           if (before >= GAS_LOW) return send(res, 409, jsonBody({ error: 'balance is still enough for an owner transaction', balance: String(before) }))
           try {
@@ -816,6 +834,16 @@ const server = createServer(async (req, res) => {
           } catch (err) {
             return send(res, 502, jsonBody({ error: `gas drip failed: ${String(err.message ?? err).split('\n')[0].slice(0, 160)}` }))
           }
+        }
+        if (isClaim) {
+          // B132: agen yang didaftarkan pemiliknya sendiri (`register()` dari dompet akun ini) dikenal platform hanya sesudah
+          // struknya dibaca dari chain. Pesan mengikat agentId + transaksi.
+          const registry = ERC8004[AGENTS_CFG.chainId]?.identity
+          const v = await verifySelfRegistration({ rpcUrl: RPC_URL, registry, agentId: body.agentId, txHash: body.registerTx, owner: addr })
+          if (!v.ok) return send(res, v.status, jsonBody({ error: v.why }))
+          if ((await dbPlatformAgents([v.agentId])).length) return send(res, 409, jsonBody({ error: 'this agent is already known to the platform' }))
+          await dbRecordPlatformAgent({ agentId: v.agentId, registry, role: 'grader-self', mintedBy: addr, registerTx: v.registerTx })
+          return send(res, 201, jsonBody({ agentId: v.agentId, registerTx: v.registerTx, block: v.block }))
         }
         const ids = [...MANIFESTS.map((m) => m.issuer.agent?.agentId).filter(Boolean), ...await dbKnownAgentIds()]
         const owned = await ownedAgentFacts(AGENTS_CFG, addr, ids)
@@ -1145,6 +1173,16 @@ const server = createServer(async (req, res) => {
     // Agen sewaan (B119, D54): tabel harga, sewa oleh penerbit, dan tagihan per aktivitas penilaian.
     if (path.startsWith('/agents/') || path.startsWith('/agent-charges/')) {
       if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent hiring is not configured on this server', missing: dbMissingReason() }))
+      // B132: templat berkas registrasi agen (menunjuk balik ke agen ini, kalimat peran yang benar). Halaman menambahkan nama +
+      // rupa robot lalu pemilik mengirim `setAgentURI` dari dompetnya sendiri — server tidak menulis apa pun ke chain di sini.
+      const tplMatch = /^\/agents\/(\d+)\/registration-template$/.exec(path)
+      if (tplMatch && req.method === 'GET') {
+        const role = new URL(req.url, BASE_URL).searchParams.get('role') ?? 'grader-account'
+        if (!['grader-account', 'grader-self'].includes(role)) return send(res, 400, jsonBody({ error: 'role must be grader-account or grader-self' }))
+        const registry = ERC8004[AGENTS_CFG.chainId]?.identity
+        if (!registry) return send(res, 503, jsonBody({ error: `no ERC-8004 registry known for chain ${AGENTS_CFG.chainId}` }))
+        return send(res, 200, jsonBody(registrationFile({ chainId: AGENTS_CFG.chainId, registry, agentId: tplMatch[1], role })))
+      }
       const ratesMatch = /^\/agents\/(\d+)\/rates$/.exec(path)
       if (ratesMatch && req.method === 'GET') {
         const r = await agentRates(AGENTS_CFG, ratesMatch[1])

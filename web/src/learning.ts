@@ -48,6 +48,7 @@ import type { PrivyIdentity } from './privy'
 import type { Course, Problem, QuizKeys } from './content'
 import type { CourseManifest } from './manifest'
 import { normalizeDraft, draftHash } from './authoring'
+import { robotSvg, withAvatar, cleanName, parseAvatar, NAME_MAX, type Avatar } from './robot'
 
 const EP_KEY = 'lencana-signer-url'
 const ID_KEY = 'lencana-learner-v1'
@@ -813,6 +814,10 @@ export type OwnerAgent = {
     recent: { id: number, activity: string, label: string | null, amount: string, status: string, paidTo: string, tx: string | null, at: string }[]
   }
   minted: { by: string, registerTx: string, transferTx: string | null, gasTx: string | null, ownerTo: string | null, at: string } | null
+  /** B132: rupa robot dari berkas registrasi di chain (null = belum dirakit) + gambarnya + peran templat registrasinya. */
+  avatar: Avatar | null
+  image: string | null
+  registrationRole: string | null
 }
 export type OwnerOverview = {
   address: string
@@ -929,6 +934,82 @@ export async function setAgentTariff (agentId: string, token: string, amount: bi
   const sent = await sendContractTx(IDENTITY_REGISTRY_97, setTariffData(agentId, token, amount))
   if (!sent.hash) return { ok: false, why: sent.why }
   return minedOk(sent.hash)
+}
+
+// Lencana-B132 status=TERBUKA 2026-10-03 — robot agen: pemilik menyimpan nama + rupa robot ke berkas registrasi ERC-8004 agennya (templat dari penerbit yang menunjuk balik + avatar + gambar SVG, setAgentURI dari dompetnya), dan akun Agent Owner tanpa agen mendaftarkan agennya sendiri (gas → register → klaim → rupa → tarif). Buktikan ulang: cd signer && npm run verify:studio, lalu uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** UTF-8 → base64 (nama agen boleh berhuruf non-ASCII). */
+function base64Utf8 (s: string): string {
+  const bytes = new TextEncoder().encode(s)
+  let bin = ''
+  for (const b of bytes) bin += String.fromCharCode(b)
+  return btoa(bin)
+}
+
+/**
+ * Simpan nama + rupa robot ke chain: templat berkas registrasi dari penerbit (menunjuk balik, kalimat peran yang benar) +
+ * `name` + `image` (SVG statis) + `lencana:avatar`, lalu `setAgentURI` dari dompet pemilik — gasnya dibayar pemilik.
+ */
+export async function saveAgentLook (agentId: string, role: 'grader-account' | 'grader-self', name: string, avatar: Avatar, onStep?: (step: 0 | 1 | 2) => void): Promise<{ ok: boolean, why?: string, tx?: string }> {
+  const n = cleanName(name)
+  if (!n) return { ok: false, why: `Nama agen 1–${NAME_MAX} karakter.` }
+  const av = parseAvatar(avatar)
+  if (!av) return { ok: false, why: 'Rupa robot tidak sah.' }
+  onStep?.(0)
+  const tpl = await call(`/agents/${encodeURIComponent(agentId)}/registration-template?role=${role}`)
+  if (tpl.status !== 200 || !tpl.json) return { ok: false, why: (tpl.json?.error as string) ?? tpl.why ?? `penerbit menjawab ${tpl.status}` }
+  const image = `data:image/svg+xml;base64,${btoa(robotSvg(av, { standalone: true }))}`
+  const uri = `data:application/json;base64,${base64Utf8(JSON.stringify(withAvatar(tpl.json, n, av, image)))}`
+  const { setAgentUriData, IDENTITY_REGISTRY_97 } = await import('./erc8004')
+  onStep?.(1)
+  const sent = await sendContractTx(IDENTITY_REGISTRY_97, setAgentUriData(agentId, uri))
+  if (!sent.hash) return { ok: false, why: sent.why }
+  onStep?.(2)
+  return minedOk(sent.hash)
+}
+
+/** Saldo native (tBNB) dompet akun ini — untuk memutuskan perlu tidaknya meminta gas uji. */
+export async function nativeBalanceOfMe (): Promise<bigint | null> {
+  const addr = learnerAddress()
+  if (!addr) return null
+  try { return await chainRead().getBalance({ address: addr as Hex }) } catch { return null }
+}
+
+/**
+ * Akun Agent Owner mendaftarkan agen pertamanya sendiri (B132): gas uji bila menipis → `register()` dari dompet akun (dompet
+ * agen otomatis = pendaftar) → platform membaca struknya dan mengenal agen itu → nama + rupa (`setAgentURI`) → tarif dasar.
+ * Lima tahap, empat transaksi dari dompet akun; setiap tahap dilaporkan lewat `onStep`.
+ */
+export async function registerOwnAgent (name: string, avatar: Avatar, tariff: { token: string, amount: bigint }, onStep?: (step: 0 | 1 | 2 | 3 | 4) => void): Promise<{ ok: boolean, why?: string, agentId?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  if (!cleanName(name) || !parseAvatar(avatar)) return { ok: false, why: 'Nama atau rupa robot belum sah.' }
+  onStep?.(0)
+  const bal = await nativeBalanceOfMe()
+  if (bal !== null && bal < 500_000_000_000_000n) {
+    const g = await requestOwnerGas()
+    if (!g.ok) return { ok: false, why: `Gas uji: ${g.why ?? ''}` }
+  }
+  const { registerData, registeredAgentId, IDENTITY_REGISTRY_97 } = await import('./erc8004')
+  onStep?.(1)
+  const sent = await sendContractTx(IDENTITY_REGISTRY_97, registerData())
+  if (!sent.hash) return { ok: false, why: sent.why }
+  const receipt = await chainRead().waitForTransactionReceipt({ hash: sent.hash, timeout: 120_000 })
+  if (receipt.status !== 'success') return { ok: false, why: `register() revert (${sent.hash.slice(0, 10)}…)` }
+  const agentId = registeredAgentId(receipt.logs as unknown as { address: string, data: Hex, topics: Hex[] }[], addr)
+  if (!agentId) return { ok: false, why: 'Event Registered tidak ditemukan di struk.' }
+  onStep?.(2)
+  const message = `lencana-owner-claim agent=${agentId} tx=${sent.hash.toLowerCase()} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani', agentId }
+  const c = await call('/owner/agents/claim', { method: 'POST', body: { learner: addr, agentId, registerTx: sent.hash, message, signature: s.signature }, timeoutMs: 30_000 })
+  if (c.status !== 201) return { ok: false, why: (c.json?.error as string) ?? c.why ?? `penerbit menjawab ${c.status}`, agentId }
+  onStep?.(3)
+  const look = await saveAgentLook(agentId, 'grader-self', name, avatar)
+  if (!look.ok) return { ok: false, why: `Rupa: ${look.why ?? ''}`, agentId }
+  onStep?.(4)
+  const t = await setAgentTariff(agentId, tariff.token, tariff.amount)
+  if (!t.ok) return { ok: false, why: `Tarif: ${t.why ?? ''}`, agentId }
+  return { ok: true, agentId }
 }
 
 /** Saldo token di dompet akun ini, dibaca dari chain (bukan dari penerbit). null = gagal baca. */

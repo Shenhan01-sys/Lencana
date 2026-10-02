@@ -92,6 +92,7 @@ const HARNESS = [
   { id: 'owner', label: 'verify:owner (dasbor Agent Owner, gas, agregasi dompet agen)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:owner']], re: /AGENT OWNER (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'account', label: 'verify:account (satu akun satu peran, akun dev)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:account']], re: /SATU PERAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'authoring', label: 'verify:authoring (susun kursus, terbit oleh kunci penerbit)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:authoring']], re: /SUSUN KURSUS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'studio', label: 'verify:studio (robot agen: rupa, templat registrasi, klaim swalayan)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:studio']], re: /BENGKEL AGEN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -228,6 +229,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'account', want: (m) => new RegExp(`SATU PERAN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:account di QR' },
   { file: '09-Testing/T58 - signer authoring-check.js (B133 susun kursus).md', metric: 'authoring', want: (m) => `SUSUN KURSUS HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T58 (susun kursus)' },
   { file: 'Quick-Reference.md', metric: 'authoring', want: (m) => new RegExp(`SUSUN KURSUS HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:authoring di QR' },
+  { file: '09-Testing/T60 - signer studio-check.js (B132 robot agen).md', metric: 'studio', want: (m) => `BENGKEL AGEN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T60 (robot agen)' },
+  { file: 'Quick-Reference.md', metric: 'studio', want: (m) => new RegExp(`BENGKEL AGEN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:studio di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

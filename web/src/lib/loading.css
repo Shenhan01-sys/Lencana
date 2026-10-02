@@ -90,6 +90,8 @@
   color: var(--text-secondary, #a9b0ba);
   font: 600 12.5px var(--font-mono, ui-monospace, monospace);
 }
+/* B132 (T61): tahap yang belum dimulai disembunyikan dengan atribut `hidden` — `display: flex` di atas mengalahkannya. */
+.lc-steps[hidden] { display: none; }
 .lc-steps li { display: flex; align-items: center; gap: 8px; opacity: 0.5; transition: opacity 0.25s ease, color 0.25s ease; }
 .lc-steps li.active { opacity: 1; color: #f4f1ea; }
 .lc-steps li.done { opacity: 0.9; color: #37d67a; }

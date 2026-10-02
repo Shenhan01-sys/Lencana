@@ -27,6 +27,7 @@ import { coin } from '../lib/coin'
 import { odometer } from '../lib/odometer'
 import { skeleton, steps } from '../lib/loading'
 import { mountSeatSwitch, navIcon, guardSeat } from './seats'
+import { agentWorkshop, firstAgentWorkshop } from './agent-workshop'
 
 type Lang = 'en' | 'id'
 
@@ -144,9 +145,14 @@ export function renderOwnerApp (lang: Lang): HTMLElement {
       if (!body.isConnected) return
       if (r.status === 403) {
         const chosen = s.ok && s.roles?.account.role === 'owner' && !s.roles.account.dev
+        // B132: akun yang memilih Agent Owner (atau akun dev) tanpa agen merakit dan mendaftarkan agen pertamanya sendiri.
+        if (chosen || (s.ok && s.roles?.account.dev)) {
+          body.replaceChildren(firstAgentWorkshop(lang, () => load(true)))
+          return
+        }
         body.replaceChildren(h('section', { class: 'app-card pb-noseat' },
-          h('h2', null, T('noSeatTitle')), h('p', { class: 'app-muted' }, chosen ? T('noAgentYet') : T('noSeatBody')),
-          chosen ? null : h('a', { class: 'app-btn small', href: '#/app' }, T('backLearner'))))
+          h('h2', null, T('noSeatTitle')), h('p', { class: 'app-muted' }, T('noSeatBody')),
+          h('a', { class: 'app-btn small', href: '#/app' }, T('backLearner'))))
         return
       }
       if (!r.ok || !r.data) {
@@ -182,7 +188,11 @@ function renderAgents (lang: Lang, o: OwnerOverview, reload: () => void): HTMLEl
     h('span', null, `${T('gas')}: `, h('b', null, `${Number(formatEther(BigInt(o.gas.balance))).toFixed(5)} tBNB`), o.gas.low ? h('em', null, ` · ${T('gasLow')}`) : null),
     gasBtn, gasStatus,
     h('button', { type: 'button', class: 'app-btn small', onClick: reload }, T('reload'))))
-  o.agents.forEach((a, i) => wrap.appendChild(agentBlock(lang, o, a, i + 1, reload)))
+  // B132: setiap agen pertama-tama tampil sebagai robot di bengkelnya (data di bentuknya); rincian lama di bawahnya.
+  o.agents.forEach((a, i) => {
+    wrap.appendChild(agentWorkshop(lang, o, a, reload))
+    wrap.appendChild(agentBlock(lang, o, a, i + 1, reload))
+  })
   return wrap
 }
 

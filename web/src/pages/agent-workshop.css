@@ -1,0 +1,62 @@
+/* agent-workshop.css — bengkel agen (B132): panggung robot dengan data di bentuknya, panel rakit. */
+
+.ws { display: grid; gap: 14px; padding: 20px; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08)); border-radius: 20px;
+  background: radial-gradient(120% 90% at 30% 0%, rgba(240, 185, 11, 0.07), transparent 60%), linear-gradient(180deg, #121519, #0d0f13); }
+.ws-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.ws-head h2 { margin: 0; font-size: 24px; }
+.ws-head p { flex: 1 1 100%; margin: 0; }
+.ws-dirty { padding: 1px 8px; border-radius: 999px; border: 1px dashed rgba(240, 185, 11, 0.5); color: var(--bnb-gold, #f0b90b); font-size: 11.5px; }
+.ws-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: 18px; align-items: start; }
+
+/* ------------------------------------------------ panggung */
+.ws-stage-wrap { display: grid; gap: 10px; }
+.ws-stage { position: relative; border-radius: 16px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)); overflow: hidden; }
+.ws-stage.ws-first { max-width: 320px; justify-self: center; width: 100%; }
+.ws-svg { display: block; width: 100%; height: auto; }
+.ws-svg text { font-family: var(--font-sans, system-ui, sans-serif); }
+.ws-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; color: var(--text-sub, #b7bdc6); font-size: 12.5px; }
+.ws-legend li::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #5b6370; vertical-align: 1px; }
+.ws-legend li.on::before { background: #2bd98a; box-shadow: 0 0 8px rgba(43, 217, 138, 0.7); }
+.ws-legend li.bad::before { background: #ff6b7f; }
+
+/* gerak: napas robot, kedip mata, lampu antena, alat, kertas, toples, papan — transform per elemen hanya satu pemilik */
+.ws-bob { animation: ws-bob 3.2s ease-in-out infinite; }
+@keyframes ws-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.ws-svg .r-eye { transform-box: fill-box; transform-origin: center; animation: ws-blink 5s infinite; }
+@keyframes ws-blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+.ws-svg .r-bulb { animation: ws-glow 2.4s ease-in-out infinite; }
+@keyframes ws-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+.ws-svg .r-tool { transform-box: fill-box; transform-origin: 30% 90%; animation: ws-tool 2.8s ease-in-out infinite; }
+@keyframes ws-tool { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-8deg); } }
+.ws-svg .ws-sheet { animation: ws-drop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both; animation-delay: calc(var(--i) * 55ms); }
+@keyframes ws-drop { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: none; } }
+.ws-svg .ws-jar-fill { transform-box: fill-box; transform-origin: 50% 100%; animation: ws-fill 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.1) 0.3s both; }
+@keyframes ws-fill { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.ws-svg .ws-plate { animation: ws-plate 0.45s ease both; animation-delay: calc(0.4s + var(--i) * 90ms); }
+@keyframes ws-plate { from { opacity: 0; } to { opacity: 1; } }
+
+/* ------------------------------------------------ panel rakit */
+.ws-side { display: grid; gap: 12px; }
+.ws-panel { display: grid; gap: 8px; padding: 14px; border: 1px solid rgba(240, 185, 11, 0.22); border-radius: 14px; background: rgba(255, 255, 255, 0.02); }
+.ws-row { display: grid; grid-template-columns: 70px 34px minmax(0, 1fr) 34px; align-items: center; gap: 8px; }
+.ws-row:has(.ws-swatches) { grid-template-columns: 70px minmax(0, 1fr); }
+.ws-label { color: var(--text-sub, #b7bdc6); font: 700 11px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
+.ws-val { display: grid; place-items: center; height: 34px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); color: #f4f1ea; font: 700 13px var(--font-mono, ui-monospace, monospace); text-transform: capitalize; }
+.ws-val.pop { animation: ws-pop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.6); }
+@keyframes ws-pop { from { transform: scale(0.86); } to { transform: scale(1); } }
+.ws-arrow { height: 34px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; background: #171a20; color: var(--bnb-gold, #f0b90b); font-size: 18px; font-weight: 800; transition: transform 0.12s ease; }
+.ws-arrow:hover:not(:disabled) { border-color: rgba(240, 185, 11, 0.5); }
+.ws-arrow:active:not(:disabled) { transform: scale(0.92); }
+.ws-arrow:disabled, .ws-swatch:disabled { opacity: 0.4; cursor: not-allowed; }
+.ws-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.ws-swatch { width: 28px; height: 28px; cursor: pointer; border: 2px solid rgba(0, 0, 0, 0.4); border-radius: 50%; transition: transform 0.15s ease; }
+.ws-swatch.on { outline: 2px solid #f4f1ea; outline-offset: 2px; transform: scale(1.08); }
+.ws-field { display: grid; gap: 6px; }
+.ws-name { width: 100%; padding: 9px 11px; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12)); border-radius: 10px; background: rgba(255, 255, 255, 0.03); color: #f4f1ea; font: inherit; font-size: 14px; }
+.ws-name:focus { outline: none; border-color: rgba(240, 185, 11, 0.6); }
+.ws-note { margin: 0; font-size: 12.5px; }
+.ws-actions { display: flex; gap: 8px; }
+
+@media (max-width: 900px) {
+  .ws-body { grid-template-columns: 1fr; }
+}

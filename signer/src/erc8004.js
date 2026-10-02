@@ -100,6 +100,13 @@ const ROLE_TEXT = Object.freeze({
       + 'per grading activity and paid per activity. It never signs or revokes credentials: the publisher does. Testnet demo: the identity was minted '
       + 'by the Lencana platform and transferred to the Lencana account that owns it; that owner verifies the agent wallet itself.',
   },
+  // B132: agen yang didaftarkan pemiliknya sendiri dari akun Lencana (`register()` dari dompet akun itu), bukan dicetak platform.
+  'grader-self': {
+    name: 'Lencana essay grading agent (owner-registered)',
+    description: 'Grades essays against the publisher rubric for Lencana courses on BNB Smart Chain testnet, proposing a score and a difficulty label '
+      + 'per grading activity and paid per activity. It never signs or revokes credentials: the publisher does. Testnet demo: the identity was registered '
+      + 'by its owner from a Lencana account, and its agent wallet is that owner\'s wallet.',
+  },
   reviewer: {
     name: 'Lencana essay review agent',
     description: 'Reviews model-proposed essay scores for Lencana courses on BNB Smart Chain testnet: approves, adjusts or rejects them, '

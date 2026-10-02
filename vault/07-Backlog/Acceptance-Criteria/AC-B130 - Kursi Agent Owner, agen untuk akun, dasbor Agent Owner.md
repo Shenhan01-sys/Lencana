@@ -26,6 +26,6 @@ mengisinya lagi.
 | AC-B130#8 | login sungguhan: akun 2 builder membuka `#/app/owner`, memverifikasi dompet agen #2547 dari dompet Privy-nya, lalu akun 1 (anggota penerbit) menyewanya | **SEBAGIAN** 2 Okt malam: verifikasi dompet #2547 dari dompet Privy berhasil (`0xfd0486d2…`) · sewa oleh akun 1 **TERBUKA** | T55 langkah 10–12; sewa: uji builder |
 | AC-B130#9 | gerbang hijau | **PASS** 2 Okt untuk B130 (satu merah warisan) | `tsc`, build, `probe` 118/0; baterai `sync:numbers` **26 dari 27 harness hijau** (`verify:owner` 32/0, `verify:agents` 34/0, `verify:publisher` 53/0, `verify:roles` 39/0) — merah tunggal `verify:quizkeys` 60/66 = criteria kursus B126/B127 belum di tepi; `--verify` 50 klaim, hanya T39 + Quick-Reference (quizkeys) merah; `audit` 12 pemeriksaan 0 TEMUAN (A9 192 marker, A10 18 baris README cocok); `check:labels` 8/0; vault 0 tautan rusak |
 
-**Batas klaim:** pencetakan agen dilakukan platform lewat CLI, bukan swalayan. Agen milik akun belum menilai apa pun — penilaian agen
+**Batas klaim:** ~~pencetakan agen dilakukan platform lewat CLI, bukan swalayan.~~ *(Koreksi 3 Okt, B132: akun Agent Owner kini juga bisa mendaftarkan agennya sendiri dari halaman — [[08-Results/B132 - Executive Summary]].)* Agen milik akun belum menilai apa pun — penilaian agen
 ditandatangani dompet agen dan belum ada layar untuk itu. Bayaran agen masuk ke dompet agen; ke pemilik hanya karena dompet agen =
 dompet pemilik (D65). Testnet, token demo.
