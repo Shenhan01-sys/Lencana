@@ -24,6 +24,7 @@ import { buildClientPayment, encodePaymentHeader } from '../src/x402.js'
 import { enroll as dbEnroll } from '../src/db.js'
 import { MANIFESTS } from '../../web/src/manifest-keys.ts'
 import { COURSE_PRICES, PAY_TOKEN_ADDRESS, FAUCET_AMOUNT, priceOf } from '../../web/src/pricing.ts'
+import { LISTED_COURSES } from '../../web/src/courses/index.ts'
 
 const SIGNER = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const LIVE = process.argv.includes('--live')
@@ -89,6 +90,9 @@ try {
   check(`alamat token di web/src/pricing.ts = DEMO_TOKEN_ADDRESS server (${PAY_TOKEN_ADDRESS})`, PAY_TOKEN_ADDRESS.toLowerCase() === TOKEN.toLowerCase(), `${PAY_TOKEN_ADDRESS} vs ${TOKEN}`)
   check('setiap kursus di katalog punya harga', MANIFESTS.every((m) => COURSE_PRICES[m.course.id] !== undefined), json(Object.keys(COURSE_PRICES)))
   check('harga keputusan builder: Web3 Dasar 10, Web3 Lanjut 25 LDC-demo', COURSE_PRICES['web3-dasar-2026'] === 10_000_000n && COURSE_PRICES['web3-lanjut-2026'] === 25_000_000n, json(Object.fromEntries(Object.entries(COURSE_PRICES).map(([k, v]) => [k, String(v)]))))
+
+  // B126: kelas uji untuk menguji bayar dengan akun sungguhan — berbayar (5), tapi tidak tampil di katalog publik.
+  check('kelas uji B126: uji-bayar-2026 berharga 5 LDC-demo dan tidak tampil di katalog publik', COURSE_PRICES['uji-bayar-2026'] === 5_000_000n && MANIFESTS.some((m) => m.course.id === 'uji-bayar-2026') && !LISTED_COURSES.some((c) => c.id === 'uji-bayar-2026'), json(LISTED_COURSES.map((c) => c.id)))
 
   console.log('\n— B. peserta baru: 402 dengan syarat bayar, bukan enrollment')
   const fresh = privateKeyToAccount(generatePrivateKey())

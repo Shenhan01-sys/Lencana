@@ -10,19 +10,26 @@
  * langkah C.
  */
 import './dashboard.css'
+import './dash-viz.css'
 import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
-import { COURSES, findCourse } from '../courses/index'
+import { COURSES, LISTED_COURSES, findCourse } from '../courses/index'
 import type { Course } from '../content'
-import { forgetLearner, learnerAddress, readMyRecords, snapshot, type MyAttempt, type MyCourseRecord } from '../learning'
+import { forgetLearner, learnerAddress, readMyRecords, snapshot, type MyCourseRecord } from '../learning'
 import { classLink, readMyCredentials } from '../lesson-views'
 import { ROLES } from './flow3d-data'
-import { PAY_TOKEN_SYMBOL, formatLdc } from '../pricing'
+import { renderGrades } from './grades'
+import { renderWallet } from './wallet'
+import { readBalance } from '../balance'
+import { skeleton, steps } from '../lib/loading'
+import { odometer } from '../lib/odometer'
 
 // Lencana-B124 status=TERBUKA 2026-10-02 — area internal peserta: sidebar (Ringkasan · Kelas saya · Nilai & tugas · Kredensial saya · Akun), onboarding login pertama (tiga peran, dua berlabel segera), data dari POST /me/records bertanda tangan. Buktikan ulang: cd web && npm run probe, lalu uji peramban T44. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
+// Lencana-B126 status=TERBUKA 2026-10-02 — Dompet menggantikan Pembayaran (saldo dari chain + koin uji + riwayat), Nilai & tugas bergrafik (grades.ts), kerangka isi + tahap muat sungguhan menggantikan teks memuat, kelas uji bertanda di Kursus lain. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
 type Lang = 'en' | 'id'
-type Section = 'overview' | 'classes' | 'grades' | 'credentials' | 'payments' | 'account' | 'welcome'
+type Section = 'overview' | 'classes' | 'grades' | 'credentials' | 'wallet' | 'account' | 'welcome'
 
 const COPY = {
   overview: { en: 'Overview', id: 'Ringkasan' },
@@ -30,14 +37,10 @@ const COPY = {
   grades: { en: 'Grades & work', id: 'Nilai & tugas' },
   credentials: { en: 'My credentials', id: 'Kredensial saya' },
   account: { en: 'Account', id: 'Akun' },
-  payments: { en: 'Payments', id: 'Pembayaran' },
-  noPayments: { en: 'No payments yet. Courses enrolled before prices applied stay open without one.', id: 'Belum ada pembayaran. Kursus yang kamu ikuti sebelum harga berlaku tetap terbuka tanpa pembayaran.' },
-  course: { en: 'Course', id: 'Kursus' },
-  amount: { en: 'Amount', id: 'Jumlah' },
-  orderState: { en: 'Status', id: 'Status' },
-  txLink: { en: 'Transaction', id: 'Transaksi' },
-  paidState: { en: 'paid', id: 'lunas' },
-  payNote: { en: 'Each payment is a transaction on BNB testnet you can open yourself; the amount is split on chain between the publisher and the platform.', id: 'Setiap pembayaran adalah transaksi di BNB testnet yang bisa kamu buka sendiri; jumlahnya dibagi di chain antara penerbit dan platform.' },
+  wallet: { en: 'Wallet', id: 'Dompet' },
+  stepSign: { en: 'Signing the request', id: 'Menandatangani permintaan' },
+  stepRead: { en: 'Reading your records from the publisher', id: 'Membaca rekaman dari penerbit' },
+  testTag: { en: 'test class', id: 'kelas uji' },
   hello: { en: 'Hi', id: 'Halo' },
   helloSub: { en: 'Everything here is yours alone — no one else can open this page.', id: 'Semua di sini milikmu sendiri — orang lain tidak bisa membuka halaman ini.' },
   loading: { en: 'Reading your records from the publisher…', id: 'Membaca rekamanmu dari penerbit…' },
@@ -54,26 +57,12 @@ const COPY = {
   open: { en: 'Open class', id: 'Buka kelas' },
   details: { en: 'Course page', id: 'Halaman kursus' },
   others: { en: 'Other courses', id: 'Kursus lain' },
-  progress: { en: 'progress', id: 'progres' },
-  best: { en: 'Best score', id: 'Skor terbaik' },
-  gate: { en: 'All lessons done', id: 'Semua lesson selesai' },
-  yes: { en: 'yes', id: 'ya' },
-  no: { en: 'not yet', id: 'belum' },
-  lesson: { en: 'Lesson', id: 'Lesson' },
-  kind: { en: 'Kind', id: 'Jenis' },
-  result: { en: 'Result', id: 'Hasil' },
-  when: { en: 'When', id: 'Waktu' },
-  noAttempts: { en: 'No graded work yet in this course.', id: 'Belum ada tugas yang dinilai di kursus ini.' },
-  waitJudge: { en: 'waiting for grading', id: 'menunggu penilaian' },
-  waitReview: { en: 'proposed by the grading agent — waiting for approval', id: 'diusulkan agen penilai — menunggu pengesahan' },
-  approved: { en: 'approved', id: 'disahkan' },
-  adjusted: { en: 'adjusted by the reviewer', id: 'diubah reviewer' },
   privacy: {
     en: 'This page is only for you. To share a credential, send its verifier link — the recipient sees that credential, not your dashboard.',
     id: 'Halaman ini hanya untukmu. Untuk membagikan kredensial, kirim tautan verifier-nya — penerima melihat kredensial itu saja, bukan dashboard-mu.',
   },
   email: { en: 'Account email', id: 'Email akun' },
-  wallet: { en: 'Learning wallet', id: 'Dompet belajar' },
+  learnWallet: { en: 'Learning wallet', id: 'Dompet belajar' },
   walletNote: { en: 'Created when you first signed in; every record you send to a publisher is signed by it.', id: 'Dibuat saat pertama kamu masuk; setiap rekaman yang kamu kirim ke penerbit ditandatangani olehnya.' },
   network: { en: 'Network', id: 'Jaringan' },
   copy: { en: 'Copy', id: 'Salin' },
@@ -100,7 +89,7 @@ const NAV: { id: Exclude<Section, 'welcome'>, href: string, icon: string }[] = [
   { id: 'classes', href: '#/app/classes', icon: 'M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4zm16 0h-4a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h5z' },
   { id: 'grades', href: '#/app/grades', icon: 'M4 20V10m6 10V4m6 16v-7m6 7H2' },
   { id: 'credentials', href: '#/app/credentials', icon: 'M12 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm-3.5 3.5L7 22l5-2 5 2-1.5-3.5' },
-  { id: 'payments', href: '#/app/payments', icon: 'M3 6h18v12H3zM3 10h18M7 15h4' },
+  { id: 'wallet', href: '#/app/wallet', icon: 'M3 7.5A2.5 2.5 0 0 1 5.5 5H18v3M3 7.5V18a2 2 0 0 0 2 2h15V9H5.5A2.5 2.5 0 0 1 3 7.5zM16.5 14.5h.01' },
   { id: 'account', href: '#/app/account', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0' },
 ]
 
@@ -119,14 +108,17 @@ function markOnboarded (addr: string | null): void {
  * dashboard tidak boleh menampilkan angka basi. Permintaan yang sedang jalan dipakai bersama (satu tanda tangan).
  */
 let inflight: Promise<{ ok: boolean, why?: string, courses?: MyCourseRecord[] }> | null = null
-async function records (): Promise<{ ok: boolean, why?: string, courses?: MyCourseRecord[] }> {
-  inflight ??= readMyRecords().finally(() => { inflight = null })
+const stepListeners = new Set<(step: 0 | 1) => void>()
+async function records (onStep?: (step: 0 | 1) => void): Promise<{ ok: boolean, why?: string, courses?: MyCourseRecord[] }> {
+  if (onStep) stepListeners.add(onStep)
+  inflight ??= readMyRecords((st) => stepListeners.forEach((fn) => fn(st))).finally(() => { inflight = null; stepListeners.clear() })
   return inflight
 }
 
 function sectionOf (routeHash: string): Section {
   const seg = routeHash.replace(/^#\/?/, '').split('/')[1] ?? ''
-  if (seg === 'classes' || seg === 'grades' || seg === 'credentials' || seg === 'payments' || seg === 'account' || seg === 'welcome') return seg
+  if (seg === 'payments') return 'wallet' // tautan B125 lama
+  if (seg === 'classes' || seg === 'grades' || seg === 'credentials' || seg === 'wallet' || seg === 'account' || seg === 'welcome') return seg
   return 'overview'
 }
 
@@ -145,11 +137,6 @@ function nextLesson (course: Course, rec: MyCourseRecord): { href: string, title
     }
   }
   return null
-}
-
-function lessonTitle (course: Course | undefined, slug: string): string {
-  for (const m of course?.modules ?? []) for (const l of m.lessons) if (l.slug === slug) return l.title
-  return slug
 }
 
 export function renderApp (routeHash: string): HTMLElement {
@@ -171,25 +158,30 @@ export function renderApp (routeHash: string): HTMLElement {
   if (section === 'account') { main.appendChild(renderAccount(lang, addr)); return shell }
   if (section === 'credentials') { main.appendChild(renderCredentials(lang, addr)); return shell }
 
-  // Ringkasan, kelas, dan nilai membutuhkan rekaman dari penerbit.
-  const body = h('div', { class: 'app-body' }, h('p', { class: 'app-muted' }, T('loading')))
+  // Ringkasan, kelas, nilai, dan dompet membutuhkan rekaman dari penerbit (dompet juga saldo dari chain). Selama
+  // memuat: kerangka berbentuk isinya + tahap yang benar-benar dilalui (tanda tangan → penerbit), bukan teks diam.
+  const body = h('div', { class: 'app-body' })
   main.appendChild(h('header', { class: 'app-head' }, h('h1', null, T(section)), section === 'overview' ? h('p', { class: 'app-muted' }, T('helloSub')) : null))
   main.appendChild(body)
+  const shape = section === 'grades' ? 'grades' : section === 'wallet' ? 'wallet' : section === 'classes' ? 'cards' : 'stats'
   const load = () => {
     if (!addr) return
-    void records().then((r) => {
+    const progress = steps([T('stepSign'), T('stepRead')])
+    body.replaceChildren(h('div', { class: 'app-loading' }, progress, skeleton(shape, T('loading'))))
+    const balance = section === 'wallet' ? readBalance(true) : Promise.resolve(null)
+    void Promise.all([records((st) => progress.set(st)), balance]).then(([r, bal]) => {
       if (!body.isConnected) return
       body.innerHTML = ''
       if (!r.ok || !r.courses) {
         body.appendChild(h('div', { class: 'app-card app-error' },
           h('p', null, `${T('failed')} ${r.why ?? ''}`),
-          h('button', { type: 'button', class: 'app-btn', onClick: () => { body.innerHTML = ''; body.appendChild(h('p', { class: 'app-muted' }, T('loading'))); load() } }, T('retry'))))
+          h('button', { type: 'button', class: 'app-btn', onClick: load }, T('retry'))))
         return
       }
       if (section === 'overview') body.appendChild(renderOverview(lang, r.courses))
       if (section === 'classes') body.appendChild(renderClasses(lang, r.courses))
       if (section === 'grades') body.appendChild(renderGrades(lang, r.courses))
-      if (section === 'payments') body.appendChild(renderPayments(lang, r.courses))
+      if (section === 'wallet') body.appendChild(renderWallet(lang, r.courses, bal))
     })
   }
   load()
@@ -203,10 +195,11 @@ function renderOverview (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
   const graded = courses.reduce((n, c) => n + (c.summary?.gradedAttempts ?? 0), 0)
   const wrap = h('div', { class: 'app-stack' })
   wrap.appendChild(h('p', { class: 'app-hello' }, `${T('hello')}${email ? `, ${email}` : ''}.`))
+  // Angka terisi dengan bergulir dari nol saat rekaman datang (Counter, React Bits).
   wrap.appendChild(h('div', { class: 'app-stats' },
-    h('div', { class: 'app-stat' }, h('b', null, String(courses.length)), h('span', null, T('enrolled'))),
-    h('div', { class: 'app-stat' }, h('b', null, String(lessonsDone)), h('span', null, T('lessonsDone'))),
-    h('div', { class: 'app-stat' }, h('b', null, String(graded)), h('span', null, T('graded'))),
+    h('div', { class: 'app-stat lc-enter' }, h('b', null, odometer(String(courses.length), { from: '0' })), h('span', null, T('enrolled'))),
+    h('div', { class: 'app-stat lc-enter', style: { '--i': '1' } }, h('b', null, odometer(String(lessonsDone), { from: '0' })), h('span', null, T('lessonsDone'))),
+    h('div', { class: 'app-stat lc-enter', style: { '--i': '2' } }, h('b', null, odometer(String(graded), { from: '0' })), h('span', null, T('graded'))),
   ))
   if (!courses.length) {
     wrap.appendChild(h('div', { class: 'app-card' }, h('p', null, T('noCourse')), h('a', { class: 'app-btn', href: '#catalog' }, T('browse'))))
@@ -247,7 +240,7 @@ function renderClasses (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
     const course = findCourse(rec.courseId)
     if (!course) continue
     wrap.appendChild(h('div', { class: 'app-card app-class' },
-      h('div', null, h('h2', null, course.title), h('p', { class: 'app-muted' }, course.institution)),
+      h('div', null, h('h2', null, course.title, course.unlisted ? h('span', { class: 'app-tag' }, T('testTag')) : null), h('p', { class: 'app-muted' }, course.institution)),
       progressBar(rec),
       h('div', { class: 'app-actions' },
         h('a', { class: 'app-btn primary', href: classLink(course.id) }, T('open')),
@@ -255,82 +248,21 @@ function renderClasses (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
       ),
     ))
   }
-  const others = COURSES.filter((c) => !taken.has(c.id))
+  // Kelas uji (B126, `unlisted`) tidak tampil di katalog publik; di sini ia tampil terakhir dan bertanda.
+  const others = COURSES.filter((c) => !taken.has(c.id)).sort((a, b) => Number(Boolean(a.unlisted)) - Number(Boolean(b.unlisted)))
   if (others.length) {
     wrap.appendChild(h('h2', { class: 'app-sub' }, T('others')))
     for (const c of others) {
       wrap.appendChild(h('a', { class: 'app-card app-other', href: `#/course/${encodeURIComponent(c.id)}` },
-        h('strong', null, c.title), h('span', { class: 'app-muted' }, c.blurb)))
+        h('strong', null, c.title, c.unlisted ? h('span', { class: 'app-tag' }, T('testTag')) : null), h('span', { class: 'app-muted' }, c.blurb)))
     }
   }
   return wrap
 }
 
-function resultOf (lang: Lang, a: MyAttempt): { text: string, cls: string } {
-  const T = (k: keyof typeof COPY) => COPY[k][lang]
-  if (a.kind === 'esai') {
-    if (a.review) return { text: `${a.review.finalScore ?? a.score ?? '—'} · ${a.review.decision === 'adjusted' ? T('adjusted') : T('approved')}`, cls: 'ok' }
-    if (a.score !== null && a.judgeModel) return { text: `${a.score} · ${T('waitReview')}`, cls: 'wait' }
-    return { text: T('waitJudge'), cls: 'wait' }
-  }
-  if (a.score === null) return { text: a.verdict ?? T('waitJudge'), cls: 'wait' }
-  return { text: `${a.score}${a.verdict ? ` · ${a.verdict}` : ''}`, cls: 'ok' }
-}
-
-function renderGrades (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
-  const T = (k: keyof typeof COPY) => COPY[k][lang]
-  const wrap = h('div', { class: 'app-stack' })
-  if (!courses.length) wrap.appendChild(h('div', { class: 'app-card' }, h('p', null, T('noCourse'))))
-  for (const rec of courses) {
-    const course = findCourse(rec.courseId)
-    const sum = rec.summary
-    wrap.appendChild(h('section', { class: 'app-card' },
-      h('h2', null, course?.title ?? rec.courseId),
-      h('dl', { class: 'app-facts' },
-        h('div', null, h('dt', null, T('progress')), h('dd', null, `${sum?.lessonsCompleted ?? 0}/${sum?.lessonsTotal ?? 0}`)),
-        h('div', null, h('dt', null, T('graded')), h('dd', null, String(sum?.gradedAttempts ?? 0))),
-        h('div', null, h('dt', null, T('best')), h('dd', null, sum?.bestScore === null || sum?.bestScore === undefined ? '—' : String(sum.bestScore))),
-        h('div', null, h('dt', null, T('gate')), h('dd', null, sum?.allLessonsDone ? T('yes') : T('no'))),
-      ),
-      rec.attempts.length
-        ? h('div', { class: 'app-table-wrap' }, h('table', { class: 'app-table' },
-          h('thead', null, h('tr', null, h('th', null, T('lesson')), h('th', null, T('kind')), h('th', null, T('result')), h('th', null, T('when')))),
-          h('tbody', null, ...rec.attempts.map((a) => {
-            const r = resultOf(lang, a)
-            return h('tr', null,
-              h('td', null, lessonTitle(course, a.lesson)),
-              h('td', null, a.kind),
-              h('td', { class: `app-res ${r.cls}` }, r.text),
-              h('td', null, a.at ? new Date(a.at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID') : '—'))
-          })),
-        ))
-        : h('p', { class: 'app-muted' }, T('noAttempts')),
-    ))
-  }
-  return wrap
-}
-
-function renderPayments (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
-  const T = (k: keyof typeof COPY) => COPY[k][lang]
-  const rows = courses.flatMap((c) => c.orders.map((o) => ({ course: findCourse(c.courseId)?.title ?? c.courseId, o })))
-  const wrap = h('div', { class: 'app-stack' }, h('p', { class: 'app-note' }, T('payNote')))
-  if (!rows.length) { wrap.appendChild(h('div', { class: 'app-card' }, h('p', null, T('noPayments')))); return wrap }
-  wrap.appendChild(h('div', { class: 'app-card' }, h('div', { class: 'app-table-wrap' }, h('table', { class: 'app-table' },
-    h('thead', null, h('tr', null, h('th', null, T('course')), h('th', null, T('amount')), h('th', null, T('orderState')), h('th', null, T('when')), h('th', null, T('txLink')))),
-    h('tbody', null, ...rows.map(({ course, o }) => h('tr', null,
-      h('td', null, course),
-      h('td', null, `${formatLdc(BigInt(o.amount))} ${PAY_TOKEN_SYMBOL}`),
-      h('td', { class: `app-res ${o.state === 'paid' ? 'ok' : 'wait'}` }, o.state === 'paid' ? T('paidState') : o.state),
-      h('td', null, o.at ? new Date(o.at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID') : '—'),
-      h('td', null, o.tx ? h('a', { href: `https://testnet.bscscan.com/tx/${o.tx}`, target: '_blank', rel: 'noopener noreferrer' }, `${o.tx.slice(0, 10)}…`) : '—'),
-    ))),
-  ))))
-  return wrap
-}
-
 function renderCredentials (lang: Lang, addr: string | null): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
-  const list = h('div', { class: 'app-creds lesson-engine' }, h('p', { class: 'app-muted' }, T('loading')))
+  const list = h('div', { class: 'app-creds lesson-engine' }, skeleton('list', T('loading')))
   if (addr) {
     void readMyCredentials(addr).then((html) => { if (list.isConnected) list.innerHTML = html }).catch((e) => { if (list.isConnected) list.textContent = String(e) })
   }
@@ -354,7 +286,7 @@ function renderAccount (lang: Lang, addr: string | null): HTMLElement {
     h('div', { class: 'app-card' },
       h('dl', { class: 'app-facts single' },
         h('div', null, h('dt', null, T('email')), h('dd', null, email ?? '—')),
-        h('div', null, h('dt', null, T('wallet')), h('dd', null, h('code', null, addr ?? '—'), ' ', copyBtn)),
+        h('div', null, h('dt', null, T('learnWallet')), h('dd', null, h('code', null, addr ?? '—'), ' ', copyBtn)),
         h('div', null, h('dt', null, T('network')), h('dd', null, 'BNB Smart Chain Testnet (97)')),
       ),
       h('p', { class: 'app-muted' }, T('walletNote')),
@@ -419,7 +351,7 @@ function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
   const stepPick = () => {
     root.innerHTML = ''
     root.appendChild(h('div', { class: 'wel-head' }, h('h1', null, T('pickTitle'))))
-    root.appendChild(h('div', { class: 'wel-courses' }, ...COURSES.map((c) => h('button', { type: 'button', class: 'wel-course', onClick: () => finish(`#/course/${encodeURIComponent(c.id)}`) },
+    root.appendChild(h('div', { class: 'wel-courses' }, ...LISTED_COURSES.map((c) => h('button', { type: 'button', class: 'wel-course', onClick: () => finish(`#/course/${encodeURIComponent(c.id)}`) },
       h('span', { class: 'app-kicker' }, c.level),
       h('strong', null, c.title),
       h('span', { class: 'app-muted' }, c.blurb),

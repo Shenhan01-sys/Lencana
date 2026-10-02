@@ -1,0 +1,283 @@
+/* B126 — grafik, rapor (Nilai & tugas), Dompet, dan saldo di panel bayar. Palet Lencana: emas #f0b90b / #ffe14d,
+   gading #f4f1ea, baja #9aa4b2 (komponen praktik), hijau #37d67a (lulus / tersisa), merah #ff6b6b (di bawah ambang).
+   Angka memakai huruf mono — angka di sini adalah data. Dikunci di .app-shell / .course-detail. */
+
+/* ---------------------------------------------------------------- memuat & tanda */
+.app-shell .app-loading { display: grid; gap: 16px; }
+.app-shell .app-tag {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #d9d8cd;
+  font: 700 10.5px var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.app-shell .app-stat b { display: inline-flex; }
+.app-shell .app-stat small { color: #f0b90b; font: 600 12px var(--font-mono, ui-monospace, monospace); }
+
+/* ---------------------------------------------------------------- cincin progres */
+.app-shell .ch-ring { position: relative; flex: none; width: 136px; height: 136px; }
+.app-shell .ch-ring svg { display: block; width: 100%; height: 100%; }
+.app-shell .ch-ring-track { fill: none; stroke: rgba(255, 255, 255, 0.08); stroke-width: 10; }
+.app-shell .ch-ring-arc {
+  fill: none;
+  stroke: #f0b90b;
+  stroke-width: 10;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(240, 185, 11, 0.35));
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+.app-shell .ch-ring-arc.empty { opacity: 0; }
+.app-shell .ch-ring-center { position: absolute; inset: 0; display: grid; place-content: center; gap: 2px; text-align: center; }
+.app-shell .ch-ring-center b { color: #f4f1ea; font: 700 30px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: -0.02em; }
+.app-shell .ch-ring-center small { color: var(--text-secondary, #a9b0ba); font-size: 16px; }
+.app-shell .ch-ring-center span { color: var(--text-secondary, #a9b0ba); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* ---------------------------------------------------------------- timbangan kelulusan */
+.app-shell .ch-gauge { display: grid; gap: 10px; min-width: 0; }
+.app-shell .ch-gauge-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.app-shell .ch-gauge-read { display: grid; gap: 4px; }
+.app-shell .ch-gauge-read b { color: #f4f1ea; font: 700 42px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: -0.03em; }
+.app-shell .ch-gauge-read span { color: var(--text-secondary, #a9b0ba); font-size: 13px; }
+.app-shell .ch-verdict { padding: 5px 12px; border: 1px solid; border-radius: 999px; font: 700 12px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.04em; }
+.app-shell .ch-verdict.ok { border-color: rgba(55, 214, 122, 0.45); background: rgba(55, 214, 122, 0.08); color: #37d67a; }
+.app-shell .ch-verdict.bad { border-color: rgba(255, 107, 107, 0.45); background: rgba(255, 107, 107, 0.08); color: #ff6b6b; }
+.app-shell .ch-verdict.wait { border-color: rgba(240, 185, 11, 0.4); background: rgba(240, 185, 11, 0.07); color: #f0b90b; }
+.app-shell .ch-gauge-track {
+  position: relative;
+  height: 22px;
+  margin-top: 34px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.app-shell .ch-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--sw);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.08);
+}
+.app-shell .ch-gauge.in .ch-seg { transform: scaleX(1); }
+.app-shell .ch-gauge-track > .ch-seg:first-child { border-radius: 8px 0 0 8px; }
+.app-shell .kuis { --sw: #f0b90b; }
+.app-shell .esai { --sw: #f4f1ea; }
+.app-shell .praktik { --sw: #9aa4b2; }
+.app-shell .ch-seg.open {
+  background: repeating-linear-gradient(135deg, rgba(240, 185, 11, 0.22) 0 6px, transparent 6px 12px);
+  box-shadow: inset 0 0 0 1px rgba(240, 185, 11, 0.4);
+}
+.app-shell .ch-pass { position: absolute; top: -34px; bottom: -6px; width: 0; border-left: 2px dashed rgba(244, 241, 234, 0.75); }
+.app-shell .ch-pass-seal { position: absolute; top: 0; left: -11px; width: 20px; height: 24px; color: rgba(244, 241, 234, 0.35); }
+.app-shell .ch-pass-seal svg { display: block; width: 100%; height: 100%; }
+.app-shell .ch-pass-label { position: absolute; top: 5px; left: 14px; color: #f4f1ea; font: 700 12px var(--font-mono, ui-monospace, monospace); white-space: nowrap; }
+.app-shell .ch-pass.flip .ch-pass-label { right: 14px; left: auto; }
+.app-shell .ch-pass.reached { border-left-color: #f0b90b; }
+.app-shell .ch-pass.reached .ch-pass-seal { color: #f0b90b; filter: drop-shadow(0 0 8px rgba(240, 185, 11, 0.8)); animation: ch-seal 2.4s ease-in-out infinite; }
+.app-shell .ch-pass.reached .ch-pass-label { color: #f0b90b; }
+@keyframes ch-seal { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+.app-shell .ch-gauge-axis { position: relative; height: 16px; color: var(--text-secondary, #a9b0ba); font: 600 12px var(--font-mono, ui-monospace, monospace); }
+.app-shell .ch-gauge-axis span { position: absolute; transform: translateX(-50%); }
+.app-shell .ch-gauge-axis span:first-child { transform: none; }
+.app-shell .ch-gauge-axis span:last-child { transform: translateX(-100%); }
+
+/* ---------------------------------------------------------------- legenda (timbangan + dompet) */
+.app-shell .ch-legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 18px; margin: 4px 0 0; padding: 0; list-style: none; }
+.app-shell .ch-legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr); column-gap: 9px; row-gap: 2px; font-size: 13px; }
+.app-shell .ch-legend i { grid-row: span 2; width: 12px; height: 12px; margin-top: 3px; border-radius: 3px; background: var(--sw, #f0b90b); }
+.app-shell .ch-legend li.none i { background: transparent; box-shadow: inset 0 0 0 2px var(--sw, #f0b90b); }
+.app-shell .ch-legend strong { color: #f4f1ea; font-weight: 650; }
+.app-shell .ch-legend span { color: var(--text-secondary, #a9b0ba); font-size: 12.5px; line-height: 1.45; }
+
+/* ---------------------------------------------------------------- batang skor kuis */
+.app-shell .ch-qb { display: grid; gap: 10px; margin: 6px 0 0; }
+.app-shell .ch-qb figcaption { color: var(--text-secondary, #a9b0ba); font-size: 13px; }
+.app-shell .ch-qb-plot {
+  position: relative;
+  height: 180px;
+  margin: 12px 0 0 36px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px) 0 0 / 100% 50%;
+}
+.app-shell .ch-qb-grid span {
+  position: absolute;
+  left: -36px;
+  width: 28px;
+  color: var(--text-secondary, #a9b0ba);
+  font: 600 12px var(--font-mono, ui-monospace, monospace);
+  text-align: right;
+  transform: translateY(50%);
+}
+.app-shell .ch-qb-cols { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.app-shell .ch-qb-col { position: relative; }
+.app-shell .ch-qb-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: min(56px, 56%);
+  margin: 0 auto;
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(180deg, #ffe14d, #f0b90b);
+  box-shadow: 0 0 18px rgba(240, 185, 11, 0.18);
+  transform: scaleY(0);
+  transform-origin: 50% 100%;
+  transition: transform 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.1);
+}
+.app-shell .ch-qb.in .ch-qb-bar { transform: scaleY(1); }
+.app-shell .ch-qb-col.fail .ch-qb-bar { background: linear-gradient(180deg, #ff9b9b, #ff6b6b); box-shadow: none; }
+.app-shell .ch-qb-col.none .ch-qb-bar { background: transparent; border: 1.5px dashed rgba(255, 255, 255, 0.18); box-shadow: none; }
+.app-shell .ch-qb-val {
+  position: absolute;
+  left: 0;
+  right: 0;
+  color: #f4f1ea;
+  font: 700 14px var(--font-mono, ui-monospace, monospace);
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s ease 0.55s;
+}
+.app-shell .ch-qb.in .ch-qb-val { opacity: 1; }
+.app-shell .ch-qb-col.none .ch-qb-val { bottom: 44% !important; color: var(--text-secondary, #a9b0ba); }
+.app-shell .ch-qb-pass { position: absolute; left: 50%; width: min(80px, 80%); border-top: 2px dashed rgba(244, 241, 234, 0.75); transform: translateX(-50%); }
+.app-shell .ch-qb-x { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); margin-left: 36px; color: #f4f1ea; font: 700 13px var(--font-mono, ui-monospace, monospace); text-align: center; }
+.app-shell .ch-qb-names { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 4px 18px; margin: 2px 0 0; padding: 0; list-style: none; color: var(--text-secondary, #a9b0ba); font-size: 13px; }
+.app-shell .ch-qb-names b { margin-right: 6px; color: #f0b90b; font-family: var(--font-mono, ui-monospace, monospace); }
+
+/* ---------------------------------------------------------------- batang mini */
+.app-shell .ch-mini { position: relative; display: inline-block; width: 72px; height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); vertical-align: middle; }
+.app-shell .ch-mini-fill { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: #f0b90b; }
+.app-shell .ch-mini.fail .ch-mini-fill { background: #ff6b6b; }
+.app-shell .ch-mini.none .ch-mini-fill { display: none; }
+.app-shell .ch-mini-pass { position: absolute; top: -3px; bottom: -3px; width: 2px; border-radius: 1px; background: #f4f1ea; }
+
+/* ---------------------------------------------------------------- batang tumpuk (dompet) */
+.app-shell .ch-stack { display: grid; gap: 14px; margin: 0; }
+.app-shell .ch-stack figcaption { color: #f4f1ea; font-size: 19px; font-weight: 650; }
+.app-shell .ch-stack-track { position: relative; height: 26px; overflow: hidden; border-radius: 10px; background: rgba(255, 255, 255, 0.06); }
+.app-shell .ch-stack-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--sw);
+  box-shadow: inset -2px 0 0 rgba(12, 15, 19, 0.6);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 0.9s cubic-bezier(0.2, 0.9, 0.25, 1.05);
+}
+.app-shell .ch-stack.in .ch-stack-seg { transform: scaleX(1); }
+.app-shell .spent-a { --sw: #f0b90b; }
+.app-shell .spent-b { --sw: #ffe14d; }
+.app-shell .spent-c { --sw: #c98f00; }
+.app-shell .spent-d { --sw: #f4f1ea; }
+.app-shell .remain { --sw: #37d67a; }
+
+/* ---------------------------------------------------------------- Nilai & tugas */
+.app-shell .gr-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.app-shell .gr-tile b { font-size: 26px; }
+.app-shell .gr-course { gap: 20px; padding: 24px 26px; }
+.app-shell .gr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.app-shell .gr-head h2 { margin: 6px 0 0; }
+.app-shell .gr-head .app-btn { flex: none; white-space: nowrap; }
+.app-shell .gr-top { display: grid; grid-template-columns: 136px minmax(0, 1fr); align-items: center; gap: 34px; padding: 4px 0; }
+.app-shell .gr-sub { margin: 6px 0 -6px; color: var(--text-secondary, #a9b0ba); font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.app-shell .gr-table-wrap { overflow-x: auto; }
+.app-shell .gr-table td { vertical-align: middle; }
+.app-shell .gr-table a { color: #f4f1ea; font-family: inherit; text-decoration: none; }
+.app-shell .gr-table a:hover { color: #f0b90b; }
+.app-shell .gr-no { color: #f0b90b; font: 700 12px var(--font-mono, ui-monospace, monospace); }
+.app-shell .app-table .num { font-family: var(--font-mono, ui-monospace, monospace); text-align: right; }
+.app-shell .gr-kind { padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--sw) 14%, transparent); color: var(--sw); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.app-shell .gr-best { display: inline-flex; align-items: center; gap: 10px; }
+.app-shell .gr-best b { min-width: 26px; font: 700 14px var(--font-mono, ui-monospace, monospace); }
+.app-shell .gr-chip { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+.app-shell .gr-chip.ok { background: rgba(55, 214, 122, 0.1); color: #37d67a; }
+.app-shell .gr-chip.bad { background: rgba(255, 107, 107, 0.1); color: #ff6b6b; }
+.app-shell .gr-chip.wait { background: rgba(240, 185, 11, 0.1); color: #f0b90b; }
+.app-shell .gr-chip.none { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary, #a9b0ba); }
+.app-shell .gr-when { color: var(--text-secondary, #a9b0ba); font: 600 12.5px var(--font-mono, ui-monospace, monospace); white-space: nowrap; }
+.app-shell .gr-history summary { color: var(--text-secondary, #a9b0ba); font-size: 13.5px; font-weight: 600; cursor: pointer; }
+.app-shell .gr-history[open] summary { margin-bottom: 10px; color: #f4f1ea; }
+
+/* ---------------------------------------------------------------- Dompet */
+.app-shell .wl-hero {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 28px;
+  padding: 28px 30px;
+  border-color: rgba(240, 185, 11, 0.28);
+  background: radial-gradient(ellipse at 0% 0%, rgba(240, 185, 11, 0.15), transparent 55%), rgba(255, 255, 255, 0.02);
+}
+/* koin melayang pelan saat diam (lapisan gerak kontinu); jatuhnya koin ada di elemen dalamnya — satu pemilik transform */
+.app-shell .wl-coin { filter: drop-shadow(0 12px 24px rgba(240, 185, 11, 0.3)); animation: wl-float 4.5s ease-in-out infinite; }
+@keyframes wl-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.app-shell .wl-amount { display: grid; gap: 8px; }
+.app-shell .wl-figure { display: flex; align-items: baseline; gap: 12px; }
+.app-shell .wl-odo { color: #f4f1ea; font: 700 clamp(40px, 5vw, 58px) var(--font-mono, ui-monospace, monospace); letter-spacing: -0.03em; }
+.app-shell .wl-sym { color: #f0b90b; font: 700 15px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.06em; }
+.app-shell .wl-actions { display: grid; gap: 10px; min-width: 230px; }
+.app-shell .wl-actions .app-btn { width: 100%; }
+.app-shell .app-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.app-shell .wl-note { max-width: 250px; color: var(--text-secondary, #a9b0ba); font-size: 12px; line-height: 1.45; }
+.app-shell .wl-status { max-width: 260px; min-height: 18px; margin: 0; color: var(--text-secondary, #a9b0ba); font-size: 13px; line-height: 1.45; }
+.app-shell .wl-status.ok { color: #37d67a; }
+.app-shell .wl-status.bad { color: #ff6b6b; }
+.app-shell .wl-status.wait { color: #f0b90b; }
+.app-shell .wl-flow { gap: 14px; }
+.app-shell .wl-amt { display: inline-flex; align-items: center; gap: 6px; font: 600 13.5px var(--font-mono, ui-monospace, monospace); }
+
+/* ---------------------------------------------------------------- saldo di panel bayar (detail kursus) */
+.course-detail .cd-balance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(240, 185, 11, 0.22);
+  border-radius: 14px;
+  background: rgba(240, 185, 11, 0.05);
+}
+.course-detail .cd-balance.short { border-color: rgba(255, 107, 107, 0.35); background: rgba(255, 107, 107, 0.05); }
+.course-detail .cd-balance-text { display: grid; gap: 2px; }
+.course-detail .cd-balance-text > span { color: var(--text-secondary, #a9b0ba); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.course-detail .cd-balance-text b { display: flex; align-items: baseline; gap: 6px; color: #f4f1ea; font: 700 20px var(--font-mono, ui-monospace, monospace); }
+.course-detail .cd-balance-text small { color: #f0b90b; font: 700 11px var(--font-mono, ui-monospace, monospace); }
+.course-detail .cd-balance[hidden] { display: none; }
+
+@media (max-width: 860px) {
+  .app-shell .gr-tiles { grid-template-columns: 1fr 1fr; }
+  .app-shell .gr-course { padding: 20px 16px; }
+  .app-shell .gr-top { grid-template-columns: 1fr; justify-items: center; gap: 22px; }
+  .app-shell .gr-top > .ch-gauge { justify-self: stretch; }
+  .app-shell .ch-gauge-read b { font-size: 34px; }
+  .app-shell .wl-hero { grid-template-columns: auto minmax(0, 1fr); gap: 18px; padding: 22px 18px; }
+  .app-shell .wl-actions { grid-column: 1 / -1; min-width: 0; }
+  .app-shell .wl-note, .app-shell .wl-status { max-width: none; }
+  /* tabel menjadi kartu baris: label kolom tampil di atas nilainya */
+  .app-shell .gr-table thead, .app-shell .wl-table thead, .app-shell .gr-history thead { display: none; }
+  .app-shell .gr-table tr, .app-shell .wl-table tr, .app-shell .gr-history tbody tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  .app-shell .gr-table td, .app-shell .wl-table td, .app-shell .gr-history td { padding: 0; border: 0; text-align: left; }
+  .app-shell .gr-table td.gr-no { display: none; }
+  .app-shell .gr-table td:nth-child(2), .app-shell .wl-table td:first-child, .app-shell .gr-history td:first-child { grid-column: 1 / -1; font-weight: 600; }
+  .app-shell .gr-table td[data-label]::before, .app-shell .wl-table td[data-label]::before, .app-shell .gr-history td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 3px;
+    color: var(--text-secondary, #a9b0ba);
+    font: 600 10.5px var(--font-sans, inherit);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .app-shell .gr-table td:nth-child(2)::before, .app-shell .wl-table td:first-child::before, .app-shell .gr-history td:first-child::before { display: none; }
+}

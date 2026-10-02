@@ -35,7 +35,7 @@ const check = (name, ok, detail = '') => {
 }
 const json = (v) => JSON.stringify(v)
 const nonce = () => randomBytes(10).toString('hex')
-const ALLOWED = ['lesson', 'kind', 'attemptNo', 'score', 'verdict', 'gradedByAgent', 'judgeModel', 'at', 'review']
+const ALLOWED = ['lesson', 'kind', 'attemptNo', 'score', 'verdict', 'gradedByAgent', 'judgeModel', 'at', 'review', 'chainChecked']
 
 const PORT = Number(env.RECORDS_PROBE_PORT ?? await freePort(8957))
 const BASE = `http://127.0.0.1:${PORT}`
@@ -100,6 +100,8 @@ try {
   check('ringkasan progres ikut (penyebut dari katalog, bukan dari klien)', c0.summary?.lessonsTotal > 0, json(c0.summary))
   const quiz = (c0.attempts ?? []).find((a) => a.kind === 'kuis' && a.lesson === lesson.slug)
   check('usaha kuis tercatat dengan angka dari server', typeof quiz?.score === 'number', json(c0.attempts))
+  // B126: tanda praktik-dinilai-chain dipakai perkiraan nilai di dashboard; kuis dinilai mesin penerbit, bukan chain.
+  check('usaha kuis bertanda chainChecked=false (dinilai penerbit, bukan chain)', quiz?.chainChecked === false, json(quiz))
   const keys = [...new Set((c0.attempts ?? []).flatMap((a) => Object.keys(a)))]
   check('proyeksi usaha hanya kolom yang diizinkan', keys.every((k) => ALLOWED.includes(k)), json(keys))
   check('tidak ada teks esai atau kunci jawaban di jawaban', !/"body"|"answer"/.test(mine.text), mine.text.slice(0, 160))

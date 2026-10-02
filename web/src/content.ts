@@ -125,6 +125,8 @@ export type Course = {
   title: string
   institution: string
   level: 'dasar' | 'menengah' | 'lanjutan'
+  /** Kelas uji (B126): tidak tampil di katalog publik, tetap terbuka lewat tautannya dan di dashboard peserta. Tidak ikut hash. */
+  unlisted?: boolean
   blurb: string
   audience: string[]
   /** Yang bisa dilakukan peserta sesudah lulus — ditulis sebagai kerjaan, bukan sebagai topik. */

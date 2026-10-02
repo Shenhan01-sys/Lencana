@@ -60,7 +60,7 @@
 .app-shell .app-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .app-shell .app-stat { display: grid; gap: 4px; padding: 16px 18px; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08)); border-radius: 16px; background: rgba(255, 255, 255, 0.02); }
 .app-shell .app-stat b { font-size: 28px; color: #f0b90b; }
-.app-shell .app-stat span { color: var(--text-secondary, #a9b0ba); font-size: 13px; }
+.app-shell .app-stat > span { color: var(--text-secondary, #a9b0ba); font-size: 13px; }
 .app-shell .app-progress { display: flex; align-items: center; gap: 12px; }
 .app-shell .app-bar { flex: 1; height: 8px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.07); }
 .app-shell .app-bar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f0b90b, #ffe14d); }

@@ -32,11 +32,13 @@ import {
 } from './manifest'
 import { web3DasarKeys } from './courses/web3-dasar.keys'
 import { web3LanjutKeys } from './courses/web3-lanjut.keys'
+import { ujiBayarKeys } from './courses/uji-bayar.keys'
 
 /** Kunci per kursus. Kursus tanpa kuis cukup `{}`; kursus berkuis tanpa entri di sini gagal diaudit. */
 export const ANSWER_KEYS: Record<string, QuizKeys> = {
   'web3-dasar-2026': web3DasarKeys,
   'web3-lanjut-2026': web3LanjutKeys,
+  'uji-bayar-2026': ujiBayarKeys,
 }
 
 /** Manifest publik + kunci → manifest berkunci (salinan; manifest publik tidak disentuh). */

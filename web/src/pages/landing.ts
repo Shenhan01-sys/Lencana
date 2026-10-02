@@ -10,7 +10,7 @@
  * kartu menunjuk kredensial `SAMPLE_HASHES.valid` milik verifier (dijaga `npm run check:samples`).
  */
 import { h } from '../lib/ui'
-import { COURSES, findCourse } from '../courses/index'
+import { LISTED_COURSES, findCourse } from '../courses/index'
 import type { Course } from '../content'
 import { getSavedLanguage, DICTIONARIES } from '../i18n'
 import { verifyLink } from '../lesson-views'
@@ -169,7 +169,7 @@ export function renderLanding (): HTMLElement {
         h('h2', { class: 'catalog-header-title' }, t.catalogTitle),
         h('p', { class: 'catalog-header-desc' }, t.catalogDesc),
       ),
-      h('div', { class: 'catalog-bento-grid' }, ...COURSES.map((c, i) => renderCourseCard(c, i))),
+      h('div', { class: 'catalog-bento-grid' }, ...LISTED_COURSES.map((c, i) => renderCourseCard(c, i))),
     ),
 
     renderFlow3D(),

@@ -424,6 +424,9 @@ export async function learnerRecords (learner) {
         lesson: a.lesson_key, kind: a.kind, attemptNo: a.attempt_no, score: a.score, verdict: a.verdict,
         gradedByAgent: a.graded_by_agent ?? null, judgeModel: a.judge_model ?? null, at: a.created_at,
         review: r ? { decision: r.decision, finalScore: r.final_score ?? null, at: r.reviewed_at ?? null } : null,
+        // B126: praktik dihitung rubrik hanya kalau dinilai chain (B121, `fromAttempts.js`) — dashboard memakai tanda ini
+        // supaya perkiraan nilainya mengikuti aturan yang sama, bukan menghitung laporan peserta.
+        chainChecked: (a.attempt_components ?? []).some((c) => c?.graded_by === 'chain'),
       }
     })
     const orders = ((await rest('orders', { query: `?enrollment_id=eq.${e.id}&select=asset,amount,state,tx_hash,created_at&order=created_at.asc` })) ?? [])

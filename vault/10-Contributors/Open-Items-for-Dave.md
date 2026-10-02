@@ -630,3 +630,20 @@ Rencana: RF7 langkah B. Logika bayar ada di `web/src/learning.ts` (`payAndEnroll
 
 **Yang harus tetap:** harga hanya dari `web/src/pricing.ts` (server membacanya juga), dan tidak ada tombol yang membuka kelas berbayar
 tanpa jawaban 200 dari `POST /enroll`.
+
+## OI-27 — kelas uji, saldo, rapor bergrafik, pita pemuatan (B126, D61, 2 Okt)
+
+Permintaan builder 2 Okt. Tampilan baru hidup di berkas baru (`web/src/balance.ts`, `web/src/lib/loading.ts` + `loading.css`,
+`lib/charts.ts`, `lib/odometer.ts`, `lib/coin.ts`, `pages/grades.ts`, `pages/wallet.ts`, `pages/dash-viz.css`). Berkasmu yang ikut
+tersentuh:
+
+| berkas | perubahan |
+|---|---|
+| `web/index.html` | chip saldo `#nav-balance` (`student-only`) sebelum `#wallet-nav-container` |
+| `web/src/main.ts` | `installFetchTracking()` saat modul dimuat (pita pemuatan mengikuti setiap `fetch`); `renderWalletState` memanggil `syncNavBalance` |
+| `web/src/pages/landing.ts` | katalog memakai `LISTED_COURSES` — kelas uji (`unlisted`) tidak tampil di beranda |
+| `web/src/style.css` | `.nav-balance*`; wadah navbar 1180 → 1480 px (permintaan builder) dan navbar satu baris bertahap: ≤1320 menu rapat + chip tanpa "LDC", ≤1180 lencana jaringan memberi tempat, ≤1080 padding rapat + alamat pil dipendekkan, ≤1023 menu 12,5 px + pil hanya titik |
+| `web/src/main.ts` (lagi) | pil akun diberi `title` = email/alamat — teksnya disembunyikan di layar sempit |
+
+**Yang harus tetap:** saldo hanya dari `balanceOf` di chain (`balance.ts`), angka rapor hanya dari `POST /me/records` dan
+`computeScore`, dan pita pemuatan mengikuti permintaan sungguhan — bukan timer.

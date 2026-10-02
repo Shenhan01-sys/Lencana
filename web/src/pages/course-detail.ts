@@ -6,12 +6,17 @@
  * "Bayar & daftar" menandatangani izin token (tanpa gas) dan penerbit menyelesaikan pembayarannya sebelum kelas terbuka.
  */
 import './dashboard.css'
+import './dash-viz.css'
 import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
 import { findCourse } from '../courses/index'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
-import { claimTestCoins, hasExplicitLearnerSession, isEnrolled, payAndEnroll, tokenBalance } from '../learning'
-import { PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
+import { claimTestCoins, hasExplicitLearnerSession, isEnrolled, payAndEnroll } from '../learning'
+import { PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
+import { balanceChanged, onBalance, readBalance } from '../balance'
+import { coin } from '../lib/coin'
+import { odometer, setOdometer } from '../lib/odometer'
+import { skeleton } from '../lib/loading'
 import { KIND_LABEL, classLink } from '../lesson-views'
 import { openLogin } from './login'
 
@@ -64,31 +69,38 @@ const COPY = {
  * "Ambil koin uji" bila kurang, dan "Bayar & daftar". Semua angka di sini dibaca (chain atau penerbit), tidak diketik.
  */
 function payPanel (courseId: string, price: bigint, T: (k: keyof typeof COPY) => string): HTMLElement {
-  const status = h('p', { class: 'cd-pay-status', role: 'status', 'aria-live': 'polite' }, T('checking'))
-  const balanceLine = h('p', { class: 'cd-pay-balance' })
+  const status = h('p', { class: 'cd-pay-status', role: 'status', 'aria-live': 'polite' })
+  // B126: saldo = koin + angka bergulir dari pembaca saldo bersama (chip navbar ikut berubah).
+  const amount = odometer('0')
+  const coinSlot = h('span', { class: 'cd-balance-coin' }, coin(34))
+  const balanceBox = h('div', { class: 'cd-balance', hidden: true },
+    coinSlot,
+    h('div', { class: 'cd-balance-text' }, h('span', null, T('balance')), h('b', null, amount, h('small', null, PAY_TOKEN_SYMBOL))))
   const payBtn = h('button', { type: 'button', class: 'cd-cta', disabled: true }, `${T('pay')} · ${formatLdc(price)} ${PAY_TOKEN_SYMBOL}`) as HTMLButtonElement
   const faucetBtn = h('button', { type: 'button', class: 'cd-ghost', hidden: true }, T('faucet')) as HTMLButtonElement
-  const panel = h('div', { class: 'cd-pay' }, payBtn, faucetBtn, balanceLine, status, h('p', { class: 'cd-cta-note' }, T('gasNote')))
+  const panel = h('div', { class: 'cd-pay' }, skeleton('panel', T('checking')))
   const say = (text: string, bad = false) => { status.textContent = text; status.classList.toggle('bad', bad) }
-  const refreshBalance = async () => {
-    const bal = await tokenBalance(PAY_TOKEN_ADDRESS)
-    balanceLine.textContent = bal === null ? '' : `${T('balance')}: ${formatLdc(bal)} ${PAY_TOKEN_SYMBOL}`
-    const short = bal !== null && bal < price
+  const show = (bal: bigint | null) => {
+    if (bal === null) { balanceBox.hidden = true; return }
+    balanceBox.hidden = false
+    setOdometer(amount, formatLdc(bal))
+    const short = bal < price
+    balanceBox.classList.toggle('short', short)
     faucetBtn.hidden = !short
     payBtn.disabled = short
     if (short) say(T('needCoins'))
-    return bal
   }
+  const stop = onBalance((v) => { if (!panel.isConnected && panel.dataset.ready) { stop(); return } show(v) })
   void isEnrolled(courseId).then(async (enrolled) => {
+    panel.dataset.ready = '1'
     if (!panel.isConnected) return
     if (enrolled) {
-      panel.innerHTML = ''
-      panel.appendChild(h('p', { class: 'cd-pay-status ok' }, T('enrolledAlready')))
-      panel.appendChild(h('a', { class: 'cd-cta', href: classLink(courseId) }, T('start')))
+      stop()
+      panel.replaceChildren(h('p', { class: 'cd-pay-status ok' }, T('enrolledAlready')), h('a', { class: 'cd-cta', href: classLink(courseId) }, T('start')))
       return
     }
-    say('')
-    await refreshBalance()
+    panel.replaceChildren(payBtn, faucetBtn, balanceBox, status, h('p', { class: 'cd-cta-note' }, T('gasNote')))
+    await readBalance(true)
   })
   payBtn.addEventListener('click', async () => {
     payBtn.disabled = true
@@ -96,8 +108,8 @@ function payPanel (courseId: string, price: bigint, T: (k: keyof typeof COPY) =>
     say(T('paying'))
     const r = await payAndEnroll(courseId)
     faucetBtn.disabled = false
-    if (r.ok) { say(T('paidOk')); setTimeout(() => { window.location.hash = classLink(courseId) }, 900); return }
-    if (r.needCoins) { await refreshBalance(); return }
+    if (r.ok) { say(T('paidOk')); balanceChanged(); setTimeout(() => { window.location.hash = classLink(courseId) }, 900); return }
+    if (r.needCoins) { await readBalance(true); return }
     payBtn.disabled = false
     say(`${T('failed')} ${r.why ?? ''}`.trim(), true)
   })
@@ -106,7 +118,12 @@ function payPanel (courseId: string, price: bigint, T: (k: keyof typeof COPY) =>
     say(T('faucetSending'))
     const r = await claimTestCoins()
     faucetBtn.disabled = false
-    if (r.ok) { say(T('faucetOk')); await refreshBalance(); return }
+    if (r.ok) {
+      say(T('faucetOk'))
+      coinSlot.replaceChildren(coin(34, { drop: true }))
+      balanceChanged(r.balance)
+      return
+    }
     say(`${T('failed')} ${r.why ?? ''}`.trim(), true)
   })
   return panel

@@ -454,6 +454,8 @@ export type MyAttempt = {
   judgeModel: string | null
   at: string
   review: { decision: string, finalScore: number | null, at: string | null } | null
+  /** B126: praktik yang dinilai chain (B121) — hanya itu yang dihitung rubrik. Tidak ada di jawaban server lama. */
+  chainChecked?: boolean
 }
 export type MyOrder = { asset: string, amount: string, state: string, tx: string | null, at: string }
 export type MyCourseRecord = { courseId: string, status: string, enrolledAt: string, summary: ServerSummary | null, attempts: MyAttempt[], orders: MyOrder[] }
@@ -463,12 +465,15 @@ export type MyCourseRecord = { courseId: string, status: string, enrolledAt: str
  * Nilai adalah data pribadi, jadi permintaannya ditandatangani pemilik akun dengan pesan khusus `lencana-records` —
  * tanda tangan untuk keperluan lain tidak diterima rute ini.
  */
-export async function readMyRecords (): Promise<{ ok: boolean, why?: string, courses?: MyCourseRecord[] }> {
+export async function readMyRecords (onStep?: (step: 0 | 1) => void): Promise<{ ok: boolean, why?: string, courses?: MyCourseRecord[] }> {
   const addr = learnerAddress()
   if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
   const message = `lencana-records nonce=${newNonce()}`
+  // B126: tahap yang benar-benar dilalui — dashboard menampilkannya selama memuat (tanda tangan, lalu penerbit).
+  onStep?.(0)
   const s = await signMessage(message)
   if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  onStep?.(1)
   const r = await call('/me/records', { method: 'POST', body: { learner: addr, message, signature: s.signature } })
   if (r.status !== 200 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
   const rows = (r.json.courses as Record<string, unknown>[] | undefined) ?? []

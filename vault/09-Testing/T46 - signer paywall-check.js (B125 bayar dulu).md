@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-02
 command: npm run verify:paywall · npm run verify:paywall:live
 measured: 2026-10-02
-result: PAYWALL HIJAU — 23 pemeriksaan / 0 gagal (tanpa gas; masuk baterai) · --live 31 / 0 di chain 97 (faucet, settlement + pembagian, order paid, kelas terbuka, tanpa tagihan kedua)
+result: PAYWALL HIJAU — 24 pemeriksaan / 0 gagal (tanpa gas; masuk baterai; 2 Okt sesudah B126 +1 asersi kelas uji, B125 23 / 0) · --live 31 / 0 di chain 97 (faucet, settlement + pembagian, order paid, kelas terbuka, tanpa tagihan kedua)
 ---
 
 # T46 - signer paywall-check.js — B125: bayar dulu baru masuk kelas
@@ -26,9 +26,13 @@ penilaian, bukan pembayaran.
 | F (`--live`) | faucet 50 LDC-demo (tx), faucet kedua → 429; bayar + enroll → 200 dengan tx settlement + tx pembagian dan `X-PAYMENT-RESPONSE`; saldo peserta turun tepat sebesar harga (50 → 40); rekaman memuat order `paid` dengan tx yang sama; kuis terbuka (201); enroll kedua → 200 tanpa tagihan kedua |
 
 ```
-PAYWALL HIJAU — 23 pemeriksaan, 0 gagal
-PAYWALL HIJAU — 31 pemeriksaan, 0 gagal (live)
+PAYWALL HIJAU — 23 pemeriksaan, 0 gagal          (B125)
+PAYWALL HIJAU — 31 pemeriksaan, 0 gagal (live)   (B125)
+PAYWALL HIJAU — 24 pemeriksaan, 0 gagal          (2 Okt sesudah B126)
 ```
+
+**B126 (2 Okt):** bagian A kini juga menegaskan kelas uji `uji-bayar-2026` berharga 5 LDC-demo, punya manifest, dan tidak
+tampil di katalog publik (`LISTED_COURSES`).
 
 Batas klaim (C4): LDC-demo adalah koin uji dengan `mint` terbuka — yang dibuktikan adalah pembayaran berpindah, terbagi, dan kelas
 terbuka sesudahnya; bukan pendapatan dan bukan harga pasar.

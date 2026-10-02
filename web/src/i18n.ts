@@ -71,6 +71,8 @@ export interface TranslationDictionary {
     publishedLabel: string
     noEoa: string
     openCourse: string
+    /** B126: penanda kelas uji (`unlisted`) di registri penerbit */
+    testCourse: string
     publicDocLabel: string
     manifestUrlLabel: string
     loopbackWarning: string
@@ -1125,6 +1127,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       publishedLabel: 'Published',
       noEoa: 'no allowlist address recorded in the manifest',
       openCourse: 'Open course',
+      testCourse: 'test class — not in the public catalogue',
       publicDocLabel: 'Public issuer document that signs today (the platform agent — see the custody note below)',
       manifestUrlLabel: 'URL recorded in the demo manifest',
       loopbackWarning: 'that address is a loopback host, so it only answers on the machine running the signer. It is shown for completeness, not as a link you can open — and it is NOT the same document as the public one above: the edge serves one document per signing agent, and the publisher-to-agent mapping is not recorded in the manifest (B105).',
@@ -1804,6 +1807,7 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
       publishedLabel: 'Diterbitkan',
       noEoa: 'tidak ada alamat allowlist yang tercatat di manifest',
       openCourse: 'Buka kursus',
+      testCourse: 'kelas uji — tidak tampil di katalog publik',
       publicDocLabel: 'Dokumen penerbit publik yang menandatangani hari ini (agen platform — lihat catatan custody di bawah)',
       manifestUrlLabel: 'URL yang tercatat di manifest demo',
       loopbackWarning: 'alamat itu host loopback, jadi ia hanya menjawab di mesin yang menjalankan signer. Ia ditampilkan demi kelengkapan, bukan sebagai tautan yang bisa kamu buka — dan ia BUKAN dokumen yang sama dengan yang publik di atas: tepi menyajikan satu dokumen per agen penandatangan, dan pemetaan penerbit ke agen tidak tercatat di manifest (B105).',

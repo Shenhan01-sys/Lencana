@@ -9,8 +9,15 @@ import type { Course, CourseStats, Problem } from '../content'
 import { auditCatalog, courseStats, lessonsOf } from '../content'
 import { web3Dasar } from './web3-dasar'
 import { web3Lanjut } from './web3-lanjut'
+import { ujiBayar } from './uji-bayar'
 
-export const COURSES: Course[] = [web3Dasar, web3Lanjut]
+export const COURSES: Course[] = [web3Dasar, web3Lanjut, ujiBayar]
+
+/**
+ * Katalog publik: tanpa kelas uji (`unlisted`, B126). Beranda, onboarding, dan angka inventaris/README memakai ini;
+ * audit isi, manifest, dan rute tetap memakai `COURSES` — kelas uji tetap kursus sungguhan yang diaudit.
+ */
+export const LISTED_COURSES: Course[] = COURSES.filter((c) => !c.unlisted)
 
 export function findCourse(id: string | undefined): Course | undefined {
   return COURSES.find((c) => c.id === id)
@@ -29,11 +36,11 @@ export function moduleOf(course: Course, id: string | undefined) {
   return course.modules.find((m) => m.id === id)
 }
 
-/** Angka yang dipakai di katalog dan di README. Semuanya dihitung dari data, tidak ada yang ditulis tangan. */
+/** Angka yang dipakai di katalog dan di README — katalog publik (`LISTED_COURSES`). Semuanya dihitung dari data, tidak ada yang ditulis tangan. */
 export function catalogStats(): CourseStats & { courses: number; lessons: number; pages: number; minutes: number } {
-  const per = COURSES.map(courseStats)
+  const per = LISTED_COURSES.map(courseStats)
   return {
-    courses: COURSES.length,
+    courses: LISTED_COURSES.length,
     modules: per.reduce((a, s) => a + s.modules, 0),
     lessons: per.reduce((a, s) => a + s.lessons, 0),
     // +1 per kursus untuk halaman katalog itu sendiri.

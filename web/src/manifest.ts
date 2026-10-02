@@ -181,6 +181,7 @@ export function manifestOf (courseId: string): CourseManifest | undefined {
 
 import { web3Dasar } from './courses/web3-dasar'
 import { web3Lanjut } from './courses/web3-lanjut'
+import { ujiBayar } from './courses/uji-bayar'
 
 /**
  * Institusi contoh. Namanya fiktif dan ditulis demikian di dalam judul course-nya sendiri —
@@ -196,7 +197,7 @@ const YAYASAN: Issuer = {
 }
 
 /**
- * Dua kursus, satu penerbit. `web3-lanjut-2026` bergantung pada `web3-dasar-2026` lewat
+ * Dua kursus produk + satu kelas uji (B126), satu penerbit. `web3-lanjut-2026` bergantung pada `web3-dasar-2026` lewat
  * `prereqCourseId` di datanya — dan di chain rantai itu ditegakkan lewat `refUID` +
  * `PrerequisiteRevoked`, jadi kebijakan penerbit dan keadaan chain menunjuk hal yang sama.
  */
@@ -215,5 +216,14 @@ export const MANIFESTS: CourseManifest[] = [
     publishedAt: '2026-09-22T00:00:00Z',
     course: web3Lanjut,
     rubricHash: '0xc608de2ada85646653099317957a8f92228b9a0ec7baf6a25b5c549de2a9f76d',
+  },
+  {
+    // B126: kelas uji berbayar (tidak tampil di katalog publik). Hash dihitung dari manifest berkunci 2 Okt;
+    // `manifest-keys.ts` memaksanya sama saat dimuat.
+    schema: MANIFEST_SCHEMA,
+    issuer: YAYASAN,
+    publishedAt: '2026-10-02T00:00:00Z',
+    course: ujiBayar,
+    rubricHash: '0x6d33c95b4ecca44482eaa56b36b89dbc6f0d58ffd74c291f3ae1b95e45cc68f0',
   },
 ]

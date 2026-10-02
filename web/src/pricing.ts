@@ -11,6 +11,7 @@
  */
 import { WEB3_DASAR_ID } from './courses/web3-dasar'
 import { WEB3_LANJUT_ID } from './courses/web3-lanjut'
+import { UJI_BAYAR_ID } from './courses/uji-bayar'
 
 export const PAY_TOKEN_SYMBOL = 'LDC-demo'
 export const PAY_TOKEN_DECIMALS = 6
@@ -21,6 +22,8 @@ export const PAY_TOKEN_ADDRESS = '0x0B2fA5050912F4CdB5f7C47A5FAd6A8F9398CBaf'
 export const COURSE_PRICES: Record<string, bigint> = {
   [WEB3_DASAR_ID]: 10_000_000n,
   [WEB3_LANJUT_ID]: 25_000_000n,
+  // B126: kelas uji untuk menguji bayar dengan akun sungguhan — angka kecil yang dipilih untuk uji, bukan keputusan harga produk.
+  [UJI_BAYAR_ID]: 5_000_000n,
 }
 
 export function priceOf (courseId: string): bigint | null {

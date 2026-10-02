@@ -25,6 +25,11 @@ import {
 } from './learning'
 import { initLogin, openLogin, completeGoogleReturn } from './pages/login'
 import { needsOnboarding } from './pages/dashboard'
+// B126: pita pemuatan mengikuti setiap permintaan jaringan (penerbit, RPC chain, login); chip saldo di navbar.
+import { installFetchTracking } from './lib/loading'
+import { syncNavBalance } from './balance'
+
+installFetchTracking()
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T | null
 const setText = (id: string, text: string) => {
@@ -563,11 +568,14 @@ function renderWalletState() {
     // Orang mengenali akunnya dari email, bukan dari alamat dompet.
     const email = snapshot().identity?.email
     if (addrDisplay) addrDisplay.textContent = email || `${effectiveAddress.slice(0, 6)}...${effectiveAddress.slice(-4)}`
+    // Layar sempit menyembunyikan teks pil (navbar satu baris); identitasnya tetap terbaca lewat tooltip.
+    connectedPill?.setAttribute('title', email || effectiveAddress)
   } else {
     connectBtn?.classList.remove('hidden')
     connectedPill?.classList.add('hidden')
     studentLinks.forEach((el) => el.classList.add('hidden'))
   }
+  syncNavBalance(Boolean(effectiveAddress))
   updateLearnerNavigation()
 }
 
@@ -1174,7 +1182,7 @@ function renderPublishers() {
       <p class="section-sub"><strong>${escapeHtml(p.manifestUrlLabel)}</strong> ${escapeHtml(g.controllerUrl)}${loopback ? ` — ${escapeHtml(p.loopbackWarning)}` : ''}</p>
       <p class="section-sub"><strong>${escapeHtml(p.coursesLabel)}</strong> ${g.courses.length}</p>
       ${g.courses.map((mf) => `<p class="section-sub">
-          <a href="#/course/${escapeHtml(mf.course.id)}">${escapeHtml(p.openCourse)}: ${escapeHtml(mf.course.title)}</a><br/>
+          <a href="#/course/${escapeHtml(mf.course.id)}">${escapeHtml(p.openCourse)}: ${escapeHtml(mf.course.title)}</a>${mf.course.unlisted ? ` · <em>${escapeHtml(p.testCourse)}</em>` : ''}<br/>
           <strong>${escapeHtml(p.rubricLabel)}</strong> ${escapeHtml(shortHash(rubricHashOf(mf)))} ·
           <strong>${escapeHtml(p.publishedLabel)}</strong> ${escapeHtml(mf.publishedAt.slice(0, 10))}
         </p>`).join('')}

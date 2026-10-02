@@ -392,7 +392,8 @@ body {
 }
 
 .nav-container {
-  max-width: 1180px;
+  /* 2 Okt (permintaan builder): dilebarkan dari 1180 px — menu, chip saldo, dan akun harus muat satu baris. */
+  max-width: 1480px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -16132,4 +16133,50 @@ p {
 }
 .lms-not-found-link:hover {
   text-decoration: underline;
+}
+
+/* B126: chip saldo koin uji di navbar (balance.ts) — koin + angka bergulir, menuju Dashboard → Dompet. */
+.nav-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 12px 0 6px;
+  border: 1px solid rgba(240, 185, 11, 0.35);
+  border-radius: var(--radius-pill);
+  background: rgba(240, 185, 11, 0.08);
+  color: var(--bnb-gold);
+  font: 700 13px var(--font-mono);
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav-balance:hover { background: rgba(240, 185, 11, 0.16); border-color: var(--bnb-gold); transform: translateY(-1px); }
+.nav-balance.hidden { display: none; }
+.nav-balance-coin { display: inline-grid; place-items: center; }
+.nav-balance-sym { color: rgba(240, 185, 11, 0.7); font-size: 10.5px; letter-spacing: 0.08em; }
+/* Navbar satu baris (2 Okt, permintaan builder): teks menu, subjudul merek, dan nama jaringan tidak boleh terlipat. */
+.nav-links a, .brand-subtag, .badge-name, .wallet-address-display { white-space: nowrap; }
+.nav-links { gap: clamp(16px, 1.6vw, 24px); }
+/* Laptop sempit: rapatkan dulu, lalu lencana jaringan memberi tempat (diukur 2 Okt, menu ID meluap 25 px di 1280 px). */
+@media (max-width: 1320px) {
+  .nav-links { gap: 14px; }
+  .nav-balance-sym { display: none; }
+}
+@media (max-width: 1180px) {
+  .app-navbar .network-badge { display: none; }
+}
+@media (max-width: 1080px) {
+  .app-navbar { padding-left: 16px; padding-right: 16px; }
+  .app-navbar .nav-container { gap: 12px; }
+  .app-navbar .nav-actions { gap: 8px; }
+  .wallet-address-display { display: inline-block; max-width: 92px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; }
+}
+@media (max-width: 1023px) {
+  .nav-links { gap: 10px; }
+  .nav-links a, .nav-links .nav-link { font-size: 12.5px; }
+  .wallet-address-display { display: none; }
+}
+@media (max-width: 760px) {
+  .nav-balance { height: 30px; padding: 0 9px 0 5px; font-size: 12px; }
+  .nav-balance-sym { display: none; }
 }

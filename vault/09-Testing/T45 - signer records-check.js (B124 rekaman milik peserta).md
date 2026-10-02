@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-02
 command: npm run verify:records
 measured: 2026-10-02
-result: REKAMAN HIJAU — 16 pemeriksaan / 0 gagal (run pertama hijau; penolakan diuji di harness yang sama: tanpa tanda tangan, tanda tangan untuk keperluan lain, kunci lain, replay nonce)
+result: REKAMAN HIJAU — 17 pemeriksaan / 0 gagal (2 Okt sesudah B126: +1, usaha kuis bertanda chainChecked=false; run pertama B124 16 / 0 hijau; penolakan diuji di harness yang sama: tanpa tanda tangan, tanda tangan untuk keperluan lain, kunci lain, replay nonce)
 ---
 
 # T45 - signer records-check.js — B124: rekaman belajar hanya untuk pemiliknya
@@ -23,8 +23,12 @@ Server sendiri di port bebas dengan `LANCENA_ORIGIN=test`; baris ujinya dibersih
 | C | peserta lain yang sah → 200 dengan nol kursus, dan alamat peserta pertama tidak muncul di jawabannya |
 
 ```
-REKAMAN HIJAU — 16 pemeriksaan, 0 gagal
+REKAMAN HIJAU — 16 pemeriksaan, 0 gagal          (B124, run pertama)
+REKAMAN HIJAU — 17 pemeriksaan, 0 gagal          (2 Okt sesudah B126)
 ```
+
+**B126 (2 Okt):** proyeksi usaha kini membawa `chainChecked` (praktik dihitung rubrik hanya bila dinilai chain, B121) dan
+daftar kolom yang diizinkan ikut memuatnya; pemeriksaan baru: usaha kuis bertanda `chainChecked=false` — dinilai penerbit, bukan chain.
 
 Yang tidak diuji di sini: tanda tangan dompet tertanam dari halaman (jalur login sungguhan) — `readMyRecords` memakai
 `signMessage` yang sama dengan rute tulis; T44 menguji halamannya dengan identitas uji sekali-pakai.
