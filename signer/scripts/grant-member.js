@@ -44,7 +44,7 @@ if (args.includes('--list')) {
 
 const who = args.find((a) => !a.startsWith('--'))
 if (!who || !isAddress(who)) {
-  console.error('pakai: npm run grant:member -- --list | <alamat 0x…> [--hire] [--appoint] | <alamat> --reject | <alamat> --revoke')
+  console.error('pakai: npm run grant:member -- --list | <alamat 0x…> [--hire] [--appoint] [--author] | <alamat> --reject | <alamat> --revoke')
   process.exit(2)
 }
 
@@ -59,17 +59,19 @@ if (!revoke && !reject) {
 }
 const hire = args.includes('--hire')
 const appoint = args.includes('--appoint')
+// B133: `--author` = boleh menyusun draf kursus (yang menerbitkan tetap kunci penerbit, `npm run course:publish`).
+const author = args.includes('--author')
 const message = revoke
   ? `lencana-member revoke member=${who.toLowerCase()} nonce=${nonce}`
   : reject
     ? `lencana-member reject member=${who.toLowerCase()} nonce=${nonce}`
-    : `lencana-member grant member=${who.toLowerCase()} hire=${hire ? 1 : 0} appoint=${appoint ? 1 : 0} nonce=${nonce}`
+    : `lencana-member grant member=${who.toLowerCase()} hire=${hire ? 1 : 0} appoint=${appoint ? 1 : 0}${author ? ' author=1' : ''} nonce=${nonce}`
 const signature = await publisher.signMessage({ message })
 const out = revoke
   ? await revokeMember({ issuer: publisher.address, member: who, message, signature })
   : reject
     ? await rejectRequest({ issuer: publisher.address, applicant: who, message, signature })
-    : await grantMember({ issuer: publisher.address, member: who, canHire: hire, canAppoint: appoint, message, signature })
+    : await grantMember({ issuer: publisher.address, member: who, canHire: hire, canAppoint: appoint, canAuthor: author, message, signature })
 if (!out.ok) {
   console.error(`DITOLAK: ${out.why}`)
   process.exit(1)
@@ -78,7 +80,7 @@ console.log(revoke
   ? `dicabut: ${out.member} bukan lagi anggota penerbit ${out.issuer} (sejak ${out.revokedAt})`
   : reject
     ? `ditolak: pengajuan ${who} (#${out.request?.id}) — tidak ada kursi yang berubah`
-    : `diberikan: ${out.member} anggota penerbit ${out.issuer} · sewa agen ${out.canHire ? 'ya' : 'tidak'} · tunjuk agen pengesah ${out.canAppoint ? 'ya' : 'tidak'} · asal ${env.LANCENA_ORIGIN || 'unknown'}${out.approvedRequest ? ` · pengajuan #${out.approvedRequest} disetujui` : ''}`)
+    : `diberikan: ${out.member} anggota penerbit ${out.issuer} · sewa agen ${out.canHire ? 'ya' : 'tidak'} · tunjuk agen pengesah ${out.canAppoint ? 'ya' : 'tidak'} · susun kursus ${out.canAuthor ? 'ya' : 'tidak'} · asal ${env.LANCENA_ORIGIN || 'unknown'}${out.approvedRequest ? ` · pengajuan #${out.approvedRequest} disetujui` : ''}`)
 console.log(`pesan bertanda tangan: ${message}`)
 const active = await membershipsOf(who)
 console.log(`keanggotaan aktif alamat ini sekarang (kueri ulang): ${active.length}`)

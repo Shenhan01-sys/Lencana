@@ -96,6 +96,12 @@ import { ownerRecords as dbOwnerRecords, platformAgents as dbPlatformAgents, pla
 // Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata = satu peran (D66): POST /me/role (pilih sekali, bertanda tangan), /me/roles mengembalikan peran efektif, rute peserta/penerbit/Agent Owner menolak akun berperan lain kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { accountOf, roleRefusal } from './account.js'
 import { chooseRole as dbChooseRole, recordRole as dbRecordRole } from './db.js'
+// Lencana-B133 status=TERBUKA 2026-10-03 — Penerbit menyusun kursus: POST /publisher/drafts (daftar), /publisher/drafts/save dan /publisher/drafts/submit (anggota berhak susun, tanda tangan atas hash isi); kursus yang diterbitkan kunci penerbit digabung ke katalog proses ini (GET /catalog/published tanpa kunci). Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { refreshCatalog, publishedCatalog } from './catalog.js'
+import { prepareDraft } from './drafts.js'
+import {
+  saveDraft as dbSaveDraft, submitDraft as dbSubmitDraft, draftsOf as dbDraftsOf, projectDraft,
+} from './db.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -312,11 +318,14 @@ async function publisherSeat (address) {
   const addr = getAddress(String(address).toLowerCase())
   const issuer = MANIFESTS[0]?.issuer
   if (addr.toLowerCase() === PAY_PAYEE.toLowerCase()) {
-    return { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, since: null }
+    return { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, canAuthor: true, since: null }
   }
   const membership = (await dbMembershipsOf(addr)).find((m) => String(m.issuer).toLowerCase() === PAY_PAYEE.toLowerCase()) ?? null
   return membership
-    ? { issuer: getAddress(membership.issuer), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'member', canHire: membership.can_hire === true, canAppoint: membership.can_appoint === true, since: membership.granted_at }
+    ? {
+        issuer: getAddress(membership.issuer), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'member',
+        canHire: membership.can_hire === true, canAppoint: membership.can_appoint === true, canAuthor: membership.can_author === true, since: membership.granted_at,
+      }
     : null
 }
 
@@ -532,6 +541,12 @@ const server = createServer(async (req, res) => {
       })
       return res.end()
     }
+    // B133: kursus yang diterbitkan dari halaman ikut katalog proses ini (murah bila masih segar; TTL di catalog.js).
+    if (path !== '/healthz') await refreshCatalog().catch((e) => console.warn(`katalog database tidak termuat: ${String(e.message ?? e).slice(0, 120)}`))
+    if (path === '/catalog/published' && req.method === 'GET') {
+      // Publik: isi kursus + harga, TANPA kunci kuis (manifest publik). Halaman memakainya untuk katalog dan kelas.
+      return send(res, 200, jsonBody({ courses: publishedCatalog().map((c) => ({ manifest: c.manifest, price: c.price })) }))
+    }
     if (path === `/issuers/${AGENT_SLUG}` || path === '/issuers') return send(res, 200, issuerDoc)
     // B48: setiap kredensial mencetak `verificationMethod` miliknya sendiri. Selama server hanya
     // melayani slug yang kebetulan di-start, ijazah terbitan agen lain jadi 404 di instance ini —
@@ -581,7 +596,8 @@ const server = createServer(async (req, res) => {
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
       || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members'
       || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
-      || path === '/owner/overview' || path === '/owner/gas' || path === '/me/role') {
+      || path === '/owner/overview' || path === '/owner/gas' || path === '/me/role'
+      || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -684,7 +700,7 @@ const server = createServer(async (req, res) => {
             // B129: tolak pengajuan — juga hanya kunci penerbit; kursi siapa pun tidak berubah.
             ? await dbRejectRequest({ issuer: body.issuer, applicant: body.member, message: body.message, signature: body.signature })
             : await dbGrantMember({
-              issuer: body.issuer, member: body.member, canHire: body.canHire === true, canAppoint: body.canAppoint === true,
+              issuer: body.issuer, member: body.member, canHire: body.canHire === true, canAppoint: body.canAppoint === true, canAuthor: body.canAuthor === true,
               message: body.message, signature: body.signature,
             })
         if (!out.ok) return send(res, out.kind === 'auth' ? 401 : 400, jsonBody({ error: out.why }))
@@ -729,10 +745,50 @@ const server = createServer(async (req, res) => {
         ])
         return send(res, 200, jsonBody(publisherOverview({
           issuer: { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null },
-          seat: { via: seat.via, canHire: seat.canHire, canAppoint: seat.canAppoint, since: seat.since },
+          seat: { via: seat.via, canHire: seat.canHire, canAppoint: seat.canAppoint, canAuthor: seat.canAuthor === true, since: seat.since },
           manifests, priceOf, records, platformBps, members, pending, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null,
           token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
         })))
+      }
+      if (path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit') {
+        // B133 (D67): menyusun kursus — hanya kursi Penerbit dengan hak susun (kunci penerbit, atau anggota dengan author=1).
+        // Menerbitkan tetap kunci penerbit lewat `npm run course:publish`, bukan rute ini.
+        if (!PAY_PAYEE) return send(res, 503, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher to author for' }))
+        if (!isAddress(String(body.learner ?? ''))) return send(res, 400, jsonBody({ error: 'learner must be the address of the account that signs' }))
+        const refusedRole = roleRefusal(await accountCheap(body.learner), 'publisher')
+        if (refusedRole) return send(res, 403, jsonBody({ error: refusedRole }))
+        const seat = await publisherSeat(body.learner)
+        if (!seat) return send(res, 403, jsonBody({ error: 'this account holds no publisher seat' }))
+        const me = getAddress(String(body.learner).toLowerCase())
+        if (path === '/publisher/drafts') {
+          if (typeof body.message !== 'string' || !/^lencana-drafts nonce=[0-9a-f]{12,}$/.test(body.message)) {
+            return send(res, 400, jsonBody({ error: 'message must be "lencana-drafts nonce=<hex>"' }))
+          }
+          const auth = await dbAuthorize({ learner: me, message: body.message, signature: body.signature, scope: 'drafts' })
+          if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+          const rows = await dbDraftsOf(PAY_PAYEE, { includeTest: body.includeTest === true })
+          // Kunci kuis hanya untuk penyusun drafnya sendiri; anggota lain melihat isi publiknya saja.
+          return send(res, 200, jsonBody({
+            canAuthor: seat.canAuthor === true, institution: seat.name ?? null,
+            drafts: rows.map((r) => projectDraft(r, { withKeys: String(r.author).toLowerCase() === me.toLowerCase() })),
+          }))
+        }
+        if (!seat.canAuthor) return send(res, 403, jsonBody({ error: 'this membership does not include author=1 (authoring courses)' }))
+        if (path === '/publisher/drafts/save') {
+          const draftId = body.draftId == null ? null : Number(body.draftId)
+          if (draftId !== null && (!Number.isInteger(draftId) || draftId <= 0)) return send(res, 400, jsonBody({ error: 'draftId must be a positive integer or null' }))
+          const prep = await prepareDraft(body.payload, { institution: seat.name ?? 'Penerbit', exceptDraftId: draftId })
+          if (!prep.ok) return send(res, 400, jsonBody({ error: 'the draft does not fit the editor schema', problems: prep.errors }))
+          const out = await dbSaveDraft({
+            draftId, issuer: PAY_PAYEE, author: me, payload: prep.payload, contentHash: prep.contentHash, problems: prep.problems,
+            message: body.message, signature: body.signature,
+          })
+          if (!out.ok) return send(res, ({ auth: 401, forbidden: 403, missing: 404, conflict: 409 })[out.kind] ?? 400, jsonBody({ error: out.why, contentHash: prep.contentHash }))
+          return send(res, 200, jsonBody({ draft: projectDraft(out.draft, { withKeys: true }) }))
+        }
+        const out = await dbSubmitDraft({ draftId: Number(body.draftId), author: me, message: body.message, signature: body.signature })
+        if (!out.ok) return send(res, ({ auth: 401, forbidden: 403, missing: 404, conflict: 409, unprocessable: 422 })[out.kind] ?? 400, jsonBody({ error: out.why }))
+        return send(res, 200, jsonBody({ draft: projectDraft(out.draft, { withKeys: true }) }))
       }
       if (path === '/owner/overview' || path === '/owner/gas') {
         // B130: kursi Agent Owner — dibaca dari ownerOf di registry ERC-8004, bukan dari tabel.
@@ -1280,6 +1336,10 @@ const server = createServer(async (req, res) => {
     return send(res, 500, { error: err.message })
   }
 })
+
+// B133: muat kursus database sebelum permintaan pertama — supaya criteria/enroll kursus yang sudah terbit langsung dikenal.
+await refreshCatalog({ force: true }).then((r) => { if (r.loaded || r.skipped) console.log(`katalog database: ${r.loaded} kursus dimuat, ${r.skipped} dilewati`) })
+  .catch((e) => console.warn(`katalog database tidak termuat saat mulai: ${String(e.message ?? e).slice(0, 120)}`))
 
 server.listen(PORT, HOST, () => {
   console.log(`signer: ${BASE_URL}/issuers/${AGENT_SLUG}`)

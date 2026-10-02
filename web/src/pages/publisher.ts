@@ -26,6 +26,7 @@ import {
   type PublisherOverview, type AgentRates,
 } from '../learning'
 import { formatLdc, PAY_TOKEN_SYMBOL } from '../pricing'
+import { renderAuthoring } from './authoring-view'
 import { stackBar, type StackPart } from '../lib/charts'
 import { coin } from '../lib/coin'
 import { emblem, topicColor } from '../lib/emblem'
@@ -34,11 +35,13 @@ import { skeleton, steps } from '../lib/loading'
 import { mountSeatSwitch, applyBox, navIcon, guardSeat } from './seats'
 
 type Lang = 'en' | 'id'
-type PubSection = 'overview' | 'courses' | 'learners' | 'essays' | 'agents' | 'revenue'
+type PubSection = 'overview' | 'courses' | 'author' | 'learners' | 'essays' | 'agents' | 'revenue'
 type O = PublisherOverview
 
 const COPY = {
   overview: { en: 'Overview', id: 'Ringkasan' },
+  author: { en: 'Author a course', id: 'Susun kursus' },
+  canAuthor: { en: 'author courses', id: 'susun kursus' },
   courses: { en: 'Courses', id: 'Kursus' },
   learners: { en: 'Learners', id: 'Peserta' },
   essays: { en: 'Essays', id: 'Esai' },
@@ -183,6 +186,8 @@ const COPY = {
 const NAV: { id: PubSection, href: string, icon: string }[] = [
   { id: 'overview', href: '#/app/pub', icon: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z' },
   { id: 'courses', href: '#/app/pub/courses', icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zm0 0A2.5 2.5 0 0 0 6.5 22H20v-5' },
+  // B133: menyusun kursus baru — draf → diajukan → terbit (kunci penerbit).
+  { id: 'author', href: '#/app/pub/author', icon: 'M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4zM4 4h7M4 8h4' },
   { id: 'learners', href: '#/app/pub/learners', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
   { id: 'essays', href: '#/app/pub/essays', icon: 'M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z' },
   { id: 'agents', href: '#/app/pub/agents', icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm3 5h4v4h-4z' },
@@ -192,6 +197,7 @@ const NAV: { id: PubSection, href: string, icon: string }[] = [
 const SHORT: Record<PubSection, Record<Lang, string>> = {
   overview: { en: 'Overview', id: 'Ringkasan' },
   courses: { en: 'Courses', id: 'Kursus' },
+  author: { en: 'Author', id: 'Susun' },
   learners: { en: 'Learners', id: 'Peserta' },
   essays: { en: 'Essays', id: 'Esai' },
   agents: { en: 'Agents', id: 'Agen' },
@@ -206,7 +212,7 @@ const enter = (i: number) => ({ '--i': String(i) }) as Partial<CSSStyleDeclarati
 
 function sectionOf (routeHash: string): PubSection {
   const seg = routeHash.replace(/^#\/?/, '').split('/')[2] ?? ''
-  return (['courses', 'learners', 'essays', 'agents', 'revenue'] as const).find((s) => s === seg) ?? 'overview'
+  return (['courses', 'author', 'learners', 'essays', 'agents', 'revenue'] as const).find((s) => s === seg) ?? 'overview'
 }
 
 /* ------------------------------------------------------------------ data: satu bacaan per muat halaman */
@@ -262,6 +268,8 @@ export function renderPublisherApp (lang: Lang, routeHash: string): HTMLElement 
           s.roles.account.role === 'publisher' && !s.roles.account.dev ? null : h('a', { class: 'app-btn small', href: '#/app' }, T('backLearner'))))
         return
       }
+      // B133: "Susun kursus" membaca drafnya sendiri (POST /publisher/drafts), bukan ringkasan dasbor.
+      if (section === 'author') { body.replaceChildren(renderAuthoring(lang)); return }
       void overview(fresh, (i) => progress.set(i)).then((r) => {
         if (!body.isConnected) return
         if (!r.ok || !r.data) {
@@ -296,6 +304,7 @@ function seatLine (lang: Lang, o: O, reload: () => void): HTMLElement {
     h('span', { class: 'pb-seat' }, h('b', null, s.via === 'issuer' ? T('viaIssuer') : T('viaMember')), since),
     h('span', { class: `pb-right ${s.canHire ? 'on' : 'off'}` }, T('canHire')),
     h('span', { class: `pb-right ${s.canAppoint ? 'on' : 'off'}` }, T('canAppoint')),
+    h('span', { class: `pb-right ${s.canAuthor ? 'on' : 'off'}` }, T('canAuthor')),
     h('span', { class: 'pb-read' }, `${T('readAt')} ${new Date(o.generatedAt).toLocaleTimeString(lang === 'en' ? 'en-GB' : 'id-ID', { timeStyle: 'short' })}`),
     h('label', { class: 'pb-toggle' }, toggle, h('span', null, T('includeTest'))),
     h('button', { type: 'button', class: 'app-btn small', onClick: reload }, T('reload')))

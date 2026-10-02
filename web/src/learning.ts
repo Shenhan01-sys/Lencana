@@ -45,6 +45,9 @@ import { createPublicClient, http, stringToHex, type Hex } from 'viem'
 import { defaultEndpoint } from './verify'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import type { PrivyIdentity } from './privy'
+import type { Course, Problem, QuizKeys } from './content'
+import type { CourseManifest } from './manifest'
+import { normalizeDraft, draftHash } from './authoring'
 
 const EP_KEY = 'lencana-signer-url'
 const ID_KEY = 'lencana-learner-v1'
@@ -560,6 +563,64 @@ export async function chooseMyRole (role: 'learner' | 'publisher' | 'owner', opt
   return { ok: true, request: (r.json?.request as MemberRequest | null | undefined) ?? undefined }
 }
 
+// Lencana-B133 status=TERBUKA 2026-10-03 — penyusunan kursus dari halaman: daftar draf, simpan (tanda tangan atas hash isi yang dihitung dengan modul skema yang sama dengan server), ajukan; katalog kursus terbit dibaca tanpa kunci. Buktikan ulang: cd signer && npm run verify:authoring, lalu uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** Satu draf kursus (B133). `keys` hanya ada untuk draf milik akun ini. */
+export type CourseDraft = {
+  id: number, issuer: string, author: string, courseId: string, status: 'draft' | 'submitted' | 'published' | 'rejected',
+  course: Course, keys?: QuizKeys, price: string | null, contentHash: string, problems: Problem[], submittedAt: string | null,
+  rubricHash: string | null, manifestHash: string | null, publishedAt: string | null, decidedNote: string | null, decidedAt: string | null,
+  createdAt: string, updatedAt: string, origin: string,
+}
+/** Isi editor sebelum dinormalkan: bentuk yang sama dengan `DraftPayload`, boleh belum lengkap. */
+export type DraftInput = { course: Record<string, unknown>, keys: QuizKeys, price: string | null }
+
+/** Draf penerbit akun ini (bertanda tangan `lencana-drafts`). */
+export async function readCourseDrafts (includeTest = false): Promise<{ ok: boolean, why?: string, status?: number, canAuthor?: boolean, institution?: string | null, drafts?: CourseDraft[] }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-drafts nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/publisher/drafts', { method: 'POST', body: { learner: addr, includeTest, message, signature: s.signature } })
+  if (r.status !== 200 || !r.json) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, canAuthor: r.json.canAuthor === true, institution: (r.json.institution as string | null) ?? null, drafts: (r.json.drafts as CourseDraft[]) ?? [] }
+}
+
+/**
+ * Simpan draf. Isi dinormalkan di sini dengan modul skema yang sama dengan server (`authoring.ts`), lalu akun menandatangani
+ * hash-nya — server menyimpan hanya bila hash kiriman = hash yang ia hitung sendiri.
+ */
+export async function saveCourseDraft (input: DraftInput, draftId: number | null, institution: string): Promise<{ ok: boolean, why?: string, problems?: string[], draft?: CourseDraft }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const n = normalizeDraft(input, institution)
+  if (!n.payload) return { ok: false, why: 'Isi draf belum sesuai bentuk editor.', problems: n.errors }
+  const message = `lencana-draft save draft=${draftId ?? 'new'} course=${n.payload.course.id} hash=${draftHash(n.payload)} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/publisher/drafts/save', { method: 'POST', body: { learner: addr, draftId, payload: n.payload, message, signature: s.signature }, timeoutMs: 30_000 })
+  if (r.status !== 200) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}`, problems: (r.json?.problems as string[] | undefined) }
+  return { ok: true, draft: r.json?.draft as CourseDraft }
+}
+
+/** Ajukan draf ke kunci penerbit; pesan mengikat hash isi yang tersimpan. */
+export async function submitCourseDraft (draftId: number, contentHash: string): Promise<{ ok: boolean, why?: string, draft?: CourseDraft }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-draft submit draft=${draftId} hash=${contentHash} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/publisher/drafts/submit', { method: 'POST', body: { learner: addr, draftId, message, signature: s.signature } })
+  if (r.status !== 200) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, draft: r.json?.draft as CourseDraft }
+}
+
+/** Kursus yang disusun di halaman dan diterbitkan kunci penerbit — publik, tanpa kunci kuis. */
+export async function readPublishedCourses (timeoutMs = 4000): Promise<{ manifest: CourseManifest, price: string | null }[]> {
+  const r = await call('/catalog/published', { timeoutMs })
+  return r.status === 200 && Array.isArray(r.json?.courses) ? r.json.courses as { manifest: CourseManifest, price: string | null }[] : []
+}
+
 /**
  * B129: ajukan diri menjadi anggota penerbit. Ditandatangani akun ini dan menyebut penerbitnya; pengajuan tidak memberi
  * wewenang apa pun — kunci penerbit yang memutuskan.
@@ -579,7 +640,7 @@ export async function requestPublisherMembership (issuer: string, note?: string)
 /** Bentuk jawaban `POST /publisher/overview` (B129). Jumlah uang dalam satuan terkecil token, sebagai string. */
 export type PublisherOverview = {
   issuer: PublisherRef
-  seat: { via: 'issuer' | 'member', canHire: boolean, canAppoint: boolean, since: string | null }
+  seat: { via: 'issuer' | 'member', canHire: boolean, canAppoint: boolean, canAuthor?: boolean, since: string | null }
   includeTest: boolean
   generatedAt: string
   token: { address: string | null, symbol: string, decimals: number }

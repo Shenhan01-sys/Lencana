@@ -28,6 +28,7 @@ import { needsOnboarding } from './pages/dashboard'
 // B126: pita pemuatan mengikuti setiap permintaan jaringan (penerbit, RPC chain, login); chip saldo di navbar.
 import { installFetchTracking } from './lib/loading'
 import { syncNavBalance } from './balance'
+import { loadPublishedCourses } from './catalog-live'
 
 installFetchTracking()
 
@@ -2643,8 +2644,9 @@ function boot() {
     setLanguage(langParam)
   }
 
-  // Activate client-side route
-  handleRoute()
+  // Activate client-side route — B133: sesudah kursus yang terbit dari halaman penerbit ikut katalog (paling lama 1,5 detik;
+  // penerbit tidak menjawab = katalog berkas saja), supaya halaman kursus/kelas tidak tergambar tanpa kursus itu lalu berganti.
+  void loadPublishedCourses().finally(() => handleRoute())
 
   const q = params.get('q')
   if (q) {

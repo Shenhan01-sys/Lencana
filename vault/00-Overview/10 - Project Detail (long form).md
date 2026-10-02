@@ -595,7 +595,7 @@ part still on the list.
 | absent | status | why it matters for reading our claims |
 |---|---|---|
 | ~~server-side enrolment record~~ | ~~**the largest hole**~~ | ~~progress is `localStorage`, labelled *not evidence*; the paid event a real LMS bills for does not exist~~ *(Koreksi 3 Okt: no longer absent — enrolment and progress are recorded server-side since 28 Sep, and the paid event exists since B125 (2 Okt): pay first, then the class opens.)* |
-| self-serve authoring UI | not built | courses are TypeScript objects reviewed like code; an issuer today edits with a pull request |
+| self-serve authoring UI | ~~not built~~ *(Correction 3 Oct, B133/D67: built — a publisher member with the `author=1` right drafts a course on the page (reading, keyed quiz, rubric essay), and the issuer key publishes it with `npm run course:publish`; practice lessons are still not authored from the page)* | ~~courses are TypeScript objects reviewed like code; an issuer today edits with a pull request~~ *(the file courses still are; page-authored courses live in `course_drafts` and join the same catalogue arrays at runtime)* |
 | proctoring / video / SCORM / cohorts | not built, deliberately | we sell the proof layer, not the content pipeline — and no social or invigilation claim appears anywhere |
 
 The content being code is a decision, not a shortcut: the rubric, the weights and the pass mark are

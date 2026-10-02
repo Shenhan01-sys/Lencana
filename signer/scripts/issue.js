@@ -50,12 +50,16 @@ import { DEFAULT_JUDGE_MODEL, JUDGE_TEMPERATURE } from '../src/judge.js'
 import { loadFileEnv } from '../src/env.js'
 import { dbConfigured, dbMissingReason, courseGates, attemptsFor } from '../src/db.js'
 import { evidenceFromAttempts, formatEvidence } from '../src/fromAttempts.js'
+import { refreshCatalog } from '../src/catalog.js'
 
 // `src/db.js` membaca `process.env` — memang di situ tempat kredensial server-side — sementara skrip
 // ini dulu membaca ../../.env ke objek lokal saja. Tanpa baris ini `--from-attempts` akan bilang
 // "SUPABASE_URL belum diisi" di mesin yang jelas punya .env: kelas bug yang sama yang ditutup D45
 // untuk `check.js` dan `serve-probe.js`. Nilai dari lingkungan proses tetap menang (lihat env.js).
 await loadFileEnv()
+// B133: kursus yang disusun di halaman dan diterbitkan kunci penerbit ikut katalog skrip ini — kredensialnya terbit
+// lewat jalur yang sama dengan kursus berkas. Tanpa database: hanya kursus berkas, seperti sebelumnya.
+await refreshCatalog({ force: true }).catch((e) => console.warn(`katalog database tidak termuat: ${String(e.message ?? e).slice(0, 120)}`))
 
 /** .env dibaca manual: menambah dotenv hanya untuk 8 baris adalah dependensi yang tidak perlu. */
 async function readEnv () {

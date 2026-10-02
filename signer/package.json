@@ -25,6 +25,8 @@
     "grant:member": "node scripts/grant-member.js",
     "account:dev": "node scripts/account-dev.js",
     "verify:account": "tsx scripts/account-check.js",
+    "course:publish": "tsx scripts/course-publish.js",
+    "verify:authoring": "tsx scripts/authoring-check.js",
     "verify:paywall": "tsx scripts/paywall-check.js",
     "verify:paywall:live": "tsx scripts/paywall-check.js --live",
     "verify:privy": "node scripts/privy-check.js",

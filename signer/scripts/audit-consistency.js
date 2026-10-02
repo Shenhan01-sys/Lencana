@@ -408,6 +408,8 @@ async function collect () {
         'npm run verify:owner': 'owner',
         // Lencana-B131 status=TERBUKA 2026-10-03 — baris README `verify:account` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:account': 'account',
+        // Lencana-B133 status=TERBUKA 2026-10-03 — baris README `verify:authoring` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        'npm run verify:authoring': 'authoring',
       }
       const salah = []
       let banding = 0

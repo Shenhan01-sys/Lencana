@@ -31,6 +31,7 @@ import { resultDocument } from '../src/results.js'
 import { manifestOf, rubricHashOf, manifestHashOf, MANIFESTS } from '../../web/src/manifest-keys.ts'
 import { KV_KEYS, EDGE_ROUTES, PURPOSES } from '../src/edgeKeys.js'
 import { loadFileEnvReport } from '../src/env.js'
+import { refreshCatalog } from '../src/catalog.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
@@ -44,6 +45,8 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const CF_TOKEN = process.env.CLOUDFLARE_API_TOKEN
 const CF_ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID
 await loadFileEnvReport('publish')
+// B133: dokumen criteria kursus yang disusun di halaman dan diterbitkan kunci penerbit ikut ke tepi (baris uji tidak).
+await refreshCatalog({ force: true }).catch((e) => console.warn(`katalog database tidak termuat: ${String(e.message ?? e).slice(0, 120)}`))
 const env = process.env
 const RPC = env.RPC_URL || 'https://bsc-testnet.publicnode.com'
 const RESOLVER = env.RESOLVER_ADDRESS

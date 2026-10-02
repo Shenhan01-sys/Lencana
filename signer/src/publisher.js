@@ -147,7 +147,7 @@ export function overview ({ issuer, seat, manifests, priceOf, records, platformB
       }),
     },
     team: {
-      members: members.map((m) => ({ member: m.member, canHire: m.can_hire === true, canAppoint: m.can_appoint === true, since: m.granted_at })),
+      members: members.map((m) => ({ member: m.member, canHire: m.can_hire === true, canAppoint: m.can_appoint === true, canAuthor: m.can_author === true, since: m.granted_at })),
       pendingRequests: pending,
     },
   }
