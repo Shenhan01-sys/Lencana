@@ -501,7 +501,10 @@ export type PublisherSeat = {
   since: string | null
 }
 export type OwnedAgent = { agentId: string, registry: string, wallet: string | null, tariff: { token: string, amount: string } | null }
-export type MyRoles = { address: string, publisher: PublisherSeat | null, agents: OwnedAgent[] }
+/** B129: pengajuan anggota penerbit terakhir akun ini (menunggu / ditolak / disetujui). */
+export type MemberRequest = { id: number, status: 'pending' | 'approved' | 'rejected', note: string | null, createdAt: string, decidedAt: string | null }
+export type PublisherRef = { address: string, slug: string | null, name: string | null }
+export type MyRoles = { address: string, publisher: PublisherSeat | null, agents: OwnedAgent[], request: MemberRequest | null, issuer: PublisherRef | null }
 
 /**
  * Kursi akun ini (B128, RF7 langkah C1), dibaca penerbit dari fakta: kunci penerbit, keanggotaan bertanda tangan kunci
@@ -517,7 +520,115 @@ export async function readMyRoles (): Promise<{ ok: boolean, why?: string, roles
   const r = await call('/me/roles', { method: 'POST', body: { learner: addr, message, signature: s.signature } })
   if (r.status !== 200 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
   const roles = (r.json.roles ?? {}) as { publisher?: PublisherSeat | null, agentOwner?: { agents?: OwnedAgent[] } | null }
-  return { ok: true, roles: { address: String(r.json.address ?? addr), publisher: roles.publisher ?? null, agents: roles.agentOwner?.agents ?? [] } }
+  return {
+    ok: true,
+    roles: {
+      address: String(r.json.address ?? addr), publisher: roles.publisher ?? null, agents: roles.agentOwner?.agents ?? [],
+      request: (r.json.publisherRequest as MemberRequest | null | undefined) ?? null, issuer: (r.json.publisherIssuer as PublisherRef | null | undefined) ?? null,
+    },
+  }
+}
+
+/**
+ * B129: ajukan diri menjadi anggota penerbit. Ditandatangani akun ini dan menyebut penerbitnya; pengajuan tidak memberi
+ * wewenang apa pun — kunci penerbit yang memutuskan.
+ */
+export async function requestPublisherMembership (issuer: string, note?: string): Promise<{ ok: boolean, why?: string, request?: MemberRequest }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-member-request issuer=${issuer.toLowerCase()} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/me/member-request', { method: 'POST', body: { learner: addr, note: note?.trim() || null, message, signature: s.signature } })
+  const request = (r.json?.request as MemberRequest | undefined) ?? undefined
+  if (r.status !== 201) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}`, request }
+  return { ok: true, request }
+}
+
+/** Bentuk jawaban `POST /publisher/overview` (B129). Jumlah uang dalam satuan terkecil token, sebagai string. */
+export type PublisherOverview = {
+  issuer: PublisherRef
+  seat: { via: 'issuer' | 'member', canHire: boolean, canAppoint: boolean, since: string | null }
+  includeTest: boolean
+  generatedAt: string
+  token: { address: string | null, symbol: string, decimals: number }
+  platformBps: number | null
+  /** Kontrak `SettlementSplit` tempat potongan platform dibaca (tautan BscScan). */
+  split: string | null
+  totals: {
+    courses: number, listedCourses: number, learners: number, enrollments: number, paidEnrollments: number,
+    gross: string, platform: string | null, net: string | null, essaysAwaitingReview: number, essaysAwaitingJudge: number,
+    chargesDue: { count: number, amount: string }, chargesPaid: { count: number, amount: string }
+  }
+  courses: {
+    id: string, title: string, level: string, topic: string | null, unlisted: boolean, price: string | null, passMark: number,
+    weights: { kuis: number, esai: number, praktik: number }, rubricHash: string | null, enrollments: number, paid: number, free: number,
+    gross: string, platform: string | null, net: string | null, essays: { awaitingJudge: number, awaitingReview: number, reviewed: number },
+    graders: string[], reviewers: string[]
+  }[]
+  learners: { learner: string, courseId: string, status: string, enrolledAt: string, origin: string, paid: { amount: string, tx: string | null, at: string } | null }[]
+  essays: {
+    /** `graded` = dinilai langsung oleh kunci penerbit — final, tidak butuh pengesahan (aturan gerbang migrasi 0009). */
+    pipeline: Record<'awaitingJudge' | 'insufficient' | 'awaitingReview' | 'approved' | 'adjusted' | 'rejected' | 'graded', number>
+    recent: {
+      attemptId: number, courseId: string | null, learner: string | null, lesson: string, attemptNo: number, status: string, words: number | null,
+      proposed: number | null, proposedBy: string | null, label: string | null,
+      review: { decision: string, finalScore: number | null, reviewerAgent: string | null, at: string } | null, at: string
+    }[]
+  }
+  agents: {
+    hires: { courseId: string, agentId: string, wallet: string, owner: string, hiredBy: string | null, byMember: boolean, at: string }[]
+    reviewers: { courseId: string, reviewer: string, agentId: string | null, owner: string | null, addedBy: string, byMember: boolean, at: string }[]
+    charges: { id: number, attemptId: number, activity: string, agentId: string, label: string | null, amount: string, status: string, tx: string | null, at: string }[]
+  }
+  revenue: { orders: { courseId: string | null, learner: string | null, amount: string, platform: string | null, net: string | null, tx: string | null, at: string }[] }
+  team: { members: { member: string, canHire: boolean, canAppoint: boolean, since: string }[], pendingRequests: number }
+}
+
+/** B129: dasbor penerbit — hanya untuk pemegang kursi Penerbit; ditandatangani dengan pesan khusus `lencana-publisher`. */
+export async function readPublisherOverview (includeTest = false, onStep?: (step: 0 | 1) => void): Promise<{ ok: boolean, status?: number, why?: string, data?: PublisherOverview }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-publisher nonce=${newNonce()}`
+  // Tahap yang benar-benar dilalui (seperti B126): tanda tangan, lalu penerbit + chain.
+  onStep?.(0)
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  onStep?.(1)
+  const r = await call('/publisher/overview', { method: 'POST', body: { learner: addr, includeTest, message, signature: s.signature }, timeoutMs: 30_000 })
+  if (r.status !== 200 || !r.json) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, data: r.json as unknown as PublisherOverview }
+}
+
+/** Fakta satu agen ERC-8004 dari registry lewat penerbit (`GET /agents/<id>/rates`, publik). */
+export type AgentRates = { agentId: string, registry: string, owner: string, wallet: string, token: string, baseTariff: string, rateCard: { label: string, amount: string }[] }
+export async function readAgentRates (agentId: string): Promise<{ ok: boolean, why?: string, rates?: AgentRates }> {
+  if (!/^\d+$/.test(agentId)) return { ok: false, why: 'agentId harus bilangan bulat' }
+  const r = await call(`/agents/${agentId}/rates`, { timeoutMs: 25_000 })
+  if (r.status !== 200 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, rates: r.json as unknown as AgentRates }
+}
+
+/** B129: anggota (hire=1) menyewa agen penilai untuk satu kursus, dengan tanda tangan akunnya sendiri. */
+export async function memberHireAgent (courseId: string, agentId: string): Promise<{ ok: boolean, why?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-pub-hire course=${courseId} agent=${agentId} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/publisher/agents/hire', { method: 'POST', body: { member: addr, course: courseId, agentId, message, signature: s.signature }, timeoutMs: 30_000 })
+  return r.status === 200 ? { ok: true } : { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+}
+
+/** B129: anggota (appoint=1) menunjuk agen pengesah; pesannya menyebut dompet agen yang dibaca dari registry. */
+export async function memberAppointReviewer (courseId: string, agentId: string, reviewerWallet: string): Promise<{ ok: boolean, why?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-pub-appoint course=${courseId} reviewer=${reviewerWallet.toLowerCase()} agent=${agentId} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/publisher/reviewers', { method: 'POST', body: { member: addr, course: courseId, agentId, reviewer: reviewerWallet, message, signature: s.signature }, timeoutMs: 30_000 })
+  return r.status === 200 ? { ok: true } : { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
 }
 
 /* ------------------------------------------------------------------ bayar & daftar (B125) */

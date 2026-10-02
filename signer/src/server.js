@@ -80,11 +80,15 @@ import {
   payCharge as payAgentCharge, getCharge as getAgentCharge,
 } from './agents.js'
 // Lencana-B128 status=TERBUKA 2026-10-02 — peran akun: POST /me/roles (peserta; penerbit lewat alamat penerbit atau keanggotaan bertanda tangan penerbit; Agent Owner lewat ownerOf di registry ERC-8004) dan POST /publisher/members (hibah/cabut bertanda tangan kunci penerbit). Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { getAddress } from 'viem'
+import { getAddress, isAddress } from 'viem'
 import { agentsOwnedBy } from './agents.js'
 import {
   grantMember as dbGrantMember, revokeMember as dbRevokeMember, membershipsOf as dbMembershipsOf, knownAgentIds as dbKnownAgentIds,
+  requestMembership as dbRequestMembership, latestRequest as dbLatestRequest, pendingRequests as dbPendingRequests, rejectRequest as dbRejectRequest,
+  publisherRecords as dbPublisherRecords, membersOf as dbMembersOf,
 } from './db.js'
+// Lencana-B129 status=TERBUKA 2026-10-02 — kursi Penerbit end-to-end: POST /me/member-request (pengajuan bertanda tangan akun), POST /publisher/overview (dasbor untuk penerbit + anggota aktif), POST /publisher/agents/hire dan POST /publisher/reviewers (aksi anggota dengan tanda tangannya sendiri bila hibahnya menyatakan hire=1 / appoint=1). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { overview as publisherOverview, readPlatformBps } from './publisher.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
 // orang lain melayani hal yang sama seperti yang kita uji — tanpa itu RPC/RESOLVER kosong dan
@@ -261,8 +265,6 @@ function accepts () {
  */
 async function rolesOf (address) {
   const addr = getAddress(String(address).toLowerCase())
-  const issuer = MANIFESTS[0]?.issuer
-  const isIssuer = Boolean(PAY_PAYEE) && addr.toLowerCase() === PAY_PAYEE.toLowerCase()
   // Keanggotaan (database) dan kepemilikan agen (chain) tidak saling bergantung — dibaca bersamaan.
   const ownedAgents = (async () => {
     if (!AGENTS_READY) return []
@@ -271,16 +273,27 @@ async function rolesOf (address) {
   })()
   // Ditunggu di bawah; penangan kosong ini hanya mencegah penolakan dini (sebelum `await`) terbaca "unhandled" dan mematikan proses.
   ownedAgents.catch(() => {})
-  const membership = isIssuer || !PAY_PAYEE
-    ? null
-    : (await dbMembershipsOf(addr)).find((m) => String(m.issuer).toLowerCase() === PAY_PAYEE.toLowerCase()) ?? null
-  const publisher = isIssuer
-    ? { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, since: null }
-    : membership
-      ? { issuer: getAddress(membership.issuer), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'member', canHire: membership.can_hire === true, canAppoint: membership.can_appoint === true, since: membership.granted_at }
-      : null
+  const publisher = await publisherSeat(addr)
+  // B129: status pengajuan anggota terakhir (menunggu / ditolak / disetujui) supaya halaman tahu tombol apa yang pantas.
+  const request = publisher || !PAY_PAYEE ? null : await dbLatestRequest(PAY_PAYEE, addr)
   const agents = await ownedAgents
-  return { address: addr, roles: { learner: true, publisher, agentOwner: agents.length ? { agents } : null } }
+  // B129: penerbit yang bisa dilamar — halaman menandatangani `lencana-member-request issuer=<alamat ini>`.
+  const publisherIssuer = PAY_PAYEE ? { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null } : null
+  return { address: addr, roles: { learner: true, publisher, agentOwner: agents.length ? { agents } : null }, publisherRequest: request, publisherIssuer }
+}
+
+/** Kursi Penerbit satu alamat: pemegang kunci penerbit (`issuer`) atau anggota aktif (`member`), atau null. */
+async function publisherSeat (address) {
+  if (!PAY_PAYEE) return null
+  const addr = getAddress(String(address).toLowerCase())
+  const issuer = MANIFESTS[0]?.issuer
+  if (addr.toLowerCase() === PAY_PAYEE.toLowerCase()) {
+    return { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, since: null }
+  }
+  const membership = (await dbMembershipsOf(addr)).find((m) => String(m.issuer).toLowerCase() === PAY_PAYEE.toLowerCase()) ?? null
+  return membership
+    ? { issuer: getAddress(membership.issuer), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'member', canHire: membership.can_hire === true, canAppoint: membership.can_appoint === true, since: membership.granted_at }
+    : null
 }
 
 /** 402 untuk enrollment kursus berbayar: syarat x402 yang sama dengan /verify, dengan jumlah = harga kursus. */
@@ -542,7 +555,8 @@ const server = createServer(async (req, res) => {
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
-      || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members') {
+      || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members'
+      || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -610,13 +624,72 @@ const server = createServer(async (req, res) => {
         }
         const out = body.revoke === true
           ? await dbRevokeMember({ issuer: body.issuer, member: body.member, message: body.message, signature: body.signature })
-          : await dbGrantMember({
-            issuer: body.issuer, member: body.member, canHire: body.canHire === true, canAppoint: body.canAppoint === true,
-            message: body.message, signature: body.signature,
-          })
+          : body.reject === true
+            // B129: tolak pengajuan — juga hanya kunci penerbit; kursi siapa pun tidak berubah.
+            ? await dbRejectRequest({ issuer: body.issuer, applicant: body.member, message: body.message, signature: body.signature })
+            : await dbGrantMember({
+              issuer: body.issuer, member: body.member, canHire: body.canHire === true, canAppoint: body.canAppoint === true,
+              message: body.message, signature: body.signature,
+            })
         if (!out.ok) return send(res, out.kind === 'auth' ? 401 : 400, jsonBody({ error: out.why }))
         const { ok, kind, ...granted } = out
         return send(res, 200, jsonBody(granted))
+      }
+      if (path === '/me/member-request') {
+        // B129: akun mengajukan diri dengan tanda tangannya sendiri; pengajuan tidak memberi wewenang apa pun.
+        if (!PAY_PAYEE) return send(res, 503, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher to apply to' }))
+        const out = await dbRequestMembership({ issuer: PAY_PAYEE, applicant: body.learner, note: body.note ?? null, message: body.message, signature: body.signature })
+        if (!out.ok) return send(res, ({ auth: 401, conflict: 409 })[out.kind] ?? 400, jsonBody({ error: out.why, ...(out.request ? { request: out.request } : {}) }))
+        return send(res, 201, jsonBody({ request: out.request }))
+      }
+      if (path === '/publisher/overview') {
+        // B129: dasbor penerbit — hanya untuk pemegang kursi Penerbit (kunci penerbit atau anggota aktif).
+        if (typeof body.message !== 'string' || !/^lencana-publisher nonce=[0-9a-f]{12,}$/.test(body.message)) {
+          return send(res, 400, jsonBody({ error: 'message must be "lencana-publisher nonce=<hex>"' }))
+        }
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'publisher' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        const seat = await publisherSeat(body.learner)
+        if (!seat) return send(res, 403, jsonBody({ error: 'this account holds no publisher seat — apply for membership first' }))
+        const manifests = MANIFESTS.filter((m) => !m.issuer.eoa || String(m.issuer.eoa).toLowerCase() === PAY_PAYEE.toLowerCase())
+        const includeTest = body.includeTest === true
+        const [records, platformBps, members, pending] = await Promise.all([
+          dbPublisherRecords({ courseIds: manifests.map((m) => m.course.id), includeTest }),
+          readPlatformBps(RPC_URL, PAY_SPLIT),
+          dbMembersOf(PAY_PAYEE),
+          dbPendingRequests(PAY_PAYEE).then((r) => r.length),
+        ])
+        return send(res, 200, jsonBody(publisherOverview({
+          issuer: { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null },
+          seat: { via: seat.via, canHire: seat.canHire, canAppoint: seat.canAppoint, since: seat.since },
+          manifests, priceOf, records, platformBps, members, pending, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null,
+          token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
+        })))
+      }
+      if (path === '/publisher/agents/hire' || path === '/publisher/reviewers') {
+        // B129: aksi anggota dengan tanda tangannya sendiri. Kursi + wewenang diperiksa di sini; tanda tangan atas pesan yang
+        // menyebut kursus + agen (+ dompet pengesah) diperiksa `hireAgent` / `addReviewer`, nonce sekali-pakai seperti jalur penerbit.
+        if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent hiring is not configured on this server', missing: dbMissingReason() }))
+        if (!isAddress(String(body.member ?? ''))) return send(res, 400, jsonBody({ error: 'member must be the address of the account that signs' }))
+        const seat = await publisherSeat(body.member)
+        if (!seat) return send(res, 403, jsonBody({ error: 'this account holds no publisher seat' }))
+        const isHire = path === '/publisher/agents/hire'
+        if (isHire ? !seat.canHire : !seat.canAppoint) {
+          return send(res, 403, jsonBody({ error: `this membership does not include ${isHire ? 'hire=1 (hiring grading agents)' : 'appoint=1 (appointing reviewer agents)'}` }))
+        }
+        const actor = getAddress(String(body.member).toLowerCase())
+        if (isHire) {
+          const h = await agentHireRoute(AGENTS_CFG, { course: body.course, agentId: body.agentId, message: body.message, signature: body.signature }, (c) => Boolean(manifestOf(c)), actor)
+          const { ok, status, why, ...rest } = h
+          return send(res, ok ? 200 : status, jsonBody(ok ? rest : { error: why }))
+        }
+        if (!manifestOf(body.course)) return send(res, 400, jsonBody({ error: `course ${body.course} is not in the catalogue` }))
+        const ag = await appointReviewerAgent(AGENTS_CFG, {
+          course: body.course, agentId: body.agentId, reviewer: body.reviewer, issuer: PAY_PAYEE, message: body.message, signature: body.signature,
+        }, actor)
+        return ag.ok
+          ? send(res, 200, jsonBody({ course: ag.courseId, reviewer: ag.reviewer, addedBy: ag.addedBy, agentId: ag.agentId, agentOwner: ag.agentOwner }))
+          : send(res, ag.status, jsonBody({ error: ag.why }))
       }
       if (path === '/progress') {
         const out = await dbSetProgress({

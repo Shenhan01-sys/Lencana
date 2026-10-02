@@ -1,0 +1,72 @@
+/* seats.css — pemilih kursi Peserta/Penerbit dan kotak pengajuan anggota (B129). */
+
+/* ---------------------------------------------------------------- pemilih kursi */
+.seat-slot:empty { display: none; }
+.seat-slot.side { padding: 0 2px 14px; margin-bottom: 8px; border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08)); }
+.seat-slot.top { display: none; }
+.seat-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border: 1px solid rgba(240, 185, 11, 0.28);
+  border-radius: 999px;
+  background: rgba(240, 185, 11, 0.05);
+}
+.seat-switch a {
+  display: grid;
+  place-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  color: var(--text-secondary, #a9b0ba);
+  font: 700 12px var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.seat-switch a:hover { color: #f4f1ea; }
+.seat-switch a.on { background: #f0b90b; color: #14110a; box-shadow: 0 6px 18px rgba(240, 185, 11, 0.25); }
+
+/* ---------------------------------------------------------------- kotak pengajuan */
+.seat-apply { display: grid; gap: 10px; }
+.seat-apply-note {
+  width: 100%;
+  min-height: 58px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #f4f1ea;
+  font: inherit;
+  font-size: 13.5px;
+}
+.seat-apply-note:focus { outline: none; border-color: rgba(240, 185, 11, 0.55); }
+.seat-apply-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.seat-apply-status { margin: 0; color: var(--text-secondary, #a9b0ba); font-size: 13px; line-height: 1.5; }
+.seat-apply-status.bad { color: #ff6b6b; }
+.seat-apply-status.ok { color: #37d67a; }
+.seat-apply-how { margin: 0; font-size: 12.5px !important; line-height: 1.5; }
+.seat-apply-state { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.03); }
+.seat-apply-state div { display: grid; gap: 2px; }
+.seat-apply-state strong { font-size: 14px; }
+.seat-apply-state small { color: var(--text-secondary, #a9b0ba); font-size: 12.5px; }
+.seat-dot { flex: none; width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; }
+.seat-apply-state.wait { border: 1px solid rgba(240, 185, 11, 0.3); }
+.seat-apply-state.wait .seat-dot { background: #f0b90b; animation: seat-pulse 1.6s ease-in-out infinite; }
+.seat-apply-state.bad { border: 1px solid rgba(255, 107, 107, 0.3); }
+.seat-apply-state.bad .seat-dot { background: #ff6b6b; }
+@keyframes seat-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(240, 185, 11, 0.5); } 50% { box-shadow: 0 0 0 6px rgba(240, 185, 11, 0); } }
+@media (prefers-reduced-motion: reduce) { .seat-apply-state.wait .seat-dot { animation: none; } }
+
+/* onboarding: kotak pengajuan di kartu kursi */
+.app-welcome .wel-seat-act .seat-apply { width: 100%; }
+.app-welcome .wel-seat-act .seat-apply-how { color: var(--text-secondary, #a9b0ba); }
+
+@media (max-width: 860px) {
+  .app-shell .app-side .seat-slot { display: none; }
+  .seat-slot.top { display: block; margin: 0 0 14px; }
+  .seat-slot.top .seat-switch { max-width: 320px; }
+}

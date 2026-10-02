@@ -737,10 +737,14 @@ async function authorizeSigner ({ signer, message, signature, scope }) {
  * Penerbit menunjuk reviewer untuk satu kursus. Pesan yang ditandatangani harus menyebut kursus dan
  * alamat reviewernya: tanda tangan atas nonce saja bisa ditempelkan ke penunjukan siapa pun.
  */
-export async function addReviewer ({ courseId, reviewer, issuer, message, signature, agent = null }) {
+export async function addReviewer ({ courseId, reviewer, issuer, signer = issuer, message, signature, agent = null }) {
   if (typeof reviewer !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(reviewer)) return { ok: false, why: 'reviewer must be a 20-byte address' }
   if (reviewer.toLowerCase() === String(issuer).toLowerCase()) {
     return { ok: false, why: 'the publisher cannot appoint itself as reviewer — the review must come from a different key' }
+  }
+  // B129: anggota penerbit (`appoint=1`) boleh menunjuk — tetapi tidak menunjuk dirinya sendiri.
+  if (reviewer.toLowerCase() === String(signer).toLowerCase()) {
+    return { ok: false, why: 'a member cannot appoint itself as reviewer — the review must come from a different key' }
   }
   // B120: reviewer agen ERC-8004 — faktanya dibaca dari registry oleh pemanggil (`src/agents.js`);
   // pesan penerbit wajib menyebut agentId-nya juga.
@@ -748,16 +752,16 @@ export async function addReviewer ({ courseId, reviewer, issuer, message, signat
   if (typeof message !== 'string' || !wants.every((w) => message.toLowerCase().includes(w.toLowerCase()))) {
     return { ok: false, why: `signed message must state ${wants.join(' and ')}` }
   }
-  const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'review-role' })
+  const auth = await authorizeSigner({ signer, message, signature, scope: 'review-role' })
   if (!auth.ok) return auth
   await rest('review_roles', {
     method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
     body: [{
-      course_id: courseId, reviewer: getAddress(reviewer), added_by: getAddress(issuer), message, signature,
+      course_id: courseId, reviewer: getAddress(reviewer), added_by: getAddress(signer), message, signature,
       agent_id: agent ? String(agent.agentId) : null, agent_owner: agent ? getAddress(agent.owner) : null,
     }],
   })
-  return { ok: true, courseId, reviewer: getAddress(reviewer), addedBy: getAddress(issuer), agentId: agent ? String(agent.agentId) : null }
+  return { ok: true, courseId, reviewer: getAddress(reviewer), addedBy: getAddress(signer), agentId: agent ? String(agent.agentId) : null }
 }
 
 /* ------------------------------------------------------------------ anggota penerbit (B128, D63) */
@@ -789,7 +793,16 @@ export async function grantMember ({ issuer, member, canHire, canAppoint, messag
       origin: process.env.LANCENA_ORIGIN || 'unknown',
     }],
   })
-  return { ok: true, issuer: getAddress(issuer), member: getAddress(member), canHire: Boolean(canHire), canAppoint: Boolean(canAppoint) }
+  // B129: hibah yang sama menutup pengajuan akun itu (kalau ada) — keputusan penerbit tercatat di kedua tabel.
+  const closed = await rest('member_requests', {
+    method: 'PATCH', prefer: 'return=representation',
+    query: `?issuer=eq.${getAddress(issuer)}&applicant=eq.${getAddress(member)}&status=eq.pending`,
+    body: { status: 'approved', decided_at: new Date().toISOString(), decided_message: message, decided_signature: signature },
+  })
+  return {
+    ok: true, issuer: getAddress(issuer), member: getAddress(member), canHire: Boolean(canHire), canAppoint: Boolean(canAppoint),
+    approvedRequest: closed?.[0]?.id ?? null,
+  }
 }
 
 /** Cabut keanggotaan: pesan `lencana-member revoke member=… nonce=…` bertanda tangan penerbit. Baris tetap ada sebagai jejak. */
@@ -813,6 +826,121 @@ export async function revokeMember ({ issuer, member, message, signature }) {
 export async function membershipsOf (address) {
   const rows = await rest('publisher_members', {
     query: `?member=eq.${getAddress(String(address).toLowerCase())}&revoked_at=is.null&select=issuer,member,can_hire,can_appoint,granted_at&order=granted_at.asc`,
+  })
+  return rows ?? []
+}
+
+/* ------------------------------------------------------------------ pengajuan anggota (B129, D64) */
+// Lencana-B129 status=TERBUKA 2026-10-02 — pengajuan anggota penerbit: ditandatangani akun pengaju, satu yang menunggu per (penerbit, pengaju), disetujui hanya oleh hibah kunci penerbit dan ditolak hanya oleh pesan tolak kunci penerbit; pengajuan sendiri tidak memberi wewenang. Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+const projectRequest = (r) => (r
+  ? { id: Number(r.id), status: r.status, note: r.note ?? null, createdAt: r.created_at, decidedAt: r.decided_at ?? null }
+  : null)
+
+/** Pengajuan terakhir satu akun ke satu penerbit (apa pun statusnya), atau null. */
+export async function latestRequest (issuer, applicant) {
+  const rows = await rest('member_requests', {
+    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}&applicant=eq.${getAddress(String(applicant).toLowerCase())}&order=created_at.desc&limit=1&select=*`,
+  })
+  return projectRequest(rows?.[0])
+}
+
+/**
+ * Akun mengajukan diri menjadi anggota penerbit (pilihan builder 2 Okt, D64: "ajukan → disetujui"). Pesan ditandatangani
+ * pengaju dan menyebut penerbitnya; catatan opsional ≤ 280 karakter. Pengajuan tidak memberi wewenang apa pun — kursi
+ * hanya lahir dari hibah kunci penerbit (`grantMember`), yang sekaligus menutup pengajuan ini sebagai `approved`.
+ */
+export async function requestMembership ({ issuer, applicant, note, message, signature }) {
+  if (typeof applicant !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(applicant)) return { ok: false, kind: 'input', why: 'applicant must be a 20-byte address' }
+  if (applicant.toLowerCase() === String(issuer).toLowerCase()) return { ok: false, kind: 'input', why: 'the publisher key is the publisher itself — it does not apply for membership' }
+  if (note != null && (typeof note !== 'string' || note.length > 280)) return { ok: false, kind: 'input', why: 'note must be text of at most 280 characters' }
+  const want = `lencana-member-request issuer=${String(issuer).toLowerCase()}`
+  if (typeof message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "${want} nonce=<hex>"` }
+  }
+  const auth = await authorizeLearner({ learner: applicant, message, signature, scope: 'member-request' })
+  if (!auth.ok) return { ok: false, kind: 'auth', why: auth.why }
+  if ((await membershipsOf(applicant)).some((m) => String(m.issuer).toLowerCase() === String(issuer).toLowerCase())) {
+    return { ok: false, kind: 'conflict', why: 'this account is already a member of the publisher' }
+  }
+  try {
+    const rows = await rest('member_requests', {
+      method: 'POST', prefer: 'return=representation',
+      body: [{
+        issuer: getAddress(issuer), applicant: getAddress(applicant), note: note?.trim() || null, message, signature,
+        origin: process.env.LANCENA_ORIGIN || 'unknown',
+      }],
+    })
+    return { ok: true, request: projectRequest(rows?.[0]) }
+  } catch (e) {
+    // Indeks unik parsial: paling banyak satu pengajuan `pending` per (penerbit, pengaju).
+    if (/23505|duplicate key/.test(String(e.message))) {
+      return { ok: false, kind: 'conflict', why: 'there is already a pending request for this publisher', request: await latestRequest(issuer, applicant) }
+    }
+    throw e
+  }
+}
+
+/** Pengajuan yang menunggu keputusan penerbit, terlama dulu (untuk `npm run grant:member -- --list`). */
+export async function pendingRequests (issuer) {
+  const rows = await rest('member_requests', {
+    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}&status=eq.pending&order=created_at.asc&select=id,applicant,note,created_at,origin`,
+  })
+  return rows ?? []
+}
+
+/** Penerbit menolak pengajuan: pesan `lencana-member reject member=… nonce=…` bertanda tangan kunci penerbit. */
+export async function rejectRequest ({ issuer, applicant, message, signature }) {
+  if (typeof applicant !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(applicant)) return { ok: false, kind: 'input', why: 'applicant must be a 20-byte address' }
+  if (typeof message !== 'string' || !new RegExp(`^lencana-member reject member=${applicant.toLowerCase()} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "lencana-member reject member=${applicant.toLowerCase()} nonce=<hex>"` }
+  }
+  const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'member' })
+  if (!auth.ok) return auth
+  const rows = await rest('member_requests', {
+    method: 'PATCH', prefer: 'return=representation',
+    query: `?issuer=eq.${getAddress(issuer)}&applicant=eq.${getAddress(applicant)}&status=eq.pending`,
+    body: { status: 'rejected', decided_at: new Date().toISOString(), decided_message: message, decided_signature: signature },
+  })
+  if (!rows?.length) return { ok: false, kind: 'input', why: 'no pending request from this account' }
+  return { ok: true, request: projectRequest(rows[0]) }
+}
+
+/**
+ * Bahan dasbor penerbit (B129): baris mentah untuk kursus-kursus penerbit itu. Yang SENGAJA tidak dibaca: teks esai,
+ * kunci jawaban, pesan + tanda tangan. Baris harness (`origin=test`) disaring kecuali diminta — angka demo tidak boleh
+ * tercampur sisa uji tanpa terlihat.
+ */
+export async function publisherRecords ({ courseIds, includeTest = false }) {
+  const inList = (xs) => `(${xs.map((x) => encodeURIComponent(String(x))).join(',')})`
+  const empty = { enrollments: [], orders: [], essays: [], submissions: [], reviews: [], hires: [], reviewers: [], charges: [] }
+  if (!courseIds?.length) return empty
+  const enrollments = (await rest('enrollments', {
+    query: `?course_id=in.${inList(courseIds)}${includeTest ? '' : '&origin=neq.test'}&select=id,learner,course_id,status,enrolled_at,origin&order=enrolled_at.desc&limit=5000`,
+  })) ?? []
+  const ids = enrollments.map((e) => e.id)
+  const [orders, essays, hires, reviewers] = await Promise.all([
+    ids.length ? rest('orders', { query: `?enrollment_id=in.${inList(ids)}&select=id,enrollment_id,asset,amount,state,tx_hash,created_at&order=created_at.desc` }) : [],
+    ids.length ? rest('attempts', { query: `?enrollment_id=in.${inList(ids)}&kind=eq.esai&select=id,enrollment_id,lesson_key,attempt_no,score,verdict,judge_model,graded_by_agent,difficulty_label,created_at&order=created_at.desc` }) : [],
+    rest('agent_hires', { query: `?course_id=in.${inList(courseIds)}&select=course_id,agent_id,agent_wallet,agent_owner,hired_by,hired_at&order=hired_at.desc` }),
+    rest('review_roles', { query: `?course_id=in.${inList(courseIds)}&select=course_id,reviewer,added_by,added_at,agent_id,agent_owner&order=added_at.desc` }),
+  ])
+  const attemptIds = (essays ?? []).map((a) => a.id)
+  const [submissions, reviews, charges] = await Promise.all([
+    attemptIds.length ? rest('submissions', { query: `?attempt_id=in.${inList(attemptIds)}&select=attempt_id,state,words,awaiting_since,judged_at` }) : [],
+    attemptIds.length ? rest('judgement_reviews', { query: `?attempt_id=in.${inList(attemptIds)}&select=attempt_id,decision,proposed,final_score,reviewer,reviewer_agent_id,difficulty_label,reviewed_at` }) : [],
+    attemptIds.length ? rest('agent_charges', { query: `?attempt_id=in.${inList(attemptIds)}&select=id,attempt_id,activity,agent_id,label,amount,token,status,settle_tx,created_at,paid_at&order=created_at.desc` }) : [],
+  ])
+  return {
+    enrollments, orders: orders ?? [], essays: essays ?? [], submissions: submissions ?? [], reviews: reviews ?? [],
+    hires: hires ?? [], reviewers: reviewers ?? [], charges: charges ?? [],
+  }
+}
+
+/** Anggota aktif satu penerbit (untuk tim di dasbor). */
+export async function membersOf (issuer) {
+  const rows = await rest('publisher_members', {
+    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}&revoked_at=is.null&select=member,can_hire,can_appoint,granted_at,origin&order=granted_at.asc`,
   })
   return rows ?? []
 }
@@ -957,21 +1085,25 @@ export async function reviewEssay ({ attemptId, reviewer, decision, scores, essa
  * registry ERC-8004 oleh pemanggil (`src/agents.js`) dan diserahkan ke sini; fungsi ini hanya menuntut
  * tanda tangan penerbit atas pesan yang menyebut kursus dan `agentId`-nya.
  */
-export async function hireAgent ({ courseId, agent, publisher, message, signature }) {
+/**
+ * @param signer  yang menandatangani sewa: kunci penerbit (bawaan), atau — sejak B129 — anggota penerbit yang hibahnya
+ *                menyatakan `hire=1` (diperiksa pemanggil). `hired_by` mencatat siapa yang menandatangani.
+ */
+export async function hireAgent ({ courseId, agent, publisher, signer = publisher, message, signature }) {
   const wants = [`course=${courseId}`, `agent=${agent.agentId}`]
   if (typeof message !== 'string' || !wants.every((w) => new RegExp(`(^|\\s)${w}(\\s|$)`).test(message))) {
     return { ok: false, kind: 'auth', why: `signed message must state ${wants.join(' and ')}` }
   }
-  const auth = await authorizeSigner({ signer: publisher, message, signature, scope: 'agent-hire' })
+  const auth = await authorizeSigner({ signer, message, signature, scope: 'agent-hire' })
   if (!auth.ok) return auth
   await rest('agent_hires', {
     method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
     body: [{
       course_id: courseId, agent_id: String(agent.agentId), registry: agent.registry, agent_wallet: getAddress(agent.wallet),
-      agent_owner: getAddress(agent.owner), hired_by: getAddress(publisher), message, signature,
+      agent_owner: getAddress(agent.owner), hired_by: getAddress(signer), message, signature,
     }],
   })
-  return { ok: true, courseId, agentId: String(agent.agentId), wallet: getAddress(agent.wallet), owner: getAddress(agent.owner) }
+  return { ok: true, courseId, agentId: String(agent.agentId), wallet: getAddress(agent.wallet), owner: getAddress(agent.owner), hiredBy: getAddress(signer) }
 }
 
 export async function agentHiresFor (courseId) {

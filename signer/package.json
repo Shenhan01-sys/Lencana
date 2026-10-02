@@ -19,6 +19,7 @@
     "verify:quizkeys": "tsx scripts/quiz-keys-check.js",
     "verify:records": "tsx scripts/records-check.js",
     "verify:roles": "tsx scripts/roles-check.js",
+    "verify:publisher": "tsx scripts/publisher-check.js",
     "grant:member": "node scripts/grant-member.js",
     "verify:paywall": "tsx scripts/paywall-check.js",
     "verify:paywall:live": "tsx scripts/paywall-check.js --live",

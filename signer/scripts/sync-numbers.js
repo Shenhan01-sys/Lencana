@@ -88,6 +88,7 @@ const HARNESS = [
   { id: 'records', label: 'verify:records (rekaman milik peserta, bertanda tangan)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:records']], re: /REKAMAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'paywall', label: 'verify:paywall (bayar dulu baru masuk kelas, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:paywall']], re: /PAYWALL (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'roles', label: 'verify:roles (peran akun: penerbit, anggota, Agent Owner)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:roles']], re: /PERAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'publisher', label: 'verify:publisher (pengajuan anggota, dasbor penerbit, aksi anggota)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:publisher']], re: /KURSI PENERBIT (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -211,6 +212,7 @@ const DOC_CLAIMS = [
   { file: '09-Testing/T45 - signer records-check.js (B124 rekaman milik peserta).md', metric: 'records', want: (m) => `REKAMAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T45 (rekaman milik peserta)' },
   { file: '09-Testing/T46 - signer paywall-check.js (B125 bayar dulu).md', metric: 'paywall', want: (m) => `PAYWALL HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T46 (bayar dulu baru masuk kelas)' },
   { file: '09-Testing/T50 - signer roles-check.js (B128 peran akun).md', metric: 'roles', want: (m) => `PERAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T50 (peran akun)' },
+  { file: '09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit).md', metric: 'publisher', want: (m) => `KURSI PENERBIT HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T52 (kursi Penerbit)' },
   { file: 'Quick-Reference.md', metric: 'privy', want: (m) => new RegExp(`LOGIN PRIVY HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:privy di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]

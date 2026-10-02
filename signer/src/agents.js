@@ -78,11 +78,19 @@ export async function rates (cfg, agentId) {
   }
 }
 
-export async function hire (cfg, body, knownCourse) {
+/**
+ * @param actor  null = kunci penerbit sendiri (jalur B119). Sejak B129: alamat anggota penerbit yang hibahnya menyatakan
+ *               `hire=1` — keanggotaannya diperiksa pemanggil, tanda tangannya diperiksa `hireAgent`.
+ */
+export async function hire (cfg, body, knownCourse, actor = null) {
   if (!knownCourse(body?.course)) return fail(404, `course ${body?.course} is not in the catalogue`)
-  if (!same(body?.publisher, cfg.publisher)) return fail(401, `agents are hired by the configured publisher (${cfg.publisher})`)
+  if (!actor && !same(body?.publisher, cfg.publisher)) return fail(401, `agents are hired by the configured publisher (${cfg.publisher})`)
   const f = await agentFacts(cfg, body?.agentId)
   if (!f.ok) return f
+  // Lencana-B129 status=TERBUKA 2026-10-02 — anggota penerbit menyewa dan menunjuk agen dengan tanda tangannya sendiri, tetapi tidak agen yang ia miliki atau operasikan (ia akan membayar dirinya dari uang penerbit). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  if (actor && (same(f.agent.owner, actor) || same(f.agent.wallet, actor))) {
+    return fail(422, `agent ${f.agent.agentId} is owned or operated by the member hiring it — a member cannot hire their own agent with the publisher's money`)
+  }
   // B120, arah sebaliknya: aturan "penilai ≠ reviewer" dijaga saat menyewa JUGA, bukan hanya saat
   // menunjuk reviewer. Tanpa ini, menunjuk reviewer dulu lalu menyewanya sebagai penilai lolos —
   // dan itu terjadi sungguhan 1 Okt (baris residu dari run harness pertama, dicatat di T37).
@@ -90,7 +98,9 @@ export async function hire (cfg, body, knownCourse) {
     if (String(rv.agent_id) === f.agent.agentId) return fail(422, `agent ${f.agent.agentId} is appointed as a reviewer for this course — it cannot also grade here`)
     if (same(rv.agent_owner, f.agent.owner)) return fail(422, `agent ${f.agent.agentId} has the same Agent Owner as reviewer agent ${rv.agent_id}`)
   }
-  const out = await hireAgent({ courseId: body.course, agent: f.agent, publisher: cfg.publisher, message: body.message, signature: body.signature })
+  const out = await hireAgent({
+    courseId: body.course, agent: f.agent, publisher: cfg.publisher, signer: actor ?? cfg.publisher, message: body.message, signature: body.signature,
+  })
   if (!out.ok) return fail(out.kind === 'auth' ? 401 : 422, out.why)
   return { ok: true, status: 200, ...out, baseTariff: f.agent.tariff.amount.toString(), token: f.agent.tariff.token }
 }
@@ -121,20 +131,26 @@ export async function agentJudge (cfg, body, found) {
   return { ok: true, status: 200, ...out, agentId: f.agent.agentId, charge }
 }
 
-/** B120 — penunjukan reviewer agen: agen lain, pemilik lain, dari setiap penilai yang disewa kursus itu. */
-export async function appointReviewerAgent (cfg, body) {
+/**
+ * B120 — penunjukan reviewer agen: agen lain, pemilik lain, dari setiap penilai yang disewa kursus itu.
+ * @param actor  null = kunci penerbit (`body.issuer`). Sejak B129: anggota penerbit dengan `appoint=1` (diperiksa pemanggil).
+ */
+export async function appointReviewerAgent (cfg, body, actor = null) {
   const graderHires = await agentHiresFor(body?.course)
   const f = await agentFacts(cfg, body?.agentId)
   if (!f.ok) return f
   if (!isAddress(String(body?.reviewer ?? '')) || !same(body.reviewer, f.agent.wallet)) {
     return fail(422, `reviewer ${body?.reviewer} is not the agentWallet of agent ${body?.agentId} (${f.agent.wallet})`)
   }
+  if (actor && (same(f.agent.owner, actor) || same(f.agent.wallet, actor))) {
+    return fail(422, `agent ${f.agent.agentId} is owned or operated by the member appointing it — a member cannot appoint their own agent`)
+  }
   for (const g of graderHires) {
     if (String(g.agent_id) === f.agent.agentId) return fail(422, `agent ${f.agent.agentId} is hired as a grader for this course — it cannot review its own kind of work here`)
     if (same(g.agent_owner, f.agent.owner)) return fail(422, `agent ${f.agent.agentId} has the same Agent Owner as grader agent ${g.agent_id}`)
   }
   const out = await addReviewer({
-    courseId: body.course, reviewer: f.agent.wallet, issuer: body.issuer, message: body.message, signature: body.signature,
+    courseId: body.course, reviewer: f.agent.wallet, issuer: body.issuer, signer: actor ?? body.issuer, message: body.message, signature: body.signature,
     agent: { agentId: f.agent.agentId, owner: f.agent.owner },
   })
   if (!out.ok) return fail(out.kind === 'auth' ? 401 : 422, out.why)
