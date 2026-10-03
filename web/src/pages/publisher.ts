@@ -33,6 +33,7 @@ import { emblem, topicColor } from '../lib/emblem'
 import { odometer } from '../lib/odometer'
 import { skeleton, steps } from '../lib/loading'
 import { mountSeatSwitch, applyBox, navIcon, guardSeat } from './seats'
+import { agentMarketView } from './agent-market'
 
 type Lang = 'en' | 'id'
 type PubSection = 'overview' | 'courses' | 'author' | 'learners' | 'essays' | 'agents' | 'revenue'
@@ -161,6 +162,7 @@ const COPY = {
   due: { en: 'due', id: 'jatuh tempo' },
   paidState: { en: 'paid', id: 'lunas' },
   noCharges: { en: 'No charges yet.', id: 'Belum ada tagihan.' },
+  manualTitle: { en: 'Agent not in the market yet? Look it up by its number', id: 'Agen belum ada di bursa? Cari dengan nomornya' },
   hireTitle: { en: 'Hire a grading agent', id: 'Sewa agen penilai' },
   appointTitle: { en: 'Appoint a reviewer agent', id: 'Tunjuk agen pengesah' },
   agentId: { en: 'ERC-8004 agent id', id: 'agentId ERC-8004' },
@@ -514,28 +516,13 @@ function renderEssays (lang: Lang, o: O): HTMLElement {
 }
 
 /* ------------------------------------------------------------------ Agen */
+// B138 (D70): tab Agen = bursa agen (pages/agent-market.ts). Formulir nomor agen lama tetap ada, dilipat, untuk agen yang
+// belum dikenal platform; tagihan agen tetap di bawahnya.
 function renderAgents (lang: Lang, o: O, reload: () => void): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
-  const fmt = (iso: string) => new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium' })
-  const byWho = (byMember: boolean, who: string | null) => (byMember ? `${T('byMemberWord')} ${short(who)}` : T('byKey'))
-  const idCard = (agentId: string | null, courseId: string, lines: (HTMLElement | string | null)[], at: string) => h('li', { class: 'pb-idcard' },
-    h('div', { class: 'pb-idcard-top' }, agentId ? agentLink(agentId) : h('span', { class: 'app-tag' }, T('notAgent')), h('span', null, courseOf(courseId)?.title ?? courseId)),
-    ...lines.filter(Boolean).map((l) => h('small', null, l)),
-    h('small', { class: 'pb-sub' }, fmt(at)))
-
-  const lists = h('div', { class: 'ov-grid' },
-    h('section', { class: 'app-card lc-enter', style: enter(0) }, h('h2', null, T('hired')),
-      o.agents.hires.length
-        ? h('ul', { class: 'pb-idcards' }, ...o.agents.hires.map((x) => idCard(x.agentId, x.courseId, [`${T('wallet')} ${short(x.wallet)}`, `${T('owner')} ${short(x.owner)}`, `${T('by')} ${byWho(x.byMember, x.hiredBy)}`], x.at)))
-        : h('p', { class: 'app-muted' }, T('none'))),
-    h('section', { class: 'app-card lc-enter', style: enter(1) }, h('h2', null, T('appointed')),
-      o.agents.reviewers.length
-        ? h('ul', { class: 'pb-idcards' }, ...o.agents.reviewers.map((x) => idCard(x.agentId, x.courseId, [`${T('wallet')} ${short(x.reviewer)}`, x.owner ? `${T('owner')} ${short(x.owner)}` : null, `${T('by')} ${byWho(x.byMember, x.addedBy)}`], x.at)))
-        : h('p', { class: 'app-muted' }, T('none'))))
-
-  const actions = h('div', { class: 'ov-grid' },
-    actionForm(lang, o, 'hire', reload),
-    actionForm(lang, o, 'appoint', reload))
+  const manual = h('details', { class: 'app-card pb-manual lc-enter', style: enter(4) },
+    h('summary', null, T('manualTitle')),
+    h('div', { class: 'ov-grid' }, actionForm(lang, o, 'hire', reload), actionForm(lang, o, 'appoint', reload)))
 
   const charges = h('section', { class: 'app-card lc-enter', style: enter(4) }, h('h2', null, T('chargesTitle')),
     h('div', { class: 'pb-due' }, h('span', { class: 'pb-due-dot', 'aria-hidden': 'true' }),
@@ -551,7 +538,7 @@ function renderAgents (lang: Lang, o: O, reload: () => void): HTMLElement {
         h('td', { 'data-label': T('status') }, h('span', { class: `gr-chip ${c.status === 'paid' ? 'ok' : 'wait'}` }, c.status === 'paid' ? T('paidState') : T('due')))))))))
   } else charges.appendChild(h('p', { class: 'app-muted' }, T('noCharges')))
   charges.appendChild(h('p', { class: 'app-muted ov-small' }, T('chargesNote')))
-  return h('div', { class: 'app-stack' }, lists, actions, charges)
+  return agentMarketView(lang, o, reload, [manual, charges])
 }
 
 /**

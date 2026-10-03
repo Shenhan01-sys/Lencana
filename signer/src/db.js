@@ -1256,6 +1256,28 @@ export async function saveAgentBrain ({ agentId, owner, provider, model, calibra
   return rows?.[0] ?? null
 }
 
+/* ------------------------------------------------------------------ bursa agen (B138, D70) */
+// Lencana-B138 status=TERBUKA 2026-10-03 — bahan bursa agen: tempat bekerja, jumlah aktivitas, keputusan pengesah atas usulan agen, peran templat registrasi, otak tercatat — tanpa teks esai, alamat peserta, alamat penyewa, atau tanda tangan. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** Bahan bursa agen untuk agen-agen yang dikenal platform. Kepemilikan, dompet, dan tarif tetap dibaca dari chain. */
+export async function marketRecords (agentIds) {
+  if (!agentIds?.length) return { hires: [], reviewers: [], graded: [], reviews: [], verdicts: [], minted: [], brains: [] }
+  const ids = `(${agentIds.map((x) => encodeURIComponent(String(x))).join(',')})`
+  const [hires, reviewers, graded, reviews, verdicts, minted, brains] = await Promise.all([
+    rest('agent_hires', { query: `?agent_id=in.${ids}&select=course_id,agent_id,agent_wallet,hired_at&order=hired_at.asc` }),
+    rest('review_roles', { query: `?agent_id=in.${ids}&select=course_id,agent_id,reviewer,added_at&order=added_at.asc` }),
+    rest('attempts', { query: `?graded_by_agent=in.${ids}&select=graded_by_agent,difficulty_label&limit=5000` }),
+    rest('judgement_reviews', { query: `?reviewer_agent_id=in.${ids}&select=reviewer_agent_id,decision,difficulty_label&limit=5000` }),
+    // Keputusan pengesah atas usulan agen-agen ini: approved / adjusted / rejected (B104) — sinyal mutu yang dihasilkan manusia.
+    rest('judgement_reviews', { query: `?select=decision,attempts!inner(graded_by_agent)&attempts.graded_by_agent=in.${ids}&limit=5000` }),
+    rest('platform_agents', { query: `?agent_id=in.${ids}&select=agent_id,role` }),
+    agentBrains(agentIds),
+  ])
+  return {
+    hires: hires ?? [], reviewers: reviewers ?? [], graded: graded ?? [], reviews: reviews ?? [], verdicts: verdicts ?? [],
+    minted: minted ?? [], brains: brains ?? [],
+  }
+}
+
 /** Di kursus mana saja satu agen disewa sebagai penilai, dengan dompet saat disewa (antrean dompet agen). */
 export async function hiresOfAgent (agentId) {
   return (await rest('agent_hires', { query: `?agent_id=eq.${encodeURIComponent(String(agentId))}&select=course_id,agent_wallet,hired_at&order=hired_at.asc` })) ?? []

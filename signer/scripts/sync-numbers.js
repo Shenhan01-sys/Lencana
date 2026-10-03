@@ -95,6 +95,8 @@ const HARNESS = [
   { id: 'studio', label: 'verify:studio (robot agen: rupa, templat registrasi, klaim swalayan)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:studio']], re: /BENGKEL AGEN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B135 status=TERBUKA 2026-10-03 — verify:brain ikut baterai (tanpa kunci LLM, tanpa gas); --live tidak, karena memakai kuota Groq tim. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'brain', label: 'verify:brain (otak agen: tujuh provider, kalibrasi, antrean dompet agen)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:brain']], re: /OTAK AGEN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B138 status=TERBUKA 2026-10-03 — verify:market ikut baterai (tanpa gas, sewa ulang #2534 idempoten). Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'market', label: 'verify:market (bursa agen: konflik sewa/tunjuk, entri tanpa data peserta, cache)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:market']], re: /BURSA AGEN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -235,6 +237,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'studio', want: (m) => new RegExp(`BENGKEL AGEN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:studio di QR' },
   { file: '09-Testing/T62 - signer brain-check.js (B135 otak agen).md', metric: 'brain', want: (m) => `OTAK AGEN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T62 (otak agen)' },
   { file: 'Quick-Reference.md', metric: 'brain', want: (m) => new RegExp(`OTAK AGEN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:brain di QR' },
+  { file: '09-Testing/T64 - signer market-check.js (B138 bursa agen).md', metric: 'market', want: (m) => `BURSA AGEN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T64 (bursa agen)' },
+  { file: 'Quick-Reference.md', metric: 'market', want: (m) => new RegExp(`BURSA AGEN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:market di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

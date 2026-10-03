@@ -64,6 +64,7 @@ const COPY = {
   pointsBack: { en: 'registration file points back to this agent', id: 'berkas registrasi menunjuk balik ke agen ini' },
   noPointsBack: { en: 'registration file does NOT point back', id: 'berkas registrasi TIDAK menunjuk balik' },
   mintedBy: { en: 'Minted by the platform', id: 'Dicetak platform' },
+  selfRegistered: { en: 'Self-registered by', id: 'Didaftarkan sendiri oleh' },
   registerTx: { en: 'register', id: 'register' },
   transferTx: { en: 'transfer to you', id: 'pindah ke akunmu' },
   walletTitle: { en: 'Agent wallet', id: 'Dompet agen' },
@@ -214,7 +215,12 @@ function agentBlock (lang: Lang, o: OwnerOverview, a: OwnerAgent, i: number, rel
     h('ul', { class: 'ow-id-facts' },
       h('li', null, `${T('owner')}: `, h('code', null, short(o.address)), ` (${T('you')})`),
       h('li', { class: a.pointsBack ? 'ok' : 'bad' }, a.pointsBack ? T('pointsBack') : T('noPointsBack')),
-      a.minted ? h('li', null, `${T('mintedBy')} · `, txLink(a.minted.registerTx, T('registerTx')), ' · ', txLink(a.minted.transferTx, T('transferTx'))) : null),
+      // Lencana-B137 status=SELESAI 2026-10-03 — kartu identitas agen yang didaftarkan pemiliknya sendiri tidak lagi berlabel "Dicetak platform": label mengikuti peran templat registrasinya (grader-self). Buktikan ulang: uji peramban T65 (kartu #2548/#2549). JANGAN dibalik/diulang tanpa membuka kembali baris B137 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+      a.minted
+        ? (a.registrationRole === 'grader-self'
+            ? h('li', null, `${T('selfRegistered')} ${short(a.minted.by)} · `, txLink(a.minted.registerTx, T('registerTx')))
+            : h('li', null, `${T('mintedBy')} · `, txLink(a.minted.registerTx, T('registerTx')), ' · ', txLink(a.minted.transferTx, T('transferTx'))))
+        : null),
     h('span', { class: `ow-hire ${a.hireable ? 'ok' : 'wait'}` }, a.hireable ? T('hireable') : `${T('notHireable')} — ${a.problem ?? ''}`))
 
   // ---- slot dompet agen: kosong → pemilik "menyegel" dengan dompet akunnya (EIP-712 + setAgentWallet)

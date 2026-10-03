@@ -414,6 +414,8 @@ async function collect () {
         'npm run verify:studio': 'studio',
         // Lencana-B135 status=TERBUKA 2026-10-03 — baris README `verify:brain` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:brain': 'brain',
+        // Lencana-B138 status=TERBUKA 2026-10-03 — baris README `verify:market` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        'npm run verify:market': 'market',
       }
       const salah = []
       let banding = 0

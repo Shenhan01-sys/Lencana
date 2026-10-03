@@ -104,6 +104,8 @@ import { verifySelfRegistration } from './owner.js'
 // Lencana-B135 status=TERBUKA 2026-10-03 — otak agen semi-otomatis: POST /owner/agents/brain (pemilik mencatat provider + model + kalibrasi, tanpa API key) dan POST /owner/agents/queue (dompet agen membaca esai dari kursus yang menyewanya); dasbor pemilik memuat otaknya. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { parseBrainMessage, BRAIN_HINT, QUEUE_RE, QUEUE_HINT, recordBrain, agentQueue } from './brain.js'
 import { agentBrains as dbAgentBrains } from './db.js'
+// Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen: GET /agents/market (agen yang dikenal platform dengan fakta registry, otak, angka gabungan; cache 60 detik), dibatalkan oleh sewa, penunjukan, otak, dan klaim agen. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { agentMarket, invalidateMarket } from './market.js'
 import { recordPlatformAgent as dbRecordPlatformAgent } from './db.js'
 import { prepareDraft } from './drafts.js'
 import {
@@ -847,6 +849,7 @@ const server = createServer(async (req, res) => {
           if (!v.ok) return send(res, v.status, jsonBody({ error: v.why }))
           if ((await dbPlatformAgents([v.agentId])).length) return send(res, 409, jsonBody({ error: 'this agent is already known to the platform' }))
           await dbRecordPlatformAgent({ agentId: v.agentId, registry, role: 'grader-self', mintedBy: addr, registerTx: v.registerTx })
+          invalidateMarket()
           return send(res, 201, jsonBody({ agentId: v.agentId, registerTx: v.registerTx, block: v.block }))
         }
         const ids = [...MANIFESTS.map((m) => m.issuer.agent?.agentId).filter(Boolean), ...await dbKnownAgentIds()]
@@ -876,6 +879,7 @@ const server = createServer(async (req, res) => {
           ? await recordBrain(AGENTS_CFG, { owner: addr, parsed, message: body.message, signature: body.signature })
           : await agentQueue(AGENTS_CFG, { agentId: queueOf[1], signer: addr, essayOf: essayLesson })
         if (!out.ok) return send(res, out.status, jsonBody({ error: out.why, ...(out.reasons ? { reasons: out.reasons } : {}) }))
+        if (isBrain) invalidateMarket()
         return send(res, out.status, jsonBody(isBrain ? out.brain : out.queue))
       }
       if (path === '/publisher/agents/hire' || path === '/publisher/reviewers') {
@@ -895,12 +899,14 @@ const server = createServer(async (req, res) => {
         if (isHire) {
           const h = await agentHireRoute(AGENTS_CFG, { course: body.course, agentId: body.agentId, message: body.message, signature: body.signature }, (c) => Boolean(manifestOf(c)), actor)
           const { ok, status, why, ...rest } = h
+          if (ok) invalidateMarket()
           return send(res, ok ? 200 : status, jsonBody(ok ? rest : { error: why }))
         }
         if (!manifestOf(body.course)) return send(res, 400, jsonBody({ error: `course ${body.course} is not in the catalogue` }))
         const ag = await appointReviewerAgent(AGENTS_CFG, {
           course: body.course, agentId: body.agentId, reviewer: body.reviewer, issuer: PAY_PAYEE, message: body.message, signature: body.signature,
         }, actor)
+        if (ag.ok) invalidateMarket()
         return ag.ok
           ? send(res, 200, jsonBody({ course: ag.courseId, reviewer: ag.reviewer, addedBy: ag.addedBy, agentId: ag.agentId, agentOwner: ag.agentOwner }))
           : send(res, ag.status, jsonBody({ error: ag.why }))
@@ -1085,6 +1091,7 @@ const server = createServer(async (req, res) => {
         if (body.agentId !== undefined) {
           // B120: reviewer agen ERC-8004 — dompet, pemilik, dan tarifnya dibaca dari registry.
           const ag = await appointReviewerAgent(AGENTS_CFG, body)
+          if (ag.ok) invalidateMarket()
           return ag.ok
             ? send(res, 200, jsonBody({ course: ag.courseId, reviewer: ag.reviewer, addedBy: ag.addedBy, agentId: ag.agentId, agentOwner: ag.agentOwner }))
             : send(res, ag.status, jsonBody({ error: ag.why }))
@@ -1197,6 +1204,14 @@ const server = createServer(async (req, res) => {
     // Agen sewaan (B119, D54): tabel harga, sewa oleh penerbit, dan tagihan per aktivitas penilaian.
     if (path.startsWith('/agents/') || path.startsWith('/agent-charges/')) {
       if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent hiring is not configured on this server', missing: dbMissingReason() }))
+      // B138 (D70): bursa agen — baca saja, tanpa tanda tangan (fakta registry publik + angka gabungan, tanpa data peserta).
+      if (path === '/agents/market') {
+        if (req.method !== 'GET') return send(res, 405, jsonBody({ error: 'GET required', path }))
+        const ids = [...MANIFESTS.map((m) => m.issuer.agent?.agentId).filter(Boolean), ...await dbKnownAgentIds()]
+        return send(res, 200, jsonBody(await agentMarket(AGENTS_CFG, ids, {
+          chainId: CHAIN_ID, token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
+        })))
+      }
       // B132: templat berkas registrasi agen (menunjuk balik ke agen ini, kalimat peran yang benar). Halaman menambahkan nama +
       // rupa robot lalu pemilik mengirim `setAgentURI` dari dompetnya sendiri — server tidak menulis apa pun ke chain di sini.
       const tplMatch = /^\/agents\/(\d+)\/registration-template$/.exec(path)
@@ -1218,6 +1233,7 @@ const server = createServer(async (req, res) => {
         const body = await readJsonBody(req)
         const h = await agentHireRoute(AGENTS_CFG, body, (c) => Boolean(manifestOf(c)))
         const { ok, status, why, ...rest } = h
+        if (ok) invalidateMarket()
         return send(res, ok ? 200 : status, jsonBody(ok ? rest : { error: why }))
       }
       const chargeMatch = /^\/agent-charges\/(\d+)(\/pay)?$/.exec(path)

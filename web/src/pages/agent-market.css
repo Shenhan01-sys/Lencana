@@ -1,0 +1,136 @@
+/* agent-market.css — bursa agen di dasbor Penerbit (B138): kursi tim per kursus, alat etalase, lapak robot. Palet Lencana:
+   emas = harga/pilihan, hijau = layak/lulus/disetujui, jingga = disesuaikan/menunggu, merah = terhalang/ditolak. */
+
+.am [hidden] { display: none !important; }
+.am-head { display: grid; gap: 4px; }
+.am-head h2 { margin: 0; font-size: 22px; }
+.am-head p { margin: 0; }
+.am-loading { display: flex; align-items: center; gap: 10px; color: var(--text-sub, #b7bdc6); }
+.am-spin { width: 16px; height: 16px; border: 2px solid rgba(240, 185, 11, 0.25); border-top-color: #f0b90b; border-radius: 50%; animation: am-spin 0.8s linear infinite; }
+@keyframes am-spin { to { transform: rotate(360deg); } }
+
+/* ------------------------------------------------ tim agen kursusmu: kursi per kursus */
+.am-team { display: grid; gap: 12px; }
+.am-row-head { display: grid; gap: 2px; }
+.am-row-head h3 { margin: 0; font-size: 16px; }
+.am-courses { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.am-course { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 10px 16px; align-items: center; padding: 10px 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.025); }
+.am-course-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.am-course-name b { font-size: 14px; }
+.am-seats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.am-seat { display: grid; grid-template-columns: 44px auto; grid-template-rows: auto auto auto; column-gap: 8px; align-items: center; min-width: 150px; padding: 6px 10px 6px 6px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; background: #151920; }
+.am-seat > .am-seat-bot, .am-seat > .am-seat-ghost { grid-row: 1 / span 3; }
+.am-seat small { color: var(--text-sub, #a9b0ba); font: 700 10px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
+.am-seat.grader small { color: #f0b90b; }
+.am-seat.reviewer small { color: #6fc3ff; }
+.am-seat b { font-size: 12.5px; color: #f4f1ea; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.am-seat code { font: 600 11px var(--font-mono, ui-monospace, monospace); color: var(--text-sub, #a9b0ba); }
+.am-seat.empty { border: 1.5px dashed rgba(255, 255, 255, 0.18); background: transparent; }
+.am-seat.empty b { color: var(--text-sub, #a9b0ba); font-weight: 600; }
+.am-seat.stale { border-color: rgba(255, 159, 67, 0.6); }
+.am-seat-ghost { width: 40px; height: 44px; border-radius: 10px; border: 1.5px dashed rgba(255, 255, 255, 0.2); }
+.am-unstaffed { align-items: start; background: transparent; border: 1.5px dashed rgba(255, 255, 255, 0.14); }
+.am-unstaffed .am-course-name b { color: var(--text-sub, #b7bdc6); font-weight: 600; }
+.am-empty-courses { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.am-empty-courses li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: #151920; color: #d9d8cd; font-size: 12.5px; }
+.am-seat-bot { display: block; width: 40px; height: 46px; }
+.am-seat-bot svg, .am-bot svg { display: block; width: 100%; height: 100%; }
+
+/* ------------------------------------------------ alat etalase */
+.am-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.am-search { flex: 1 1 220px; min-width: 0; padding: 9px 12px; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12)); border-radius: 999px; background: rgba(255, 255, 255, 0.03); color: #f4f1ea; font: inherit; font-size: 14px; }
+.am-search:focus { outline: none; border-color: rgba(240, 185, 11, 0.6); }
+.am-chip { padding: 7px 13px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 999px; background: transparent; color: #e9e6df; font-size: 13px; cursor: pointer; }
+.am-chip.on { border-color: transparent; background: #f0b90b; color: #14110a; font-weight: 700; }
+.am-sort-wrap { display: inline-flex; align-items: center; gap: 6px; color: var(--text-sub, #a9b0ba); font-size: 12.5px; }
+.am-sort { padding: 7px 10px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 10px; background: #151920; color: #e9e6df; font: inherit; font-size: 13px; }
+.am-meta { color: var(--text-sub, #a9b0ba); font-size: 12px; margin-left: auto; }
+.am-meta em { color: #ff9f43; font-style: normal; }
+
+/* ------------------------------------------------ lapak */
+.am-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 16px; }
+.am-nothing { grid-column: 1 / -1; }
+.am-booth { position: relative; display: grid; align-content: start; gap: 12px; padding: 0 16px 16px; overflow: hidden; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08)); border-radius: 20px; background: linear-gradient(180deg, #151a21, #0f1216); }
+.am-booth.mine { border-color: rgba(240, 185, 11, 0.55); }
+.am-stage { position: relative; display: grid; place-items: center; height: 168px; margin: 0 -16px; padding-top: 10px;
+  background: radial-gradient(70% 55% at 50% 100%, rgba(240, 185, 11, 0.12), transparent 70%), linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent); }
+.am-stage::after { content: ''; position: absolute; bottom: 10px; left: 50%; width: 132px; height: 14px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, 0.55), transparent); }
+.am-bot { position: relative; z-index: 1; display: block; width: 118px; height: 138px; transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.3); }
+.am-booth:hover .am-bot { transform: translateY(-4px); }
+.am-bot.plain, .am-seat-bot.plain { filter: grayscale(0.85); opacity: 0.7; }
+.am-booth.blocked .am-bot { opacity: 0.6; }
+.am-ribbon { position: absolute; top: 12px; left: 12px; z-index: 2; padding: 2px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: #e9e6df; font-size: 11px; }
+.am-plain-note { position: absolute; bottom: 4px; z-index: 2; color: var(--text-sub, #a9b0ba); font-size: 10.5px; }
+
+.am-name { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: baseline; }
+.am-name h3 { margin: 0; overflow: hidden; font-size: 17px; text-overflow: ellipsis; white-space: nowrap; }
+.am-name code { color: #f0b90b; font: 700 13px var(--font-mono, ui-monospace, monospace); }
+.am-name small { grid-column: 1 / -1; color: var(--text-sub, #a9b0ba); font-size: 12px; }
+.am-mine { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #f0b90b; color: #14110a; font-size: 10.5px; font-weight: 800; }
+.am-label { color: var(--text-sub, #a9b0ba); font: 700 10px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* harga + tangga tujuh label */
+.am-price { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; align-items: end; }
+.am-price > div { display: grid; gap: 1px; }
+.am-price small { color: var(--text-sub, #a9b0ba); font-size: 11.5px; }
+.am-price b { color: #f4f1ea; font: 800 17px var(--font-mono, ui-monospace, monospace); }
+.am-price.none { grid-template-columns: 1fr; }
+.am-ladder { display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 3px; height: 34px; margin: 0; padding: 0; list-style: none; }
+.am-ladder li { height: var(--h, 40%); border-radius: 3px 3px 1px 1px; background: linear-gradient(180deg, #ffe14d, #f0b90b 60%, #c98f00); transform-origin: 50% 100%; animation: am-rise 0.6s cubic-bezier(0.2, 0.9, 0.25, 1.05) both; animation-delay: calc(var(--k, 0) * 50ms); }
+@keyframes am-rise { from { transform: scaleY(0); } }
+
+/* otak: chip + skala kalibrasi mini */
+.am-brain { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 8px; align-items: center; padding: 10px; border-radius: 12px; background: rgba(55, 214, 122, 0.06); border: 1px solid rgba(55, 214, 122, 0.25); }
+.am-brain.none { display: block; background: rgba(255, 255, 255, 0.025); border: 1px dashed rgba(255, 255, 255, 0.14); }
+.am-brain.none small { color: var(--text-sub, #a9b0ba); font-size: 12px; }
+.am-brain-chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 6px; background: #1d2129; color: #e9e6df; font: 700 11.5px var(--font-mono, ui-monospace, monospace); }
+.am-brain-chip i { width: 7px; height: 7px; border-radius: 50%; background: #37d67a; box-shadow: 0 0 6px rgba(55, 214, 122, 0.8); }
+.am-brain code { overflow: hidden; color: #f4f1ea; font: 600 12px var(--font-mono, ui-monospace, monospace); text-overflow: ellipsis; white-space: nowrap; }
+.am-brain > small { grid-column: 1 / -1; color: var(--text-sub, #a9b0ba); font-size: 11.5px; }
+.am-cal { position: relative; grid-column: 1 / -1; height: 8px; border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255, 107, 127, 0.4) 0 var(--pass), rgba(55, 214, 122, 0.4) var(--pass) 100%); }
+.am-cal::after { content: ''; position: absolute; top: -3px; bottom: -3px; left: var(--pass); width: 2px; background: #f0b90b; }
+.am-cal span { position: absolute; top: 50%; width: 10px; height: 10px; border: 2px solid #0f1216; border-radius: 50%; transform: translate(-50%, -50%); }
+.am-cal-e { left: var(--e); background: #ff6b7f; }
+.am-cal-s { left: var(--s); background: #37d67a; }
+
+/* rapor */
+.am-record { display: grid; gap: 6px; }
+.am-counts { display: flex; gap: 14px; color: var(--text-sub, #a9b0ba); font-size: 12.5px; }
+.am-counts b { color: #f4f1ea; font: 800 15px var(--font-mono, ui-monospace, monospace); }
+.am-verdicts { display: flex; height: 8px; overflow: hidden; border-radius: 4px; background: rgba(255, 255, 255, 0.06); }
+.am-verdicts span { flex-basis: 0; }
+.am-verdicts .approved { background: #37d67a; }
+.am-verdicts .adjusted { background: #ff9f43; }
+.am-verdicts .rejected { background: #ff6b7f; }
+.am-record small { color: var(--text-sub, #a9b0ba); font-size: 11.5px; }
+
+/* tempat bekerja */
+.am-where { display: grid; gap: 4px; }
+.am-work ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.am-work li { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 8px; background: #1d2129; color: #e9e6df; font-size: 12px; }
+.am-work li small { color: #f0b90b; font: 700 10px var(--font-mono, ui-monospace, monospace); text-transform: uppercase; }
+.am-work li.stale { outline: 1px solid rgba(255, 159, 67, 0.6); }
+
+/* status + aksi */
+.am-status { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; }
+.am-status.ok { color: #37d67a; }
+.am-status.bad { color: #ff9f43; }
+.am-lamp { flex: none; width: 9px; height: 9px; margin-top: 4px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.am-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.am-act { padding: 12px; border-radius: 12px; background: rgba(240, 185, 11, 0.06); border: 1px solid rgba(240, 185, 11, 0.3); }
+.am-act-inner { display: grid; gap: 8px; }
+.am-act-inner label { display: grid; gap: 4px; color: var(--text-sub, #a9b0ba); font-size: 12px; }
+.am-course-sel { width: 100%; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 10px; background: #151920; color: #e9e6df; font: inherit; font-size: 13px; }
+.pb-manual > summary { cursor: pointer; color: var(--text-sub, #b7bdc6); font-size: 13.5px; }
+.pb-manual[open] > summary { margin-bottom: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .am-ladder li, .am-spin { animation: none; }
+  .am-bot { transition: none; }
+}
+@media (max-width: 640px) {
+  .am-course { grid-template-columns: 1fr; }
+  .am-meta { margin-left: 0; flex-basis: 100%; }
+  .am-grid { grid-template-columns: 1fr; }
+}

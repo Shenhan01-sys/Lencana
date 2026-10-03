@@ -49,6 +49,7 @@ import type { Course, Problem, QuizKeys } from './content'
 import type { CourseManifest } from './manifest'
 import { normalizeDraft, draftHash } from './authoring'
 import { robotSvg, withAvatar, cleanName, parseAvatar, NAME_MAX, type Avatar } from './robot'
+import type { AgentMarket } from './market'
 
 const EP_KEY = 'lencana-signer-url'
 const ID_KEY = 'lencana-learner-v1'
@@ -862,6 +863,14 @@ export type OwnerOverview = {
   gas: { balance: string, low: boolean }
   ladder: { labels: string[], stepBps: number }
   agents: OwnerAgent[]
+}
+
+// Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen untuk dasbor Penerbit: GET /agents/market (baca saja, tanpa tanda tangan). Buktikan ulang: cd signer && npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** B138: etalase agen yang dikenal platform — fakta registry saat itu + otak + angka gabungan (tanpa data peserta). */
+export async function readAgentMarket (): Promise<{ ok: boolean, why?: string, data?: AgentMarket }> {
+  const r = await call('/agents/market', { timeoutMs: 40_000 })
+  if (r.status !== 200 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, data: r.json as unknown as AgentMarket }
 }
 
 /** B130: dasbor Agent Owner — hanya untuk alamat yang `ownerOf`-nya memegang agen yang dikenal platform. */
