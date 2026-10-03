@@ -191,3 +191,11 @@ yang yatim (bukti eth-call milik pemegang kertas `0x372c2518…`, terikat ke usa
   dijalankan sesudah perbaikan, hijau semua (31/0, 27/0, 34/0, 32/0), dan pendengar yang tersisa di 8837–8899 hanya
   `8884` milik System (pid 4) — nol yatim. Jalur `--live` `attempts-check` (yang menyalakan server) tidak diulang
   karena menerbitkan kertas; perubahannya sama persis.
+
+## Regresi 3 Okt siang — merah karena RPC, bukan karena kode (B136)
+
+Baterai 3 Okt 13:36 WIB: **PRAKTIK MERAH — 22 pemeriksaan, 1 gagal** — berhenti di bagian E (bukti transaksi) dengan
+`TransactionReceiptNotFoundError` untuk `KNOWN_TX` `0xea4617d3…` (blok 134188461). Empat baterai pagi yang sama (00:37–02:28 WIB)
+masih **32 / 0**. Struk itu kini tidak ditemukan `bsc-testnet.publicnode.com` (= `RPC_URL`) tetapi ditemukan
+`data-seed-prebsc-1-s1.bnbchain.org:8545`. Hasil 1 Okt di front matter tetap benar untuk tanggalnya; hari ini harness ini merah
+sampai B136 ditutup — lihat baris B136 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]].

@@ -28,6 +28,7 @@ import { odometer } from '../lib/odometer'
 import { skeleton, steps } from '../lib/loading'
 import { mountSeatSwitch, navIcon, guardSeat } from './seats'
 import { agentWorkshop, firstAgentWorkshop } from './agent-workshop'
+import { agentBrain } from './agent-brain'
 
 type Lang = 'en' | 'id'
 
@@ -189,8 +190,10 @@ function renderAgents (lang: Lang, o: OwnerOverview, reload: () => void): HTMLEl
     gasBtn, gasStatus,
     h('button', { type: 'button', class: 'app-btn small', onClick: reload }, T('reload'))))
   // B132: setiap agen pertama-tama tampil sebagai robot di bengkelnya (data di bentuknya); rincian lama di bawahnya.
+  // B135: otaknya (provider + model + kalibrasi + antrean esai) tepat di bawah robotnya.
   o.agents.forEach((a, i) => {
     wrap.appendChild(agentWorkshop(lang, o, a, reload))
+    wrap.appendChild(agentBrain(lang, o, a, reload))
     wrap.appendChild(agentBlock(lang, o, a, i + 1, reload))
   })
   return wrap

@@ -41,6 +41,8 @@
  * membuat penilaian model terlihat lebih presisi daripada adanya — persis hal yang kita tuntut
  * dari penerbit lain.
  */
+import { JUDGE_SYSTEM, judgeUserContent, scoresFromModel } from '../../web/src/judge-prompt.ts'
+
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 export const DEFAULT_JUDGE_MODEL = 'openai/gpt-oss-120b'
 /**
@@ -50,15 +52,9 @@ export const DEFAULT_JUDGE_MODEL = 'openai/gpt-oss-120b'
  */
 export const JUDGE_TEMPERATURE = 0
 
-const SYSTEM = [
-  'Kamu adalah penilai rubrik untuk sebuah kursus. Kamu menilai SATU tulisan terhadap rubrik yang diberikan.',
-  'Aturan keras:',
-  '- Keluarkan HANYA satu objek JSON, tanpa teks lain, tanpa pagar kode.',
-  '- Bentuknya: {"scores": {"<label kriteria persis seperti diberikan>": <angka bulat 0..max>>}}',
-  '- Setiap label kriteria harus muncul persis seperti ditulis. Jangan menambah atau menghapus kriteria.',
-  '- Beri 0 bila kriteria tidak terpenuhi. Nilai sempurna hanya untuk jawaban yang benar-benar memenuhi seluruh kriteria itu.',
-  '- Jangan menaikkan nilai karena tulisan terdengar meyakinkan, panjang, atau percaya diri.',
-].join('\n')
+// B135 (D69): prompt + pengurai dipindah (bukan ditulis ulang) ke `web/src/judge-prompt.ts` — satu sumber untuk jalur ini
+// dan otak agen di peramban pemilik. `npm run verify:brain` memeriksa berkas ini memakainya.
+const SYSTEM = JUDGE_SYSTEM
 
 /**
  * @param {object} essay   bentuk `Lesson.essay` dari materi kursus
@@ -79,15 +75,7 @@ export async function judgeWithModel (text, essay, opts = {}) {
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: SYSTEM },
-      {
-        role: 'user',
-        content: JSON.stringify({
-          rubrik: essay.rubric.map((r) => ({ label: r.label, max: r.max })),
-          tugas: essay.prompt,
-          yang_tidak_diterima: essay.guidance,
-          tulisan: text,
-        }, null, 0),
-      },
+      { role: 'user', content: judgeUserContent(essay, text) },
     ],
   }
 
@@ -127,36 +115,8 @@ export async function judgeWithModel (text, essay, opts = {}) {
   const data = await res.json()
   const msg = data?.choices?.[0]?.message ?? {}
   const raw = msg.content || msg.reasoning || ''
-  const parsed = parseJsonLoose(raw)
-  if (!parsed || typeof parsed !== 'object') throw new Error('jawaban model bukan JSON: ' + raw.slice(0, 120))
-
-  const given = parsed.scores ?? parsed
-  const out = {}
-  for (const r of essay.rubric) {
-    const v = Number(given?.[r.label])
-    // Kriteria yang hilang TIDAK diisi nol dan TIDAK diisi rata-rata: kami lebih baik berhenti
-    // daripada menerbitkan angka yang sebagian berasal dari keheningan model.
-    if (!Number.isFinite(v)) throw new Error(`kriteria "${r.label}" tidak dinilai model`)
-    out[r.label] = Math.max(0, Math.min(r.max, Math.round(v)))
-  }
-  return { scores: out, model, tokens: data.usage ?? null }
-}
-
-/** Model boleh membungkus JSON; kami tidak memaksa ia menuruti format, tapi kami tidak mengarang isinya. */
-function parseJsonLoose (text) {
-  const s = String(text ?? '').trim()
-  if (!s) return null
-  try {
-    return JSON.parse(s)
-  } catch { /* lanjut */ }
-  const a = s.indexOf('{')
-  const b = s.lastIndexOf('}')
-  if (a === -1 || b <= a) return null
-  try {
-    return JSON.parse(s.slice(a, b + 1))
-  } catch {
-    return null
-  }
+  // Kriteria yang hilang TIDAK diisi nol dan TIDAK diisi rata-rata (lihat `scoresFromModel`).
+  return { scores: scoresFromModel(raw, essay), model, tokens: data.usage ?? null }
 }
 
 /**

@@ -28,6 +28,8 @@
     "course:publish": "tsx scripts/course-publish.js",
     "verify:authoring": "tsx scripts/authoring-check.js",
     "verify:studio": "tsx scripts/studio-check.js",
+    "verify:brain": "tsx scripts/brain-check.js",
+    "verify:brain:live": "tsx scripts/brain-check.js --live",
     "verify:paywall": "tsx scripts/paywall-check.js",
     "verify:paywall:live": "tsx scripts/paywall-check.js --live",
     "verify:privy": "node scripts/privy-check.js",

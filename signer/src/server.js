@@ -101,6 +101,9 @@ import { refreshCatalog, publishedCatalog } from './catalog.js'
 // Lencana-B132 status=TERBUKA 2026-10-03 — robot agen: templat registrasi publik, klaim agen yang didaftarkan pemiliknya sendiri (struk dibaca dari chain), gas untuk akun Agent Owner yang belum punya agen. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { registrationFile, ERC8004 } from './erc8004.js'
 import { verifySelfRegistration } from './owner.js'
+// Lencana-B135 status=TERBUKA 2026-10-03 — otak agen semi-otomatis: POST /owner/agents/brain (pemilik mencatat provider + model + kalibrasi, tanpa API key) dan POST /owner/agents/queue (dompet agen membaca esai dari kursus yang menyewanya); dasbor pemilik memuat otaknya. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+import { parseBrainMessage, BRAIN_HINT, QUEUE_RE, QUEUE_HINT, recordBrain, agentQueue } from './brain.js'
+import { agentBrains as dbAgentBrains } from './db.js'
 import { recordPlatformAgent as dbRecordPlatformAgent } from './db.js'
 import { prepareDraft } from './drafts.js'
 import {
@@ -601,7 +604,8 @@ const server = createServer(async (req, res) => {
       || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members'
       || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
       || path === '/owner/overview' || path === '/owner/gas' || path === '/owner/agents/claim' || path === '/me/role'
-      || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit') {
+      || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit'
+      || path === '/owner/agents/brain' || path === '/owner/agents/queue') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -849,11 +853,30 @@ const server = createServer(async (req, res) => {
         const owned = await ownedAgentFacts(AGENTS_CFG, addr, ids)
         if (!owned.length) return send(res, 403, jsonBody({ error: 'this account owns no ERC-8004 agent known to the platform' }))
         const agentIds = owned.map((o) => o.agent.agentId)
-        const [records, minted, balance] = await Promise.all([dbOwnerRecords(agentIds), dbPlatformAgents(agentIds), nativeBalance(RPC_URL, addr).catch(() => 0n)])
+        const [records, minted, balance, brains] = await Promise.all([dbOwnerRecords(agentIds), dbPlatformAgents(agentIds), nativeBalance(RPC_URL, addr).catch(() => 0n), dbAgentBrains(agentIds)])
         return send(res, 200, jsonBody(ownerOverview({
-          address: addr, owned, records, minted, balance, gasLow: balance < GAS_LOW, chainId: CHAIN_ID, publisher: PAY_PAYEE ?? null,
+          address: addr, owned, records, minted, balance, brains, gasLow: balance < GAS_LOW, chainId: CHAIN_ID, publisher: PAY_PAYEE ?? null,
           token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
         })))
+      }
+      if (path === '/owner/agents/brain' || path === '/owner/agents/queue') {
+        // B135 (D69): otak agen semi-otomatis. Bentuk pesan diperiksa SEBELUM nonce dipakai; API key tidak pernah ada di
+        // kiriman — yang datang hanya nama provider/model dan angka kalibrasi yang ditandatangani pemilik.
+        const isBrain = path === '/owner/agents/brain'
+        const parsed = isBrain ? parseBrainMessage(body.message) : null
+        const queueOf = isBrain ? null : QUEUE_RE.exec(String(body.message ?? ''))
+        if (isBrain ? !parsed : !queueOf) return send(res, 400, jsonBody({ error: isBrain ? BRAIN_HINT : QUEUE_HINT }))
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: isBrain ? 'owner-brain' : 'agent-queue' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent identities are not configured on this server', missing: dbMissingReason() }))
+        const addr = getAddress(String(body.learner).toLowerCase())
+        const refusedRole = roleRefusal(await accountCheap(addr), 'owner')
+        if (refusedRole) return send(res, 403, jsonBody({ error: refusedRole }))
+        const out = isBrain
+          ? await recordBrain(AGENTS_CFG, { owner: addr, parsed, message: body.message, signature: body.signature })
+          : await agentQueue(AGENTS_CFG, { agentId: queueOf[1], signer: addr, essayOf: essayLesson })
+        if (!out.ok) return send(res, out.status, jsonBody({ error: out.why, ...(out.reasons ? { reasons: out.reasons } : {}) }))
+        return send(res, out.status, jsonBody(isBrain ? out.brain : out.queue))
       }
       if (path === '/publisher/agents/hire' || path === '/publisher/reviewers') {
         // B129: aksi anggota dengan tanda tangannya sendiri. Kursi + wewenang diperiksa di sini; tanda tangan atas pesan yang
@@ -958,7 +981,8 @@ const server = createServer(async (req, res) => {
          * Teks disimpan di `submissions`, dan TIDAK disajikan lewat rute mana pun yang bisa dibaca
          * publik — `results.js` menulis `essayTextIncluded: false` dan janji itu dijaga di sini:
          * antrean dibaca penerbit lewat CLI (`npm run grade:essay`) yang memegang secret key, bukan
-         * lewat GET anonim.
+         * lewat GET anonim. Sejak B135 (D69) ada satu pembaca lain, juga bertanda tangan: dompet agen yang
+         * DISEWA kursus itu (`POST /owner/agents/queue`) — penyewaannya adalah izin penerbit agar agen menilai.
          */
         for (const banned of ['score', 'rubric', 'max', 'finalScore', 'verdict']) {
           if (body[banned] !== undefined) {

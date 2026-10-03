@@ -18,6 +18,7 @@ import { readAgent, REGISTRATION_TYPE, ERC8004, identityAbi } from './erc8004.js
 import { priceFor, rateCard, LADDER, LADDER_HASH } from './pricing.js'
 import {
   hireAgent, agentHire, agentHiresFor, reviewerAgentsFor, agentJudgeEssay, addReviewer, insertCharge, getCharge, markChargePaid,
+  agentBrains,
 } from './db.js'
 import { settlePayment } from './x402.js'
 
@@ -147,6 +148,15 @@ export async function agentJudge (cfg, body, found) {
   const f = await agentFacts(cfg, body.agentId)
   if (!f.ok) return f
   if (!same(f.agent.wallet, hireRow.agent_wallet)) return fail(409, `agent ${body.agentId} changed its agentWallet since it was hired — the publisher must hire it again`)
+  // Lencana-B135 status=TERBUKA 2026-10-03 — agen yang otaknya tercatat menilai atas nama model itu: judgeModel wajib sama dengan provider/model yang lolos kalibrasi, dan otak catatan pemilik lama tidak berlaku. Diperiksa sebelum nonce dipakai. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Agen TANPA catatan otak tetap diterima seperti B119 (harness #2534 menilai dengan angka tetap) — mewajibkan otak = mode
+  // otomatis penuh, backlog berikutnya (D69).
+  const [brain] = await agentBrains([f.agent.agentId])
+  if (brain) {
+    const named = `${brain.provider}/${brain.model}`
+    if (!same(brain.owner, f.agent.owner)) return fail(409, `agent ${body.agentId}'s brain was recorded by a previous owner — the current owner records it again before the agent grades`)
+    if (body.judgeModel !== named) return fail(409, `agent ${body.agentId} records its brain as ${named} — the judgement must name that model (judgeModel)`)
+  }
   const out = await agentJudgeEssay({
     attemptId: body.attemptId, courseId: body.course, agent: { agentId: f.agent.agentId, wallet: f.agent.wallet },
     scores: body.scores, essay: found.lesson.essay, passMark: found.manifest.course.passMark,

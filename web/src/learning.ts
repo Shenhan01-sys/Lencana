@@ -818,6 +818,41 @@ export type OwnerAgent = {
   avatar: Avatar | null
   image: string | null
   registrationRole: string | null
+  /** B135: otak yang tercatat (provider/model + kalibrasi yang dilaporkan pemilik). null = belum dipasang. */
+  brain: AgentBrainInfo | null
+}
+
+/** B135 (D69): catatan otak agen di server — tanpa API key (kunci hanya hidup di peramban pemilik). */
+export type AgentBrainInfo = {
+  provider: string
+  model: string
+  modelName: string
+  calibration: { course: string, lesson: string, passMark: number, substantive: number, hollow: number, temperature: 0 | null }
+  passed: boolean
+  at: string
+  /** false = dicatat pemilik sebelumnya (NFT sudah pindah) → tidak berlaku sampai dicatat ulang. */
+  byCurrentOwner: boolean | null
+}
+/** Satu esai di antrean dompet agen (B135): teks + rubrik dari manifest penerbit; alamat peserta tidak ikut. */
+export type QueueItem = {
+  attemptId: number
+  course: string
+  lesson: string
+  attemptNo: number | null
+  words: number
+  awaitingSince: string | null
+  text: string
+  essay: { prompt: string, guidance: string[], rubric: { label: string, max: number }[] }
+  passMark: number
+}
+export type AgentQueue = {
+  agentId: string
+  wallet: string
+  owner: string
+  brain: AgentBrainInfo
+  courses: { courseId: string, hiredAt: string }[]
+  staleCourses: string[]
+  items: QueueItem[]
 }
 export type OwnerOverview = {
   address: string
@@ -852,6 +887,53 @@ export async function requestOwnerGas (): Promise<{ ok: boolean, why?: string, t
   if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
   const r = await call('/owner/gas', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 90_000 })
   return r.status === 200 ? { ok: true, tx: r.json?.tx as string } : { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+}
+
+// Lencana-B135 status=TERBUKA 2026-10-03 — otak agen dari peramban pemilik: catat provider + model + kalibrasi (pesan bertanda tangan, tanpa API key), baca antrean esai sebagai dompet agen, kirim penilaian bertanda tangan dengan nama model dan temperature yang benar-benar terpakai. Buktikan ulang: cd signer && npm run verify:brain, lalu uji peramban T63. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** B135: pemilik mencatat otak agennya. Server memeriksa ownerOf + aturan kalibrasi; kunci LLM TIDAK ikut dikirim. */
+export async function saveAgentBrain (agentId: string, provider: string, model: string, cal: { substantive: number, hollow: number, temperature: 0 | null }): Promise<{ ok: boolean, why?: string, reasons?: string[], brain?: AgentBrainInfo }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-agent-brain agent=${agentId} provider=${provider} model=${model} sub=${cal.substantive} empty=${cal.hollow} temp=${cal.temperature === 0 ? '0' : 'none'} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/owner/agents/brain', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 40_000 })
+  if (r.status !== 201 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}`, reasons: r.json?.reasons as string[] | undefined }
+  return { ok: true, brain: r.json as unknown as AgentBrainInfo }
+}
+
+/** B135: antrean esai agen — dibaca oleh dompet agen (akun ini harus dompet agennya), bertanda tangan. */
+export async function readAgentQueue (agentId: string): Promise<{ ok: boolean, status?: number, why?: string, data?: AgentQueue }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-agent-queue agent=${agentId} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/owner/agents/queue', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 40_000 })
+  if (r.status !== 200 || !r.json) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, data: r.json as unknown as AgentQueue }
+}
+
+/**
+ * B135: kirim nilai usulan model sebagai penilaian agen (rute B119). Angka per kriteria = jawaban model apa adanya; pemilik
+ * memilih label tingkat berat dan menandatangani dari dompet agen. `judgeModel` = `<provider>/<model>` otak yang tercatat.
+ */
+export async function submitAgentJudgement (agentId: string, item: QueueItem, scores: Record<string, number>, label: string, judgeModel: string, judgeTemp: 0 | null): Promise<{ ok: boolean, why?: string, score?: number, verdict?: string, charge?: { amount: string, status: string } | null }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const list = item.essay.rubric.map((r) => ({ label: r.label, score: scores[r.label] }))
+  if (list.some((x) => !Number.isFinite(x.score))) return { ok: false, why: 'Ada kriteria yang belum dinilai model.' }
+  const total = list.reduce((s, x) => s + x.score, 0)
+  const message = `lencana-agent-judge attempt=${item.attemptId} final=${total} label=${label} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/essay/judgement', {
+    method: 'POST', timeoutMs: 40_000,
+    body: { agentId, course: item.course, lesson: item.lesson, attemptId: item.attemptId, scores: list, judgeModel, judgeTemp, message, signature: s.signature },
+  })
+  if (r.status !== 200 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  const charge = r.json.charge as { amount?: string, status?: string } | null | undefined
+  return { ok: true, score: Number(r.json.score), verdict: String(r.json.verdict ?? ''), charge: charge ? { amount: String(charge.amount ?? '0'), status: String(charge.status ?? '') } : null }
 }
 
 /**

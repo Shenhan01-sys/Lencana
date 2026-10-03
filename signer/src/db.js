@@ -1234,6 +1234,33 @@ export async function ownerRecords (agentIds) {
   return { hires: hires ?? [], reviewers: reviewers ?? [], charges: charges ?? [], graded: graded ?? [], reviews: reviews ?? [] }
 }
 
+/* ------------------------------------------------------------------ otak agen (B135, D69) */
+// Lencana-B135 status=TERBUKA 2026-10-03 — catatan otak agen (provider + model + kalibrasi, bertanda tangan pemilik, tanpa API key) dan sewa per agen untuk antrean esai dompet agen. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/** Otak yang tercatat untuk agen-agen ini — tanpa pesan + tanda tangan (yang itu hanya untuk audit di tabel). */
+export async function agentBrains (agentIds) {
+  if (!agentIds?.length) return []
+  const ids = `(${agentIds.map((x) => encodeURIComponent(String(x))).join(',')})`
+  return (await rest('agent_brains', { query: `?agent_id=in.${ids}&select=agent_id,owner,provider,model,calibration,passed,updated_at` })) ?? []
+}
+
+/** Catat atau ganti otak satu agen. Tanda tangan dan kepemilikan (ownerOf) diperiksa pemanggil. */
+export async function saveAgentBrain ({ agentId, owner, provider, model, calibration, passed, message, signature }) {
+  const rows = await rest('agent_brains', {
+    method: 'POST', prefer: 'resolution=merge-duplicates,return=representation',
+    body: [{
+      agent_id: String(agentId), owner: getAddress(owner), provider, model, calibration, passed: Boolean(passed), message, signature,
+      updated_at: new Date().toISOString(), origin: process.env.LANCENA_ORIGIN || 'unknown',
+    }],
+  })
+  return rows?.[0] ?? null
+}
+
+/** Di kursus mana saja satu agen disewa sebagai penilai, dengan dompet saat disewa (antrean dompet agen). */
+export async function hiresOfAgent (agentId) {
+  return (await rest('agent_hires', { query: `?agent_id=eq.${encodeURIComponent(String(agentId))}&select=course_id,agent_wallet,hired_at&order=hired_at.asc` })) ?? []
+}
+
 /**
  * Pengesahan manusia atas satu usulan model.
  *

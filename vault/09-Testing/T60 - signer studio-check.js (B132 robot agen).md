@@ -37,3 +37,11 @@ Regresi pada hari yang sama sesudah `signer/src/owner.js` berubah: `verify:owner
 
 **Batas klaim:** jalur positif klaim dan tetes gas untuk akun Agent Owner baru membutuhkan transaksi sungguhan — dibuktikan T61
 (agen #2548), tidak diulang di baterai.
+
+## Regresi 3 Okt siang — merah karena RPC, bukan karena kode (B136)
+
+Saat regresi B135 dan di baterai 13:36 WIB: **BENGKEL AGEN MERAH — 28 pemeriksaan, 1 gagal** — pemeriksaan C "struk register
+#2546 diklaim O → 403" menjawab **400** "transaction not found on this chain (yet)". Struk `0x373515c0…` (blok 134430227, 2 Okt)
+tidak ditemukan `bsc-testnet.publicnode.com` (= `RPC_URL`) tetapi ditemukan `data-seed-prebsc-1-s1.bnbchain.org:8545`; baterai
+pagi (02:28 WIB) masih 28 / 0. Hasil pagi di front matter tetap benar untuk jamnya; siang ini merah sampai B136 ditutup — lihat
+baris B136 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]].

@@ -72,8 +72,9 @@ export async function verifySelfRegistration ({ rpcUrl, registry, agentId, txHas
  * @param records  hasil `ownerRecords`
  * @param minted   baris `platform_agents` untuk agen-agen itu
  * @param balance  saldo native (wei) alamat pemilik, untuk gas transaksi pemilik
+ * @param brains   baris `agent_brains` untuk agen-agen itu (B135) — tanpa pesan + tanda tangan
  */
-export function ownerOverview ({ address, owned, records, minted, balance, gasLow, token, chainId, publisher = null }) {
+export function ownerOverview ({ address, owned, records, minted, balance, gasLow, token, chainId, publisher = null, brains = [] }) {
   const agents = owned.map(({ agent: a, problem }) => {
     const id = String(a.agentId)
     const charges = records.charges.filter((c) => String(c.agent_id) === id)
@@ -87,6 +88,7 @@ export function ownerOverview ({ address, owned, records, minted, balance, gasLo
     const labels = Object.fromEntries(LADDER.labels.map((l) => [l, 0]))
     for (const x of [...graded, ...reviews]) if (x.difficulty_label && x.difficulty_label in labels) labels[x.difficulty_label] += 1
     const m = minted.find((r) => String(r.agent_id) === id) ?? null
+    const b = brains.find((r) => String(r.agent_id) === id) ?? null
     return {
       agentId: id, registry: a.registry,
       name: a.registration?.name ?? null, description: a.registration?.description ?? null, pointsBack: a.pointsBack,
@@ -117,6 +119,11 @@ export function ownerOverview ({ address, owned, records, minted, balance, gasLo
         })),
       },
       minted: m ? { by: m.minted_by, registerTx: m.register_tx, transferTx: m.transfer_tx, gasTx: m.gas_tx, ownerTo: m.owner_to, at: m.created_at } : null,
+      // B135 (D69): otak yang tercatat — provider/model + kalibrasi yang dilaporkan pemilik. Catatan pemilik lama tidak berlaku.
+      brain: b ? {
+        provider: b.provider, model: b.model, modelName: `${b.provider}/${b.model}`, calibration: b.calibration, passed: Boolean(b.passed),
+        at: b.updated_at, byCurrentOwner: same(b.owner, address),
+      } : null,
     }
   })
   return {
