@@ -54,7 +54,14 @@ import type { AgentMarket } from './market'
 const EP_KEY = 'lencana-signer-url'
 const ID_KEY = 'lencana-learner-v1'
 const AUTH_KEY = 'lencana-explicit-learner-session-v1'
-const DEFAULT_EP = 'http://127.0.0.1:8787'
+/**
+ * Dibuka lewat terowongan (mis. ngrok dari HP): `127.0.0.1` di peramban itu adalah HP-nya sendiri, jadi signer dipakai lewat
+ * proxy vite `/signer` di asal yang sama (`web/vite.config.ts`, server dev maupun `vite preview`). Berlaku di server dev, dan di
+ * build yang sengaja dibuat untuk terowongan (`VITE_SIGNER_SAME_ORIGIN=1`); build produksi biasa dan peramban lokal tidak berubah.
+ */
+const DEFAULT_EP = (import.meta.env?.DEV || import.meta.env?.VITE_SIGNER_SAME_ORIGIN === '1') && typeof location !== 'undefined' && !['127.0.0.1', 'localhost'].includes(location.hostname)
+  ? `${location.origin}/signer`
+  : 'http://127.0.0.1:8787'
 /** localStorage: "peramban ini punya sesi login email" — supaya tab baru tahu ada yang bisa dipulihkan. Tanpa data pribadi. */
 const PRIVY_MARK = 'lencana-privy-v1'
 

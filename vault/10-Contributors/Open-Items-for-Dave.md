@@ -634,6 +634,8 @@ Builder: "ini bukan simulasi FE lagi jd ga boleh ditampilin asal begitu". Rencan
 `#page-portfolio` (kartu "Rina Oktaviani"), dock demo (`force-hidden`) — tidak ada rute yang membukanya lagi, tapi markup dan
 kodenya masih di berkas. Juga CSS untuk bagian yang dibuang (`.wallet-modal*`, `.tamper-*`, `.x402-*`, `.bitstring-*`).
 Membuangnya keputusanmu; kalau dibiarkan, ia tetap terbaca di sumber halaman.
+*(Koreksi 3 Okt: bagian-bagian mati ini — beserta CSS-nya — dibuang atas permintaan builder di B139 setelah daftarnya
+disetujui; lihat OI-29 di bawah.)*
 
 Hook baru: `window.dispatchEvent(new CustomEvent('lencana:open-privy', { detail: { courseId } }))` tetap membuka dialog masuk
 (nama event dipertahankan supaya pemanggil lama tidak putus).
@@ -700,3 +702,22 @@ Permintaan builder 2 Okt. Tampilan baru hidup di berkas baru (`web/src/pages/cat
 
 **Yang harus tetap:** harga hanya dari `web/src/pricing.ts`; status "terdaftar" hanya dari `POST /me/records`; panel pratinjau memakai
 panel bayar yang sama dengan halaman kursus (`embeddedPayPanel`), tidak ada jalur bayar kedua.
+
+## OI-29 — UI lama yang mati dibuang; video latar hero pindah ke landing baru (B139, D71, 3 Okt)
+
+Permintaan builder 3 Okt (uji dari HP): UI lama tampil sekilas tiap refresh. Daftar hapus diserahkan dulu dan
+**disetujui builder** sebelum satu baris pun dibuang. Ini menutup paragraf "Tidak disentuh, tapi mati" di OI-24 di atas.
+
+| berkas | perubahan |
+|---|---|
+| `web/index.html` | dibuang: dok demo `#demo-dock`, landing lama `#page-home` (video, kanvas pohon `#hero-tree-canvas`, navbar landing sendiri), `#page-courses` + `#study-modal`, `#page-submit` + `#mint-modal`, `#page-portfolio` + `#diploma-modal`. Tetap: `app-navbar`, `#page-verify`, `#page-agent-hub`, `#page-publishers` (+ `#publishers-mount`), footer. 1.976 → 617 baris (`wc -l`, HEAD `68b873a` vs kerja, termasuk satu komentar marker B139) |
+| `web/src/main.ts` | kode yang hanya melayani bagian di atas dibuang (ruang belajar, toggle privasi, tier portofolio, editor esai + `simulateAiEvaluation`, confetti/mint, QR/diploma/tombol berbagi, drawer nexum, dok demo, tilt hero lama, kanvas pohon) + 42 `setText` ke id yang sudah tidak ada sebelum B139; `handleRoute` tidak lagi menyebut `page-home`/`page-submit`/`page-portfolio`/dok demo. 2.660 → 1.057 baris (termasuk marker B139). Spec matrix, verifier, Trust Center, Publishers tidak berubah |
+| `web/src/pages/landing.ts` | video latar dipindah ke `.hero-stage` di belakang `hero-editorial-section`; `muted` diisi sebagai properti; pengguna `prefers-reduced-motion` tidak mendapat videonya |
+| `web/src/style.css` | aturan yang **setiap** selektornya menyebut kelas/id yang tidak ada lagi di `index.html` maupun `.ts` mana pun (kelas yang dirakit runtime `prefix-${x}` dikecualikan) dibuang: 16.199 → 9.466 baris (sudah termasuk 35 baris baru `.hero-stage`/`.hero-video`/`.hero-video-wash`) |
+
+**Bukti tidak ada yang ikut rusak:** computed style 794 elemen di `#/verify`, `#/agent-hub`, `#/publishers`, `#/` dibandingkan
+antara CSS HEAD dan CSS baru di lebar 1440 dan 500 px — beda hanya di elemen video baru dan fase animasi (`mini-bar`,
+`seal-ticks`). `i18n.ts` tidak disentuh: kunci kamus untuk bagian yang dibuang masih ada, tidak dipakai lagi.
+
+**Yang harus tetap:** markup lama jangan dikembalikan ke `index.html` — semua yang tampil sebelum JS jalan ikut berkedip di
+setiap refresh. Halaman baru dibangun di `pages/*.ts` dan dipasang lewat `mountNewApp`.

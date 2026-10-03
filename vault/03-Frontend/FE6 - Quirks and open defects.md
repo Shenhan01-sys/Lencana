@@ -54,7 +54,8 @@ open item tracking it (cites read in the current tree, 2026-09-25).
   [[10-Contributors/Open-Items-for-Dave|OI-4]]
 - **Fixed scores and a fixed person.** `93/100` with an honors level appears as dictionary strings
   (`web/src/i18n.ts:584`, `:1006`), page markup (`web/index.html:1461`, `:1467`) and terminal lines
-  written by `simulateAiEvaluation()` (`web/src/main.ts:2324`, `:2340`); its component weights
+  written by `simulateAiEvaluation()` (`web/src/main.ts:2324`, `:2340`) *(koreksi 3 Okt: markup `index.html` itu dan
+  `simulateAiEvaluation` dibuang di B139 — nomor baris di butir ini adalah keadaan sebelum itu)*; its component weights
   40/30/30 (`:2294-2321`) match neither course (`web/src/courses/web3-dasar.ts:42`,
   `web/src/courses/web3-lanjut.ts:37`). Measured for the flagship course: a model-graded composite of
   **94** against `passMark` 70 (`vault/08-Results/01 - Evidence and Limits.md:12`). `Rina Oktaviani`

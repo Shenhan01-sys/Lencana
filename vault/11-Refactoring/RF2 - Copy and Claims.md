@@ -11,7 +11,9 @@ it cannot make.
 
 ## The hero caption
 
-The shipped hero line, at `web/index.html:249` (`class="nexum-h1-system"`):
+The shipped hero line, at `web/index.html:249` (`class="nexum-h1-system"`)
+*(koreksi 3 Okt: landing lama itu sudah tidak dipakai sejak beranda pindah ke `web/src/pages/landing.ts`, dan markupnya
+dibuang di B139 — baris ini catatan keadaan 26 Sep)*:
 *"Autonomous AI credentials that prove your on-chain mastery."*
 Proposed replacement from the builder: *"…prove your skills and profile master on-chainly."*
 

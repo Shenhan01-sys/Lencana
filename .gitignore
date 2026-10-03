@@ -19,6 +19,8 @@ lib/forge-std/
 
 # Hasil build frontend — `npm run build` menghasilkannya kembali
 dist/
+# build khusus terowongan (uji dari HP lewat ngrok + `vite preview`, tanpa live-reload) — diregenerasi, jangan masuk
+dist-tunnel/
 
 # 🔴 Secret. `cache/` dan `broadcast/` di atas juga sudah mengecualikan berkas Foundry yang
 # menyimpan private key saat `--broadcast`, tapi pola di bawah ini jaring pengamannya.

@@ -147,11 +147,27 @@ function renderCourseCard (c: Course, index: number): HTMLElement {
   )
 }
 
+// Lencana-B139 status=SELESAI 2026-10-03 — video latar hero landing lama pindah ke sini (di belakang hero-editorial-section, tidak dibuat untuk prefers-reduced-motion). Buktikan ulang: uji T67 langkah 2-4. JANGAN dibalik/diulang tanpa membuka kembali baris B139 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Video latar hero, dipindah dari landing lama index.html yang dihapus (B139, 3 Okt). Dibuat lewat JS, jadi
+// `muted` wajib diisi sebagai properti — atribut saja tidak dihitung peramban untuk izin autoplay. Pengguna
+// prefers-reduced-motion tidak mendapat videonya sama sekali; lapisan gelap tetap ada.
+const HERO_VIDEO = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260803_192301_9231ed6b-c55c-4a48-909c-4ebe11cf2e11.mp4'
+
+function heroBackdrop (): HTMLElement[] {
+  const wash = h('div', { class: 'hero-video-wash', 'aria-hidden': 'true' })
+  if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return [wash]
+  const video = h('video', { class: 'hero-video', src: HERO_VIDEO, autoplay: '', loop: '', muted: '', playsinline: '', preload: 'metadata', 'aria-hidden': 'true', tabindex: '-1' }) as HTMLVideoElement
+  video.muted = true
+  video.play?.()?.catch?.(() => {})
+  return [video, wash]
+}
+
 export function renderLanding (): HTMLElement {
   const t = DICTIONARIES[getSavedLanguage()].lmsV2
   const card = renderProofCard()
 
   const shell = h('div', { class: 'landing-shell' },
+    h('div', { class: 'hero-stage' }, ...heroBackdrop(),
     h('section', { class: 'hero-editorial-section' },
       h('div', { class: 'hero-editorial-grid' },
         h('div', { class: 'hero-editorial-content' },
@@ -165,6 +181,7 @@ export function renderLanding (): HTMLElement {
         ),
         h('div', { class: 'hero-editorial-visual hero-editorial-visual--proof' }, card),
       ),
+    ),
     ),
 
     h('section', { id: 'catalog', class: 'catalog-editorial' },
