@@ -117,6 +117,8 @@ export async function privyLoginMethods (): Promise<{ google: boolean, email: bo
 
 /** Login Google: peramban pindah ke Google, lalu kembali ke `redirectURI` membawa kode sekali-pakai. */
 export async function privyGoogleStart (redirectURI: string): Promise<void> {
+  // B134: akun Google yang kembali belum diketahui — sesi lama apa pun dibuang supaya Google tidak ditautkan ke akun lain.
+  await endOtherSession(null)
   const { privy } = await client()
   const { url } = await privy.auth.oauth.generateURL('google', redirectURI)
   window.location.assign(url)
@@ -129,13 +131,50 @@ export async function privyGoogleFinish (code: string, state: string): Promise<P
   return attachWallet(session.user as PrivyUser)
 }
 
+// Lencana-B134 status=TERBUKA 2026-10-03 — login email/Google tidak lagi dikirim di atas sesi Privy akun lain: SDK mengirim permintaan login DENGAN token yang tersimpan (fetchForLogin → fetch terautentikasi), sehingga Privy memperlakukannya sebagai "tautkan ke akun yang sedang masuk" — gagal "User already has one email account linked", atau lebih buruk menautkan email/Google seseorang ke akun orang lain; sesi lama dibuang dulu, dan Keluar selalu membuang sesi Privy walau SDK belum dimuat di tab itu. Buktikan ulang: npm run verify:privy (di signer/), lalu login email kedua di peramban yang sama sesudah akun pertama keluar. JANGAN dibalik/diulang tanpa membuka kembali baris B134 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+
+/** User sesi Privy yang tersimpan di peramban ini, atau null. Tanpa token tidak ada panggilan jaringan. */
+async function sessionUser (privy: Privy): Promise<PrivyUser | null> {
+  try {
+    if (!(await privy.getAccessToken())) return null
+    const { user } = await privy.user.get()
+    return (user as PrivyUser | null) ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Sebelum login baru: buang sesi Privy milik akun LAIN yang masih tersimpan. SDK mengirim permintaan login dengan token
+ * yang tersimpan, dan server Privy memperlakukan login di atas sesi aktif sebagai "tautkan metode ini ke akun yang sedang
+ * masuk" — galat "User already has one email account linked" (3 Okt, builder), atau, kalau akun lama belum punya email,
+ * email orang lain tertaut diam-diam ke akunnya. Sesi untuk email yang sama dibiarkan (dipakai ulang di `privyLogin`).
+ * `email` null = buang sesi apa pun (login Google: akun yang kembali belum diketahui).
+ */
+async function endOtherSession (email: string | null): Promise<void> {
+  const { privy } = await client()
+  const token = await privy.getAccessToken().catch(() => null)
+  if (!token) return
+  // Ada token tapi pemiliknya tak terbaca (jaringan) = tetap dibuang: login berikutnya tidak boleh berangkat di atasnya.
+  const user = await sessionUser(privy)
+  if (user && email && emailOf(user)?.toLowerCase() === email.trim().toLowerCase()) return
+  try { await privy.auth.logout(user ? { userId: user.id } : undefined) } catch { /* state lokal tetap dibuang SDK */ }
+  // Klien + iframe dompet baru: dompet tertanam akun lama tidak boleh ikut terpakai oleh login berikutnya.
+  teardown()
+}
+
 export async function privySendCode (email: string): Promise<void> {
+  await endOtherSession(email)
   const { privy } = await client()
   await privy.auth.email.sendCode(email.trim())
 }
 
 export async function privyLogin (email: string, code: string): Promise<PrivyIdentity> {
+  await endOtherSession(email)
   const { privy } = await client()
+  // Sesi yang tersisa pasti milik email ini (yang lain sudah dibuang): pakai ulang, jangan "menautkan" email yang sama lagi.
+  const existing = await sessionUser(privy)
+  if (existing && emailOf(existing)?.toLowerCase() === email.trim().toLowerCase()) return attachWallet(existing)
   const session = await privy.auth.email.loginWithCode(email.trim(), code.trim())
   return attachWallet(session.user as PrivyUser)
 }
@@ -227,13 +266,17 @@ export async function privyAccessToken (): Promise<string | null> {
   return privy.getAccessToken()
 }
 
+/**
+ * Keluar dari Privy. B134: dulu kembali tanpa apa-apa bila SDK belum dimuat di tab ini (`if (!ready) return`) — misalnya
+ * sesudah halaman dimuat ulang, karena identitas dipulihkan dari sessionStorage tanpa SDK — sehingga token Privy akun lama
+ * tertinggal dan login akun berikutnya ditolak ("User already has one email account linked"). Kini SDK dimuat bila perlu.
+ */
 export async function privyLogout (): Promise<void> {
   const userId = current?.userId
-  if (!ready) { current = null; return }
   try {
-    const { privy } = await ready
+    const { privy } = await client()
     await privy.auth.logout(userId ? { userId } : undefined)
-  } finally {
+  } catch { /* tanpa jaringan: state lokal tetap dibuang di bawah */ } finally {
     teardown()
   }
 }
