@@ -27,6 +27,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { loadFileEnvReport } from '../src/env.js'
 import { freePort } from '../src/ports.js'
 import { walletBindingMessage } from '../src/praktik.js'
+import { historyRpcs, txFromHistory, receiptFromHistory, blockFromHistory } from '../src/chain-history.js'
 import { attemptsFor, courseGates, praktikProofsFor, freeTestProofKey } from '../src/db.js'
 import { evidenceFromAttempts } from '../src/fromAttempts.js'
 import { manifestOf } from '../../web/src/manifest-keys.ts'
@@ -204,9 +205,17 @@ try {
     const txLesson = 'praktik-kirim-dan-baca'
     const freedTx = await freeTestProofKey(`tx:${chainId}:${txHash.toLowerCase()}`)
     check('kunci bukti transaksi tidak dipegang peserta sungguhan', freedTx.heldBy.length === 0, json(freedTx))
-    const tx = await client.getTransaction({ hash: txHash })
-    const rc = await client.getTransactionReceipt({ hash: txHash })
-    const blk = await client.getBlock({ blockNumber: rc.blockNumber })
+    // B136: kebenaran dibaca dengan pembaca riwayat yang sama dengan server (RPC utama lalu cadangan) — KNOWN_TX berumur
+    // berhari-hari, dan publicnode tidak konsisten menyajikan struk lama.
+    const urls = historyRpcs(env.RPC_URL, chainId)
+    const [gTx, gRc] = await Promise.all([txFromHistory(urls, chainId, txHash), receiptFromHistory(urls, chainId, txHash)])
+    if (!gTx.ok || !gRc.ok) throw new Error(`KNOWN_TX tidak terbaca dari RPC mana pun: ${(gTx.ok ? gRc : gTx).why}`)
+    const tx = gTx.value
+    const rc = gRc.value
+    const gBlk = await blockFromHistory(urls, chainId, rc.blockNumber)
+    if (!gBlk.ok) throw new Error(`blok ${rc.blockNumber} tidak terbaca: ${gBlk.why}`)
+    const blk = gBlk.value
+    console.log(`  info  struk KNOWN_TX dibaca dari ${gRc.rpc}${gRc.fallback ? ' (RPC cadangan)' : ''}`)
     const truth = {
       wallet: tx.from, txHash, blockNumber: rc.blockNumber.toString(), blockTimestamp: blk.timestamp.toString(),
       gasUsed: rc.gasUsed.toString(), balanceDeltaWei: (tx.value + rc.gasUsed * rc.effectiveGasPrice).toString(),

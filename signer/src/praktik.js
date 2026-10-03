@@ -29,6 +29,7 @@ import {
 import { verifyMessage } from 'viem/utils'
 
 import { manifestOf } from '../../web/src/manifest-keys.ts'
+import { historyRpcs, txFromHistory, receiptFromHistory, blockFromHistory } from './chain-history.js'
 
 export const PROOF_TYPES = ['balance', 'tx-receipt', 'eth-call', 'allowance']
 const ERC20 = parseAbi(['function balanceOf(address) view returns (uint256)', 'function allowance(address,address) view returns (uint256)'])
@@ -147,15 +148,21 @@ export async function checkPraktik ({ rpcUrl, courseId, lessonSlug, learner, ans
       if ([blockNumber, blockTimestamp, gasUsed, delta].some((v) => v === null)) {
         return fail(400, 'requires answers.blockNumber, blockTimestamp, gasUsed and balanceDeltaWei as integer strings')
       }
-      let tx
-      let receipt
-      try {
-        tx = await client.getTransaction({ hash: txHash })
-        receipt = await client.getTransactionReceipt({ hash: txHash })
-      } catch {
-        return fail(422, `transaction ${txHash} is not on chain ${chainId} (or not mined yet)`, { failed: ['tx-exists'] })
+      // B136: transaksi, struk, dan blok yang sudah lewat dibaca dari RPC utama lalu cadangan (chainId sama) — publicnode tidak
+      // konsisten untuk riwayat. "Tidak ada di RPC mana pun" tetap 422 tx-exists; RPC yang tidak terbaca = 503, bukan salah peserta.
+      const urls = historyRpcs(rpcUrl, chainId)
+      const [gotTx, gotRc] = await Promise.all([txFromHistory(urls, chainId, txHash), receiptFromHistory(urls, chainId, txHash)])
+      if (!gotTx.ok || !gotRc.ok) {
+        const bad = !gotTx.ok ? gotTx : gotRc
+        return bad.kind === 'missing'
+          ? fail(422, `transaction ${txHash} is not on chain ${chainId} (or not mined yet)`, { failed: ['tx-exists'] })
+          : fail(503, `chain ${chainId} could not be read right now (RPC error) — try again`)
       }
-      const block = await client.getBlock({ blockNumber: receipt.blockNumber })
+      const tx = gotTx.value
+      const receipt = gotRc.value
+      const gotBlock = await blockFromHistory(urls, chainId, receipt.blockNumber)
+      if (!gotBlock.ok) return fail(503, `block ${receipt.blockNumber} of chain ${chainId} could not be read right now — try again`)
+      const block = gotBlock.value
       const cost = tx.value + receipt.gasUsed * receipt.effectiveGasPrice
       proof.key = `tx:${chainId}:${txHash}`
       proof.txHash = txHash

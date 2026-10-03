@@ -45,3 +45,7 @@ Saat regresi B135 dan di baterai 13:36 WIB: **BENGKEL AGEN MERAH — 28 pemeriks
 tidak ditemukan `bsc-testnet.publicnode.com` (= `RPC_URL`) tetapi ditemukan `data-seed-prebsc-1-s1.bnbchain.org:8545`; baterai
 pagi (02:28 WIB) masih 28 / 0. Hasil pagi di front matter tetap benar untuk jamnya; siang ini merah sampai B136 ditutup — lihat
 baris B136 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]].
+
+**Pulih 3 Okt sore (B136):** **BENGKEL AGEN HIJAU — 28 pemeriksaan, 0 gagal** — `verifySelfRegistration` kini membaca struk lewat
+`signer/src/chain-history.js` (RPC utama lalu RPC resmi BNB Chain), jadi klaim struk #2546 oleh akun lain kembali 403. Galat RPC
+tidak lagi terbaca "transaction not found" (kini 503). Lihat [[09-Testing/T66 - signer history-check.js (B136 riwayat chain)]].

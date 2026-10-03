@@ -31,6 +31,7 @@
     "verify:brain": "tsx scripts/brain-check.js",
     "verify:brain:live": "tsx scripts/brain-check.js --live",
     "verify:market": "tsx scripts/market-check.js",
+    "verify:history": "tsx scripts/history-check.js",
     "verify:paywall": "tsx scripts/paywall-check.js",
     "verify:paywall:live": "tsx scripts/paywall-check.js --live",
     "verify:privy": "node scripts/privy-check.js",

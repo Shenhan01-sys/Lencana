@@ -199,3 +199,7 @@ Baterai 3 Okt 13:36 WIB: **PRAKTIK MERAH — 22 pemeriksaan, 1 gagal** — berhe
 masih **32 / 0**. Struk itu kini tidak ditemukan `bsc-testnet.publicnode.com` (= `RPC_URL`) tetapi ditemukan
 `data-seed-prebsc-1-s1.bnbchain.org:8545`. Hasil 1 Okt di front matter tetap benar untuk tanggalnya; hari ini harness ini merah
 sampai B136 ditutup — lihat baris B136 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]].
+
+**Pulih 3 Okt sore (B136):** **PRAKTIK HIJAU — 32 pemeriksaan, 0 gagal** — server dan harness kini membaca transaksi, struk, dan blok
+lewat `signer/src/chain-history.js` (RPC utama lalu RPC resmi BNB Chain); keluaran run: "struk KNOWN_TX dibaca dari
+bsc-testnet-dataseed.bnbchain.org (RPC cadangan)". Lihat [[09-Testing/T66 - signer history-check.js (B136 riwayat chain)]].

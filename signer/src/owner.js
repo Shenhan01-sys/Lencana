@@ -14,6 +14,7 @@ import { createPublicClient, createWalletClient, http, parseEther, parseAbi, par
 import { privateKeyToAccount } from 'viem/accounts'
 import { rateCard, LADDER } from './pricing.js'
 import { parseAvatar, AVATAR_KEY } from '../../web/src/robot.ts'
+import { historyRpcs, receiptFromHistory } from './chain-history.js'
 
 const same = (a, b) => String(a ?? '').toLowerCase() === String(b ?? '').toLowerCase()
 
@@ -52,8 +53,16 @@ export async function verifySelfRegistration ({ rpcUrl, registry, agentId, txHas
   if (!/^0x[0-9a-fA-F]{64}$/.test(String(txHash ?? ''))) return { ok: false, status: 400, why: 'registerTx must be a transaction hash' }
   if (!/^\d+$/.test(String(agentId ?? ''))) return { ok: false, status: 400, why: 'agentId must be a number' }
   const pub = createPublicClient({ transport: http(rpcUrl, { timeout: 20_000, retryCount: 1 }) })
-  const receipt = await pub.getTransactionReceipt({ hash: txHash }).catch(() => null)
-  if (!receipt) return { ok: false, status: 400, why: 'transaction not found on this chain (yet)' }
+  // B136: struk lama dibaca dari RPC utama lalu cadangan (publicnode tidak konsisten untuk riwayat); galat RPC ≠ "tidak ada".
+  const chainId = await pub.getChainId().catch(() => null)
+  if (chainId === null) return { ok: false, status: 503, why: 'the chain could not be read right now (RPC error) — try again' }
+  const got = await receiptFromHistory(historyRpcs(rpcUrl, chainId), chainId, txHash)
+  if (!got.ok) {
+    return got.kind === 'missing'
+      ? { ok: false, status: 400, why: 'transaction not found on this chain (yet)' }
+      : { ok: false, status: 503, why: `the chain could not be read right now (RPC error: ${got.why.slice(0, 120)}) — try again` }
+  }
+  const receipt = got.value
   if (receipt.status !== 'success') return { ok: false, status: 400, why: 'transaction reverted' }
   if (String(receipt.to ?? '').toLowerCase() !== String(registry).toLowerCase()) return { ok: false, status: 400, why: 'transaction was not sent to the ERC-8004 identity registry' }
   const ev = receipt.logs
