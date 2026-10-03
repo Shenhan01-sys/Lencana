@@ -193,6 +193,21 @@ for (const r of records) {
   }
 }
 
+// Lencana-B141 status=SELESAI 2026-10-04 — dokumen criteria terbit untuk SETIAP kursus di MANIFESTS (berkas + database non-uji), bukan hanya kursus yang sudah punya kredensial: aturan nilai adalah komitmen publik sebelum ada yang dinilai. Buktikan ulang: npm run publish:edge lalu npm run verify:quizkeys. JANGAN dibalik/diulang tanpa membuka kembali baris B141 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Kursus yang belum punya kredensial: criteria dari manifest itu sendiri. Kursus yang sudah, tetap memakai hash yang tercetak
+// di rekamannya (loop di atas) — dokumen yang dirujuk kertas lama tidak ditimpa dari sini.
+const criteriaOnly = []
+for (const manifest of MANIFESTS) {
+  const courseId = manifest.course.id
+  if (published.criteria.has(courseId)) continue
+  await kvPut(KV_KEYS.criteria(courseId), criteriaDocument({
+    baseUrl: BASE, manifest, rubricHash: rubricHashOf(manifest), manifestHash: manifestHashOf(manifest),
+  }))
+  published.criteria.add(courseId)
+  criteriaOnly.push(courseId)
+}
+if (criteriaOnly.length) console.log(`  criteria tanpa kredensial (komitmen aturan nilai): ${criteriaOnly.join(', ')}`)
+
 const state = {
   edge: true,
   publishedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
@@ -297,6 +312,12 @@ for (const [hash, r] of byHash) {
   if (!gr.ok) bad.push(failed(gr))
   const gc = await edge(`criteria ${courseId}`, EDGE_ROUTES.criteria(courseId),
     (j) => !!j.scale?.id && !JSON.stringify(j).includes('"answer"'))
+  if (!gc.ok) bad.push(failed(gc))
+}
+for (const courseId of criteriaOnly) {
+  const want = rubricHashOf(manifestOf(courseId))
+  const gc = await edge(`criteria ${courseId} (tanpa kredensial)`, EDGE_ROUTES.criteria(courseId),
+    (j) => !!j.scale?.id && j.rubricHash === want && !JSON.stringify(j).includes('"answer"'))
   if (!gc.ok) bad.push(failed(gc))
 }
 console.log(`  bentuk credentialStatus terlayani: ${Object.entries(shapes).map(([k, v]) => `${k}=${v}`).join(', ')}`)
