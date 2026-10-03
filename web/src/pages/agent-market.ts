@@ -88,6 +88,16 @@ const COPY = {
   doneHire: { en: 'Hired — recorded under your address.', id: 'Disewa — tercatat atas alamatmu.' },
   doneAppoint: { en: 'Appointed — recorded under your address.', id: 'Ditunjuk — tercatat atas alamatmu.' },
   close: { en: 'Close', id: 'Tutup' },
+  cancel: { en: 'Cancel', id: 'Batal' },
+  dealHire: { en: 'Hiring contract · grader', id: 'Kontrak sewa · penilai' },
+  dealAppoint: { en: 'Appointment · reviewer', id: 'Penunjukan · pengesah' },
+  fee: { en: 'Fee', id: 'Bayaran' },
+  perReview: { en: 'per review', id: 'per pengesahan' },
+  feeNote: { en: 'The agent picks the difficulty label per activity; the fee is charged per activity to its wallet.', id: 'Agen memilih label tingkat berat per aktivitas; bayaran ditagih per aktivitas ke dompet agen.' },
+  brainLabel: { en: 'Brain', id: 'Otak' },
+  noBrainShort: { en: 'no brain — its operator types the scores', id: 'tanpa otak — angkanya diketik operatornya' },
+  signer: { en: 'Signed by', id: 'Ditandatangani' },
+  signerNote: { en: 'your account — recorded as the one who hired', id: 'akunmu — tercatat sebagai penyewanya' },
   serverDecides: { en: 'The server checks the same rules again and decides.', id: 'Server memeriksa aturan yang sama sekali lagi dan yang memutuskan.' },
   testTag: { en: 'test', id: 'uji' },
 } satisfies Record<string, Record<Lang, string>>
@@ -273,14 +283,11 @@ function booth (lang: Lang, o: PublisherOverview, a: MarketAgent, i: number, mem
       ? h('ul', null, ...plates.map((p) => h('li', { class: p.stale ? 'stale' : '', title: p.stale ? T('staleSeat') : '' }, h('small', null, p.k), findCourse(p.c)?.title ?? p.c)))
       : h('small', { class: 'app-muted' }, T('idle')))
 
-  // aksi: panel sewa / tunjuk di dalam lapak
-  const panel = h('div', { class: 'am-act', hidden: true })
-  const open = (kind: Kind) => {
-    panel.hidden = false
-    panel.replaceChildren(actPanel(lang, o, a, kind, member, reload, () => { panel.hidden = true; panel.replaceChildren() }))
-  }
-  const hireBtn = h('button', { type: 'button', class: 'app-btn primary small', onClick: () => open('hire') }, T('hire')) as HTMLButtonElement
-  const apptBtn = h('button', { type: 'button', class: 'app-btn small', onClick: () => open('appoint') }, T('appoint')) as HTMLButtonElement
+  // aksi: kartu kontrak sewa / tunjuk sebagai popup (permintaan builder 3 Okt, Uji 1: "mending munculin popup card aja")
+  const hireBtn = h('button', { type: 'button', class: 'app-btn primary small' }, T('hire')) as HTMLButtonElement
+  const apptBtn = h('button', { type: 'button', class: 'app-btn small' }, T('appoint')) as HTMLButtonElement
+  hireBtn.addEventListener('click', () => openDeal(lang, o, a, 'hire', member, reload, hireBtn))
+  apptBtn.addEventListener('click', () => openDeal(lang, o, a, 'appoint', member, reload, apptBtn))
   hireBtn.disabled = !o.seat.canHire
   apptBtn.disabled = !o.seat.canAppoint
 
@@ -297,13 +304,16 @@ function booth (lang: Lang, o: PublisherOverview, a: MarketAgent, i: number, mem
     h('div', { class: 'am-where' }, h('small', { class: 'am-label' }, T('worksAt')), work),
     h('div', { class: `am-status ${a.hireable ? 'ok' : 'bad'}` }, h('span', { class: 'am-lamp', 'aria-hidden': 'true' }),
       h('span', null, a.hireable ? T('hireable') : `${T('notHireable')} — ${a.problem ?? ''}`)),
-    h('div', { class: 'am-actions' }, hireBtn, apptBtn),
-    panel)
+    h('div', { class: 'am-actions' }, hireBtn, apptBtn))
 }
 
-/** Panel sewa/tunjuk: kursus yang terhalang aturan tetap terlihat dengan alasannya, tidak bisa dipilih. */
-function actPanel (lang: Lang, o: PublisherOverview, a: MarketAgent, kind: Kind, member: string | null, reload: () => void, close: () => void): HTMLElement {
+/**
+ * Kartu kontrak sewa / tunjuk (popup; di ponsel lembar dari bawah): robot + peran + kursus + bayaran + otak + penanda tangan.
+ * Kursus yang terhalang aturan tetap terlihat dengan alasannya dan tidak bisa dipilih. Esc / latar / Batal menutup.
+ */
+function openDeal (lang: Lang, o: PublisherOverview, a: MarketAgent, kind: Kind, member: string | null, reload: () => void, opener: HTMLElement): void {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
+  document.querySelector('.am-modal-root')?.remove()
   const can = kind === 'hire' ? o.seat.canHire : o.seat.canAppoint
   const rows = o.courses.map((c) => {
     const team = teamOf(o.agents, c.id)
@@ -321,25 +331,69 @@ function actPanel (lang: Lang, o: PublisherOverview, a: MarketAgent, kind: Kind,
   const firstOk = rows.find((r) => !r.why)
   if (firstOk) sel.value = firstOk.c.id
   const status = h('p', { class: 'seat-apply-status', role: 'status' })
-  const go = h('button', { type: 'button', class: 'app-btn primary small' }, kind === 'hire' ? T('signHire') : T('signAppoint')) as HTMLButtonElement
+  const go = h('button', { type: 'button', class: 'app-btn primary' }, kind === 'hire' ? T('signHire') : T('signAppoint')) as HTMLButtonElement
+  const cancel = h('button', { type: 'button', class: 'app-btn' }, T('cancel')) as HTMLButtonElement
+  const x = h('button', { type: 'button', class: 'am-x', 'aria-label': T('close') }, '×') as HTMLButtonElement
   go.disabled = !firstOk
+  let done = false
+  const close = (): void => {
+    root.classList.remove('in')
+    document.documentElement.classList.remove('am-lock')
+    window.removeEventListener('keydown', onKey)
+    window.removeEventListener('hashchange', close)
+    setTimeout(() => root.remove(), 220)
+    if (!done) opener.focus()
+  }
+  const onKey = (ev: KeyboardEvent): void => { if (ev.key === 'Escape') close() }
+  cancel.addEventListener('click', close)
+  x.addEventListener('click', close)
   go.addEventListener('click', () => {
     const courseId = sel.value
     if (rows.find((r) => r.c.id === courseId)?.why) return
     go.disabled = true
+    sel.disabled = true
     status.className = 'seat-apply-status'
     status.textContent = T('signing')
     const act = kind === 'hire' ? memberHireAgent(courseId, a.agentId) : memberAppointReviewer(courseId, a.agentId, a.wallet ?? '')
     void act.then((r) => {
-      if (!r.ok) { go.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = r.why ?? ''; return }
+      if (!r.ok) { go.disabled = false; sel.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = r.why ?? ''; return }
+      done = true
       status.className = 'seat-apply-status ok'
       status.textContent = kind === 'hire' ? T('doneHire') : T('doneAppoint')
+      root.querySelector('.am-modal')?.classList.add('signed')
       memo = null // server membatalkan cache bursa; halaman juga membaca ulang
-      setTimeout(reload, 900)
+      setTimeout(() => { close(); reload() }, 1100)
     })
   })
-  return h('div', { class: 'am-act-inner' },
-    h('label', null, h('span', null, `${kind === 'hire' ? T('hire') : T('appoint')} · ${T('course')}`), sel),
-    h('div', { class: 'seat-apply-row' }, go, h('button', { type: 'button', class: 'app-btn small', onClick: close }, T('close')), status),
-    h('small', { class: 'app-muted' }, T('serverDecides')))
+
+  // isi kontrak: bayaran = tangga tarif agen (label dipilih agen per aktivitas), otak, penanda tangan
+  const amounts = a.rateCard.map((r) => BigInt(r.amount))
+  const fee = amounts.length
+    ? `${formatLdc(amounts[0])}–${formatLdc(amounts[amounts.length - 1])} ${PAY_TOKEN_SYMBOL} ${kind === 'hire' ? T('perGrading') : T('perReview')}`
+    : T('noTariff')
+  const brain = a.brain ? `${isProvider(a.brain.provider) ? LLM_PROVIDERS[a.brain.provider].label : a.brain.provider} · ${a.brain.model}` : T('noBrainShort')
+  const root = h('div', { class: 'am-modal-root', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'am-modal-title' },
+    h('div', { class: 'am-backdrop', onClick: close }),
+    h('section', { class: 'am-modal' },
+      h('header', { class: 'am-modal-head' },
+        robotOf(a, 'am-modal-bot'),
+        h('div', null,
+          h('small', { class: 'am-label' }, kind === 'hire' ? T('dealHire') : T('dealAppoint')),
+          h('h3', { id: 'am-modal-title' }, a.name ?? `#${a.agentId}`),
+          h('code', null, `#${a.agentId} · ${T('owner')} ${short(a.owner)}`)),
+        x),
+      h('dl', { class: 'am-deal' },
+        h('dt', null, T('course')), h('dd', null, sel),
+        h('dt', null, T('fee')), h('dd', null, fee, h('small', null, T('feeNote'))),
+        h('dt', null, T('brainLabel')), h('dd', null, brain),
+        h('dt', null, T('signer')), h('dd', null, h('code', null, short(member)), h('small', null, T('signerNote')))),
+      h('div', { class: 'am-modal-actions' }, cancel, go),
+      status,
+      h('small', { class: 'app-muted' }, T('serverDecides'))))
+  document.body.appendChild(root)
+  document.documentElement.classList.add('am-lock')
+  window.addEventListener('keydown', onKey)
+  window.addEventListener('hashchange', close)
+  requestAnimationFrame(() => root.classList.add('in'))
+  ;(firstOk ? go : cancel).focus()
 }

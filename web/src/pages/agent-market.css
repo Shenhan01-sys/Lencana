@@ -118,10 +118,48 @@
 .am-status.bad { color: #ff9f43; }
 .am-lamp { flex: none; width: 9px; height: 9px; margin-top: 4px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 .am-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.am-act { padding: 12px; border-radius: 12px; background: rgba(240, 185, 11, 0.06); border: 1px solid rgba(240, 185, 11, 0.3); }
-.am-act-inner { display: grid; gap: 8px; }
-.am-act-inner label { display: grid; gap: 4px; color: var(--text-sub, #a9b0ba); font-size: 12px; }
-.am-course-sel { width: 100%; padding: 8px 10px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 10px; background: #151920; color: #e9e6df; font: inherit; font-size: 13px; }
+.am-course-sel { width: 100%; padding: 9px 10px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 10px; background: #151920; color: #e9e6df; font: inherit; font-size: 14px; }
+
+/* ------------------------------------------------ kartu kontrak sewa / tunjuk (popup; ponsel: lembar dari bawah) */
+html.am-lock { overflow: hidden; }
+.am-modal-root { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; }
+.am-backdrop { position: absolute; inset: 0; background: rgba(5, 7, 10, 0.62); opacity: 0; transition: opacity 0.2s ease; }
+.am-modal { position: relative; display: grid; gap: 14px; width: min(460px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 18px 18px 16px;
+  border: 1px solid rgba(240, 185, 11, 0.45); border-radius: 20px; background: linear-gradient(180deg, #171c23, #10141a);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); opacity: 0; transform: translateY(14px) scale(0.98); transition: opacity 0.2s ease, transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.1); }
+.am-modal-root.in .am-backdrop { opacity: 1; }
+.am-modal-root.in .am-modal { opacity: 1; transform: none; }
+.am-modal-head { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.am-modal-bot { display: block; width: 60px; height: 70px; }
+.am-modal-bot svg { display: block; width: 100%; height: 100%; }
+.am-modal-head h3 { margin: 2px 0; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.am-modal-head code { color: var(--text-sub, #a9b0ba); font: 600 11.5px var(--font-mono, ui-monospace, monospace); }
+.am-x { align-self: start; width: 32px; height: 32px; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 50%; background: transparent; color: #e9e6df; font-size: 18px; line-height: 1; cursor: pointer; }
+.am-deal { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px 12px; margin: 0; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.12); }
+.am-deal dt { padding-top: 2px; color: var(--text-sub, #a9b0ba); font: 700 10.5px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
+.am-deal dd { display: grid; gap: 3px; margin: 0; color: #f4f1ea; font-size: 13.5px; min-width: 0; }
+.am-deal dd small { color: var(--text-sub, #a9b0ba); font-size: 11.5px; }
+.am-deal dd code { font: 600 12.5px var(--font-mono, ui-monospace, monospace); }
+.am-modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Popup ditempel ke <body>, di luar `.app-shell` — gaya tombol dasbor (dashboard.css) tidak menjangkaunya, jadi diulang di sini. */
+.am-modal .app-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 0 18px; border: 1px solid rgba(240, 185, 11, 0.35);
+  border-radius: 999px; background: transparent; color: #f0b90b; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; transition: background 0.2s ease, transform 0.15s ease; }
+.am-modal .app-btn:hover:not(:disabled) { background: rgba(240, 185, 11, 0.12); }
+.am-modal .app-btn:active:not(:disabled) { transform: scale(0.97); }
+.am-modal .app-btn.primary { border-color: #f0b90b; background: #f0b90b; color: #0c0f13; }
+.am-modal .app-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.am-modal .seat-apply-status { margin: 0; font-size: 13px; }
+.am-modal .seat-apply-status.ok { color: #37d67a; }
+.am-modal .seat-apply-status.bad { color: #ff6b7f; }
+.am-modal.signed { border-color: rgba(55, 214, 122, 0.7); box-shadow: 0 0 0 3px rgba(55, 214, 122, 0.15), 0 24px 60px rgba(0, 0, 0, 0.5); }
+@media (max-width: 640px) {
+  .am-modal-root { place-items: end stretch; padding: 0; }
+  .am-modal { width: 100%; max-height: 88vh; border-radius: 20px 20px 0 0; transform: translateY(40px); }
+  .am-deal { grid-template-columns: 1fr; gap: 4px; }
+  .am-deal dt { padding-top: 6px; }
+  .am-modal-actions .app-btn { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .am-modal, .am-backdrop { transition: none; } }
 .pb-manual > summary { cursor: pointer; color: var(--text-sub, #b7bdc6); font-size: 13.5px; }
 .pb-manual[open] > summary { margin-bottom: 12px; }
 
