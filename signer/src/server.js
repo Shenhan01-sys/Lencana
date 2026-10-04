@@ -38,6 +38,7 @@ import { loadFileEnvReport } from './env.js'
 import { REVOCATION, SUSPENSION, renderList, servedHashes } from './lists.js'
 import { sha256Hex } from './credential.js'
 import { makeDocumentLoader } from './sign.js'
+import { vendoredContexts } from './context-store.js'
 import { getCredentialByHash } from './store.js'
 import { criteriaDocument } from './criteria.js'
 import { resultDocument } from './results.js'
@@ -1520,6 +1521,10 @@ const server = createServer(async (req, res) => {
     return send(res, 500, { error: err.message })
   }
 })
+
+// B148: salinan konteks JSON-LD diperiksa saat mulai (sha256 = manifest). Salinan yang berubah melempar di sini, jadi server
+// menolak jalan alih-alih menandatangani daftar status dengan konteks lain.
+console.log(`konteks JSON-LD: ${vendoredContexts().manifest.contexts.length} salinan dimuat dari signer/contexts (sha256 cocok)`)
 
 // B133: muat kursus database sebelum permintaan pertama — supaya criteria/enroll kursus yang sudah terbit langsung dikenal.
 await refreshCatalog({ force: true }).then((r) => { if (r.loaded || r.skipped) console.log(`katalog database: ${r.loaded} kursus dimuat, ${r.skipped} dilewati`) })

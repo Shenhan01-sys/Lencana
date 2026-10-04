@@ -60,6 +60,8 @@
     "monitor:edge": "node scripts/monitor-edge.js",
     "check:labels": "node scripts/label-coverage.js",
     "check:identity": "node scripts/identity-check.js",
+    "check:contexts": "node scripts/contexts-check.js",
+    "contexts:fetch": "node scripts/contexts-fetch.js",
     "cleanup": "node scripts/cleanup.js",
     "migrate:tags": "node scripts/tag-migrate.js",
     "x402": "node scripts/x402-check.js",

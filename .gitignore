@@ -17,6 +17,9 @@ qwen-code-export-*.md
 node_modules/
 lib/forge-std/
 
+# B148: cache disk konteks JSON-LD selain empat salinan di signer/contexts/ — diambil ulang sendiri kalau hilang
+signer/.cache/
+
 # Hasil build frontend — `npm run build` menghasilkannya kembali
 dist/
 # build khusus terowongan (uji dari HP lewat ngrok + `vite preview`, tanpa live-reload) — diregenerasi, jangan masuk

@@ -19,6 +19,10 @@ learner name and no DID, and it holds no score of its own: that arrives from
   `https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json` (`signer/src/context.js:18,21,30`).
   The order is part of what gets signed — RDFC-2022 canonicalises the document. The OB context does
   **not** provide `credentialStatus`, `proof` or `validUntil`; those come from the W3C one.
+- *(Ditambahkan 4 Okt, B148)* Signer tidak lagi mengambil kedua konteks itu dari jaringan: salinannya (plus Data Integrity v2
+  dan Multikey v1 milik dokumen penerbit) ada di `signer/contexts/` dengan sha256 per salinan, dilayani dari memori oleh
+  `makeDocumentLoader` (`signer/src/sign.js`, `signer/src/context-store.js`). Bukti bahwa salinannya = konteks yang dulu dipakai
+  menandatangani: 30 dari 30 kertas di store terverifikasi ulang dengannya — [[09-Testing/T72 - signer contexts-check.js (B148 konteks JSON-LD)]].
 - Type inheritance (`signer/src/credential.js:68-104`): `['VerifiableCredential',
   'OpenBadgeCredential']` → `credentialSubject.type = 'AchievementSubject'` →
   `achievement.type = ['Achievement']` → `result[].type = ['Result']`. `issuer` is an object with

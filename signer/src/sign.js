@@ -13,6 +13,7 @@ import * as jsigsModule from 'jsonld-signatures'
 import jsonld from 'jsonld'
 import { DataIntegrityProof } from '@digitalbazaar/data-integrity'
 import { cryptosuite as eddsaRdfc2022 } from '@digitalbazaar/eddsa-rdfc-2022-cryptosuite'
+import { CACHE_DIR, isContextUrl, readCached, vendoredContext, writeCached } from './context-store.js'
 
 // paket ini CommonJS; di bawah ESM Node kadang menaruh segalanya di `default`.
 const jsigs = jsigsModule.default ?? jsigsModule
@@ -41,10 +42,15 @@ const assertionPurpose = (controllerDocument) =>
  * `put` ditempel ke fungsinya supaya pemanggil tetap bisa mendaftarkan URL baru setelah dibuat.
  *
  * URL kami sendiri (dokumen issuer, daftar status) dilayani dari memori — bukan dari jaringan —
- * supaya verifikasi bisa offline dan deterministik. Konteks milik W3C/1EdTech lewat pemuat
- * bawaan jsonld; kalau nanti perlu benar-benar offline, tempat men-vendor-nya di sini.
+ * supaya verifikasi bisa offline dan deterministik.
+ *
+ * Lencana-B148 status=SELESAI 2026-10-05 — konteks W3C/1EdTech dari salinan repo, lalu cache disk (host konteks saja), baru jaringan. Buktikan ulang: npm run check:contexts. JANGAN dibalik/diulang tanpa membuka kembali baris B148 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+ * Urutan sesudah dokumen milik kami: salinan konteks di `signer/contexts/` (dari memori, lihat
+ * `context-store.js`) → cache disk untuk URL host konteks → jaringan lewat pemuat bawaan jsonld.
+ * Dokumen di luar host konteks (mis. dokumen kunci penerbit lain) TIDAK pernah di-cache.
+ * `cacheDir: null` mematikan cache disk; `cacheable` dan `fetchRemote` bisa diganti untuk harness.
  */
-export function makeDocumentLoader (documents = {}) {
+export function makeDocumentLoader (documents = {}, { cacheDir = CACHE_DIR, cacheable = isContextUrl, fetchRemote = (u) => jsonld.documentLoader(u) } = {}) {
   const urls = new Map(Object.entries(documents))
   const documentLoader = async (url) => {
     // `proof.verificationMethod` adalah URL BER-FRAGMEN
@@ -69,7 +75,17 @@ export function makeDocumentLoader (documents = {}) {
       }
       return { contextUrl: null, document: structuredClone(vm), url }
     }
-    return jsonld.documentLoader(url)
+    const pinned = vendoredContext(url)
+    if (pinned) return pinned
+    if (cacheDir && cacheable(url)) {
+      const hit = await readCached(url, cacheDir)
+      if (hit) return hit
+      const remote = await fetchRemote(url)
+      // Cache yang gagal ditulis tidak boleh menggagalkan tanda tangan: dokumennya sudah ada di tangan.
+      await writeCached(url, remote, cacheDir).catch((e) => console.warn(`cache konteks tidak tertulis (${url}): ${String(e?.message ?? e).slice(0, 120)}`))
+      return remote
+    }
+    return fetchRemote(url)
   }
   documentLoader.put = (url, doc) => { urls.set(url, doc) }
   documentLoader.has = (url) => urls.has(url)

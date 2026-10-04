@@ -101,6 +101,8 @@ const HARNESS = [
   { id: 'history', label: 'verify:history (riwayat chain: RPC cadangan, missing ≠ unreachable)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:history']], re: /RIWAYAT CHAIN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B140 status=TERBUKA 2026-10-04 — verify:manage ikut baterai murah (tanpa gas): versi kursus, arsip, terbit/tolak dari dasbor dengan jejak peminta. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'manage', label: 'verify:manage (kelola kursus: versi, arsip, terbit dari dasbor)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:manage']], re: /KELOLA KURSUS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B148 status=SELESAI 2026-10-05 — check:contexts ikut baterai murah: konteks JSON-LD dari salinan repo, fetch ke host konteks diblokir di dalam harness. Yang online (-- --online) sengaja TIDAK di sini supaya baterai tidak bergantung situs pihak ketiga. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B148 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'contexts', label: 'check:contexts (konteks JSON-LD dari salinan repo, tanpa jaringan)', cwd: SIGNER, cmd: ['npm', ['run', 'check:contexts']], re: /KONTEKS JSON-LD (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -249,6 +251,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'history', want: (m) => new RegExp(`RIWAYAT CHAIN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:history di QR' },
   { file: '09-Testing/T71 - signer manage-check.js (B140 kelola kursus).md', metric: 'manage', want: (m) => `KELOLA KURSUS HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T71 (kelola kursus)' },
   { file: 'Quick-Reference.md', metric: 'manage', want: (m) => new RegExp(`KELOLA KURSUS HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:manage di QR' },
+  { file: '09-Testing/T72 - signer contexts-check.js (B148 konteks JSON-LD).md', metric: 'contexts', want: (m) => `KONTEKS JSON-LD HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T72 (konteks JSON-LD)' },
+  { file: 'Quick-Reference.md', metric: 'contexts', want: (m) => new RegExp(`KONTEKS JSON-LD HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris check:contexts di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

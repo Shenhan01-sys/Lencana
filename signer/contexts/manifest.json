@@ -1,0 +1,37 @@
+{
+  "note": "Salinan konteks JSON-LD yang dipakai kertas Lencana (B148). Dibuat oleh npm run contexts:fetch -- --apply; sha256 = isi dalam JSON padat. Jangan disunting tangan: signer menolak jalan bila isi tidak sama dengan sha256 di sini.",
+  "contexts": [
+    {
+      "url": "https://www.w3.org/ns/credentials/v2",
+      "file": "credentials-v2.json",
+      "documentUrl": "https://www.w3.org/ns/credentials/v2",
+      "contextUrl": null,
+      "sha256": "bf6fd611e6773d58f649459a45dbbb81f94e8cfd058a756644cd5a4a882c4050",
+      "fetchedAt": "2026-10-04T15:46:47.507Z"
+    },
+    {
+      "url": "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json",
+      "file": "ob-v3p0-context-3.0.3.json",
+      "documentUrl": "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json",
+      "contextUrl": null,
+      "sha256": "7dc687659cf17c8e0bc60cfdc62f968ea1cbf1d8d7274a7c82488b2350ff50f1",
+      "fetchedAt": "2026-10-04T15:46:49.336Z"
+    },
+    {
+      "url": "https://w3id.org/security/data-integrity/v2",
+      "file": "data-integrity-v2.json",
+      "documentUrl": "https://www.w3.org/2025/credentials/vcdi/context/v2.jsonld",
+      "contextUrl": null,
+      "sha256": "be223c58c54657e930970f0d11f03caf7287bddc7be7e6f010855190c6b39c21",
+      "fetchedAt": "2026-10-04T15:46:50.227Z"
+    },
+    {
+      "url": "https://w3id.org/security/multikey/v1",
+      "file": "multikey-v1.json",
+      "documentUrl": "https://www.w3.org/2025/credentials/vcdi/multikey/context/v1.jsonld",
+      "contextUrl": null,
+      "sha256": "1947f813cc1507616b3b8df9db44c0c1735ec0aec215f88def08f2fc0ac0113b",
+      "fetchedAt": "2026-10-04T15:46:51.339Z"
+    }
+  ]
+}

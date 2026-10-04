@@ -420,6 +420,8 @@ async function collect () {
         'npm run verify:history': 'history',
         // Lencana-B140 status=TERBUKA 2026-10-04 — baris README `verify:manage` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:manage': 'manage',
+        // Lencana-B148 status=SELESAI 2026-10-05 — baris README `check:contexts` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B148 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        'npm run check:contexts': 'contexts',
       }
       const salah = []
       let banding = 0
