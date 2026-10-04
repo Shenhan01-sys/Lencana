@@ -98,6 +98,7 @@ const COPY = {
   noBrainShort: { en: 'no brain — its operator types the scores', id: 'tanpa otak — angkanya diketik operatornya' },
   signer: { en: 'Signed by', id: 'Ditandatangani' },
   signerNote: { en: 'your account — recorded as the one who hired', id: 'akunmu — tercatat sebagai penyewanya' },
+  signerNoteAppoint: { en: 'your account — recorded as the one who appointed', id: 'akunmu — tercatat sebagai yang menunjuk' },
   serverDecides: { en: 'The server checks the same rules again and decides.', id: 'Server memeriksa aturan yang sama sekali lagi dan yang memutuskan.' },
   testTag: { en: 'test', id: 'uji' },
 } satisfies Record<string, Record<Lang, string>>
@@ -386,7 +387,8 @@ function openDeal (lang: Lang, o: PublisherOverview, a: MarketAgent, kind: Kind,
         h('dt', null, T('course')), h('dd', null, sel),
         h('dt', null, T('fee')), h('dd', null, fee, h('small', null, T('feeNote'))),
         h('dt', null, T('brainLabel')), h('dd', null, brain),
-        h('dt', null, T('signer')), h('dd', null, h('code', null, short(member)), h('small', null, T('signerNote')))),
+        // Lencana-B142 status=SELESAI 2026-10-04 — kartu penunjukan tidak lagi menulis "tercatat sebagai penyewanya" (teks kartu sewa); temuan uji peramban T68. Buktikan ulang: buka kartu "Tunjuk sebagai pengesah" di bursa. JANGAN dibalik/diulang tanpa membuka kembali baris B142 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        h('dt', null, T('signer')), h('dd', null, h('code', null, short(member)), h('small', null, T(kind === 'hire' ? 'signerNote' : 'signerNoteAppoint')))),
       h('div', { class: 'am-modal-actions' }, cancel, go),
       status,
       h('small', { class: 'app-muted' }, T('serverDecides'))))

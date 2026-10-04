@@ -2,7 +2,7 @@
 tags: [testing, "T6"]
 command: npm run x402
 measured: 2026-09-28
-result: 20 checks / 0 failed
+result: 20 checks / 0 failed · ulang 4 Okt (T68): HIJAU 20 / 0 — settle 0x7b7f…17e2, split 0x0853…4527
 ---
 
 # T6 - `npm run x402` (paid verification path)

@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-30
 command: npm run verify:relay
 measured: 2026-09-30
-result: RELAY HIJAU — 31 pemeriksaan / 0 gagal (tanpa gas) · RELAY LIVE HIJAU — 17 / 0 (satu siaran nyata di chain 97)
+result: RELAY HIJAU — 31 pemeriksaan / 0 gagal (tanpa gas) · RELAY LIVE HIJAU — 17 / 0 (satu siaran nyata di chain 97) · live ulang 4 Okt (T68) 17 / 0 — siaran 0x1884…6cf3, 347.047 gas
 ---
 
 # T33 - signer relay-check.js (relayer penerbitan sebagai layanan, diadili sebelum gas)

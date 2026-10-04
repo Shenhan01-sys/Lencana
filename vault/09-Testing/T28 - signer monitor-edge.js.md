@@ -4,7 +4,7 @@ status: active
 updated: 2026-09-29
 command: npm run monitor:edge · npm run monitor:edge -- --json · --max-age=<jam>
 measured: 2026-09-29
-result: AMAN — 0 alarm · kontrol --max-age=0 dan host mati keduanya ALARM
+result: AMAN — 0 alarm · kontrol --max-age=0 dan host mati keduanya ALARM · ulang 4 Okt (T68): AMAN — 37 hash dipantau, 29 berdokumen, kedua daftar cocok chain 37/37
 ---
 
 # T28 - signer monitor-edge.js (alarm eksternal untuk tepi yang sendirian)

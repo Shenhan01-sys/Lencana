@@ -67,7 +67,8 @@ export type ModelInfo = { id: string, label: string | null, context: number | nu
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>
 
 /** Model yang jelas bukan model chat (embedding, suara, gambar, moderasi) disembunyikan dari pilihan. */
-const NOT_CHAT = /(embed|tts|whisper|dall-e|moderation|audio|realtime|transcri|image|speech|playai|rerank|guard)/i
+// Lencana-B142 status=SELESAI 2026-10-04 — `orpheus` (model TTS Canopy Labs di daftar Groq) ikut disaring; terlihat di daftar model sungguhan pada uji peramban T68. Buktikan ulang: cd signer && npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B142 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+const NOT_CHAT = /(embed|tts|whisper|dall-e|moderation|audio|realtime|transcri|image|speech|playai|orpheus|rerank|guard)/i
 
 function headersFor (p: Provider, key: string | null, json = false): Record<string, string> {
   const h: Record<string, string> = json ? { 'content-type': 'application/json' } : {}

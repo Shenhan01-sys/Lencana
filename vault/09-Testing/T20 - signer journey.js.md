@@ -2,7 +2,7 @@
 tags: [testing, "T20"]
 command: npm run journey
 measured: 2026-09-28
-result: 34 checks / 0 failed (10 stages; 2 surfaces reported as not-in-core, not as passes)
+result: 34 checks / 0 failed (10 stages; 2 surfaces reported as not-in-core, not as passes) · ulang 4 Okt (T68): JOURNEY HIJAU 34 / 0 — esai dinilai model (--judge), A 0x5e5d…f8e0 dicabut, B 0xa334…7049 tetap VALID, validator 1EdTech VALID 14/0/0 keduanya
 ---
 
 # T20 - signer journey.js

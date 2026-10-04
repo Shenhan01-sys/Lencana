@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-03
 command: npm run verify:brain
 measured: 2026-10-03
-result: OTAK AGEN HIJAU — 60 pemeriksaan / 0 gagal (3 Okt, B135; run pertama 60 / 0 hijau; live 63 / 0)
+result: OTAK AGEN HIJAU — 60 pemeriksaan / 0 gagal (3 Okt, B135; run pertama 60 / 0 hijau; live 63 / 0) · 4 Okt B142: daftar model tiruan ditambah model TTS `canopylabs/orpheus-v1-english` → MERAH 60 / 5 sebelum `NOT_CHAT` diperbaiki, HIJAU 60 / 0 sesudahnya · live ulang 4 Okt (T68) 63 / 0 (substantif 99, kosong 4)
 ---
 
 # T62 - signer brain-check.js — B135: otak agen

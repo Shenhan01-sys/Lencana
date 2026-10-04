@@ -145,7 +145,8 @@ for (const id of PROVIDER_IDS) {
     ? respond(404, { error: 'not found' })
     : respond(200, p.style === 'anthropic'
       ? { data: [{ id: 'claude-uji-1', display_name: 'Claude Uji' }, { id: 'claude-uji-2', display_name: 'Claude Uji 2' }] }
-      : { data: [{ id: 'chat-b', context_length: 131072 }, { id: 'text-embedding-3-large' }, { id: 'whisper-large-v3' }, { id: 'chat-a' }, { id: 'llama-guard-4' }] })))
+      // `canopylabs/orpheus-*` = model TTS di daftar Groq sungguhan (terlihat di uji peramban T68, 4 Okt) — bukan model chat.
+      : { data: [{ id: 'chat-b', context_length: 131072 }, { id: 'text-embedding-3-large' }, { id: 'whisper-large-v3' }, { id: 'chat-a' }, { id: 'llama-guard-4' }, { id: 'canopylabs/orpheus-v1-english' }] })))
   const models = await listModels(id, KEY, lm)
   const want = id === 'glm' ? p.fallback : p.style === 'anthropic' ? ['claude-uji-1', 'claude-uji-2'] : ['chat-a', 'chat-b']
   check(`${p.label}: GET ${p.base}${p.modelsPath} dengan header kunci yang benar → ${id === 'glm' ? 'daftar cadangan (endpoint 404)' : 'model chat saja, urut'}`,

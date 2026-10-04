@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-01
 command: npm run verify:attempts (hitung-saja) + npm run verify:attempts:live (Postgres + chain 97)
 measured: 2026-10-01 (offline dan live)
-result: 39/0 offline (1 Okt; 38/0 sebelum B121, 31/0 sebelum B104) · live 1 Okt 73 / 4 gagal — keempatnya hilir dari crash publish:edge sesudah kertas terbit, bagian h diulang 16/16 · 82/0 live (30 Sep malam, lewat rantai pengesahan B104; 67/0 pada 29 Sep) · verify:edge 10/0 (30 Sep)
+result: 39/0 offline (1 Okt; 38/0 sebelum B121, 31/0 sebelum B104) · live 1 Okt 73 / 4 gagal — keempatnya hilir dari crash publish:edge sesudah kertas terbit, bagian h diulang 16/16 · 82/0 live (30 Sep malam, lewat rantai pengesahan B104; 67/0 pada 29 Sep) · verify:edge 10/0 (30 Sep) · live ulang 4 Okt (T68) 84 / 0 — kertas 0x621985ef…a7b0c4 (catatan: langkah esai lapis live memakai usulan buatan harness `harness:proposal-80pct`, bukan LLM)
 ---
 
 # T22 - signer attempts-check.js (satu alur: peserta → rekaman → kertas → dokumen hasil)

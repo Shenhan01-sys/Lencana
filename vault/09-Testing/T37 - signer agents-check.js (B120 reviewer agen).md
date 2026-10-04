@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-01
 command: npm run verify:agents · npm run verify:agents:live
 measured: 2026-10-01
-result: bagian B120 — 12/12 tanpa gas · 15/15 live (satu pembayaran x402 nyata ke dompet agen reviewer); tadinya 10/10 · 13/13 sebelum penjaga arah-sebaliknya ditambahkan
+result: bagian B120 — 12/12 tanpa gas · 15/15 live (satu pembayaran x402 nyata ke dompet agen reviewer); tadinya 10/10 · 13/13 sebelum penjaga arah-sebaliknya ditambahkan · live ulang 4 Okt (T68) 15/15
 ---
 
 # T37 - signer agents-check.js — B120: reviewer diperlakukan sebagai penilai (agen AI)

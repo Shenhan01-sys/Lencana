@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-01
 command: npm run verify:agents · npm run verify:agents:live
 measured: 2026-10-01
-result: AGEN SEWA HIJAU — 34 pemeriksaan / 0 gagal (tanpa gas; B119 22/22 + B120 12/12) · AGEN SEWA LIVE HIJAU — 40 / 0 (B119 25/25 + B120 15/15, dua pembayaran x402 nyata)
+result: AGEN SEWA HIJAU — 34 pemeriksaan / 0 gagal (tanpa gas; B119 22/22 + B120 12/12) · AGEN SEWA LIVE HIJAU — 40 / 0 (B119 25/25 + B120 15/15, dua pembayaran x402 nyata) · live ulang 4 Okt (T68) 40 / 0 — tagihan #97 + #98 dibayar
 ---
 
 # T36 - signer agents-check.js — B119: penerbit menyewa agen penilai per aktivitas penilaian

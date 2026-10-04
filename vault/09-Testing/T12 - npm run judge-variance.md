@@ -2,7 +2,7 @@
 tags: [testing, "T12"]
 command: npm run judge-variance
 measured: 2026-09-24
-result: substantive 91-100, decision stable 5/5
+result: substantive 91-100, decision stable 5/5 · ulang 4 Okt (T68): substantif 92–100 (rata-rata 95,8), kosong 4 di kelima run, keputusan benar 5/5
 ---
 
 # T12 - `npm run judge-variance` (berapa jauh angka model bergerak)

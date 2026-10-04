@@ -2,7 +2,7 @@
 tags: [testing, "T11"]
 command: npm run judge
 measured: 2026-09-24
-result: 7 checks / 0 failed; hollow = 8/100
+result: 7 checks / 0 failed; hollow = 8/100 · ulang 4 Okt (T68): PENILAI SAH, 0 gagal — openai/gpt-oss-120b bagus 92 / kosong 4; pembanding qwen3.8-27b 100 / 5
 ---
 
 # T11 - `npm run judge` (penilai model + kontrol negatif)

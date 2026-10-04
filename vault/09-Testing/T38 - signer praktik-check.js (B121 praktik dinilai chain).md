@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-01
 command: npm run verify:praktik · npm run verify:praktik:live
 measured: 2026-10-01
-result: PRAKTIK HIJAU — 32 pemeriksaan / 0 gagal (tanpa gas, transaksi tetap KNOWN_TX) · PRAKTIK LIVE HIJAU — 32 / 0 (satu transfer 0,001 tBNB baru)
+result: PRAKTIK HIJAU — 32 pemeriksaan / 0 gagal (tanpa gas, transaksi tetap KNOWN_TX) · PRAKTIK LIVE HIJAU — 32 / 0 (satu transfer 0,001 tBNB baru) · live ulang 4 Okt (T68) 32 / 0 — transfer 0xe0bb…d285
 ---
 
 # T38 - signer praktik-check.js — B121: slot praktik dinilai dari chain, bukan dari laporan peserta
