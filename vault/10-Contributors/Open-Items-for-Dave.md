@@ -743,3 +743,23 @@ kalau kamu menambah, mengganti nama, atau menyembunyikan menu di `index.html` / 
 yang memutus panel hanya mengganti nama `.nav-links`, `.nav-actions`, `#lang-en`, `#lang-id`, atau `#badge-name`, atau
 mengubah titik 860 px di `style.css` tanpa mengubah `MOBILE` di `nav-mobile.ts` dan media query di `nav-mobile.css`.
 Bukti: [[09-Testing/T76 - Uji peramban menu hamburger navbar (B149)]].
+
+## OI-31 — ruang kelas di layar HP: kurikulum jadi laci, satu kolom (B151, 5 Okt)
+
+Permintaan builder 5 Okt: "di page /class/[nama course] itu pagenya ga mobile friendly banget". Cangkang kelasmu (dari
+`dex/lencana-ui`, FE7) tetap tiga kolom di HP, jadi isi lesson berada di luar layar. `style.css` **tidak disunting**; semua
+gaya baru ada di berkas baru `web/src/pages/class.css` (dimuat `class.ts`):
+
+| berkas | perubahan |
+|---|---|
+| `web/src/pages/class.css` (baru) | ≤ 1100 px: `.class-rail` disembunyikan. ≤ 900 px: `.class-shell` tinggi otomatis + `.lms-layout-core` blok (halaman yang menggulir, bukan `.class-main`); `.class-topbar` `position: sticky` 56 px; `.class-sidebar` `position: fixed` sebagai laci (`transform` + `visibility`); pager `.lesson-footer` grid dua kolom; `.lesson-item` di HP hanya mentransisikan warna/border/bayangan (lihat di bawah). Semua lebar: `.lesson-breadcrumb a` abu, emas saat disorot |
+| `web/src/pages/class.ts` | `renderTopBar` (`web/src/pages/class.ts:99`): label "← Katalog Kursus" dan "x% di penerbit" dipecah ke `span` supaya bagian katanya bisa disembunyikan di HP — teks desktop sama; tombol baru `.class-curriculum-btn` (`web/src/pages/class.ts:129`). `renderSidebar` (`web/src/pages/class.ts:140`): `id="class-curriculum"`, judul kurikulum dibungkus `div`, tombol `.class-sidebar-close`, kaki `.class-sidebar-foot` (`web/src/pages/class.ts:187`). Buka/tutup laci: `setCurriculum` + pendengar global sekali pasang (`web/src/pages/class.ts:200`, `:210`); `renderClass` memasang `.class-curriculum-backdrop` (`web/src/pages/class.ts:406`) |
+
+**Satu hal di `style.css` yang perlu kamu tahu:** `.lesson-item { transition: all 0.2s ease }` ikut mentransisikan
+`visibility`. Begitu kurikulum menjadi laci yang disembunyikan dengan `visibility`, lesson di dalamnya masih `hidden` saat
+laci baru dibuka sehingga tidak bisa difokus. Di `class.css` transisinya dipersempit untuk HP saja; kalau kamu menata ulang
+`.lesson-item`, sebut properti transisinya satu per satu dan tidak perlu aturan HP itu lagi.
+
+**Yang harus tetap:** di ≤ 900 px kurikulum tidak boleh kembali berdampingan dengan isi (isi jadi tidak terlihat), dan
+laci yang tertutup harus tetap `visibility: hidden` supaya tautannya tidak tercapai lewat Tab. Kalau titik 900/1100 px
+diubah, ubah juga `(min-width: 901px)` di `bindCurriculumGlobals`. Bukti: [[09-Testing/T77 - Uji peramban ruang kelas di HP (B151)]].

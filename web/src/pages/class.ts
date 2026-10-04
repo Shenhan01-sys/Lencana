@@ -16,6 +16,7 @@
  */
 
 import '../lms.css'
+import './class.css'
 import { h } from '../lib/ui'
 import { findCourse, findLesson } from '../courses/index'
 import type { Course, Lesson, Module } from '../content'
@@ -104,20 +105,31 @@ function renderTopBar (c: Course): HTMLElement {
   // Dua angka, dua tempat (B58): kalau rekaman penerbit sudah terbaca, itu yang ditampilkan dan disebut.
   const pct = remote ? (remote.lessonsTotal ? Math.round((remote.lessonsCompleted / remote.lessonsTotal) * 100) : 0) : local.pct
   const where = remote ? 'di penerbit' : 'di perangkat ini'
+  // B151: label "Katalog", kata "di penerbit"/"di perangkat ini", dan alamat disembunyikan di HP oleh `pages/class.css`;
+  // di desktop teksnya sama persis dengan sebelumnya.
   return h('header', { class: 'class-topbar' },
     h('div', { class: 'lms-topbar-left' },
-      h('a', { href: '#catalog', class: 'class-topbar-nav' }, `← ${t.catalogTitle}`),
+      h('a', { href: '#catalog', class: 'class-topbar-nav class-topbar-back', 'aria-label': t.catalogTitle },
+        h('span', { 'aria-hidden': 'true' }, '←'),
+        h('span', { class: 'class-topbar-back-label' }, ` ${t.catalogTitle}`),
+      ),
       h('span', { class: 'lms-topbar-sep' }, '/'),
       h('a', { href: classLink(c.id), class: 'class-topbar-title' }, c.title),
     ),
     h('div', { class: 'lms-topbar-right' },
       h('div', { class: 'lms-topbar-group', title: `Progres ${where}` },
-        h('span', { class: 'lms-progress-text' }, `${pct}% ${where}`),
+        h('span', { class: 'lms-progress-text' }, `${pct}%`, h('span', { class: 'lms-progress-where' }, ` ${where}`)),
         h('div', { class: 'progress-track' }, h('div', { class: 'progress-fill', style: { width: `${pct}%` } })),
       ),
       h('div', { class: 'lms-topbar-group lms-topbar-user' },
         h('span', { class: 'lms-user-addr' }, short),
         h('a', { href: '#/me', class: 'class-topbar-nav lms-nav-gold' }, t.topbarPortfolio),
+      ),
+      h('button', {
+        type: 'button', class: 'class-curriculum-btn', 'aria-controls': 'class-curriculum', 'aria-expanded': 'false',
+      },
+        h('span', { class: 'class-curriculum-icon', 'aria-hidden': 'true' }, h('span'), h('span'), h('span')),
+        h('span', null, t.sidebarCurriculum),
       ),
     ),
   )
@@ -129,10 +141,15 @@ function renderSidebar (c: Course, activeSlug?: string): HTMLElement {
   const t = tr()
   const cp = courseProgress(c.id)
   const onServer = new Set(serverSummaryFor(c.id)?.completed ?? [])
-  return h('aside', { class: 'class-sidebar' },
+  const addr = learnerAddress()
+  return h('aside', { class: 'class-sidebar', id: 'class-curriculum', 'aria-label': t.sidebarCurriculum },
     h('div', { class: 'class-sidebar-header' },
-      h('h3', { class: 'class-sidebar-eyebrow' }, t.sidebarCurriculum),
-      h('p', { class: 'class-sidebar-title' }, `${c.modules.length} ${t.sidebarModules}`),
+      h('div', null,
+        h('h3', { class: 'class-sidebar-eyebrow' }, t.sidebarCurriculum),
+        h('p', { class: 'class-sidebar-title' }, `${c.modules.length} ${t.sidebarModules}`),
+      ),
+      // B151: tombol tutup dan kaki laci hanya tampil di HP (`pages/class.css`), saat kurikulum menjadi laci.
+      h('button', { type: 'button', class: 'class-sidebar-close', 'aria-label': CLOSE_LABEL[getSavedLanguage() === 'en' ? 'en' : 'id'] }, '×'),
     ),
     h('nav', { class: 'module-tree' },
       ...c.modules.map((m, mi) => {
@@ -167,7 +184,45 @@ function renderSidebar (c: Course, activeSlug?: string): HTMLElement {
         )
       }),
     ),
+    h('div', { class: 'class-sidebar-foot' },
+      h('span', { class: 'lms-user-addr' }, addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : t.topbarGuest),
+      h('a', { href: '#/me', class: 'class-topbar-nav lms-nav-gold' }, t.topbarPortfolio),
+    ),
   )
+}
+
+// Lencana-B151 status=SELESAI 2026-10-05 — ruang kelas di HP: satu kolom yang digulir halaman, bilah atas ringkas, kurikulum jadi laci (tombol Kurikulum, tutup lewat tombol/latar/Esc/pilih lesson, fokus ke lesson aktif, kunci gulir dilepas saat rute berganti); rail kanan disembunyikan ≤ 1100 px; gayanya di pages/class.css, style.css tidak disunting. Buktikan ulang: uji peramban 375 px dua kursus + kuis dan esai (T77). JANGAN dibalik/diulang tanpa membuka kembali baris B151 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+const CLOSE_LABEL = { id: 'Tutup kurikulum', en: 'Close curriculum' } as const
+const CURRICULUM_OPEN = 'is-curriculum-open'
+const SCROLL_LOCK = 'class-curriculum-lock'
+
+/** B151: buka/tutup laci kurikulum (HP). Di desktop kelasnya tidak berpengaruh — aturannya hanya di media query HP. */
+function setCurriculum (shell: HTMLElement, open: boolean): void {
+  shell.classList.toggle(CURRICULUM_OPEN, open)
+  shell.querySelector('.class-curriculum-btn')?.setAttribute('aria-expanded', String(open))
+  document.documentElement.classList.toggle(SCROLL_LOCK, open)
+  // Lesson yang sedang dibuka lebih dulu (fokus ikut menggulirkannya ke pandangan di kurikulum panjang); di ringkasan: tombol tutup.
+  if (open) (shell.querySelector<HTMLElement>('.class-sidebar .lesson-item.active') ?? shell.querySelector<HTMLElement>('.class-sidebar-close'))?.focus()
+}
+
+let curriculumGlobalsBound = false
+/** Pendengar global dipasang sekali per muat halaman, bukan per render (kelas di-render ulang setiap aksi). */
+function bindCurriculumGlobals (): void {
+  if (curriculumGlobalsBound) return
+  curriculumGlobalsBound = true
+  const openShell = () => document.querySelector<HTMLElement>(`.class-shell.${CURRICULUM_OPEN}`)
+  document.addEventListener('keydown', (e) => {
+    const shell = e.key === 'Escape' ? openShell() : null
+    if (!shell) return
+    setCurriculum(shell, false)
+    shell.querySelector<HTMLElement>('.class-curriculum-btn')?.focus()
+  })
+  // Pindah rute dari dalam laci (mis. ke dasbor) tidak boleh meninggalkan halaman dengan gulir terkunci.
+  window.addEventListener('hashchange', () => document.documentElement.classList.remove(SCROLL_LOCK))
+  window.matchMedia('(min-width: 901px)').addEventListener('change', (e) => {
+    const shell = e.matches ? openShell() : null
+    if (shell) setCurriculum(shell, false)
+  })
 }
 
 /** Praktik dinilai chain lewat `POST /praktik` (B121); formulirnya belum ada di halaman (OI-20). */
@@ -345,14 +400,25 @@ export function renderClass (routeHash: string, rerender: Rerender): HTMLElement
   } else {
     main = renderOverview(c)
   }
-  return h('div', { class: 'class-shell' },
+  // Render baru = laci tertutup; kunci gulir dari render sebelumnya (mis. sesudah memilih lesson) ikut dilepas.
+  document.documentElement.classList.remove(SCROLL_LOCK)
+  bindCurriculumGlobals()
+  const shell = h('div', { class: 'class-shell' },
     renderTopBar(c),
     h('div', { class: 'lms-layout-core' },
       renderSidebar(c, lesson?.slug),
       h('main', { class: 'class-main' }, main),
       lesson ? renderRail(lesson) : null,
     ),
+    h('div', { class: 'class-curriculum-backdrop', 'aria-hidden': 'true' }),
   )
+  shell.querySelector('.class-curriculum-btn')?.addEventListener('click', () => setCurriculum(shell, !shell.classList.contains(CURRICULUM_OPEN)))
+  shell.querySelector('.class-sidebar-close')?.addEventListener('click', () => { setCurriculum(shell, false); shell.querySelector<HTMLElement>('.class-curriculum-btn')?.focus() })
+  shell.querySelector('.class-curriculum-backdrop')?.addEventListener('click', () => setCurriculum(shell, false))
+  shell.querySelector('.class-sidebar')?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement | null)?.closest('a')) setCurriculum(shell, false)
+  })
+  return shell
 }
 
 /** `#/me`: catatan belajar + rekaman penerbit + kredensial dibaca dari chain (dulu `pageMe` di `lms.ts`). */

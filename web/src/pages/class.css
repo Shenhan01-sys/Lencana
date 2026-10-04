@@ -1,0 +1,105 @@
+/*
+ * B151 — gaya ruang kelas `#/class/…` yang tidak ada di `style.css` (berkas pemelihara front-end, tempat cangkang kelas
+ * desktop; tidak disunting). Dimuat `pages/class.ts`. Isinya: tata letak HP dan tablet (semuanya di dalam media query;
+ * elemen baru — tombol Kurikulum, tombol tutup, kaki laci, latar — tersembunyi di luar HP) dan satu perbaikan warna yang
+ * berlaku di semua lebar (tautan breadcrumb).
+ *
+ * Masalah yang diukur 5 Okt di 375 px: kurikulum 320 px + rail 240 px tetap berdampingan, isi lesson terdorong keluar
+ * layar ke kanan, bilah atas pecah per kata dan meluap sampai 630–644 px.
+ */
+.class-curriculum-btn,
+.class-sidebar-close,
+.class-sidebar-foot,
+.class-curriculum-backdrop { display: none; }
+
+/* Tautan kursus di breadcrumb lesson tampil biru bergaris bawah bawaan peramban di atas tema gelap (terlihat di uji B151,
+   desktop dan HP) — samakan dengan teks breadcrumb, emas saat disorot seperti tautan bilah atas. */
+.lesson-breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s ease; }
+.lesson-breadcrumb a:hover { color: var(--accent-gold); }
+
+/* Tablet: rail kanan memberi tempat untuk isi. Isinya tidak hilang — referensi lesson juga tampil di badan lesson
+   (blok `links`), dan judul bagian di rail bukan tautan. */
+@media (max-width: 1100px) {
+  .class-rail { display: none; }
+}
+
+@media (max-width: 900px) {
+  /* Satu kolom yang digulir halaman, bukan kotak 100vh dengan gulir di dalam (bilah alamat HP bisa mengecil). */
+  .class-shell { height: auto; min-height: 100vh; min-height: 100dvh; overflow: visible; }
+  .lms-layout-core { display: block; overflow: visible; }
+  .class-main { overflow: visible; }
+
+  /* Bilah atas ringkas: ← · judul kursus terpotong · persen + bar kecil · tombol Kurikulum */
+  .class-topbar { position: sticky; top: 0; height: 56px; padding: 0 12px; gap: 10px; }
+  .lms-topbar-left { gap: 10px; min-width: 0; flex: 1 1 auto; }
+  .class-topbar-back {
+    flex: none; display: inline-grid; place-items: center; width: 36px; height: 36px;
+    border: 1px solid var(--color-border); border-radius: 10px; font-size: 16px;
+  }
+  .class-topbar-back-label,
+  .lms-topbar-sep,
+  .lms-progress-where,
+  .lms-topbar-user { display: none; }
+  .class-topbar-title { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .lms-topbar-right { gap: 10px; flex: none; }
+  .lms-topbar-group { gap: 8px; }
+  .class-topbar .progress-track { width: 44px; }
+  .class-curriculum-btn {
+    display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; cursor: pointer;
+    border: 1px solid rgba(240, 185, 11, 0.4); border-radius: 10px; background: rgba(240, 185, 11, 0.08);
+    color: var(--accent-gold); font: 600 13px/1 var(--font-sans, inherit);
+  }
+  .class-curriculum-icon { display: inline-grid; gap: 3px; }
+  .class-curriculum-icon > span { display: block; width: 14px; height: 2px; border-radius: 2px; background: currentColor; }
+
+  /* Kurikulum = laci dari kiri. `visibility` ikut supaya tautan laci tertutup tidak tercapai lewat Tab. */
+  .class-sidebar {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 70;
+    width: min(86vw, 340px); height: auto;
+    transform: translateX(-102%); visibility: hidden;
+    transition: transform 0.22s ease, visibility 0s linear 0.22s;
+    box-shadow: 18px 0 40px rgba(0, 0, 0, 0.55);
+  }
+  .class-shell.is-curriculum-open .class-sidebar { transform: none; visibility: visible; transition: transform 0.22s ease; }
+  .class-sidebar-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 16px; }
+  .class-sidebar-close {
+    display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; cursor: pointer;
+    border: 1px solid var(--color-border); border-radius: 10px; background: transparent;
+    color: var(--text-secondary); font-size: 22px; line-height: 1;
+  }
+  .module-tree { padding: 16px 12px; }
+  .module-group { margin-bottom: 24px; }
+  /* `style.css` memberi `.lesson-item` `transition: all` — termasuk `visibility` warisan laci, sehingga saat laci baru dibuka
+     item masih `hidden` dan lesson aktif tidak bisa difokus (diukur: fokus jatuh ke body). */
+  .lesson-item { padding: 12px; transition-property: background-color, color, border-color, box-shadow; }
+  .class-sidebar-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 16px 18px; border-top: 1px solid var(--color-border);
+  }
+  .class-curriculum-backdrop { position: fixed; inset: 0; z-index: 65; background: rgba(0, 0, 0, 0.55); }
+  .class-shell.is-curriculum-open .class-curriculum-backdrop { display: block; }
+
+  /* Isi lesson dan ringkasan kursus */
+  .lesson-container { padding: 24px 16px 48px; }
+  .lesson-breadcrumb { flex-wrap: wrap; gap: 4px 6px; margin-bottom: 14px; }
+  .lesson-title { font-size: 28px; line-height: 1.18; margin-bottom: 20px; }
+  .lms-overview-header { margin-bottom: 32px; }
+  .lms-overview-desc { font-size: 17px; }
+  .lms-overview-grid { gap: 28px; padding-top: 28px; margin-bottom: 36px; }
+  /* Grid, bukan flex: dengan flex, padding tombol "Sebelumnya" menahan basisnya sehingga dua tombol tidak sama lebar
+     (diukur 174 vs 144 px). Tanpa lesson sebelumnya, `span` kosong tetap memegang kolom kiri seperti di desktop. */
+  .lesson-footer { display: grid; grid-template-columns: 1fr 1fr; margin-top: 40px; padding-top: 24px; gap: 10px; }
+  .lesson-footer > * { min-width: 0; }
+  .lesson-footer .btn-editorial { box-sizing: border-box; width: 100%; padding: 12px 14px; }
+
+  /* Gerbang masuk */
+  .lms-auth-gate { padding: 24px 16px; }
+  .lms-auth-box { padding: 32px 22px; }
+}
+
+html.class-curriculum-lock,
+html.class-curriculum-lock body { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .class-sidebar { transition: none; }
+}
