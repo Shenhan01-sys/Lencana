@@ -1,7 +1,7 @@
 ---
 tags: [hub, frontend, open-items]
 status: active
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # 00 - Hub Open Items
@@ -40,6 +40,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-27 | kelas uji, saldo, rapor bergrafik, pita pemuatan (B126, D61, 2 Okt): chip saldo di navbar (`#nav-balance`), `installFetchTracking` di `main.ts`, katalog beranda memakai `LISTED_COURSES`; tampilan baru di berkas baru (`balance.ts`, `lib/loading.ts`, `lib/charts.ts`, `lib/odometer.ts`, `lib/coin.ts`, `pages/grades.ts`, `pages/wallet.ts`, `pages/dash-viz.css`) |
 | OI-28 | halaman Kursus + Ringkasan (B127, D62, 2 Okt): `h()` di `lib/ui.ts` memasang custom property lewat `setProperty`; kartu katalog beranda tanpa gambar khusus memakai emblemnya (`landing.ts`); `.course-card-image-wrap.is-emblem` di `style.css`; tampilan baru di berkas baru (`pages/catalog.ts`, `pages/overview.ts`, `pages/dash-catalog.css`, `lib/emblem.ts`) |
 | OI-29 | UI lama yang mati dibuang (B139, D71, 3 Okt; daftar disetujui builder lebih dulu): dok demo, landing lama `#page-home`, `#page-courses`/`#page-submit`/`#page-portfolio` + tiga modalnya dari `index.html`, kodenya dari `main.ts`, aturan CSS yang hanya menunjuk bagian itu dari `style.css`; video latar hero pindah ke `pages/landing.ts`; halaman publik (Verifier, Trust Center, Publishers) tidak berubah — diukur lewat perbandingan computed style |
+| OI-30 | menu hamburger navbar di layar HP (B149, 5 Okt): berkas baru `nav-mobile.ts` + `.css`; `main.ts` hanya mendapat satu impor + satu panggilan; panel dibangun ulang dari `.nav-links` yang hidup, pemilih EN/ID navbar pindah ke panel di ≤ 860 px |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
 [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15

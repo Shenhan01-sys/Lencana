@@ -1,7 +1,7 @@
 ---
 tags: [contributor, open-item, hub]
 status: active
-updated: 2026-10-03
+updated: 2026-10-05
 ---
 
 # Open Items for the Frontend
@@ -721,3 +721,25 @@ antara CSS HEAD dan CSS baru di lebar 1440 dan 500 px — beda hanya di elemen v
 
 **Yang harus tetap:** markup lama jangan dikembalikan ke `index.html` — semua yang tampil sebelum JS jalan ikut berkedip di
 setiap refresh. Halaman baru dibangun di `pages/*.ts` dan dipasang lewat `mountNewApp`.
+
+## OI-30 — menu hamburger navbar di layar HP (B149, 5 Okt)
+
+Permintaan builder 5 Okt: "Kalau mobile view mending navbarnya dikasih humburger icon aja, soalnya banyak tuh menunya".
+Di ≤ 860 px `style.css` menyembunyikan `.nav-links` tanpa pengganti, dan di halaman selain beranda navbar meluap ke 386 px.
+Kodenya hidup di berkas baru (`web/src/nav-mobile.ts`, `web/src/nav-mobile.css`); berkasmu yang tersentuh hanya satu:
+
+| berkas | perubahan |
+|---|---|
+| `web/src/main.ts` | `import { mountMobileNav } from './nav-mobile'` (`web/src/main.ts:34`) dan satu panggilan `mountMobileNav()` sesudah tombol EN/ID dipasang (`web/src/main.ts:809`) |
+
+Tidak disunting: `index.html` (tombol dan panel dibuat dari JS), `style.css` (aturannya di `nav-mobile.css`), `i18n.ts`.
+Yang ditambahkan ke DOM: `button.nav-burger` di ujung `.nav-actions`, lalu `nav#nav-drawer.nav-drawer` +
+`.nav-drawer-backdrop` di akhir `body`. Di ≤ 860 px pemilih bahasa navbar (`.nav-actions .lang-switch`) disembunyikan —
+pemilihnya pindah ke panel.
+
+**Yang harus tetap:** panel tidak punya daftar menu sendiri. Ia dibangun ulang setiap dibuka dari `.nav-links a` yang hidup
+(dilewati kalau `.hidden`; `.active` ikut dibaca), dan tombol EN/ID-nya meneruskan klik ke `#lang-en` / `#lang-id`. Jadi
+kalau kamu menambah, mengganti nama, atau menyembunyikan menu di `index.html` / `main.ts`, panelnya ikut tanpa disentuh;
+yang memutus panel hanya mengganti nama `.nav-links`, `.nav-actions`, `#lang-en`, `#lang-id`, atau `#badge-name`, atau
+mengubah titik 860 px di `style.css` tanpa mengubah `MOBILE` di `nav-mobile.ts` dan media query di `nav-mobile.css`.
+Bukti: [[09-Testing/T76 - Uji peramban menu hamburger navbar (B149)]].

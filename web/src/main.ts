@@ -31,6 +31,7 @@ import { needsOnboarding } from './pages/dashboard'
 import { installFetchTracking } from './lib/loading'
 import { syncNavBalance } from './balance'
 import { loadPublishedCourses } from './catalog-live'
+import { mountMobileNav } from './nav-mobile'
 
 installFetchTracking()
 
@@ -804,6 +805,8 @@ function wire() {
   // Language switcher buttons
   $('lang-en')?.addEventListener('click', () => setLanguage('en'))
   $('lang-id')?.addEventListener('click', () => setLanguage('id'))
+  // B149: menu hamburger navbar di layar HP (modulnya sendiri; tidak ada markup baru di index.html).
+  mountMobileNav()
 
   // Wallet Navbar & Modal Wiring
   $('btn-connect-wallet')?.addEventListener('click', () => openLogin())
