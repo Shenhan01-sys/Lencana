@@ -306,7 +306,8 @@ async function collect () {
         if (skipTag.has(e.name)) continue
         const p = join(d, e.name)
         if (e.isDirectory()) walkTag(p)
-        else if (/\.(ts|js|mjs|sol|sql|yml|ps1)$/.test(e.name)) berkas.push(p)
+        // `sh` sejak B154 (skrip start signer cloud membawa marker).
+        else if (/\.(ts|js|mjs|sol|sql|yml|ps1|sh)$/.test(e.name)) berkas.push(p)
       }
     }
     walkTag(REPO)

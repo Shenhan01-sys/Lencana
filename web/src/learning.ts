@@ -51,17 +51,29 @@ import { normalizeDraft, draftHash } from './authoring'
 import { robotSvg, withAvatar, cleanName, parseAvatar, NAME_MAX, type Avatar } from './robot'
 import type { AgentMarket } from './market'
 
-const EP_KEY = 'lencana-signer-url'
+// Lencana-B154 status=TERBUKA 2026-10-05 — build produksi yang dibuka dari host publik (Vercel, HP) memakai signer cloud di Railway, bukan 127.0.0.1; endpoint hanya disimpan bila berbeda dari default, dan kunci lama yang berisi default 127.0.0.1 tersimpan diam-diam tidak dibaca lagi. Buktikan ulang: uji peramban build produksi → signer cloud (vault B154). JANGAN dibalik/diulang tanpa membuka kembali baris B154 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/**
+ * Endpoint pilihan pengguna. `-v2` (B154): kunci lama `lencana-signer-url` hampir selalu berisi default `127.0.0.1:8787` yang
+ * tersimpan diam-diam — `setEndpoint` dulu menyimpan isi kolom endpoint setiap kali tombol sinkron ditekan — dan di HP alamat
+ * itu adalah HP-nya sendiri. Kunci lama sengaja tidak dibaca.
+ */
+const EP_KEY = 'lencana-signer-url-v2'
 const ID_KEY = 'lencana-learner-v1'
 const AUTH_KEY = 'lencana-explicit-learner-session-v1'
+const ON_PUBLIC_HOST = typeof location !== 'undefined' && !['127.0.0.1', 'localhost'].includes(location.hostname)
 /**
- * Dibuka lewat terowongan (mis. ngrok dari HP): `127.0.0.1` di peramban itu adalah HP-nya sendiri, jadi signer dipakai lewat
- * proxy vite `/signer` di asal yang sama (`web/vite.config.ts`, server dev maupun `vite preview`). Berlaku di server dev, dan di
- * build yang sengaja dibuat untuk terowongan (`VITE_SIGNER_SAME_ORIGIN=1`); build produksi biasa dan peramban lokal tidak berubah.
+ * B154: signer cloud (Railway, project lencana). Bisa ditimpa saat build lewat `VITE_SIGNER_URL`.
+ * Default endpoint:
+ *  - server dev / build terowongan (`VITE_SIGNER_SAME_ORIGIN=1`) yang dibuka dari host publik (mis. ngrok dari HP): proxy vite
+ *    `/signer` di asal yang sama (`web/vite.config.ts`), karena `127.0.0.1` di peramban itu adalah HP-nya sendiri;
+ *  - build produksi biasa yang dibuka dari host publik (Vercel): signer cloud;
+ *  - peramban lokal (127.0.0.1 / localhost): signer lokal `127.0.0.1:8787`, seperti sebelumnya.
  */
-const DEFAULT_EP = (import.meta.env?.DEV || import.meta.env?.VITE_SIGNER_SAME_ORIGIN === '1') && typeof location !== 'undefined' && !['127.0.0.1', 'localhost'].includes(location.hostname)
+const CLOUD_EP = String(import.meta.env?.VITE_SIGNER_URL || 'https://signer-production-e4f2.up.railway.app').replace(/\/$/, '')
+const SAME_ORIGIN = Boolean(import.meta.env?.DEV || import.meta.env?.VITE_SIGNER_SAME_ORIGIN === '1')
+const DEFAULT_EP = ON_PUBLIC_HOST && SAME_ORIGIN
   ? `${location.origin}/signer`
-  : 'http://127.0.0.1:8787'
+  : ON_PUBLIC_HOST ? CLOUD_EP : 'http://127.0.0.1:8787'
 /** localStorage: "peramban ini punya sesi login email" — supaya tab baru tahu ada yang bisa dipulihkan. Tanpa data pribadi. */
 const PRIVY_MARK = 'lencana-privy-v1'
 
@@ -181,7 +193,9 @@ export function endpoint (): string { return state.endpoint }
 export function setEndpoint (url: string): void {
   const clean = url.trim().replace(/\/$/, '')
   state.endpoint = clean || DEFAULT_EP
-  writeLocal(EP_KEY, state.endpoint)
+  // Default tidak disimpan (B154): yang tersimpan hanya pilihan sungguhan, supaya default yang berubah ikut terbawa.
+  if (state.endpoint === DEFAULT_EP) dropLocal(EP_KEY)
+  else writeLocal(EP_KEY, state.endpoint)
   state.summary = null
   state.lastSync = null
 }

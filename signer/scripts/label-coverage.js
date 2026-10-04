@@ -47,7 +47,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const REPO = path.resolve(HERE, '..', '..')
 const BACKLOG = path.join(REPO, 'vault', '07-Backlog', '03 - Findings and Tasks 2026-09-26.md')
 const SKIP = new Set(['node_modules', '.git', 'dist', 'out', 'cache', 'broadcast', 'lib', '.keys', '.store'])
-const EXT = /\.(ts|js|mjs|sol|sql|yml|ps1)$/
+// `sh` sejak B154 (skrip start signer cloud membawa marker).
+const EXT = /\.(ts|js|mjs|sol|sql|yml|ps1|sh)$/
 const BASELINE_TERTUTUP_BLUM = 0
 const BASELINE_BANDAL = 0
 

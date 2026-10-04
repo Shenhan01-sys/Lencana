@@ -157,9 +157,12 @@ npm run delegate   # agent signs, platform broadcasts: needs tsx (devDependency)
 npm run anchor     # witness the list currently served; costs no gas if nothing changed
 ```
 
-`check.js` section 5 and the server read `process.env` and **nothing else** — no dotenv, unlike
+~~`check.js` section 5 and the server read `process.env` and **nothing else** — no dotenv, unlike
 `issue.js` and `adopt.js`, which read `app/.env` themselves. Run them through an env loader or they
-will silently fall back to `http://127.0.0.1:8545` and report failures that mean "not configured".
+will silently fall back to `http://127.0.0.1:8545` and report failures that mean "not configured".~~
+*(Corrected 5 Oct: stale. Both now load `app/.env` themselves through `src/env.js` — `src/server.js:125` and
+`scripts/check.js:32` — and process variables win over the file. A missing `app/.env` is not an error: the
+hosted copy below runs on process variables only and says so in its first log line.)*
 
 Against the public BSC testnet (chain 97), the values that produce full coverage:
 
@@ -187,6 +190,27 @@ Requires **Node ≥ 22.18**. This package is plain ESM JavaScript — but `chain
 `web/src/abi.ts` directly rather than copying the ABI a second time, and that only works because
 Node 22 strips TypeScript types on import by default. If `npm run check` dies with
 `Unknown file extension ".ts"`, the Node version is the first thing to look at, not the code.
+
+### Hosted copy (Railway — B154, D74)
+
+The signer the Vercel front-end talks to runs on Railway (project `lencana`, service `signer`):
+`https://signer-production-e4f2.up.railway.app`. The image is `signer/Dockerfile`; its build context is the repo root
+`app/`, because the server imports `web/src/*.ts` and resolves `viem` for them from `web/node_modules`. The start script
+`signer/scripts/cloud-start.sh` writes the status-list key from `AGENT_KEY_JSON_B64` to `.keys/<AGENT_SLUG>.json` and
+drops the variable before the server starts. That key is `agent-cloud` — a key that only signs this server's own status
+lists, **not** the key that signs credentials. Secrets live only in the service variables, set one by one with
+`railway variable set <NAME> --stdin` so no value ever reaches a command line.
+
+Deploy from committed files only, so `.env`, `.keys`, `.store` and anything untracked never leave the machine:
+
+```bash
+git archive HEAD signer web/package.json web/package-lock.json web/.npmrc web/tsconfig.json web/src | tar -x -C <staging>
+railway up <staging> --path-as-root -s signer -e production
+```
+
+The service needs `RAILWAY_DOCKERFILE_PATH=signer/Dockerfile`: a `railway.json` is ignored for CLI uploads (measured
+5 Oct — the first upload fell back to Railpack and failed). Measurements: `vault/09-Testing/T78 - Uji signer cloud
+Railway dan build produksi (B154).md`.
 
 ## Two status lists, not one
 
