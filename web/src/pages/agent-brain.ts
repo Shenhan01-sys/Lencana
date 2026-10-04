@@ -93,7 +93,7 @@ const COPY = {
   fail: { en: 'fail', id: 'tidak lulus' },
   pickLabel: { en: 'Difficulty label (sets the fee)', id: 'Label tingkat berat (menentukan bayaran)' },
   sign: { en: 'Sign & send judgement', id: 'Tandatangani & kirim penilaian' },
-  signNote: { en: 'Scores are the model’s, as returned. A human reviewer still approves them before they count.', id: 'Angka adalah jawaban model apa adanya. Pengesah manusia tetap menyetujuinya sebelum dihitung.' },
+  signNote: { en: 'Scores are the model’s, as returned. The reviewer the publisher appointed — a person or another agent — still approves them before they count.', id: 'Angka adalah jawaban model apa adanya. Pengesah yang ditunjuk penerbit — orang atau agen lain — tetap menyetujuinya sebelum dihitung.' },
   sent: { en: 'Sent', id: 'Terkirim' },
   feeDue: { en: 'fee due', id: 'bayaran jatuh tempo' },
   close: { en: 'Close', id: 'Tutup' },

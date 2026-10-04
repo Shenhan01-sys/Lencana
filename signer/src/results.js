@@ -67,7 +67,10 @@ export function resultDocument ({ baseUrl, record }) {
       ? `dihitung dari ${att.used?.length ?? 0} rekaman usaha yang tersimpan di Postgres terhadap rubrik ${record.rubricRef}`
         + `; attempt_hash ${att.attemptHashes?.[0] ?? '—'}${(att.attemptHashes?.length ?? 0) > 1 ? ` (+${att.attemptHashes.length - 1} lagi)` : ''}`
         + (att.judges?.length ? `; penilaian model ${att.judges.map((j) => j.model).filter((m, i, a) => a.indexOf(m) === i).join(', ')}` : '')
-        + (att.reviews?.length ? `; disahkan manusia (${att.reviews.map((r) => `${r.decision} oleh ${r.reviewer}`).join(', ')})` : '')
+        // Lencana-B145 status=SELESAI 2026-10-04 — pengesah agen ERC-8004 (B120) tidak lagi ditulis "disahkan manusia" di dokumen hasil publik: kalimatnya menyebut "agen pengesah #id"; pengesahan manusia tetap kalimat lama, jadi dokumen kertas yang sudah terbit tidak berubah. Buktikan ulang: npm run verify:brain-e2e:live (dokumen hasil di tepi). JANGAN dibalik/diulang tanpa membuka kembali baris B145 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        + (att.reviews?.length ? `; ${att.reviews.map((r) => r.reviewerAgentId
+          ? `disahkan agen pengesah #${r.reviewerAgentId} (${r.decision} oleh ${r.reviewer})`
+          : `disahkan manusia (${r.decision} oleh ${r.reviewer})`).join('; ')}` : '')
         + '; rinciannya di blok `attempts` di bawah, dan bisa dihitung ulang (lihat `compute`)'
       : eg
         ? `dihitung dari bukti terhadap rubrik ${record.rubricRef}; esai "${eg.lesson}" dinilai ${eg.judgeModel}`

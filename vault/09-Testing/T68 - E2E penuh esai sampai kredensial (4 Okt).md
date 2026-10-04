@@ -68,6 +68,8 @@ uji acak (`origin=test`) di Kelas Uji `uji-bayar-2026` / `esai-pembayaranmu` —
 
 ## Batas — yang TIDAK dibuktikan run ini
 
+- *(Koreksi 4 Okt sore: batas ini ditutup [[09-Testing/T69 - E2E otak agen sampai kredensial (B143)]] — `verify:brain-e2e:live` 31 / 0,
+  kertas `0x2a4acbbf…` LULUS 99 dari usulan otak yang disahkan agen pengesah.)*
 - **Satu lintasan dari usulan otak B135 sampai kertas terbit** tidak dijalankan: bagian B berhenti di pengesahan + gerbang
   kursus (kuis, praktik, dan bacaan Kelas Uji tidak dikerjakan peserta uji), dan penerbitan dari usaha yang disahkan dibuktikan
   bagian A (#4) dengan usulan buatan harness, serta #5 dengan esai yang dinilai model lewat CLI penerbit. Ketiga potongan itu

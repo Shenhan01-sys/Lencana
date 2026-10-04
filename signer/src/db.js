@@ -402,7 +402,8 @@ export async function attemptsFor (learner, courseId) {
     + 'attempt_components(item_id,score,weight,graded_by),'
     // B104: pengesahan manusia ikut terbaca bersama usahanya — `fromAttempts` menolak esai bernilai
     // model yang tidak membawanya, jadi kalau embed ini hilang, penerbitan berhenti, bukan lolos.
-    + 'judgement_reviews(decision,reviewer,proposed,final_score,judge_model,reviewed_at)'
+    // B145: `reviewer_agent_id` ikut, supaya dokumen hasil bisa membedakan pengesah agen (B120) dari pengesah manusia.
+    + 'judgement_reviews(decision,reviewer,proposed,final_score,judge_model,reviewed_at,reviewer_agent_id)'
   return (await rest('attempts', { query: q })) ?? []
 }
 
@@ -424,7 +425,9 @@ export async function learnerRecords (learner) {
       rest('orders', { query: `?enrollment_id=eq.${e.id}&select=asset,amount,state,tx_hash,created_at&order=created_at.asc` }),
     ])
     const attempts = rawAttempts.map((a) => {
-      const r = (a.judgement_reviews ?? [])[0] ?? null
+      // Lencana-B146 status=SELESAI 2026-10-04 — `judgement_reviews` disematkan PostgREST sebagai OBJEK (attempt_id unik), bukan array; dulu dibaca `[0]` sehingga rapor peserta menampilkan setiap esai bernilai model sebagai "menunggu pengesahan" walau sudah disahkan dan kertasnya terbit. Buktikan ulang: npm run verify:agents (pemeriksaan rapor B146). JANGAN dibalik/diulang tanpa membuka kembali baris B146 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+      const jr = a.judgement_reviews
+      const r = (Array.isArray(jr) ? jr[0] : jr) ?? null
       return {
         lesson: a.lesson_key, kind: a.kind, attemptNo: a.attempt_no, score: a.score, verdict: a.verdict,
         gradedByAgent: a.graded_by_agent ?? null, judgeModel: a.judge_model ?? null, at: a.created_at,

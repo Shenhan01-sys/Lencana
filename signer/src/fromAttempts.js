@@ -174,6 +174,8 @@ export function evidenceFromAttempts (manifest, attempts) {
         proposed: review.proposed === null || review.proposed === undefined ? null : Number(review.proposed),
         finalScore: review.final_score === null || review.final_score === undefined ? null : Number(review.final_score),
         attemptHash: a.attempt_hash ?? null,
+        // B145: hanya ada untuk pengesah agen ERC-8004 — pengesahan manusia tidak mendapat kunci baru (bentuk dokumen lama tetap).
+        ...(review.reviewer_agent_id ? { reviewerAgentId: String(review.reviewer_agent_id) } : {}),
       })
     }
     const comps = a.attempt_components ?? []
@@ -191,7 +193,7 @@ export function evidenceFromAttempts (manifest, attempts) {
     if (!judged.length) notes.push(`esai "${slug}": tidak ada komponen graded_by model/human, angka dari komponen mekanis`)
     else notes.push(`esai "${slug}": angka dari ${judged.length} komponen graded_by ${judged[0].graded_by}`)
     if (review) {
-      notes.push(`esai "${slug}": usulan model ${review.judge_model ?? a.judge_model} = ${Number(review.proposed)}, disahkan manusia (${review.decision}) `
+      notes.push(`esai "${slug}": usulan model ${review.judge_model ?? a.judge_model} = ${Number(review.proposed)}, disahkan ${review.reviewer_agent_id ? `agen pengesah #${review.reviewer_agent_id}` : 'manusia'} (${review.decision}) `
         + `oleh ${review.reviewer} -> ${Number(review.final_score)}`)
     }
     essayVals.push(raw.value)

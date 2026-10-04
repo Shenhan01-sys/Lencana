@@ -235,6 +235,13 @@ try {
   const ev = evidenceFromAttempts({ course: { modules: [{ lessons: [{ slug: essayLesson.slug, kind: 'esai', essay: {} }] }] } }, rows)
   check('baris nyata: angka yang diturunkan = angka reviewer agen, dan provenannya menyebut pengesahan adjusted',
     ev.ok && ev.evidence.essayScore === totalOf(scoresAt(0.9)) && ev.reviews?.[0]?.decision === 'adjusted' && ev.reviews?.[0]?.reviewer === reviewer.address, json(ev.evidence ?? ev.why))
+  // B146 (4 Okt, T69): rapor peserta harus melihat pengesahan yang sama. `judgement_reviews` disematkan PostgREST sebagai OBJEK
+  // (attempt_id unik), dan `learnerRecords` sempat membacanya sebagai array — setiap esai bernilai model tampil "menunggu pengesahan".
+  const recM = `lencana-records nonce=${nonce()}`
+  const recs = await call('POST', '/me/records', { learner: learner.address, message: recM, signature: await learner.signMessage({ message: recM }) })
+  const recEssay = (recs.body?.courses ?? []).flatMap((c) => c.attempts ?? []).find((a) => a.kind === 'esai' && a.judgeModel)
+  check('rapor peserta (POST /me/records) membaca pengesahan agen: decision adjusted, angka akhir = angka reviewer (B146)',
+    recs.status === 200 && recEssay?.review?.decision === 'adjusted' && Number(recEssay?.review?.finalScore) === totalOf(scoresAt(0.9)), json(recEssay ?? recs.text.slice(0, 160)))
 
   // ===================================================================== --live: bayar dua tagihan
   if (LIVE) {

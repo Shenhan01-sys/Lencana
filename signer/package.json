@@ -30,6 +30,7 @@
     "verify:studio": "tsx scripts/studio-check.js",
     "verify:brain": "tsx scripts/brain-check.js",
     "verify:brain:live": "tsx scripts/brain-check.js --live",
+    "verify:brain-e2e:live": "tsx scripts/brain-e2e.js",
     "verify:market": "tsx scripts/market-check.js",
     "verify:history": "tsx scripts/history-check.js",
     "verify:paywall": "tsx scripts/paywall-check.js",

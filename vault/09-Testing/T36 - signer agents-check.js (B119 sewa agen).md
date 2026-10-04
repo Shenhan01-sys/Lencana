@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-01
 command: npm run verify:agents · npm run verify:agents:live
 measured: 2026-10-01
-result: AGEN SEWA HIJAU — 34 pemeriksaan / 0 gagal (tanpa gas; B119 22/22 + B120 12/12) · AGEN SEWA LIVE HIJAU — 40 / 0 (B119 25/25 + B120 15/15, dua pembayaran x402 nyata) · live ulang 4 Okt (T68) 40 / 0 — tagihan #97 + #98 dibayar
+result: AGEN SEWA HIJAU — 35 pemeriksaan / 0 gagal (tanpa gas; B119 22/22 + B120 13/13 — 4 Okt +1 B146: rapor peserta membaca pengesahan agen, merah 35 / 1 sebelum perbaikan; 34 / 0 sebelumnya) · AGEN SEWA LIVE HIJAU — 40 / 0 (B119 25/25 + B120 15/15, dua pembayaran x402 nyata) · live ulang 4 Okt (T68) 40 / 0 — tagihan #97 + #98 dibayar
 ---
 
 # T36 - signer agents-check.js — B119: penerbit menyewa agen penilai per aktivitas penilaian
@@ -88,7 +88,7 @@ pembagian lalu dibagi: 90% ke **dompet agen** (`agentWallet` di registry), 10% k
 
 - [ ] `cd app/signer && npm run agent:identity` — terbaca: agen #2534, pemilik `0x067c…0c4f`, dompet `0xFd26…0094`, tarif dasar 2000
 - [ ] buka `GET http://127.0.0.1:8787/agents/2534/rates` (sesudah `npm run serve`) — tujuh harga 2000 … 2600
-- [ ] `npm run verify:agents` → baris terakhir `AGEN SEWA HIJAU — 34 pemeriksaan, 0 gagal`
+- [ ] `npm run verify:agents` → baris terakhir `AGEN SEWA HIJAU — 35 pemeriksaan, 0 gagal` *(34 sampai 4 Okt; +1 B146)*
 - [ ] (opsional, memakai gas testnet) `npm run verify:agents:live` → `AGEN SEWA LIVE HIJAU — 40 pemeriksaan, 0 gagal`
 - [ ] buka tx bayar di BscScan testnet dan cek penerimanya kontrak pembagian `0xcB00…1bBE`
 

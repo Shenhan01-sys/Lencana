@@ -103,6 +103,8 @@ const HARNESS = [
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
   HARNESS.push({ id: 'publishEdge', label: 'publish:edge', cwd: SIGNER, cmd: ['npm', ['run', 'publish:edge']], re: /PUBLISH HIJAU — (\d+)\/(\d+)/ })
+  // Lencana-B143 status=SELESAI 2026-10-04 — verify:brain-e2e:live ikut lapis mahal (gas + LLM sungguhan + publish ke tepi; butuh CLOUDFLARE_* di lingkungan). Buktikan ulang: npm run sync:numbers -- --expensive. JANGAN dibalik/diulang tanpa membuka kembali baris B143 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  HARNESS.push({ id: 'brainE2e', label: 'verify:brain-e2e:live (esai → otak agen → kertas; gas + LLM)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:brain-e2e:live']], re: /OTAK SAMPAI KERTAS (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ })
 }
 
 const fmt = (m) => (m == null ? '?' : m.pass === 0 && m.total === 0 ? '—' : `${m.pass}/${m.fail}`)
