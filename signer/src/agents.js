@@ -158,7 +158,7 @@ export async function agentJudge (cfg, body, found) {
     if (body.judgeModel !== named) return fail(409, `agent ${body.agentId} records its brain as ${named} — the judgement must name that model (judgeModel)`)
   }
   const out = await agentJudgeEssay({
-    attemptId: body.attemptId, courseId: body.course, agent: { agentId: f.agent.agentId, wallet: f.agent.wallet },
+    attemptId: body.attemptId, courseId: body.course, lessonKey: String(body.lesson), agent: { agentId: f.agent.agentId, wallet: f.agent.wallet },
     scores: body.scores, essay: found.lesson.essay, passMark: found.manifest.course.passMark,
     judgeModel: body.judgeModel, judgeTemp: body.judgeTemp, message: body.message, signature: body.signature,
   })

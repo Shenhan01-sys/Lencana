@@ -28,6 +28,7 @@
     "course:publish": "tsx scripts/course-publish.js",
     "verify:authoring": "tsx scripts/authoring-check.js",
     "verify:manage": "tsx scripts/manage-check.js",
+    "verify:review": "tsx scripts/review-check.js",
     "verify:studio": "tsx scripts/studio-check.js",
     "verify:brain": "tsx scripts/brain-check.js",
     "verify:brain:live": "tsx scripts/brain-check.js --live",

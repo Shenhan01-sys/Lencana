@@ -25,7 +25,8 @@ command and a page disagree, the run wins.**
 > baris "baterai" di [[09-Testing/00 - Hub Testing]].)*
 > *(Koreksi 4 Okt malam: merah tepi di atas ditutup B141. Baterai `sync:numbers` 4 Okt 22.20 WIB **34 harness · 34 hijau**:
 > web probe 118/0 · `check` 114/0 · `serve-probe` 50/0 · `verify:edge` 10/0 (30 dari 30) · `verify:live-cert` 59/0 · `e2e` 48/0.
-> 5 Okt 00.03 WIB: **35 harness · 35 hijau** — B148 menambah `check:contexts` 23/0; angka keenam harness di atas tidak berubah.)*
+> 5 Okt 00.03 WIB: **35 harness · 35 hijau** — B148 menambah `check:contexts` 23/0; angka keenam harness di atas tidak berubah.
+> 5 Okt 02.03 WIB: **36 harness · 36 hijau** — B144 menambah `verify:review` 31/0; angka keenam harness di atas tetap sama.)*
 
 | command (from `app/`) | prints | last |
 |---|---|---|
@@ -99,6 +100,7 @@ never retyped.
 | `npm run verify:history` | B136: riwayat chain (struk, transaksi, blok) dibaca dari `RPC_URL` lalu RPC resmi BNB Chain (chainId diperiksa); "tidak ditemukan" ≠ "RPC tidak terbaca"; dua struk lama yang 3 Okt hilang dari publicnode terbaca lewat cadangan | RIWAYAT CHAIN HIJAU — 10 pemeriksaan, 0 gagal |
 | `npm run verify:manage` | B140 (D72): kelola kursus terbit dari dasbor — hak `publish=1` dari hibah kunci penerbit; terbit/tolak/arsip ditandatangani server dengan kunci penerbit + jejak peminta (`course_actions`); penyusun tidak memutuskan drafnya sendiri; versi baru (aturan sama → id sama, digantikan di tempat; aturan berubah → id baru, versi lama diarsipkan); enroll baru ke kursus arsip 409; hapus hanya draf yang belum diajukan | KELOLA KURSUS HIJAU — 55 pemeriksaan, 0 gagal |
 | `npm run check:contexts` · `-- --online` | B148: konteks JSON-LD (VC 2.0, OB 3.0.3, Data Integrity v2, Multikey v1) dari salinan `signer/contexts/`, bukan situs pihak ketiga — salinan = manifest sha256, salinan rusak ditolak, tanda tangan + verifikasi dengan `fetch` ke host konteks diblokir, kertas store diverifikasi ulang, cache disk hanya host konteks; `--online` (tidak di baterai) membandingkan salinan dengan versi online | KONTEKS JSON-LD HIJAU — 23 pemeriksaan, 0 gagal · online: 4 SAMA, kanonisasi 34 quad sama |
+| `npm run verify:review` | B144 (D73): meja pengesahan — antrean esai berusulan hanya untuk dompet agen pengesah yang ditunjuk (teks + rubrik + usulan per kriteria, tanpa alamat peserta, baris uji tersembunyi kecuali diminta); rubrik + nilai lulus pengesahan/penilaian wajib milik esainya sendiri; pengesahan dari meja menutup butirnya; bersih-bersih sisa 0 | MEJA PENGESAHAN HIJAU — 31 pemeriksaan, 0 gagal |
 | `npm run contexts:fetch` · `-- --apply` | B148: ambil ulang keempat konteks dengan pemuat `jsonld` yang sama dan bandingkan dengan salinan; bawaan tidak menulis apa pun, `--apply` menulis salinan + manifest (lalu jalankan `check:contexts`) | SALINAN SAMA dengan versi online (4 Okt) |
 | `npm run grant:member -- <alamat> --author` | B133: hak susun kursus (`author=1`) untuk anggota penerbit; hibah tanpa `--author` = author=0 (bentuk pesan B128 tetap sah) | — |
 | `npm run grant:member -- <alamat> --publish` | B140: hak terbit dari dasbor (`publish=1`); hibah tanpa `--publish` = publish=0; bisa digabung dengan `--author` | — |

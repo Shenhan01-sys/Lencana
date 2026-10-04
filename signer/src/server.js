@@ -106,6 +106,7 @@ import { registrationFile, ERC8004 } from './erc8004.js'
 import { verifySelfRegistration } from './owner.js'
 // Lencana-B135 status=TERBUKA 2026-10-03 — otak agen semi-otomatis: POST /owner/agents/brain (pemilik mencatat provider + model + kalibrasi, tanpa API key) dan POST /owner/agents/queue (dompet agen membaca esai dari kursus yang menyewanya); dasbor pemilik memuat otaknya. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { parseBrainMessage, BRAIN_HINT, QUEUE_RE, QUEUE_HINT, recordBrain, agentQueue } from './brain.js'
+import { REVIEW_QUEUE_RE, REVIEW_QUEUE_HINT, reviewQueue } from './review.js'
 import { agentBrains as dbAgentBrains } from './db.js'
 // Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen: GET /agents/market (agen yang dikenal platform dengan fakta registry, otak, angka gabungan; cache 60 detik), dibatalkan oleh sewa, penunjukan, otak, dan klaim agen. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { agentMarket, invalidateMarket } from './market.js'
@@ -615,7 +616,7 @@ const server = createServer(async (req, res) => {
       || path === '/owner/overview' || path === '/owner/gas' || path === '/owner/agents/claim' || path === '/me/role'
       || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit'
       || path === '/publisher/drafts/fork' || path === '/publisher/drafts/delete' || path === '/publisher/drafts/decide' || path === '/publisher/courses/archive'
-      || path === '/owner/agents/brain' || path === '/owner/agents/queue') {
+      || path === '/owner/agents/brain' || path === '/owner/agents/queue' || path === '/owner/agents/review-queue') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
       }
@@ -985,6 +986,22 @@ const server = createServer(async (req, res) => {
         if (isBrain) invalidateMarket()
         return send(res, out.status, jsonBody(isBrain ? out.brain : out.queue))
       }
+      if (path === '/owner/agents/review-queue') {
+        // B144: meja pengesahan — dompet agen pengesah membaca esai berusulan dari kursus tempat ia ditunjuk. Urutan pemeriksaan
+        // sama dengan antrean penilai: bentuk pesan sebelum nonce, tanda tangan, kursi Agent Owner, lalu penanda tangan = agentWallet.
+        const asked = REVIEW_QUEUE_RE.exec(String(body.message ?? ''))
+        if (!asked) return send(res, 400, jsonBody({ error: REVIEW_QUEUE_HINT }))
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'agent-review-queue' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        if (!AGENTS_READY) return send(res, 503, jsonBody({ error: 'agent identities are not configured on this server', missing: dbMissingReason() }))
+        const addr = getAddress(String(body.learner).toLowerCase())
+        const refusedRole = roleRefusal(await accountCheap(addr), 'owner')
+        if (refusedRole) return send(res, 403, jsonBody({ error: refusedRole }))
+        const perCourse = Math.min(100, Math.max(1, Math.round(Number(body.limit) || 20)))
+        const out = await reviewQueue(AGENTS_CFG, { agentId: asked[1], signer: addr, essayOf: essayLesson, perCourse, includeTest: body.includeTest === true })
+        if (!out.ok) return send(res, out.status, jsonBody({ error: out.why }))
+        return send(res, out.status, jsonBody(out.queue))
+      }
       if (path === '/publisher/agents/hire' || path === '/publisher/reviewers') {
         // B129: aksi anggota dengan tanda tangannya sendiri. Kursi + wewenang diperiksa di sini; tanda tangan atas pesan yang
         // menyebut kursus + agen (+ dompet pengesah) diperiksa `hireAgent` / `addReviewer`, nonce sekali-pakai seperti jalur penerbit.
@@ -1096,6 +1113,9 @@ const server = createServer(async (req, res) => {
          * antrean dibaca penerbit lewat CLI (`npm run grade:essay`) yang memegang secret key, bukan
          * lewat GET anonim. Sejak B135 (D69) ada satu pembaca lain, juga bertanda tangan: dompet agen yang
          * DISEWA kursus itu (`POST /owner/agents/queue`) — penyewaannya adalah izin penerbit agar agen menilai.
+         * Sejak B144 satu lagi: dompet agen pengesah yang DITUNJUK kursus itu (`POST /owner/agents/review-queue`),
+         * hanya untuk esai yang sudah berusulan — penunjukannya adalah izin penerbit agar agen mengesahkan nilai akhirnya.
+         * Keduanya tanpa alamat peserta.
          */
         for (const banned of ['score', 'rubric', 'max', 'finalScore', 'verdict']) {
           if (body[banned] !== undefined) {
@@ -1216,7 +1236,8 @@ const server = createServer(async (req, res) => {
         const found = essayLesson(body.course, body.lesson)
         if (found.error) return send(res, 400, jsonBody({ error: found.error }))
         const out = await dbReviewEssay({
-          attemptId: body.attemptId, reviewer: body.reviewer, decision: body.decision, scores: body.scores,
+          attemptId: body.attemptId, courseId: String(body.course), lessonKey: String(body.lesson),
+          reviewer: body.reviewer, decision: body.decision, scores: body.scores,
           essay: found.lesson.essay, passMark: found.manifest.course.passMark, message: body.message, signature: body.signature,
         })
         if (!out.ok) return send(res, reviewStatus(out), jsonBody({ error: out.why }))

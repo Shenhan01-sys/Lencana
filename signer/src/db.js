@@ -1426,6 +1426,49 @@ export async function hiresOfAgent (agentId) {
   return (await rest('agent_hires', { query: `?agent_id=eq.${encodeURIComponent(String(agentId))}&select=course_id,agent_wallet,hired_at&order=hired_at.asc` })) ?? []
 }
 
+/** B144: penunjukan satu agen sebagai pengesah, per kursus (baris `review_roles` ber-`agent_id`). */
+export async function reviewRolesOfAgent (agentId) {
+  return (await rest('review_roles', {
+    query: `?agent_id=eq.${encodeURIComponent(String(agentId))}&select=course_id,reviewer,agent_owner,added_at&order=added_at.asc`,
+  })) ?? []
+}
+
+/** B144: pemilik agen penilai yang disewa satu kursus — untuk menyaring usulan dari Agent Owner yang sama dengan pengesah. */
+export async function graderOwnersOf (courseId) {
+  return (await rest('agent_hires', { query: `?course_id=eq.${encodeURIComponent(courseId)}&select=agent_id,agent_owner` })) ?? []
+}
+
+/**
+ * B144: esai satu kursus yang sudah punya usulan bernilai (model atau agen) dan BELUM disahkan, terlama dulu, lengkap dengan
+ * teks dan komponen per kriteria. Pembacanya dompet pengesah yang ditunjuk penerbit — yang menandatangani nilai akhirnya.
+ * Alamat peserta ikut dibaca hanya supaya pemanggil bisa menyaring tulisan operator pengesah sendiri; ia tidak dikirim.
+ * Yang sudah disahkan disaring di sini (dua kueri, bukan anti-join bersarang) dan baru sesudah itu dipotong ke `limit`.
+ * Baris harness (`origin=test`) disaring kecuali diminta, seperti dasbor penerbit: pengesah sungguhan tidak boleh disodori sisa uji.
+ */
+export async function queuePendingReviews (courseId, limit = 20, { includeTest = false } = {}) {
+  const subs = ((await rest('submissions', {
+    query: `?state=eq.judged&course_id=eq.${encodeURIComponent(courseId)}&order=judged_at.asc&limit=500`
+      + '&select=attempt_id,learner,course_id,lesson_key,body,words,judged_at,'
+      + 'attempts!inner(id,kind,attempt_no,score,verdict,judge_model,graded_by_agent,difficulty_label,enrollments!inner(origin))'
+      + '&attempts.kind=eq.esai&attempts.judge_model=not.is.null&attempts.score=not.is.null&attempts.verdict=neq.incomplete',
+  })) ?? []).filter((s) => includeTest || s.attempts?.enrollments?.origin !== 'test')
+  if (!subs.length) return []
+  const ids = `(${subs.map((s) => Number(s.attempt_id)).join(',')})`
+  const [reviewed, comps] = await Promise.all([
+    rest('judgement_reviews', { query: `?attempt_id=in.${ids}&select=attempt_id` }),
+    rest('attempt_components', { query: `?attempt_id=in.${ids}&select=attempt_id,item_id,score,weight,graded_by` }),
+  ])
+  const done = new Set((reviewed ?? []).map((r) => Number(r.attempt_id)))
+  const byAttempt = new Map()
+  for (const c of comps ?? []) {
+    const k = Number(c.attempt_id)
+    if (!byAttempt.has(k)) byAttempt.set(k, [])
+    byAttempt.get(k).push(c)
+  }
+  return subs.filter((s) => !done.has(Number(s.attempt_id))).slice(0, Number(limit) || 20)
+    .map((s) => ({ ...s, components: byAttempt.get(Number(s.attempt_id)) ?? [] }))
+}
+
 /**
  * Pengesahan manusia atas satu usulan model.
  *
@@ -1433,7 +1476,7 @@ export async function hiresOfAgent (agentId) {
  *                 `rejected` (tidak ada angka yang sah; gerbang tetap tertutup)
  * @param scores   wajib untuk `adjusted`: `[{label, score}]` menutup SELURUH rubrik penerbit
  */
-export async function reviewEssay ({ attemptId, reviewer, decision, scores, essay, passMark, message, signature }) {
+export async function reviewEssay ({ attemptId, courseId, lessonKey, reviewer, decision, scores, essay, passMark, message, signature }) {
   if (!['approved', 'adjusted', 'rejected'].includes(decision)) return { ok: false, why: 'decision must be approved, adjusted or rejected' }
   if (!essay?.rubric?.length) return { ok: false, why: 'essay rubric from the publisher is unreadable — nothing to review against' }
 
@@ -1449,6 +1492,10 @@ export async function reviewEssay ({ attemptId, reviewer, decision, scores, essa
   }
   const holder = await enrollmentOf(attempt.enrollment_id)
   if (!holder) return { ok: false, why: `enrollment row ${attempt.enrollment_id} missing — this attempt is orphaned` }
+  // Lencana-B144 status=TERBUKA 2026-10-05 — rubrik + nilai lulus pengesahan harus milik esai itu sendiri: kursus dan lesson di permintaan wajib sama dengan milik usahanya (dulu rubrik kursus lain bisa dipakai menyesuaikan esai kursus ini). Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  if (holder.course_id !== courseId || attempt.lesson_key !== lessonKey) {
+    return { ok: false, why: `attempt ${attempt.id} belongs to ${holder.course_id} / ${attempt.lesson_key}, not ${courseId} / ${lessonKey} — the rubric must be the essay's own` }
+  }
 
   // Angka akhir dihitung SEBELUM tanda tangan diperiksa, karena pesan yang ditandatangani harus
   // menyebutnya: reviewer menandatangani keputusan atas usaha ini dengan angka ini, bukan nonce kosong.
@@ -1616,7 +1663,7 @@ function rubricComponents ({ essay, scores, attemptId, gradedBy }) {
  * pesannya wajib mengikat usaha, angka akhir, dan label tingkat berat pilihan agen. Angkanya usulan
  * model (`graded_by='model'`), jadi gerbang B104 menahannya sampai ada pengesahan.
  */
-export async function agentJudgeEssay ({ attemptId, courseId, agent, scores, essay, passMark, judgeModel, judgeTemp, message, signature }) {
+export async function agentJudgeEssay ({ attemptId, courseId, lessonKey, agent, scores, essay, passMark, judgeModel, judgeTemp, message, signature }) {
   if (!essay?.rubric?.length) return { ok: false, why: 'essay rubric from the publisher is unreadable — nothing to grade' }
   if (!judgeModel) return { ok: false, why: 'an agent judgement must name its model (judgeModel)' }
   const rows = await rest('attempts', { query: `?id=eq.${Number(attemptId)}&select=*` })
@@ -1626,6 +1673,8 @@ export async function agentJudgeEssay ({ attemptId, courseId, agent, scores, ess
   const holder = await enrollmentOf(attempt.enrollment_id)
   if (!holder) return { ok: false, why: `enrollment row ${attempt.enrollment_id} missing — this attempt is orphaned` }
   if (holder.course_id !== courseId) return { ok: false, why: `attempt ${attemptId} belongs to ${holder.course_id}, not ${courseId}` }
+  // B144: lesson juga — di kursus dengan dua lesson esai, rubrik lesson lain tidak boleh dipakai menilai usaha ini.
+  if (attempt.lesson_key !== lessonKey) return { ok: false, why: `attempt ${attemptId} is lesson ${attempt.lesson_key}, not ${lessonKey} — the rubric must be the essay's own` }
 
   const scored = rubricComponents({ essay, scores, attemptId: attempt.id, gradedBy: 'model' })
   if (!scored.ok) return scored

@@ -991,6 +991,74 @@ export async function submitAgentJudgement (agentId: string, item: QueueItem, sc
   return { ok: true, score: Number(r.json.score), verdict: String(r.json.verdict ?? ''), charge: charge ? { amount: String(charge.amount ?? '0'), status: String(charge.status ?? '') } : null }
 }
 
+// Lencana-B144 status=TERBUKA 2026-10-05 — meja pengesahan dari peramban pemilik: antrean pengesahan dibaca sebagai dompet agen pengesah, keputusan (setujui / sesuaikan / tolak) + label ditandatangani dan dikirim ke POST /essay/review dengan kursus + lesson esai itu sendiri. Buktikan ulang: cd signer && npm run verify:review, lalu uji peramban meja pengesahan. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** B144: satu esai di meja pengesahan — teks + rubrik + usulan per kriteria dari penilai; alamat peserta tidak ikut. */
+export type ReviewItem = Omit<QueueItem, 'awaitingSince'> & {
+  judgedAt: string | null
+  proposal: {
+    total: number
+    verdict: string | null
+    judgeModel: string | null
+    gradedByAgent: string | null
+    label: string | null
+    criteria: { label: string, max: number, points: number | null }[]
+    mechanical: { check: string, passed: boolean }[]
+  }
+}
+export type ReviewDesk = {
+  agentId: string
+  wallet: string
+  owner: string
+  /** Otak agen pengesah (bila ada) — untuk pendapat kedua; tidak wajib untuk mengesahkan. */
+  brain: AgentBrainInfo | null
+  courses: { courseId: string, appointedAt: string }[]
+  staleCourses: string[]
+  items: ReviewItem[]
+}
+export type ReviewDecision = 'approved' | 'adjusted' | 'rejected'
+
+/** B144: meja pengesahan agen — dibaca dompet agen pengesah (akun ini harus dompet agennya), bertanda tangan. */
+export async function readReviewQueue (agentId: string): Promise<{ ok: boolean, status?: number, why?: string, data?: ReviewDesk }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-agent-review-queue agent=${agentId} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/owner/agents/review-queue', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 40_000 })
+  if (r.status !== 200 || !r.json) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, data: r.json as unknown as ReviewDesk }
+}
+
+/**
+ * B144: keputusan pengesah atas satu usulan. `approved` memakai angka usulan, `adjusted` angka pengesah per kriteria (bulat,
+ * 0..maks, seluruh rubrik), `rejected` tanpa angka. Angka `final=` di pesan dihitung persis seperti server menghitungnya.
+ */
+export async function submitAgentReview (item: ReviewItem, decision: ReviewDecision, label: string, scores?: Record<string, number>): Promise<{ ok: boolean, why?: string, finalScore?: number | null, verdict?: string | null, charge?: { amount: string, status: string } | null }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  let list: { label: string, score: number }[] | undefined
+  let final: number | null = null
+  if (decision === 'approved') final = item.proposal.total
+  if (decision === 'adjusted') {
+    list = item.essay.rubric.map((c) => ({ label: c.label, score: Math.max(0, Math.min(c.max, Math.round(Number(scores?.[c.label])))) }))
+    if (item.essay.rubric.some((c) => !Number.isFinite(Number(scores?.[c.label])))) return { ok: false, why: 'Ada kriteria yang belum diberi angka.' }
+    final = Math.round(list.reduce((s, x) => s + x.score, 0) * 100) / 100
+  }
+  const message = `lencana-essay-review attempt=${item.attemptId} decision=${decision}${final === null ? '' : ` final=${final}`} label=${label} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/essay/review', {
+    method: 'POST', timeoutMs: 40_000,
+    body: { reviewer: addr, course: item.course, lesson: item.lesson, attemptId: item.attemptId, decision, ...(list ? { scores: list } : {}), message, signature: s.signature },
+  })
+  if (r.status !== 200 || !r.json) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  const charge = r.json.charge as { amount?: string, status?: string, error?: string } | null | undefined
+  return {
+    ok: true, finalScore: r.json.finalScore === null || r.json.finalScore === undefined ? null : Number(r.json.finalScore), verdict: (r.json.verdict as string | null) ?? null,
+    charge: charge && charge.amount ? { amount: String(charge.amount), status: String(charge.status ?? '') } : null,
+  }
+}
+
 /**
  * Kirim satu transaksi kontrak dari dompet akun ini (B130) — pemilik agen yang membayar gasnya sendiri. Perangkat:
  * ditandatangani kunci sesi lalu disiarkan; Privy: `privySendTransaction`; dompet ekstensi: `eth_sendTransaction`.

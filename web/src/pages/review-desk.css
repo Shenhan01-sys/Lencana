@@ -1,0 +1,55 @@
+/* B144 — meja pengesahan agen pengesah. Bentuk dasar (kertas, penggaris, tangga label, cap) dipinjam dari panel otak
+   (`agent-brain.css`); yang di sini hanya yang khas meja: sampul map, pendapat kedua, tiga cap keputusan, editor angka. */
+.rv { border-color: rgba(142, 168, 255, 0.22); }
+.rv-tray { display: grid; gap: 10px; }
+.rv-folder { border-left-color: #8ea8ff; }
+.rv-folder.done { opacity: 0.78; border-left-color: #37d67a; }
+.rv-cover { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 12.5px; color: var(--text-sub, #a9b0ba); overflow-wrap: anywhere; }
+.rv-cover-score { font: 800 15px var(--font-mono, ui-monospace, monospace); color: #f0b90b; }
+
+/* tanda mekanis: lulus hijau, tidak lulus garis putus */
+.rv-mech { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rv-mech-tag { padding: 2px 8px; border: 1px dashed rgba(246, 70, 93, 0.55); border-radius: 999px; color: #ff8094; font-size: 11.5px; }
+.rv-mech-tag.ok { border-style: solid; border-color: rgba(55, 214, 122, 0.45); color: #6fe3a1; }
+
+/* pendapat kedua: penggaris kedua berwarna lain, selisih per kriteria di kolom ketiga */
+.rv-opinion { display: grid; gap: 8px; padding: 10px 12px; border: 1px dashed rgba(142, 168, 255, 0.35); border-radius: 12px; }
+.rv-opinion-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.rv-opinion-out { display: grid; gap: 8px; }
+.rv-ruler-2 .ab-seg i { background: linear-gradient(90deg, #5b74d6, #8ea8ff); }
+.rv-crit li { grid-template-columns: minmax(0, 1fr) auto auto; }
+.rv-delta { min-width: 64px; text-align: right; font: 700 12px var(--font-mono, ui-monospace, monospace); font-style: normal; color: #8ea8ff; }
+.rv-delta.same { color: #6fe3a1; }
+
+/* tiga cap keputusan */
+.rv-stamps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rv-stamp { display: grid; gap: 2px; padding: 10px 12px; cursor: pointer; border: 2px solid rgba(255, 255, 255, 0.14); border-radius: 10px; background: rgba(255, 255, 255, 0.02); color: #d9d8cd; text-align: left; font: inherit; transition: transform 0.15s ease, border-color 0.15s ease; }
+.rv-stamp strong { font: 800 13px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.06em; text-transform: uppercase; }
+.rv-stamp small { font-size: 11.5px; color: var(--text-sub, #a9b0ba); }
+.rv-stamp:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.3); }
+.rv-stamp.on { transform: rotate(-1.5deg) translateY(-2px); }
+.rv-stamp.s-approved.on { border-color: #37d67a; color: #37d67a; }
+.rv-stamp.s-adjusted.on { border-color: #f0b90b; color: #f0b90b; }
+.rv-stamp.s-rejected.on { border-color: #f6465d; color: #ff8094; }
+.rv-stamp:disabled { cursor: default; }
+
+/* editor angka pengesah */
+.rv-adjust { display: grid; gap: 8px; }
+.rv-adjust-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.rv-adjust-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 12.5px; color: #d9d8cd; }
+.rv-num-wrap { display: inline-flex; align-items: center; gap: 6px; }
+.rv-num-wrap small { color: var(--text-sub, #a9b0ba); font: 700 12px var(--font-mono, ui-monospace, monospace); }
+.rv-num { width: 72px; text-align: right; }
+
+/* cap hasil: warna mengikuti keputusan */
+.rv-done.s-adjusted { border-color: #f0b90b; color: #f0b90b; }
+.rv-done.s-rejected { border-color: #f6465d; color: #ff8094; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-stamp, .rv-stamp.on { transition: none; transform: none; }
+}
+@media (max-width: 640px) {
+  .rv-stamps { grid-template-columns: minmax(0, 1fr); }
+  .rv-crit li { grid-template-columns: minmax(0, 1fr) auto; }
+  .rv-delta { grid-column: 2; }
+}

@@ -103,7 +103,7 @@ const COPY = {
 
 /* ------------------------------------------------------------------ kunci: hanya di peramban ini */
 const KEY_PREFIX = 'lencana.llm-key.'
-function readKey (p: ProviderId): { key: string, remembered: boolean } {
+export function readKey (p: ProviderId): { key: string, remembered: boolean } {
   try { const s = sessionStorage.getItem(KEY_PREFIX + p); if (s) return { key: s, remembered: false } } catch { /* penyimpanan ditolak */ }
   try { const l = localStorage.getItem(KEY_PREFIX + p); if (l) return { key: l, remembered: true } } catch { /* penyimpanan ditolak */ }
   return { key: '', remembered: false }
@@ -113,8 +113,8 @@ function writeKey (p: ProviderId, key: string, remember: boolean): void {
   try { if (key && remember) localStorage.setItem(KEY_PREFIX + p, key); else localStorage.removeItem(KEY_PREFIX + p) } catch { /* penyimpanan ditolak */ }
 }
 
-/** Gantungan kunci untuk satu provider: input sandi + "ingat" + lupakan + tautan ambil kunci. */
-function keyField (lang: Lang, start: ProviderId, onChange: () => void): { el: HTMLElement, value: () => string, setProvider: (p: ProviderId) => void } {
+/** Gantungan kunci untuk satu provider: input sandi + "ingat" + lupakan + tautan ambil kunci. Dipakai juga meja pengesahan (B144). */
+export function keyField (lang: Lang, start: ProviderId, onChange: () => void): { el: HTMLElement, value: () => string, setProvider: (p: ProviderId) => void } {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   let p = start
   const input = h('input', { type: 'password', class: 'ab-input', autocomplete: 'off', spellcheck: 'false', 'aria-label': T('key') }) as HTMLInputElement
