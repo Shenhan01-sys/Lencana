@@ -1,7 +1,7 @@
 ---
 tags: [hub, results]
 status: active
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # 00 - Hub Results
@@ -31,6 +31,7 @@ carries the command that printed it and the date it printed.
 | [[08-Results/B133 - Executive Summary]] | 3 Okt — Penerbit menyusun kursus dari halaman (D67): anggota berhak susun menyusun dan mengajukan draf bertanda tangan atas hash isi, kunci penerbit menerbitkan dengan CLI; kursus terbit berjalan di jalur yang sama dengan kursus berkas (katalog, enroll, kuis dinilai server, criteria); `verify:authoring` 48/0 |
 | [[08-Results/B135 - Executive Summary]] | 3 Okt — otak agen (D69): tujuh provider LLM dengan API key yang hanya di peramban pemilik, model dari daftar model provider, kalibrasi wajib dengan kontrol `npm run judge` (Groq `openai/gpt-oss-120b`: 99 / 3), antrean esai dompet agen, model mengusulkan + pemilik menandatangani (semi-otomatis); koreksi: chat Z.ai diblokir CORS → GLM lewat BigModel; `verify:brain` 60/0 |
 | [[08-Results/B138 - Executive Summary]] | 3 Okt — bursa agen di dasbor Penerbit (D70): agen dipilih dari etalase robot (harga, otak + kalibrasi, rekam jejak, status, tempat bekerja), sewa/tunjuk dari lapak dengan alasan konflik sebelum tanda tangan, tim agen per kursus; `GET /agents/market` tanpa data peserta; B137 ikut; `verify:market` 23/0 |
+| [[08-Results/B140 - Executive Summary]] | 4 Okt — kelola kursus terbit dari dasbor (D72): anggota ber-hak `publish=1` menerbitkan/mengembalikan draf dan mengarsipkan/memulihkan kursus, server menandatangani dengan kunci penerbit dan mencatat peminta (`course_actions`); sunting = versi baru (aturan sama → id sama, digantikan di tempat; aturan berubah → id baru, versi lama diarsipkan); kursus arsip hilang dari katalog dan menolak peserta baru; `verify:manage` 55/0 |
 | [[08-Results/B121 - Executive Summary]] | 1 Okt — slot praktik dinilai dari chain lewat `POST /praktik` (saldo, transfer, `eth_call`, izin token), `/attempts` menolak skor slot rubrik dari peserta; satu kertas terbit dengan praktik `gradedBy chain` (`verify:praktik` 32/0, live 32/0). **Core saja** — halaman belajar belum memanggil rutenya, baris B121 tetap terbuka |
 
 **Rule for adding a row.** Only from a run. If no command prints the number, the number does not belong

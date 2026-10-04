@@ -13,17 +13,20 @@ import { COURSE_PRICES } from './pricing'
 import { readPublishedCourses } from './learning'
 
 const FILE_IDS = new Set(COURSES.map((c) => c.id))
+/** B140 (D72): kursus database yang diarsipkan — kelasnya tetap ada untuk peserta lama, tapi tidak tampil di katalog dan tidak menerima peserta baru. */
+export const ARCHIVED_COURSES = new Set<string>()
 let loading: Promise<number> | null = null
 
 /** Muat sekali; hasilnya jumlah kursus database yang ditambahkan. Tidak pernah melempar. */
 export function loadPublishedCourses (timeoutMs = 1500): Promise<number> {
   loading ??= readPublishedCourses(timeoutMs).then((list) => {
     let added = 0
-    for (const { manifest, price } of list) {
+    for (const { manifest, price, archived } of list) {
       const c = manifest?.course
       if (!c?.id || FILE_IDS.has(c.id) || COURSES.some((x) => x.id === c.id)) continue
       COURSES.push(c)
-      if (!c.unlisted) LISTED_COURSES.push(c)
+      if (archived) ARCHIVED_COURSES.add(c.id)
+      else if (!c.unlisted) LISTED_COURSES.push(c)
       MANIFESTS.push(manifest)
       if (price && /^[0-9]+$/.test(price)) COURSE_PRICES[c.id] = BigInt(price)
       added++

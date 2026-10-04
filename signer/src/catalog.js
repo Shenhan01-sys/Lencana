@@ -61,7 +61,9 @@ export async function refreshCatalog ({ force = false, includeTest = process.env
       upsert(PUBLIC_MANIFESTS, pub)
       if (row.price_units) COURSE_PRICES[row.course_id] = BigInt(row.price_units)
       else delete COURSE_PRICES[row.course_id]
-      fromDb.set(row.course_id, { draftId: Number(row.id), price: row.price_units ?? null, publishedAt: pub.publishedAt })
+      // B140 (D72): kursus yang diarsipkan TETAP dimuat — peserta lamanya masih masuk kelas, kuis/esai/praktiknya masih dinilai,
+      // kertasnya masih bisa terbit, dan criteria-nya tetap tersaji. Yang berubah hanya katalog dan enroll baru.
+      fromDb.set(row.course_id, { draftId: Number(row.id), price: row.price_units ?? null, publishedAt: pub.publishedAt, version: Number(row.version ?? 1), archived: Boolean(row.archived_at) })
     }
     loadedAt = Date.now()
     return { loaded: fromDb.size, skipped: skipped.size }
@@ -73,8 +75,13 @@ export async function refreshCatalog ({ force = false, includeTest = process.env
 export function publishedCatalog () {
   return [...fromDb.entries()].map(([courseId, meta]) => ({
     manifest: PUBLIC_MANIFESTS.find((m) => m.course.id === courseId),
-    price: meta.price, draftId: meta.draftId,
+    price: meta.price, draftId: meta.draftId, version: meta.version ?? 1, archived: meta.archived === true,
   })).filter((x) => x.manifest)
 }
+
+/** B140: kursus database yang diarsipkan (tidak menerima peserta baru); kursus berkas tidak pernah diarsipkan lewat sini. */
+export const courseArchived = (courseId) => fromDb.get(courseId)?.archived === true
+/** B140: meta kursus database (draftId, versi, arsip) — null untuk kursus berkas. */
+export const dbCourseMeta = (courseId) => fromDb.get(courseId) ?? null
 
 export const catalogSkipped = () => Object.fromEntries(skipped)

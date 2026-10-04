@@ -81,6 +81,8 @@ import {
 } from './agents.js'
 // Lencana-B128 status=TERBUKA 2026-10-02 — peran akun: POST /me/roles (peserta; penerbit lewat alamat penerbit atau keanggotaan bertanda tangan penerbit; Agent Owner lewat ownerOf di registry ERC-8004) dan POST /publisher/members (hibah/cabut bertanda tangan kunci penerbit). Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { getAddress, isAddress } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
+import { randomBytes } from 'node:crypto'
 import { agentsOwnedBy } from './agents.js'
 import {
   grantMember as dbGrantMember, revokeMember as dbRevokeMember, membershipsOf as dbMembershipsOf, knownAgentIds as dbKnownAgentIds,
@@ -97,7 +99,7 @@ import { ownerRecords as dbOwnerRecords, platformAgents as dbPlatformAgents, pla
 import { accountOf, roleRefusal } from './account.js'
 import { chooseRole as dbChooseRole, recordRole as dbRecordRole } from './db.js'
 // Lencana-B133 status=TERBUKA 2026-10-03 — Penerbit menyusun kursus: POST /publisher/drafts (daftar), /publisher/drafts/save dan /publisher/drafts/submit (anggota berhak susun, tanda tangan atas hash isi); kursus yang diterbitkan kunci penerbit digabung ke katalog proses ini (GET /catalog/published tanpa kunci). Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { refreshCatalog, publishedCatalog } from './catalog.js'
+import { refreshCatalog, publishedCatalog, courseArchived, dbCourseMeta } from './catalog.js'
 // Lencana-B132 status=TERBUKA 2026-10-03 — robot agen: templat registrasi publik, klaim agen yang didaftarkan pemiliknya sendiri (struk dibaca dari chain), gas untuk akun Agent Owner yang belum punya agen. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { registrationFile, ERC8004 } from './erc8004.js'
 import { verifySelfRegistration } from './owner.js'
@@ -107,9 +109,11 @@ import { agentBrains as dbAgentBrains } from './db.js'
 // Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen: GET /agents/market (agen yang dikenal platform dengan fakta registry, otak, angka gabungan; cache 60 detik), dibatalkan oleh sewa, penunjukan, otak, dan klaim agen. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { agentMarket, invalidateMarket } from './market.js'
 import { recordPlatformAgent as dbRecordPlatformAgent } from './db.js'
-import { prepareDraft } from './drafts.js'
+import { prepareDraft, publishPlan } from './drafts.js'
 import {
   saveDraft as dbSaveDraft, submitDraft as dbSubmitDraft, draftsOf as dbDraftsOf, projectDraft,
+  draftById as dbDraftById, publishedRowOf as dbPublishedRowOf, forkDraft as dbForkDraft, deleteDraft as dbDeleteDraft,
+  decideDraft as dbDecideDraft, archiveCourse as dbArchiveCourse, courseActionsOf as dbCourseActionsOf,
 } from './db.js'
 
 // Env dibaca dari `../.env` sebelum konstanta di bawah diambil, supaya `npm run serve` di clone
@@ -327,13 +331,14 @@ async function publisherSeat (address) {
   const addr = getAddress(String(address).toLowerCase())
   const issuer = MANIFESTS[0]?.issuer
   if (addr.toLowerCase() === PAY_PAYEE.toLowerCase()) {
-    return { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, canAuthor: true, since: null }
+    return { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, canAuthor: true, canPublish: true, since: null }
   }
   const membership = (await dbMembershipsOf(addr)).find((m) => String(m.issuer).toLowerCase() === PAY_PAYEE.toLowerCase()) ?? null
   return membership
     ? {
         issuer: getAddress(membership.issuer), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'member',
-        canHire: membership.can_hire === true, canAppoint: membership.can_appoint === true, canAuthor: membership.can_author === true, since: membership.granted_at,
+        canHire: membership.can_hire === true, canAppoint: membership.can_appoint === true, canAuthor: membership.can_author === true,
+        canPublish: membership.can_publish === true, since: membership.granted_at,
       }
     : null
 }
@@ -554,7 +559,8 @@ const server = createServer(async (req, res) => {
     if (path !== '/healthz') await refreshCatalog().catch((e) => console.warn(`katalog database tidak termuat: ${String(e.message ?? e).slice(0, 120)}`))
     if (path === '/catalog/published' && req.method === 'GET') {
       // Publik: isi kursus + harga, TANPA kunci kuis (manifest publik). Halaman memakainya untuk katalog dan kelas.
-      return send(res, 200, jsonBody({ courses: publishedCatalog().map((c) => ({ manifest: c.manifest, price: c.price })) }))
+      // B140: `archived` = tetap dimuat untuk peserta lama, disembunyikan dari katalog; `version` = nomor versi terbit.
+      return send(res, 200, jsonBody({ courses: publishedCatalog().map((c) => ({ manifest: c.manifest, price: c.price, version: c.version, archived: c.archived })) }))
     }
     if (path === `/issuers/${AGENT_SLUG}` || path === '/issuers') return send(res, 200, issuerDoc)
     // B48: setiap kredensial mencetak `verificationMethod` miliknya sendiri. Selama server hanya
@@ -607,6 +613,7 @@ const server = createServer(async (req, res) => {
       || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
       || path === '/owner/overview' || path === '/owner/gas' || path === '/owner/agents/claim' || path === '/me/role'
       || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit'
+      || path === '/publisher/drafts/fork' || path === '/publisher/drafts/delete' || path === '/publisher/drafts/decide' || path === '/publisher/courses/archive'
       || path === '/owner/agents/brain' || path === '/owner/agents/queue') {
       if (!dbConfigured()) {
         return send(res, 503, jsonBody({ error: 'learning layer not configured', missing: dbMissingReason() }))
@@ -711,7 +718,7 @@ const server = createServer(async (req, res) => {
             ? await dbRejectRequest({ issuer: body.issuer, applicant: body.member, message: body.message, signature: body.signature })
             : await dbGrantMember({
               issuer: body.issuer, member: body.member, canHire: body.canHire === true, canAppoint: body.canAppoint === true, canAuthor: body.canAuthor === true,
-              message: body.message, signature: body.signature,
+              canPublish: body.canPublish === true, message: body.message, signature: body.signature,
             })
         if (!out.ok) return send(res, out.kind === 'auth' ? 401 : 400, jsonBody({ error: out.why }))
         const { ok, kind, ...granted } = out
@@ -755,14 +762,17 @@ const server = createServer(async (req, res) => {
         ])
         return send(res, 200, jsonBody(publisherOverview({
           issuer: { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null },
-          seat: { via: seat.via, canHire: seat.canHire, canAppoint: seat.canAppoint, canAuthor: seat.canAuthor === true, since: seat.since },
-          manifests, priceOf, records, platformBps, members, pending, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null,
+          seat: { via: seat.via, canHire: seat.canHire, canAppoint: seat.canAppoint, canAuthor: seat.canAuthor === true, canPublish: seat.canPublish === true, since: seat.since },
+          manifests, priceOf, records, platformBps, members, pending, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null, courseMeta: dbCourseMeta,
           token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
         })))
       }
-      if (path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit') {
+      if (path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit'
+        || path === '/publisher/drafts/fork' || path === '/publisher/drafts/delete' || path === '/publisher/drafts/decide' || path === '/publisher/courses/archive') {
         // B133 (D67): menyusun kursus — hanya kursi Penerbit dengan hak susun (kunci penerbit, atau anggota dengan author=1).
-        // Menerbitkan tetap kunci penerbit lewat `npm run course:publish`, bukan rute ini.
+        // B140 (D72): menerbitkan/menolak draf dan mengarsipkan kursus juga dari dasbor, oleh anggota publish=1 — server
+        // menandatangani keputusan itu dengan kunci penerbit dan mencatat pesan + tanda tangan anggota yang meminta. CLI
+        // `npm run course:publish` tetap jalan untuk pemegang kunci penerbit.
         if (!PAY_PAYEE) return send(res, 503, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher to author for' }))
         if (!isAddress(String(body.learner ?? ''))) return send(res, 400, jsonBody({ error: 'learner must be the address of the account that signs' }))
         const refusedRole = roleRefusal(await accountCheap(body.learner), 'publisher')
@@ -779,15 +789,107 @@ const server = createServer(async (req, res) => {
           const rows = await dbDraftsOf(PAY_PAYEE, { includeTest: body.includeTest === true })
           // Kunci kuis hanya untuk penyusun drafnya sendiri; anggota lain melihat isi publiknya saja.
           return send(res, 200, jsonBody({
-            canAuthor: seat.canAuthor === true, institution: seat.name ?? null,
+            canAuthor: seat.canAuthor === true, canPublish: seat.canPublish === true, institution: seat.name ?? null, me,
             drafts: rows.map((r) => projectDraft(r, { withKeys: String(r.author).toLowerCase() === me.toLowerCase() })),
+            actions: (await dbCourseActionsOf(PAY_PAYEE, { includeTest: body.includeTest === true, limit: 50 })).map((a) => ({
+              id: Number(a.id), courseId: a.course_id, draftId: a.draft_id == null ? null : Number(a.draft_id), action: a.action,
+              requestedBy: a.requested_by ?? null, note: a.note ?? null, at: a.created_at,
+            })),
           }))
         }
+        if (path === '/publisher/drafts/decide' || path === '/publisher/courses/archive') {
+          if (!seat.canPublish) return send(res, 403, jsonBody({ error: 'this membership does not include publish=1 (deciding drafts, archiving courses)' }))
+          const issuerKey = process.env.ISSUER_PRIVATE_KEY
+          const issuerAcct = issuerKey ? privateKeyToAccount(issuerKey) : null
+          if (!issuerAcct || issuerAcct.address.toLowerCase() !== PAY_PAYEE.toLowerCase()) {
+            return send(res, 503, jsonBody({ error: 'the publisher key is not on this server — decide with `npm run course:publish` on the machine that holds it' }))
+          }
+          const nonce = randomBytes(10).toString('hex')
+          const status = (out) => ({ auth: 401, forbidden: 403, missing: 404, conflict: 409, unprocessable: 422 })[out.kind] ?? 400
+          if (path === '/publisher/drafts/decide') {
+            const draftId = Number(body.draftId)
+            const decision = body.decision
+            if (!Number.isInteger(draftId) || draftId <= 0 || (decision !== 'publish' && decision !== 'reject')) {
+              return send(res, 400, jsonBody({ error: 'draftId must be a positive integer and decision publish or reject' }))
+            }
+            const reqWant = `lencana-course-request decide draft=${draftId} decision=${decision}`
+            if (typeof body.message !== 'string' || !new RegExp(`^${reqWant} nonce=[0-9a-f]{12,}$`).test(body.message)) {
+              return send(res, 400, jsonBody({ error: `message must be "${reqWant} nonce=<hex>"` }))
+            }
+            const auth = await dbAuthorize({ learner: me, message: body.message, signature: body.signature, scope: 'course-request' })
+            if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+            const row = await dbDraftById(draftId)
+            if (!row || String(row.issuer).toLowerCase() !== PAY_PAYEE.toLowerCase()) return send(res, 404, jsonBody({ error: 'no such draft for this publisher' }))
+            // Empat mata: penyusun tidak memutuskan drafnya sendiri dari dasbor. Pemegang kunci penerbit tetap bisa (CLI, atau kursi issuer).
+            if (seat.via !== 'issuer' && String(row.author).toLowerCase() === me.toLowerCase()) {
+              return send(res, 403, jsonBody({ error: 'the author of a draft cannot decide it from the dashboard — another member with publish=1 (or the publisher key) decides' }))
+            }
+            if (row.status !== 'submitted') return send(res, 409, jsonBody({ error: `only a submitted draft can be decided (this one is ${row.status})` }))
+            const base = row.supersedes ? await dbDraftById(row.supersedes) : null
+            let plan = null
+            let issuerMessage
+            if (decision === 'publish') {
+              plan = await publishPlan(row, { base })
+              if (plan.problems.length) return send(res, 422, jsonBody({ error: 'the stored draft does not pass the audit any more — not published', problems: plan.problems.slice(0, 12) }))
+              issuerMessage = `lencana-course publish draft=${draftId} course=${row.course_id} rubric=${plan.rubricHash}${base ? ` supersedes=${Number(base.id)}` : ''} nonce=${nonce}`
+            } else {
+              issuerMessage = `lencana-course reject draft=${draftId} nonce=${nonce}`
+            }
+            const out = await dbDecideDraft({
+              draftId, issuer: issuerAcct.address, decision, rubricHash: plan?.rubricHash ?? null, manifestHash: plan?.manifestHash ?? null, publishedAt: plan?.publishedAt ?? null,
+              note: typeof body.note === 'string' && body.note.trim() ? body.note.trim() : null,
+              message: issuerMessage, signature: await issuerAcct.signMessage({ message: issuerMessage }),
+              requestedBy: me, requestMessage: body.message, requestSignature: body.signature,
+            })
+            if (!out.ok) return send(res, status(out), jsonBody({ error: out.why }))
+            if (decision === 'publish') await refreshCatalog({ force: true }).catch(() => {})
+            return send(res, 200, jsonBody({ draft: projectDraft(out.draft), replaced: out.replaced ?? null, issuerMessage }))
+          }
+          const courseId = String(body.courseId ?? '')
+          const on = body.archived === true
+          if (!/^[a-z0-9][a-z0-9-]{2,47}$/.test(courseId)) return send(res, 400, jsonBody({ error: 'courseId must be a course id' }))
+          const reqWant = `lencana-course-request archive course=${courseId} on=${on ? 1 : 0}`
+          if (typeof body.message !== 'string' || !new RegExp(`^${reqWant} nonce=[0-9a-f]{12,}$`).test(body.message)) {
+            return send(res, 400, jsonBody({ error: `message must be "${reqWant} nonce=<hex>"` }))
+          }
+          const auth = await dbAuthorize({ learner: me, message: body.message, signature: body.signature, scope: 'course-request' })
+          if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+          const issuerMessage = `lencana-course archive course=${courseId} on=${on ? 1 : 0} nonce=${nonce}`
+          const out = await dbArchiveCourse({
+            issuer: issuerAcct.address, courseId, archived: on, message: issuerMessage, signature: await issuerAcct.signMessage({ message: issuerMessage }),
+            requestedBy: me, requestMessage: body.message, requestSignature: body.signature,
+          })
+          if (!out.ok) return send(res, status(out), jsonBody({ error: out.why }))
+          await refreshCatalog({ force: true }).catch(() => {})
+          return send(res, 200, jsonBody({ courseId: out.courseId, draftId: out.draftId, archivedAt: out.archivedAt, issuerMessage }))
+        }
         if (!seat.canAuthor) return send(res, 403, jsonBody({ error: 'this membership does not include author=1 (authoring courses)' }))
+        if (path === '/publisher/drafts/fork') {
+          // Sunting = versi baru: isi + kunci + harga versi terbit disalin SERVER (kunci kuis tidak pernah dikirim ke halaman).
+          const courseId = String(body.courseId ?? '')
+          const base = /^[a-z0-9][a-z0-9-]{2,47}$/.test(courseId) ? await dbPublishedRowOf(PAY_PAYEE, courseId) : null
+          if (!base) return send(res, 404, jsonBody({ error: `no published database course "${courseId}" — file courses are edited in code` }))
+          const prep = await prepareDraft({ course: base.content, keys: base.answer_keys ?? {}, price: base.price_units ?? null }, { institution: seat.name ?? 'Penerbit', base })
+          if (!prep.ok) return send(res, 400, jsonBody({ error: 'the published course no longer fits the editor schema', problems: prep.errors }))
+          const out = await dbForkDraft({
+            issuer: PAY_PAYEE, author: me, base, payload: prep.payload, contentHash: prep.contentHash, problems: prep.problems,
+            message: body.message, signature: body.signature,
+          })
+          if (!out.ok) return send(res, ({ auth: 401, forbidden: 403, missing: 404, conflict: 409 })[out.kind] ?? 400, jsonBody({ error: out.why }))
+          return send(res, 200, jsonBody({ draft: projectDraft(out.draft, { withKeys: true }) }))
+        }
+        if (path === '/publisher/drafts/delete') {
+          const out = await dbDeleteDraft({ draftId: Number(body.draftId), author: me, message: body.message, signature: body.signature })
+          if (!out.ok) return send(res, ({ auth: 401, forbidden: 403, missing: 404, conflict: 409 })[out.kind] ?? 400, jsonBody({ error: out.why }))
+          return send(res, 200, jsonBody({ deleted: out.deleted, courseId: out.courseId }))
+        }
         if (path === '/publisher/drafts/save') {
           const draftId = body.draftId == null ? null : Number(body.draftId)
           if (draftId !== null && (!Number.isInteger(draftId) || draftId <= 0)) return send(res, 400, jsonBody({ error: 'draftId must be a positive integer or null' }))
-          const prep = await prepareDraft(body.payload, { institution: seat.name ?? 'Penerbit', exceptDraftId: draftId })
+          // B140: suntingan versi baru diaudit terhadap versi terbit yang digantikannya (aturan nilai tetap → id sama; berubah → id baru).
+          const existing = draftId ? await dbDraftById(draftId) : null
+          const base = existing?.supersedes ? await dbDraftById(existing.supersedes) : null
+          const prep = await prepareDraft(body.payload, { institution: seat.name ?? 'Penerbit', exceptDraftId: draftId, base })
           if (!prep.ok) return send(res, 400, jsonBody({ error: 'the draft does not fit the editor schema', problems: prep.errors }))
           const out = await dbSaveDraft({
             draftId, issuer: PAY_PAYEE, author: me, payload: prep.payload, contentHash: prep.contentHash, problems: prep.problems,
@@ -929,6 +1031,10 @@ const server = createServer(async (req, res) => {
         const courseManifest = manifestOf(body.course)
         const lessonsTotal = courseManifest?.course?.modules?.reduce((n, m) => n + (m.lessons?.length ?? 0), 0) ?? 0
         if (!courseManifest) return send(res, 400, jsonBody({ error: `course ${body.course} is not in the catalogue`, known: Object.keys(MANIFESTS) }))
+        // B140 (D72): kursus yang diarsipkan tidak menerima peserta BARU; yang sudah terdaftar tetap lewat (enroll idempoten).
+        if (courseArchived(body.course) && !(await dbFindEnrollment(body.learner, body.course))) {
+          return send(res, 409, jsonBody({ error: `course ${body.course} is archived — it takes no new learners`, archived: true }))
+        }
         // B125: kursus berbayar — yang belum terdaftar membayar dulu. Yang sudah terdaftar (termasuk sebelum harga berlaku)
         // tetap lewat jalur biasa: enroll idempoten, tidak ada tagihan kedua.
         const price = PAYWALL ? priceOf(body.course) : null

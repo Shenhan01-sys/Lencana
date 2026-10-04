@@ -16,15 +16,64 @@ import './authoring-view.css'
 import { h } from '../lib/ui'
 import { skeleton, steps } from '../lib/loading'
 import type { Block, Course, Lesson, Module, Problem, QuizKeys } from '../content'
-import { normalizeDraft, auditDraft, DRAFT_LIMITS, type DraftKind } from '../authoring'
-import { readCourseDrafts, saveCourseDraft, submitCourseDraft, learnerAddress, type CourseDraft, type DraftInput } from '../learning'
+import { normalizeDraft, auditDraft, versionProblems, DRAFT_LIMITS, type DraftKind } from '../authoring'
+import {
+  readCourseDrafts, saveCourseDraft, submitCourseDraft, learnerAddress, forkCourse, deleteCourseDraft, decideCourseDraft, archiveCourse,
+  type CourseDraft, type CourseAction, type DraftInput,
+} from '../learning'
 import { fileCourseIds } from '../catalog-live'
 import { formatLdc, PAY_TOKEN_DECIMALS, PAY_TOKEN_SYMBOL } from '../pricing'
 
 type Lang = 'en' | 'id'
 
 const COPY = {
-  lead: { en: 'Draft a course, submit it; the publisher key publishes it. Quiz answer keys stay on the server.', id: 'Susun kursus, ajukan; kunci penerbit yang menerbitkan. Kunci jawaban kuis hanya tersimpan di server.' },
+  lead: {
+    en: 'Draft a course, submit it; a member with publish rights (or the publisher key) decides. Quiz answer keys stay on the server.',
+    id: 'Susun kursus, ajukan; anggota berhak terbit (atau kunci penerbit) yang memutuskan. Kunci jawaban kuis hanya tersimpan di server.',
+  },
+  // B140 (D72): kelola kursus terbit
+  forkBtn: { en: 'Edit as a new version', id: 'Sunting jadi versi baru' },
+  forkNote: {
+    en: 'Copies this published course into a new draft. Same grading rules → same course id, replaced in place when published. Changed rules → a new id; the old version is archived and earlier credentials keep pointing to their rules.',
+    id: 'Menyalin kursus terbit ini jadi draf baru. Aturan nilai sama → id kursus sama, menggantikan di tempat saat terbit. Aturan nilai berubah → id baru; versi lama diarsipkan dan kredensial lama tetap menunjuk aturannya.',
+  },
+  archiveBtn: { en: 'Archive', id: 'Arsipkan' },
+  unarchiveBtn: { en: 'Restore', id: 'Pulihkan' },
+  archivedTag: { en: 'archived', id: 'diarsipkan' },
+  archiveNote: {
+    en: 'An archived course leaves the catalogue and takes no new learners. Enrolled learners keep their class; credentials stay verifiable.',
+    id: 'Kursus yang diarsipkan hilang dari katalog dan tidak menerima peserta baru. Peserta yang sudah terdaftar tetap masuk kelas; kredensialnya tetap terverifikasi.',
+  },
+  deleteBtn: { en: 'Delete draft', id: 'Hapus draf' },
+  deleteConfirm: { en: 'Click again to delete', id: 'Klik lagi untuk menghapus' },
+  publishBtn: { en: 'Sign & publish', id: 'Tandatangani & terbitkan' },
+  rejectBtn: { en: 'Return with a note', id: 'Kembalikan dengan catatan' },
+  rejectNote: { en: 'Note for the author (optional, up to 280 characters)', id: 'Catatan untuk penyusun (opsional, maks. 280 karakter)' },
+  decideNote: {
+    en: 'The server signs this decision with the publisher key and records you as the member who asked.',
+    id: 'Server menandatangani keputusan ini dengan kunci penerbit dan mencatatmu sebagai anggota yang meminta.',
+  },
+  ownDraft: { en: 'Your own draft — another member with publish rights decides it.', id: 'Draf milikmu sendiri — anggota lain yang berhak terbit yang memutuskannya.' },
+  versionOf: { en: 'new version of', id: 'versi baru dari' },
+  history: { en: 'Course history', id: 'Riwayat kelola kursus' },
+  working: { en: 'Signing…', id: 'Menandatangani…' },
+  doneFork: { en: 'New version drafted — edit it below.', id: 'Versi baru tersusun — sunting di bawah.' },
+  donePublish: { en: 'Published.', id: 'Diterbitkan.' },
+  doneReject: { en: 'Returned to the author.', id: 'Dikembalikan ke penyusun.' },
+  doneArchive: { en: 'Archived.', id: 'Diarsipkan.' },
+  doneUnarchive: { en: 'Restored to the catalogue.', id: 'Kembali ke katalog.' },
+  doneDelete: { en: 'Draft deleted.', id: 'Draf dihapus.' },
+  replacedIn: { en: 'Published — it replaced the previous version in place.', id: 'Diterbitkan — menggantikan versi sebelumnya di tempat.' },
+  replacedArch: { en: 'Published under a new id — the previous version was archived.', id: 'Diterbitkan dengan id baru — versi sebelumnya diarsipkan.' },
+  histIn: { en: 'replaced', id: 'menggantikan' },
+  histArch: { en: 'archived the previous version', id: 'mengarsipkan versi sebelumnya' },
+  actFork: { en: 'new version', id: 'versi baru' },
+  actDelete: { en: 'deleted', id: 'dihapus' },
+  actPublish: { en: 'published', id: 'diterbitkan' },
+  actReject: { en: 'returned', id: 'dikembalikan' },
+  actArchive: { en: 'archived', id: 'diarsipkan' },
+  actUnarchive: { en: 'restored', id: 'dipulihkan' },
+  by: { en: 'by', id: 'oleh' },
   laneDraft: { en: 'Drafts', id: 'Draf' },
   laneSubmitted: { en: 'Submitted', id: 'Diajukan' },
   lanePublished: { en: 'Published', id: 'Terbit' },
@@ -90,7 +139,10 @@ const COPY = {
   submit: { en: 'Sign & submit', id: 'Tandatangani & ajukan' },
   saving: { en: 'Signing and saving…', id: 'Menandatangani dan menyimpan…' },
   saved: { en: 'Saved — the publisher computed the same hash.', id: 'Tersimpan — penerbit menghitung hash yang sama.' },
-  submitted: { en: 'Submitted. The publisher key decides: npm run course:publish.', id: 'Diajukan. Kunci penerbit yang memutuskan: npm run course:publish.' },
+  submitted: {
+    en: 'Submitted. A member with publish rights decides it here (or the publisher key with npm run course:publish).',
+    id: 'Diajukan. Anggota berhak terbit yang memutuskannya di sini (atau kunci penerbit lewat npm run course:publish).',
+  },
   unsaved: { en: 'unsaved changes', id: 'ada perubahan belum disimpan' },
   close: { en: 'Close', id: 'Tutup' },
   allClear: { en: 'No problems — the same audit the server runs.', id: 'Tanpa masalah — audit yang sama dengan server.' },
@@ -190,7 +242,7 @@ function toInput (c: Course, keys: QuizKeys, price: string | null): DraftInput {
 /* ------------------------------------------------------------------ bagian */
 type Focus = { t: 'course' } | { t: 'module', mi: number } | { t: 'lesson', mi: number, li: number }
 /** `price`: satuan terkecil, null = gratis, undefined = teks harga tidak sah (menahan simpan). */
-type Editor = { draftId: number | null, status: CourseDraft['status'] | 'new', editable: boolean, course: Course, keys: QuizKeys, price: string | null | undefined, priceText: string, contentHash: string | null, focus: Focus, dirty: boolean, preview: boolean, note: string | null, rubricHash: string | null }
+type Editor = { draftId: number | null, status: CourseDraft['status'] | 'new', editable: boolean, course: Course, keys: QuizKeys, price: string | null | undefined, priceText: string, contentHash: string | null, focus: Focus, dirty: boolean, preview: boolean, note: string | null, rubricHash: string | null, src: CourseDraft | null }
 
 export function renderAuthoring (lang: Lang): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
@@ -198,45 +250,68 @@ export function renderAuthoring (lang: Lang): HTMLElement {
   const me = (learnerAddress() ?? '').toLowerCase()
   let drafts: CourseDraft[] = []
   let canAuthor = false
+  let canPublish = false
+  let actions: CourseAction[] = []
   let institution = ''
   let ed: Editor | null = null
+  /** Pesan sesudah aksi kelola (versi baru, terbit, arsip…) — ditampilkan sekali sesudah daftar dimuat ulang. */
+  let flash: { cls: 'ok' | 'bad', text: string } | null = null
 
-  const load = () => {
+  const load = (openId: number | null = null) => {
     const progress = steps([T('stepSign'), T('stepRead')])
     root.replaceChildren(h('div', { class: 'app-loading' }, progress, skeleton('cards', T('loading'))))
     progress.set(0)
     void readCourseDrafts().then((r) => {
       if (!root.isConnected) return
       if (!r.ok) {
-        root.replaceChildren(h('div', { class: 'app-card app-error' }, h('p', null, `${T('failed')} ${r.why ?? ''}`), h('button', { type: 'button', class: 'app-btn', onClick: load }, T('retry'))))
+        root.replaceChildren(h('div', { class: 'app-card app-error' }, h('p', null, `${T('failed')} ${r.why ?? ''}`), h('button', { type: 'button', class: 'app-btn', onClick: () => load() }, T('retry'))))
         return
       }
       drafts = r.drafts ?? []
       canAuthor = r.canAuthor === true
+      canPublish = r.canPublish === true
+      actions = r.actions ?? []
       institution = r.institution ?? ''
-      draw()
+      const reopen = openId === null ? null : drafts.find((d) => d.id === openId) ?? null
+      if (reopen) openDraft(reopen)
+      else { ed = null; draw() }
     })
   }
 
-  const takenIds = (): Set<string> => new Set([...fileCourseIds(), ...drafts.filter((d) => d.status !== 'rejected' && d.id !== ed?.draftId).map((d) => d.courseId)])
+  /** B140: versi terbit yang digantikan draf ini (kalau draf ini versi baru). */
+  const baseOf = (e: Editor | null): CourseDraft | null => (e?.src?.supersedes ? drafts.find((d) => d.id === e.src?.supersedes) ?? null : null)
 
-  /** Audit kiriman editor dengan modul yang sama dengan server: masalah bentuk dulu, lalu audit kursus. */
+  /** Id yang sudah dipakai; versi baru boleh memakai id versi yang digantikannya (sama dengan server). */
+  const takenIds = (): Set<string> => {
+    const s = new Set([...fileCourseIds(), ...drafts.filter((d) => d.status !== 'rejected' && d.id !== ed?.draftId).map((d) => d.courseId)])
+    const b = baseOf(ed)
+    if (b) s.delete(b.courseId)
+    return s
+  }
+
+  /** Audit kiriman editor dengan modul yang sama dengan server: masalah bentuk dulu, lalu audit kursus + aturan versi baru. */
   const audit = (e: Editor): Problem[] => {
+    // B140: draf orang lain dibaca TANPA kunci kuis (kunci hanya untuk penyusunnya), jadi audit halaman akan melaporkan
+    // "soal tanpa kunci" yang tidak ada. Untuk draf hanya-baca itu, yang ditampilkan adalah audit server yang tersimpan.
+    if (!e.editable && e.src && e.src.keys === undefined) return e.src.problems ?? []
     const n = normalizeDraft(toInput(e.course, e.keys, e.price ?? null), institution)
-    const out = n.payload ? auditDraft(n.payload, takenIds()) : n.errors.map((what) => ({ where: 'bentuk', what }))
+    const b = baseOf(e)
+    const out = n.payload
+      ? [...auditDraft(n.payload, takenIds()), ...versionProblems(n.payload, b ? { courseId: b.courseId, rubricHash: b.rubricHash, version: b.version ?? 1 } : null)]
+      : n.errors.map((what) => ({ where: 'bentuk', what }))
     if (e.price === undefined) out.unshift({ where: 'harga', what: T('badPrice') })
     return out
   }
 
   const openDraft = (d: CourseDraft | null) => {
     if (!d) {
-      ed = { draftId: null, status: 'new', editable: true, course: blankCourse(), keys: {}, price: null, priceText: '', contentHash: null, focus: { t: 'course' }, dirty: true, preview: false, note: null, rubricHash: null }
+      ed = { draftId: null, status: 'new', editable: true, course: blankCourse(), keys: {}, price: null, priceText: '', contentHash: null, focus: { t: 'course' }, dirty: true, preview: false, note: null, rubricHash: null, src: null }
     } else {
       const own = d.author.toLowerCase() === me
       ed = {
         draftId: d.id, status: d.status, editable: own && (d.status === 'draft' || d.status === 'rejected') && canAuthor,
         course: structuredClone(d.course), keys: structuredClone(d.keys ?? {}), price: d.price, priceText: d.price ? formatLdc(BigInt(d.price)) : '',
-        contentHash: d.contentHash, focus: { t: 'course' }, dirty: false, preview: false, note: d.decidedNote, rubricHash: d.rubricHash,
+        contentHash: d.contentHash, focus: { t: 'course' }, dirty: false, preview: false, note: d.decidedNote, rubricHash: d.rubricHash, src: d,
       }
     }
     draw()
@@ -244,12 +319,43 @@ export function renderAuthoring (lang: Lang): HTMLElement {
 
   /* ---------------------------------------------- gambar */
   const draw = () => {
+    const note = flash
+    flash = null
     root.replaceChildren(...kids(
       h('p', { class: 'au-lead app-muted' }, T('lead')),
       canAuthor ? null : h('p', { class: 'au-noright' }, T('noRight')),
+      note ? h('p', { class: `seat-apply-status ${note.cls} au-flash`, role: 'status' }, note.text) : null,
       lanes(),
       ed ? editor(ed) : null,
+      history(),
     ))
+  }
+
+  /** B140: riwayat kelola kursus — siapa meminta apa (versi baru, terbit, tolak, arsip, pulihkan, hapus). */
+  const history = (): HTMLElement | null => {
+    if (!actions.length) return null
+    const label: Record<CourseAction['action'], string> = {
+      fork: T('actFork'), delete: T('actDelete'), publish: T('actPublish'), reject: T('actReject'), archive: T('actArchive'), unarchive: T('actUnarchive'),
+    }
+    // Terbitnya sebuah versi baru: versi yang digantikannya dibaca dari draf (supersedes), bukan dari teks catatan.
+    const replaced = (a: CourseAction): string | null => {
+      const d = a.action === 'publish' && a.draftId != null ? drafts.find((x) => x.id === a.draftId) : undefined
+      const b = d?.supersedes ? drafts.find((x) => x.id === d.supersedes) : undefined
+      if (!d || !b) return null
+      return b.courseId === d.courseId ? ` · ${T('histIn')} v${b.version ?? 1}` : ` · ${T('histArch')} ${b.courseId}`
+    }
+    return h('details', { class: 'au-history app-card' },
+      h('summary', null, h('strong', null, T('history')), h('span', { class: 'au-lane-n' }, String(actions.length))),
+      h('ol', null, ...actions.slice(0, 30).map((a) => {
+        const r = replaced(a)
+        return h('li', { class: `act-${a.action}` },
+          h('span', { class: 'au-act' }, label[a.action] ?? a.action),
+          h('code', null, a.courseId),
+          a.requestedBy ? h('small', { class: 'app-muted' }, ` ${T('by')} ${a.requestedBy.toLowerCase() === me ? T('you') : short(a.requestedBy)}`) : null,
+          r ? h('small', { class: 'app-muted' }, r) : null,
+          a.note ? h('small', { class: 'au-act-note' }, ` · ${a.note}`) : null,
+          h('time', { class: 'app-muted', datetime: a.at }, ` · ${new Date(a.at).toLocaleString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium', timeStyle: 'short' })}`))
+      })))
   }
 
   const lanes = (): HTMLElement => {
@@ -259,14 +365,18 @@ export function renderAuthoring (lang: Lang): HTMLElement {
       return h('button', {
         type: 'button', class: `au-card s-${d.status}${ed?.draftId === d.id ? ' on' : ''}`, style: { '--i': String(i) }, onClick: () => openDraft(d),
       },
-      h('span', { class: 'au-card-id' }, d.courseId),
+      h('span', { class: 'au-card-id' }, d.courseId, (d.version ?? 1) > 1 ? h('span', { class: 'au-ver' }, `v${d.version}`) : null),
       h('strong', null, d.course.title || '—'),
       h('span', { class: 'au-card-meta' },
         `${n} ${T('lessons')} · ${d.price ? `${formatLdc(BigInt(d.price))} ${PAY_TOKEN_SYMBOL}` : T('free')} · ${T('author')} ${own ? T('you') : short(d.author)}`),
+      d.supersedes && d.status !== 'published'
+        ? h('span', { class: 'au-card-meta' }, `${T('versionOf')} ${drafts.find((x) => x.id === d.supersedes)?.courseId ?? `#${d.supersedes}`}`)
+        : null,
       d.problems.length
         ? h('span', { class: 'au-pin' }, `${d.problems.length} ${T('problems')}`)
         : d.status === 'draft' ? h('span', { class: 'au-ok' }, T('clean')) : null,
-      d.status === 'rejected' ? h('span', { class: 'au-tag bad' }, T('rejected')) : null)
+      d.status === 'rejected' ? h('span', { class: 'au-tag bad' }, T('rejected')) : null,
+      d.archivedAt ? h('span', { class: 'au-tag arch' }, T('archivedTag')) : null)
     }
     const lane = (title: string, items: CourseDraft[], extra: HTMLElement | null, cls: string) => h('section', { class: `au-lane ${cls}` },
       h('header', null, h('span', { class: 'au-lane-dot' }), h('strong', null, title), h('span', { class: 'au-lane-n' }, String(items.length))),
@@ -377,12 +487,72 @@ export function renderAuthoring (lang: Lang): HTMLElement {
           if (s) { s.className = 'seat-apply-status ok'; s.textContent = T('submitted') }
         })
       })
+      // B140 (D72): aksi kelola menurut keadaan draf dan hak kursi. Setiap aksi ditandatangani akun ini; server yang memutuskan.
+      const src = e.src
+      const own = src ? src.author.toLowerCase() === me : true
+      const act = <R extends { ok: boolean, why?: string }>(label: string, cls: string, job: () => Promise<R>, onOk: (r: R) => { text: string, open: number | null }): HTMLButtonElement => {
+        const b = h('button', { type: 'button', class: `app-btn ${cls}`.trim() }, label) as HTMLButtonElement
+        b.addEventListener('click', () => {
+          b.disabled = true
+          status.className = 'seat-apply-status'; status.textContent = T('working')
+          void job().then((r) => {
+            if (!r.ok) { b.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = r.why ?? ''; return }
+            const o = onOk(r)
+            flash = { cls: 'ok', text: o.text }
+            load(o.open)
+          })
+        })
+        return b
+      }
+      const manage: HTMLElement[] = []
+      const notes: HTMLElement[] = []
+      let decideBox: HTMLElement | null = null
+      if (src && own && canAuthor && src.status === 'draft' && !src.submittedAt && !src.decidedAt) {
+        const del = h('button', { type: 'button', class: 'app-btn small au-danger' }, T('deleteBtn')) as HTMLButtonElement
+        let armed = false
+        del.addEventListener('click', () => {
+          if (!armed) { armed = true; del.textContent = T('deleteConfirm'); return }
+          del.disabled = true
+          status.className = 'seat-apply-status'; status.textContent = T('working')
+          void deleteCourseDraft(src.id).then((r) => {
+            if (!r.ok) { del.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = r.why ?? ''; return }
+            flash = { cls: 'ok', text: T('doneDelete') }
+            load(null)
+          })
+        })
+        manage.push(del)
+      }
+      if (src && src.status === 'submitted' && canPublish) {
+        if (own) {
+          decideBox = h('p', { class: 'app-muted au-decide-note' }, T('ownDraft'))
+        } else {
+          const noteBox = h('textarea', { class: 'au-reject-note', rows: '2', maxlength: '280', placeholder: T('rejectNote'), 'aria-label': T('rejectNote') }) as HTMLTextAreaElement
+          const pub = act(T('publishBtn'), 'primary', () => decideCourseDraft(src.id, 'publish'),
+            (r) => ({ text: r.replaced ? T(r.replaced.how === 'superseded' ? 'replacedIn' : 'replacedArch') : T('donePublish'), open: src.id }))
+          const rej = act(T('rejectBtn'), '', () => decideCourseDraft(src.id, 'reject', noteBox.value), () => ({ text: T('doneReject'), open: src.id }))
+          decideBox = h('div', { class: 'au-decide' }, noteBox, h('div', { class: 'au-decide-act' }, pub, rej), h('small', { class: 'app-muted' }, T('decideNote')))
+        }
+      }
+      if (src && src.status === 'published') {
+        if (canAuthor) {
+          manage.push(act(T('forkBtn'), 'primary', () => forkCourse(src.courseId), (r) => ({ text: T('doneFork'), open: r.draft?.id ?? null })))
+          notes.push(h('small', { class: 'app-muted au-manage-note' }, T('forkNote')))
+        }
+        if (canPublish) {
+          manage.push(src.archivedAt
+            ? act(T('unarchiveBtn'), '', () => archiveCourse(src.courseId, false), () => ({ text: T('doneUnarchive'), open: src.id }))
+            : act(T('archiveBtn'), '', () => archiveCourse(src.courseId, true), () => ({ text: T('doneArchive'), open: src.id })))
+          notes.push(h('small', { class: 'app-muted au-manage-note' }, T('archiveNote')))
+        }
+      }
       bar.replaceChildren(...kids(
         list,
         e.dirty && e.editable ? h('span', { class: 'au-dirty' }, T('unsaved')) : null,
+        decideBox,
         h('div', { class: 'au-bar-act' },
-          e.editable ? saveBtn : null, e.editable ? submitBtn : null,
+          e.editable ? saveBtn : null, e.editable ? submitBtn : null, ...manage,
           h('button', { type: 'button', class: 'app-btn small', onClick: () => { ed = null; draw() } }, T('close'))),
+        ...notes,
         status))
     }
 

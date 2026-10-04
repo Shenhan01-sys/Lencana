@@ -1,7 +1,7 @@
 ---
 tags: [reference, commands]
 status: active
-updated: 2026-10-03
+updated: 2026-10-04
 ---
 
 # Quick Reference
@@ -23,6 +23,8 @@ command and a page disagree, the run wins.**
 > tak terbaca di baterai — run terpisah 3 Okt: **TEPI MERAH 10 pemeriksaan, 1 gagal**, karena umur state tepi 30,3 jam melewati
 > ambang 26 jam, sedang 26 dari 26 kertas tetap terbaca; perbaikannya `npm run publish:edge` oleh builder. Ringkasan baterai:
 > baris "baterai" di [[09-Testing/00 - Hub Testing]].)*
+> *(Koreksi 4 Okt malam: merah tepi di atas ditutup B141. Baterai `sync:numbers` 4 Okt 22.20 WIB **34 harness · 34 hijau**:
+> web probe 118/0 · `check` 114/0 · `serve-probe` 50/0 · `verify:edge` 10/0 (30 dari 30) · `verify:live-cert` 59/0 · `e2e` 48/0.)*
 
 | command (from `app/`) | prints | last |
 |---|---|---|
@@ -94,7 +96,9 @@ never retyped.
 | `npm run verify:brain` · `verify:brain:live` | B135 (D69): otak agen — prompt penilai satu sumber (= teks 24 Sep, sha256), salinan fixture kalibrasi, aturan kalibrasi, adaptor tujuh provider dengan fetch tiruan, rute otak/antrean/penilaian lewat HTTP; `:live` = kalibrasi sungguhan Groq lewat adaptor peramban (kuota tim, tidak ikut baterai) | OTAK AGEN HIJAU — 60 pemeriksaan, 0 gagal · live 63/0 (substantif 99, kosong 3) |
 | `npm run verify:market` | B138 (D70): bursa agen — aturan konflik sewa/tunjuk halaman = aturan server (B120/B129), entri tanpa data peserta, layak-sewa = rute tarif, cache 60 detik + pembatalan sesudah sewa, halaman dan server sepakat atas penolakan sungguhan | BURSA AGEN HIJAU — 23 pemeriksaan, 0 gagal |
 | `npm run verify:history` | B136: riwayat chain (struk, transaksi, blok) dibaca dari `RPC_URL` lalu RPC resmi BNB Chain (chainId diperiksa); "tidak ditemukan" ≠ "RPC tidak terbaca"; dua struk lama yang 3 Okt hilang dari publicnode terbaca lewat cadangan | RIWAYAT CHAIN HIJAU — 10 pemeriksaan, 0 gagal |
+| `npm run verify:manage` | B140 (D72): kelola kursus terbit dari dasbor — hak `publish=1` dari hibah kunci penerbit; terbit/tolak/arsip ditandatangani server dengan kunci penerbit + jejak peminta (`course_actions`); penyusun tidak memutuskan drafnya sendiri; versi baru (aturan sama → id sama, digantikan di tempat; aturan berubah → id baru, versi lama diarsipkan); enroll baru ke kursus arsip 409; hapus hanya draf yang belum diajukan | KELOLA KURSUS HIJAU — 55 pemeriksaan, 0 gagal |
 | `npm run grant:member -- <alamat> --author` | B133: hak susun kursus (`author=1`) untuk anggota penerbit; hibah tanpa `--author` = author=0 (bentuk pesan B128 tetap sah) | — |
+| `npm run grant:member -- <alamat> --publish` | B140: hak terbit dari dasbor (`publish=1`); hibah tanpa `--publish` = publish=0; bisa digabung dengan `--author` | — |
 | `npm run verify:owner` | B130 (D65): dasbor Agent Owner hanya untuk alamat yang `ownerOf`-nya memegang agen yang dikenal platform; identitas/dompet/tarif dari registry, sewa/aktivitas/tagihan = hitungan database; gas hanya untuk pemilik agen cetakan platform; dompet kosong sesudah pemindahan = belum layak sewa | AGENT OWNER HIJAU — 32 pemeriksaan, 0 gagal |
 | `npm run agent:mint -- --to <alamat> [--tariff 2000] [--apply]` | B130: platform mencetak agen ERC-8004 untuk sebuah akun (register, berkas registrasi, tarif, `transferFrom`, gas) dan mencatatnya di `platform_agents`; dompet agen diisi pemiliknya sendiri dari `#/app/owner` | #2546 (akun uji, T55) · #2547 (akun 2 builder) |
 | `npm run grant:member -- --list` · `<alamat> [--hire] [--appoint]` · `--reject` · `--revoke` | B128/B129: keputusan keanggotaan penerbit dengan kunci penerbit (pesan + tanda tangan disimpan) | — |

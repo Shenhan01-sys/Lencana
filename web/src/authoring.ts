@@ -15,6 +15,7 @@
 // Lencana-B133 status=TERBUKA 2026-10-03 — skema draf kursus yang sama untuk halaman dan server: normalisasi, hash isi yang ditandatangani penyusun, audit (auditCourse + batas editor + kelengkapan kunci), dan manifest berkunci untuk hash kebijakan. Buktikan ulang: cd signer && npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { keccak256, toBytes, type Hex } from 'viem'
 import { auditCourse, type Block, type Course, type Lesson, type Problem, type QuizKeys } from './content'
+import { MANIFEST_SCHEMA, rubricHashOf, type CourseManifest } from './manifest'
 
 export const DRAFT_KINDS = ['bacaan', 'kuis', 'esai'] as const
 export type DraftKind = typeof DRAFT_KINDS[number]
@@ -187,6 +188,42 @@ export function keyedCourse (course: Course, keys: QuizKeys): Course {
         : l)),
     })),
   }
+}
+
+// Lencana-B140 status=TERBUKA 2026-10-04 — aturan versi baru satu sumber untuk server dan editor (D72): aturan nilai tetap → id sama (versi baru menggantikan di tempat), aturan nilai berubah → id wajib baru; aturan dibandingkan dengan id yang disamakan karena canonicalPolicy ikut menghitung id kursus. Buktikan ulang: cd signer && npm run verify:manage. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** Versi terbit yang digantikan sebuah draf versi baru, dalam bentuk yang sama di server dan halaman. */
+export type VersionBase = { courseId: string, rubricHash: string | null, version: number }
+
+/**
+ * Hash aturan nilai isi draf SEANDAINYA id kursusnya `asId`. `canonicalPolicy` ikut menghitung id kursus, jadi dua versi hanya
+ * bisa dibandingkan aturannya dengan id yang disamakan dulu. Null bila belum bisa dihitung (kunci belum lengkap — audit biasa
+ * sudah melaporkannya).
+ */
+export function policyHashAs (p: DraftPayload, asId: string): Hex | null {
+  try {
+    const m = { schema: MANIFEST_SCHEMA, publishedAt: '1970-01-01T00:00:00Z', course: keyedCourse({ ...p.course, id: asId }, p.keys ?? {}) } as unknown as CourseManifest
+    return rubricHashOf(m)
+  } catch { return null }
+}
+
+/** Saran id versi baru: `<id dasar>-v<n>` (akhiran `-v<angka>` lama dibuang), dalam batas bentuk id kursus. */
+export function versionedId (baseId: string, version: number): string {
+  const root = String(baseId).replace(/-v\d+$/, '')
+  return `${root.slice(0, 44 - String(version).length)}-v${version}`
+}
+
+/** Aturan versi baru terhadap versi terbit yang digantikannya (`base`); kosong bila draf ini bukan versi baru. */
+export function versionProblems (p: DraftPayload, base: VersionBase | null): Problem[] {
+  if (!base) return []
+  const policy = policyHashAs(p, base.courseId)
+  if (policy === null) return []
+  const sameRules = policy === base.rubricHash
+  const sameId = p.course.id === base.courseId
+  if (sameRules && !sameId) return [{ where: p.course.id, what: `aturan nilai sama dengan versi terbit — versi baru memakai id yang sama (${base.courseId})` }]
+  if (!sameRules && sameId) {
+    return [{ where: p.course.id, what: `aturan nilai berubah dari versi terbit — beri id baru (mis. ${versionedId(base.courseId, base.version + 1)}) supaya kredensial lama tetap menunjuk aturan lamanya` }]
+  }
+  return []
 }
 
 /**

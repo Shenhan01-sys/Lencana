@@ -776,7 +776,7 @@ export async function addReviewer ({ courseId, reviewer, issuer, signer = issuer
  * penerbit. Menerbitkan dan mencabut kredensial TIDAK pernah didelegasikan lewat sini.
  * Pesan wajib menyebut anggota dan kedua wewenangnya: tanda tangan atas nonce saja bisa ditempelkan ke siapa pun.
  */
-export async function grantMember ({ issuer, member, canHire, canAppoint, canAuthor = false, message, signature }) {
+export async function grantMember ({ issuer, member, canHire, canAppoint, canAuthor = false, canPublish = false, message, signature }) {
   if (typeof member !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(member)) return { ok: false, kind: 'input', why: 'member must be a 20-byte address' }
   if (member.toLowerCase() === String(issuer).toLowerCase()) {
     return { ok: false, kind: 'input', why: 'the publisher address is the publisher itself — membership is for other accounts' }
@@ -785,9 +785,12 @@ export async function grantMember ({ issuer, member, canHire, canAppoint, canAut
   // B133: wewenang ketiga `author=1` (menyusun kursus). Pesan hibah tanpa `author=` tetap sah dan berarti author=0, supaya
   // bentuk pesan B128 tidak berubah; `author=1` hanya lolos kalau kiriman juga menyatakannya, dan sebaliknya.
   const authorPart = canAuthor ? ' author=1' : '(?: author=0)?'
+  // B140 (D72): wewenang keempat `publish=1` (memutuskan draf + mengarsipkan kursus dari dasbor; server menandatangani dengan kunci
+  // penerbit). Aturan yang sama dengan `author=`: tanpa `publish=` berarti publish=0, dan `publish=1` harus dinyatakan kedua sisi.
+  const publishPart = canPublish ? ' publish=1' : '(?: publish=0)?'
   // Bentuk pesan tepat, bukan "mengandung": `hire=1` tidak boleh lolos dari `hire=10` atau dari teks lain di pesan.
-  if (typeof message !== 'string' || !new RegExp(`^lencana-member grant ${wants}${authorPart} nonce=[0-9a-f]{12,}$`).test(message)) {
-    return { ok: false, kind: 'input', why: `signed message must be "lencana-member grant ${wants}${canAuthor ? ' author=1' : ''} nonce=<hex>"` }
+  if (typeof message !== 'string' || !new RegExp(`^lencana-member grant ${wants}${authorPart}${publishPart} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "lencana-member grant ${wants}${canAuthor ? ' author=1' : ''}${canPublish ? ' publish=1' : ''} nonce=<hex>"` }
   }
   const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'member' })
   if (!auth.ok) return auth
@@ -795,6 +798,7 @@ export async function grantMember ({ issuer, member, canHire, canAppoint, canAut
     method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
     body: [{
       issuer: getAddress(issuer), member: getAddress(member), can_hire: Boolean(canHire), can_appoint: Boolean(canAppoint), can_author: Boolean(canAuthor),
+      can_publish: Boolean(canPublish),
       message, signature, granted_at: new Date().toISOString(), revoked_at: null, revoke_message: null, revoke_signature: null,
       origin: process.env.LANCENA_ORIGIN || 'unknown',
     }],
@@ -807,7 +811,7 @@ export async function grantMember ({ issuer, member, canHire, canAppoint, canAut
   })
   return {
     ok: true, issuer: getAddress(issuer), member: getAddress(member), canHire: Boolean(canHire), canAppoint: Boolean(canAppoint), canAuthor: Boolean(canAuthor),
-    approvedRequest: closed?.[0]?.id ?? null,
+    canPublish: Boolean(canPublish), approvedRequest: closed?.[0]?.id ?? null,
   }
 }
 
@@ -831,7 +835,7 @@ export async function revokeMember ({ issuer, member, message, signature }) {
 /** Keanggotaan aktif satu alamat (bisa lebih dari satu penerbit). */
 export async function membershipsOf (address) {
   const rows = await rest('publisher_members', {
-    query: `?member=eq.${getAddress(String(address).toLowerCase())}&revoked_at=is.null&select=issuer,member,can_hire,can_appoint,can_author,granted_at&order=granted_at.asc`,
+    query: `?member=eq.${getAddress(String(address).toLowerCase())}&revoked_at=is.null&select=issuer,member,can_hire,can_appoint,can_author,can_publish,granted_at&order=granted_at.asc`,
   })
   return rows ?? []
 }
@@ -1017,7 +1021,7 @@ export async function devAccounts () {
 /* ------------------------------------------------------------------ draf kursus (B133, D67) */
 // Lencana-B133 status=TERBUKA 2026-10-03 — draf kursus: disimpan dan diajukan penyusun (anggota berhak susun) dengan tanda tangannya atas hash isi, diterbitkan atau ditolak hanya oleh kunci penerbit; kunci kuis draf tidak pernah keluar lewat rute publik. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-const DRAFT_COLS = 'id,issuer,author,course_id,content,price_units,content_hash,status,problems,submitted_at,rubric_hash,manifest_hash,published_at,decided_note,decided_at,created_at,updated_at,origin'
+const DRAFT_COLS = 'id,issuer,author,course_id,content,price_units,content_hash,status,problems,submitted_at,rubric_hash,manifest_hash,published_at,decided_note,decided_at,created_at,updated_at,origin,supersedes,version,archived_at'
 
 /** Bentuk draf untuk halaman. Kunci kuis hanya disertakan bila diminta (penyusunnya sendiri). */
 export const projectDraft = (r, { withKeys = false } = {}) => (r
@@ -1027,6 +1031,8 @@ export const projectDraft = (r, { withKeys = false } = {}) => (r
       price: r.price_units ?? null, contentHash: r.content_hash, problems: r.problems ?? [], submittedAt: r.submitted_at ?? null,
       rubricHash: r.rubric_hash ?? null, manifestHash: r.manifest_hash ?? null, publishedAt: r.published_at ?? null,
       decidedNote: r.decided_note ?? null, decidedAt: r.decided_at ?? null, createdAt: r.created_at, updatedAt: r.updated_at, origin: r.origin,
+      // B140 (D72): rantai versi dan arsip.
+      supersedes: r.supersedes == null ? null : Number(r.supersedes), version: Number(r.version ?? 1), archivedAt: r.archived_at ?? null,
     }
   : null)
 
@@ -1041,6 +1047,109 @@ export async function draftById (id) {
 export async function liveDraftCourseIds (exceptId = null) {
   const rows = (await rest('course_drafts', { query: '?status=neq.rejected&select=id,course_id' })) ?? []
   return new Set(rows.filter((r) => Number(r.id) !== Number(exceptId)).map((r) => r.course_id))
+}
+
+/** Baris terbit satu kursus database untuk satu penerbit (termasuk yang diarsipkan), atau null. */
+export async function publishedRowOf (issuer, courseId) {
+  const rows = await rest('course_drafts', {
+    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}&course_id=eq.${encodeURIComponent(String(courseId))}&status=eq.published&select=${DRAFT_COLS},answer_keys`,
+  })
+  return rows?.[0] ?? null
+}
+
+/**
+ * B140 (D72): jejak setiap keputusan kelola kursus — siapa yang meminta (pesan + tanda tangannya) dan pesan + tanda tangan kunci
+ * penerbit atas keputusan itu. Draf yang dihapus tetap meninggalkan barisnya di sini (`draft_id` jadi null).
+ */
+async function logCourseAction ({ issuer, courseId, draftId = null, action, requestedBy = null, requestMessage = null, requestSignature = null, issuerMessage = null, issuerSignature = null, note = null }) {
+  await rest('course_actions', {
+    method: 'POST', prefer: 'return=minimal',
+    body: [{
+      issuer: getAddress(String(issuer).toLowerCase()), course_id: courseId, draft_id: draftId == null ? null : Number(draftId), action,
+      requested_by: requestedBy ? getAddress(String(requestedBy).toLowerCase()) : null, request_message: requestMessage, request_signature: requestSignature,
+      issuer_message: issuerMessage, issuer_signature: issuerSignature, note, origin: process.env.LANCENA_ORIGIN || 'unknown',
+    }],
+  })
+}
+
+/** Jejak kelola kursus satu penerbit, terbaru dulu (tanpa tanda tangan). Baris harness disaring kecuali diminta. */
+export async function courseActionsOf (issuer, { includeTest = false, limit = 100 } = {}) {
+  return (await rest('course_actions', {
+    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}${includeTest ? '' : '&origin=neq.test'}&select=id,course_id,draft_id,action,requested_by,note,created_at&order=created_at.desc&limit=${Number(limit) || 100}`,
+  })) ?? []
+}
+
+/**
+ * Sunting = versi baru (B140, D72): salin isi + kunci + harga versi terbit jadi draf versi n+1, milik penyusun yang meminta.
+ * Pesan `lencana-draft fork course=<id> nonce=…` ditandatangani penyusun (kuncinya tidak dikirim ke halaman, jadi pesan ini
+ * tidak bisa menyebut hash isi; suntingan pertamanya yang menandatangani hash, seperti draf baru). Satu draf terbuka per id.
+ */
+export async function forkDraft ({ issuer, author, base, payload, contentHash, problems, message, signature }) {
+  const want = `lencana-draft fork course=${base.course_id}`
+  if (typeof message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "${want} nonce=<hex>"` }
+  }
+  const auth = await authorizeLearner({ learner: author, message, signature, scope: 'draft' })
+  if (!auth.ok) return { ok: false, kind: 'auth', why: auth.why }
+  try {
+    const rows = await rest('course_drafts', {
+      method: 'POST', prefer: 'return=representation',
+      body: [{
+        issuer: getAddress(String(issuer).toLowerCase()), author: getAddress(String(author).toLowerCase()), course_id: payload.course.id,
+        content: payload.course, answer_keys: payload.keys, price_units: payload.price, content_hash: contentHash, problems, status: 'draft',
+        save_message: message, save_signature: signature, supersedes: Number(base.id), version: Number(base.version ?? 1) + 1,
+        origin: process.env.LANCENA_ORIGIN || 'unknown',
+      }],
+    })
+    const draft = rows?.[0]
+    await logCourseAction({ issuer, courseId: base.course_id, draftId: draft?.id, action: 'fork', requestedBy: author, requestMessage: message, requestSignature: signature })
+    return { ok: true, draft }
+  } catch (e) {
+    if (/23505|duplicate key/.test(String(e.message))) return { ok: false, kind: 'conflict', why: 'this course already has an open draft (a new version or a draft in review) — finish or delete that one first' }
+    throw e
+  }
+}
+
+/** Hapus draf yang BELUM PERNAH diajukan: `lencana-draft delete draft=<id> nonce=…`, ditandatangani penyusunnya sendiri. */
+export async function deleteDraft ({ draftId, author, message, signature }) {
+  const row = await draftById(draftId)
+  if (!row) return { ok: false, kind: 'missing', why: 'no such draft' }
+  const want = `lencana-draft delete draft=${Number(draftId)}`
+  if (typeof message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "${want} nonce=<hex>"` }
+  }
+  const auth = await authorizeLearner({ learner: author, message, signature, scope: 'draft' })
+  if (!auth.ok) return { ok: false, kind: 'auth', why: auth.why }
+  if (String(row.author).toLowerCase() !== String(author).toLowerCase()) return { ok: false, kind: 'forbidden', why: 'only the author of a draft can delete it' }
+  if (row.status !== 'draft' || row.submitted_at || row.decided_at) {
+    return { ok: false, kind: 'conflict', why: `only a draft that was never submitted can be deleted (this one is ${row.status}${row.decided_at ? ', with a decision on record' : ''}) — published courses are archived, not deleted` }
+  }
+  await logCourseAction({ issuer: row.issuer, courseId: row.course_id, draftId: row.id, action: 'delete', requestedBy: author, requestMessage: message, requestSignature: signature })
+  const gone = await rest('course_drafts', { method: 'DELETE', prefer: 'return=representation', query: `?id=eq.${Number(draftId)}&status=eq.draft` })
+  return gone?.length ? { ok: true, deleted: Number(draftId), courseId: row.course_id } : { ok: false, kind: 'conflict', why: 'the draft changed before it could be deleted' }
+}
+
+/**
+ * Arsipkan / pulihkan kursus database yang terbit (B140, D72): `lencana-course archive course=<id> on=<1|0> nonce=…` ditandatangani
+ * kunci penerbit. Kursus tetap dimuat (peserta lama tetap masuk kelas, kertasnya tetap terbit), hanya hilang dari katalog dan
+ * menolak peserta baru.
+ */
+export async function archiveCourse ({ issuer, courseId, archived, message, signature, requestedBy = null, requestMessage = null, requestSignature = null }) {
+  const want = `lencana-course archive course=${courseId} on=${archived ? 1 : 0}`
+  if (typeof message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(message)) {
+    return { ok: false, kind: 'input', why: `signed message must be "${want} nonce=<hex>"` }
+  }
+  const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'course' })
+  if (!auth.ok) return auth
+  const now = new Date().toISOString()
+  const rows = await rest('course_drafts', {
+    method: 'PATCH', prefer: 'return=representation',
+    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}&course_id=eq.${encodeURIComponent(courseId)}&status=eq.published`,
+    body: { archived_at: archived ? now : null, updated_at: now },
+  })
+  if (!rows?.length) return { ok: false, kind: 'missing', why: `no published database course "${courseId}" for this publisher` }
+  await logCourseAction({ issuer, courseId, draftId: rows[0].id, action: archived ? 'archive' : 'unarchive', requestedBy, requestMessage, requestSignature, issuerMessage: message, issuerSignature: signature })
+  return { ok: true, courseId, draftId: Number(rows[0].id), archivedAt: rows[0].archived_at ?? null }
 }
 
 /** Draf satu penerbit, terbaru dulu (tanpa kunci). Baris harness disaring kecuali diminta. */
@@ -1112,14 +1221,20 @@ export async function submitDraft ({ draftId, author, message, signature }) {
  * nonce=…` — hash kebijakan dihitung pemanggil dari isi + kunci yang tersimpan, jadi tanda tangan mengikat aturan
  * penilaiannya. Tolak: `lencana-course reject draft=<id> nonce=…` (catatan opsional ≤ 280).
  */
-export async function decideDraft ({ draftId, issuer, decision, rubricHash = null, manifestHash = null, publishedAt = null, note = null, message, signature }) {
+export async function decideDraft ({ draftId, issuer, decision, rubricHash = null, manifestHash = null, publishedAt = null, note = null, message, signature, requestedBy = null, requestMessage = null, requestSignature = null }) {
   const row = await draftById(draftId)
   if (!row) return { ok: false, kind: 'missing', why: 'no such draft' }
   if (String(row.issuer).toLowerCase() !== String(issuer).toLowerCase()) return { ok: false, kind: 'forbidden', why: 'this draft belongs to another publisher' }
   if (row.status !== 'submitted') return { ok: false, kind: 'conflict', why: `only a submitted draft can be decided (this one is ${row.status})` }
   if (note != null && (typeof note !== 'string' || note.length > 280)) return { ok: false, kind: 'input', why: 'note must be text of at most 280 characters' }
+  // B140 (D72): versi baru menyebut versi yang digantikannya di pesan yang ditandatangani kunci penerbit — keputusan ini juga
+  // mengubah baris versi lama (digantikan di tempat, atau diarsipkan bila id-nya baru).
+  const base = row.supersedes && decision === 'publish' ? await draftById(row.supersedes) : null
+  if (decision === 'publish' && row.supersedes && (!base || base.status !== 'published')) {
+    return { ok: false, kind: 'conflict', why: 'the version this draft replaces is no longer the published one — fork the current version instead (a stale version can still be rejected)' }
+  }
   const want = decision === 'publish'
-    ? `lencana-course publish draft=${Number(draftId)} course=${row.course_id} rubric=${rubricHash}`
+    ? `lencana-course publish draft=${Number(draftId)} course=${row.course_id} rubric=${rubricHash}${base ? ` supersedes=${Number(base.id)}` : ''}`
     : `lencana-course reject draft=${Number(draftId)}`
   if (decision !== 'publish' && decision !== 'reject') return { ok: false, kind: 'input', why: 'decision must be publish or reject' }
   if (typeof message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(message)) {
@@ -1128,14 +1243,39 @@ export async function decideDraft ({ draftId, issuer, decision, rubricHash = nul
   const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'course' })
   if (!auth.ok) return auth
   const now = new Date().toISOString()
-  const rows = await rest('course_drafts', {
+  const decide = () => rest('course_drafts', {
     method: 'PATCH', prefer: 'return=representation', query: `?id=eq.${Number(draftId)}&status=eq.submitted`,
     body: decision === 'publish'
       // `publishedAt` = waktu yang ikut dihitung ke `manifestHash` oleh pemanggil — keduanya harus sama persis.
       ? { status: 'published', rubric_hash: rubricHash, manifest_hash: manifestHash, published_at: publishedAt ?? now, decided_message: message, decided_signature: signature, decided_at: now, decided_note: note, updated_at: now }
       : { status: 'rejected', decided_message: message, decided_signature: signature, decided_at: now, decided_note: note, updated_at: now },
   })
-  return rows?.length ? { ok: true, draft: rows[0] } : { ok: false, kind: 'conflict', why: 'the draft changed before it could be decided' }
+  let rows
+  let replaced = null
+  if (decision === 'publish' && base && base.course_id === row.course_id) {
+    // Aturan nilai sama → id sama: versi lama mundur dulu (satu baris terbit per id), lalu versi baru terbit. Gagal → kembalikan.
+    const stepped = await rest('course_drafts', { method: 'PATCH', prefer: 'return=representation', query: `?id=eq.${Number(base.id)}&status=eq.published`, body: { status: 'superseded', updated_at: now } })
+    if (!stepped?.length) return { ok: false, kind: 'conflict', why: 'the published version changed before it could be replaced' }
+    try { rows = await decide() } catch (e) { rows = null; console.error(`decideDraft #${draftId}: ${String(e.message).slice(0, 160)}`) }
+    if (!rows?.length) {
+      await rest('course_drafts', { method: 'PATCH', prefer: 'return=minimal', query: `?id=eq.${Number(base.id)}&status=eq.superseded`, body: { status: 'published', updated_at: new Date().toISOString() } })
+      return { ok: false, kind: 'conflict', why: 'the draft changed before it could be decided — the published version was restored' }
+    }
+    replaced = { draftId: Number(base.id), courseId: base.course_id, how: 'superseded' }
+  } else {
+    rows = await decide()
+    if (rows?.length && decision === 'publish' && base) {
+      // Aturan nilai berubah → id baru: versi lama tetap terbit (peserta lamanya tetap masuk kelas) tapi diarsipkan.
+      await rest('course_drafts', { method: 'PATCH', prefer: 'return=minimal', query: `?id=eq.${Number(base.id)}&status=eq.published`, body: { archived_at: now, updated_at: now } })
+      replaced = { draftId: Number(base.id), courseId: base.course_id, how: 'archived' }
+    }
+  }
+  if (!rows?.length) return { ok: false, kind: 'conflict', why: 'the draft changed before it could be decided' }
+  // `note` = catatan manusia saja. Versi yang digantikan sudah terbaca dari datanya (draft_id → supersedes → course_id lama).
+  await logCourseAction({
+    issuer, courseId: row.course_id, draftId: row.id, action: decision, requestedBy, requestMessage, requestSignature, issuerMessage: message, issuerSignature: signature, note,
+  })
+  return { ok: true, draft: rows[0], replaced }
 }
 
 /** Draf yang sudah terbit, lengkap dengan kunci — untuk menggabungkannya ke katalog server. */
@@ -1179,7 +1319,7 @@ export async function publisherRecords ({ courseIds, includeTest = false }) {
 /** Anggota aktif satu penerbit (untuk tim di dasbor). */
 export async function membersOf (issuer) {
   const rows = await rest('publisher_members', {
-    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}&revoked_at=is.null&select=member,can_hire,can_appoint,can_author,granted_at,origin&order=granted_at.asc`,
+    query: `?issuer=eq.${getAddress(String(issuer).toLowerCase())}&revoked_at=is.null&select=member,can_hire,can_appoint,can_author,can_publish,granted_at,origin&order=granted_at.asc`,
   })
   return rows ?? []
 }

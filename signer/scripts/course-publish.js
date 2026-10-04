@@ -29,7 +29,8 @@ if (args.includes('--list')) {
   console.log(`draf ${args.includes('--all') ? '(semua status)' : 'yang menunggu keputusan'} untuk penerbit ${publisher.address}: ${rows.length}`)
   for (const r of rows) {
     const lessons = (r.content?.modules ?? []).reduce((n, m) => n + (m.lessons?.length ?? 0), 0)
-    console.log(`  #${r.id}  ${r.course_id}  "${r.content?.title ?? ''}"  ${r.status}  penyusun ${r.author}  ${lessons} lesson  harga ${r.price_units ?? 'gratis'}  masalah ${(r.problems ?? []).length}  asal ${r.origin}`)
+    const ver = r.supersedes ? `  versi ${r.version} (menggantikan #${r.supersedes})` : ''
+    console.log(`  #${r.id}  ${r.course_id}  "${r.content?.title ?? ''}"  ${r.status}${r.archived_at ? ' (diarsipkan)' : ''}${ver}  penyusun ${r.author}  ${lessons} lesson  harga ${r.price_units ?? 'gratis'}  masalah ${(r.problems ?? []).length}  asal ${r.origin}`)
   }
   if (rows.length) console.log('\nterbitkan: npm run course:publish -- <id> --apply   ·   tolak: npm run course:publish -- <id> --reject "alasan" --apply')
   process.exit(0)
@@ -56,7 +57,10 @@ if (reject) {
   process.exit(0)
 }
 
-const plan = await publishPlan(row)
+// B140 (D72): versi baru diaudit terhadap versi terbit yang digantikannya, dan pesan terbitnya menyebut versi itu.
+const base = row.supersedes ? await draftById(row.supersedes) : null
+if (row.supersedes) console.log(`  versi ${row.version} menggantikan #${row.supersedes} (${base?.course_id ?? '?'}, ${base?.status ?? 'tidak ada'})${base && base.course_id === row.course_id ? ' — aturan nilai sama, id sama: digantikan di tempat' : ' — id baru: versi lama diarsipkan'}`)
+const plan = await publishPlan(row, { base })
 if (plan.problems.length) {
   console.error(`berhenti: ${plan.problems.length} masalah pada isi tersimpan (audit ulang):`)
   for (const p of plan.problems.slice(0, 12)) console.error(`  ${p.where}: ${p.what}`)
@@ -66,7 +70,7 @@ console.log(`  rubricHash   ${plan.rubricHash}`)
 console.log(`  manifestHash ${plan.manifestHash}`)
 console.log(`  terbit       ${plan.publishedAt}`)
 if (!apply) { console.log('rencana: TERBITKAN — tanpa --apply tidak ada yang ditandatangani'); process.exit(0) }
-const message = `lencana-course publish draft=${id} course=${row.course_id} rubric=${plan.rubricHash} nonce=${nonce}`
+const message = `lencana-course publish draft=${id} course=${row.course_id} rubric=${plan.rubricHash}${base ? ` supersedes=${Number(base.id)}` : ''} nonce=${nonce}`
 const out = await decideDraft({
   draftId: id, issuer: publisher.address, decision: 'publish', rubricHash: plan.rubricHash, manifestHash: plan.manifestHash,
   publishedAt: plan.publishedAt, message, signature: await publisher.signMessage({ message }),

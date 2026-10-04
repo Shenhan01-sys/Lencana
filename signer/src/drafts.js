@@ -8,23 +8,35 @@
  *                  dan `manifestHash` (isi + waktu terbit)
  */
 // Lencana-B133 status=TERBUKA 2026-10-03 — draf disiapkan (normalisasi + hash + audit) dan direncanakan terbit (rubricHash + manifestHash dari isi + kunci tersimpan) dengan satu kode untuk rute, CLI, dan harness. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { normalizeDraft, draftHash, auditDraft } from '../../web/src/authoring.ts'
+import { normalizeDraft, draftHash, auditDraft, versionProblems, versionedId } from '../../web/src/authoring.ts'
 import { rubricHashOf, manifestHashOf } from '../../web/src/manifest-keys.ts'
 import { fileCourseIds, draftManifests, isoSeconds } from './catalog.js'
 import { liveDraftCourseIds } from './db.js'
 
+// B140 (D72): aturan versi baru tinggal di modul bersama `web/src/authoring.ts` — server dan editor halaman menjalankan kode yang
+// sama, jadi masalah yang tampil di editor = masalah yang dilaporkan server. Di sini hanya baris DB diubah ke bentuk `VersionBase`.
+export { versionedId }
+const asBase = (row) => (row ? { courseId: row.course_id, rubricHash: row.rubric_hash ?? null, version: Number(row.version ?? 1) } : null)
+
+/** Id yang tidak boleh dipakai draf ini; versi baru boleh memakai id versi yang digantikannya. */
+async function takenFor (exceptDraftId, base) {
+  const taken = new Set([...fileCourseIds(), ...await liveDraftCourseIds(exceptDraftId)])
+  if (base) taken.delete(base.course_id)
+  return taken
+}
+
 /** @returns {Promise<{ ok: true, payload, contentHash, problems } | { ok: false, errors: string[] }>} */
-export async function prepareDraft (input, { institution, exceptDraftId = null }) {
+export async function prepareDraft (input, { institution, exceptDraftId = null, base = null }) {
   const { payload, errors } = normalizeDraft(input, institution)
   if (!payload) return { ok: false, errors }
-  const taken = new Set([...fileCourseIds(), ...await liveDraftCourseIds(exceptDraftId)])
-  return { ok: true, payload, contentHash: draftHash(payload), problems: auditDraft(payload, taken) }
+  const problems = [...auditDraft(payload, await takenFor(exceptDraftId, base)), ...versionProblems(payload, asBase(base))]
+  return { ok: true, payload, contentHash: draftHash(payload), problems }
 }
 
 /** Rencana terbit satu baris draf yang diajukan: masalah yang tersisa (harus kosong), hash kebijakan, hash manifest. */
-export async function publishPlan (row, { publishedAt = new Date() } = {}) {
-  const taken = new Set([...fileCourseIds(), ...await liveDraftCourseIds(row.id)])
-  const problems = auditDraft({ course: row.content, keys: row.answer_keys ?? {}, price: row.price_units ?? null }, taken)
+export async function publishPlan (row, { publishedAt = new Date(), base = null } = {}) {
+  const payload = { course: row.content, keys: row.answer_keys ?? {}, price: row.price_units ?? null }
+  const problems = [...auditDraft(payload, await takenFor(row.id, base)), ...versionProblems(payload, asBase(base))]
   const at = isoSeconds(publishedAt)
   const { keyed } = draftManifests({ ...row, published_at: at })
   return { problems, rubricHash: rubricHashOf(keyed), manifestHash: manifestHashOf(keyed), publishedAt: at }

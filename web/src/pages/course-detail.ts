@@ -12,6 +12,7 @@ import { getSavedLanguage } from '../i18n'
 import { findCourse } from '../courses/index'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
 import { claimTestCoins, hasExplicitLearnerSession, isEnrolled, payAndEnroll } from '../learning'
+import { ARCHIVED_COURSES } from '../catalog-live'
 import { PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
 import { balanceChanged, onBalance, readBalance } from '../balance'
 import { coin } from '../lib/coin'
@@ -30,6 +31,10 @@ const COPY = {
   minutes: { en: 'minutes', id: 'menit' },
   start: { en: 'Start learning', id: 'Mulai belajar' },
   enroll: { en: 'Enroll', id: 'Daftar' },
+  archived: {
+    en: 'This course is archived — it takes no new learners. Enrolled learners keep their class, and its credentials stay verifiable.',
+    id: 'Kursus ini diarsipkan — tidak menerima peserta baru. Peserta yang sudah terdaftar tetap masuk kelas, dan kredensialnya tetap terverifikasi.',
+  },
   enrollNote: { en: 'Sign in with your account to open the class.', id: 'Masuk dengan akunmu untuk membuka kelasnya.' },
   outcome: { en: 'What you will be able to do', id: 'Yang akan kamu kuasai' },
   audience: { en: 'Who it is for', id: 'Untuk siapa' },
@@ -162,7 +167,20 @@ export function renderCourseDetail (courseId: string): HTMLElement {
     h('strong', null, `${formatLdc(price)} ${PAY_TOKEN_SYMBOL}`),
     h('small', null, T('coinNote')),
   )
-  const cta = signedIn
+  // Lencana-B140 status=TERBUKA 2026-10-04 — kursus yang diarsipkan (D72) tidak menawarkan pendaftaran: pemberitahuan menggantikan tombol, peserta yang sudah terdaftar tetap mendapat tautan kelasnya; server juga menolak enroll baru (409). Buktikan ulang: cd signer && npm run verify:manage, lalu uji peramban T70. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  const archived = ARCHIVED_COURSES.has(course.id)
+  const archivedBox = (): HTMLElement => {
+    const box = h('div', { class: 'cd-archived' }, h('p', { class: 'cd-pay-status' }, T('archived')))
+    if (signedIn) {
+      void isEnrolled(course.id).then((enrolled) => {
+        if (enrolled && box.isConnected) box.replaceChildren(h('p', { class: 'cd-pay-status ok' }, T('enrolledAlready')), h('a', { class: 'cd-cta', href: classLink(course.id) }, T('start')))
+      })
+    }
+    return box
+  }
+  const cta = archived
+    ? archivedBox()
+    : signedIn
     ? (price === null ? h('a', { class: 'cd-cta', href: classLink(course.id) }, T('start')) : payPanel(course.id, price, T))
     : h('button', {
       type: 'button',
@@ -190,7 +208,7 @@ export function renderCourseDetail (courseId: string): HTMLElement {
       h('div', { class: 'cd-cta-box' },
         priceLine,
         cta,
-        signedIn ? null : h('p', { class: 'cd-cta-note' }, T('enrollNote')),
+        signedIn || archived ? null : h('p', { class: 'cd-cta-note' }, T('enrollNote')),
         prereq ? h('p', { class: 'cd-cta-note' }, `${T('prereq')}: `, h('a', { href: `#/course/${encodeURIComponent(prereq.id)}` }, prereq.title)) : null,
       ),
     ),

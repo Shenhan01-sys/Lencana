@@ -107,6 +107,8 @@ const COPY = {
   waiting: { en: 'Awaiting approval', id: 'Menunggu pengesahan' },
   agentsCol: { en: 'Agents', id: 'Agen' },
   testTag: { en: 'test class', id: 'kelas uji' },
+  archivedTag: { en: 'archived', id: 'diarsipkan' },
+  manage: { en: 'Manage in Author a course', id: 'Kelola di Susun kursus' },
   team: { en: 'Team', id: 'Tim' },
   teamNote: { en: 'Members are granted by the publisher key; issuing and revoking credentials stays with that key.', id: 'Anggota diberikan oleh kunci penerbit; menerbitkan dan mencabut kredensial tetap pada kunci itu.' },
   pending: { en: 'requests waiting for the publisher key', id: 'pengajuan menunggu kunci penerbit' },
@@ -437,7 +439,10 @@ function renderCourses (lang: Lang, o: O): HTMLElement {
       h('div', { class: 'pb-ccard-head' },
         course ? emblem(course, 56) : null,
         h('div', null,
-          h('small', { class: 'pb-meta' }, `${c.level}${c.topic ? ` · ${c.topic}` : ''}`, c.unlisted ? h('span', { class: 'app-tag' }, T('testTag')) : null),
+          h('small', { class: 'pb-meta' }, `${c.level}${c.topic ? ` · ${c.topic}` : ''}`, c.unlisted ? h('span', { class: 'app-tag' }, T('testTag')) : null,
+            // B140 (D72): kursus database membawa versinya dan status arsip; pengelolaannya di Susun kursus.
+            (c.version ?? 1) > 1 ? h('span', { class: 'app-tag' }, `v${c.version}`) : null,
+            c.archived ? h('span', { class: 'app-tag' }, T('archivedTag')) : null),
           h('h3', null, c.title),
           h('span', { class: 'pb-price' }, coin(14), c.price === null ? T('free') : ldc(c.price)))),
       h('dl', { class: 'pb-facts' },
@@ -454,7 +459,9 @@ function renderCourses (lang: Lang, o: O): HTMLElement {
       h('div', { class: 'pb-agents-line' },
         h('span', null, `${T('graders')}: `, ...(c.graders.length ? c.graders.map(agentLink) : [h('em', null, T('none'))])),
         h('span', null, `${T('reviewers')}: `, ...(c.reviewers.length ? c.reviewers.map((r) => (r.startsWith('agent:') ? agentLink(r.slice(6)) : h('code', null, short(r)))) : [h('em', null, T('none'))]))),
-      h('a', { class: 'app-btn small', href: `#/course/${encodeURIComponent(c.id)}` }, T('publicPage')))
+      h('div', { class: 'pb-ccard-act' },
+        h('a', { class: 'app-btn small', href: `#/course/${encodeURIComponent(c.id)}` }, T('publicPage')),
+        c.source === 'database' ? h('a', { class: 'app-btn small', href: '#/app/pub/author' }, T('manage')) : null))
   }))
 }
 

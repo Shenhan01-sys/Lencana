@@ -42,7 +42,7 @@ function essayStatus (attempt, submission, review) {
  * @param priceOf    harga kursus dalam satuan terkecil token (`web/src/pricing.ts`), null = gratis
  * @param records    hasil `publisherRecords`
  */
-export function overview ({ issuer, seat, manifests, priceOf, records, platformBps, split: splitAddress = null, token, members, pending, includeTest }) {
+export function overview ({ issuer, seat, manifests, priceOf, records, platformBps, split: splitAddress = null, token, members, pending, includeTest, courseMeta = () => null }) {
   const byEnrollment = new Map(records.enrollments.map((e) => [e.id, e]))
   const paidOrders = records.orders.filter((o) => o.state === 'paid' && same(o.asset, token.address))
   const orderByEnrollment = new Map(paidOrders.map((o) => [o.enrollment_id, o]))
@@ -79,8 +79,11 @@ export function overview ({ issuer, seat, manifests, priceOf, records, platformB
     const s = split(gross)
     const ce = essays.filter((x) => x.courseId === c.id)
     const price = priceOf(c.id)
+    // B140 (D72): kursus database membawa nomor draf terbitnya, versinya, dan status arsip — dasar tombol Sunting / Arsipkan.
+    const meta = courseMeta(c.id)
     return {
       id: c.id, title: c.title, level: c.level, topic: c.topic ?? null, unlisted: c.unlisted === true,
+      source: meta ? 'database' : 'file', draftId: meta?.draftId ?? null, version: meta?.version ?? null, archived: meta?.archived === true,
       price: price === null || price === undefined ? null : String(price),
       passMark: c.passMark, weights: c.weights, rubricHash: m.rubricHash ?? null,
       enrollments: enr.length, paid: orders.length, free: enr.length - orders.length,
@@ -147,7 +150,7 @@ export function overview ({ issuer, seat, manifests, priceOf, records, platformB
       }),
     },
     team: {
-      members: members.map((m) => ({ member: m.member, canHire: m.can_hire === true, canAppoint: m.can_appoint === true, canAuthor: m.can_author === true, since: m.granted_at })),
+      members: members.map((m) => ({ member: m.member, canHire: m.can_hire === true, canAppoint: m.can_appoint === true, canAuthor: m.can_author === true, canPublish: m.can_publish === true, since: m.granted_at })),
       pendingRequests: pending,
     },
   }

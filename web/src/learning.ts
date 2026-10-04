@@ -575,16 +575,20 @@ export async function chooseMyRole (role: 'learner' | 'publisher' | 'owner', opt
 // Lencana-B133 status=TERBUKA 2026-10-03 — penyusunan kursus dari halaman: daftar draf, simpan (tanda tangan atas hash isi yang dihitung dengan modul skema yang sama dengan server), ajukan; katalog kursus terbit dibaca tanpa kunci. Buktikan ulang: cd signer && npm run verify:authoring, lalu uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** Satu draf kursus (B133). `keys` hanya ada untuk draf milik akun ini. */
 export type CourseDraft = {
-  id: number, issuer: string, author: string, courseId: string, status: 'draft' | 'submitted' | 'published' | 'rejected',
+  id: number, issuer: string, author: string, courseId: string, status: 'draft' | 'submitted' | 'published' | 'rejected' | 'superseded',
   course: Course, keys?: QuizKeys, price: string | null, contentHash: string, problems: Problem[], submittedAt: string | null,
   rubricHash: string | null, manifestHash: string | null, publishedAt: string | null, decidedNote: string | null, decidedAt: string | null,
   createdAt: string, updatedAt: string, origin: string,
+  /** B140 (D72): rantai versi — versi yang digantikan, nomor versi, dan arsip. */
+  supersedes?: number | null, version?: number, archivedAt?: string | null,
 }
+/** B140: satu jejak kelola kursus (siapa meminta apa). */
+export type CourseAction = { id: number, courseId: string, draftId: number | null, action: 'fork' | 'delete' | 'publish' | 'reject' | 'archive' | 'unarchive', requestedBy: string | null, note: string | null, at: string }
 /** Isi editor sebelum dinormalkan: bentuk yang sama dengan `DraftPayload`, boleh belum lengkap. */
 export type DraftInput = { course: Record<string, unknown>, keys: QuizKeys, price: string | null }
 
 /** Draf penerbit akun ini (bertanda tangan `lencana-drafts`). */
-export async function readCourseDrafts (includeTest = false): Promise<{ ok: boolean, why?: string, status?: number, canAuthor?: boolean, institution?: string | null, drafts?: CourseDraft[] }> {
+export async function readCourseDrafts (includeTest = false): Promise<{ ok: boolean, why?: string, status?: number, canAuthor?: boolean, canPublish?: boolean, me?: string, institution?: string | null, drafts?: CourseDraft[], actions?: CourseAction[] }> {
   const addr = learnerAddress()
   if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
   const message = `lencana-drafts nonce=${newNonce()}`
@@ -592,7 +596,40 @@ export async function readCourseDrafts (includeTest = false): Promise<{ ok: bool
   if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
   const r = await call('/publisher/drafts', { method: 'POST', body: { learner: addr, includeTest, message, signature: s.signature } })
   if (r.status !== 200 || !r.json) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
-  return { ok: true, canAuthor: r.json.canAuthor === true, institution: (r.json.institution as string | null) ?? null, drafts: (r.json.drafts as CourseDraft[]) ?? [] }
+  return {
+    ok: true, canAuthor: r.json.canAuthor === true, canPublish: r.json.canPublish === true, me: (r.json.me as string | undefined) ?? addr,
+    institution: (r.json.institution as string | null) ?? null, drafts: (r.json.drafts as CourseDraft[]) ?? [], actions: (r.json.actions as CourseAction[] | undefined) ?? [],
+  }
+}
+
+// Lencana-B140 status=TERBUKA 2026-10-04 — kelola kursus dari halaman (D72): versi baru dari kursus terbit, hapus draf yang belum diajukan, terbitkan/tolak dan arsipkan/pulihkan lewat permintaan bertanda tangan anggota publish=1 (server menandatangani keputusan dengan kunci penerbit). Buktikan ulang: cd signer && npm run verify:manage, lalu uji peramban T70. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+type ManageOut = { ok: boolean, why?: string, status?: number, json?: Record<string, unknown> | null }
+async function manageCall (path: string, message: string, body: Record<string, unknown>): Promise<ManageOut> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call(path, { method: 'POST', body: { learner: addr, ...body, message, signature: s.signature }, timeoutMs: 30_000 })
+  if (r.status !== 200) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}`, json: r.json ?? null }
+  return { ok: true, status: 200, json: r.json ?? null }
+}
+/** Sunting kursus terbit = versi baru: server menyalin isi + kunci + harga jadi draf milik akun ini. */
+export async function forkCourse (courseId: string): Promise<ManageOut & { draft?: CourseDraft }> {
+  const r = await manageCall('/publisher/drafts/fork', `lencana-draft fork course=${courseId} nonce=${newNonce()}`, { courseId })
+  return { ...r, draft: r.json?.draft as CourseDraft | undefined }
+}
+/** Hapus draf yang belum pernah diajukan (hanya penyusunnya). */
+export async function deleteCourseDraft (draftId: number): Promise<ManageOut> {
+  return manageCall('/publisher/drafts/delete', `lencana-draft delete draft=${draftId} nonce=${newNonce()}`, { draftId })
+}
+/** Terbitkan / tolak draf yang diajukan (anggota publish=1, bukan penyusunnya). Server menandatangani dengan kunci penerbit. */
+export async function decideCourseDraft (draftId: number, decision: 'publish' | 'reject', note?: string): Promise<ManageOut & { replaced?: { draftId: number, courseId: string, how: 'superseded' | 'archived' } | null }> {
+  const r = await manageCall('/publisher/drafts/decide', `lencana-course-request decide draft=${draftId} decision=${decision} nonce=${newNonce()}`, { draftId, decision, note: note?.trim() || null })
+  return { ...r, replaced: (r.json?.replaced as { draftId: number, courseId: string, how: 'superseded' | 'archived' } | null | undefined) ?? null }
+}
+/** Arsipkan / pulihkan kursus database yang terbit (anggota publish=1). */
+export async function archiveCourse (courseId: string, archived: boolean): Promise<ManageOut> {
+  return manageCall('/publisher/courses/archive', `lencana-course-request archive course=${courseId} on=${archived ? 1 : 0} nonce=${newNonce()}`, { courseId, archived })
 }
 
 /**
@@ -625,9 +662,9 @@ export async function submitCourseDraft (draftId: number, contentHash: string): 
 }
 
 /** Kursus yang disusun di halaman dan diterbitkan kunci penerbit — publik, tanpa kunci kuis. */
-export async function readPublishedCourses (timeoutMs = 4000): Promise<{ manifest: CourseManifest, price: string | null }[]> {
+export async function readPublishedCourses (timeoutMs = 4000): Promise<{ manifest: CourseManifest, price: string | null, version?: number, archived?: boolean }[]> {
   const r = await call('/catalog/published', { timeoutMs })
-  return r.status === 200 && Array.isArray(r.json?.courses) ? r.json.courses as { manifest: CourseManifest, price: string | null }[] : []
+  return r.status === 200 && Array.isArray(r.json?.courses) ? r.json.courses as { manifest: CourseManifest, price: string | null, version?: number, archived?: boolean }[] : []
 }
 
 /**
@@ -649,7 +686,7 @@ export async function requestPublisherMembership (issuer: string, note?: string)
 /** Bentuk jawaban `POST /publisher/overview` (B129). Jumlah uang dalam satuan terkecil token, sebagai string. */
 export type PublisherOverview = {
   issuer: PublisherRef
-  seat: { via: 'issuer' | 'member', canHire: boolean, canAppoint: boolean, canAuthor?: boolean, since: string | null }
+  seat: { via: 'issuer' | 'member', canHire: boolean, canAppoint: boolean, canAuthor?: boolean, canPublish?: boolean, since: string | null }
   includeTest: boolean
   generatedAt: string
   token: { address: string | null, symbol: string, decimals: number }
@@ -666,6 +703,8 @@ export type PublisherOverview = {
     weights: { kuis: number, esai: number, praktik: number }, rubricHash: string | null, enrollments: number, paid: number, free: number,
     gross: string, platform: string | null, net: string | null, essays: { awaitingJudge: number, awaitingReview: number, reviewed: number },
     graders: string[], reviewers: string[]
+    /** B140: kursus database (bisa disunting jadi versi baru / diarsipkan) atau kursus berkas (kode). */
+    source?: 'database' | 'file', draftId?: number | null, version?: number | null, archived?: boolean
   }[]
   learners: { learner: string, courseId: string, status: string, enrolledAt: string, origin: string, paid: { amount: string, tx: string | null, at: string } | null }[]
   essays: {
