@@ -12,7 +12,7 @@ import { h } from '../lib/ui'
 import { COURSES, LISTED_COURSES, findCourse } from '../courses/index'
 import type { Course } from '../content'
 import { snapshot, type MyCourseRecord } from '../learning'
-import { classLink } from '../lesson-views'
+import { classLink, levelLabel } from '../lesson-views'
 import { PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
 import { ring } from '../lib/charts'
 import { coin } from '../lib/coin'
@@ -230,7 +230,7 @@ export function renderOverview (lang: Lang, records: MyCourseRecord[], balance: 
         return h('a', { class: 'ov-rec', href: `#/app/courses/${encodeURIComponent(c.id)}`, style: { '--tc': topicColor(c.topic) } as Partial<CSSStyleDeclaration> },
           emblem(c, 48),
           h('span', { class: 'ov-rec-text' },
-            h('small', null, `${c.level}${c.topic ? ` · ${c.topic}` : ''}`),
+            h('small', null, `${levelLabel(c.level, lang)}${c.topic ? ` · ${c.topic}` : ''}`),
             h('strong', null, c.title),
             h('span', { class: 'ov-rec-foot' }, p !== null ? h('span', { class: 'ov-rec-price' }, coin(14), `${formatLdc(p)} ${PAY_TOKEN_SYMBOL}`) : null, h('em', null, `${T('preview')} →`))))
       }))))

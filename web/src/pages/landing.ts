@@ -13,7 +13,7 @@ import { h } from '../lib/ui'
 import { LISTED_COURSES, findCourse } from '../courses/index'
 import type { Course } from '../content'
 import { getSavedLanguage, DICTIONARIES } from '../i18n'
-import { verifyLink } from '../lesson-views'
+import { levelLabel, verifyLink } from '../lesson-views'
 import { renderFlow3D } from './flow3d'
 import { PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
 import { emblem, topicColor } from '../lib/emblem'
@@ -133,7 +133,7 @@ function renderCourseCard (c: Course, index: number): HTMLElement {
       : h('div', { class: 'course-card-image-wrap is-emblem', style: { '--tc': topicColor(c.topic) } }, emblem(c, 132)),
     h('div', { class: 'course-card-content' },
       h('div', { class: 'course-card-meta' },
-        h('span', { class: 'course-card-tag' }, c.level),
+        h('span', { class: 'course-card-tag' }, levelLabel(c.level, getSavedLanguage() === 'en' ? 'en' : 'id')),
         prereq ? h('span', { class: 'text-xs text-gray-500 font-mono flex items-center gap-1', title: `Prasyarat: ${prereq.title}` }, `🔒 ${t.tagPrereq}`) : null,
       ),
       h('h3', { class: 'course-card-title' }, c.title),

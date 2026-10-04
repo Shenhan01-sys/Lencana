@@ -601,7 +601,7 @@ export function renderAuthoring (lang: Lang): HTMLElement {
           field(T('outcome'), textIn(c.outcome.join('\n'), (v) => { c.outcome = lines(v) }, { area: true, rows: 3 }))),
         field(T('criteria'), textIn(c.criteria, (v) => { c.criteria = v }, { area: true, rows: 3 })),
         e.note ? h('p', { class: 'au-note' }, h('b', null, `${T('decidedNote')}: `), e.note) : null,
-        e.rubricHash ? h('p', { class: 'app-muted' }, `${T('rubricHash')} `, h('code', null, e.rubricHash.slice(0, 18) + '…'), ' · ', h('a', { href: `#/course/${encodeURIComponent(c.id)}` }, T('openCourse'))) : null,
+        e.rubricHash ? h('p', { class: 'app-muted' }, `${T('rubricHash')} `, h('code', null, e.rubricHash.slice(0, 18) + '…'), ' · ', h('a', { class: 'au-open-link', href: `#/course/${encodeURIComponent(c.id)}` }, T('openCourse'))) : null,
       ]
     }
 

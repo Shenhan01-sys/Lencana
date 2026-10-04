@@ -20,10 +20,11 @@ import { credentialResolverAbi } from './abi'
 import { isConfigured, loadEndpoint } from './config'
 import { makeClient } from './verify'
 import { esc } from './render'
-import { courseIdOf, lessonIdOf, type Block, type Course, type Lesson } from './content'
+import { courseIdOf, lessonIdOf, type Block, type Course, type Lesson, type LessonKind } from './content'
 import { COURSES, findCourse, findLesson } from './courses/index'
 import { courseProgress, summarize, type CourseSummary } from './progress'
 import { endpoint, learnerAddress, snapshot, type LearnerIdentity, type QuizReviewItem } from './learning'
+import { getSavedLanguage } from './i18n'
 
 /** Pembahasan satu penyerahan kuis: pilihan peserta + umpan balik server (B80). */
 export type QuizReview = { picks: Map<string, number>, items: QuizReviewItem[] }
@@ -162,15 +163,31 @@ export function learnStatus (root: HTMLElement, text: string, bad = false): void
  */
 export const verifyLink = (credentialHash: string) => `${location.pathname}?q=${encodeURIComponent(credentialHash)}#/verify`
 
-/** Label jenis, dipakai di kartu lesson dan di navigasi antar-modul. */
-export const KIND_LABEL: Record<string, string> = {
-  bacaan: 'bacaan',
-  kuis: 'kuis',
-  esai: 'esai dinilai agen',
-  praktik: 'praktik',
-  kasus: 'studi kasus',
-  referensi: 'referensi',
+// Lencana-B147 status=SELESAI 2026-10-05 — label jenis lesson dan tingkat kursus dua bahasa, satu sumber; halaman yang punya pilihan bahasa memakai kindLabel/levelLabel. Buktikan ulang: uji peramban detail kursus + katalog mode EN dan ID. JANGAN dibalik/diulang tanpa membuka kembali baris B147 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+type LabelLang = 'en' | 'id'
+
+/** Label jenis lesson dua bahasa (B147). Bahasa Indonesia = label lama, tidak berubah. */
+const KIND_LABELS: Record<LessonKind, Record<LabelLang, string>> = {
+  bacaan: { en: 'reading', id: 'bacaan' },
+  kuis: { en: 'quiz', id: 'kuis' },
+  esai: { en: 'agent-graded essay', id: 'esai dinilai agen' },
+  praktik: { en: 'practice', id: 'praktik' },
+  kasus: { en: 'case study', id: 'studi kasus' },
+  referensi: { en: 'reference', id: 'referensi' },
 }
+
+/** Tingkat kursus dua bahasa (B147). Nilainya di data tetap `dasar/menengah/lanjutan`. */
+const LEVEL_LABELS: Record<Course['level'], Record<LabelLang, string>> = {
+  dasar: { en: 'beginner', id: 'dasar' },
+  menengah: { en: 'intermediate', id: 'menengah' },
+  lanjutan: { en: 'advanced', id: 'lanjutan' },
+}
+
+export const kindLabel = (kind: string, lang: LabelLang): string => KIND_LABELS[kind as LessonKind]?.[lang] ?? kind
+export const levelLabel = (level: string, lang: LabelLang): string => LEVEL_LABELS[level as Course['level']]?.[lang] ?? level
+
+/** Label jenis berbahasa Indonesia — untuk halaman kelas, yang kalimatnya masih seluruhnya berbahasa Indonesia. */
+export const KIND_LABEL: Record<string, string> = Object.fromEntries(Object.entries(KIND_LABELS).map(([k, v]) => [k, v.id]))
 
 function breadcrumb(trail: { label: string; href?: string }[]): string {
   const items = trail.map((t, i) =>
@@ -300,7 +317,7 @@ export function meHtml(): string {
     const next = c.modules.flatMap((m) => m.lessons).find((l) => !courseProgress(c.id)[l.slug]?.done)
     const remote = snapshot().courseId === c.id ? snapshot().summary : null
     return `<article class="card learning-card">
-      <div class="learning-card-top"><div><p class="eyebrow">${esc(c.level)}</p>
+      <div class="learning-card-top"><div><p class="eyebrow">${esc(levelLabel(c.level, getSavedLanguage() === 'en' ? 'en' : 'id'))}</p>
         <h3><a href="${link('course', c.id)}">${esc(c.title)}</a></h3></div>
         <strong class="learning-count">${st.pct}%</strong></div>
       <div class="progress-line" role="progressbar" aria-label="Progres lokal ${esc(c.title)}" aria-valuenow="${st.pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${st.pct}%"></span></div>

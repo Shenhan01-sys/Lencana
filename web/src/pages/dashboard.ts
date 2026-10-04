@@ -19,7 +19,7 @@ import { seats, mountSeatSwitch, applyBox, navIcon, guardSeat, homeOf } from './
 import { renderPublisherApp } from './publisher'
 import { renderOwnerApp } from './owner'
 import { formatLdc, PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL } from '../pricing'
-import { classLink, readMyCredentials } from '../lesson-views'
+import { classLink, levelLabel, readMyCredentials } from '../lesson-views'
 import { ROLES } from './flow3d-data'
 import { renderGrades } from './grades'
 import { renderWallet } from './wallet'
@@ -605,7 +605,7 @@ function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
     root.innerHTML = ''
     root.appendChild(h('div', { class: 'wel-head' }, h('h1', null, T('pickTitle'))))
     root.appendChild(h('div', { class: 'wel-courses' }, ...LISTED_COURSES.map((c) => h('button', { type: 'button', class: 'wel-course', onClick: () => finish(`#/course/${encodeURIComponent(c.id)}`) },
-      h('span', { class: 'app-kicker' }, c.level),
+      h('span', { class: 'app-kicker' }, levelLabel(c.level, lang)),
       h('strong', null, c.title),
       h('span', { class: 'app-muted' }, c.blurb),
     ))))

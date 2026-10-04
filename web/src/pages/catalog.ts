@@ -15,7 +15,7 @@ import { courseStats, type Course, type LessonKind } from '../content'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
 import { PAY_TOKEN_SYMBOL, formatLdc, priceOf } from '../pricing'
 import type { MyCourseRecord } from '../learning'
-import { classLink } from '../lesson-views'
+import { classLink, levelLabel } from '../lesson-views'
 import { coin } from '../lib/coin'
 import { emblem, topicColor } from '../lib/emblem'
 import { embeddedPayPanel } from './course-detail'
@@ -172,7 +172,7 @@ export function renderCatalog (lang: Lang, records: MyCourseRecord[] | null | un
       h('div', { class: 'cg-card-top' },
         h('span', { class: 'cg-emblem' }, emblem(c, 64)),
         h('div', { class: 'cg-tags' },
-          h('span', { class: 'cg-tag lvl' }, c.level),
+          h('span', { class: 'cg-tag lvl' }, levelLabel(c.level, lang)),
           c.topic ? h('span', { class: 'cg-tag topic' }, c.topic) : null,
           c.unlisted ? h('span', { class: 'cg-tag test' }, T('test')) : null)),
       h('h3', { class: 'cg-title' }, c.title),
@@ -252,7 +252,7 @@ export function renderCatalog (lang: Lang, records: MyCourseRecord[] | null | un
           h('span', { class: 'cg-emblem big' }, emblem(c, 88)),
           h('div', null,
             h('div', { class: 'cg-tags' },
-              h('span', { class: 'cg-tag lvl' }, c.level),
+              h('span', { class: 'cg-tag lvl' }, levelLabel(c.level, lang)),
               c.topic ? h('span', { class: 'cg-tag topic' }, c.topic) : null,
               c.unlisted ? h('span', { class: 'cg-tag test' }, T('test')) : null),
             h('h2', { id: 'cg-drawer-title' }, c.title),
@@ -310,7 +310,7 @@ export function renderCatalog (lang: Lang, records: MyCourseRecord[] | null | un
         h('span', { class: 'cg-search-ic', 'aria-hidden': 'true' }),
         input, clearBtn),
       h('div', { class: 'cg-filters' },
-        chipGroup(T('level'), 'level', [['all', T('all')], ...LEVELS.filter((l) => COURSES.some((c) => c.level === l)).map((l) => [l, l] as [string, string])]),
+        chipGroup(T('level'), 'level', [['all', T('all')], ...LEVELS.filter((l) => COURSES.some((c) => c.level === l)).map((l) => [l, levelLabel(l, lang)] as [string, string])]),
         chipGroup(T('topic'), 'topic', [['all', T('all')], ...topics.map((t) => [t, t] as [string, string])]),
         chipGroup(T('status'), 'status', [['all', T('all')], ['open', T('open')], ['mine', T('mine')]]),
         h('label', { class: 'cg-sort-wrap' }, h('span', { class: 'cg-chips-label' }, T('sort')), sortSel))),

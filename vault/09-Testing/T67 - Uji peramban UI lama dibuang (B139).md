@@ -45,6 +45,17 @@ miliknya yang memenuhi syarat itu. Satu kelemahan pemangkasnya diakui dan diperi
 seperti kelas biasa, padahal `.a:not(.kelas-hilang)` tetap cocok dengan `.a`. Selisih multiset prelude aturan HEAD vs kerja
 menunjukkan **tidak satu pun** aturan yang dibuang memakai `:not()/:is()/:where()/:has()`, jadi kelemahan itu tidak mengenai apa pun.
 
+## Tambahan 5 Okt — "video tidak muncul di desktop, muncul di HP"
+
+Laporan builder (situs Vercel `lencana-psi.vercel.app`). Diuji di situs itu sendiri, Chromium headless 1440 px, bundel tayang
+`index-GtxWslDD.js` (memuat URL video dan pemeriksaan reduced-motion; URL video HTTP 200 `video/mp4`):
+reduced-motion **aktif** → elemen `.hero-video` **tidak dibuat**, hero gelap polos (sama dengan gejala builder); reduced-motion
+**mati**, kebijakan autoplay bawaan → video berputar (`paused=false`, `readyState=4`, muted, 1409×684). Jadi bukan kerusakan:
+langkah 2 di atas memang tidak membuat video untuk `prefers-reduced-motion: reduce`, dan Windows melapor itu bila
+**Settings → Accessibility → Visual effects → Animation effects** = Off. Jalan tengah yang sudah dicoba di situs yang sama:
+video tidak diputar dengan `#t=0.1` menampilkan bingkai hutan sebagai latar diam. Tidak dipasang: builder menyalakan kembali
+setelan Windows-nya dan melapor "udh aman" (5 Okt); kode tidak berubah.
+
 ## Gerbang
 
 `npx tsc --noEmit -p .` 0 galat · `vite build` lolos · `npm run probe` **118 / 0** (3 Okt). Baterai `sync:numbers` ulang 3 Okt:

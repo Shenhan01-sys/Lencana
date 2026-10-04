@@ -29,7 +29,7 @@ import {
 import { DICTIONARIES, getSavedLanguage } from '../i18n'
 import { esc } from '../render'
 import {
-  KIND_LABEL, classLink, completenessLine, essayHtml, idsHtml, learnStatus, lessonLink, meHtml, quizHtml,
+  KIND_LABEL, classLink, completenessLine, essayHtml, idsHtml, learnStatus, lessonLink, levelLabel, meHtml, quizHtml,
   readMyCredentials, renderBlock, serverLine, type QuizReview,
 } from '../lesson-views'
 
@@ -263,7 +263,7 @@ function renderOverview (c: Course): HTMLElement {
     </details>`
   return h('div', { class: 'lesson-container' },
     h('div', { class: 'lms-overview-header' },
-      h('div', { class: 'lms-overview-eyebrow' }, `${c.level} · ~${minutesOf(c)} ${t.tagMinutes}`),
+      h('div', { class: 'lms-overview-eyebrow' }, `${levelLabel(c.level, getSavedLanguage() === 'en' ? 'en' : 'id')} · ~${minutesOf(c)} ${t.tagMinutes}`),
       h('h1', { class: 'lesson-title' }, c.title),
       h('p', { class: 'lms-overview-desc' }, c.blurb),
       h('p', { class: 'lms-text-muted' }, `Oleh ${c.institution} · ${c.modules.length} modul · ${lessons.length} lesson`),

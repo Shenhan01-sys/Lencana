@@ -134,6 +134,9 @@
 .au-pv-try { padding: 8px 12px; border: 1px dashed rgba(142, 168, 255, 0.5); border-radius: 10px; }
 .au-pv-quiz > li { margin-bottom: 8px; }
 .au-pv-essay { padding: 10px 12px; border: 1px solid rgba(142, 168, 255, 0.35); border-radius: 10px; }
+/* B147: tautan ke halaman kursus bergaya tautan dasbor (emas, garis bawah saat disorot), bukan biru bawaan peramban. */
+.au-open-link { color: var(--bnb-gold, #f0b90b); text-decoration: none; }
+.au-open-link:hover, .au-open-link:focus-visible { text-decoration: underline; }
 
 /* B140 (D72): kelola kursus terbit — lencana versi, tanda arsip, aksi kelola, keputusan, riwayat. */
 .au-ver { margin-left: 6px; padding: 0 6px; border-radius: 6px; background: rgba(240, 185, 11, 0.16); color: var(--bnb-gold, #f0b90b); font: 700 10.5px var(--font-mono, ui-monospace, monospace); }

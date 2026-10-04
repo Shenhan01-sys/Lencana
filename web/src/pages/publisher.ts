@@ -26,6 +26,7 @@ import {
   type PublisherOverview, type AgentRates,
 } from '../learning'
 import { formatLdc, PAY_TOKEN_SYMBOL } from '../pricing'
+import { levelLabel } from '../lesson-views'
 import { renderAuthoring } from './authoring-view'
 import { stackBar, type StackPart } from '../lib/charts'
 import { coin } from '../lib/coin'
@@ -439,7 +440,7 @@ function renderCourses (lang: Lang, o: O): HTMLElement {
       h('div', { class: 'pb-ccard-head' },
         course ? emblem(course, 56) : null,
         h('div', null,
-          h('small', { class: 'pb-meta' }, `${c.level}${c.topic ? ` · ${c.topic}` : ''}`, c.unlisted ? h('span', { class: 'app-tag' }, T('testTag')) : null,
+          h('small', { class: 'pb-meta' }, `${levelLabel(c.level, lang)}${c.topic ? ` · ${c.topic}` : ''}`, c.unlisted ? h('span', { class: 'app-tag' }, T('testTag')) : null,
             // B140 (D72): kursus database membawa versinya dan status arsip; pengelolaannya di Susun kursus.
             (c.version ?? 1) > 1 ? h('span', { class: 'app-tag' }, `v${c.version}`) : null,
             c.archived ? h('span', { class: 'app-tag' }, T('archivedTag')) : null),

@@ -18,7 +18,7 @@ import { balanceChanged, onBalance, readBalance } from '../balance'
 import { coin } from '../lib/coin'
 import { odometer, setOdometer } from '../lib/odometer'
 import { skeleton } from '../lib/loading'
-import { KIND_LABEL, classLink } from '../lesson-views'
+import { classLink, kindLabel, levelLabel } from '../lesson-views'
 import { openLogin } from './login'
 
 type Lang = 'en' | 'id'
@@ -195,7 +195,7 @@ export function renderCourseDetail (courseId: string): HTMLElement {
     h('a', { class: 'cd-link', href: '#catalog' }, `← ${T('back')}`),
     h('header', { class: 'cd-hero' },
       h('div', { class: 'cd-hero-text' },
-        h('span', { class: 'cd-level' }, course.level),
+        h('span', { class: 'cd-level' }, levelLabel(course.level, lang)),
         h('h1', { class: 'cd-title' }, course.title),
         h('p', { class: 'cd-blurb' }, course.blurb),
         h('p', { class: 'cd-by' }, `${T('by')} `, h('strong', null, manifest?.issuer.name ?? course.institution)),
@@ -231,7 +231,7 @@ export function renderCourseDetail (courseId: string): HTMLElement {
         ),
         h('ol', { class: 'cd-lessons' }, ...m.lessons.map((l) => h('li', null,
           h('span', { class: 'cd-lesson-title' }, l.title),
-          h('span', { class: `cd-kind cd-kind-${l.kind}` }, KIND_LABEL[l.kind] ?? l.kind),
+          h('span', { class: `cd-kind cd-kind-${l.kind}` }, kindLabel(l.kind, lang)),
           h('span', { class: 'cd-min' }, `${l.minutes} ${T('minutes')}`),
         ))),
       )),

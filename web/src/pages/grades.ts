@@ -17,7 +17,7 @@ import type { Course, Lesson } from '../content'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
 import { computeScore, type Score } from '../score'
 import type { MyAttempt, MyCourseRecord } from '../learning'
-import { classLink } from '../lesson-views'
+import { classLink, levelLabel } from '../lesson-views'
 import { miniBar, passGauge, quizBars, ring, type GaugePart } from '../lib/charts'
 import { odometer } from '../lib/odometer'
 
@@ -292,7 +292,7 @@ export function renderGrades (lang: Lang, courses: MyCourseRecord[]): HTMLElemen
     wrap.appendChild(h('section', { class: 'app-card gr-course lc-enter', style: { '--i': String(ci + 2) } as Partial<CSSStyleDeclaration> },
       h('header', { class: 'gr-head' },
         h('div', null,
-          h('span', { class: 'app-kicker' }, `${course.level}${manifest ? ` · ${T('rubric')} ${shortHash(rubricHashOf(manifest))}` : ''}`),
+          h('span', { class: 'app-kicker' }, `${levelLabel(course.level, lang)}${manifest ? ` · ${T('rubric')} ${shortHash(rubricHashOf(manifest))}` : ''}`),
           h('h2', null, course.title)),
         h('a', { class: 'app-btn small', href: classLink(course.id) }, T('open'))),
       h('div', { class: 'gr-top' },
