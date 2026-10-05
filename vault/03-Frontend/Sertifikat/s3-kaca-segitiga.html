@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="gelap">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -9,10 +9,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300..700&display=swap" rel="stylesheet" crossorigin="anonymous">
-<meta name="theme-color" content="#0a1f4a">
+<meta name="theme-color" content="#0b0e11">
+<script>/* S3-SHELL: tema dipasang sebelum gambar pertama — ikut prefers-color-scheme, cadangan gelap (bawaan FE). */
+(function () { var t = 'gelap'; try { if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) t = 'terang'; } catch (e) {} document.documentElement.setAttribute('data-theme', t); })();</script>
 <!-- /DESIGN:HEAD -->
 <style>
-/* ===================== SHARED SHELL — JANGAN UBAH (identik di kelima desain) ===================== */
+/* ===================== SHARED SHELL — versi S3 (desain terpilih 5 Okt). Sama dengan kerangka bersama KECUALI blok bertanda S3-SHELL:
+   tema gelap/terang, kontrol penerima (Alamat dompet | Nama + isian nama), dialog cetak. ===================== */
 :root{
   --sheet-w:1122px; --sheet-h:793px;           /* A4 landscape pada 96 dpi, dikurangi sedikit supaya muat satu halaman cetak */
   --scale:1;
@@ -64,27 +67,109 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
   .sheet{box-shadow:none !important;margin:0;break-inside:avoid;page-break-inside:avoid}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .sheet,.sheet *{animation:none !important;transition:none !important}   /* cetak = keadaan akhir, bukan separuh jalan */
+  .cx-dlg{display:none !important}   /* S3-SHELL */
 }
+
+/* ---- S3-SHELL: tema halaman (gelap = bawaan FE, terang = FE prefers-color-scheme: light). Token gelap hanya di @media screen → cetak selalu terang. ---- */
+:root{--cx-dlg-bg:#ffffff;--cx-dlg-tx:#1e2329;--cx-dlg-mute:#474d57;--cx-dlg-line:#d0d5dd;--cx-dlg-field:#ffffff;--cx-dlg-bad:#cf304a;--cx-dlg-sel:rgba(217,158,0,.10)}
+@media screen{
+  :root[data-theme="terang"]{--cx-bg:#eaecef}
+  :root[data-theme="gelap"]{--cx-bg:#0b0e11;--cx-dlg-bg:#181a20;--cx-dlg-tx:#eaecef;--cx-dlg-mute:#b7bdc6;--cx-dlg-line:#2b313a;--cx-dlg-field:#1e2329;--cx-dlg-bad:#f6465d;--cx-dlg-sel:rgba(240,185,11,.10)}
+  :root[data-theme="gelap"] .cx-foot{color:#b7bdc6}
+  :root[data-theme="gelap"] .cx-foot a{color:#f0b90b}
+  :root[data-theme="gelap"] .cx-notes details{background:#181a20;border-color:#2b313a;color:#eaecef}
+  :root[data-theme="gelap"] .cx-notes dt{color:#b7bdc6}
+  :root[data-theme="gelap"] .cx-notes code{color:#fcd535}
+}
+/* ---- S3-SHELL: kontrol bilah (label tema, isian nama) ---- */
+.cx-grp{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cx-lbl{font-size:13px;color:var(--cx-bar-mute)}
+.cx-in{all:unset;box-sizing:border-box;width:200px;padding:6px 10px;border:1px solid #3a3e48;border-radius:8px;background:#0b0e11;color:var(--cx-bar-ink);font-size:13px;line-height:1.3;cursor:text}
+.cx-in::placeholder{color:#848e9c;opacity:1}
+.cx-in:focus-visible{outline:2px solid var(--cx-accent);outline-offset:2px}
+.cx-in[hidden]{display:none}
+/* ---- S3-SHELL: dialog cetak (pilih alamat atau nama sebelum mencetak) ---- */
+.cx-dlg{width:min(440px,calc(100vw - 32px));max-width:none;padding:0;border:1px solid var(--cx-dlg-line);border-radius:16px;background:var(--cx-dlg-bg);color:var(--cx-dlg-tx);box-shadow:0 30px 80px rgba(0,0,0,.45);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.cx-dlg::backdrop{background:rgba(11,14,17,.62)}
+.cx-dlg-f{display:grid;gap:14px;padding:22px 22px 18px}
+.cx-dlg-t{margin:0;font-size:18px;font-weight:650;letter-spacing:.005em}
+.cx-dlg fieldset{margin:0;padding:0;border:0;display:grid;gap:8px;min-width:0}
+.cx-dlg legend{padding:0;margin:0 0 4px;font-size:13px;color:var(--cx-dlg-mute)}
+.cx-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--cx-dlg-line);border-radius:10px;cursor:pointer}
+.cx-opt:has(input:checked){border-color:#f0b90b;background:var(--cx-dlg-sel)}
+.cx-opt input{margin:0;width:16px;height:16px;flex:none;accent-color:#f0b90b}
+.cx-opt input:focus-visible{outline:2px solid #f0b90b;outline-offset:3px}
+.cx-dlg-name{box-sizing:border-box;width:100%;margin:2px 0 0;padding:9px 12px;border:1px solid var(--cx-dlg-line);border-radius:10px;background:var(--cx-dlg-field);color:var(--cx-dlg-tx);font:inherit}
+.cx-dlg-name::placeholder{color:var(--cx-dlg-mute);opacity:1}
+.cx-dlg-name:focus-visible{outline:2px solid #f0b90b;outline-offset:2px}
+.cx-dlg-name[aria-invalid="true"]{border-color:var(--cx-dlg-bad)}
+.cx-dlg-e{margin:0;color:var(--cx-dlg-bad);font-size:13px;font-weight:600}
+.cx-dlg-e:empty{display:none}
+.cx-dlg-n{margin:0;font-size:13px;color:var(--cx-dlg-mute)}
+.cx-dlg-act{display:flex;justify-content:flex-end;gap:10px;margin-top:2px}
+.cx-dlg .cx-btn{color:var(--cx-dlg-tx);border-color:var(--cx-dlg-line);padding:8px 16px}
+.cx-dlg .cx-btn:focus-visible{outline:2px solid #f0b90b;outline-offset:2px}
+.cx-dlg .cx-btn-pri{background:#f0b90b;border-color:#f0b90b;color:#0b0e11;font-weight:650}
+.cx-dlg .cx-btn-pri:hover{background:#fcd535;border-color:#fcd535}
 /* ===================== /SHARED SHELL ===================== */
 
 /* ===================== DESIGN CSS ===================== */
 /* ATURAN GERAK: keadaan AKHIR adalah gaya bawaan. Semua animasi (masuk dan berkelanjutan) hanya berlaku di bawah `.sheet.is-playing …`,
    dengan animation-fill-mode: both. Tanpa kelas itu (reduce-motion, ?motion=off, cetak) kertas tampil utuh dan diam. */
-/* S3 · Kaca Segitiga — Glass / Soft-depth. Lapisan: atmosfer → facet kristal (3 kedalaman) → kaca buram → pelat QR putih padat. */
-.sheet{--s3-navy:#0a1f4a;--s3-royal:#2457d6;--s3-cyan:#38c8ee;--s3-violet:#7a6cf0;--s3-base:#f3f7ff;--s3-ink2:#2b3d66;--s3-ink3:#4a5b80;
+/* S3 · Kaca Segitiga — palet frontend Lencana (web/src/style.css): emas · arang. Dua tema lewat variabel CSS.
+   Token TERANG = bawaan dan SELALU dipakai saat cetak; token GELAP hanya berlaku di layar (@media screen) saat html[data-theme="gelap"].
+   Objek (kristal arang-emas, medali kaca asap, pelat QR putih) sama di kedua tema — yang berganti hanya kertas dan panel kaca. */
+.sheet{
+  --s3-bg:#f5f5f5;--s3-card:#ffffff;--s3-line:#d0d5dd;
+  --s3-text:#1e2329;--s3-sub:#474d57;
+  --s3-label:#474d57;--s3-label-g:#474d57;           /* teks kecil: muted FE #707a8a hanya 3,98:1 di #f5f5f5 → sub */
+  --s3-gold-tx:#8a6a00;                               /* teks emas kecil ≥ 4,5:1 (FE #d99e00 hanya 2,18:1 di #f5f5f5) */
+  --s3-gold-a:#a77d00;--s3-gold-b:#8a6a00;            /* teks emas besar (≥ 24 px) ≥ 3:1 */
+  --s3-atmo:radial-gradient(900px 660px at 100% 0%,rgba(240,185,11,.17),rgba(240,185,11,0) 60%),
+    radial-gradient(520px 420px at 0% 100%,rgba(240,185,11,.12),rgba(240,185,11,0) 66%),
+    radial-gradient(720px 540px at 26% 40%,#ffffff,rgba(255,255,255,0) 70%),
+    linear-gradient(135deg,#fbfbfb 0%,#f5f5f5 52%,#eeeff1 100%);
+  --s3-glass:linear-gradient(140deg,rgba(255,255,255,.86),rgba(255,255,255,.72));
+  --s3-glass-edge:rgba(255,255,255,.95);--s3-glass-ring:rgba(30,35,41,.09);
+  --s3-glass-shadow:0 26px 50px -26px rgba(30,35,41,.42),0 3px 10px -4px rgba(30,35,41,.12);
+  --s3-hair:rgba(30,35,41,.13);
+  --s3-chip-bg:rgba(217,158,0,.10);--s3-chip-line:rgba(138,106,0,.4);
+  --s3-tag-bg:rgba(30,35,41,.05);--s3-tag-line:rgba(30,35,41,.17);
+  --s3-rod:linear-gradient(90deg,#8a6a00,#b38600 55%,#d99e00);--s3-rod-cut:rgba(255,255,255,.95);
+  --s3-glint:#ffffff;--s3-shine:rgba(255,255,255,.5);--s3-sweep:rgba(255,255,255,.95);
+  --s3-pill-bg:#ffffff;--s3-pill-tx:#1e2329;--s3-pill-line:rgba(30,35,41,.2);
+  --s3-tile-ring:rgba(30,35,41,.11);
   --s3-sans:Outfit,"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
   --s3-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
   --s3-spring:cubic-bezier(.34,1.56,.64,1);--s3-out:cubic-bezier(.22,1,.36,1);
-  background:var(--s3-base);color:var(--s3-navy);font-family:var(--s3-sans)}
+  background:var(--s3-bg);color:var(--s3-text);font-family:var(--s3-sans)}
+@media screen{
+  :root[data-theme="gelap"] .sheet{
+    --s3-bg:#0b0e11;--s3-card:#181a20;--s3-line:#2b313a;
+    --s3-text:#eaecef;--s3-sub:#b7bdc6;
+    --s3-label:#848e9c;--s3-label-g:#b7bdc6;
+    --s3-gold-tx:#f0b90b;--s3-gold-a:#f0b90b;--s3-gold-b:#fcd535;
+    --s3-atmo:radial-gradient(900px 660px at 100% 0%,rgba(240,185,11,.11),rgba(240,185,11,0) 60%),
+      radial-gradient(520px 420px at 0% 100%,rgba(240,185,11,.07),rgba(240,185,11,0) 66%),
+      radial-gradient(760px 560px at 24% 38%,rgba(30,34,41,.95),rgba(24,26,32,0) 70%),
+      linear-gradient(135deg,#14181e 0%,#0e1115 52%,#0b0e11 100%);
+    --s3-glass:linear-gradient(140deg,rgba(43,49,58,.68),rgba(24,26,32,.86));
+    --s3-glass-edge:rgba(255,255,255,.10);--s3-glass-ring:rgba(255,255,255,.06);
+    --s3-glass-shadow:0 26px 50px -24px rgba(0,0,0,.9),0 3px 10px -4px rgba(0,0,0,.5);
+    --s3-hair:rgba(255,255,255,.11);
+    --s3-chip-bg:rgba(240,185,11,.08);--s3-chip-line:rgba(240,185,11,.36);
+    --s3-tag-bg:rgba(255,255,255,.05);--s3-tag-line:rgba(255,255,255,.17);
+    --s3-rod:linear-gradient(90deg,#b38600,#f0b90b 55%,#fcd535);--s3-rod-cut:rgba(24,26,32,.95);
+    --s3-glint:#fcd535;--s3-shine:rgba(252,213,53,.09);--s3-sweep:rgba(252,213,53,.2);
+    --s3-pill-bg:#181a20;--s3-pill-tx:#eaecef;--s3-pill-line:rgba(240,185,11,.5);
+    --s3-tile-ring:rgba(255,255,255,.16);
+    box-shadow:0 0 0 1px #2b313a,0 24px 60px rgba(0,0,0,.55)}
+}
 .sheet p,.sheet h1,.sheet dl,.sheet dd,.sheet ul{margin:0}
 .s3-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
-/* atmosfer: dasar putih bercahaya + diagonal biru sangat tipis */
-.s3-atmo{position:absolute;inset:0;z-index:0;background:
-  radial-gradient(900px 660px at 100% 0%,rgba(36,87,214,.17),rgba(36,87,214,0) 62%),
-  radial-gradient(520px 420px at 0% 100%,rgba(56,200,238,.20),rgba(56,200,238,0) 66%),
-  radial-gradient(720px 540px at 26% 40%,rgba(255,255,255,.96),rgba(255,255,255,0) 70%),
-  linear-gradient(135deg,#f8fbff 0%,#f1f6ff 50%,#e8f0ff 100%)}
+/* atmosfer */
+.s3-atmo{position:absolute;inset:0;z-index:0;background:var(--s3-atmo)}
 
 /* facet: tiga kedalaman, paralaks lewat --mx/--my (hanya transform) */
 .s3-fx{position:absolute;left:0;top:0;width:1122px;height:793px;overflow:visible;pointer-events:none;z-index:1;
@@ -94,114 +179,119 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
 .s3-fx-tr{--k:.022}
 .s3-fx-front{--k:.042;z-index:2}
 .s3-fx .f{transform-box:fill-box;transform-origin:50% 50%}
-.s3-fx-g{opacity:.2}
+.s3-fx-g{opacity:.2;fill:var(--s3-glint)}
 
-/* kaca */
-.s3-glass{background:linear-gradient(140deg,rgba(255,255,255,.76),rgba(255,255,255,.6));
-  -webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(255,255,255,.62),0 26px 50px -26px rgba(16,52,150,.45),0 3px 10px -4px rgba(10,31,74,.12)}
-@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){.s3-glass{background:rgba(255,255,255,.9)}}
+/* kaca (panel) */
+.s3-glass{background:var(--s3-glass);
+  -webkit-backdrop-filter:blur(20px) saturate(150%);backdrop-filter:blur(20px) saturate(150%);
+  box-shadow:inset 0 1px 0 var(--s3-glass-edge),inset 0 0 0 1px var(--s3-glass-ring),var(--s3-glass-shadow)}
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){.s3-glass{background:var(--s3-card)}}
 .s3-sweep{position:absolute;top:-40%;left:0;width:110px;height:180%;pointer-events:none;
-  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(36,87,214,.1) 30%,rgba(255,255,255,.95) 50%,rgba(56,200,238,.12) 64%,rgba(255,255,255,0));transform:translateX(-170px) rotate(18deg)}
-/* cahaya diagonal yang lewat DI BELAKANG kaca: terlihat pada kristal dan menembus kaca buram */
+  background:linear-gradient(90deg,rgba(255,255,255,0),var(--s3-sweep) 50%,rgba(255,255,255,0));transform:translateX(-170px) rotate(18deg)}
+/* cahaya diagonal yang lewat DI BELAKANG kaca: terlihat pada kristal dan menembus kaca */
 .s3-shine{position:absolute;left:0;top:-320px;width:260px;height:1440px;z-index:2;pointer-events:none;
-  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.16) 30%,rgba(255,255,255,.5) 50%,rgba(255,255,255,.16) 70%,rgba(255,255,255,0));
+  background:linear-gradient(90deg,rgba(255,255,255,0),var(--s3-shine) 50%,rgba(255,255,255,0));
   transform:translateX(-420px) rotate(24deg);opacity:0}
 
-/* merek */
+/* merek: ubin putih supaya lapis emas DAN lapis hampir-hitam logo sama-sama terbaca di kedua tema */
 .s3-brand{position:absolute;left:72px;top:46px;display:flex;align-items:center;gap:14px;z-index:5}
 .s3-tile{position:relative;width:54px;height:54px;border-radius:16px;display:grid;place-items:center;overflow:hidden;
-  background:linear-gradient(145deg,#3b7cf3 0%,#2457d6 50%,#1a3fae 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 0 0 1px rgba(255,255,255,.18),0 12px 26px -10px rgba(36,87,214,.7)}
-.s3-tile svg{position:relative;z-index:1;width:36px;height:34px;--logo-a:#ffffff;--logo-b:#0a1f4a}
-.s3-tile .s3-sweep{--travel:120px;width:36px}
-.s3-word{display:flex;flex-direction:column;font-weight:600;font-size:22px;line-height:1.05;letter-spacing:-.01em;color:var(--s3-navy)}
-.s3-word small{margin-top:5px;font-size:11.5px;font-weight:500;letter-spacing:.01em;color:var(--s3-ink3)}
+  background:linear-gradient(150deg,#ffffff 0%,#fdfcf8 55%,#f6f1e2 100%);
+  box-shadow:inset 0 1px 0 #ffffff,inset 0 0 0 1px var(--s3-tile-ring),0 12px 26px -12px rgba(240,185,11,.6),0 2px 6px -2px rgba(0,0,0,.25)}
+.s3-tile svg{position:relative;z-index:1;width:36px;height:34px;--logo-a:#f0b90b;--logo-b:#0b0e11}
+.s3-tile .s3-sweep{--travel:120px;width:36px;--s3-sweep:rgba(240,185,11,.4)}
+.s3-word{display:flex;flex-direction:column;font-weight:600;font-size:22px;line-height:1.05;letter-spacing:-.01em;color:var(--s3-text)}
+.s3-word small{margin-top:5px;font-size:11.5px;font-weight:500;letter-spacing:.01em;color:var(--s3-label)}
 
 /* judul */
-.s3-title{position:absolute;left:66px;top:120px;width:620px;z-index:5;font-weight:700;font-size:80px;line-height:.98;letter-spacing:-.04em;color:var(--s3-navy)}
+.s3-title{position:absolute;left:66px;top:120px;width:620px;z-index:5;font-weight:700;font-size:80px;line-height:.98;letter-spacing:-.04em;color:var(--s3-text)}
 .s3-title .t1,.s3-title .t2{display:block}
-.s3-title .t2{color:var(--s3-royal);padding-bottom:.04em}
+.s3-title .t2{color:var(--s3-gold-a);padding-bottom:.04em}
 @supports ((-webkit-background-clip:text) or (background-clip:text)){
-  .s3-title .t2{background:linear-gradient(100deg,#1b3aa6 0%,#2457d6 45%,#1c7fc4 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}}
+  .s3-title .t2{background:linear-gradient(100deg,var(--s3-gold-a) 0%,var(--s3-gold-b) 50%,var(--s3-gold-a) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}}
 
-/* penerima */
-.s3-who{position:absolute;left:72px;top:300px;width:620px;z-index:5}
-.s3-eyebrow{margin:0 0 8px!important;font-size:14px;font-weight:500;color:var(--s3-ink3);letter-spacing:.01em}
-.s3-addr{display:flex;align-items:flex-start;gap:10px;font-family:var(--s3-mono);color:var(--s3-navy)}
-.s3-addr .ox{font-size:15px;font-weight:600;color:var(--s3-royal);padding-top:9px}
-.s3-addr .g{font-size:30px;font-weight:500;line-height:1.22;width:16.5em;word-spacing:.32em;letter-spacing:0}
-.s3-cap{margin-top:8px!important;font-size:12px;color:var(--s3-ink3)}
-.s3-name{font-size:58px;font-weight:700;letter-spacing:-.03em;line-height:1.02;color:var(--s3-navy)}
-.s3-namesub{margin-top:12px!important;display:flex;align-items:center;gap:12px}
-.s3-chip{flex:none;font-family:var(--s3-mono);font-size:13px;font-weight:500;color:var(--s3-navy);padding:5px 11px;border-radius:999px;background:rgba(36,87,214,.08);box-shadow:inset 0 0 0 1px rgba(36,87,214,.2)}
-.s3-note{font-size:11.5px;line-height:1.35;color:var(--s3-ink3);max-width:400px}
+/* penerima: kotak utama setinggi tetap — alamat (kisi 5 × 2) atau nama (pas otomatis) tidak menggeser elemen lain */
+.s3-who{position:absolute;left:72px;top:298px;width:604px;z-index:5}
+.s3-eyebrow{margin:0 0 6px!important;font-size:14px;line-height:18px;font-weight:500;color:var(--s3-label);letter-spacing:.01em}
+.s3-hero{height:78px;display:flex;align-items:center}
+.s3-addr{display:flex;align-items:flex-start;gap:10px;font-family:var(--s3-mono);color:var(--s3-text)}
+.s3-addr .ox{font-size:15px;font-weight:600;color:var(--s3-gold-tx);padding-top:9px}
+.s3-addr .g{font-size:30px;font-weight:500;line-height:1.2;width:16.5em;word-spacing:.32em;letter-spacing:0}
+.s3-name{flex:1 1 auto;min-width:0;font-size:58px;font-weight:700;letter-spacing:-.03em;line-height:1.04;color:var(--s3-text);white-space:nowrap;overflow-wrap:anywhere}
+.s3-name.is-2{white-space:normal;text-wrap:balance}
+.s3-subrow{margin-top:8px;min-height:31px}
+.s3-cap{font-size:12px;color:var(--s3-label)}
+.s3-namesub{display:flex;align-items:center;gap:12px}
+.s3-chip{flex:none;font-family:var(--s3-mono);font-size:13px;font-weight:500;color:var(--s3-text);padding:5px 11px;border-radius:999px;background:var(--s3-chip-bg);box-shadow:inset 0 0 0 1px var(--s3-chip-line)}
+.s3-note{flex:1 1 auto;min-width:0;font-size:11.5px;line-height:1.35;color:var(--s3-label);text-wrap:balance}
 
 /* kelas */
-.s3-what{position:absolute;left:72px;top:452px;width:600px;z-index:5}
-.s3-course{font-size:25px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:var(--s3-navy)}
+.s3-what{position:absolute;left:72px;top:452px;width:604px;z-index:5}
+.s3-course{font-size:25px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:var(--s3-text)}
 
-/* medali kaca + cincin nilai */
+/* medali: kaca asap + cincin emas — objek yang sama di kedua tema */
 .s3-medal{position:absolute;left:720px;top:82px;width:360px;height:360px;z-index:4}
 .s3-medal-par,.s3-medal-float,.s3-medal-in{position:absolute;inset:0}
 .s3-medal-par{transform:translate3d(calc((50% - var(--mx,50%)) * .08),calc((50% - var(--my,50%)) * .08),0);transition:transform 1s cubic-bezier(.2,.8,.2,1)}
 .s3-ribbons{position:absolute;left:0;top:0;width:360px;height:470px;overflow:visible}
-.s3-pulse{position:absolute;left:14px;top:14px;width:332px;height:332px;border-radius:50%;border:2px solid rgba(56,200,238,.9);box-shadow:0 0 26px rgba(56,200,238,.5);opacity:0;pointer-events:none}
+.s3-pulse{position:absolute;left:14px;top:14px;width:332px;height:332px;border-radius:50%;border:2px solid rgba(240,185,11,.9);box-shadow:0 0 26px rgba(240,185,11,.5);opacity:0;pointer-events:none}
 .s3-disc{position:absolute;left:42px;top:42px;width:276px;height:276px;border-radius:50%;overflow:hidden;
-  background:radial-gradient(120% 120% at 28% 18%,rgba(255,255,255,.9) 0%,rgba(255,255,255,.64) 44%,rgba(228,239,255,.52) 100%);
-  -webkit-backdrop-filter:blur(14px) saturate(175%);backdrop-filter:blur(14px) saturate(175%);
-  box-shadow:inset 0 2px 2px rgba(255,255,255,.95),inset 0 -18px 38px rgba(36,87,214,.2),0 36px 64px -22px rgba(10,31,74,.6),0 10px 24px -6px rgba(36,87,214,.32)}
-.s3-disc::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(78% 56% at 32% 10%,rgba(255,255,255,.95),rgba(255,255,255,0) 62%),radial-gradient(40% 22% at 70% 92%,rgba(56,200,238,.22),rgba(56,200,238,0) 70%)}
+  background:radial-gradient(120% 120% at 28% 18%,rgba(96,104,116,.55) 0%,rgba(38,43,51,.78) 42%,rgba(14,17,21,.9) 100%);
+  -webkit-backdrop-filter:blur(14px) saturate(130%);backdrop-filter:blur(14px) saturate(130%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.3),inset 0 -20px 40px rgba(240,185,11,.13),0 36px 64px -22px rgba(0,0,0,.72),0 10px 26px -8px rgba(240,185,11,.3)}
+.s3-disc::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(78% 56% at 32% 10%,rgba(255,255,255,.24),rgba(255,255,255,0) 62%),radial-gradient(42% 24% at 70% 92%,rgba(240,185,11,.2),rgba(240,185,11,0) 70%)}
 .s3-disc::after{content:"";position:absolute;inset:0;border-radius:50%;padding:1.6px;
-  background:conic-gradient(from 200deg,rgba(255,255,255,1),rgba(255,255,255,.15) 22%,rgba(56,200,238,.85) 48%,rgba(255,255,255,.2) 72%,rgba(255,255,255,1));
+  background:conic-gradient(from 200deg,#fcd535,rgba(252,213,53,.12) 22%,rgba(240,185,11,.85) 48%,rgba(255,255,255,.18) 72%,#fcd535);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
-.s3-disc .s3-sweep{--travel:420px}
-.s3-flash{position:absolute;inset:0;border-radius:50%;opacity:0;pointer-events:none;background:radial-gradient(circle at 36% 30%,rgba(255,255,255,1),rgba(255,255,255,.4) 58%,rgba(255,255,255,0) 76%)}
+.s3-disc .s3-sweep{--travel:420px;--s3-sweep:rgba(255,255,255,.3)}
+.s3-flash{position:absolute;inset:0;border-radius:50%;opacity:0;pointer-events:none;background:radial-gradient(circle at 36% 30%,rgba(255,250,225,.9),rgba(252,213,53,.3) 58%,rgba(252,213,53,0) 76%)}
 .s3-dial{position:absolute;left:0;top:0;width:360px;height:360px;overflow:visible}
 .s3-dial .s3-notch,.s3-dial .s3-tick,.s3-dial .s3-pillg{transform-box:fill-box;transform-origin:50% 50%}
-.s3-dial .s3-tick{filter:drop-shadow(0 0 5px rgba(56,200,238,.95))}
-.s3-dial .s3-arc{filter:drop-shadow(0 0 4px rgba(56,200,238,.85)) drop-shadow(0 0 1px rgba(10,31,74,.35))}
-.s3-dial text{font-family:var(--s3-sans);font-size:10.5px;font-weight:600;letter-spacing:.02em;fill:var(--s3-navy)}
-.s3-dial .s3-pilltxt{font-size:10.5px;font-weight:600;fill:var(--s3-navy)}
+.s3-dial .s3-tick{filter:drop-shadow(0 0 5px rgba(252,213,53,.95))}
+.s3-dial .s3-arc{filter:drop-shadow(0 0 4px rgba(240,185,11,.8)) drop-shadow(0 0 1px rgba(0,0,0,.55))}
+.s3-dial text{font-family:var(--s3-sans);font-size:10.5px;font-weight:600;letter-spacing:.02em;fill:#eaecef}
+.s3-dial .s3-lab{paint-order:stroke;stroke:rgba(11,14,17,.78);stroke-width:3px;stroke-linejoin:round}   /* halo gelap tipis: label tetap ≥ 4,5:1 di dekat busur emas dan sorot kaca */
+.s3-dial .s3-pillbg{fill:var(--s3-pill-bg);stroke:var(--s3-pill-line)}
+.s3-dial .s3-pilltxt{fill:var(--s3-pill-tx)}
 .s3-read{position:absolute;left:80px;top:106px;width:200px;height:148px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.s3-res{font-size:11px;font-weight:500;letter-spacing:.04em;color:var(--s3-ink3)}
-.s3-num{display:flex;align-items:flex-start;font-weight:700;font-size:88px;line-height:.92;letter-spacing:-.045em;color:var(--s3-navy);font-variant-numeric:tabular-nums lining-nums;margin-top:2px}
-.s3-num small{font-size:15px;font-weight:500;letter-spacing:0;color:var(--s3-ink3);margin:12px 0 0 6px}
-.s3-pass{margin-top:10px;padding:4px 12px 4px 15px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.22em;color:#fff;
-  background:linear-gradient(135deg,#2a63e6,#1d48bf);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 14px -6px rgba(36,87,214,.85)}
+.s3-res{font-size:11px;font-weight:600;letter-spacing:.04em;color:#eaecef}
+.s3-num{display:flex;align-items:flex-start;font-weight:700;font-size:88px;line-height:.92;letter-spacing:-.045em;color:#eaecef;font-variant-numeric:tabular-nums lining-nums;margin-top:2px}
+.s3-num small{font-size:15px;font-weight:500;letter-spacing:0;color:#b7bdc6;margin:12px 0 0 6px}
+.s3-pass{margin-top:10px;padding:4px 12px 4px 15px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.22em;color:#0b0e11;
+  background:linear-gradient(135deg,#fcd535,#f0b90b);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 6px 16px -6px rgba(240,185,11,.85)}
 
-/* pelat QR: putih padat, tidak pernah di atas kaca */
+/* pelat QR: putih padat di kedua tema, tidak pernah di atas kaca */
 .s3-qr{position:absolute;left:802px;top:500px;width:196px;z-index:6}
 /* padding 20 px dengan radius 20 px: sudut zona tenang 4 modul (≈13,9 px) tetap di dalam pelat putih */
 .s3-qrplate{background:#fff;border-radius:20px;padding:20px 20px 14px;transform:translateY(-2px);
-  box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(10,31,74,.07),0 24px 42px -16px rgba(10,31,74,.5),0 6px 14px -6px rgba(36,87,214,.28)}
-.s3-qrcode{display:block;width:156px;height:156px;color:var(--s3-navy)}
-.s3-scan{margin-top:10px!important;font-size:11px;line-height:1.3;font-weight:500;color:var(--s3-navy)}
-.s3-id{margin-top:7px!important;display:flex;flex-direction:column;gap:1px;font-size:10px;color:var(--s3-ink3)}
-.s3-id b{font-family:var(--s3-mono);font-weight:500;font-size:10.5px;color:var(--s3-navy);letter-spacing:-.01em}
+  box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(11,14,17,.08),0 24px 42px -16px rgba(0,0,0,.55),0 6px 14px -6px rgba(240,185,11,.3)}
+.s3-qrcode{display:block;width:156px;height:156px;color:#0b0e11}
+.s3-scan{margin-top:10px!important;font-size:11px;line-height:1.3;font-weight:500;color:#1e2329}
+.s3-id{margin-top:7px!important;display:flex;flex-direction:column;gap:1px;font-size:10px;color:#474d57}
+.s3-id b{font-family:var(--s3-mono);font-weight:500;font-size:10.5px;color:#1e2329;letter-spacing:-.01em}
 
 /* pelat fakta kaca di atas kristal kiri bawah */
 .s3-plate{position:absolute;left:48px;top:560px;width:734px;height:214px;border-radius:24px;overflow:hidden;z-index:3}
-.s3-plate .s3-sweep{--travel:900px;opacity:.5}
+.s3-plate .s3-sweep{--travel:900px;opacity:.6}
 .s3-f{position:absolute}
-.s3-f dt{font-size:11.5px;font-weight:500;letter-spacing:.01em;color:var(--s3-ink3)}
-.s3-f dd{margin-top:3px;font-size:16px;font-weight:600;line-height:1.25;color:var(--s3-navy);font-variant-numeric:tabular-nums}
+.s3-f dt{font-size:11.5px;font-weight:500;letter-spacing:.01em;color:var(--s3-label-g)}
+.s3-f dd{margin-top:3px;font-size:16px;font-weight:600;line-height:1.25;color:var(--s3-text);font-variant-numeric:tabular-nums}
 .s3-f-iss{left:26px;top:20px}
-.s3-time{margin-left:8px;font-size:13px;font-weight:500;color:var(--s3-ink2)}
+.s3-time{margin-left:8px;font-size:13px;font-weight:500;color:var(--s3-sub)}
 .s3-f-val{right:26px;top:20px;text-align:right}
 .s3-span{position:absolute;left:266px;right:180px;top:24px;height:36px}
-.s3-days{position:absolute;left:0;right:0;top:0;text-align:center;font-size:11px;font-weight:500;color:var(--s3-ink3)}
+.s3-days{position:absolute;left:0;right:0;top:0;text-align:center;font-size:11px;font-weight:500;color:var(--s3-label-g)}
 .s3-rod{position:absolute;left:0;right:0;top:24px;height:6px;border-radius:3px;
-  background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 calc(100%/12 - 1.5px),rgba(255,255,255,.95) calc(100%/12 - 1.5px) calc(100%/12)),linear-gradient(90deg,var(--s3-royal),#2f8fe2 70%,var(--s3-cyan));
-  box-shadow:0 2px 6px -2px rgba(36,87,214,.6)}
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,0) 0 calc(100%/12 - 1.5px),var(--s3-rod-cut) calc(100%/12 - 1.5px) calc(100%/12)),var(--s3-rod);
+  box-shadow:0 2px 6px -2px rgba(240,185,11,.55)}
 .s3-rod::before,.s3-rod::after{content:"";position:absolute;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%}
-.s3-rod::before{left:-6px;background:var(--s3-navy);box-shadow:0 0 0 3px rgba(255,255,255,.95)}
-.s3-rod::after{right:-6px;background:#fff;box-shadow:inset 0 0 0 2.5px var(--s3-royal),0 0 0 3px rgba(255,255,255,.95)}
+.s3-rod::before{left:-6px;background:var(--s3-text);box-shadow:0 0 0 3px var(--s3-rod-cut)}
+.s3-rod::after{right:-6px;background:var(--s3-card);box-shadow:inset 0 0 0 2.5px var(--s3-gold-tx),0 0 0 3px var(--s3-rod-cut)}
 .s3-f-pub{left:26px;top:86px;width:340px}
 .s3-f-sig{left:392px;top:86px;width:316px}
-.s3-pill{display:table;margin-top:5px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:500;line-height:1.35;color:var(--s3-ink2);background:rgba(10,31,74,.06);box-shadow:inset 0 0 0 1px rgba(10,31,74,.15)}
-.s3-proof{display:block;margin-top:3px;font-family:var(--s3-mono);font-size:10.5px;font-weight:500;color:var(--s3-ink2)}
-.s3-foot{position:absolute;left:26px;right:26px;bottom:13px;padding-top:9px;border-top:1px solid rgba(10,31,74,.12);font-size:10.5px;line-height:1.42;color:var(--s3-ink2)}
+.s3-pill{display:table;margin-top:5px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:500;line-height:1.35;color:var(--s3-text);background:var(--s3-tag-bg);box-shadow:inset 0 0 0 1px var(--s3-tag-line)}
+.s3-proof{display:block;margin-top:3px;font-family:var(--s3-mono);font-size:10.5px;font-weight:500;color:var(--s3-sub)}
+.s3-foot{position:absolute;left:26px;right:26px;bottom:13px;padding-top:9px;border-top:1px solid var(--s3-hair);font-size:10.5px;line-height:1.42;color:var(--s3-sub)}
 
 /* ---------- gerak: hanya di bawah .is-playing ---------- */
 @keyframes s3-facet{from{opacity:0;transform:scale(.12) rotate(-24deg)}}
@@ -214,13 +304,13 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
 @keyframes s3-pulse{0%{opacity:.9;transform:scale(.97)}100%{opacity:0;transform:scale(1.34)}}
 @keyframes s3-flash{0%{opacity:0}16%{opacity:.6}100%{opacity:0}}
 @keyframes s3-sweep{0%{transform:translateX(-170px) rotate(18deg)}10%,100%{transform:translateX(var(--travel)) rotate(18deg)}}
-@keyframes s3-lift{from{transform:translateY(0);box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(10,31,74,.07),0 12px 22px -14px rgba(10,31,74,.4),0 3px 8px -6px rgba(36,87,214,.2)}}
+@keyframes s3-lift{from{transform:translateY(0);box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(11,14,17,.08),0 12px 22px -14px rgba(0,0,0,.45),0 3px 8px -6px rgba(240,185,11,.2)}}
 @keyframes s3-float{0%,100%{transform:translateY(0)}25%{transform:translateY(-4px)}75%{transform:translateY(4px)}}
 @keyframes s3-breathe{0%,100%{opacity:0}50%{opacity:.7}}
 @keyframes s3-shine{0%{opacity:1;transform:translateX(-420px) rotate(24deg)}22%{opacity:1;transform:translateX(1420px) rotate(24deg)}22.01%,100%{opacity:0;transform:translateX(1420px) rotate(24deg)}}
-.sheet.is-playing .s3-shine{animation:s3-shine 8s cubic-bezier(.4,0,.25,1) 1.03s infinite both}
 .sheet.is-playing .s3-fx .f{animation:s3-facet .75s var(--s3-spring) var(--d,0ms) both}
 .sheet.is-playing .s3-fx-g{animation:s3-breathe 7s ease-in-out var(--gd,2.6s) infinite both}
+.sheet.is-playing .s3-shine{animation:s3-shine 8s cubic-bezier(.4,0,.25,1) 1.03s infinite both}
 .sheet.is-playing .s3-brand{animation:s3-rise .8s var(--s3-out) .12s both}
 .sheet.is-playing .s3-title .t1{animation:s3-rise .9s var(--s3-out) .2s both}
 .sheet.is-playing .s3-title .t2{animation:s3-rise .9s var(--s3-out) .3s both}
@@ -246,12 +336,12 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
 .sheet.is-playing .s3-tile .s3-sweep{animation:s3-sweep 8s cubic-bezier(.45,0,.2,1) 1.15s infinite both}
 .sheet.is-playing .s3-medal-float{animation:s3-float 7s ease-in-out 2.4s infinite both}
 
-/* ---------- cetak: tanpa backdrop-filter, kaca jadi putih semi-padat, atmosfer tetap ---------- */
+/* ---------- cetak: selalu tema terang (token gelap hanya @media screen); kaca → isi padat, tanpa backdrop-filter ---------- */
 @media print{
-  .sheet .s3-glass{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(255,255,255,.9)!important;box-shadow:inset 0 0 0 1px rgba(10,31,74,.12)!important}
-  .sheet .s3-disc{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:radial-gradient(120% 120% at 28% 18%,#fff 0%,rgba(255,255,255,.94) 50%,rgba(236,243,255,.92) 100%)!important}
+  .sheet .s3-glass{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(255,255,255,.95)!important;box-shadow:inset 0 0 0 1px rgba(30,35,41,.15)!important}
+  .sheet .s3-disc{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:radial-gradient(120% 120% at 28% 18%,#3f454e 0%,#252a31 44%,#14171c 100%)!important}
   .sheet .s3-fx,.sheet .s3-medal-par{transform:none!important}
-  .sheet .s3-sweep,.sheet .s3-pulse,.sheet .s3-flash,.sheet .s3-shine{display:none!important}
+  .sheet .s3-sweep,.sheet .s3-pulse,.sheet .s3-flash,.sheet .s3-shine,.sheet .s3-fx-g{display:none!important}
 }
 /* ===================== /DESIGN CSS ===================== */
 </style>
@@ -261,12 +351,22 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
   <a href="index.html" aria-label="Kembali ke semua desain">← Semua desain</a>
   <div class="cx-title"><span data-design="title">Desain</span><small data-design="row"></small></div>
   <span class="cx-sp"></span>
-  <div class="cx-seg" role="group" aria-label="Isi baris penerima">
-    <button type="button" data-mode-btn="alamat" aria-pressed="true" title="Yang sebenarnya ada di data kredensial">Alamat dompet</button>
-    <button type="button" data-mode-btn="nama" aria-pressed="false" title="Contoh tampilan jika nanti ada nama tampilan — belum ada di kredensial">Nama contoh</button>
+  <!-- S3-SHELL: tema + penerima dinamis -->
+  <div class="cx-grp"><span class="cx-lbl" id="cx-lbl-tema">Tema:</span>
+    <div class="cx-seg" role="group" aria-labelledby="cx-lbl-tema">
+      <button type="button" data-theme-btn="gelap" aria-pressed="true">Gelap</button>
+      <button type="button" data-theme-btn="terang" aria-pressed="false">Terang</button>
+    </div>
+  </div>
+  <div class="cx-grp">
+    <div class="cx-seg" role="group" aria-label="Isi baris penerima">
+      <button type="button" data-mode-btn="alamat" aria-pressed="true" title="Yang tertanda tangan di kredensial">Alamat dompet</button>
+      <button type="button" data-mode-btn="nama" aria-pressed="false" title="Nama kamu sendiri — tidak ikut tanda tangan">Nama</button>
+    </div>
+    <input class="cx-in" type="text" data-name-input maxlength="60" autocomplete="off" spellcheck="false" placeholder="Nama kamu" aria-label="Nama yang tampil di lembar" hidden>
   </div>
   <button class="cx-btn" type="button" data-act="replay">▶ Ulangi gerak</button>
-  <button class="cx-btn" type="button" data-act="print">Cetak / simpan PDF</button>
+  <button class="cx-btn" type="button" data-act="print" aria-haspopup="dialog">Cetak / simpan PDF</button>
 </header>
 
 <main class="cx-stage">
@@ -291,13 +391,13 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
 
 <section class="s3-who" aria-label="Penerima">
   <p class="s3-eyebrow" data-txt="presentedTo"></p>
-  <div data-show="alamat">
-    <p class="s3-addr"><span class="ox" data-s3-0x></span><span class="g" data-bind="addressGroups"></span></p>
-    <p class="s3-cap" data-txt="wallet"></p>
+  <div class="s3-hero">
+    <p class="s3-addr" data-show="alamat"><span class="ox" data-s3-0x></span><span class="g" data-bind="addressGroups"></span></p>
+    <p class="s3-name" data-show="nama" data-recipient-name></p>
   </div>
-  <div data-show="nama">
-    <p class="s3-name" data-bind="name"></p>
-    <p class="s3-namesub"><span class="s3-chip" data-bind="addressShort"></span><span class="s3-note" data-txt="nameNote"></span></p>
+  <div class="s3-subrow">
+    <p class="s3-cap" data-show="alamat" data-txt="wallet"></p>
+    <p class="s3-namesub" data-show="nama"><span class="s3-chip" data-bind="addressShort"></span><span class="s3-note" data-txt="nameNote"></span></p>
   </div>
 </section>
 
@@ -311,13 +411,13 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
     <div class="s3-medal-par"><div class="s3-medal-float"><div class="s3-medal-in">
       <svg class="s3-ribbons" viewBox="0 0 360 470" aria-hidden="true" focusable="false">
         <defs>
-          <linearGradient id="s3-rbA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a5fe0"/><stop offset="1" stop-color="#0f2a6b"/></linearGradient>
-          <linearGradient id="s3-rbB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a92f2"/><stop offset="1" stop-color="#1d4fc8"/></linearGradient>
+          <linearGradient id="s3-rbA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b313a"/><stop offset="1" stop-color="#0b0e11"/></linearGradient>
+          <linearGradient id="s3-rbB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fcd535"/><stop offset=".55" stop-color="#f0b90b"/><stop offset="1" stop-color="#b38600"/></linearGradient>
         </defs>
         <path d="M146 250 L188 256 L148 452 L126 430 L104 446 Z" fill="url(#s3-rbA)"/>
-        <path d="M156 258 L162 258 L120 440 L114 440 Z" fill="#ffffff" fill-opacity=".22"/>
+        <path d="M157 258 L164 258 L121 440 L114 440 Z" fill="#f0b90b" fill-opacity=".9"/>
         <path d="M214 250 L172 256 L212 452 L234 430 L256 446 Z" fill="url(#s3-rbB)"/>
-        <path d="M200 258 L206 258 L246 440 L240 440 Z" fill="#ffffff" fill-opacity=".26"/>
+        <path d="M200 258 L206 258 L246 440 L240 440 Z" fill="#ffffff" fill-opacity=".34"/>
       </svg>
       <span class="s3-pulse" aria-hidden="true"></span>
       <div class="s3-disc" aria-hidden="true"><i class="s3-flash"></i><i class="s3-sweep"></i></div>
@@ -362,6 +462,25 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
 </main>
 
 <section class="cx-notes" aria-label="Catatan desain"><details open><summary>Catatan desain</summary><div data-design="notes"></div></details></section>
+
+<!-- S3-SHELL: dialog cetak — pengguna memilih isi baris penerima sebelum mencetak. Nama hanya disimpan di browser ini (localStorage), tidak dikirim ke mana pun. -->
+<dialog class="cx-dlg" data-print-dialog aria-labelledby="cx-dlg-t">
+  <form class="cx-dlg-f" novalidate>
+    <h2 class="cx-dlg-t" id="cx-dlg-t">Cetak / simpan PDF</h2>
+    <fieldset>
+      <legend>Baris penerima di lembar</legend>
+      <label class="cx-opt"><input type="radio" name="cx-who" value="alamat"><span>Alamat dompet (yang tertanda tangan)</span></label>
+      <label class="cx-opt"><input type="radio" name="cx-who" value="nama"><span>Nama saya</span></label>
+      <input class="cx-dlg-name" type="text" data-dlg-name maxlength="60" autocomplete="off" spellcheck="false" placeholder="Nama kamu" aria-label="Nama saya" aria-describedby="cx-dlg-n cx-dlg-e">
+      <p class="cx-dlg-e" id="cx-dlg-e" data-dlg-err role="alert"></p>
+    </fieldset>
+    <p class="cx-dlg-n" id="cx-dlg-n">Nama tidak ikut tanda tangan; alamat tetap tampil kecil di lembar.</p>
+    <div class="cx-dlg-act">
+      <button type="button" class="cx-btn" data-dlg="batal">Batal</button>
+      <button type="submit" class="cx-btn cx-btn-pri" data-dlg="cetak">Cetak</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 /* ===================== SHARED SHELL JS — JANGAN UBAH ===================== */
@@ -512,11 +631,77 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
     sheet.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); sheet.style.setProperty('--my', (y * 100).toFixed(1) + '%');
   });
   fitBox.addEventListener('pointerleave', () => { tilt.style.setProperty('--ry', '0deg'); tilt.style.setProperty('--rx', '0deg'); sheet.style.setProperty('--mx', '50%'); sheet.style.setProperty('--my', '50%'); });
-  $$('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => { sheet.dataset.mode = b.dataset.modeBtn; $$('[data-mode-btn]').forEach((o) => o.setAttribute('aria-pressed', String(o === b))); }));
+  /* ---- S3-SHELL: tema. Awal ikut prefers-color-scheme (skrip di <head>), cadangan gelap; tombol menimpa, perubahan sistem diikuti selama belum ditimpa. ---- */
+  const THEMES = ['gelap', 'terang']; let themeManual = false;
+  const setTheme = (t) => { if (!THEMES.includes(t)) t = 'gelap'; root.dataset.theme = t;
+    $$('[data-theme-btn]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeBtn === t)));
+    const m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', t === 'terang' ? '#f5f5f5' : '#0b0e11'); };
+  const mqLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
+  setTheme(root.dataset.theme || (mqLight && mqLight.matches ? 'terang' : 'gelap'));
+  $$('[data-theme-btn]').forEach((b) => b.addEventListener('click', () => { themeManual = true; setTheme(b.dataset.themeBtn); }));
+  if (mqLight && mqLight.addEventListener) mqLight.addEventListener('change', (e) => { if (!themeManual) setTheme(e.matches ? 'terang' : 'gelap'); });
+
+  /* ---- S3-SHELL: penerima dinamis. Pilihan + nama diingat di localStorage (bila ada); nama tidak pernah dikirim, selalu ditulis lewat textContent. ---- */
+  const REC_KEY = 'lencana.sertifikat.penerima';
+  const cleanName = (s) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  const REC = { mode: 'alamat', name: '' };
+  try { const v = JSON.parse(localStorage.getItem(REC_KEY) || 'null');
+    if (v && (v.mode === 'alamat' || v.mode === 'nama')) { REC.mode = v.mode; REC.name = typeof v.name === 'string' ? v.name.slice(0, 60) : ''; } } catch (e) { /* tanpa penyimpanan pun jalan */ }
+  const saveRec = () => { try { localStorage.setItem(REC_KEY, JSON.stringify({ mode: REC.mode, name: REC.name })); } catch (e) { /* abaikan */ } };
+  const barName = $('[data-name-input]');
+  /** Mode efektif: "nama" hanya bila nama tidak kosong — baris utama tidak pernah kosong (alamat tampil sebagai gantinya). */
+  const applyRecipient = () => {
+    const name = cleanName(REC.name), eff = REC.mode === 'nama' && name ? 'nama' : 'alamat';
+    sheet.dataset.mode = eff;
+    $$('[data-recipient-name]').forEach((el) => { el.textContent = name; });
+    $$('[data-mode-btn]').forEach((o) => o.setAttribute('aria-pressed', String(o.dataset.modeBtn === REC.mode)));
+    if (barName) { barName.hidden = REC.mode !== 'nama'; if (barName.value !== REC.name) barName.value = REC.name; }
+    document.dispatchEvent(new CustomEvent('cx:recipient', { detail: { mode: eff, choice: REC.mode, name } }));
+  };
+  window.cxRecipient = REC;
+  $$('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => { REC.mode = b.dataset.modeBtn; applyRecipient(); saveRec();
+    if (REC.mode === 'nama' && barName && !cleanName(REC.name)) barName.focus(); }));
+  if (barName) barName.addEventListener('input', () => { REC.name = barName.value.slice(0, 60); applyRecipient(); saveRec(); });
+
+  /* ---- S3-SHELL: dialog cetak. Esc/Batal menutup tanpa mengubah apa pun; Tab berputar di dalam dialog; fokus kembali ke tombol pembuka. ---- */
+  const dlg = $('[data-print-dialog]');
+  const openPrint = () => {
+    if (!dlg || typeof dlg.showModal !== 'function') { window.print(); return; }
+    const radios = $$('input[name="cx-who"]', dlg), dName = $('[data-dlg-name]', dlg), dErr = $('[data-dlg-err]', dlg);
+    dlg._opener = document.activeElement;
+    radios.forEach((r) => { r.checked = r.value === REC.mode; });
+    dName.value = REC.name; dErr.textContent = ''; dName.setAttribute('aria-invalid', 'false');
+    dlg.showModal();
+    (REC.mode === 'nama' ? dName : radios.find((r) => r.checked) || dName).focus();
+  };
+  if (dlg) {
+    const radios = $$('input[name="cx-who"]', dlg), dName = $('[data-dlg-name]', dlg), dErr = $('[data-dlg-err]', dlg), form = $('form', dlg);
+    const choice = () => { const r = radios.find((x) => x.checked); return r ? r.value : 'alamat'; };
+    const setErr = (msg) => { dErr.textContent = msg; dName.setAttribute('aria-invalid', String(!!msg)); };
+    dName.addEventListener('input', () => { const r = radios.find((x) => x.value === 'nama'); if (r) r.checked = true; if (dErr.textContent && cleanName(dName.value)) setErr(''); });
+    radios.forEach((r) => r.addEventListener('change', () => { if (r.value === 'alamat') setErr(''); }));
+    $('[data-dlg="batal"]', dlg).addEventListener('click', () => dlg.close());
+    dlg.addEventListener('close', () => { const o = dlg._opener; dlg._opener = null; if (o && typeof o.focus === 'function') o.focus(); });
+    dlg.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      const f = $$('input:not([type="radio"]):not([disabled]), input[type="radio"]:checked, button:not([disabled])', dlg);
+      if (!f.length) return; const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const c = choice(), name = cleanName(dName.value);
+      if (c === 'nama' && !name) { setErr('Tulis namamu dulu, atau pilih alamat dompet.'); dName.focus(); return; }
+      REC.mode = c; if (c === 'nama') REC.name = name;     /* pilih alamat: nama terakhir tetap diingat untuk lain kali */
+      applyRecipient(); saveRec(); dlg.close();
+      window.print();
+    });
+  }
   $('[data-act="replay"]').addEventListener('click', play);
-  $('[data-act="print"]').addEventListener('click', () => window.print());
+  $('[data-act="print"]').addEventListener('click', openPrint);
   addEventListener('beforeprint', () => sheet.classList.remove('is-playing'));
-  addEventListener('afterprint', () => { sheet.classList.add('is-playing'); });
+  addEventListener('afterprint', play);   /* S3-SHELL: putar ulang utuh (angka + cincin selaras), bukan setengah */
 
   /* ---- Catatan desain (dari window.DESIGN yang diisi DESIGN:JS) ---- */
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -541,8 +726,8 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
     </dl>`;
   };
 
-  const init = () => { bind(); injectQR(); injectLogo(); renderNotes(); fit();
-    const go = () => { play(); }; (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve()).then(go); };
+  const init = () => { bind(); injectQR(); injectLogo(); renderNotes(); applyRecipient(); fit();
+    const go = () => { applyRecipient(); play(); }; (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve()).then(go); };   /* S3-SHELL: penerima diterapkan lagi sesudah font siap (ukur ulang nama) */
   window.__cxInit = init;   // DESIGN:JS memanggil __cxInit() SETELAH window.DESIGN dan handler 'cx:play' terpasang
 })();
 /* ===================== /SHARED SHELL JS ===================== */
@@ -556,6 +741,7 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
   'use strict';
   const CERT = window.CERT, HA = window.HASHART, TXT = window.TXT;
   const q = (s, r = document) => r.querySelector(s);
+  const sheet = q('.sheet');
 
   /* ---- teks turunan data (bukan hard-code) ---- */
   const h1 = q('[data-s3-title]');
@@ -563,19 +749,22 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
     a.className = 't1'; b.className = 't2'; a.textContent = w[0]; b.textContent = w.slice(1).join(' '); h1.replaceChildren(a, document.createTextNode(' '), b); }
   q('[data-s3-0x]').textContent = CERT.learner.slice(0, 2);
   q('[data-s3-days]').textContent = CERT.validDays + ' hari';
-  q('[data-s3-comp]').innerHTML = CERT.components.map((c) => `<li>${c.label}: ${c.score} (bobot ${c.weight}%)</li>`).join('');
+  const comp = q('[data-s3-comp]');
+  CERT.components.forEach((c) => { const li = document.createElement('li'); li.textContent = `${c.label}: ${c.score} (bobot ${c.weight}%)`; comp.appendChild(li); });
 
-  /* ---- medan facet: kisi bergetar → segitiga; tinggi tiap titik = byte hash, cahaya dari kiri atas ---- */
+  /* ---- medan facet: kisi bergetar → segitiga; tinggi tiap titik = byte hash, cahaya dari kiri atas.
+          Palet FE: arang (#181a20/#2b313a) di inti sudut → amber (#8a6a00) → emas (#f0b90b/#fcd535) di tepi. ---- */
   const W = 1122, H = 793, ORIGIN = [900, 262];
-  const STOPS = [[0, [8, 24, 66]], [0.28, [19, 54, 156]], [0.52, [36, 87, 214]], [0.72, [58, 136, 236]], [0.86, [86, 190, 242]], [0.98, [196, 230, 252]], [1.1, [236, 246, 255]]];
-  /* zona bebas-facet di belakang teks (judul, penerima, kelas) — teks kecil tidak pernah duduk di atas kristal */
-  const KEEP = [[52, 104, 660, 292], [52, 286, 650, 446], [52, 440, 690, 512]];
+  const STOPS = [[0, [18, 20, 25]], [0.35, [27, 31, 37]], [0.6, [43, 49, 58]], [0.76, [54, 56, 55]], [0.85, [92, 72, 10]], [0.91, [138, 106, 0]],
+    [0.97, [217, 158, 0]], [1.02, [240, 185, 11]], [1.1, [252, 213, 53]], [1.2, [255, 241, 190]]];
+  /* zona bebas-facet di belakang teks (judul, penerima — termasuk nama terpanjang —, kelas): teks kecil tidak pernah duduk di atas kristal */
+  const KEEP = [[52, 104, 660, 292], [52, 286, 696, 446], [52, 440, 690, 512]];
   const inKeep = (x, y) => KEEP.some((r) => x > r[0] - 18 && x < r[2] + 18 && y > r[1] - 18 && y < r[3] + 18);
   const mixc = (c1, c2, k) => [c1[0] + (c2[0] - c1[0]) * k, c1[1] + (c2[1] - c1[1]) * k, c1[2] + (c2[2] - c1[2]) * k];
   const ramp = (t) => { if (t <= STOPS[0][0]) return STOPS[0][1];
     for (let i = 1; i < STOPS.length; i++) if (t <= STOPS[i][0]) return mixc(STOPS[i - 1][1], STOPS[i][1], (t - STOPS[i - 1][0]) / (STOPS[i][0] - STOPS[i - 1][0]));
     return STOPS[STOPS.length - 1][1]; };
-  const VIOLET = [122, 108, 240], WHITE = [255, 255, 255], DEEP = [3, 10, 32];
+  const VEIN = [240, 185, 11], WARM = [255, 236, 170], DEEP = [4, 5, 7];
   const LIGHT = (() => { const v = [-0.48, -0.7, 0.9], n = Math.hypot(v[0], v[1], v[2]); return v.map((x) => x / n); })();
   const rgb = (c) => 'rgb(' + c.map((v) => Math.max(0, Math.min(255, Math.round(v)))).join(',') + ')';
   const CLUSTERS = [
@@ -595,13 +784,13 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
     if (nz < 0) { nx = -nx; ny = -ny; nz = -nz; }
     const s = (nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]) / (Math.hypot(nx, ny, nz) || 1);
     let col = ramp(f);
-    if (by % 13 === 0 && f > 0.3 && f < 0.8) col = mixc(col, VIOLET, 0.34);
+    if (by % 13 === 0 && f > 0.3 && f < 0.8) col = mixc(col, VEIN, 0.32);              /* urat emas: hanya byte hash kelipatan 13 */
     const k = (s - 0.85) * 1.7 + (by / 255 - 0.5) * 0.1;
-    col = k > 0 ? mixc(col, WHITE, Math.min(0.42, k)) : mixc(col, DEEP, Math.min(0.36, -k));
+    col = k > 0 ? mixc(col, WARM, Math.min(0.34, k)) : mixc(col, DEEP, Math.min(0.4, -k));
     let pts = t, op = 1;
     if (kind === 'shard') { pts = t.map((p) => [cx + (p[0] - cx) * 0.66, cy + (p[1] - cy) * 0.66]); op = 0.5 + 0.28 * (by2 / 255);
-      col = mixc(ramp(0.66 + 0.22 * (by / 255)), WHITE, Math.max(0, k) * 0.5); }
-    else if (f > thr - 0.1) op = 0.86;
+      col = mixc(ramp(0.8 + 0.26 * (by / 255)), WARM, Math.max(0, k) * 0.4); }
+    else if (f > thr - 0.1) op = 0.88;
     const dly = Math.round(Math.hypot(cx - ORIGIN[0], cy - ORIGIN[1]) / 30) * 32;
     const ps = pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
     const c = rgb(col);
@@ -628,7 +817,7 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
   q('[data-s3-fx="front"]').innerHTML = out.front.join('');
   out.g.forEach((g, i) => { q(`[data-s3-fx="g${i}"]`).innerHTML = g.join(''); });
 
-  /* ---- cincin nilai (87, takik 60) + cincin komponen (busur ∝ bobot, isi ∝ nilai) ---- */
+  /* ---- cincin nilai emas (87, takik 60) + cincin komponen (busur ∝ bobot, isi ∝ nilai; dibedakan luminans + tebal, bukan hue) ---- */
   const R = 160, RC = 118, G = 0.007;
   const ang = (f) => (f * 360 - 90) * Math.PI / 180;
   const P2 = (r, f) => [r * Math.cos(ang(f)), r * Math.sin(ang(f))];
@@ -638,28 +827,52 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
   const sc = CERT.score / 100, pm = CERT.passMark / 100;
   const lenA = 2 * Math.PI * R * sc;
   let svg = `<defs>
-    <linearGradient id="s3-arcg" gradientUnits="userSpaceOnUse" x1="120" y1="-170" x2="-120" y2="170"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#d4f5ff"/><stop offset="1" stop-color="#6fd9f8"/></linearGradient>
+    <linearGradient id="s3-arcg" gradientUnits="userSpaceOnUse" x1="120" y1="-170" x2="-120" y2="170"><stop offset="0" stop-color="#fff6cf"/><stop offset=".45" stop-color="#fcd535"/><stop offset="1" stop-color="#f0b90b"/></linearGradient>
     <mask id="s3-notchm" maskUnits="userSpaceOnUse" x="-180" y="-180" width="360" height="360"><rect x="-180" y="-180" width="360" height="360" fill="#fff"/><rect x="-4" y="${-R - 16}" width="8" height="32" fill="#000" transform="rotate(${fx(pm * 360)})"/></mask>
   </defs>`;
-  svg += `<g class="s3-trk" mask="url(#s3-notchm)"><circle r="${R}" fill="none" stroke="#0a1f4a" stroke-opacity=".3" stroke-width="13"/><circle r="${R}" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="9"/></g>`;
+  svg += `<g class="s3-trk" mask="url(#s3-notchm)"><circle r="${R}" fill="none" stroke="#000000" stroke-opacity=".45" stroke-width="13"/><circle r="${R}" fill="none" stroke="#ffffff" stroke-opacity=".12" stroke-width="9"/></g>`;
   svg += `<g mask="url(#s3-notchm)"><path class="s3-arc" d="${arc(R, 0, sc)}" fill="none" stroke="url(#s3-arcg)" stroke-width="9" stroke-linecap="round" style="--len:${fx(lenA)}px;stroke-dasharray:${fx(lenA)} ${fx(lenA + 40)}"/></g>`;
-  svg += `<g transform="rotate(${fx(pm * 360)})"><polygon class="s3-notch" points="0,${-R - 8} -8,${-R - 24} 8,${-R - 24}" fill="#ffffff" stroke="#0a1f4a" stroke-opacity=".5" stroke-width="1"/></g>`;
+  svg += `<g transform="rotate(${fx(pm * 360)})"><polygon class="s3-notch" points="0,${-R - 8} -8,${-R - 24} 8,${-R - 24}" fill="#ffffff" stroke="#0b0e11" stroke-opacity=".6" stroke-width="1"/></g>`;
   const pp = P2(R + 42, pm);
-  svg += `<g transform="translate(${fx(pp[0])} ${fx(pp[1])})"><g class="s3-pillg"><rect x="-30" y="-11" width="60" height="22" rx="11" fill="#ffffff" stroke="#0a1f4a" stroke-opacity=".14"/><text class="s3-pilltxt" text-anchor="middle" dy="3.8">batas ${CERT.passMark}</text></g></g>`;
-  svg += `<g transform="rotate(${fx(sc * 360)})"><g class="s3-tick"><line x1="0" y1="${-R + 13}" x2="0" y2="${-R - 13}" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/><circle cx="0" cy="${-R}" r="6.5" fill="#ffffff" stroke="#0a1f4a" stroke-opacity=".45" stroke-width="1.5"/></g></g>`;
-  const COMP = ['#0a1f4a', '#2457d6', '#1593c6'];
+  svg += `<g transform="translate(${fx(pp[0])} ${fx(pp[1])})"><g class="s3-pillg"><rect class="s3-pillbg" x="-30" y="-11" width="60" height="22" rx="11"/><text class="s3-pilltxt" text-anchor="middle" dy="3.8">batas ${CERT.passMark}</text></g></g>`;
+  svg += `<g transform="rotate(${fx(sc * 360)})"><g class="s3-tick"><line x1="0" y1="${-R + 13}" x2="0" y2="${-R - 13}" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/><circle cx="0" cy="${-R}" r="6.5" fill="#ffffff" stroke="#0b0e11" stroke-opacity=".5" stroke-width="1.5"/></g></g>`;
+  /* kuis (bobot 50) paling terang & tebal → praktik (20) paling redup & tipis: bisa dibedakan tanpa membaca warna */
+  const COMP = [['#fcd535', 8], ['#f0b90b', 6], ['#b38600', 4.5]];
   let f0 = 0.25;
   CERT.components.forEach((c, i) => {
     const span = c.weight / 100, a0 = f0 + G, a1 = f0 + span - G, fill = a0 + (a1 - a0) * c.score / 100;
-    const Lc = 2 * Math.PI * RC * (fill - a0);
-    svg += `<path class="s3-trk" d="${arc(RC, a0, a1)}" fill="none" stroke="#0a1f4a" stroke-opacity=".1" stroke-width="7" stroke-linecap="round"/>`;
-    svg += `<path class="s3-cf" d="${arc(RC, a0, fill)}" fill="none" stroke="${COMP[i % 3]}" stroke-width="7" stroke-linecap="round" style="--len:${fx(Lc)}px;--cd:${1150 + i * 120}ms;stroke-dasharray:${fx(Lc)} ${fx(Lc + 30)}"/>`;
+    const Lc = 2 * Math.PI * RC * (fill - a0), st = COMP[i % 3];
+    svg += `<path class="s3-trk" d="${arc(RC, a0, a1)}" fill="none" stroke="#ffffff" stroke-opacity=".12" stroke-width="${st[1]}" stroke-linecap="round"/>`;
+    svg += `<path class="s3-cf" d="${arc(RC, a0, fill)}" fill="none" stroke="${st[0]}" stroke-width="${st[1]}" stroke-linecap="round" style="--len:${fx(Lc)}px;--cd:${1150 + i * 120}ms;stroke-dasharray:${fx(Lc)} ${fx(Lc + 30)}"/>`;
     const mid = f0 + span / 2, bottom = Math.sin(ang(mid)) > 0.2, rr = bottom ? RC - 11 : RC - 15, half = Math.min(span / 2 - 2 * G, 0.16);
     svg += `<path id="s3-lp${i}" d="${arc(rr, mid - half, mid + half, bottom)}" fill="none"/>`;
     svg += `<text class="s3-lab"><textPath href="#s3-lp${i}" xlink:href="#s3-lp${i}" startOffset="50%" text-anchor="middle">${c.label} ${c.score} × ${c.weight}%</textPath></text>`;
     f0 += span;
   });
   q('[data-s3-dial]').innerHTML = svg;
+
+  /* ---- nama penerima: pas otomatis dengan MENGUKUR (58 px → lantai 34 px satu baris → dua baris, lalu kecilkan bila perlu).
+          Kotak utama tingginya tetap, jadi elemen lain tidak bergeser. Nama ditulis kerangka lewat textContent. ---- */
+  const nameEl = q('.s3-name'), heroBox = q('.s3-hero');
+  const fitName = () => {
+    if (!nameEl || !heroBox || sheet.dataset.mode !== 'nama') return;
+    const MAX = 58, MIN1 = 34, MIN2 = 20, BW = heroBox.clientWidth, BH = heroBox.clientHeight;
+    nameEl.classList.remove('is-2'); nameEl.style.fontSize = MAX + 'px';
+    const w0 = nameEl.scrollWidth;
+    if (w0 <= BW) return;
+    let s = Math.max(MIN1, Math.floor(MAX * BW / w0));
+    nameEl.style.fontSize = s + 'px';
+    while (nameEl.scrollWidth > BW && s > MIN1) { s -= 1; nameEl.style.fontSize = s + 'px'; }
+    if (nameEl.scrollWidth <= BW) return;
+    nameEl.classList.add('is-2');
+    /* paling banyak dua baris dan muat di kotak. scrollHeight ikut area isi font (± 0,11 em di luar line-height 1,04),
+       jadi jumlah baris diuji dengan ambang 2,5 baris, bukan 2 baris persis. */
+    for (s = MIN1; s > MIN2; s -= 1) { nameEl.style.fontSize = s + 'px';
+      if (nameEl.scrollHeight <= Math.min(BH + 1, 2.5 * s * 1.04) && nameEl.scrollWidth <= BW) break; }
+  };
+  window.s3FitName = fitName;
+  document.addEventListener('cx:recipient', fitName);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitName);
 
   /* ---- hitung-naik selaras dengan sapuan cincin (cubic-bezier yang sama dengan CSS) ---- */
   const bez = (x1, y1, x2, y2) => { const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
@@ -676,39 +889,46 @@ body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-sy
 
   window.DESIGN = {
     id: 'S3', name: 'Kaca Segitiga', row: 'Glass / Soft-depth',
-    tagline: 'medali kaca di atas kristal yang dipahat oleh hash kredensial ini; cincin nilai menyapu sampai 87 melewati takik batas lulus 60.',
+    tagline: 'palet frontend Lencana (emas · arang), tema gelap dan terang; medali kaca asap di atas kristal yang dipahat hash kredensial ini; cincin emas menyapu sampai 87 melewati takik batas lulus 60.',
     brief: {
-      process: 'Kredensial diterbitkan dan ditandatangani agen penerbit; bukti penerbitannya tercatat di BNB Smart Chain testnet; siapa pun memeriksanya dengan memindai QR.',
-      core: 'Lensa kaca (medali) yang memegang hasil, berdiri di atas kristal low-poly yang facetnya dibentuk dari byte hash kredensial.',
-      relationship: 'Diagonal: kristal pekat di kanan atas (hasil) → kanal putih bercahaya (siapa, kelas apa) → kristal kecil kiri bawah di balik pelat fakta; QR di kaki medali, pita medali masuk ke balik pelat QR.',
-      metaphor: 'Lensa dan kristal: kaca buram tetap memperlihatkan kristal di belakangnya — isinya terbuka dan dapat diperiksa.'
+      process: 'Kredensial diterbitkan dan ditandatangani agen penerbit; bukti penerbitannya tercatat di BNB Smart Chain testnet; siapa pun memeriksanya dengan memindai QR. Sebelum mencetak, pemilik memilih baris penerima: alamat dompet (yang tertanda tangan) atau namanya sendiri.',
+      core: 'Lensa kaca asap (medali) yang memegang hasil, berdiri di atas kristal arang-emas yang facetnya dibentuk dari byte hash kredensial.',
+      relationship: 'Diagonal: kristal pekat di kanan atas (hasil) → kanal kertas (siapa, kelas apa) → kristal kecil kiri bawah di balik pelat fakta; pita hitam-emas turun ke balik pelat QR (hasil → cara memeriksanya).',
+      metaphor: 'Lensa dan kristal: kaca tidak menyembunyikan apa yang ada di belakangnya — isinya terbuka dan dapat diperiksa. Objek tetap, kertas berganti (gelap/terang).'
     },
     encodes: [
-      'Busur cincin luar: panjang = nilai akhir 87 dari 100 (mulai pukul 12, searah jarum jam); takik + label = batas lulus 60; garis + manik di ujung = 87.',
-      'Cincin dalam dibagi tiga busur, panjangnya sebanding bobot (kuis 50 %, esai 30 %, praktik 20 %); bagian terisi tiap busur sebanding nilainya (75, 98, 100). Jumlah bagian terisi = 86,9 % lingkaran.',
-      'Setiap segitiga kristal: tinggi titik kisinya = byte hash kredensial, lalu disinari dari kiri atas → terang-gelap facet; geser terang dan rona violet tiap facet juga dari byte hash (violet hanya bila byte kelipatan 13). Kredensial lain → kristal lain.',
+      'Busur cincin luar (emas): panjang = nilai akhir 87 dari 100 (mulai pukul 12, searah jarum jam); takik + label = batas lulus 60; garis + manik di ujung = 87.',
+      'Cincin dalam dibagi tiga busur, panjangnya sebanding bobot (kuis 50 %, esai 30 %, praktik 20 %); bagian terisi sebanding nilainya (75, 98, 100). Jumlah bagian terisi = 86,9 % lingkaran. Ketiganya dibedakan luminans dan tebal garis, bukan hue saja.',
+      'Setiap segitiga kristal: tinggi titik kisinya = byte hash kredensial, lalu disinari dari kiri atas → terang-gelap facet; urat emas hanya pada byte hash kelipatan 13. Kredensial lain → kristal lain.',
       'Batang masa berlaku dari tanggal terbit ke tanggal akhir: 12 ruas = 12 bulan, label dari validDays.',
-      'Alamat dompet dikelompokkan 4 karakter dalam kisi 5 × 2 (mono) supaya bisa dicocokkan per kelompok.'
+      'Alamat dompet dikelompokkan 4 karakter dalam kisi 5 × 2 (mono); di mode nama, alamat pendek tetap tampil di bawah nama.'
     ],
     fonts: [{ role: 'Judul, teks, angka', name: 'Outfit' }, { role: 'Alamat & hash', name: 'JetBrains Mono' }],
     palette: [
-      { name: 'Dasar bercahaya', hex: '#f3f7ff', use: 'kertas' },
-      { name: 'Navy dalam', hex: '#0a1f4a', use: 'teks, inti kristal' },
-      { name: 'Biru kerajaan', hex: '#2457d6', use: 'aksen, busur' },
-      { name: 'Sian listrik', hex: '#38c8ee', use: 'tepi kristal, cahaya' },
-      { name: 'Violet tipis', hex: '#7a6cf0', use: 'sedikit facet saja' }
+      { name: 'bg-app (gelap)', hex: '#0b0e11', use: 'kertas tema gelap' },
+      { name: 'card (gelap)', hex: '#181a20', use: 'kaca gelap, inti kristal' },
+      { name: 'elevated', hex: '#2b313a', use: 'facet arang, garis' },
+      { name: 'text (gelap)', hex: '#eaecef', use: 'teks tema gelap, angka di medali' },
+      { name: 'bg-app (terang)', hex: '#f5f5f5', use: 'kertas tema terang dan cetak' },
+      { name: 'text (terang)', hex: '#1e2329', use: 'teks tema terang' },
+      { name: 'sub (terang)', hex: '#474d57', use: 'label kecil tema terang' },
+      { name: 'emas', hex: '#f0b90b', use: 'cincin, busur, LULUS' },
+      { name: 'emas sorot', hex: '#fcd535', use: 'busur kuis, sorotan facet' },
+      { name: 'amber', hex: '#8a6a00', use: 'teks emas kecil tema terang, facet tengah' }
     ],
-    motif: 'Segitiga facet low-poly + kaca buram bertepi cahaya 1 px; satu bahasa kedalaman: blur + bayangan biru lembut.',
+    motif: 'Segitiga facet low-poly arang-emas + kaca bertepi cahaya 1 px; satu bahasa kedalaman: blur + bayangan lembut.',
     motion: {
-      entrance: 'facet merakit dari medali ke luar (gelombang ±32 ms, pegas); panel naik dengan blur-in; cincin menyapu ke 87 sambil angka menghitung naik.',
-      continuous: 'medali mengapung ±4 px (7 dtk); kilau diagonal melintasi kaca tiap 8 dtk; beberapa facet bernapas.',
-      interaction: 'paralaks penunjuk: tiga lapis facet dan medali bergeser dengan kedalaman berbeda lewat --mx/--my (hanya transform).',
-      micro: 'saat cincin menutup: denyut cincin melebar, kilat cahaya melintasi kaca, pelat QR terangkat 2 px.'
+      entrance: 'facet merakit dari medali ke luar (gelombang berjarak, pegas); panel naik dengan blur-in; cincin emas menyapu ke 87 sambil angka menghitung naik.',
+      continuous: 'medali mengapung ±4 px (7 dtk); cahaya diagonal lewat di belakang kaca tiap 8 dtk; beberapa facet bernapas.',
+      interaction: 'paralaks penunjuk: dua gugus kristal, serpihan, dan medali bergeser dengan kedalaman berbeda lewat --mx/--my (hanya transform).',
+      micro: 'saat cincin menutup: denyut cincin emas melebar, kilat cahaya di kaca, pelat QR terangkat 2 px.'
     },
     limits: [
-      'Kalimat/label baru: "format", "batas 60", "365 hari", "/100", label komponen "Kuis 75 × 50%" dst. — semuanya angka dari kredensial, tanpa klaim.',
-      'Tidak ada klaim verifikasi identitas; nama contoh hanya di mode nama, selalu disertai nameNote dan alamat pendek.',
-      'Saat cetak kaca (backdrop-filter) dimatikan: panel diberi isi putih semi-padat; atmosfer dan kristal tetap tercetak.'
+      'Label baru di lembar: "format", "batas 60", "365 hari", "/100", label komponen "Kuis 75 × 50%" dst. — semuanya angka dari kredensial, tanpa klaim.',
+      'Teks baru di bilah dan dialog: "Tema:", "Gelap", "Terang", "Nama", "Nama kamu", "Baris penerima di lembar", "Alamat dompet (yang tertanda tangan)", "Nama saya", "Nama tidak ikut tanda tangan; alamat tetap tampil kecil di lembar.", "Tulis namamu dulu, atau pilih alamat dompet.", "Cetak", "Batal".',
+      'Nama diketik pengguna sendiri: tidak diverifikasi, tidak ikut tanda tangan — lembar selalu menampilkan nameNote dan alamat pendek di bawahnya. Nama hanya disimpan di localStorage browser ini.',
+      'Cetak selalu memakai tema terang; kaca diganti isi putih padat (tanpa backdrop-filter).',
+      'Kontras: emas FE #d99e00 dan muted FE #707a8a gagal 4,5:1 di #f5f5f5 — di tema terang teks emas kecil memakai #8a6a00 dan label kecil memakai sub #474d57.'
     ]
   };
   window.__cxInit();
