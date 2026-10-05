@@ -1,0 +1,63 @@
+name: deploy-signer
+
+# B156 — backend (signer) ke Railway setiap dorongan ke main yang menyentuh kodenya, tanpa laptop siapa pun.
+#
+# Kenapa lewat Actions, bukan pemicu GitHub bawaan Railway: repo ini milik akun GitHub Shenhan01-sys, sedangkan akun Railway
+# yang memegang project `lencana` tertaut ke akun GitHub lain. Railway menolak membuat pemicu deploy ("no one in the project
+# has access to it") meski akun itu sudah collaborator — aplikasi GitHub Railway hanya bisa dipasang pemilik repo. Di sini
+# yang dibutuhkan hanya token project Railway (berlaku untuk project lencana / production saja) di secret RAILWAY_TOKEN.
+#
+# Yang diunggah adalah checkout repo: hanya berkas ter-commit — `.env`, `signer/.keys`, `signer/.store` tidak pernah ikut.
+# Image dibangun Railway dari `signer/Dockerfile` (variabel layanan RAILWAY_DOCKERFILE_PATH); rahasia ada di variabel layanan.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'signer/**'
+      - 'web/src/**'
+      - 'web/package.json'
+      - 'web/package-lock.json'
+      - 'web/.npmrc'
+      - 'web/tsconfig.json'
+      - '.github/workflows/deploy-signer.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-signer
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Deploy signer ke Railway (lencana / production)
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "::warning::secret RAILWAY_TOKEN belum diisi — deploy dilewati (token project Railway: lencana → Settings → Tokens)"
+            exit 0
+          fi
+          npm install -g @railway/cli
+          railway up --ci --service signer --environment production
+
+      - name: Uji asap domain publik
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://signer-production-e4f2.up.railway.app/catalog/published || true)
+            if [ "$code" = "200" ]; then echo "signer menjawab 200 (cek ke-$i)"; exit 0; fi
+            sleep 10
+          done
+          echo "::error::signer tidak menjawab 200 sesudah deploy"
+          exit 1

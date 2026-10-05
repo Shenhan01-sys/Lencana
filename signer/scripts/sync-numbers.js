@@ -144,6 +144,8 @@ const HARNESS = [
   { id: 'contexts', label: 'check:contexts (konteks JSON-LD dari salinan repo, tanpa jaringan)', cwd: SIGNER, cmd: ['npm', ['run', 'check:contexts']], re: /KONTEKS JSON-LD (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B144 status=TERBUKA 2026-10-05 — verify:review ikut baterai murah (tanpa gas): meja pengesahan agen pengesah, rubrik pengesahan/penilaian milik esainya sendiri, bersih-bersih baris peserta uji. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'review', label: 'verify:review (meja pengesahan: antrean dompet pengesah, rubrik milik esainya)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:review']], re: /MEJA PENGESAHAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B155 status=TERBUKA 2026-10-05 — verify:limits ikut baterai murah (tanpa gas): batas faucet + gas per IP dan kuota harian, IP klien hanya dari proxy tepercaya, /faucet ditolak sebelum tanda tangan dipakai. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  { id: 'limits', label: 'verify:limits (batas faucet + gas per IP dan kuota harian, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:limits']], re: /BATAS PEMBERIAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -297,6 +299,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'contexts', want: (m) => new RegExp(`KONTEKS JSON-LD HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris check:contexts di QR' },
   { file: '09-Testing/T74 - signer review-check.js (B144 meja pengesahan).md', metric: 'review', want: (m) => `MEJA PENGESAHAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T74 (meja pengesahan)' },
   { file: 'Quick-Reference.md', metric: 'review', want: (m) => new RegExp(`MEJA PENGESAHAN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:review di QR' },
+  { file: '09-Testing/T82 - signer limits-check.js (B155 batas pemberian).md', metric: 'limits', want: (m) => `BATAS PEMBERIAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T82 (batas pemberian)' },
+  { file: 'Quick-Reference.md', metric: 'limits', want: (m) => new RegExp(`BATAS PEMBERIAN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:limits di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

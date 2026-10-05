@@ -95,6 +95,8 @@ import { overview as publisherOverview, readPlatformBps } from './publisher.js'
 // Lencana-B130 status=TERBUKA 2026-10-02 — kursi Agent Owner end-to-end: POST /owner/overview (dasbor untuk alamat yang ownerOf-nya memegang agen yang dikenal platform) dan POST /owner/gas (platform mengisi gas pemilik agen yang ia cetak, hanya bila saldonya menipis). Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { ownerOverview, nativeBalance, sendGasDrip, GAS_LOW, GAS_DRIP } from './owner.js'
 import { ownedAgentFacts } from './agents.js'
+// B155: batas pemberian dari dompet deployer (per IP + kuota harian) — server ini publik sejak B154.
+import { limitsFromEnv, clientIp } from './limits.js'
 import { ownerRecords as dbOwnerRecords, platformAgents as dbPlatformAgents, platformAgentIds as dbPlatformAgentIds } from './db.js'
 // Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata = satu peran (D66): POST /me/role (pilih sekali, bertanda tangan), /me/roles mengembalikan peran efektif, rute peserta/penerbit/Agent Owner menolak akun berperan lain kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { accountOf, roleRefusal } from './account.js'
@@ -147,6 +149,9 @@ const PAY_PAYEE = process.env.ISSUER_ADDRESS
 // menguji penilaian, bukan pembayaran; /healthz melaporkan keadaannya supaya server sungguhan bisa diperiksa dari luar.
 const PAYWALL = process.env.ENROLL_PAYWALL !== 'off'
 const TIMEOUT_SECONDS = Number(process.env.X402_TIMEOUT ?? 600)
+// B155: kuota faucet + gas (memori proses; satu instance) dan dompet yang membayarnya, supaya saldonya terlihat di /healthz.
+const LIMITS = limitsFromEnv()
+const DEPLOYER_ADDRESS = process.env.DEPLOYER_PRIVATE_KEY ? privateKeyToAccount(process.env.DEPLOYER_PRIVATE_KEY).address : null
 
 // Setoran tenggat (B90). Premi yang hangus mengalir ke PENERBIT, sama seperti bayaran verifikasi.
 // Siaran mati secara bawaan dengan alasan yang sama dengan relayer: sebuah POST tidak boleh
@@ -672,13 +677,18 @@ const server = createServer(async (req, res) => {
         if (typeof body.learner !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(body.learner)) return send(res, 400, jsonBody({ error: 'invalid learner address' }))
         const last = await dbRecentFaucet(body.learner, FAUCET_COOLDOWN_HOURS)
         if (last) return send(res, 429, jsonBody({ error: `test coins were already sent to this address in the last ${FAUCET_COOLDOWN_HOURS} hours`, lastAt: last }))
+        // B155: alamat baru gratis dibuat, jadi batas per alamat saja tidak melindungi saldo deployer. Dicek sebelum tanda
+        // tangan dipakai (nonce tidak terbakar oleh permintaan yang toh ditolak); slot dilepas bila pemberiannya gagal.
+        const slot = LIMITS.faucet.take(clientIp(req))
+        if (!slot.ok) return send(res, 429, jsonBody({ error: `test-coin faucet ${slot.reason}`, retryAt: slot.retryAt }))
         const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'faucet' })
-        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        if (!auth.ok) { slot.release(); return send(res, 401, jsonBody({ error: auth.why })) }
         try {
           const minted = await mintTestCoins({ rpcUrl: RPC_URL, minterPk: process.env.DEPLOYER_PRIVATE_KEY, token: PAY_TOKEN, to: body.learner, amount: FAUCET_AMOUNT })
           return send(res, 200, jsonBody({ sent: String(FAUCET_AMOUNT), symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS, tx: minted.tx, balance: String(minted.balance) }))
         } catch (err) {
           // Gagal mencetak = jangan kunci peserta 24 jam tanpa koin.
+          slot.release()
           const nonce = /nonce=([0-9a-f]{12,})/.exec(body.message)?.[1]
           if (nonce) await dbForgetNonce(nonce).catch(() => {})
           return send(res, 502, jsonBody({ error: `mint failed: ${String(err.message ?? err).split('\n')[0].slice(0, 160)}` }))
@@ -938,10 +948,14 @@ const server = createServer(async (req, res) => {
           }
           const before = await nativeBalance(RPC_URL, addr)
           if (before >= GAS_LOW) return send(res, 409, jsonBody({ error: 'balance is still enough for an owner transaction', balance: String(before) }))
+          // B155: peran Agent Owner dipilih dengan tanda tangan alamat itu sendiri — batas per IP + kuota harian menjaga saldo deployer.
+          const slot = LIMITS.gas.take(clientIp(req))
+          if (!slot.ok) return send(res, 429, jsonBody({ error: `gas drip ${slot.reason}`, retryAt: slot.retryAt }))
           try {
             const sent = await sendGasDrip({ rpcUrl: RPC_URL, pk: process.env.DEPLOYER_PRIVATE_KEY, to: addr, value: GAS_DRIP })
             return send(res, 200, jsonBody({ tx: sent.tx, sent: String(GAS_DRIP), balance: String(sent.balance) }))
           } catch (err) {
+            slot.release()
             return send(res, 502, jsonBody({ error: `gas drip failed: ${String(err.message ?? err).split('\n')[0].slice(0, 160)}` }))
           }
         }
@@ -1531,6 +1545,12 @@ const server = createServer(async (req, res) => {
           routes: 'GET /deposit/policy/<course> · GET /deposit/<course>/<learner> · POST /deposit/finalize',
           contract: DEPOSIT ?? '(belum diisi)', configured: DEPOSIT_READY, broadcast: DEPOSIT_BROADCAST,
         },
+        // B155: dompet yang membayar faucet, gas pemilik agen, dan penyelesaian bayar — saldonya terlihat sebelum habis.
+        // Pemakaian kuota hanya angka; IP pengunjung tidak pernah dilaporkan.
+        deployer: DEPLOYER_ADDRESS
+          ? { address: DEPLOYER_ADDRESS, balanceWei: await nativeBalance(RPC_URL, DEPLOYER_ADDRESS).then(String).catch(() => null) }
+          : null,
+        limits: { faucet: LIMITS.faucet.snapshot(), gas: LIMITS.gas.snapshot() },
       })
     }
     return send(res, 404, {
