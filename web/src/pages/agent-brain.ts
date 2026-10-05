@@ -3,7 +3,8 @@
  *
  * Benda di panggung (doktrin FE builder: wakili, jangan deskripsikan):
  *   rak kartrid     tujuh provider; kartrid terpilih naik, soket otak menyala hijau bila otaknya tercatat di server
- *   gantungan kunci API key — hanya di peramban ini (sesi, atau perangkat bila diingat); tidak pernah ke server Lencana
+ *   gantungan kunci API key — hanya di peramban ini (sesi, atau perangkat bila diingat — sejak B158 diingat bawaan, dan
+ *                   kunci yang ada tergantung sebagai label "tersimpan" alih-alih kolom kosong); tidak pernah ke server Lencana
  *   pita model      daftar model dari endpoint provider (+ cari + ID manual; GLM: daftar cadangan)
  *   bangku uji      skala 0..100 dengan garis lulus; dua kertas uji meluncur ke angkanya — kosong harus berhenti di zona
  *                   merah, substantif di zona hijau (kontrol yang sama dengan `npm run judge`)
@@ -40,6 +41,12 @@ const COPY = {
   remember: { en: 'Remember on this device', id: 'Ingat di perangkat ini' },
   rememberNote: { en: 'Personal devices only: anyone using this browser profile can read it.', id: 'Hanya di perangkat pribadi: siapa pun yang memakai profil peramban ini bisa membacanya.' },
   forget: { en: 'Forget key', id: 'Lupakan kunci' },
+  keyOf: { en: '{p} key', id: 'Kunci {p}' },
+  savedDevice: { en: 'saved on this device', id: 'tersimpan di perangkat ini' },
+  savedTab: { en: 'kept for this tab only', id: 'hanya untuk tab ini' },
+  replace: { en: 'Replace', id: 'Ganti' },
+  saveKey: { en: 'Save', id: 'Simpan' },
+  keepDevice: { en: 'Save on this device', id: 'Simpan di perangkat ini' },
   getKey: { en: 'Get a key ↗', id: 'Ambil kunci ↗' },
   model: { en: 'Model', id: 'Model' },
   fetchModels: { en: 'Fetch models', id: 'Ambil daftar model' },
@@ -102,47 +109,133 @@ const COPY = {
 } satisfies Record<string, Record<Lang, string>>
 
 /* ------------------------------------------------------------------ kunci: hanya di peramban ini */
+// Lencana-B158 status=SELESAI 2026-10-05 —API key tersimpan bawaan di perangkat (bisa dimatikan), salinan perangkat menang atas salinan tab, kunci yang ada tampil sebagai tanda tersimpan + Ganti/Lupakan; tetap hanya di peramban (D69). Buktikan ulang: cd web && npx tsc --noEmit && npm run probe, lalu uji peramban T83. JANGAN dibalik/diulang tanpa membuka kembali baris B158 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 const KEY_PREFIX = 'lencana.llm-key.'
+const KEY_EVENT = 'lencana:llm-key'
 export function readKey (p: ProviderId): { key: string, remembered: boolean } {
-  try { const s = sessionStorage.getItem(KEY_PREFIX + p); if (s) return { key: s, remembered: false } } catch { /* penyimpanan ditolak */ }
-  try { const l = localStorage.getItem(KEY_PREFIX + p); if (l) return { key: l, remembered: true } } catch { /* penyimpanan ditolak */ }
-  return { key: '', remembered: false }
+  // Salinan perangkat menang: ia yang dipilih untuk diingat. Dulu sesi dibaca lebih dulu dan melaporkan "tidak diingat"
+  // walau salinan perangkat ada — kotaknya tampil kosong, dan ketikan berikutnya menghapus salinan itu (B158).
+  let local = ''
+  let session = ''
+  try { local = localStorage.getItem(KEY_PREFIX + p) ?? '' } catch { /* penyimpanan ditolak */ }
+  try { session = sessionStorage.getItem(KEY_PREFIX + p) ?? '' } catch { /* penyimpanan ditolak */ }
+  return local ? { key: local, remembered: true } : { key: session, remembered: false }
 }
 function writeKey (p: ProviderId, key: string, remember: boolean): void {
   try { if (key) sessionStorage.setItem(KEY_PREFIX + p, key); else sessionStorage.removeItem(KEY_PREFIX + p) } catch { /* penyimpanan ditolak */ }
   try { if (key && remember) localStorage.setItem(KEY_PREFIX + p, key); else localStorage.removeItem(KEY_PREFIX + p) } catch { /* penyimpanan ditolak */ }
+  // Gantungan lain untuk provider yang sama di halaman ini (panel otak + antrean) ikut membaca ulang.
+  window.dispatchEvent(new CustomEvent(KEY_EVENT, { detail: p }))
 }
+/** Awal + empat karakter akhir — cukup untuk mengenali kunci mana yang tersimpan, tanpa menampilkannya. */
+const maskKey = (k: string) => (k.length > 12 ? `${k.slice(0, 4)}…${k.slice(-4)}` : '••••')
 
-/** Gantungan kunci untuk satu provider: input sandi + "ingat" + lupakan + tautan ambil kunci. Dipakai juga meja pengesahan (B144). */
+/**
+ * Gantungan kunci untuk satu provider. Dipakai juga meja pengesahan (B144).
+ * Belum ada kunci → kolom sandi, "ingat di perangkat ini" menyala bawaan (B158, pilihan builder), lupakan, tautan ambil kunci.
+ * Sudah ada kunci → tanda "Kunci <provider> tersimpan · awal…akhir" + Ganti / Lupakan, jadi tidak ditempel ulang.
+ */
 export function keyField (lang: Lang, start: ProviderId, onChange: () => void): { el: HTMLElement, value: () => string, setProvider: (p: ProviderId) => void } {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   let p = start
+  let editing = false
   const input = h('input', { type: 'password', class: 'ab-input', autocomplete: 'off', spellcheck: 'false', 'aria-label': T('key') }) as HTMLInputElement
-  const remember = h('input', { type: 'checkbox' }) as HTMLInputElement
+  const remember = h('input', { type: 'checkbox', checked: true }) as HTMLInputElement
   const link = h('a', { class: 'ab-getkey', target: '_blank', rel: 'noopener noreferrer' }, T('getKey')) as HTMLAnchorElement
   const providerNote = h('small', { class: 'ab-warn' })
+  const save = h('button', { type: 'button', class: 'app-btn small' }, T('saveKey')) as HTMLButtonElement
+  const cancel = h('button', { type: 'button', class: 'ab-link quiet' }, T('cancel')) as HTMLButtonElement
+  const forget = h('button', { type: 'button', class: 'ab-link' }, T('forget')) as HTMLButtonElement
+  const entryState = h('small', { class: 'ab-keysaved-where', role: 'status' })
+  const entry = h('div', { class: 'ab-keyentry' },
+    h('label', { class: 'ab-field' }, h('span', { class: 'ab-label' }, T('key')), input),
+    h('div', { class: 'ab-keyrow' }, h('label', { class: 'ab-check' }, remember, h('span', null, T('remember'))), save, cancel, link, entryState),
+    h('small', { class: 'ab-keyshared' }, T('rememberNote')))
+
+  const savedName = h('strong', { class: 'ab-keysaved-name' })
+  const savedMask = h('code', { class: 'ab-keysaved-mask' })
+  const savedWhere = h('small', { class: 'ab-keysaved-where' })
+  const replace = h('button', { type: 'button', class: 'app-btn small' }, T('replace')) as HTMLButtonElement
+  const keep = h('button', { type: 'button', class: 'ab-link quiet' }, T('keepDevice')) as HTMLButtonElement
+  const saved = h('div', { class: 'ab-keysaved', role: 'status' },
+    h('div', { class: 'ab-keysaved-text' }, savedName, savedMask, savedWhere),
+    h('div', { class: 'ab-keysaved-acts' }, replace, keep, forget))
+
   const load = () => {
     const k = readKey(p)
-    input.value = k.key
-    remember.checked = k.remembered
+    const has = Boolean(k.key)
+    if (!has) editing = false
+    entry.hidden = has && !editing
+    saved.hidden = !has || editing
+    cancel.hidden = !(has && editing)
+    if (!editing) { input.value = ''; entryState.textContent = '' }
+    if (!has) remember.checked = true
+    savedName.textContent = T('keyOf').replace('{p}', LLM_PROVIDERS[p].label)
+    savedMask.textContent = has ? maskKey(k.key) : ''
+    savedWhere.textContent = k.remembered ? T('savedDevice') : T('savedTab')
+    savedWhere.className = `ab-keysaved-where ${k.remembered ? 'ok' : 'warn'}`
+    keep.hidden = k.remembered
     input.placeholder = LLM_PROVIDERS[p].keyHint
     link.href = LLM_PROVIDERS[p].keyUrl
     providerNote.textContent = LLM_PROVIDERS[p].note?.[lang] ?? ''
     providerNote.hidden = !LLM_PROVIDERS[p].note
   }
-  input.addEventListener('input', () => { writeKey(p, input.value.trim(), remember.checked); onChange() })
-  remember.addEventListener('change', () => writeKey(p, input.value.trim(), remember.checked))
-  const forget = h('button', { type: 'button', class: 'ab-link' }, T('forget')) as HTMLButtonElement
-  forget.addEventListener('click', () => { input.value = ''; remember.checked = false; writeKey(p, '', false); onChange() })
-  load()
+  // Kunci ditulis saat kolomnya dilepas, bukan per ketikan: kunci yang sedang diganti tidak tertimpa separuh, dan
+  // mengosongkan kolom tidak menghapus kunci tersimpan — itu tugas "Lupakan". Tampilan baru menutup lewat Simpan/Enter:
+  // kalau ia menutup saat kolom dilepas, klik ke kotak "ingat" sesudah menempel hilang bersama kotaknya, dan kunci
+  // tersimpan di perangkat padahal pemiliknya hendak mematikannya.
+  const commit = (close: boolean) => {
+    const v = input.value.trim()
+    if (v) {
+      writeKey(p, v, remember.checked)
+      entryState.textContent = remember.checked ? T('savedDevice') : T('savedTab')
+      entryState.className = `ab-keysaved-where ${remember.checked ? 'ok' : 'warn'}`
+    }
+    if (close && readKey(p).key) { editing = false; load(); onChange() }
+  }
+  input.addEventListener('input', () => { editing = true; onChange() })
+  input.addEventListener('change', () => commit(false))
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); commit(true) } })
+  save.addEventListener('click', () => commit(true))
+  remember.addEventListener('change', () => {
+    if (input.value.trim()) commit(false)
+    else if (readKey(p).key) writeKey(p, readKey(p).key, remember.checked)
+  })
+  // "Ganti" mencatat kunci lama; "Batal" mengembalikannya walau kunci baru sempat tertulis saat kolom dilepas.
+  let before: { key: string, remembered: boolean } | null = null
+  replace.addEventListener('click', () => {
+    before = readKey(p)
+    editing = true
+    remember.checked = before.remembered
+    entryState.textContent = ''
+    load()
+    input.focus()
+  })
+  cancel.addEventListener('click', () => {
+    editing = false
+    const now = readKey(p)
+    if (before?.key && (before.key !== now.key || before.remembered !== now.remembered)) writeKey(p, before.key, before.remembered)
+    before = null
+    load()
+    onChange()
+  })
+  keep.addEventListener('click', () => { writeKey(p, readKey(p).key, true) })
+  forget.addEventListener('click', () => { editing = false; writeKey(p, '', false); onChange() })
+  const sync = (e: Event) => {
+    if (!el.isConnected) { window.removeEventListener(KEY_EVENT, sync); window.removeEventListener('storage', sync); return }
+    if (e instanceof StorageEvent ? e.key === KEY_PREFIX + p : (e as CustomEvent).detail === p) { if (!editing) load(); onChange() }
+  }
+  window.addEventListener(KEY_EVENT, sync)
+  window.addEventListener('storage', sync)
   const el = h('div', { class: 'ab-keyring' },
     h('span', { class: 'ab-keytag', 'aria-hidden': 'true' }),
     h('div', { class: 'ab-keybody' },
-      h('label', { class: 'ab-field' }, h('span', { class: 'ab-label' }, T('key')), input),
-      h('div', { class: 'ab-keyrow' }, h('label', { class: 'ab-check', title: T('rememberNote') }, remember, h('span', null, T('remember'))), forget, link),
+      entry,
+      saved,
       h('small', { class: 'ab-keynote' }, T('keyNote')),
       providerNote))
-  return { el, value: () => input.value.trim(), setProvider: (x) => { p = x; load() } }
+  load()
+  return { el, value: () => input.value.trim() || readKey(p).key, setProvider: (x) => { p = x; editing = false; load() } }
 }
 
 /* ------------------------------------------------------------------ SVG */
@@ -384,8 +477,11 @@ function queuePanel (lang: Lang, o: OwnerOverview, a: OwnerAgent, brain: AgentBr
   if (!a.hires.length) { box.appendChild(h('p', { class: 'ab-muted' }, T('noHires'))); return box }
   const provider = isProvider(brain.provider) ? brain.provider : null
   if (!provider) return box
-  const keys = keyField(lang, provider, () => {})
-  const keyWrap = h('div', { class: 'ab-queue-key', hidden: Boolean(readKey(provider).key) }, h('small', { class: 'ab-muted' }, T('needKey')), keys.el)
+  // B158: gantungannya selalu tampil — kunci yang tersimpan terlihat sebagai tanda (bisa diganti/dilupakan), ajakan
+  // mengisi kunci hanya bila belum ada.
+  const needKey = h('small', { class: 'ab-muted', hidden: Boolean(readKey(provider).key) }, T('needKey'))
+  const keys = keyField(lang, provider, () => { needKey.hidden = Boolean(readKey(provider).key) })
+  const keyWrap = h('div', { class: 'ab-queue-key' }, needKey, keys.el)
   const status = h('p', { class: 'seat-apply-status', role: 'status' })
   const tray = h('div', { class: 'ab-tray' })
   const open = h('button', { type: 'button', class: 'app-btn primary small' }, T('openQueue')) as HTMLButtonElement

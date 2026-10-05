@@ -60,8 +60,22 @@
 .ab-keyrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
 .ab-check { display: inline-flex; align-items: center; gap: 6px; color: #e9e6df; font-size: 12.5px; cursor: pointer; }
 .ab-link { padding: 0; border: 0; background: none; color: #ff9f43; font-size: 12.5px; cursor: pointer; }
+.ab-link.quiet { color: #c9c4b8; text-decoration: underline; text-underline-offset: 3px; }
 .ab-getkey { color: #f0b90b; font-size: 12.5px; }
 .ab-keynote { color: #37d67a; font-size: 12px; }
+.ab-keyring [hidden] { display: none !important; } /* gantungan juga dipasang di meja pengesahan, di luar `.ab` */
+.ab-keyentry { display: grid; gap: 6px; min-width: 0; }
+.ab-keyshared { color: #9a958b; font-size: 12px; }
+/* B158: kunci yang sudah ada = label tergantung di gantungannya, bukan kolom kosong */
+.ab-keysaved { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-top: 18px; padding: 10px 12px;
+  border: 1px solid rgba(240, 185, 11, 0.35); border-radius: 10px; background: linear-gradient(90deg, rgba(240, 185, 11, 0.08), rgba(240, 185, 11, 0.02)); }
+.ab-keysaved-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-width: 0; }
+.ab-keysaved-name { color: #f4f1ea; font-size: 13.5px; }
+.ab-keysaved-mask { padding: 2px 7px; border-radius: 6px; background: rgba(0, 0, 0, 0.35); color: #f0b90b; font: 600 12.5px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.02em; }
+.ab-keysaved-where { font-size: 12px; }
+.ab-keysaved-where.ok { color: #37d67a; }
+.ab-keysaved-where.warn { color: #ff9f43; }
+.ab-keysaved-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 
 /* pita model */
 .ab-modelbox, .ab-bench, .ab-installbox { display: grid; gap: 8px; min-width: 0; }
