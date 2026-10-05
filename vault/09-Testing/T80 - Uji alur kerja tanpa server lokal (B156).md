@@ -10,7 +10,8 @@ result: TIDAK ADA SERVER LOKAL YANG DIBUTUHKAN UNTUK MENJALANKAN DAN MENGUJI —
 # T80 - Uji alur kerja tanpa server lokal (B156)
 
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B156 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Keputusan:** D75 di [[00-Overview/03 - Decisions]] · **Sebelumnya:** [[09-Testing/T78 - Uji signer cloud Railway dan build produksi (B154)]]
+**Keputusan:** D75 di [[00-Overview/03 - Decisions]] · **Sebelumnya:** [[09-Testing/T78 - Uji signer cloud Railway dan build produksi (B154)]] ·
+**AC:** [[07-Backlog/Acceptance-Criteria/AC-B156 - Tanpa server lokal]] · **Summary:** [[08-Results/B156 - Executive Summary]]
 
 Pertanyaan yang diuji: sesudah signer demo lokal `127.0.0.1:8787` dimatikan, apakah (1) baterai uji tetap hijau, (2) server
 dev front-end di laptop tetap bisa dipakai, dan (3) backend tetap terdeploy tanpa perintah dari laptop.

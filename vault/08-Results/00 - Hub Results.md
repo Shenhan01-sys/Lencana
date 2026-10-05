@@ -1,7 +1,7 @@
 ---
 tags: [hub, results]
 status: active
-updated: 2026-10-04
+updated: 2026-10-05
 ---
 
 # 00 - Hub Results
@@ -33,6 +33,13 @@ carries the command that printed it and the date it printed.
 | [[08-Results/B138 - Executive Summary]] | 3 Okt — bursa agen di dasbor Penerbit (D70): agen dipilih dari etalase robot (harga, otak + kalibrasi, rekam jejak, status, tempat bekerja), sewa/tunjuk dari lapak dengan alasan konflik sebelum tanda tangan, tim agen per kursus; `GET /agents/market` tanpa data peserta; B137 ikut; `verify:market` 23/0 |
 | [[08-Results/B140 - Executive Summary]] | 4 Okt — kelola kursus terbit dari dasbor (D72): anggota ber-hak `publish=1` menerbitkan/mengembalikan draf dan mengarsipkan/memulihkan kursus, server menandatangani dengan kunci penerbit dan mencatat peminta (`course_actions`); sunting = versi baru (aturan sama → id sama, digantikan di tempat; aturan berubah → id baru, versi lama diarsipkan); kursus arsip hilang dari katalog dan menolak peserta baru; `verify:manage` 55/0 |
 | [[08-Results/B144 - Executive Summary]] | 5 Okt — meja pengesahan agen pengesah (D73): antrean esai berusulan dibaca dompet agen pengesah yang ditunjuk (tanpa alamat peserta), periksa + pendapat kedua dari otaknya, Setujui / Sesuaikan / Tolak + label + tanda tangan dari dasbor Agent Owner; celah rubrik pengesahan (rubrik kursus lain) ditutup dan dibuktikan nyata dengan uji negatif; `verify:review` 31/0 |
+| [[08-Results/B149 - Executive Summary]] | 5 Okt — tombol hamburger di navbar ≤ 860 px: panel dibangun ulang dari menu navbar yang hidup (Dasbor sesudah login, tanda aktif), EN/ID + nama jaringan; navbar tidak lagi meluap (sebelumnya 386 px); diukur di iframe 375 px headless, bukan HP sungguhan |
+| [[08-Results/B150 - Executive Summary]] | 5 Okt — 20 rute tiga kursi di 375 px: 5 halaman bermasalah → 0 luapan, 0 teks terpotong; area geser bertanda; desktop tidak berubah; penjaga marker kini membaca `web/src/lib` (audit 283 marker bersih) |
+| [[08-Results/B151 - Executive Summary]] | 5 Okt — ruang kelas di HP: satu kolom, bilah atas menempel, kurikulum jadi laci; 10 halaman kelas 0 luapan (sebelumnya 30–31 elemen); kuis dinilai server dan esai terkirim dari 375 px; desktop tidak berubah |
+| [[08-Results/B152 - Executive Summary]] | 5 Okt — PWA: manifest + ikon + service worker yang hanya menyimpan cangkang + berkas build ber-hash (0 entri beda asal); `getInstallabilityErrors` [] lokal dan di Vercel HTTPS; cangkang termuat saat asal mati |
+| [[08-Results/B154 - Executive Summary]] | 5 Okt — signer di Railway (D74), **LIVE** dan dipakai Vercel: katalog/healthz 200, CORS 204, rute bertanda tangan + tolak replay, faucet, bayar Kelas Uji (struk status `0x1`); baris tetap terbuka — login Privy dari HP belum diuji |
+| [[08-Results/B155 - Executive Summary]] | 5 Okt — faucet 3/IP + 200/hari, gas 2/IP + 30/hari, ditolak sebelum tanda tangan dipakai; `/healthz` memuat saldo deployer + kuota tanpa IP; `verify:limits` 23/0, baterai 37 · 37; LIVE di deployment `3778fdeb` |
+| [[08-Results/B156 - Executive Summary]] | 5 Okt — tidak ada server lokal (D75): dev lokal memakai signer cloud, `serve-probe` menyalakan signer sementaranya sendiri (50/0), baterai 36 · 36 tanpa :8787; dorongan ke `main` mendeploy lewat GitHub Actions (pemicu bawaan Railway tidak mungkin), run `37259823357` → `3778fdeb` |
 | [[08-Results/B121 - Executive Summary]] | 1 Okt — slot praktik dinilai dari chain lewat `POST /praktik` (saldo, transfer, `eth_call`, izin token), `/attempts` menolak skor slot rubrik dari peserta; satu kertas terbit dengan praktik `gradedBy chain` (`verify:praktik` 32/0, live 32/0). **Core saja** — halaman belajar belum memanggil rutenya, baris B121 tetap terbuka |
 
 **Rule for adding a row.** Only from a run. If no command prints the number, the number does not belong

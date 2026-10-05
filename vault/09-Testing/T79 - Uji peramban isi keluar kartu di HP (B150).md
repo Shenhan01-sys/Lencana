@@ -10,7 +10,8 @@ result: TIDAK ADA LAGI ISI YANG KELUAR KARTU DI 375 PX — 20 rute berbeda di ti
 # T79 - Uji peramban isi keluar kartu di HP (B150)
 
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B150 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Untuk pemelihara front-end:** OI-32 di [[10-Contributors/Open-Items-for-Dave]]
+**Untuk pemelihara front-end:** OI-32 di [[10-Contributors/Open-Items-for-Dave]] ·
+**AC:** [[07-Backlog/Acceptance-Criteria/AC-B150 - Isi tidak keluar kartu di HP]] · **Summary:** [[08-Results/B150 - Executive Summary]]
 
 Pertanyaan yang diuji: di lebar HP, adakah isi yang keluar dari kartunya atau dari layar — di dasbor ketiga kursi dan di
 halaman publik — dan sesudah diperbaiki, apakah desktop tetap sama.

@@ -730,7 +730,7 @@ Kodenya hidup di berkas baru (`web/src/nav-mobile.ts`, `web/src/nav-mobile.css`)
 
 | berkas | perubahan |
 |---|---|
-| `web/src/main.ts` | `import { mountMobileNav } from './nav-mobile'` (`web/src/main.ts:34`) dan satu panggilan `mountMobileNav()` sesudah tombol EN/ID dipasang (`web/src/main.ts:809`) |
+| `web/src/main.ts` | `import { mountMobileNav } from './nav-mobile'` (`web/src/main.ts:34`) dan satu panggilan `mountMobileNav()` sesudah tombol EN/ID dipasang (~~`web/src/main.ts:809`~~ `web/src/main.ts:814` sejak impor B150/B152 di kepala berkas) |
 
 Tidak disunting: `index.html` (tombol dan panel dibuat dari JS), `style.css` (aturannya di `nav-mobile.css`), `i18n.ts`.
 Yang ditambahkan ke DOM: `button.nav-burger` di ujung `.nav-actions`, lalu `nav#nav-drawer.nav-drawer` +

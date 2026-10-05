@@ -10,7 +10,8 @@ result: BATAS PEMBERIAN HIJAU — 23 pemeriksaan / 0 gagal (5 Okt, B155; uji neg
 # T82 - signer limits-check.js — B155: batas pemberian dari dompet deployer
 
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B155 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Asal temuan:** [[09-Testing/T78 - Uji signer cloud Railway dan build produksi (B154)]] (signer jadi publik)
+**Asal temuan:** [[09-Testing/T78 - Uji signer cloud Railway dan build produksi (B154)]] (signer jadi publik) ·
+**AC:** [[07-Backlog/Acceptance-Criteria/AC-B155 - Batas faucet dan gas]] · **Summary:** [[08-Results/B155 - Executive Summary]]
 
 `signer/scripts/limits-check.js`, dijalankan `npm run verify:limits` (di `signer/`), ikut baterai murah `npm run sync:numbers`.
 Prasyarat: `DEPLOYER_PRIVATE_KEY`, `DEMO_TOKEN_ADDRESS`, `RPC_URL`, `SUPABASE_URL` + secret key (dari `app/.env`). Tanpa gas:

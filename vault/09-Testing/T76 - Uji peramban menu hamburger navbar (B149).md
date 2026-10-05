@@ -10,7 +10,8 @@ result: MENU HAMBURGER JALAN DI LEBAR HP — lima menu tercapai dari panel denga
 # T76 - Uji peramban menu hamburger navbar (B149)
 
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B149 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Untuk pemelihara front-end:** OI-30 di [[10-Contributors/Open-Items-for-Dave]]
+**Untuk pemelihara front-end:** OI-30 di [[10-Contributors/Open-Items-for-Dave]] ·
+**AC:** [[07-Backlog/Acceptance-Criteria/AC-B149 - Menu hamburger navbar HP]] · **Summary:** [[08-Results/B149 - Executive Summary]]
 
 Pertanyaan yang diuji: sesudah `web/src/nav-mobile.ts` + `nav-mobile.css` dipasang dari `main.ts`, apakah semua menu navbar
 bisa dicapai dari layar HP, apakah panelnya mengikuti keadaan navbar asli (bahasa, tautan Dasbor yang hanya muncul sesudah

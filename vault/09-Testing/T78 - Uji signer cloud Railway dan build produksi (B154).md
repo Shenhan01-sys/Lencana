@@ -10,7 +10,8 @@ result: SIGNER CLOUD HIDUP DAN DIPAKAI BUILD PRODUKSI — katalog, healthz, pref
 # T78 - Uji signer cloud Railway dan build produksi (B154)
 
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B154 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Keputusan:** D74 di [[00-Overview/03 - Decisions]] · **Temuan terkait:** B155 (faucet + gas drip di server publik)
+**Keputusan:** D74 di [[00-Overview/03 - Decisions]] · **Temuan terkait:** B155 (faucet + gas drip di server publik) ·
+**AC:** [[07-Backlog/Acceptance-Criteria/AC-B154 - Signer di Railway]] · **Summary:** [[08-Results/B154 - Executive Summary]]
 
 Pertanyaan yang diuji: apakah signer yang berjalan di Railway (project lencana) bisa menggantikan laptop + ngrok untuk
 front-end produksi — membaca DB, memeriksa tanda tangan, mencetak koin uji, dan menyelesaikan pembayaran kelas di chain —

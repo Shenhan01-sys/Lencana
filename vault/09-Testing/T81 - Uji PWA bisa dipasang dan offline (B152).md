@@ -10,7 +10,8 @@ result: BISA DIPASANG DAN MEMBUKA CANGKANGNYA SAAT OFFLINE — 0 galat installab
 # T81 - Uji PWA bisa dipasang dan offline (B152)
 
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B152 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Untuk pemelihara front-end:** OI-33 di [[10-Contributors/Open-Items-for-Dave]]
+**Untuk pemelihara front-end:** OI-33 di [[10-Contributors/Open-Items-for-Dave]] ·
+**AC:** [[07-Backlog/Acceptance-Criteria/AC-B152 - PWA bisa dipasang dan offline]] · **Summary:** [[08-Results/B152 - Executive Summary]]
 
 Pertanyaan yang diuji: apakah situs memenuhi syarat dipasang sebagai aplikasi di HP, apakah service worker hanya menyimpan
 yang boleh disimpan (cangkang dan berkas build — bukan jawaban signer, RPC chain, atau dokumen tepi), dan apakah cangkangnya

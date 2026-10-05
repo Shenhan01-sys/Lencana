@@ -10,7 +10,8 @@ result: RUANG KELAS BISA DIPAKAI PENUH DARI HP — 10 halaman kelas di dua kursu
 # T77 - Uji peramban ruang kelas di HP (B151)
 
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B151 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
-**Untuk pemelihara front-end:** OI-31 di [[10-Contributors/Open-Items-for-Dave]]
+**Untuk pemelihara front-end:** OI-31 di [[10-Contributors/Open-Items-for-Dave]] ·
+**AC:** [[07-Backlog/Acceptance-Criteria/AC-B151 - Ruang kelas di HP]] · **Summary:** [[08-Results/B151 - Executive Summary]]
 
 Pertanyaan yang diuji: sesudah `web/src/pages/class.css` (baru) dan perubahan kecil di `web/src/pages/class.ts`, apakah
 peserta bisa belajar penuh dari layar HP di `#/class/<kursus>` — membaca, berpindah lesson lewat kurikulum, mengerjakan
