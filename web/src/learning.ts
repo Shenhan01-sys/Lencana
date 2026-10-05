@@ -1548,3 +1548,78 @@ export async function submitEssay (courseId: string, lessonSlug: string, text: s
 
 /** Tanda terima esai terakhir, untuk dicetak halaman tanpa menyimpannya di mana pun. */
 export function lastEssay (): EssayReceipt | null { return state.lastEssay }
+
+// Lencana-B157 status=SELESAI 2026-10-05 —formulir praktik di halaman kelas (tahap 1: bukti `eth-call`): peserta menempel keluaran mentah tiap pemanggilan, halaman menandatangani dan mengirimnya ke POST /praktik; yang menilai adalah server yang membaca ulang chain, dan nilai yang benar tidak pernah dikembalikan. Jenis bukti lain (balance, tx-receipt, allowance — butuh dompet latihan kedua) belum punya formulir. Buktikan ulang: cd web && npm run probe (grup B157), lalu uji peramban T86. JANGAN dibalik/diulang tanpa membuka kembali baris B157 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** Usaha praktik yang diterima dan dinilai CHAIN, sebagaimana dikembalikan `POST /praktik` (B121). Angkanya (100) milik server, bukan halaman. */
+export type PraktikReceipt = {
+  attemptHash: string, attemptId: number, attemptNo: number, lesson: string,
+  proofType: string, blockNumber: string | null, checks: string[]
+}
+
+/**
+ * Isian bukti `eth-call` → `answers.results`. Yang diperiksa di sini hanya BENTUK (tidak kosong, heksadesimal `0x…`):
+ * cocok-tidaknya dengan chain milik server yang membaca ulang chain, dan nilai yang benar tidak pernah dikembalikan
+ * (pelajaran B80 — rute ini tidak boleh jadi kunci jawaban). Spasi di ujung dibuang; kolom di luar `reads` diabaikan.
+ */
+export function ethCallAnswers (reads: readonly { id: string }[], values: Readonly<Record<string, string | undefined>>):
+{ ok: true, results: Record<string, string> } | { ok: false, why: string, field: string } {
+  const results: Record<string, string> = {}
+  for (const r of reads) {
+    const v = String(values[r.id] ?? '').trim()
+    if (!v) return { ok: false, why: `Isi keluaran ${r.id} dulu.`, field: r.id }
+    if (!/^0x[0-9a-fA-F]+$/.test(v)) {
+      return { ok: false, why: `Keluaran ${r.id} harus heksadesimal yang diawali 0x, persis seperti yang dicetak cast call.`, field: r.id }
+    }
+    results[r.id] = v
+  }
+  return { ok: true, results }
+}
+
+/**
+ * Kalimat penolakan untuk peserta. Jawaban salah (`failed` ada) → kalimat Indonesia buatan halaman: berapa pemeriksaan yang tidak
+ * cocok dan NAMA-nya, tidak pernah nilai yang benar (OI-20, pelajaran B80). Penolakan lain (belum daftar, tanda tangan, chain
+ * tak terbaca) memakai alasan server apa adanya — itu bukan salah jawaban dan tidak boleh disamarkan sebagai salah jawaban.
+ */
+export function praktikRejection (why: string, failed: readonly string[] | undefined, total: number, chainId: number): { text: string, names: string[] } {
+  const names = (failed ?? []).map((id) => id.replace(/^eth-call:/, ''))
+  if (!names.length) return { text: why, names }
+  return { text: `${names.length} dari ${total} pemeriksaan tidak cocok dengan bacaan chain ${chainId}. Baca ulang keluarannya lalu kirim lagi — nilai yang benar tidak ditampilkan.`, names }
+}
+
+/**
+ * Serahkan bukti praktik `eth-call` (B157). Yang dikirim adalah apa yang dibaca peserta, BUKAN angka: `/praktik` menolak
+ * `score` / `verdict` / `components` / `rubricHash` dengan 400, dan menyimpan usaha hanya bila semua jawaban sama dengan
+ * bacaan SERVER dari chain 97. Jawaban yang salah hanya dilaporkan NAMA pemeriksaannya (`failed`), tanpa nilai yang benar.
+ * Pesan yang ditandatangani menyebut kursus dan lesson (server memeriksa `lesson=<slug>`) dan membawa nonce satu-kali.
+ */
+export async function submitPraktik (courseId: string, lessonSlug: string, results: Record<string, string>):
+Promise<{ ok: true, receipt: PraktikReceipt } | { ok: false, why: string, failed?: string[] }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada identitas peserta — tanpa tanda tangan, bukti praktik tidak bisa diserahkan atas nama alamatmu.' }
+  state.pending = true
+  const message = `lencana-praktik-submit course=${courseId} lesson=${lessonSlug} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) { state.pending = false; return { ok: false, why: s.why ?? 'tidak bisa menandatangani' } }
+  // Server membaca ulang chain (beberapa `eth_call`), jadi batas waktunya lebih longgar dari rute biasa.
+  const r = await call('/praktik', {
+    method: 'POST', timeoutMs: 60_000,
+    body: { learner: addr, course: courseId, lesson: lessonSlug, answers: { results }, message, signature: s.signature },
+  })
+  state.pending = false
+  if (r.status !== 201 || !r.json) {
+    const failed = Array.isArray(r.json?.failed) ? (r.json?.failed as unknown[]).map(String) : undefined
+    return { ok: false, why: (r.json?.error as string) ?? r.why ?? `server menjawab ${r.status}`, failed }
+  }
+  state.error = null
+  await syncCourse(courseId)
+  state.pending = false
+  return {
+    ok: true,
+    receipt: {
+      attemptHash: String(r.json.attemptHash ?? ''), attemptId: Number(r.json.attemptId ?? 0), attemptNo: Number(r.json.attemptNo ?? 0),
+      lesson: String(r.json.lesson ?? lessonSlug), proofType: String(r.json.proofType ?? ''),
+      blockNumber: r.json.blockNumber === null || r.json.blockNumber === undefined ? null : String(r.json.blockNumber),
+      checks: Array.isArray(r.json.checks) ? (r.json.checks as unknown[]).map(String) : [],
+    },
+  }
+}

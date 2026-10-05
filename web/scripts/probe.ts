@@ -632,6 +632,111 @@ async function main() {
     }
   }
 
+  // ---------------------------------------------------------------- formulir praktik (B157)
+  // Yang diuji: apa yang HALAMAN kirim ke `POST /praktik` (bentuk isian, isi permintaan, tidak ada angka dari klien) dan apa yang
+  // dilakukannya dengan jawaban server. Cocok-tidaknya jawaban dengan chain adalah urusan server: `npm run verify:praktik`.
+  console.log('\n--formulir praktik: apa yang dikirim halaman ke POST /praktik (B157)--')
+  {
+    const { ethCallAnswers, submitPraktik, praktikRejection } = await import('../src/learning')
+    const { COURSES } = await import('../src/courses/index')
+    const reads = [{ id: 'name' }, { id: 'symbol' }, { id: 'decimals' }]
+    const hex = (c: string) => `0x${c.repeat(64)}`
+
+    const good = ethCallAnswers(reads, { name: `  ${hex('a')} `, symbol: hex('b'), decimals: '0x06', extra: 'diabaikan' })
+    check('isian: spasi di ujung dibuang, kolom di luar `reads` diabaikan, kunci hasil persis `reads[].id`',
+      good.ok && JSON.stringify(Object.keys(good.results)) === '["name","symbol","decimals"]' && good.results.name === hex('a') && !('extra' in good.results), JSON.stringify(good))
+    const blank = ethCallAnswers(reads, { name: hex('a'), symbol: '   ', decimals: '0x06' })
+    check('isian kosong ditolak sebelum dikirim, dengan nama kolomnya', !blank.ok && blank.field === 'symbol', JSON.stringify(blank))
+    const notHex = ethCallAnswers(reads, { name: 'LDC', symbol: hex('b'), decimals: '0x06' })
+    const noPrefix = ethCallAnswers(reads, { name: hex('a'), symbol: 'b'.repeat(64), decimals: '0x06' })
+    const bare = ethCallAnswers(reads, { name: hex('a'), symbol: '0x', decimals: '0x06' })
+    check('isian bukan heksadesimal 0x… (teks biasa, tanpa 0x, atau "0x" saja) ditolak sebelum dikirim',
+      !notHex.ok && notHex.field === 'name' && !noPrefix.ok && noPrefix.field === 'symbol' && !bare.ok && bare.field === 'symbol', JSON.stringify([notHex, noPrefix, bare]))
+
+    const rejected = praktikRejection('3 of 3 checks do not match what chain 97 says', ['eth-call:name', 'eth-call:decimals'], 3, 97)
+    const serverSide = praktikRejection('learner not enrolled in this course — no row to attach the practice attempt to', undefined, 3, 97)
+    check('penolakan jawaban salah: kalimat Indonesia dengan jumlah + NAMA pemeriksaan, tanpa satu pun nilai heksadesimal',
+      JSON.stringify(rejected.names) === '["name","decimals"]' && /2 dari 3 pemeriksaan tidak cocok/.test(rejected.text) && !/0x[0-9a-f]/i.test(rejected.text), JSON.stringify(rejected))
+    check('penolakan yang BUKAN salah jawaban (belum daftar, tanda tangan, chain tak terbaca): alasan server apa adanya, tanpa nama pemeriksaan',
+      serverSide.names.length === 0 && /not enrolled/.test(serverSide.text), JSON.stringify(serverSide))
+
+    const ethLessons = COURSES.flatMap((c) => c.modules.flatMap((m) => m.lessons.map((l) => ({ c: c.id, l })))).filter((x) => x.l.proof?.type === 'eth-call')
+    check('semua lesson praktik `eth-call` di katalog bisa diisi formulir: tiap pembacaan punya id unik dan tak kosong',
+      ethLessons.length > 0 && ethLessons.every(({ l }) => {
+        const rs = l.proof?.type === 'eth-call' ? l.proof.reads : []
+        return rs.length > 0 && new Set(rs.map((r) => r.id)).size === rs.length && rs.every((r) => r.id.length > 0)
+      }), `${ethLessons.length} lesson: ${ethLessons.map((x) => `${x.c}/${x.l.slug}`).join(', ')}`)
+
+    const praktikSent: { url: string, method: string, body: Record<string, unknown> | null }[] = []
+    let praktikMode: 'ok' | 'wrong' | 'down' = 'ok'
+    const stub3 = async (url: string, init?: { method?: string, body?: string }) => {
+      const method = (init?.method ?? 'GET').toUpperCase()
+      let body: Record<string, unknown> | null = null
+      try { body = init?.body ? JSON.parse(init.body as string) as Record<string, unknown> : null } catch { body = null }
+      const u = asPath(url as string)
+      praktikSent.push({ url: u, method, body })
+      const json = (obj: unknown, status = 200) => ({ status, ok: status < 400, json: async () => obj })
+      if (u.startsWith('/progress?')) return json({ enrollmentId: 9, lessonsTotal: 4, lessonsCompleted: 0, allLessonsDone: false, completed: [], lessons: [], gradedAttempts: 0, bestScore: null })
+      if (u === '/praktik') {
+        if (praktikMode === 'wrong') return json({ error: '1 of 3 checks do not match what chain 97 says — re-read and resubmit (the correct values are not returned)', failed: ['eth-call:decimals'] }, 422)
+        if (praktikMode === 'down') return json({ error: 'practice checking is not configured on this server (no RPC_URL)' }, 503)
+        return json({
+          attemptHash: `0x${'12'.repeat(32)}`, attemptId: 970, attemptNo: 1, lesson: body?.lesson, kind: 'praktik', rubricHash: `0x${'cd'.repeat(32)}`,
+          score: 100, verdict: 'pass', gradedBy: 'chain', proofType: 'eth-call', proofKey: null, blockNumber: '134950900',
+          checks: ['eth-call:name', 'eth-call:symbol', 'eth-call:decimals'],
+        }, 201)
+      }
+      return json({ error: 'stub: rute tidak dikenal' }, 500)
+    }
+    g.sessionStorage = {
+      getItem: (k: string) => session.get(k) ?? null,
+      setItem: (k: string, v: string) => { session.set(k, v) },
+      removeItem: (k: string) => { session.delete(k) },
+    }
+    const realFetch3 = globalThis.fetch
+    g.fetch = stub3
+    try {
+      forgetLearner()
+      const noId = await submitPraktik('uji-bayar-2026', 'praktik-baca-koin', good.ok ? good.results : {})
+      check('tanpa identitas, submitPraktik menolak dan TIDAK mengirim apa pun', !noId.ok && /identitas/i.test(noId.why) && praktikSent.length === 0, JSON.stringify({ noId, sent: praktikSent.length }))
+
+      const id = createDeviceLearner()
+      setEndpoint('http://127.0.0.1:8787/')
+      praktikSent.length = 0
+      const done = await submitPraktik('uji-bayar-2026', 'praktik-baca-koin', good.ok ? good.results : {})
+      const call = praktikSent.find((s) => s.url === '/praktik')
+      check('praktik lulus: tanda terima dari server (percobaan, jenis bukti, blok, nama pemeriksaan) — angkanya tidak dihitung klien',
+        done.ok && done.receipt.attemptNo === 1 && done.receipt.proofType === 'eth-call' && done.receipt.blockNumber === '134950900'
+        && JSON.stringify(done.receipt.checks) === '["eth-call:name","eth-call:symbol","eth-call:decimals"]', JSON.stringify(done))
+      check('isi /praktik: learner, course, lesson, answers.results (persis isian), message, signature — dan tidak ada yang lain',
+        Boolean(call) && JSON.stringify(Object.keys(call?.body ?? {}).sort()) === JSON.stringify(['answers', 'course', 'learner', 'lesson', 'message', 'signature'])
+        && JSON.stringify(call?.body?.answers) === JSON.stringify({ results: good.ok ? good.results : {} }), JSON.stringify(Object.keys(call?.body ?? {})))
+      check('/praktik tidak membawa score / verdict / components / rubricHash (server menolaknya dengan 400)',
+        call ? !/"(score|verdict|components|rubricHash)"/.test(JSON.stringify(call.body)) : false)
+      const msg = String(call?.body?.message ?? '')
+      let verified = false
+      try {
+        verified = id ? await verifyMessage({ address: id.address as `0x${string}`, message: msg, signature: String(call?.body?.signature ?? '') as `0x${string}` }) : false
+      } catch { verified = false }
+      check('pesan menyebut kursus + lesson (server memeriksa `lesson=<slug>`) + nonce satu-kali, dan tanda tangannya sah untuk peserta',
+        /^lencana-praktik-submit course=uji-bayar-2026 lesson=praktik-baca-koin nonce=[0-9a-f]{12,}$/.test(msg) && verified === true, `${msg} · sah=${verified}`)
+
+      praktikMode = 'wrong'
+      praktikSent.length = 0
+      const wrong = await submitPraktik('uji-bayar-2026', 'praktik-baca-koin', good.ok ? good.results : {})
+      check('jawaban salah: ditolak dengan NAMA pemeriksaan yang gagal saja (tanpa nilai yang benar), dan tidak ada tulisan progres',
+        !wrong.ok && JSON.stringify(wrong.failed) === '["eth-call:decimals"]' && !/0x[0-9a-f]{8,}/i.test(wrong.why)
+        && praktikSent.every((s) => s.url !== '/progress'), JSON.stringify(wrong))
+      praktikMode = 'down'
+      const down = await submitPraktik('uji-bayar-2026', 'praktik-baca-koin', good.ok ? good.results : {})
+      check('server tak bisa memeriksa chain (503): alasannya ditampilkan apa adanya, bukan "salah jawaban"', !down.ok && /not configured/.test(down.why) && down.failed === undefined, JSON.stringify(down))
+    } finally {
+      g.fetch = realFetch3
+      delete g.sessionStorage
+      forgetLearner()
+    }
+  }
+
   // Diagnosa: tanpa blok ini, probe hanya melaporkan "panggilan X gagal" dan kita tetap
   // buta terhadap SEBABNYA — yang membuat probe tidak lebih berguna dari menebak.
   const anyFail = [r0, ...(demo ? [demo] : [])].flatMap((r) => r.readLog).filter((l) => !l.ok)

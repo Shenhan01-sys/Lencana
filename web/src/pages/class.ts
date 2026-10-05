@@ -23,8 +23,8 @@ import type { Course, Lesson, Module } from '../content'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse } from '../progress'
 import {
-  completeLesson, essayFinishes, forgetLearner, hasExplicitLearnerSession,
-  hasPrivyMark, learnerAddress, quizFinishes, reconcileLessons, resumePrivyLearner, setEndpoint, snapshot, submitEssay, submitQuiz,
+  completeLesson, essayFinishes, ethCallAnswers, forgetLearner, hasExplicitLearnerSession,
+  hasPrivyMark, learnerAddress, praktikRejection, quizFinishes, reconcileLessons, resumePrivyLearner, setEndpoint, snapshot, submitEssay, submitPraktik, submitQuiz,
   syncCourse, type ServerSummary,
 } from '../learning'
 import { DICTIONARIES, getSavedLanguage } from '../i18n'
@@ -254,13 +254,40 @@ function bindCurriculumGlobals (): void {
   })
 }
 
-/** Praktik dinilai chain lewat `POST /praktik` (B121); formulirnya belum ada di halaman (OI-20). */
+/**
+ * Praktik dinilai chain lewat `POST /praktik` (B121). Formulir penyerahan ada untuk bukti `eth-call` sejak B157 (`praktikHtml`);
+ * jenis lain (balance, tx-receipt, allowance) butuh dompet latihan kedua dan belum punya formulir (OI-20).
+ */
 function praktikNote (lesson: Lesson): string {
   if (!lesson.proof) return ''
   return `<aside class="note"><strong>Nilai praktik datang dari chain</strong>
     <p>Penerbit menilai praktik ini dengan membaca ulang chain ${lesson.proof.chainId} lewat
-    <code>POST /praktik</code> (jenis bukti: <code>${esc(lesson.proof.type)}</code>). Formulir penyerahannya
-    belum ada di halaman ini — "Tandai selesai" hanya mencatat progres bacaan, bukan nilai praktik.</p></aside>`
+    <code>POST /praktik</code> (jenis bukti: <code>${esc(lesson.proof.type)}</code>). Formulir penyerahan untuk jenis bukti
+    ini belum ada di halaman — "Tandai selesai" hanya mencatat progres bacaan, bukan nilai praktik.</p></aside>`
+}
+
+// Lencana-B157 status=SELESAI 2026-10-05 —formulir praktik di halaman kelas (tahap 1: bukti `eth-call`): satu kolom per pembacaan untuk keluaran mentah `cast call`, "Kirim bukti" menandatangani dan mengirim ke POST /praktik; lulus → lesson ditandai selesai (B160), salah → hanya NAMA pemeriksaan yang gagal. Jenis bukti lain belum punya formulir. Buktikan ulang: cd web && npm run probe (grup B157), lalu uji peramban T86. JANGAN dibalik/diulang tanpa membuka kembali baris B157 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** Formulir bukti `eth-call`; jenis bukti lain jatuh ke catatan lama. */
+function praktikHtml (c: Course, lesson: Lesson): string {
+  const proof = lesson.proof
+  if (!proof) return ''
+  if (proof.type !== 'eth-call') return praktikNote(lesson)
+  const rows = proof.reads.map((r) => `<label class="praktik-field"><span><code>${esc(r.id)}</code> · <code>${esc(r.signature)}</code></span>
+      <input type="text" data-read="${esc(r.id)}" placeholder="0x…" spellcheck="false" autocomplete="off" autocapitalize="off"></label>`).join('')
+  return `<section class="praktik" data-role="praktik-form">
+    <h3>Kirim bukti praktik</h3>
+    <p>Tempel <strong>keluaran mentah</strong> tiap pemanggilan (<code>0x…</code>, persis seperti yang dicetak <code>cast call</code>).
+    Penerbit membaca ulang chain ${proof.chainId} dan membandingkannya — angkanya tidak pernah datang dari halaman ini, dan nilai
+    yang benar tidak ditampilkan kalau ada yang salah.</p>
+    ${rows}
+    <div class="actions">
+      <button class="primary" data-action="submit-praktik" data-course="${esc(c.id)}" data-lesson="${esc(lesson.slug)}">Kirim bukti</button>
+    </div>
+    <p class="status" data-role="praktik-status" aria-live="polite"></p>
+    <aside class="note"><strong>Batas yang jujur</strong>
+      <p>Jawaban jenis ini sama untuk semua peserta, jadi bisa disalin: ia membuktikan kamu bisa membaca kontrak lewat RPC, bukan bahwa kamu
+      mengerjakannya sendiri. "Tandai selesai" hanya mencatat progres, bukan nilai praktik.</p></aside>
+  </section>`
 }
 
 function renderLesson (c: Course, mod: Module, lesson: Lesson): HTMLElement {
@@ -283,7 +310,7 @@ function renderLesson (c: Course, mod: Module, lesson: Lesson): HTMLElement {
     ${lesson.blocks.map(renderBlock).join('')}
     ${lesson.quiz ? quizHtml(lesson, review?.review) : ''}
     ${lesson.essay ? essayHtml(c, lesson) : ''}
-    ${praktikNote(lesson)}
+    ${praktikHtml(c, lesson)}
     ${lesson.kind === 'kuis' || lesson.kind === 'esai' ? '' : `<div class="actions">
       <button class="primary" data-action="mark-done" data-course="${esc(c.id)}" data-lesson="${esc(lesson.slug)}">Tandai selesai</button>
     </div>`}
@@ -624,6 +651,52 @@ export function bindLearningActions (root: HTMLElement, rerender: Rerender): voi
       }
       recordLesson(courseId, slug, 'esai', { done: false, draft: ta.value })
       if (s) s.textContent = 'Dicatat di perangkat ini saja: belum ada identitas peserta, jadi karangan tidak diserahkan ke penerbit dan tidak akan ikut dinilai.'
+      return
+    }
+
+    if (action === 'submit-praktik') {
+      const cur = currentLesson()
+      const proof = cur?.lesson.proof
+      if (!cur || !proof || proof.type !== 'eth-call') return
+      const s = status('praktik-status')
+      const values: Record<string, string> = {}
+      root.querySelectorAll<HTMLInputElement>('input[data-read]').forEach((i) => { values[i.dataset.read ?? ''] = i.value })
+      const answers = ethCallAnswers(proof.reads, values)
+      if (!answers.ok) {
+        if (s) s.innerHTML = `<span class="bad">${esc(answers.why)}</span>`
+        return
+      }
+      if (!learnerAddress()) {
+        if (s) s.innerHTML = '<span class="bad">Belum ada identitas peserta: tanpa tanda tangan, bukti praktik tidak bisa diserahkan atas namamu. Masuk lebih dulu di kotak "Rekaman belajar".</span>'
+        return
+      }
+      const ep = endpointInput()
+      if (ep?.value) setEndpoint(ep.value)
+      if (s) s.innerHTML = `<span class="muted">Mengirim bukti ke penerbit — membaca ulang chain ${proof.chainId}…</span>`
+      const submit = btn as HTMLButtonElement
+      submit.disabled = true
+      try {
+        const r = await submitPraktik(courseId, slug, answers.results)
+        if (!r.ok) {
+          // Hanya NAMA pemeriksaan yang gagal; nilai yang benar tidak pernah dikembalikan server (pelajaran B80).
+          const rej = praktikRejection(r.why, r.failed, proof.reads.length, proof.chainId)
+          if (s) s.innerHTML = `<span class="bad">Bukti belum diterima: ${esc(rej.text)}${rej.names.length ? `<br>Yang tidak cocok: ${rej.names.map((n) => `<code>${esc(n)}</code>`).join(' ')}` : ''}</span>`
+          return
+        }
+        recordLesson(courseId, slug, 'praktik', { done: true })
+        // B160: praktik yang diterima chain = lesson-nya selesai di penerbit juga.
+        let progressLine = ''
+        const flat = cur.course.modules.flatMap((m) => m.lessons)
+        const done = await completeLesson(courseId, slug, flat.findIndex((l) => l.slug === slug))
+        if (!done.ok) progressLine = notRecorded(done.why)
+        rerender()
+        const visible = status('praktik-status')
+        if (visible) {
+          visible.innerHTML = `<span class="ok">Bukti diterima — dinilai chain ${proof.chainId}</span> ${r.receipt.checks.length} pemeriksaan cocok · blok ${esc(r.receipt.blockNumber ?? '—')} · <code>${esc(r.receipt.attemptHash.slice(0, 14))}…</code><br><span class="muted">Angkanya dari penerbit yang membaca ulang chain, bukan dari halaman ini.</span>${progressLine}`
+        }
+      } finally {
+        submit.disabled = false
+      }
       return
     }
 

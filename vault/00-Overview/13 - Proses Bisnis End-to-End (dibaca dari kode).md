@@ -623,7 +623,7 @@ Ini bagian yang tidak akan terlihat kalau hanya membaca diagram di atas.
    menilai dari chain (`POST /praktik`), `/attempts` menolak skor slot rubrik dari peserta, dan satu
    kertas uji (`0x372c2518…`) terbit dengan komponen praktik `gradedBy chain` di dokumen hasilnya. Yang
    masih putus: **halaman belajar tetap tidak memanggil rute penyerahan praktik** (pemanggil `/attempts`
-   dan `/praktik` di `web/src` = 0, diukur 1 Okt) — OI-20, fase FE →
+   dan `/praktik` di `web/src` = 0, diukur 1 Okt; *koreksi 5 Okt: B157 — halaman kini memanggil `/praktik` untuk bukti `eth-call`, tiga jenis lain belum*) — OI-20, fase FE →
    [[09-Testing/T38 - signer praktik-check.js (B121 praktik dinilai chain)]].
 2. **Penerbitan tidak dipicu peserta.** Tidak ada rute "saya sudah selesai, terbitkan". Penerbit
    menjalankan `npm run issue` per peserta.

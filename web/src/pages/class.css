@@ -103,3 +103,15 @@ html.class-curriculum-lock body { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .class-sidebar { transition: none; }
 }
+
+/* B157 — formulir praktik (bukti eth-call): satu kolom per pembacaan, keluaran mentah heksadesimal */
+.lesson-engine .praktik { margin: 18px 0; padding: 14px 16px; border: 1px solid rgba(128, 128, 128, 0.3); border-radius: 12px; min-width: 0; }
+.lesson-engine .praktik h3 { margin-top: 0; }
+.lesson-engine .praktik-field { display: grid; gap: 4px; margin: 10px 0; font-size: 13.5px; min-width: 0; }
+.lesson-engine .praktik-field input {
+  width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid rgba(128, 128, 128, 0.5); border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03); color: inherit; font: 13px var(--font-mono, ui-monospace, monospace);
+}
+.lesson-engine .praktik-field input:focus { outline: none; border-color: rgba(240, 185, 11, 0.6); }
+.lesson-engine .praktik .status { overflow-wrap: anywhere; }
+.lesson-engine .praktik .status code { white-space: nowrap; overflow-wrap: normal; } /* nama pemeriksaan tidak pecah di tengah kata */

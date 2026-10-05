@@ -107,7 +107,7 @@ export type Lesson = {
   blocks: Block[]
   quiz?: Quiz
   essay?: Essay
-  // Lencana-B121 status=TERBUKA 2026-10-01 — jenis bukti praktik yang diperiksa server dari chain; halaman belajar belum mengirimnya ke POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B121 status=TERBUKA 2026-10-01 — jenis bukti praktik yang diperiksa server dari chain; halaman belajar mengirim bukti eth-call ke POST /praktik sejak B157 (5 Okt), jenis lain (balance, tx-receipt, allowance) belum punya formulir (fase FE). Buktikan ulang: npm run verify:praktik (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   proof?: PraktikProof
 }
 

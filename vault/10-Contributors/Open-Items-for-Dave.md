@@ -507,6 +507,14 @@ milikmu (`main.ts`, `render.ts`, `index.html`, `style.css`, `i18n.ts`).
 
 ## OI-20 — lesson praktik harus memanggil `POST /praktik`; tanpa itu peserta halaman tidak bisa lulus (B121, 1 Okt)
 
+> **Koreksi 5 Okt (B157, tahap 1):** formulir untuk bukti **`eth-call`** sudah ada di halaman belajar — `web/src/pages/class.ts` (`praktikHtml`, aksi
+> `submit-praktik`), `web/src/learning.ts` (`ethCallAnswers`, `submitPraktik`, `praktikRejection`), gaya di `web/src/pages/class.css` — untuk empat lesson
+> (`membaca-bscscan`, `token-izin`, `web3-dasar` `praktik-eth-call`, `uji-bayar` `praktik-baca-koin`). Pesan peserta yang dipakai:
+> `lencana-praktik-submit course=<id> lesson=<slug> nonce=<hex>`; tidak ada 409 untuk `eth-call` (bukti tanpa kunci unik). Penolakan jawaban salah ditulis halaman
+> sendiri dalam bahasa Indonesia (jumlah + NAMA pemeriksaan), seperti saran di bawah. **Yang masih terbuka dan tabel di bawah tetap berlaku untuknya:** `balance`,
+> `tx-receipt`, `allowance` — butuh dompet latihan kedua yang menandatangani pengikatan; belum ada formulirnya. Uji: [[09-Testing/T86 - Uji peramban formulir praktik eth-call (B157)]].
+> Teks di bawah ditulis 1 Okt dan dibiarkan apa adanya.
+
 Sejak 1 Okt slot praktik hanya terisi dari **bacaan chain** yang dilakukan server
 ([[09-Testing/T38 - signer praktik-check.js (B121 praktik dinilai chain)]]), dan `POST /attempts` menolak skor praktik.
 Halaman belajar belum punya tombol penyerahan praktik sama sekali (pemanggil `/attempts` di `web/src` = 0,
