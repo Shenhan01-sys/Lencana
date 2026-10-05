@@ -23,9 +23,9 @@ import type { Course, Lesson, Module } from '../content'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
 import { courseProgress, recordLesson, summarize, wipeCourse } from '../progress'
 import {
-  completeLesson, forgetLearner, hasExplicitLearnerSession,
-  hasPrivyMark, learnerAddress, resumePrivyLearner, setEndpoint, snapshot, submitEssay, submitQuiz,
-  syncCourse,
+  completeLesson, essayFinishes, forgetLearner, hasExplicitLearnerSession,
+  hasPrivyMark, learnerAddress, quizFinishes, reconcileLessons, resumePrivyLearner, setEndpoint, snapshot, submitEssay, submitQuiz,
+  syncCourse, type ServerSummary,
 } from '../learning'
 import { DICTIONARIES, getSavedLanguage } from '../i18n'
 import { esc } from '../render'
@@ -79,8 +79,37 @@ function kickSync (courseId: string, rerender: Rerender): void {
   if (!learnerAddress()) return
   const s = snapshot()
   if (s.pending || (s.courseId === courseId && (s.summary || s.error))) return
-  void syncCourse(courseId).then(() => rerender())
+  void syncCourse(courseId).then((sum) => {
+    rerender()
+    void catchUpLessons(courseId, sum, rerender)
+  })
 }
+
+// Lencana-B160 status=SELESAI 2026-10-05 —lesson kuis dan esai tercatat selesai di penerbit: setelah kuis lulus dan esai diterima halaman memanggil `completeLesson`, dan saat kelas dibuka (atau "muat ulang" ditekan) lesson yang sudah punya hasil di penerbit disusulkan lewat `reconcileLessons` — dari bukti di penerbit, bukan dari catatan perangkat. Buktikan ulang: cd web && npm run probe (grup B160), lalu uji peramban T85. JANGAN dibalik/diulang tanpa membuka kembali baris B160 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+const reconciling = new Set<string>()
+
+/**
+ * Lesson yang sudah punya hasil di penerbit (kuis lulus, esai dinilai, praktik bernilai chain) tetapi belum tercatat selesai
+ * — mis. dikerjakan sebelum perbaikan ini — disusulkan sekali saat kelas dibuka. Dompet ekstensi (`dompet`) dilewati di jalur
+ * otomatis: setiap tanda tangannya membuka jendela konfirmasi; tombol "muat ulang" tetap bisa memintanya.
+ */
+async function catchUpLessons (courseId: string, sum: ServerSummary | null, rerender: Rerender): Promise<void> {
+  const c = findCourse(courseId)
+  if (!sum || !c || sum.lessonsCompleted >= sum.lessonsTotal || reconciling.has(courseId)) return
+  if (snapshot().identity?.kind === 'dompet') return
+  reconciling.add(courseId)
+  try {
+    const r = await reconcileLessons(courseId, c.modules.flatMap((m) => m.lessons))
+    if (r.completed.length) rerender()
+  } finally {
+    reconciling.delete(courseId)
+  }
+}
+
+/** Kalimat bila lesson yang baru dikerjakan gagal dicatat selesai (hasilnya sendiri sudah tercatat di penerbit). */
+const notRecorded = (why: string | undefined): string =>
+  `<br><span class="bad">Hasilnya tercatat, tetapi lesson ini belum ditandai selesai di penerbit: ${esc(why ?? 'tidak diketahui')}. `
+  + 'Tekan "muat ulang" di kotak rekaman untuk mencoba lagi.</span>'
 
 /** Gerbang masuk milik FE: materi kelas hanya untuk sesi peserta (keputusan tata letak FE). */
 function renderAuthGate (c: Course): HTMLElement {
@@ -463,9 +492,20 @@ export function bindLearningActions (root: HTMLElement, rerender: Rerender): voi
       if (ep?.value) setEndpoint(ep.value)
       if (!courseId) return
       learnStatus(root, 'Menghubungi penerbit…')
-      const sum = await syncCourse(courseId)
+      let sum = await syncCourse(courseId)
+      // B160: lesson yang hasilnya sudah ada di penerbit tetapi belum tercatat selesai disusulkan (jalur eksplisit: semua jenis identitas).
+      const course = findCourse(courseId)
+      let caught = ''
+      if (sum && course && sum.lessonsCompleted < sum.lessonsTotal) {
+        const r = await reconcileLessons(courseId, course.modules.flatMap((m) => m.lessons))
+        if (r.completed.length) {
+          sum = snapshot().summary
+          caught = ` · ${r.completed.length} lesson dicatat selesai karena hasilnya sudah ada di penerbit`
+        } else if (r.failed.length) caught = ` · ${r.failed.length} lesson belum tercatat selesai: ${r.failed[0].why}`
+        else if (!r.ok) caught = ` · hasil di penerbit belum bisa diperiksa: ${r.why ?? 'tidak diketahui'}`
+      }
       rerender()
-      learnStatus(root, sum ? `Rekaman terbaca: ${sum.lessonsCompleted}/${sum.lessonsTotal} lesson, ${sum.gradedAttempts} usaha dinilai.`
+      learnStatus(root, sum ? `Rekaman terbaca: ${sum.lessonsCompleted}/${sum.lessonsTotal} lesson, ${sum.gradedAttempts} usaha dinilai.${caught}`
         : snapshot().error ?? 'Penerbit tidak menjawab.', !sum)
       return
     }
@@ -520,9 +560,17 @@ export function bindLearningActions (root: HTMLElement, rerender: Rerender): voi
       const prev = courseProgress(courseId)[slug]
       const best = Math.max(graded.score, prev?.score ?? 0)
       recordLesson(courseId, slug, 'kuis', { done: graded.verdict === 'pass', score: best, attempts: (prev?.attempts ?? 0) + 1 })
+      // B160: kuis lulus = lesson-nya selesai di penerbit juga. Dulu hanya tercatat di perangkat, dan lesson kuis tak punya tombol
+      // "Tandai selesai" — gerbang "semua lesson selesai" tak pernah bisa lewat dari halaman kelas.
+      let progressLine = ''
+      if (quizFinishes(graded)) {
+        const flat = cur.course.modules.flatMap((m) => m.lessons)
+        const done = await completeLesson(courseId, slug, flat.findIndex((l) => l.slug === slug))
+        if (!done.ok) progressLine = notRecorded(done.why)
+      }
       const resultHtml = `<span class="${graded.verdict === 'pass' ? 'ok' : 'bad'}">Dinilai penerbit: ${graded.correct}/${graded.total} benar = ${graded.score} · terbaik ${best} · ambang ${graded.passPct} · ${
           graded.verdict === 'pass' ? 'cukup' : 'belum cukup, baca lagi alasannya lalu ulangi'
-        }<br><span class="muted">Usaha ini tercatat di penerbit · referensi <code>${esc(graded.attemptHash.slice(0, 18))}…</code></span></span>`
+        }<br><span class="muted">Usaha ini tercatat di penerbit · referensi <code>${esc(graded.attemptHash.slice(0, 18))}…</code></span>${progressLine}</span>`
       // Pembahasan dipasang lewat render: pilihan peserta tetap terpilih, benar/salah + alasan dari balasan server (B80).
       pendingReview = { courseId, slug, review: { picks: new Map(picks.map((p) => [p.itemId, p.choice])), items: graded.review }, resultHtml }
       rerender()
@@ -556,9 +604,17 @@ export function bindLearningActions (root: HTMLElement, rerender: Rerender): voi
         const rec = await submitEssay(courseId, slug, ta.value)
         if (rec) {
           recordLesson(courseId, slug, 'esai', { done: true, draft: ta.value })
+          // B160: esai yang DITERIMA penerbit untuk dinilai = lesson-nya selesai di penerbit juga (selesai ≠ lulus; angkanya menyusul
+          // dari penilaian dan pengesahan). Bukti kurang (`insufficient`) tidak menandainya — tulis ulang.
+          let progressLine = ''
+          if (essayFinishes(rec)) {
+            const flat = (currentLesson()?.course.modules ?? []).flatMap((m) => m.lessons)
+            const done = await completeLesson(courseId, slug, flat.findIndex((l) => l.slug === slug))
+            if (!done.ok) progressLine = notRecorded(done.why)
+          }
           rerender()
           const visible = status('essay-status')
-          if (visible) visible.innerHTML = `<span class="ok">Terkirim ke penerbit</span> ${rec.mechanicalPassed}/${rec.mechanicalTotal} tanda mekanis terpenuhi · ${rec.words} kata · <code>${esc(rec.attemptHash.slice(0, 14))}…</code><br><span class="muted">${esc(rec.note || 'Menunggu penilaian penerbit — belum ada angka, dan itu bukan nol.')}</span>`
+          if (visible) visible.innerHTML = `<span class="ok">Terkirim ke penerbit</span> ${rec.mechanicalPassed}/${rec.mechanicalTotal} tanda mekanis terpenuhi · ${rec.words} kata · <code>${esc(rec.attemptHash.slice(0, 14))}…</code><br><span class="muted">${esc(rec.note || 'Menunggu penilaian penerbit — belum ada angka, dan itu bukan nol.')}</span>${progressLine}`
           return
         }
         const why = snapshot().error ?? 'penerbit tidak menjawab'

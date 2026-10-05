@@ -1384,14 +1384,80 @@ export async function markLesson (courseId: string, lessonSlug: string, to: 'unl
  * Halaman ini jadi harus berjalan sesuai aturan yang sama, bukan minta pengecualian karena dia UI.
  */
 export async function completeLesson (courseId: string, lessonSlug: string, position = 0): Promise<{ ok: boolean, why?: string }> {
-  const statusOf = (s: string): string | undefined => state.summary?.lessons.find((l) => l.lessonId === s)?.status
+  // Status dibaca dari ringkasan KURSUS INI; ringkasan kursus lain atau tanpa baris berarti `locked`.
+  const statusOf = (s: string): string =>
+    (state.courseId === courseId ? state.summary?.lessons.find((l) => l.lessonId === s)?.status : undefined) ?? 'locked'
   for (const to of ['unlocked', 'started', 'completed'] as const) {
-    if (statusOf(lessonSlug) === 'completed') return { ok: true }
-    if (statusOf(lessonSlug) === to) continue
+    // B160: langkah yang sudah dilewati dilompati, bukan hanya yang sama persis. Lesson yang berhenti di `started`
+    // (jaringan putus di tengah jalan) dulu dikirimi `unlocked` lagi — server menolak mundur (`started -> unlocked`)
+    // dan "Tandai selesai" tidak pernah berhasil untuk lesson itu.
+    if ((PROGRESS_RANK[statusOf(lessonSlug)] ?? 0) >= PROGRESS_RANK[to]) continue
     const r = await markLesson(courseId, lessonSlug, to, position)
     if (!r.ok) return r
   }
   return { ok: true }
+}
+const PROGRESS_RANK: Record<string, number> = { locked: 0, unlocked: 1, started: 2, completed: 3 }
+
+// Lencana-B160 status=SELESAI 2026-10-05 —lesson kuis dan esai tercatat selesai di penerbit: kuis yang dinilai server LULUS dan esai yang DITERIMA penerbit (`awaiting_judge`) memanggil `completeLesson` (tanda tangan peserta); `reconcileLessons` menyusul lesson yang sudah punya bukti di penerbit hanya dari `/me/records`, TIDAK dari catatan perangkat (tidak dikunci per akun). Buktikan ulang: cd web && npm run probe (grup B160), lalu uji peramban T85. JANGAN dibalik/diulang tanpa membuka kembali baris B160 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/**
+ * "Selesai" ≠ "lulus" (bar 6): lesson ditandai selesai bila pekerjaannya sudah diterima penerbit; lulus-tidaknya kursus tetap
+ * milik penilaian, pengesahan, dan rubrik. Dulu halaman hanya mencatat kuis/esai di perangkat dan lesson-nya tidak punya
+ * tombol "Tandai selesai", jadi gerbang `all_lessons_done` tak pernah bisa lewat dari halaman kelas.
+ */
+/** Kuis selesai hanya bila server menilainya lulus — gagal berarti ulangi. */
+export const quizFinishes = (g: { verdict: string }): boolean => g.verdict === 'pass'
+/** Esai selesai bila penerbit MENERIMANYA untuk dinilai (`awaiting_judge`); bukti kurang (`insufficient`) berarti tulis ulang. */
+export const essayFinishes = (r: { state: string }): boolean => r.state === 'awaiting_judge'
+
+export type LessonLike = { slug: string, kind: string, quiz?: unknown, essay?: unknown, proof?: unknown }
+
+/**
+ * Lesson yang sudah punya BUKTI di penerbit tetapi belum `completed`, dihitung dari jawaban server saja (`/me/records`) —
+ * tidak pernah dari catatan di perangkat: catatan itu (`progress.ts`) tidak dikunci per akun, jadi akun kedua di peramban
+ * yang sama akan "mewarisi" lesson akun pertama, dan keluar akun tidak menghapusnya.
+ *   kuis     ada usaha berverdict `pass`
+ *   esai     ada usaha yang SUDAH dinilai (verdict bukan `incomplete`), lulus atau tidak — lesson-nya sudah dikerjakan
+ *   praktik  ada usaha bernilai chain (B121) yang lulus
+ * Bacaan dan jenis lain tidak punya bukti di server: hanya tombol "Tandai selesai" yang menandainya.
+ */
+export function lessonsWithEvidence (
+  rec: { attempts: readonly Pick<MyAttempt, 'lesson' | 'kind' | 'verdict' | 'chainChecked'>[], summary: Pick<ServerSummary, 'lessons'> | null },
+  lessons: readonly LessonLike[],
+): string[] {
+  const done = new Set((rec.summary?.lessons ?? []).filter((l) => l.status === 'completed').map((l) => l.lessonId))
+  const has = (slug: string, kind: string, ok: (a: (typeof rec.attempts)[number]) => boolean): boolean =>
+    rec.attempts.some((a) => a.lesson === slug && a.kind === kind && ok(a))
+  return lessons.filter((l) => !done.has(l.slug) && (
+    ((l.kind === 'kuis' || Boolean(l.quiz)) && has(l.slug, 'kuis', (a) => a.verdict === 'pass'))
+    || ((l.kind === 'esai' || Boolean(l.essay)) && has(l.slug, 'esai', (a) => a.verdict !== null && a.verdict !== 'incomplete'))
+    || ((l.kind === 'praktik' || Boolean(l.proof)) && has(l.slug, 'praktik', (a) => a.chainChecked === true && a.verdict === 'pass'))
+  )).map((l) => l.slug)
+}
+
+/**
+ * Menyamakan catatan lesson di penerbit dengan buktinya sendiri: lesson yang punya bukti (`lessonsWithEvidence`) tetapi belum
+ * `completed` dikirim lewat jalur biasa (`completeLesson`, bertanda tangan peserta — bukan ditulis dengan kunci servis).
+ * Membaca `/me/records` satu kali (satu tanda tangan); tanpa lesson tertinggal ia hanya membaca. Kegagalan satu lesson tidak
+ * menghentikan yang lain, dan dicoba lagi pada pemanggilan berikutnya.
+ */
+export async function reconcileLessons (courseId: string, lessons: readonly LessonLike[]):
+Promise<{ ok: boolean, why?: string, completed: string[], failed: { slug: string, why: string }[] }> {
+  const recs = await readMyRecords()
+  if (!recs.ok) return { ok: false, why: recs.why, completed: [], failed: [] }
+  const rec = recs.courses?.find((c) => c.courseId === courseId)
+  const pending = rec ? lessonsWithEvidence(rec, lessons) : []
+  if (!pending.length) return { ok: true, completed: [], failed: [] }
+  // Ringkasan segar dulu: `completeLesson` membaca status lesson dari sana, dan tebakan yang basi berarti langkah yang ditolak.
+  if (!(await syncCourse(courseId))) return { ok: false, why: state.error ?? 'rekaman penerbit tidak terbaca', completed: [], failed: [] }
+  const completed: string[] = []
+  const failed: { slug: string, why: string }[] = []
+  for (const slug of pending) {
+    const r = await completeLesson(courseId, slug, lessons.findIndex((l) => l.slug === slug))
+    if (r.ok) completed.push(slug)
+    else failed.push({ slug, why: r.why ?? 'tidak diketahui' })
+  }
+  return { ok: true, completed, failed }
 }
 
 /**

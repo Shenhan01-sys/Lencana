@@ -499,6 +499,139 @@ async function main() {
     delete g.sessionStorage
   }
 
+  // ---------------------------------------------------------------- lesson kuis/esai tercatat selesai (B160)
+  // Penerbit tiruan yang MENEGAKKAN mesin state asli (`signer/src/db.js` ALLOWED_MOVE): kalau klien mengirim langkah yang salah,
+  // jawabannya 422 seperti server sungguhan — bukan stub yang menerima apa saja.
+  console.log('\n--lesson kuis/esai tercatat selesai di penerbit (B160)--')
+  {
+    const { lessonsWithEvidence, reconcileLessons, quizFinishes, essayFinishes } = await import('../src/learning')
+    const lessons4 = [
+      { slug: 'baca', kind: 'bacaan' },
+      { slug: 'kuis', kind: 'kuis', quiz: {} },
+      { slug: 'praktik', kind: 'praktik', proof: {} },
+      { slug: 'esai', kind: 'esai', essay: {} },
+    ]
+    const att = (lesson: string, kind: string, verdict: string | null, chainChecked = false) => ({ lesson, kind, verdict, chainChecked })
+    const sum = (...completed: string[]) => ({ lessons: completed.map((lessonId) => ({ lessonId, status: 'completed' })) })
+    const ev = (attempts: ReturnType<typeof att>[], completed: string[] = []) => lessonsWithEvidence({ attempts, summary: sum(...completed) }, lessons4)
+
+    check('kuis lulus = bukti; kuis gagal bukan', JSON.stringify(ev([att('kuis', 'kuis', 'pass')])) === '["kuis"]' && ev([att('kuis', 'kuis', 'fail')]).length === 0,
+      JSON.stringify([ev([att('kuis', 'kuis', 'pass')]), ev([att('kuis', 'kuis', 'fail')])]))
+    check('esai yang SUDAH dinilai (lulus atau tidak) = bukti; esai belum dinilai (incomplete) bukan',
+      JSON.stringify(ev([att('esai', 'esai', 'pass')])) === '["esai"]' && JSON.stringify(ev([att('esai', 'esai', 'fail')])) === '["esai"]'
+      && ev([att('esai', 'esai', 'incomplete')]).length === 0 && ev([att('esai', 'esai', null)]).length === 0)
+    check('praktik = bukti hanya bila dinilai chain dan lulus (laporan peserta tidak dihitung, B121)',
+      JSON.stringify(ev([att('praktik', 'praktik', 'pass', true)])) === '["praktik"]' && ev([att('praktik', 'praktik', 'pass', false)]).length === 0)
+    check('bacaan tidak pernah punya bukti di server — hanya tombol "Tandai selesai"',
+      ev([att('baca', 'kuis', 'pass'), att('baca', 'esai', 'pass'), att('baca', 'praktik', 'pass', true)]).length === 0)
+    check('usaha untuk lesson LAIN dengan jenis yang sama tidak dihitung; lesson yang sudah completed tidak diulang',
+      ev([att('kuis-lain', 'kuis', 'pass')]).length === 0 && ev([att('kuis', 'kuis', 'pass')], ['kuis']).length === 0)
+    check('aturan selesai: kuis hanya bila lulus; esai hanya bila diterima untuk dinilai (bukan insufficient)',
+      quizFinishes({ verdict: 'pass' }) && !quizFinishes({ verdict: 'fail' }) && essayFinishes({ state: 'awaiting_judge' }) && !essayFinishes({ state: 'insufficient' }))
+
+    const lessonState = new Map<string, string>()
+    let records: ReturnType<typeof att>[] = []
+    let recordsFail = false
+    const MOVES: Record<string, string[]> = { locked: ['unlocked'], unlocked: ['started', 'completed'], started: ['completed'], completed: [] }
+    const summaryOf = () => ({
+      enrollmentId: 9, lessonsTotal: 4, lessonsCompleted: [...lessonState.values()].filter((v) => v === 'completed').length, allLessonsDone: false,
+      completed: [...lessonState].filter(([, v]) => v === 'completed').map(([k]) => k),
+      lessons: [...lessonState].map(([lessonId, status]) => ({ lessonId, status })), gradedAttempts: records.length, bestScore: null,
+    })
+    const stub2 = async (url: string, init?: { method?: string, body?: string }) => {
+      const method = (init?.method ?? 'GET').toUpperCase()
+      let body: Record<string, unknown> | null = null
+      try { body = init?.body ? JSON.parse(init.body as string) as Record<string, unknown> : null } catch { body = null }
+      const u = asPath(url as string)
+      sent.push({ url: u, method, body })
+      const json = (obj: unknown, status = 200) => ({ status, ok: status < 400, json: async () => obj })
+      if (u.startsWith('/progress?')) return json(summaryOf())
+      if (u === '/progress') {
+        const lesson = String(body?.lesson); const to = String(body?.status); const from = lessonState.get(lesson) ?? 'locked'
+        if (from === to) return json({ lesson: 9, from, to, noop: true })
+        if (!MOVES[from].includes(to)) return json({ error: `status transition ${from} -> ${to} not allowed (state machine: locked -> unlocked -> started -> completed)` }, 422)
+        lessonState.set(lesson, to)
+        return json({ lesson: 9, from, to, noop: false })
+      }
+      if (u === '/me/records') {
+        if (recordsFail) return json({ error: 'database sedang tidak terjangkau' }, 500)
+        return json({ learner: '0x', courses: [{ courseId: 'uji-bayar-2026', status: 'active', enrolledAt: '', summary: summaryOf(), attempts: records, orders: [] }] })
+      }
+      return json({ error: 'stub: rute tidak dikenal' }, 500)
+    }
+    const posts = () => sent.filter((s) => s.url === '/progress' && s.method === 'POST').map((s) => `${String(s.body?.lesson)}:${String(s.body?.status)}`)
+    const reads = () => sent.filter((s) => s.url === '/me/records')
+    // Penjaga lintas-akun: progres perangkat (`lencana-progress-v1`) tidak dikunci per akun dan keluar akun tidak menghapusnya,
+    // jadi rekonsiliasi TIDAK boleh membacanya — satu akses ke kunci itu dan akun kedua mewarisi lesson akun pertama.
+    const touched: string[] = []
+    g.sessionStorage = {
+      getItem: (k: string) => session.get(k) ?? null,
+      setItem: (k: string, v: string) => { session.set(k, v) },
+      removeItem: (k: string) => { session.delete(k) },
+    }
+    g.localStorage = { getItem: (k: string) => { touched.push(k); return null }, setItem: (k: string) => { touched.push(k) }, removeItem: (k: string) => { touched.push(k) } }
+    const realFetch2 = globalThis.fetch
+    g.fetch = stub2
+    try {
+      forgetLearner()
+      createDeviceLearner()
+      setEndpoint('http://127.0.0.1:8787/')
+
+      records = [att('kuis', 'kuis', 'pass'), att('esai', 'esai', 'pass'), att('praktik', 'praktik', 'pass', false), att('baca', 'kuis', 'pass')]
+      sent.length = 0
+      const a = await reconcileLessons('uji-bayar-2026', lessons4)
+      check('reconcile: kuis lulus + esai dinilai disusulkan; praktik laporan-peserta dan bacaan TIDAK',
+        a.ok && JSON.stringify(a.completed) === '["kuis","esai"]' && a.failed.length === 0 && !lessonState.has('baca') && !lessonState.has('praktik'),
+        JSON.stringify({ a, state: [...lessonState] }))
+      check('reconcile menempuh mesin state untuk tiap lesson: unlocked → started → completed (server tiruan menolak lompatan)',
+        JSON.stringify(posts()) === JSON.stringify(['kuis:unlocked', 'kuis:started', 'kuis:completed', 'esai:unlocked', 'esai:started', 'esai:completed']), JSON.stringify(posts()))
+      const readCall = reads()[0]
+      check('reconcile membaca bukti SATU kali lewat /me/records dengan pesan khusus bertanda tangan',
+        reads().length === 1 && /^lencana-records nonce=[0-9a-f]{12,}$/.test(String(readCall?.body?.message ?? '')) && /^0x[0-9a-f]{130}$/.test(String(readCall?.body?.signature ?? '')),
+        `${reads().length} baca · ${String(readCall?.body?.message ?? '')}`)
+      check('tidak ada angka atau nilai yang dikirim klien (hanya status lesson bertanda tangan peserta)',
+        sent.filter((s) => s.url === '/progress' && s.method === 'POST').every((s) => !('score' in (s.body ?? {})) && /^lencana-progress \S+ -> (unlocked|started|completed) nonce=[0-9a-f]{12,}$/.test(String(s.body?.message ?? ''))),
+        JSON.stringify(sent.filter((s) => s.url === '/progress' && s.method === 'POST').slice(0, 1).map((s) => s.body)))
+
+      sent.length = 0
+      const again = await reconcileLessons('uji-bayar-2026', lessons4)
+      check('reconcile idempoten: kedua kalinya hanya membaca, nol tulisan', again.ok && again.completed.length === 0 && posts().length === 0 && reads().length === 1,
+        `${posts().length} tulis · ${reads().length} baca`)
+
+      lessonState.clear(); lessonState.set('kuis', 'started')
+      sent.length = 0
+      const stuck = await reconcileLessons('uji-bayar-2026', lessons4)
+      check('lesson yang macet di `started` hanya dikirimi `completed` (dulu `unlocked` lagi → 422 selamanya)',
+        stuck.ok && JSON.stringify(posts().filter((p) => p.startsWith('kuis:'))) === '["kuis:completed"]' && lessonState.get('kuis') === 'completed', JSON.stringify({ posts: posts(), stuck }))
+      lessonState.clear(); lessonState.set('baca', 'started')
+      sent.length = 0
+      await syncCourse('uji-bayar-2026')
+      const direct = await completeLesson('uji-bayar-2026', 'baca', 0)
+      check('completeLesson langsung: lesson `started` hanya dikirimi `completed`', direct.ok && JSON.stringify(posts()) === '["baca:completed"]', JSON.stringify({ direct, posts: posts() }))
+
+      lessonState.clear()
+      records = [att('kuis', 'kuis', 'fail'), att('esai', 'esai', 'incomplete')]
+      sent.length = 0
+      const none = await reconcileLessons('uji-bayar-2026', lessons4)
+      check('kuis gagal dan esai belum dinilai: tidak ada yang ditulis (selesai ≠ lulus, tapi juga bukan "dianggap selesai")', none.ok && posts().length === 0 && none.completed.length === 0, JSON.stringify(none))
+
+      records = [att('kuis', 'kuis', 'pass')]
+      recordsFail = true
+      sent.length = 0
+      const down = await reconcileLessons('uji-bayar-2026', lessons4)
+      check('bukti tak terbaca → berhenti dengan alasan apa adanya, nol tulisan', !down.ok && /tidak terjangkau/.test(down.why ?? '') && posts().length === 0, JSON.stringify(down))
+      recordsFail = false
+
+      check('rekonsiliasi TIDAK membaca progres perangkat (`lencana-progress-v1` tidak dikunci per akun)', !touched.includes('lencana-progress-v1'),
+        `kunci yang disentuh: ${[...new Set(touched)].join(', ') || '—'}`)
+    } finally {
+      g.fetch = realFetch2
+      delete g.sessionStorage
+      delete g.localStorage
+      forgetLearner()
+    }
+  }
+
   // Diagnosa: tanpa blok ini, probe hanya melaporkan "panggilan X gagal" dan kita tetap
   // buta terhadap SEBABNYA — yang membuat probe tidak lebih berguna dari menebak.
   const anyFail = [r0, ...(demo ? [demo] : [])].flatMap((r) => r.readLog).filter((l) => !l.ok)
