@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "build:api": "node scripts/build-api.mjs",
     "probe": "tsx scripts/probe.ts",
     "check:spec": "tsx scripts/spec-audit-check.ts",
     "rubric": "tsx scripts/rubric-check.ts",

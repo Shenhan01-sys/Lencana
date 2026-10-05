@@ -10,21 +10,10 @@ import { defaultEndpoint, mainnetEndpoint } from './verify'
 
 const KEY = 'bnb-credential-endpoint-v1'
 
-/**
- * Tempat dokumen kredensial kita BENAR-BENAR disajikan: Worker + KV yang diisi
- * `npm run publish:edge`, dan satu-satunya host yang terbukti menjawab hari ini
- * (`npm run verify:edge` → 19 dari 19 kertas terbaca publik).
- * Sejak B165 didefinisikan DI SINI (halaman `#/app` tidak boleh mengimpor `main.ts` — kode DOM dan lingkar impor);
- * `main.ts` mengekspor ulang namanya yang sama.
- */
-export const CREDENTIAL_HOST = 'https://lencana-edge.hansgunawan775.workers.dev'
-
-/**
- * Tempat halaman ini benar-benar dibuka orang (Vercel) — diukur 29 Sep: HTTP 200.
- * Bukan "lencana.io": domain itu tidak pernah kita pegang dan dns.resolve-nya ENOTFOUND (A dan AAAA).
- * Tujuan QR di lembar sertifikat (B165): lembar yang dicetak dari mana pun menunjuk verifier yang sama.
- */
-export const APP_HOST = 'https://lencana-psi.vercel.app'
+// Dua host publik didefinisikan di `hosts.ts` (sejak B168: fungsi Vercel butuh keduanya tanpa membawa viem/DOM); halaman `#/app` mengimpornya
+// lewat sini (B165) dan `main.ts` mengekspor ulang namanya yang sama.
+import { CREDENTIAL_HOST, APP_HOST } from './hosts'
+export { CREDENTIAL_HOST, APP_HOST }
 
 export type Preset = { id: string; label: string; endpoint: Endpoint; note: string }
 

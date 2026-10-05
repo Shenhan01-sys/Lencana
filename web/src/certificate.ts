@@ -12,8 +12,7 @@
  * Berkas ini diuji `npm run probe` (grup B165) di Node, jadi tidak boleh menyentuh `document`/`window`.
  */
 // Lencana-B165 status=SELESAI 2026-10-05 — lembar sertifikat dari dokumen kredensial nyata: pemetaan dokumen → lembar, geometri kristal dan cincin dari byte hash, QR, nama penerima. Buktikan ulang: cd web && npm run probe (grup B165). JANGAN dibalik/diulang tanpa membuka kembali baris B165 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import qrcode from 'qrcode-generator'
-import { isAddress } from 'viem'
+import { isAddress } from 'viem/utils'
 import { LOGO } from './certificate-logo'
 
 export type Hex = `0x${string}`
@@ -278,30 +277,7 @@ export function savePaper (addr: string, paper: Paper, store: Pick<Storage, 'set
   try { store?.setItem(paperKey(addr), paper === 'terang' ? 'terang' : 'gelap') } catch { /* tanpa penyimpanan: pilihan berlaku untuk sesi ini saja */ }
 }
 
-// ------------------------------------------------------------------ QR
-
-/**
- * QR dari teks (pustaka `qrcode-generator`, koreksi galat M): jalur SVG berisi barisan modul gelap per baris, supaya satu
- * `<path>` cukup. Zona tenang digambar oleh pelat putih di lembar, bukan oleh jalur ini.
- */
-export function qrPath (text: string): { modules: number, path: string } {
-  const qr = qrcode(0, 'M')
-  qr.addData(text)
-  qr.make()
-  const n = qr.getModuleCount()
-  let path = ''
-  for (let r = 0; r < n; r++) {
-    let c = 0
-    while (c < n) {
-      if (!qr.isDark(r, c)) { c++; continue }
-      let e = c
-      while (e < n && qr.isDark(r, e)) e++
-      path += `M${c} ${r}h${e - c}v1h-${e - c}z`
-      c = e
-    }
-  }
-  return { modules: n, path }
-}
+// ------------------------------------------------------------------ lambang (QR ada di `certificate-qr.ts` sejak B168)
 
 export const logoSvgInner = (): string => `<path d="${LOGO.gold}" fill="var(--logo-a,#f0b90b)"/><path d="${LOGO.black}" fill="var(--logo-b,#0b0e11)"/>`
 export const LOGO_VIEWBOX = `0 0 ${LOGO.w} ${LOGO.h}`

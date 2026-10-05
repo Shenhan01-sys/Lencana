@@ -10,7 +10,7 @@
  */
 // Lencana-B165 status=SELESAI 2026-10-05 — daftar kredensial peserta (chain + dokumen publik) dan pemuat lembar sertifikat; kepemilikan diperiksa dua arah dan "kosong"/"tidak tersaji" dibedakan dari "gagal". Buktikan ulang: cd web && npm run probe (grup B165). JANGAN dibalik/diulang tanpa membuka kembali baris B165 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { isAddress } from 'viem'
-import { credentialResolverAbi } from './abi'
+import { ERC5192_INTERFACE_ID, credentialResolverAbi, soulboundCertAbi } from './abi'
 import { APP_HOST, CREDENTIAL_HOST, isConfigured, loadEndpoint } from './config'
 import { artefactLayersOf, makeClient, type CertLayer } from './verify'
 import {
@@ -129,4 +129,54 @@ export async function loadCertificate (hash: string, addr: string): Promise<Cert
   const criteria = crit.state === 'ok' ? parseCriteria(crit.json) : null
   const cert = buildCertificate({ hash: hash as Hex, cred: doc.cred, criteria, status, appHost: APP_HOST, testnet: ep.chainId === 97 })
   return { ok: true, cert, layers }
+}
+
+// ------------------------------------------------------------------ bukti NFT (B168)
+
+/** Satu artefak soulbound yang MEMANG ada di chain untuk kredensial ini, dengan hasil pembacaan buktinya. */
+export type NftProofLayer = {
+  address: Address
+  tokenId: string
+  /** `ownerOf(tokenId)`; `null` bila pembacaannya gagal. */
+  owner: Address | null
+  /** `owner` sama dengan alamat akun yang masuk; `null` bila pemilik tidak terbaca. */
+  ownerIsAccount: boolean | null
+  /** `locked(tokenId)` (ERC-5192); `null` bila gagal dibaca. */
+  locked: boolean | null
+  /** `supportsInterface(0xb45a3c0e)`; `null` bila gagal dibaca. */
+  erc5192: boolean | null
+  readOk: boolean
+}
+
+export type NftProof = {
+  /** Lapis yang memegang token untuk kredensial ini. */
+  held: NftProofLayer[]
+  /** Lapis yang pembacaan `tokenOfCredential`-nya GAGAL — bukan "kosong". */
+  failed: Address[]
+  rpcUrl: string
+  testnet: boolean
+}
+
+/**
+ * Bukti on-chain artefak soulbound: untuk tiap lapis yang memegang token, baca `ownerOf`, `locked`, dan `supportsInterface(ERC-5192)`.
+ * `layers` datang dari `loadCertificate` (`artefactLayersOf`, B164) supaya `tokenOfCredential` tidak dibaca dua kali. Pembacaan yang gagal
+ * tampil sebagai `null`/`readOk: false`, tidak pernah sebagai "tidak terkunci" atau "bukan milikmu".
+ */
+export async function loadNftProof (layers: CertLayer[], account: string): Promise<NftProof> {
+  const ep = loadEndpoint()
+  const client = makeClient(ep)
+  const held = await Promise.all(layers.filter((l) => l.tokenId !== null).map(async (l): Promise<NftProofLayer> => {
+    const id = BigInt(l.tokenId as string)
+    const [owner, locked, erc5192] = await Promise.all([
+      client.readContract({ address: l.address, abi: soulboundCertAbi, functionName: 'ownerOf', args: [id] }).then((v) => v as Address, () => null),
+      client.readContract({ address: l.address, abi: soulboundCertAbi, functionName: 'locked', args: [id] }).then((v) => v as boolean, () => null),
+      client.readContract({ address: l.address, abi: soulboundCertAbi, functionName: 'supportsInterface', args: [ERC5192_INTERFACE_ID] }).then((v) => v as boolean, () => null),
+    ])
+    return {
+      address: l.address, tokenId: l.tokenId as string, owner,
+      ownerIsAccount: owner ? owner.toLowerCase() === account.toLowerCase() : null,
+      locked, erc5192, readOk: owner !== null && locked !== null && erc5192 !== null,
+    }
+  }))
+  return { held, failed: layers.filter((l) => !l.readOk).map((l) => l.address), rpcUrl: ep.rpcUrl, testnet: ep.chainId === 97 }
 }

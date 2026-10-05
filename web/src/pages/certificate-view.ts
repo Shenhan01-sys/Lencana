@@ -16,9 +16,12 @@ import { h } from '../lib/ui'
 import { credentialDocUrl, loadCertificate } from '../credentials'
 import {
   addressGroups, cleanName, componentSummary, dialSvg, effectiveMode, facets, hashBytes, idDate, idTime, loadRecipient,
-  loadPaper, logoSvgInner, LOGO_VIEWBOX, mid, NAME_MAX, qrPath, savePaper, saveRecipient, type CertificateData, type Paper, type Recipient,
+  loadPaper, logoSvgInner, LOGO_VIEWBOX, mid, NAME_MAX, savePaper, saveRecipient, type CertificateData, type Paper, type Recipient,
 } from '../certificate'
+import { qrPath } from '../certificate-qr'
 import { verifyLink } from '../lesson-views'
+import type { CertLayer } from '../verify'
+import { buildProofSection, buildShareDialog } from './certificate-extras'
 
 type Lang = 'en' | 'id'
 
@@ -35,6 +38,7 @@ const COPY = {
   nameAria: { en: 'Name shown on the sheet', id: 'Nama yang tampil di lembar' },
   replay: { en: '▶ Replay motion', id: '▶ Ulangi gerak' },
   print: { en: 'Print / save PDF', id: 'Cetak / simpan PDF' },
+  share: { en: 'Share on LinkedIn', id: 'Bagikan ke LinkedIn' },
   building: { en: 'Building the certificate from the public credential document…', id: 'Menyusun sertifikat dari dokumen kredensial publik…' },
   failedTitle: { en: 'The certificate could not be made', id: 'Sertifikat belum bisa dibuat' },
   notMineTitle: { en: 'Not your credential', id: 'Bukan kredensialmu' },
@@ -208,7 +212,7 @@ export function openCertificate (hash: string, addr: string, lang: Lang): void {
       el.replaceChildren(stateView(lang, r.kind === 'not-mine' ? COPY.notMineTitle[lang] : COPY.failedTitle[lang], r.why, { bad: true, verifyHash: r.kind === 'invalid' ? undefined : hash }))
       return
     }
-    mountSheet(layer, r.cert, addr, lang)
+    mountSheet(layer, r.cert, r.layers, addr, lang)
   }).catch((e: unknown) => {
     if (current !== layer) return
     el.replaceChildren(stateView(lang, COPY.failedTitle[lang], e instanceof Error ? e.message : String(e), { bad: true }))
@@ -228,7 +232,7 @@ const bez = (x1: number, y1: number, x2: number, y2: number) => {
 }
 const easeOut = bez(0.22, 1, 0.36, 1)
 
-function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: Lang): void {
+function mountSheet (layer: Layer, cert: CertificateData, layers: CertLayer[], addr: string, lang: Lang): void {
   const el = layer.el
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const rec: Recipient = loadRecipient(addr)
@@ -346,12 +350,17 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
   const nameInput = h('input', { class: 'cert-in', type: 'text', 'data-name-input': '', maxlength: String(NAME_MAX), autocomplete: 'off', spellcheck: 'false', placeholder: T('namePlaceholder'), 'aria-label': T('nameAria'), hidden: true }) as HTMLInputElement
   const replayBtn = h('button', { class: 'cert-btn', type: 'button', 'data-act': 'replay' }, T('replay'))
   const printBtn = h('button', { class: 'cert-btn cert-btn-pri', type: 'button', 'data-act': 'print', 'aria-haspopup': 'dialog' }, T('print'))
+  // B168: bagikan ke LinkedIn (dialog) dan bukti on-chain artefak NFT (panel di bawah lembar; tidak ikut tercetak)
+  const shareBtn = h('button', { class: 'cert-btn', type: 'button', 'data-act': 'share', 'aria-haspopup': 'dialog' }, T('share'))
+  const shareDlg = buildShareDialog(lang, cert, layers)
+  shareBtn.addEventListener('click', () => shareDlg.open(shareBtn))
+  const proofSection = buildProofSection(lang, cert, layers, addr)
   const bar = h('header', { class: 'cert-bar' },
     h('a', { class: 'cert-back', href: '#/app/credentials' }, `← ${T('back')}`),
     h('div', { class: 'cert-title' }, h('span', null, T('sheetTitle')), h('small', null, cert.title)),
     h('span', { class: 'cert-sp' }),
     h('div', { class: 'cert-grp' }, h('div', { class: 'cert-seg', role: 'group', 'aria-label': T('recipientLabel') }, btnAddr, btnName), nameInput),
-    replayBtn, printBtn)
+    replayBtn, shareBtn, printBtn)
 
   // ---- nama muat otomatis: ukur (58 px → lantai 34 px satu baris → dua baris, lalu kecilkan) ----
   const nameEl = q('.s3-name')!
@@ -469,7 +478,7 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
   if (typeof ResizeObserver !== 'undefined') { const ro = new ResizeObserver(fit); ro.observe(el); layer.teardown.push(() => ro.disconnect()) }
 
   // Esc menutup penampil (dialog yang terbuka menutup dirinya sendiri lebih dulu)
-  const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !dlg.open) window.location.hash = '#/app/credentials' }
+  const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !dlg.open && !shareDlg.dlg.open) window.location.hash = '#/app/credentials' }
   document.addEventListener('keydown', onKey)
   layer.teardown.push(() => document.removeEventListener('keydown', onKey))
 
@@ -477,7 +486,7 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
     h('a', { href: credentialDocUrl(cert.hash), target: '_blank', rel: 'noopener noreferrer' }, `${T('publicDoc')} ↗`), ' · ',
     h('a', { href: verifyLink(cert.hash) }, `${T('verifier')} ↗`))
 
-  el.replaceChildren(bar, stage, foot, dlg)
+  el.replaceChildren(bar, stage, proofSection, foot, dlg, shareDlg.dlg)
   fit()
   applyRecipient()
   const go = () => { if (current !== layer) return; applyRecipient(); fit(); fitFoot(); play() }

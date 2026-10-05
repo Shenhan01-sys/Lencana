@@ -286,13 +286,57 @@ body.cert-open{overflow:hidden}
 .cert-dlg .cert-btn{color:#eaecef;border-color:#2b313a;padding:8px 16px}
 .cert-dlg .cert-btn-pri{background:#f0b90b;border-color:#f0b90b;color:#0b0e11}
 
+/* ---------- B168: panel bukti on-chain (di bawah lembar, tidak ikut tercetak) ---------- */
+.cert-btn-sm{padding:4px 10px;font-size:12.5px}
+.cert-ok{color:#0ecb81}.cert-bad{color:#f6465d}.cert-muted{color:#b7bdc6}
+.cert-proof{max-width:1122px;margin:18px auto 0;padding:20px 22px;border:1px solid #2b313a;border-radius:18px;background:#12151a;display:grid;gap:12px}
+.cert-proof h2{margin:0;font-size:20px;font-weight:650}
+.cert-proof p{margin:0;max-width:none;font-size:14px}
+.cert-proof a{color:#f0b90b}
+.cert-proof-card{display:grid;gap:12px;padding:16px 18px;border:1px solid #2b313a;border-radius:14px;background:#181a20}
+.cert-proof-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.cert-proof-head h3{margin:0;font-size:16px;font-weight:650}
+.cert-chip{display:inline-flex;align-items:center;padding:3px 11px;border-radius:999px;font:700 12px var(--font-mono,ui-monospace,monospace);letter-spacing:.06em}
+.cert-chip.is-ok{color:#0ecb81;background:rgba(14,203,129,.12);box-shadow:inset 0 0 0 1px rgba(14,203,129,.35)}
+.cert-chip.is-bad{color:#f6465d;background:rgba(246,70,93,.12);box-shadow:inset 0 0 0 1px rgba(246,70,93,.35)}
+.cert-chip.is-muted{color:#b7bdc6;background:rgba(132,142,156,.14);box-shadow:inset 0 0 0 1px rgba(132,142,156,.35)}
+.cert-proof-dl{display:grid;gap:10px;margin:0}
+.cert-proof-dl div{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:4px 16px;align-items:baseline}
+.cert-proof-dl dt{margin:0;color:#848e9c;font-size:13px}
+.cert-proof-dl dd{margin:0;font-size:14px;min-width:0;overflow-wrap:anywhere}
+.cert-proof code,.cert-share code{font-family:var(--font-mono,ui-monospace,monospace);font-size:12.5px;color:#eaecef}
+.cert-wrap{word-break:break-all}
+.cert-proof-links{display:flex;flex-wrap:wrap;gap:8px}
+.cert-proof-links .cert-btn{text-decoration:none;color:#eaecef}
+.cert-proof-cast summary{cursor:pointer;color:#f0b90b;font-size:13.5px}
+.cert-proof-cast pre{margin:10px 0;padding:12px;border-radius:10px;background:#0b0e11;overflow:auto;font-size:12.5px;line-height:1.5}
+@media (max-width:640px){.cert-proof-dl div{grid-template-columns:1fr}.cert-proof{margin:14px 12px 0;padding:16px}}
+
+/* ---------- B168: dialog Bagikan ke LinkedIn ---------- */
+.cert-share{width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
+.cert-share .cert-dlg-f{gap:14px}
+.cert-share-demo{padding:10px 12px;border-radius:10px;background:rgba(240,185,11,.08);box-shadow:inset 0 0 0 1px rgba(240,185,11,.3);color:#eaecef}
+.cert-share-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cert-share-actions .cert-btn{display:inline-block;text-decoration:none;text-align:center;width:100%;box-sizing:border-box;padding:9px 14px}
+.cert-share-actions .cert-dlg-n{margin-top:6px}
+.cert-share-area{min-height:210px;resize:vertical;line-height:1.5}
+.cert-share-langs{display:flex;gap:8px;margin-bottom:8px}
+.cert-opt-inline{padding:6px 12px}
+.cert-share-row{display:flex;gap:8px;align-items:center;margin-top:6px}
+.cert-share-row .cert-dlg-name{margin:0}
+.cert-share-prev{display:grid;gap:6px}
+.cert-share-prev[hidden]{display:none}
+.cert-share-img{width:100%;max-width:600px;height:auto;aspect-ratio:1200/630;border-radius:10px;border:1px solid #2b313a;background:#0b0e11}
+.cert-share a{color:#f0b90b}
+@media (max-width:560px){.cert-share-actions{grid-template-columns:1fr}}
+
 /* ---------- cetak / simpan PDF: A4 landscape, tampilan gelap yang sama ---------- */
 @page{size:297mm 210mm;margin:0}
 @media print{
   html,body{background:#0b0e11 !important;margin:0 !important;min-height:0 !important}
   body > *:not(.cert-layer){display:none !important}
   .cert-layer{position:static !important;inset:auto !important;overflow:visible !important;background:#0b0e11 !important}
-  .cert-bar,.cert-foot,.cert-dlg,.cert-state{display:none !important}
+  .cert-bar,.cert-foot,.cert-dlg,.cert-state,.cert-proof{display:none !important}
   .cert-stage{display:block;padding:0;place-items:normal;justify-items:normal;align-items:normal}
   .cert-fit{width:auto;height:auto;position:static;margin:0}
   .cert-scale{position:static;width:auto;height:auto;transform:none !important}

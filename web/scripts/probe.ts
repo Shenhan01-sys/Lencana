@@ -323,12 +323,15 @@ async function main() {
   // meledak. Konstantanya dibaca dari sumber, dan keberadaannya ikut diadili supaya tidak bisa
   // hilang diam-diam. Sejak B165 ia didefinisikan di src/config.ts (halaman `#/app` butuh host ini dan tidak boleh
   // mengimpor main.ts); main.ts mengekspor ulang namanya yang sama.
+  // B168: sumbernya `src/hosts.ts` (tanpa impor; dipakai juga fungsi Vercel); config.ts dan main.ts mengekspor ulang.
+  const hostsSrc = await readFile(new URL('../src/hosts.ts', import.meta.url), 'utf8')
   const configSrc = await readFile(new URL('../src/config.ts', import.meta.url), 'utf8')
-  const hostMatch = /export const CREDENTIAL_HOST = '([^']+)'/.exec(configSrc)
-  check('CREDENTIAL_HOST terdefinisi di config.ts (sumber URL dokumen penerbit publik)', !!hostMatch, hostMatch?.[1] ?? 'tidak ditemukan')
-  check('main.ts mengekspor ulang CREDENTIAL_HOST dan APP_HOST dari config.ts, tanpa definisi ganda',
+  const hostMatch = /export const CREDENTIAL_HOST = '([^']+)'/.exec(hostsSrc)
+  check('CREDENTIAL_HOST terdefinisi di hosts.ts (sumber URL dokumen penerbit publik)', !!hostMatch, hostMatch?.[1] ?? 'tidak ditemukan')
+  check('config.ts dan main.ts mengekspor ulang CREDENTIAL_HOST dan APP_HOST tanpa definisi ganda; hosts.ts tanpa impor',
+    /export \{[^}]*\bCREDENTIAL_HOST\b[^}]*\}/.test(configSrc) && /export \{[^}]*\bAPP_HOST\b[^}]*\}/.test(configSrc) &&
     /export \{[^}]*\bCREDENTIAL_HOST\b[^}]*\}/.test(mainSrc) && /export \{[^}]*\bAPP_HOST\b[^}]*\}/.test(mainSrc) &&
-    !/export const (CREDENTIAL_HOST|APP_HOST) =/.test(mainSrc))
+    !/export const (CREDENTIAL_HOST|APP_HOST) =/.test(configSrc) && !/export const (CREDENTIAL_HOST|APP_HOST) =/.test(mainSrc) && !/^\s*import\s/m.test(hostsSrc))
   const hostPublik = hostMatch?.[1] ?? ''
   // Dokumen agen yang hari ini menandatangani untuk penerbit demo — diuji lewat jaringan sungguhan.
   // Versi pertama pemeriksaan ini menurunkan URL dari slug manifest danlangsung MERAH: tepi menjawab
@@ -837,6 +840,7 @@ async function main() {
   {
     console.log('\n--lembar sertifikat dari dokumen kredensial (B165)--')
     const C = await import('../src/certificate')
+    const Q = await import('../src/certificate-qr')
     const CR = await import('../src/credentials')
     const { CREDENTIAL_HOST: EDGE, APP_HOST: APP } = await import('../src/config')
     const H153 = '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31' as const
@@ -949,15 +953,15 @@ async function main() {
     }
 
     // QR, kristal, cincin
-    const qr = C.qrPath(cert.verifyUrl)
+    const qr = Q.qrPath(cert.verifyUrl)
     const grid = Array.from({ length: qr.modules }, () => new Array<boolean>(qr.modules).fill(false))
     for (const m of qr.path.matchAll(/M(\d+) (\d+)h(\d+)v1h-\d+z/g)) for (let i = 0; i < Number(m[3]); i++) grid[Number(m[2])]![Number(m[1]) + i] = true
     const finder = (r0: number, c0: number) => { for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) { const edge = r === 0 || r === 6 || c === 0 || c === 6, core = r >= 2 && r <= 4 && c >= 2 && c <= 4; if (grid[r0 + r]![c0 + c] !== (edge || core)) return false } return true }
     const n = qr.modules
     check('QR tautan verifier B153: 45 modul (versi 7, koreksi M) dengan tiga pola pencari di sudut kiri-atas, kanan-atas, kiri-bawah dan nol modul gelap di luar kisi',
-      n === 45 && finder(0, 0) && finder(0, n - 7) && finder(n - 7, 0) && !qr.path.includes('NaN') && JSON.stringify(C.qrPath(cert.verifyUrl)) === JSON.stringify(qr), `modul=${n}`)
+      n === 45 && finder(0, 0) && finder(0, n - 7) && finder(n - 7, 0) && !qr.path.includes('NaN') && JSON.stringify(Q.qrPath(cert.verifyUrl)) === JSON.stringify(qr), `modul=${n}`)
     check('QR berbeda untuk hash berbeda dan sama untuk hash sama (deterministik)',
-      C.qrPath(`${APP}/?q=0x${'11'.repeat(32)}#/verify`).path !== qr.path)
+      Q.qrPath(`${APP}/?q=0x${'11'.repeat(32)}#/verify`).path !== qr.path)
     const bytes = C.hashBytes(H153)
     const art = C.hashArt(bytes)
     check('jejak hash: 32 byte dari hash, byteAt melingkar (tanpa indeks negatif), PRNG deterministik per bibit dan beda antar bibit',
@@ -1038,6 +1042,125 @@ async function main() {
         const st = (l: Awaited<ReturnType<typeof CR.listMyCredentials>>) => l.ok ? l.rows.find((r) => r.hash.toLowerCase() === H153)?.doc.state : l.why
         check('daftar kredensial: dokumen 404 -> baris "missing"; 503 -> baris "failed"; kredensial tetap tampil dengan status chain-nya', st(list404) === 'missing' && st(list503) === 'failed', `${st(list404)} / ${st(list503)}`)
       } finally { globalThis.fetch = realFetch }
+    }
+  }
+
+  // --- 11. bukti NFT dan kit LinkedIn (B168) ------------------------------------------
+  // Lencana-B168 status=SELESAI 2026-10-06 — probe mengadili bukti on-chain artefak (pemilik, locked, ERC-5192 dari chain 97 publik), tautan/OG/kit LinkedIn (murni, tanpa klaim terlarang), kartu 1200x630, dan fungsi Vercel yang dijalankan lokal terhadap dokumen tepi sungguhan; bundel api/ harus segar. Buktikan ulang: cd web && npm run probe (grup B168). JANGAN dibalik/diulang tanpa membuka kembali baris B168 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  {
+    console.log('\n--bukti NFT dan kit LinkedIn (B168)--')
+    const C = await import('../src/certificate')
+    const S = await import('../src/share')
+    const CR = await import('../src/credentials')
+    const { APP_HOST: APP } = await import('../src/hosts')
+    const H153 = '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31' as const
+    const L153 = '0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF' as const
+    const EDGE = (await import('../src/hosts')).CREDENTIAL_HOST
+    const doc = {
+      id: `${EDGE}/credentials/${H153}`, type: ['VerifiableCredential', 'OpenBadgeCredential'], issuer: { name: 'Lencana Demo Agent' },
+      validFrom: '2026-10-05T09:41:01Z', validUntil: '2027-10-05T09:41:01Z', name: 'Kelas Uji — Membayar dengan Tanda Tangan',
+      credentialSubject: { id: `${EDGE}/learners/${L153}`, achievement: { id: `${EDGE}/achievements/uji-bayar-2026`, name: 'x', criteria: { narrative: 'Nilai akhir >= 60 dari 100. Kelas uji: hanya menyatakan peserta menyelesaikan kelas pendek ini, bukan keahlian Web3.' } }, result: [{ value: '87' }] },
+      proof: { type: 'DataIntegrityProof', cryptosuite: 'eddsa-rdfc-2022' },
+    }
+    const crit = { issuer: { name: 'Yayasan Literasi Digital Nusantara (institusi demo, fiktif)' }, policy: { passMark: 60, weights: { kuis: 50, esai: 30, praktik: 20 } } }
+    const mk = (over: Record<string, unknown> = {}, c: unknown = crit, testnet = true) => {
+      const cred = C.parseCredentialDoc({ ...doc, ...over })!
+      return C.buildCertificate({ hash: H153, cred, criteria: C.parseCriteria(c), status: { verdict: 'BELUM TERBACA', readOn: '2026-10-06T00:00:00Z' }, appHost: APP, testnet })
+    }
+    const cert = mk()
+    const real = mk({}, { issuer: { name: 'PT Maju Belajar' }, policy: { passMark: 60, weights: { kuis: 100 } } }, false)
+
+    check('tautan bagikan: /s/<hash> dan /s/<hash>/card.png dari host aplikasi (garis miring akhir dibuang); penjelajah testnet vs mainnet; token ?a=<id>',
+      S.shareUrl(APP + '/', H153) === `${APP}/s/${H153}` && S.cardUrl(APP, H153) === `${APP}/s/${H153}/card.png` && S.explorerAddressUrl(L153) === `https://testnet.bscscan.com/address/${L153}` &&
+      S.explorerAddressUrl(L153, false) === `https://bscscan.com/address/${L153}` && S.explorerTokenUrl('0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa', '123') === 'https://testnet.bscscan.com/token/0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa?a=123')
+    const cmds = S.castCommands({ contract: '0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa', tokenId: '84121403', hash: H153 }, 'https://rpc.example')
+    check('perintah cast: ownerOf, locked, supportsInterface(0xb45a3c0e), tokenOfCredential — masing-masing dengan kontrak, token/hash, dan RPC',
+      cmds.length === 4 && cmds.every((c) => c.startsWith('cast call 0xc338AF7F') && c.endsWith('--rpc-url https://rpc.example')) && /ownerOf\(uint256\)\(address\)" 84121403/.test(cmds[0]!) && /locked\(uint256\)\(bool\)" 84121403/.test(cmds[1]!) &&
+      /0xb45a3c0e/.test(cmds[2]!) && cmds[3]!.includes(H153))
+    const og = S.ogMeta(cert, APP)
+    check('OG B153: judul "Sertifikat: …", deskripsi memuat nilai 87/100, "testnet", dan label demo; gambar = kartu per sertifikat; TANPA kata status keberlakuan',
+      og.title === 'Sertifikat: Kelas Uji — Membayar dengan Tanda Tangan' && /Nilai 87\/100/.test(og.description) && /testnet/.test(og.description) && /Penerbit demo \(fiktif\)/.test(og.description) &&
+      og.image === `${APP}/s/${H153}/card.png` && og.url === `${APP}/s/${H153}` && !/berlaku|dicabut|kedaluwarsa|valid/i.test(og.description) && og.description.length <= 300 && og.title.length <= 150, og.description)
+    const ogReal = S.ogMeta(real, APP)
+    check('OG penerbit nyata di mainnet: tanpa "Penerbit demo" dan tanpa "testnet"', !/Penerbit demo|testnet/.test(ogReal.description) && /bukan ijazah/.test(ogReal.description), ogReal.description)
+    const evil = S.ogMeta({ ...cert, title: '"><script>alert(1)</script>&' }, APP)
+    const html = S.shareHtml(evil, `${APP}/?q=${H153}#/verify</script><script>x`)
+    check('halaman bagikan: semua nilai di-escape (judul bermarkup tidak menjadi tag), pengalihan JS tidak bisa menutup <script>, tag og:image lengkap dengan ukuran 1200 × 630',
+      !/<script>alert/.test(html) && html.includes('&lt;script&gt;alert(1)&lt;/script&gt;&amp;') && !/location\.replace\([^)]*<\/script>/.test(html) && /og:image:width" content="1200"/.test(html) && /og:image:height" content="630"/.test(html) &&
+      /twitter:card" content="summary_large_image"/.test(html) && /og:title/.test(html) && /og:description/.test(html) && /og:url/.test(html) && /noindex/.test(html))
+    const add = new URL(S.linkedinAddUrl(cert, S.shareUrl(APP, H153)))
+    const g = (k: string) => add.searchParams.get(k)
+    check('tambah-ke-profil LinkedIn: parameter resmi terisi dari sertifikat (nama diberi "(demo)", penerbit + catatan, bulan/tahun WIB, tautan pratinjau, ID = hash); tanpa organizationId',
+      add.origin === 'https://www.linkedin.com' && add.pathname === '/profile/add' && g('startTask') === 'CERTIFICATION_NAME' && g('name') === 'Kelas Uji — Membayar dengan Tanda Tangan (demo)' &&
+      g('organizationName') === 'Yayasan Literasi Digital Nusantara (institusi demo, fiktif)' && g('issueYear') === '2026' && g('issueMonth') === '10' && g('expirationYear') === '2027' && g('expirationMonth') === '10' &&
+      g('certUrl') === `${APP}/s/${H153}` && g('certId') === H153 && !add.searchParams.has('organizationId'))
+    const addReal = new URL(S.linkedinAddUrl(real, 'https://x.example/s'))
+    const addNone = new URL(S.linkedinAddUrl({ ...cert, publisher: null, publisherNote: null, title: 'T'.repeat(150) }, 'https://x.example/s'))
+    check('tambah-ke-profil: penerbit nyata tanpa "(demo)"; penerbit tidak diketahui -> "Lencana"; nama dipotong 100 karakter; spasi %20 (bukan +)',
+      addReal.searchParams.get('name') === real.title && addReal.searchParams.get('organizationName') === 'PT Maju Belajar' && addNone.searchParams.get('organizationName') === 'Lencana' && (addNone.searchParams.get('name') ?? '').length === 100 && !/\+/.test(S.linkedinAddUrl(cert, 'https://x.example/s').replace(/%2B/g, '')))
+    check('bagikan sebagai post: URL komposer memuat tautan pratinjau ter-encode', S.linkedinShareUrl(`${APP}/s/${H153}`) === `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${APP}/s/${H153}`)}`)
+    const FORBIDDEN = [/ijazah on-chain/i, /anti-?pemalsuan/i, /terverifikasi/i, /\bresmi\b/i, /diakui/i, /siap produksi/i, /tidak bisa dipalsukan/i, /1EdTech/i, /official/i, /accredited/i, /tamper-?proof/i, /verified (person|learner|graduate)/i]
+    const posts = (['id', 'en'] as const).flatMap((lang) => [true, false].map((nft) => ({ lang, nft, text: S.linkedinPost(cert, { lang, nft, link: S.shareUrl(APP, H153) }) })))
+    check('draf post: judul, tautan, tagar, dan nilai ada; kalimat NFT HANYA bila artefaknya ada; catatan demo/jaringan uji/bukan ijazah ada; tanpa satu pun frasa terlarang; < 3.000 karakter',
+      posts.every((p) => p.text.includes(cert.title) && p.text.includes(S.shareUrl(APP, H153)) && p.text.includes('#BNBChain') && /87\/100/.test(p.text) && p.text.length < 3000 && FORBIDDEN.every((f) => !f.test(p.text)) &&
+        (p.nft ? /NFT/.test(p.text) : !/NFT/.test(p.text)) && (p.lang === 'id' ? /bukan ijazah/.test(p.text) && /jaringan uji/.test(p.text) : /not a diploma/.test(p.text) && /test network/.test(p.text))), posts.map((p) => `${p.lang}/${p.nft}:${p.text.length}`).join(' '))
+    const postReal = S.linkedinPost(real, { lang: 'id', nft: false, link: 'https://x.example/s' })
+    check('draf post penerbit nyata di mainnet: tidak menyebut demo, fiktif, atau jaringan uji (tidak ada yang perlu disangkal), tetap tanpa NFT bila tidak ada', !/demo|fiktif|jaringan uji|NFT/.test(postReal) && FORBIDDEN.every((f) => !f.test(postReal)), postReal.slice(0, 120))
+    check('pemecah baris kartu: tiap baris ≤ batas, kata utuh, ellipsis bila terpotong, kosong -> tanpa baris',
+      JSON.stringify(S.wrapLines('Kelas Uji Membayar dengan Tanda Tangan', 20, 3)) === '["Kelas Uji Membayar","dengan Tanda Tangan"]' && S.wrapLines('a b c d e f g h i j k l m n o p q r s t', 8, 2).length === 2 &&
+      S.wrapLines('a b c d e f g h i j k l m n o p q r s t', 8, 2)[1]!.endsWith('…') && S.wrapLines('   ', 10, 2).length === 0 && S.wrapLines('x'.repeat(60), 10, 1)[0]!.length === 10)
+    const svg = S.socialCardSvg(cert)
+    const svgEvil = S.socialCardSvg({ ...cert, title: '<b onload=alert(1)>&"x"', publisher: '</text><script>' })
+    const svgNone = S.socialCardSvg({ ...cert, score: null, passed: false })
+    check('kartu 1200 × 630: SVG utuh (xmlns, ukuran), memuat judul, nilai 87 dan LULUS, kristal dari hash, tanpa NaN/undefined; teks bermarkup di-escape; tanpa nilai -> tanpa LULUS; < 100 KB',
+      svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"') && svg.includes('>87<') && svg.includes('LULUS') && svg.includes('Kelas Uji') && !/NaN|undefined/.test(svg) && svg.length < 100_000 && /<polygon/.test(svg) &&
+      !/<b onload|<script>|<\/text><script/.test(svgEvil) && svgEvil.includes('&lt;b onload=alert(1)&gt;') && !svgNone.includes('LULUS') && svg !== S.socialCardSvg({ ...cert, hash: ('0x' + '5a'.repeat(32)) as `0x${string}` }), `${svg.length} byte`)
+
+    // bundel fungsi Vercel harus segar dan fungsinya jalan terhadap dokumen tepi sungguhan
+    // Impor lewat URL (bukan literal) supaya `tsc` tidak menuntut berkas tipe untuk .mjs di luar paket ini.
+    const { bundle } = await import(new URL('./build-api.mjs', import.meta.url).href) as { bundle: () => Promise<string> }
+    const bundlePath = new URL('../../api/_lib/lencana-share.mjs', import.meta.url)
+    const have = await readFile(bundlePath, 'utf8').catch(() => '')
+    check('bundel api/_lib/lencana-share.mjs SEGAR terhadap web/src (dibangun ulang di memori = isi berkas); bukan hasil sunting tangan', have.length > 10_000 && have === await bundle(), `${have.length} byte`)
+    type Handler = (q: unknown, r: unknown) => Promise<void>
+    const apiOk = await import(new URL('../../api/share.mjs', import.meta.url).href).then(async (s: { default: Handler }) => ({ share: s.default, card: ((await import(new URL('../../api/card.mjs', import.meta.url).href)) as { default: Handler }).default }), () => null)
+    const epPub = ep.chainId === 97 && ep.resolver.toLowerCase() === defaultEndpoint().resolver.toLowerCase()
+    if (!apiOk) skipped.push('B168 fungsi Vercel (api/node_modules belum dipasang: cd api && npm install)')
+    if (!epPub) skipped.push('B168 bukti NFT dan fungsi Vercel terhadap B153 (hanya ada di deployment publik chain 97)')
+    if (apiOk && epPub) {
+      const call = async (fn: (q: unknown, r: unknown) => Promise<void>, path: string, method = 'GET') => {
+        const headers: Record<string, string> = {}; let status = 200; const chunks: Buffer[] = []
+        const res = { set statusCode (v: number) { status = v }, get statusCode () { return status }, setHeader (k: string, v: string) { headers[k.toLowerCase()] = v }, end (b?: Uint8Array | string) { if (b !== undefined) chunks.push(Buffer.from(b)) } }
+        await fn({ url: path, method }, res)
+        return { status, headers, body: Buffer.concat(chunks) }
+      }
+      const rs = await call(apiOk.share, `/api/share?hash=${H153}`)
+      const body = rs.body.toString('utf8')
+      check('fungsi share (lokal, dokumen tepi sungguhan): 200 HTML, tag OG sama dengan ogMeta, cache publik, pengalihan ke verifier; hash berhuruf besar tetap dikenali',
+        rs.status === 200 && /text\/html/.test(rs.headers['content-type'] ?? '') && /s-maxage/.test(rs.headers['cache-control'] ?? '') && body.includes(`content="${S.ogMeta(cert, APP).title}"`) && body.includes(`og:image" content="${APP}/s/${H153}/card.png"`) &&
+        body.includes(`${APP}/?q=${H153}#/verify`) && (await call(apiOk.share, `/api/share?hash=${H153.toUpperCase().replace('0X', '0x')}`)).status === 200, `${rs.status} ${rs.body.length} byte`)
+      const rc = await call(apiOk.card, `/api/card?hash=${H153}`)
+      const png = rc.body
+      check('fungsi card (lokal): 200 image/png, tanda tangan PNG, 1200 × 630, > 50 KB, cache panjang',
+        rc.status === 200 && rc.headers['content-type'] === 'image/png' && png.subarray(1, 4).toString() === 'PNG' && png.readUInt32BE(16) === 1200 && png.readUInt32BE(20) === 630 && png.length > 50_000 && /s-maxage=86400/.test(rc.headers['cache-control'] ?? ''), `${rc.status} ${png.length} byte`)
+      const bad = [await call(apiOk.share, '/api/share?hash=abc'), await call(apiOk.share, `/api/share?hash=0x${'11'.repeat(32)}`), await call(apiOk.card, '/api/card'), await call(apiOk.card, `/api/card?hash=${encodeURIComponent('"><script>')}`), await call(apiOk.card, `/api/card?hash=0x${'22'.repeat(32)}`)]
+      check('fungsi bagikan menolak dengan benar: hash rusak/kosong/bermarkup -> 400, hash yang tidak tersaji di tepi -> 404, tanpa gambar atau HTML karangan',
+        JSON.stringify(bad.map((b) => b.status)) === '[400,404,400,400,404]' && bad.every((b) => /text\/plain/.test(b.headers['content-type'] ?? '')), JSON.stringify(bad.map((b) => b.status)))
+      const head = await call(apiOk.share, `/api/share?hash=${H153}`, 'HEAD')
+      check('HEAD tanpa badan', head.status === 200 && head.body.length === 0)
+      const lc = await CR.loadCertificate(H153, L153)
+      if (!lc.ok) check('B153 termuat untuk bukti NFT', false, lc.why)
+      else {
+        const pr = await CR.loadNftProof(lc.layers, L153)
+        check('bukti NFT B153: dua lapis memegang token; di tiap lapis pemilik = alamat akun, locked = true, ERC-5192 = true, semua terbaca, tanpa lapis gagal',
+          pr.held.length === 2 && pr.failed.length === 0 && pr.testnet && pr.held.every((l) => l.owner?.toLowerCase() === L153.toLowerCase() && l.ownerIsAccount === true && l.locked === true && l.erc5192 === true && l.readOk && l.tokenId === BigInt(H153).toString()), JSON.stringify(pr.held.map((l) => [l.address.slice(0, 8), l.ownerIsAccount, l.locked, l.erc5192])))
+        const other = await CR.loadNftProof(lc.layers, '0x' + '99'.repeat(20))
+        check('bukti NFT untuk akun LAIN: token tetap terkunci tetapi ownerIsAccount = false (bukan milik akun itu) — tidak dianggap terikat',
+          other.held.length === 2 && other.held.every((l) => l.ownerIsAccount === false && l.locked === true && l.readOk))
+        const broken = await CR.loadNftProof([{ address: '0x0000000000000000000000000000000000000001', tokenId: '5', readOk: true, enforcesCourseLevel: null }, { address: '0x0000000000000000000000000000000000000002', tokenId: null, readOk: false, enforcesCourseLevel: null }], L153)
+        check('bukti NFT: pembacaan yang gagal tampil sebagai null/readOk=false (bukan "tidak terkunci" atau "bukan milikmu"); lapis yang gagal dicatat terpisah dari yang kosong',
+          broken.held.length === 1 && broken.held[0]!.owner === null && broken.held[0]!.ownerIsAccount === null && broken.held[0]!.readOk === false && broken.failed.length === 1)
+      }
     }
   }
 

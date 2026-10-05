@@ -1,10 +1,22 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm --prefix web install",
+  "installCommand": "npm --prefix web install && npm --prefix api install",
   "buildCommand": "npm --prefix web run build",
   "outputDirectory": "web/dist",
   "framework": "vite",
+  "functions": {
+    "api/share.mjs": { "maxDuration": 15 },
+    "api/card.mjs": { "maxDuration": 20, "includeFiles": "api/_fonts/**" }
+  },
   "rewrites": [
+    {
+      "source": "/s/:hash/card.png",
+      "destination": "/api/card?hash=:hash"
+    },
+    {
+      "source": "/s/:hash",
+      "destination": "/api/share?hash=:hash"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

@@ -1,0 +1,9 @@
+{
+  "name": "lencana-api",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Fungsi Vercel Lencana (B168): halaman bagikan per sertifikat dengan tag Open Graph dan gambar kartu PNG.",
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2"
+  }
+}
