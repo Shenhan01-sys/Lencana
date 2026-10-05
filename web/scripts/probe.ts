@@ -321,9 +321,14 @@ async function main() {
   // tepi — dan itu diuji lewat jaringan sungguhan, bukan dengan membaca sumbernya saja.
   // `CREDENTIAL_HOST` TIDAK diimpor dari src/main: berkas itu kode DOM dan mengimpornya di Node akan
   // meledak. Konstantanya dibaca dari sumber, dan keberadaannya ikut diadili supaya tidak bisa
-  // hilang diam-diam.
-  const hostMatch = /export const CREDENTIAL_HOST = '([^']+)'/.exec(mainSrc)
-  check('CREDENTIAL_HOST terdefinisi di main.ts (sumber URL dokumen penerbit publik)', !!hostMatch, hostMatch?.[1] ?? 'tidak ditemukan')
+  // hilang diam-diam. Sejak B165 ia didefinisikan di src/config.ts (halaman `#/app` butuh host ini dan tidak boleh
+  // mengimpor main.ts); main.ts mengekspor ulang namanya yang sama.
+  const configSrc = await readFile(new URL('../src/config.ts', import.meta.url), 'utf8')
+  const hostMatch = /export const CREDENTIAL_HOST = '([^']+)'/.exec(configSrc)
+  check('CREDENTIAL_HOST terdefinisi di config.ts (sumber URL dokumen penerbit publik)', !!hostMatch, hostMatch?.[1] ?? 'tidak ditemukan')
+  check('main.ts mengekspor ulang CREDENTIAL_HOST dan APP_HOST dari config.ts, tanpa definisi ganda',
+    /export \{[^}]*\bCREDENTIAL_HOST\b[^}]*\}/.test(mainSrc) && /export \{[^}]*\bAPP_HOST\b[^}]*\}/.test(mainSrc) &&
+    !/export const (CREDENTIAL_HOST|APP_HOST) =/.test(mainSrc))
   const hostPublik = hostMatch?.[1] ?? ''
   // Dokumen agen yang hari ini menandatangani untuk penerbit demo — diuji lewat jaringan sungguhan.
   // Versi pertama pemeriksaan ini menurunkan URL dari slug manifest danlangsung MERAH: tepi menjawab
@@ -824,6 +829,199 @@ async function main() {
         check('kredensial demo lama -> artefaknya tetap terbaca di lapis utama (korpus D46 tidak hilang)',
           Boolean(rd.cert.tokenId) && rd.cert.address?.toLowerCase() === LC.toLowerCase(), `${rd.cert.address} ${rd.cert.tokenId}`)
       }
+    }
+  }
+
+  // --- 10. lembar sertifikat dari dokumen kredensial nyata (B165) ---------------------
+  // Lencana-B165 status=SELESAI 2026-10-05 — probe mengadili pemetaan dokumen → lembar (murni), geometri kristal/cincin/QR, nama penerima, dan jalur data: kepemilikan dua arah, "tidak tersaji" ≠ "gagal", terhadap kredensial B153 di chain 97 publik. Buktikan ulang: cd web && npm run probe (grup B165). JANGAN dibalik/diulang tanpa membuka kembali baris B165 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  {
+    console.log('\n--lembar sertifikat dari dokumen kredensial (B165)--')
+    const C = await import('../src/certificate')
+    const CR = await import('../src/credentials')
+    const { CREDENTIAL_HOST: EDGE, APP_HOST: APP } = await import('../src/config')
+    const H153 = '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31' as const
+    const L153 = '0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF' as const
+    const NARR = 'Nilai akhir >= 60 dari 100. Komposisi: kuis 50%, praktik 20%, esai 30%. Kelas uji alur pembayaran: kredensialnya hanya menyatakan peserta menyelesaikan kelas pendek ini, bukan keahlian Web3. [rubrik 6d33c95b4ecc]'
+    const LIMIT153 = 'Kelas uji alur pembayaran: kredensialnya hanya menyatakan peserta menyelesaikan kelas pendek ini, bukan keahlian Web3.'
+    const fxDoc = (over: Record<string, unknown> = {}, subjectId: string = `${EDGE}/learners/${L153}`) => ({
+      id: `${EDGE}/credentials/${H153}`, type: ['VerifiableCredential', 'OpenBadgeCredential'],
+      issuer: { id: `${EDGE}/issuers/agent-edge`, type: 'Profile', name: 'Lencana Demo Agent' },
+      validFrom: '2026-10-05T09:41:01Z', validUntil: '2027-10-05T09:41:01Z', name: 'Kelas Uji — Membayar dengan Tanda Tangan',
+      credentialSubject: {
+        id: subjectId, type: 'AchievementSubject',
+        achievement: { id: `${EDGE}/achievements/uji-bayar-2026`, type: ['Achievement'], name: 'Kelas Uji — Membayar dengan Tanda Tangan', criteria: { id: `${EDGE}/criteria/uji-bayar-2026`, type: 'Criteria', narrative: NARR } },
+        result: [{ id: `${EDGE}/results/uji-bayar-2026/${H153}`, type: ['Result'], value: '87' }],
+      },
+      proof: { type: 'DataIntegrityProof', cryptosuite: 'eddsa-rdfc-2022', proofPurpose: 'assertionMethod' },
+      ...over,
+    })
+    const fxCrit = (over: Record<string, unknown> = {}) => ({
+      id: `${EDGE}/criteria/uji-bayar-2026`, name: 'Kelas Uji — Membayar dengan Tanda Tangan', narrative: NARR.replace(' [rubrik 6d33c95b4ecc]', ''),
+      issuer: { slug: 'yayasan-nusantara', name: 'Yayasan Literasi Digital Nusantara (institusi demo, fiktif)' },
+      policy: { passMark: 60, validDays: 365, weights: { praktik: 20, kuis: 50, esai: 30 } }, ...over,
+    })
+
+    // pemetaan dokumen
+    const pc = C.parseCredentialDoc(fxDoc())
+    check('dokumen B153 -> judul, alamat peserta, kursus, nilai 87, bukti dan format terbaca dari dokumen',
+      pc?.title === 'Kelas Uji — Membayar dengan Tanda Tangan' && pc.learner === L153 && pc.courseId === 'uji-bayar-2026' && pc.score === 87 &&
+      pc.proof?.type === 'DataIntegrityProof' && pc.proof.suite === 'eddsa-rdfc-2022' && pc.format === 'Open Badges 3.0' && pc.issuerAgent === 'Lencana Demo Agent', JSON.stringify(pc))
+    check('dokumen tanpa alamat peserta yang sah, tanpa judul, atau dengan tanggal rusak -> ditolak (null), tidak dikarang',
+      C.parseCredentialDoc(fxDoc({}, `${EDGE}/learners/bukan-alamat`)) === null && C.parseCredentialDoc(fxDoc({ name: '', credentialSubject: { id: `${EDGE}/learners/${L153}`, achievement: {} } })) === null &&
+      C.parseCredentialDoc(fxDoc({ validUntil: 'kemarin' })) === null && C.parseCredentialDoc(null) === null && C.parseCredentialDoc('x') === null && C.parseCredentialDoc([]) === null)
+    check('nilai di luar 0-100 atau bukan angka -> nilai null (lembar tidak menampilkan angka), dokumennya tetap terbaca',
+      [101, -1, 'abc', null].every((v) => { const d = fxDoc(); (d.credentialSubject.result[0] as { value: unknown }).value = v; const p = C.parseCredentialDoc(d); return p !== null && p.score === null }))
+    check('slug kursus yang tidak aman (garis miring, titik, huruf besar) tidak dipakai untuk URL tepi',
+      !C.isCourseSlug('../x') && !C.isCourseSlug('A') && !C.isCourseSlug('a/b') && !C.isCourseSlug('') && C.isCourseSlug('uji-bayar-2026'))
+    const pk = C.parseCriteria(fxCrit())
+    check('kriteria -> penerbit, batas lulus 60, bobot berurutan kuis 50, esai 30, praktik 20 (urutan sumber diabaikan)',
+      pk?.publisher === 'Yayasan Literasi Digital Nusantara (institusi demo, fiktif)' && pk.passMark === 60 && JSON.stringify(pk.weights.map((w) => [w.key, w.weight])) === '[["kuis",50],["esai",30],["praktik",20]]', JSON.stringify(pk))
+    check('bobot 0 atau bukan angka dibuang; kunci tak dikenal tetap ditampilkan setelah yang dikenal; kunci bermarkup (label SVG) dibuang',
+      JSON.stringify(C.parseCriteria(fxCrit({ policy: { passMark: 70, weights: { zeta: 10, kuis: 60, esai: 0, praktik: 'x', '<img src=x onerror=alert(1)>': 5 } } }))?.weights.map((w) => [w.label, w.weight])) === '[["Kuis",60],["Zeta",10]]' &&
+      !C.dialSvg(50, 60, [{ key: 'k', label: '<script>x</script>', weight: 10 }]).includes('<script>'))
+    check('penerbit "nama (catatan)" dipisah; tanpa kurung atau null tidak dikarang',
+      JSON.stringify(C.splitPublisher('Yayasan X (institusi demo, fiktif)')) === '{"name":"Yayasan X","note":"institusi demo, fiktif"}' &&
+      JSON.stringify(C.splitPublisher('PT Maju')) === '{"name":"PT Maju","note":null}' && JSON.stringify(C.splitPublisher(null)) === '{"name":null,"note":null}' &&
+      C.splitPublisher('A (b) (c)').name === 'A (b)')
+    check('kalimat batas klaim = kalimat terakhir narasi yang tertanda tangan, apa adanya (tanpa [rubrik …]); tanpa "bukan" -> kalimat umum',
+      C.limitLine(NARR) === LIMIT153 && /bukan ijazah/.test(C.limitLine('Nilai akhir >= 60.')) && /bukan ijazah/.test(C.limitLine(null)) && C.limitLine('Lulus. ' + 'bukan '.repeat(60)) !== 'Lulus. ' + 'bukan '.repeat(60))
+    check('status dari statusOf: tidak ada, dicabut, kedaluwarsa, penerbit ditarik, berlaku — urutan sama dengan daftar kredensial',
+      C.statusVerdict(false, false, false, false) === 'TIDAK DIKENAL' && C.statusVerdict(true, true, true, true) === 'DICABUT' && C.statusVerdict(true, false, true, true) === 'KEDALUWARSA' &&
+      C.statusVerdict(true, false, false, true) === 'PENERBIT DITARIK' && C.statusVerdict(true, false, false, false) === 'BERLAKU')
+
+    // data lembar
+    const readOn = '2026-10-05T14:00:00Z'
+    const cert = C.buildCertificate({ hash: H153, cred: pc!, criteria: pk, status: { verdict: 'BERLAKU', readOn }, appHost: APP, testnet: true })
+    check('lembar B153 -> penerbit + catatan, nilai 87 dari batas 60 = lulus, tiga komponen, 365 hari, bukti dan limit dari dokumen',
+      cert.publisher === 'Yayasan Literasi Digital Nusantara' && cert.publisherNote === 'institusi demo, fiktif' && cert.score === 87 && cert.passMark === 60 && cert.passed &&
+      cert.components.length === 3 && cert.validDays === 365 && cert.proof === 'DataIntegrityProof · eddsa-rdfc-2022' && cert.limit === LIMIT153, JSON.stringify([cert.publisher, cert.passed, cert.validDays]))
+    check('QR/verifier: tautan = host aplikasi + ?q=<hash>#/verify (sama bentuknya dengan verifyLink), singkatan menyingkat hash',
+      cert.verifyUrl === `${APP}/?q=${H153}#/verify` && cert.verifyUrlShort === `${APP.replace('https://', '')}/?q=${H153.slice(0, 10)}…#/verify`, cert.verifyUrlShort)
+    check('kaki lembar: penerbit demo di jaringan uji -> "Penerbit demo (fiktif) · jaringan uji · bukan ijazah"; penerbit nyata di mainnet -> hanya "bukan ijazah"',
+      cert.demo === 'Penerbit demo (fiktif) · jaringan uji · bukan ijazah' &&
+      C.buildCertificate({ hash: H153, cred: pc!, criteria: C.parseCriteria(fxCrit({ issuer: { name: 'PT Maju' } })), status: cert.status, appHost: APP, testnet: false }).demo === 'bukan ijazah')
+    const noCrit = C.buildCertificate({ hash: H153, cred: pc!, criteria: null, status: cert.status, appHost: APP, testnet: true })
+    check('tanpa dokumen kriteria -> tanpa penerbit, tanpa bobot, tanpa batas lulus, dan TIDAK ditandai lulus (tidak dikarang)',
+      noCrit.publisher === null && noCrit.components.length === 0 && noCrit.passMark === null && noCrit.passed === false && noCrit.score === 87)
+    const noteB = C.statusNoteFor({ verdict: 'BERLAKU', readOn }), noteR = C.statusNoteFor({ verdict: 'DICABUT', readOn }), noteU = C.statusNoteFor({ verdict: 'BELUM TERBACA', readOn })
+    check('catatan status: berlaku TIDAK ditulis sebagai klaim (hanya "dibaca ... pada <tanggal>"); dicabut menyebut statusnya; gagal baca dinyatakan gagal',
+      noteB === 'Status dibaca dari chain pada 5 Okt 2026; pindai QR untuk status terkini.' && !/BERLAKU/.test(noteB) && noteR === 'Status dibaca dari chain pada 5 Okt 2026 (DICABUT); pindai QR untuk status terkini.' &&
+      /belum terbaca/.test(noteU) && !/pada/.test(noteU), `${noteB} | ${noteR} | ${noteU}`)
+    check('tanggal WIB: 09.41 UTC = 16.41 WIB di hari yang sama; 20.00 UTC tanggal 31 = 1 Januari WIB',
+      C.idDate('2026-10-05T09:41:01Z') === '5 Oktober 2026' && C.idTime('2026-10-05T09:41:01Z') === '16.41 WIB' && C.idDate('2026-12-31T20:00:00Z') === '1 Januari 2027')
+    check('alamat dikelompokkan 4 karakter (5 x 2), ringkasan hash/alamat memakai elipsis',
+      C.addressGroups(L153) === '12f6 F95E 5b04 1ea9 Af2f 1e0F ed55 066a 775a 11DF' && C.mid(L153, 6, 4) === '0x12f6…11DF')
+
+    // nama penerima
+    check('cleanName: karakter kontrol dibuang, spasi dirapatkan, paling banyak 60, bukan teks -> kosong; HTML tidak dieksekusi tetapi tetap teks',
+      C.cleanName('  a\u0000  b\n\tc ') === 'a b c' && C.cleanName('Budi\nSantoso\r\n') === 'Budi Santoso' && C.cleanName('x'.repeat(80)).length === 60 && C.cleanName(null) === '' && C.cleanName(undefined) === '' && C.cleanName(42) === '42' &&
+      C.cleanName('<img src=x onerror=alert(1)>') === '<img src=x onerror=alert(1)>')
+    check('mode "nama" dengan nama kosong atau hanya spasi jatuh ke alamat — baris utama tidak pernah kosong',
+      C.effectiveMode({ mode: 'nama', name: '   ' }) === 'alamat' && C.effectiveMode({ mode: 'nama', name: 'Nadia' }) === 'nama' && C.effectiveMode({ mode: 'alamat', name: 'Nadia' }) === 'alamat')
+    {
+      const mem = new Map<string, string>()
+      const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => { mem.set(k, v) } }
+      C.saveRecipient(L153, { mode: 'nama', name: 'Nadia Rahmawati' }, store)
+      const other = '0x' + '34'.repeat(20)
+      check('pilihan penerima disimpan per alamat (huruf besar/kecil sama), tidak bocor ke alamat lain, dan bisa dibaca kembali',
+        JSON.stringify(C.loadRecipient(L153.toLowerCase(), store)) === '{"mode":"nama","name":"Nadia Rahmawati"}' && JSON.stringify(C.loadRecipient(other, store)) === '{"mode":"alamat","name":""}' && mem.size === 1)
+      mem.set(`lencana.sertifikat.penerima:${other}`, '{rusak')
+      const bad = { getItem: () => { throw new Error('diblokir') }, setItem: () => { throw new Error('diblokir') } }
+      check('penyimpanan rusak, diblokir, atau tidak ada -> pilihan bawaan (alamat), tidak melempar galat',
+        JSON.stringify(C.loadRecipient(other, store)) === '{"mode":"alamat","name":""}' && JSON.stringify(C.loadRecipient(L153, bad)) === '{"mode":"alamat","name":""}' &&
+        (() => { try { C.saveRecipient(L153, { mode: 'nama', name: 'x' }, bad); C.saveRecipient(L153, { mode: 'nama', name: 'x' }, null); return true } catch { return false } })())
+    }
+
+    // QR, kristal, cincin
+    const qr = C.qrPath(cert.verifyUrl)
+    const grid = Array.from({ length: qr.modules }, () => new Array<boolean>(qr.modules).fill(false))
+    for (const m of qr.path.matchAll(/M(\d+) (\d+)h(\d+)v1h-\d+z/g)) for (let i = 0; i < Number(m[3]); i++) grid[Number(m[2])]![Number(m[1]) + i] = true
+    const finder = (r0: number, c0: number) => { for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) { const edge = r === 0 || r === 6 || c === 0 || c === 6, core = r >= 2 && r <= 4 && c >= 2 && c <= 4; if (grid[r0 + r]![c0 + c] !== (edge || core)) return false } return true }
+    const n = qr.modules
+    check('QR tautan verifier B153: 45 modul (versi 7, koreksi M) dengan tiga pola pencari di sudut kiri-atas, kanan-atas, kiri-bawah dan nol modul gelap di luar kisi',
+      n === 45 && finder(0, 0) && finder(0, n - 7) && finder(n - 7, 0) && !qr.path.includes('NaN') && JSON.stringify(C.qrPath(cert.verifyUrl)) === JSON.stringify(qr), `modul=${n}`)
+    check('QR berbeda untuk hash berbeda dan sama untuk hash sama (deterministik)',
+      C.qrPath(`${APP}/?q=0x${'11'.repeat(32)}#/verify`).path !== qr.path)
+    const bytes = C.hashBytes(H153)
+    const art = C.hashArt(bytes)
+    check('jejak hash: 32 byte dari hash, byteAt melingkar (tanpa indeks negatif), PRNG deterministik per bibit dan beda antar bibit',
+      bytes.length === 32 && bytes[0] === 0xb9 && art.byteAt(32) === bytes[0] && art.byteAt(-1) === bytes[31] && art.rng(0)() === art.rng(0)() && art.rng(0)() !== art.rng(16)())
+    const fa = C.facets(bytes), fb = C.facets(C.hashBytes('0x' + '5a'.repeat(32)))
+    const flat = (f: ReturnType<typeof C.facets>) => [...f.tr, ...f.bl, ...f.front, ...f.g.flat()].join('')
+    check('kristal dari byte hash: deterministik (hash sama -> gambar sama), kredensial lain -> kristal lain, ada ratusan facet dan tanpa NaN',
+      flat(fa) === flat(C.facets(bytes)) && flat(fa) !== flat(fb) && fa.tr.length > 100 && fa.bl.length > 10 && !flat(fa).includes('NaN') && !flat(fa).includes('undefined'), `tr=${fa.tr.length} bl=${fa.bl.length} front=${fa.front.length}`)
+    const KEEPZ = [[52, 104, 660, 292], [52, 286, 696, 446], [52, 440, 690, 512]]
+    const centres = [...fa.tr, ...fa.bl, ...fa.front].map((el) => { const pts = /points="([^"]+)"/.exec(el)![1]!.split(' ').map((p) => p.split(',').map(Number)); return [pts.reduce((a, p) => a + p[0]!, 0) / pts.length, pts.reduce((a, p) => a + p[1]!, 0) / pts.length] })
+    check('facet tidak pernah duduk di belakang judul, penerima (termasuk nama terpanjang), dan nama kelas — teks kecil tidak di atas kristal',
+      centres.every(([x, y]) => !KEEPZ.some((r) => x! > r[0]! && x! < r[2]! && y! > r[1]! && y! < r[3]!)), `${centres.length} facet diperiksa`)
+    const dial = C.dialSvg(87, 60, cert.components)
+    const lens = [...dial.matchAll(/class="s3-cf"[^>]*--len:([\d.]+)px/g)].map((m) => Number(m[1]))
+    check('cincin: nilai 87 dan batas lulus 60 tergambar, tiga komponen berlabel BOBOT (bukan nilai) dan panjang busurnya menurun mengikuti bobot 50 > 30 > 20',
+      dial.includes('class="s3-arc"') && dial.includes('batas 60') && dial.includes('Kuis 50%') && dial.includes('Esai 30%') && dial.includes('Praktik 20%') && !/Kuis 75|Esai 98|Praktik 100/.test(dial) &&
+      lens.length === 3 && lens[0]! > lens[1]! && lens[1]! > lens[2]! && !dial.includes('NaN'), JSON.stringify(lens))
+    const dialNone = C.dialSvg(null, null, [])
+    check('cincin tanpa nilai dan tanpa batas lulus: busur nilai, takik, dan label batas TIDAK digambar (tidak dikarang)',
+      !dialNone.includes('class="s3-arc"') && !dialNone.includes('class="s3-notch"') && !dialNone.includes('class="s3-tick"') && !dialNone.includes('batas') && !dialNone.includes('NaN'))
+
+    // jalur data terhadap chain 97 publik
+    const epPub = ep.chainId === 97 && ep.resolver.toLowerCase() === defaultEndpoint().resolver.toLowerCase()
+    if (!epPub) {
+      skipped.push('B165 jalur data terhadap B153 (hanya ada di deployment publik chain 97)')
+    } else {
+      const real = await CR.listMyCredentials(L153)
+      const row = real.ok ? real.rows.find((r) => r.hash.toLowerCase() === H153) : undefined
+      check('daftar kredensial peserta B153 membaca chain + dokumen publik: ada B153 dengan judul, nilai 87, status terbaca, dan artefak di >= 2 lapis',
+        real.ok && real.total >= 1 && !!row && row.doc.state === 'ok' && row.doc.cred.title.startsWith('Kelas Uji') && row.doc.cred.score === 87 && row.status.verdict !== 'BELUM TERBACA' &&
+        row.layers.filter((l) => l.tokenId !== null).length >= 2, real.ok ? `${real.total} kredensial; status ${row?.status.verdict}` : real.why)
+      check('alamat tanpa kredensial -> daftar kosong yang SAH (ok, nol baris), bukan galat; alamat tidak sah -> galat',
+        await (async () => { const e = await CR.listMyCredentials('0x' + '77'.repeat(20)); return e.ok && e.rows.length === 0 && e.total === 0 })() && (await CR.listMyCredentials('bukan')).ok === false)
+      const lc = await CR.loadCertificate(H153, L153)
+      check('lembar B153 dari chain + tepi: dokumen, kriteria, status, dan artefak terbaca; penerbit, batas lulus 60, tiga bobot, lulus, tautan verifier',
+        lc.ok && lc.cert.learner === L153 && lc.cert.publisher === 'Yayasan Literasi Digital Nusantara' && lc.cert.passMark === 60 && lc.cert.components.length === 3 && lc.cert.passed &&
+        lc.cert.limit === LIMIT153 && lc.cert.verifyUrl === `${APP}/?q=${H153}#/verify` && lc.cert.status.verdict !== 'BELUM TERBACA' && lc.layers.length === 3, lc.ok ? lc.cert.status.verdict : `${lc.kind}: ${lc.why}`)
+      const stranger = await CR.loadCertificate(H153, '0x' + '88'.repeat(20))
+      check('kredensial orang lain -> TIDAK ada lembar (not-mine) — siapa pun tidak bisa mencetak atas nama peserta lain',
+        !stranger.ok && stranger.kind === 'not-mine', stranger.ok ? 'lembar dibuat!' : stranger.kind)
+      const wrongHash = await CR.loadCertificate('0x' + '11'.repeat(32), L153)
+      check('hash yang tidak ada di daftar akun -> not-mine; hash bukan 0x+64 heksadesimal atau alamat tidak sah -> invalid',
+        !wrongHash.ok && wrongHash.kind === 'not-mine' && (await CR.loadCertificate('0xabc', L153) as { kind?: string }).kind === 'invalid' && (await CR.loadCertificate(H153, 'x') as { kind?: string }).kind === 'invalid')
+
+      // dokumen tepi dipalsukan di lapisan fetch (hanya URL tepi; RPC chain tetap sungguhan)
+      const realFetch = globalThis.fetch
+      type Reply = { status: number, body?: unknown } | 'jaringan-putus'
+      const edge = (routes: Record<string, Reply>) => {
+        globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = String(typeof input === 'object' && 'url' in input ? input.url : input)
+          if (!url.startsWith(EDGE)) return realFetch(input, init)
+          const rep = routes[url.slice(EDGE.length)] ?? { status: 404 }
+          if (rep === 'jaringan-putus') throw new TypeError('fetch failed')
+          return new Response(rep.body === undefined ? null : JSON.stringify(rep.body), { status: rep.status, headers: { 'content-type': 'application/json' } })
+        }) as typeof fetch
+      }
+      try {
+        const CRED = `/credentials/${H153}`, CRIT = '/criteria/uji-bayar-2026'
+        edge({ [CRED]: { status: 404 } })
+        const m404 = await CR.loadCertificate(H153, L153)
+        edge({ [CRED]: { status: 500 } })
+        const m500 = await CR.loadCertificate(H153, L153)
+        edge({ [CRED]: 'jaringan-putus' })
+        const mNet = await CR.loadCertificate(H153, L153)
+        check('dokumen tidak tersaji (404) -> no-document dengan alasan yang menyebut kredensial tetap sah; 500 dan jaringan putus -> failed — tiga keadaan berbeda, tidak ada lembar karangan',
+          !m404.ok && m404.kind === 'no-document' && /tetap sah di chain/.test(m404.why) && !m500.ok && m500.kind === 'failed' && !mNet.ok && mNet.kind === 'failed', JSON.stringify([m404.ok || m404.kind, m500.ok || m500.kind, mNet.ok || mNet.kind]))
+        edge({ [CRED]: { status: 200, body: fxDoc({}, `${EDGE}/learners/${'0x' + '99'.repeat(20)}`) } })
+        const swapped = await CR.loadCertificate(H153, L153)
+        check('hash milik akun di chain tetapi dokumen menyebut alamat peserta lain -> not-mine (dicek dua arah)', !swapped.ok && swapped.kind === 'not-mine' && /tidak sama/.test(swapped.why), swapped.ok ? 'lembar dibuat!' : swapped.kind)
+        edge({ [CRED]: { status: 200, body: fxDoc() }, [CRIT]: { status: 404 } })
+        const noC = await CR.loadCertificate(H153, L153)
+        check('dokumen ada tetapi kriteria tidak tersaji -> lembar tetap dibuat, jujur: tanpa penerbit, tanpa bobot, tidak ditandai lulus',
+          noC.ok && noC.cert.publisher === null && noC.cert.components.length === 0 && noC.cert.passed === false && noC.cert.score === 87, noC.ok ? 'ok' : noC.why)
+        edge({ [CRED]: { status: 404 } })
+        const list404 = await CR.listMyCredentials(L153)
+        edge({ [CRED]: { status: 503 } })
+        const list503 = await CR.listMyCredentials(L153)
+        const st = (l: Awaited<ReturnType<typeof CR.listMyCredentials>>) => l.ok ? l.rows.find((r) => r.hash.toLowerCase() === H153)?.doc.state : l.why
+        check('daftar kredensial: dokumen 404 -> baris "missing"; 503 -> baris "failed"; kredensial tetap tampil dengan status chain-nya', st(list404) === 'missing' && st(list503) === 'failed', `${st(list404)} / ${st(list503)}`)
+      } finally { globalThis.fetch = realFetch }
     }
   }
 

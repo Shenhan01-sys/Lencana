@@ -129,6 +129,13 @@ Tidak ada klaim verifikasi identitas. Nama yang diketik pengguna tidak diverifik
   - QR didekode jsQR pada skala layar 1,07 di **kedua tema**: hasilnya sama persis dengan alamat verifikasi.
   - Cetak sungguhan (media `print` + PDF) dengan tema gelap dipilih di layar: kertas `#f5f5f5`, panel tanpa `backdrop-filter`, lembar di (0,0) 1122 × 793, PDF **1 halaman**.
 
+## Dipakai di app (B165, 5 Okt malam)
+
+Desain ini sudah menjadi halaman sertifikat sungguhan di `#/app/credentials/<hash>` ([[03-Frontend/FE9 - Credentials page and certificate sheet]], [[08-Results/B165 - Executive Summary]]). Bedanya dari berkas HTML ini:
+**selalu gelap** (keputusan builder: tanpa tema terang dan tanpa tombol tema — pertanyaan perancang soal token terang, ingatan tema, dan toggle gugur di sana; cetak/PDF juga gelap),
+data dari dokumen kredensial dan kriteria (bukan spesimen B153), **nilai per komponen tidak digambar** (tidak ada di dokumen tertanda tangan; cincin dalam hanya bobot), status BERLAKU tidak ditulis
+sebagai klaim, dan hanya untuk kredensial milik akun. Berkas HTML di folder ini tetap spesimen desain.
+
 ## Tinjauan independen (5 Okt malam, bukan oleh perancang)
 
 Diperiksa ulang di Chrome 154 sungguhan lewat `puppeteer-core` (konteks bersih, `window.print` diganti penghitung supaya tidak ada cetak sungguhan), terhadap berkas yang akan di-commit:

@@ -19,7 +19,7 @@ import { seats, mountSeatSwitch, applyBox, navIcon, guardSeat, homeOf } from './
 import { renderPublisherApp } from './publisher'
 import { renderOwnerApp } from './owner'
 import { formatLdc, PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL } from '../pricing'
-import { classLink, levelLabel, readMyCredentials } from '../lesson-views'
+import { classLink, levelLabel } from '../lesson-views'
 import { ROLES } from './flow3d-data'
 import { renderGrades } from './grades'
 import { renderWallet } from './wallet'
@@ -27,6 +27,8 @@ import { readBalance } from '../balance'
 import { skeleton, steps } from '../lib/loading'
 import { renderOverview } from './overview'
 import { renderCatalog } from './catalog'
+import { renderCredentials as renderCredentialsPage } from './credentials'
+import { closeCertificate } from './certificate-view'
 
 // Lencana-B124 status=TERBUKA 2026-10-02 — area internal peserta: sidebar (Ringkasan · Kelas saya · Nilai & tugas · Kredensial saya · Akun), onboarding login pertama (tiga peran, dua berlabel segera), data dari POST /me/records bertanda tangan. Buktikan ulang: cd web && npm run probe, lalu uji peramban T44. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
@@ -213,6 +215,7 @@ export function renderApp (routeHash: string): HTMLElement {
   const lang: Lang = getSavedLanguage() === 'en' ? 'en' : 'id'
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const addr = learnerAddress()
+  closeCertificate() // B165: penampil lembar sertifikat hanya hidup di rute #/app/credentials/<hash>
   // B129: kursi Penerbit punya cangkangnya sendiri (`#/app/pub…`, `pages/publisher.ts`).
   if (/^#\/?app\/pub(\/|$)/.test(routeHash)) return renderPublisherApp(lang, routeHash)
   // B130: kursi Agent Owner juga punya cangkangnya sendiri (`#/app/owner`, `pages/owner.ts`).
@@ -238,7 +241,8 @@ export function renderApp (routeHash: string): HTMLElement {
   main.appendChild(topSlot)
 
   if (section === 'account') { main.appendChild(renderAccount(lang, addr)); mountSwitch(); return shell }
-  if (section === 'credentials') { main.appendChild(renderCredentials(lang, addr)); guardSeat('learner', mountSwitch); return shell }
+  // B165: kartu kredensial + penampil lembar sertifikat (rute `#/app/credentials/<hash>`); bagian lain menutup penampil di atas.
+  if (section === 'credentials') { main.appendChild(renderCredentialsPage(lang, addr, routeHash)); guardSeat('learner', mountSwitch); return shell }
 
   // Ringkasan, kelas, nilai, dan dompet membutuhkan rekaman dari penerbit (dompet juga saldo dari chain). Selama
   // memuat: kerangka berbentuk isinya + tahap yang benar-benar dilalui (tanda tangan → penerbit), bukan teks diam.
@@ -322,19 +326,6 @@ function renderClasses (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
       h('strong', null, T('others')), h('span', { class: 'app-muted' }, `${others} ${T('moreCourses')}`), h('span', { class: 'app-btn small' }, T('toCatalog'))))
   }
   return wrap
-}
-
-function renderCredentials (lang: Lang, addr: string | null): HTMLElement {
-  const T = (k: keyof typeof COPY) => COPY[k][lang]
-  const list = h('div', { class: 'app-creds lesson-engine' }, skeleton('list', T('loading')))
-  if (addr) {
-    void readMyCredentials(addr).then((html) => { if (list.isConnected) list.innerHTML = html }).catch((e) => { if (list.isConnected) list.textContent = String(e) })
-  }
-  return h('div', { class: 'app-stack' },
-    h('header', { class: 'app-head' }, h('h1', null, T('credentials'))),
-    h('p', { class: 'app-note' }, T('privacy')),
-    h('div', { class: 'app-card' }, list),
-  )
 }
 
 function renderAccount (lang: Lang, addr: string | null): HTMLElement {

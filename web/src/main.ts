@@ -11,7 +11,7 @@
 import { verify, type Endpoint, type Report } from './verify'
 import { renderEmpty, renderReport } from './render'
 import { runSpecAudit, specRowsHtml } from './specAudit'
-import { loadEndpoint, saveEndpoint, PRESETS, isConfigured } from './config'
+import { loadEndpoint, saveEndpoint, PRESETS, isConfigured, CREDENTIAL_HOST, APP_HOST } from './config'
 import { getSavedLanguage, saveLanguage, DICTIONARIES, type Lang } from './i18n'
 // B105 — halaman `#/publishers` membaca registri penerbit dari manifest, bukan dari angka yang
 // diketik ke HTML: kalau kursus atau penerbitnya bertambah, halamannya ikut berubah sendiri.
@@ -85,18 +85,9 @@ const SAMPLE_HASHES = {
 // Kartu kredensial di hero landing menunjuk sampel "valid" yang sama — satu sumber, diadili check:samples.
 setHeroCredential(SAMPLE_HASHES.valid)
 
-/**
- * Tempat dokumen kredensial kita BENAR-BENAR disajikan: Worker + KV yang diisi
- * `npm run publish:edge`, dan satu-satunya host yang terbukti menjawab hari ini
- * (`npm run verify:edge` → 19 dari 19 kertas terbaca publik).
- */
-export const CREDENTIAL_HOST = 'https://lencana-edge.hansgunawan775.workers.dev'
-
-/**
- * Tempat halaman ini benar-benar dibuka orang (Vercel) — diukur 29 Sep: HTTP 200.
- * Bukan "lencana.io": domain itu tidak pernah kita pegang dan dns.resolve-nya ENOTFOUND (A dan AAAA).
- */
-export const APP_HOST = 'https://lencana-psi.vercel.app'
+// Dua host publik di bawah ini didefinisikan di `config.ts` sejak B165 (halaman `#/app` butuh keduanya dan tidak boleh
+// mengimpor berkas ini); nama yang diekspor tetap sama.
+export { CREDENTIAL_HOST, APP_HOST }
 
 /** Kredensial yang dipakai tombol berbagi — hash demo yang sama dengan yang di panel verifier. */
 /**
