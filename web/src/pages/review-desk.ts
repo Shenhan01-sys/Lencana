@@ -18,6 +18,7 @@ import { isProvider, judgeEssayWith } from '../llm'
 import { readReviewQueue, submitAgentReview, type OwnerAgent, type OwnerOverview, type ReviewDecision, type ReviewDesk, type ReviewItem } from '../learning'
 import { formatLdc, PAY_TOKEN_SYMBOL } from '../pricing'
 import { keyField, readKey } from './agent-brain'
+import { feeLadder } from './fee-ladder'
 
 type Lang = 'en' | 'id'
 
@@ -67,7 +68,6 @@ const COPY = {
   rejectNote: { en: 'no valid score; the essay gate stays closed', id: 'tidak ada angka yang sah; gerbang esai tetap tertutup' },
   fromBrain: { en: 'Fill from the second opinion', id: 'Isi dari pendapat kedua' },
   yours: { en: 'Your score', id: 'Angkamu' },
-  pickLabel: { en: 'Difficulty label (sets your fee)', id: 'Label tingkat berat (menentukan bayaranmu)' },
   sign: { en: 'Sign & send decision', id: 'Tandatangani & kirim keputusan' },
   signNote: { en: 'Signed by the agent wallet: attempt, decision, final score and label. The publisher pays the fee for this review.', id: 'Ditandatangani dompet agen: usaha, keputusan, angka akhir, dan label. Penerbit membayar bayaran pengesahan ini.' },
   approved: { en: 'Approved', id: 'Disetujui' },
@@ -251,20 +251,8 @@ function inspect (lang: Lang, o: OwnerOverview, a: OwnerAgent, d: ReviewDesk, it
   sign.disabled = true
   const validAdjust = () => inputs.every(({ c }) => Number.isFinite(Number(mine[c.label])) && Number(mine[c.label]) >= 0 && Number(mine[c.label]) <= c.max)
   const refresh = () => { sign.disabled = !decision || !label || (decision === 'adjusted' && !validAdjust()) }
-  const ladder = h('div', { class: 'ab-ladder', role: 'radiogroup', 'aria-label': T('pickLabel') },
-    ...o.ladder.labels.map((l, k) => {
-      const price = a.rateCard.find((x) => x.label === l)?.amount
-      const b = h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', class: 'ab-rung', style: { '--k': String(k) } },
-        h('span', null, l.replace(/-/g, ' ')), price ? h('small', null, formatLdc(BigInt(price))) : null) as HTMLButtonElement
-      b.addEventListener('click', () => {
-        label = l
-        ladder.querySelectorAll('.ab-rung').forEach((x) => { x.classList.remove('on'); x.setAttribute('aria-checked', 'false') })
-        b.classList.add('on')
-        b.setAttribute('aria-checked', 'true')
-        refresh()
-      })
-      return b
-    }))
+  // B159: tangga bayaran bersama dengan antrean agen penilai (`fee-ladder.ts`).
+  const ladder = feeLadder(lang, 'review', o.ladder.labels, a.rateCard, (l) => { label = l; refresh() })
   const result = h('div', { class: 'ab-stamp-slot', role: 'status' })
   sign.addEventListener('click', () => {
     if (!decision || !label) return
@@ -275,7 +263,8 @@ function inspect (lang: Lang, o: OwnerOverview, a: OwnerAgent, d: ReviewDesk, it
       if (!x.ok) { refresh(); result.replaceChildren(h('p', { class: 'seat-apply-status bad' }, x.why ?? '')); return }
       onDone()
       fillBtn.hidden = true
-      for (const el of [...stamps.querySelectorAll('button'), ...ladder.querySelectorAll('button'), ...inputs.map((y) => y.inp)]) (el as HTMLButtonElement | HTMLInputElement).disabled = true
+      ladder.disable()
+      for (const el of [...stamps.querySelectorAll('button'), ...inputs.map((y) => y.inp)]) (el as HTMLButtonElement | HTMLInputElement).disabled = true
       const word = chosen === 'approved' ? T('approved') : chosen === 'adjusted' ? T('adjusted') : T('rejected')
       result.replaceChildren(h('div', { class: `ab-stamp rv-done s-${chosen}` },
         h('strong', null, x.finalScore === null || x.finalScore === undefined ? word : `${word} · ${fmtNum(x.finalScore)} · ${x.verdict === 'pass' ? T('pass') : T('fail')}`),
@@ -298,8 +287,7 @@ function inspect (lang: Lang, o: OwnerOverview, a: OwnerAgent, d: ReviewDesk, it
     h('span', { class: 'ab-label' }, T('decide')),
     stamps,
     editor,
-    h('span', { class: 'ab-label' }, T('pickLabel')),
-    ladder,
+    ladder.el,
     h('div', { class: 'ab-installbox' }, sign, h('small', { class: 'ab-muted' }, T('signNote'))),
     result)
 }

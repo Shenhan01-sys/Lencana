@@ -21,6 +21,7 @@ import { LLM_PROVIDERS, PROVIDER_IDS, isProvider, listModels, judgeEssayWith, ty
 import { runCalibration, calibrationSetup, CALIBRATION_COURSE, type CalibrationResult } from '../calibration'
 import { saveAgentBrain, readAgentQueue, submitAgentJudgement, type OwnerAgent, type OwnerOverview, type QueueItem, type AgentBrainInfo } from '../learning'
 import { formatLdc, PAY_TOKEN_SYMBOL } from '../pricing'
+import { feeLadder } from './fee-ladder'
 
 type Lang = 'en' | 'id'
 
@@ -98,7 +99,6 @@ const COPY = {
   total: { en: 'Total', id: 'Total' },
   pass: { en: 'pass', id: 'lulus' },
   fail: { en: 'fail', id: 'tidak lulus' },
-  pickLabel: { en: 'Difficulty label (sets the fee)', id: 'Label tingkat berat (menentukan bayaran)' },
   sign: { en: 'Sign & send judgement', id: 'Tandatangani & kirim penilaian' },
   signNote: { en: 'Scores are the model’s, as returned. The reviewer the publisher appointed — a person or another agent — still approves them before they count.', id: 'Angka adalah jawaban model apa adanya. Pengesah yang ditunjuk penerbit — orang atau agen lain — tetap menyetujuinya sebelum dihitung.' },
   sent: { en: 'Sent', id: 'Terkirim' },
@@ -545,20 +545,8 @@ function judged (lang: Lang, o: OwnerOverview, a: OwnerAgent, brain: AgentBrainI
   let label = ''
   const sign = h('button', { type: 'button', class: 'app-btn primary' }, T('sign')) as HTMLButtonElement
   sign.disabled = true
-  const steps7 = h('div', { class: 'ab-ladder', role: 'radiogroup', 'aria-label': T('pickLabel') },
-    ...o.ladder.labels.map((l, k) => {
-      const price = a.rateCard.find((x) => x.label === l)?.amount
-      const b = h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', class: 'ab-rung', style: { '--k': String(k) } },
-        h('span', null, l.replace(/-/g, ' ')), price ? h('small', null, formatLdc(BigInt(price))) : null) as HTMLButtonElement
-      b.addEventListener('click', () => {
-        label = l
-        steps7.querySelectorAll('.ab-rung').forEach((x) => { x.classList.remove('on'); x.setAttribute('aria-checked', 'false') })
-        b.classList.add('on')
-        b.setAttribute('aria-checked', 'true')
-        sign.disabled = false
-      })
-      return b
-    }))
+  // B159: tangga bayaran bersama (juga di meja pengesahan) — tinggi batang = bayaran, papan bacaan label + bayaran + %.
+  const ladder = feeLadder(lang, 'grade', o.ladder.labels, a.rateCard, (l) => { label = l; sign.disabled = false })
   const status = h('div', { class: 'ab-stamp-slot', role: 'status' })
   sign.addEventListener('click', () => {
     if (!label) return
@@ -567,7 +555,7 @@ function judged (lang: Lang, o: OwnerOverview, a: OwnerAgent, brain: AgentBrainI
     void submitAgentJudgement(a.agentId, it, r.scores, label, brain.modelName, r.temperature).then((x) => {
       if (!x.ok) { sign.disabled = false; status.replaceChildren(h('p', { class: 'seat-apply-status bad' }, x.why ?? '')); return }
       onSent()
-      steps7.querySelectorAll('button').forEach((b) => { (b as HTMLButtonElement).disabled = true })
+      ladder.disable()
       status.replaceChildren(h('div', { class: 'ab-stamp' },
         h('strong', null, `${T('sent')} · ${x.score} · ${x.verdict === 'pass' ? T('pass') : T('fail')}`),
         x.charge ? h('small', null, `${formatLdc(BigInt(x.charge.amount))} ${PAY_TOKEN_SYMBOL} ${T('feeDue')}`) : null))
@@ -581,8 +569,7 @@ function judged (lang: Lang, o: OwnerOverview, a: OwnerAgent, brain: AgentBrainI
       ruler,
       h('div', { class: 'ab-total' }, h('b', { class: passed ? 'ok' : 'bad' }, `${T('total')} ${r.total}/${max}`), h('small', null, `${passed ? T('pass') : T('fail')} (≥ ${it.passMark})`)),
       legend),
-    h('span', { class: 'ab-label' }, T('pickLabel')),
-    steps7,
+    ladder.el,
     h('div', { class: 'ab-installbox' }, sign, h('small', { class: 'ab-muted' }, T('signNote'))),
     status)
 }

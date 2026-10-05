@@ -133,21 +133,14 @@
 .ab-crit { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; counter-reset: c; }
 .ab-crit li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; color: #d9d8cd; font-size: 12.5px; }
 .ab-crit b { font: 700 12.5px var(--font-mono, ui-monospace, monospace); color: #f0b90b; }
-/* tangga label: tujuh anak tangga, makin tinggi makin berat (dan makin mahal) */
-.ab-ladder { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 6px; }
-.ab-rung { display: grid; align-content: end; gap: 2px; height: calc(44px + var(--k, 0) * 8px); padding: 6px 4px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px 8px 3px 3px; background: #171a20; color: #e9e6df; font-size: 10.5px; line-height: 1.2; text-transform: capitalize; transition: transform 0.15s ease; }
-.ab-rung small { font: 700 10px var(--font-mono, ui-monospace, monospace); color: #f0b90b; }
-.ab-rung:hover:not(:disabled) { border-color: rgba(240, 185, 11, 0.5); }
-.ab-rung.on { border-color: transparent; background: linear-gradient(180deg, #ffe14d, #f0b90b 60%, #c98f00); color: #14110a; transform: translateY(-3px); }
-.ab-rung.on small { color: #14110a; }
-.ab-rung:disabled { cursor: default; }
+/* tangga label: sejak B159 di `fee-ladder.css` (satu komponen untuk antrean + meja pengesahan) */
 .ab-stamp { display: inline-grid; gap: 2px; width: fit-content; padding: 8px 14px; border: 2px solid #37d67a; border-radius: 8px; color: #37d67a; font: 800 13px var(--font-mono, ui-monospace, monospace); letter-spacing: 0.04em; text-transform: uppercase; transform: rotate(-3deg); animation: ab-stamp 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.6) both; }
 .ab-stamp small { font-size: 11px; text-transform: none; letter-spacing: 0; }
 @keyframes ab-stamp { from { opacity: 0; transform: rotate(-3deg) scale(1.6); } }
 
 @media (prefers-reduced-motion: reduce) {
   .ab-pin, .ab-seg i, .ab-stamp, .ab-socket.on .ab-led { animation: none; }
-  .ab-chip, .ab-rung { transition: none; }
+  .ab-chip { transition: none; }
 }
 @media (max-width: 640px) {
   .ab { padding: 14px; }
@@ -155,8 +148,6 @@
   .ab-gauge-svg text { font-size: 15px; }
   .ab-step { grid-template-columns: 22px minmax(0, 1fr); gap: 8px; }
   .ab-rack { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
-  .ab-ladder { gap: 3px; }
-  .ab-rung { font-size: 9px; padding: 5px 2px; }
   .ab-paper-top { grid-template-columns: 1fr; }
   .ab-paper-top .app-btn { grid-column: 1; grid-row: auto; justify-self: start; }
 }
