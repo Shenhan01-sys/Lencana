@@ -38,8 +38,8 @@ penerbit; dan cacat lama `completeLesson` pada lesson `started` ditemukan dan di
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — commit lokal; dorongan FE menunggu kata builder. Bukti dari akun builder sungguhan belum ada
-(AC-B160#11 **PARTIAL**): sesudah dorongan dan kelas dibuka dari HP, kuis dan esai harus tersusul (3/4) dan bacaan tinggal "Tandai selesai".
+~~**SELESAI di kode, belum LIVE** — commit lokal; dorongan FE menunggu kata builder.~~ **SELESAI · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); bundel Vercel `assets/index-CIcJcqoE.js` memuat "dicatat selesai karena hasilnya sudah ada di penerbit" dan "belum ditandai selesai di penerbit" (dibaca sesudah dorongan). Bukti dari akun builder sungguhan belum ada
+(AC-B160#11 **PARTIAL**): sesudah kelas dibuka dari HP, kuis dan esai harus tersusul (3/4) dan bacaan tinggal "Tandai selesai".
 
 ## 4. Risiko tersisa
 

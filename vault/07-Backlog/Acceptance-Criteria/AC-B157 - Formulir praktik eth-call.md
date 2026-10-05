@@ -27,7 +27,7 @@ Sisi FE dari B121: halaman kelas tidak punya jalan untuk menyerahkan bukti prakt
 | AC-B157#10 | rapi di 375 px, tanpa luapan horizontal, nama pemeriksaan tidak pecah di tengah kata | **PASS** 5 Okt | T86 langkah 11 |
 | AC-B157#11 | server dan database tidak disentuh | **PASS** 5 Okt — dibaca dari `git status`: hanya `web/scripts/probe.ts`, `web/src/content.ts` (komentar penanda B121), `web/src/learning.ts`, `web/src/pages/class.css`, `web/src/pages/class.ts` | — |
 | AC-B157#12 | gerbang | **PASS** 5 Okt | `tsc` 0, `probe` 147/0, `build` 0; `npm run audit` bersih dan `check:labels` hijau 8/0 (dijalankan 5 Okt sesudah baris B157 ditutup) |
-| AC-B157#13 | akun builder sungguhan: usaha `praktik` bernilai chain tercatat, sehingga komponen praktik terisi dan nilai akhir tidak lagi `BELUM_LENGKAP` karena praktik | **PARTIAL** | T86 memakai penerbit tiruan; bukti dari server sungguhan menunggu dorongan FE dan builder mengirim dari HP |
+| AC-B157#13 | akun builder sungguhan: usaha `praktik` bernilai chain tercatat, sehingga komponen praktik terisi dan nilai akhir tidak lagi `BELUM_LENGKAP` karena praktik | **PARTIAL** | T86 memakai penerbit tiruan; bukti dari server sungguhan menunggu builder mengirim dari HP — FE sudah LIVE sejak dorongan `1a2df2e..6a865cc` (5 Okt) |
 | AC-B157#14 | tahap 2: `balance` / `tx-receipt` / `allowance` (dompet latihan kedua menandatangani pengikatan) | **BELUM** — di luar baris ini, dicatat satu baris di B157 | `signer/src/praktik.js:52-55` |
 
 **Batas klaim:** `eth-call` membuktikan "bisa membaca kontrak lewat RPC", bukan "mengerjakan sendiri": jawabannya sama untuk semua peserta dan bisa disalin

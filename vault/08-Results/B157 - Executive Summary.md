@@ -34,7 +34,7 @@ updated: 2026-10-05
 
 ## 3. Status
 
-**SELESAI di kode (tahap 1), belum LIVE** — commit lokal; dorongan FE menunggu kata builder. Bukti dari akun builder sungguhan belum ada (AC-B157#13 **PARTIAL**).
+~~**SELESAI di kode (tahap 1), belum LIVE** — commit lokal; dorongan FE menunggu kata builder.~~ **SELESAI (tahap 1) · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); bundel Vercel `assets/index-CIcJcqoE.js` memuat "Kirim bukti praktik", `lencana-praktik-submit`, "Bukti diterima" dan "Isi keluaran" (dibaca sesudah dorongan); workflow `deploy-signer` run `37282435768` sukses. Bukti dari akun builder sungguhan belum ada (AC-B157#13 **PARTIAL**).
 Baris **B121 tetap TERBUKA** (tiga jenis bukti lain belum punya formulir).
 
 ## 4. Risiko tersisa

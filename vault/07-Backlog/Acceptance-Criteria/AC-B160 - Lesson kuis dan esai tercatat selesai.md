@@ -26,7 +26,7 @@ Ditemukan 5 Okt saat menjawab builder "kenapa saya masih belum dapat credentials
 | AC-B160#8 | tidak ada angka atau nilai yang dikirim klien; hanya status lesson bertanda tangan peserta | **PASS** 5 Okt | `probe` "tidak ada angka atau nilai yang dikirim klien" |
 | AC-B160#9 | server dan database tidak disentuh | **PASS** 5 Okt — dibaca dari `git status`: hanya `web/scripts/probe.ts`, `web/src/learning.ts`, `web/src/pages/class.ts` (kode) | — |
 | AC-B160#10 | gerbang | **PASS** 5 Okt | `tsc` 0, `probe` 134/0, `build` 0, `npm run audit` bersih, `check:labels` hijau |
-| AC-B160#11 | akun builder sungguhan: `course_gates` `lessons_completed` naik dari 1 sesudah kelas dibuka dari HP (kuis dan esai tersusul), lalu 4/4 sesudah "Tandai selesai" di bacaan | **PARTIAL** | T85 skenario 5 meniru keadaan akunnya dengan penerbit tiruan; bukti dari server sungguhan menunggu dorongan FE dan pemakaian builder |
+| AC-B160#11 | akun builder sungguhan: `course_gates` `lessons_completed` naik dari 1 sesudah kelas dibuka dari HP (kuis dan esai tersusul), lalu 4/4 sesudah "Tandai selesai" di bacaan | **PARTIAL** | T85 skenario 5 meniru keadaan akunnya dengan penerbit tiruan; bukti dari server sungguhan menunggu pemakaian builder — FE sudah LIVE sejak dorongan `1a2df2e..6a865cc` (5 Okt) |
 
 **Batas klaim:** "selesai" berarti pekerjaan sudah diterima penerbit, bukan lulus. Kredensial tetap menunggu penilaian, pengesahan, praktik bernilai
 chain, dan perintah penerbit (`issue --from-attempts`). Status enrollment `completed` yang berubah begitu satu lesson selesai (`signer/src/db.js:504-511`)

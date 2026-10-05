@@ -52,7 +52,7 @@ Langkah 5, 6, dan 9 diulang sesudah kalimat penolakan Indonesia diganti dari kal
 
 - Penerbit tiruan di halaman, bukan server sungguhan: tanda tangan tidak diverifikasi dan tulisan ke database tidak terjadi. Yang diuji terhadap
   server sungguhan hanya **keluaran mentah** (langkah 1: pemeriksa server yang sama, chain 97 sungguhan, tanpa database). Bukti end-to-end dari akun
-  builder menunggu dorongan FE dan pemakaian dari HP (AC-B157#13 PARTIAL).
+  builder menunggu pemakaian dari HP — dorongan FE sudah terjadi 5 Okt, `1a2df2e..6a865cc` (AC-B157#13 PARTIAL).
 - Jawaban `eth-call` sama untuk semua peserta, jadi bisa disalin (batas yang ditulis server, `signer/src/praktik.js:18-21`, dan di catatan formulir):
   lulus berarti "bisa membaca kontrak lewat RPC", bukan "mengerjakan sendiri". Jangan ditulis "praktik terverifikasi" (OI-20).
 - Hanya jenis bukti `eth-call` (empat lesson di katalog). `balance`, `tx-receipt`, `allowance` butuh dompet latihan kedua yang menandatangani

@@ -30,7 +30,7 @@ updated: 2026-10-05
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — commit lokal; deploy signer lewat dorongan ke `main` (GitHub Actions) menunggu kata builder. Dampak nyata bagi builder saat ini: tidak ada
+~~**SELESAI di kode, belum LIVE** — commit lokal; deploy signer lewat dorongan ke `main` (GitHub Actions) menunggu kata builder.~~ **SELESAI · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); workflow `deploy-signer` run `37282435768` sukses (deploy + uji asap), `/healthz` cloud 200 dengan `startedAt` 2026-10-05T08:15:32Z (tepat sesudah dorongan 08.14.49Z). Dampak nyata bagi builder saat ini: tidak ada
 (meja pengesah sungguhan memakai `includeTest=false`); yang rusak hanya harness. **Gerbang 5 Okt:** baterai penuh **37 harness · 37 hijau, 1.449 pemeriksaan** (`capturedAt` 2026-10-05T08:03Z), `verify:review` 31 / 0, `verify:publisher` 57 / 0; `sync:numbers -- --verify` hijau (70 klaim); `npm run audit` bersih; `check:labels` 8/0.
 
 ## 4. Risiko tersisa
