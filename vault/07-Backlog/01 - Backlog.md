@@ -1,6 +1,6 @@
 # 05 — Status and order of work
 
-**Last updated: 30 September 2026 (hari tenggat, 23:59 WIB).** *(Tadinya "29 September … 1 day" — dikoreksi B117.)* *(2 Okt: antrean prioritas di bawah kini sampai B129, dan baris gerbang dicetak ulang — tabel "Where things stand" tetap tidak dikoreksi per baris.)* *(3 Okt: antrean kini sampai B133 — B130 selesai kecuali sewa #2547, B131 dikerjakan, B132/B133 dipilih arahnya oleh builder.)*
+**Last updated: 30 September 2026 (hari tenggat, 23:59 WIB).** *(Tadinya "29 September … 1 day" — dikoreksi B117.)* *(2 Okt: antrean prioritas di bawah kini sampai B129, dan baris gerbang dicetak ulang — tabel "Where things stand" tetap tidak dikoreksi per baris.)* *(3 Okt: antrean kini sampai B133 — B130 selesai kecuali sewa #2547, B131 dikerjakan, B132/B133 dipilih arahnya oleh builder.)* *(5 Okt: antrean kini sampai B156 — baris 41–53; terbuka: B140/B144 (uji HP builder), B153 (alamat dompet builder), B154 (login Privy dari HP).)*
 **Newest work queue: [[07-Backlog/03 - Findings and Tasks 2026-09-26]] (26-28 Sep) — B38 artefact metadata
 frozen at mint, B39 artefact granularity, B40 batch mint, B41 the validator run, B42 cold-store blind
 spot in the harness, B43 documentation debt, and since this morning B48 (one slug per process),
