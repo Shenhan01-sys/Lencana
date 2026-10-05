@@ -61,7 +61,9 @@ ditolak, RPC gagal ≠ kosong, dokumen 404 ≠ 500, DICABUT berpenanda, ponsel, 
 - **FE masih punya varian terang otomatis di sistem yang disetel terang** (`@media (prefers-color-scheme: light)` di `web/src/style.css:57`): lembar dan penampilnya selalu gelap (T88 langkah 19), tetapi di sistem terang
   dasbor di bawahnya ikut memakai token terang secara sebagian — latar body tetap gelap, namun tulisan "Lencana" di navbar tampak gelap di atas gelap dan beberapa kapsul menjadi terang
   (`b165-sistem-terang-daftar.png`). Itu cacat lama, tidak diubah di B165; kalau "selalu gelap" juga berarti dasbor, itu butuh baris baru (usul: hapus blok media itu atau tetapkan `color-scheme: dark`).
-- Kontras token lembar adalah angka perancang S3; yang saya hitung sendiri hanya warna penanda status. Kontras kartu daftar (teks `#848e9c`/`#b7bdc6` di atas gelap) dihitung 5,83:1 dan 9,20:1 tetapi tidak diukur dari piksel.
+- ~~Kontras token lembar adalah angka perancang S3; yang saya hitung sendiri hanya warna penanda status.~~ *(6 Okt, B167/T90)* Kontras lembar kini diukur sendiri dari piksel render print: 0 gagal dari 38 teks di latar gelap (terburuk 4,99:1) dan terang (4,94:1). Kontras kartu daftar (teks `#848e9c`/`#b7bdc6` di atas gelap) dihitung 5,83:1 dan 9,20:1 tetapi tidak diukur dari piksel.
+- ~~Latar gelap penuh memakan banyak tinta bila dicetak~~ *(6 Okt, B167)* pilihan latar terang hemat tinta kini ada di dialog cetak.
+- ~~FE masih punya varian terang otomatis…~~ *(6 Okt, B166)* dibuang: Lencana selalu gelap (T89).
 - Pustaka QR baru menambah dependensi pihak ketiga; hasilnya diperiksa dari struktur (45 modul, tiga pola pencari) dan didekode jsQR di peramban, tetapi bukan dari pemindai telepon.
 - Kunci bobot dokumen kriteria menjadi label SVG: disaring ke huruf/angka/garis dan di-escape; dokumen tetap berasal dari host tepi kita sendiri.
 

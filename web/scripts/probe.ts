@@ -932,6 +932,22 @@ async function main() {
         (() => { try { C.saveRecipient(L153, { mode: 'nama', name: 'x' }, bad); C.saveRecipient(L153, { mode: 'nama', name: 'x' }, null); return true } catch { return false } })())
     }
 
+    // latar cetak (B167): gelap bawaan; terang hanya bila dipilih, disimpan per alamat, tahan penyimpanan rusak
+    // Lencana-B167 status=SELESAI 2026-10-05 — latar cetak sertifikat (gelap bawaan, terang hemat tinta) dipilih di dialog cetak, disimpan per alamat, hanya berlaku di media print. Buktikan ulang: cd web && npm run probe (grup B165) dan uji peramban T90. JANGAN dibalik/diulang tanpa membuka kembali baris B167 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+    {
+      const mem = new Map<string, string>()
+      const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => { mem.set(k, v) } }
+      const other = '0x' + '56'.repeat(20)
+      check('latar cetak: bawaan gelap; "terang" disimpan per alamat (huruf besar/kecil sama) dan tidak bocor ke alamat lain',
+        C.loadPaper(L153, store) === 'gelap' && (C.savePaper(L153, 'terang', store), C.loadPaper(L153.toLowerCase(), store) === 'terang') && C.loadPaper(other, store) === 'gelap' && mem.size === 1)
+      C.savePaper(L153, 'gelap', store)
+      mem.set(`lencana.sertifikat.latar:${other}`, 'ungu')
+      const bad = { getItem: () => { throw new Error('diblokir') }, setItem: () => { throw new Error('diblokir') } }
+      check('latar cetak: kembali ke gelap bila dipilih lagi, nilai asing di penyimpanan, penyimpanan diblokir, atau tidak ada — tanpa melempar galat',
+        C.loadPaper(L153, store) === 'gelap' && C.loadPaper(other, store) === 'gelap' && C.loadPaper(L153, bad) === 'gelap' && C.loadPaper(L153, null) === 'gelap' &&
+        (() => { try { C.savePaper(L153, 'terang', bad); C.savePaper(L153, 'terang', null); return true } catch { return false } })())
+    }
+
     // QR, kristal, cincin
     const qr = C.qrPath(cert.verifyUrl)
     const grid = Array.from({ length: qr.modules }, () => new Array<boolean>(qr.modules).fill(false))

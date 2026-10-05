@@ -48,7 +48,8 @@ flowchart LR
 - **"Kosong" ≠ "gagal" ≠ "tidak tersaji":** daftar kosong yang sah, RPC gagal, dokumen 404, dan dokumen gagal diambil masing-masing punya tampilan sendiri.
 - **Nama:** `cleanName` (tab/baris baru → spasi, kontrol dibuang, ≤ 60), selalu `textContent`, tersimpan di `localStorage` per alamat (`lencana.sertifikat.penerima:<alamat>`), tidak dikirim; mode "nama" dengan nama kosong jatuh ke alamat.
 - **Label SVG dari dokumen:** kunci bobot disaring `[A-Za-z0-9_-]{1,24}` dan di-escape sebelum masuk ke SVG.
-- **Selalu gelap:** tanpa tema terang dan tanpa tombol tema; cetak/PDF memakai tampilan gelap yang sama (kaca diganti isi padat karena `backdrop-filter` tidak ikut tercetak).
+- **Selalu gelap:** tanpa tema terang dan tanpa tombol tema (sejak B166 juga tidak ada lagi varian terang otomatis di sistem terang: `color-scheme: dark` di `:root`). Cetak/PDF bawaannya gelap yang sama (kaca diganti isi padat karena `backdrop-filter` tidak ikut tercetak).
+- **Latar cetak (B167):** dialog cetak punya pilihan "Gelap — seperti di layar" (bawaan) atau "Terang — hemat tinta", tersimpan per alamat (`lencana.sertifikat.latar:<alamat>`). Hanya berlaku di `@media print` lewat `data-paper="terang"` pada lembar dan lapisan; di layar lembar tetap gelap. Tokennya token terang S3 (kontras emas/abu yang gagal sudah dikoreksi di sana); kontras terukur dari piksel render: 0 gagal dari 38 teks di kedua latar.
 
 ## Hal yang mudah salah
 

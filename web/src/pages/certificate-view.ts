@@ -16,7 +16,7 @@ import { h } from '../lib/ui'
 import { credentialDocUrl, loadCertificate } from '../credentials'
 import {
   addressGroups, cleanName, componentSummary, dialSvg, effectiveMode, facets, hashBytes, idDate, idTime, loadRecipient,
-  logoSvgInner, LOGO_VIEWBOX, mid, NAME_MAX, qrPath, saveRecipient, type CertificateData, type Recipient,
+  loadPaper, logoSvgInner, LOGO_VIEWBOX, mid, NAME_MAX, qrPath, savePaper, saveRecipient, type CertificateData, type Paper, type Recipient,
 } from '../certificate'
 import { verifyLink } from '../lesson-views'
 
@@ -51,6 +51,10 @@ const COPY = {
   dlgName: { en: 'My name', id: 'Nama saya' },
   dlgNote: { en: 'A name is not part of the signature; the short address stays visible on the sheet.', id: 'Nama tidak ikut tanda tangan; alamat tetap tampil kecil di lembar.' },
   dlgNeedName: { en: 'Write your name first, or choose the wallet address.', id: 'Tulis namamu dulu, atau pilih alamat dompet.' },
+  dlgPaperLegend: { en: 'Background when printed', id: 'Latar saat dicetak' },
+  dlgPaperDark: { en: 'Dark — as on screen', id: 'Gelap — seperti di layar' },
+  dlgPaperLight: { en: 'Light — saves ink', id: 'Terang — hemat tinta' },
+  dlgPaperNote: { en: 'Only the printed or saved PDF changes; on screen the certificate stays dark.', id: 'Hanya hasil cetak atau PDF yang berubah; di layar sertifikat tetap gelap.' },
   dlgCancel: { en: 'Cancel', id: 'Batal' },
   dlgPrint: { en: 'Print', id: 'Cetak' },
 } satisfies Record<string, Record<Lang, string>>
@@ -228,9 +232,12 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
   const el = layer.el
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const rec: Recipient = loadRecipient(addr)
+  // Lencana-B167 status=SELESAI 2026-10-05 — pilihan latar cetak (gelap bawaan / terang hemat tinta) di dialog cetak sertifikat; hanya berlaku di media print, layar tetap gelap. Buktikan ulang: uji peramban T90. JANGAN dibalik/diulang tanpa membuka kembali baris B167 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  let paper: Paper = loadPaper(addr)
+  el.dataset.paper = paper // B167: hanya berpengaruh di media print (certificate.css); di layar tetap gelap
 
   // ---- lembar ----
-  const sheet = h('article', { class: 'cert-sheet', 'data-mode': 'alamat', 'aria-label': `${T('sheetTitle')} — ${cert.title}` })
+  const sheet = h('article', { class: 'cert-sheet', 'data-mode': 'alamat', 'data-paper': paper, 'aria-label': `${T('sheetTitle')} — ${cert.title}` })
   sheet.innerHTML = SHEET_HTML
   const q = <E extends HTMLElement | SVGElement = HTMLElement>(sel: string) => sheet.querySelector<E>(sel)
   const setText = (sel: string, text: string) => { const e = q(sel); if (e) e.textContent = text }
@@ -385,6 +392,8 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
   const radioAddr = h('input', { type: 'radio', name: 'cert-who', value: 'alamat' }) as HTMLInputElement
   const radioName = h('input', { type: 'radio', name: 'cert-who', value: 'nama' }) as HTMLInputElement
   const dlgName = h('input', { class: 'cert-dlg-name', type: 'text', maxlength: String(NAME_MAX), autocomplete: 'off', spellcheck: 'false', placeholder: T('namePlaceholder'), 'aria-label': T('dlgName'), 'aria-describedby': 'cert-dlg-n cert-dlg-e' }) as HTMLInputElement
+  const paperDark = h('input', { type: 'radio', name: 'cert-paper', value: 'gelap' }) as HTMLInputElement
+  const paperLight = h('input', { type: 'radio', name: 'cert-paper', value: 'terang' }) as HTMLInputElement
   const dlgErr = h('p', { class: 'cert-dlg-e', id: 'cert-dlg-e', role: 'alert' })
   const cancelBtn = h('button', { type: 'button', class: 'cert-btn', 'data-dlg': 'batal' }, T('dlgCancel'))
   const form = h('form', { class: 'cert-dlg-f', novalidate: true },
@@ -395,6 +404,11 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
       h('label', { class: 'cert-opt' }, radioName, h('span', null, T('dlgName'))),
       dlgName, dlgErr),
     h('p', { class: 'cert-dlg-n', id: 'cert-dlg-n' }, T('dlgNote')),
+    h('fieldset', null,
+      h('legend', null, T('dlgPaperLegend')),
+      h('label', { class: 'cert-opt' }, paperDark, h('span', null, T('dlgPaperDark'))),
+      h('label', { class: 'cert-opt' }, paperLight, h('span', null, T('dlgPaperLight'))),
+      h('p', { class: 'cert-dlg-n' }, T('dlgPaperNote'))),
     h('div', { class: 'cert-dlg-act' }, cancelBtn, h('button', { type: 'submit', class: 'cert-btn cert-btn-pri', 'data-dlg': 'cetak' }, T('dlgPrint'))))
   const dlg = h('dialog', { class: 'cert-dlg', 'aria-labelledby': 'cert-dlg-t' }, form) as HTMLDialogElement
   const setErr = (msg: string) => { dlgErr.textContent = msg; dlgName.setAttribute('aria-invalid', String(!!msg)) }
@@ -404,6 +418,7 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
     if (typeof dlg.showModal !== 'function') { window.print(); return }
     opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
     radioAddr.checked = rec.mode === 'alamat'; radioName.checked = rec.mode === 'nama'
+    paperDark.checked = paper === 'gelap'; paperLight.checked = paper === 'terang'
     dlgName.value = rec.name; setErr('')
     dlg.showModal()
     ;(rec.mode === 'nama' ? dlgName : radioAddr).focus()
@@ -426,6 +441,8 @@ function mountSheet (layer: Layer, cert: CertificateData, addr: string, lang: La
     if (c === 'nama' && !name) { setErr(T('dlgNeedName')); dlgName.focus(); return }
     rec.mode = c
     if (c === 'nama') rec.name = name // memilih alamat: nama terakhir tetap diingat untuk lain kali
+    paper = paperLight.checked ? 'terang' : 'gelap'
+    sheet.dataset.paper = paper; el.dataset.paper = paper; savePaper(addr, paper)
     applyRecipient(); save(); dlg.close()
     window.print()
   })

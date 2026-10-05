@@ -263,6 +263,21 @@ export function saveRecipient (addr: string, r: Recipient, store: Pick<Storage, 
   try { store?.setItem(recipientKey(addr), JSON.stringify({ mode: r.mode, name: r.name })) } catch { /* tanpa penyimpanan: pilihan berlaku untuk sesi ini saja */ }
 }
 
+// ------------------------------------------------------------------ latar cetak (B167)
+
+/**
+ * Latar kertas SAAT DICETAK: `gelap` (seperti di layar, bawaan) atau `terang` (hemat tinta). Hanya berlaku di media `print` —
+ * di layar lembar dan penampilnya selalu gelap. Pilihan ini khusus lembar sertifikat, bukan tema aplikasi (Lencana selalu gelap).
+ */
+export type Paper = 'gelap' | 'terang'
+const paperKey = (addr: string) => `lencana.sertifikat.latar:${addr.toLowerCase()}`
+export function loadPaper (addr: string, store: Pick<Storage, 'getItem'> | null = typeof localStorage === 'undefined' ? null : localStorage): Paper {
+  try { return store?.getItem(paperKey(addr)) === 'terang' ? 'terang' : 'gelap' } catch { return 'gelap' }
+}
+export function savePaper (addr: string, paper: Paper, store: Pick<Storage, 'setItem'> | null = typeof localStorage === 'undefined' ? null : localStorage): void {
+  try { store?.setItem(paperKey(addr), paper === 'terang' ? 'terang' : 'gelap') } catch { /* tanpa penyimpanan: pilihan berlaku untuk sesi ini saja */ }
+}
+
 // ------------------------------------------------------------------ QR
 
 /**

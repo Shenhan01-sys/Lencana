@@ -304,4 +304,31 @@ body.cert-open{overflow:hidden}
   .cert-sheet .s3-disc{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:radial-gradient(120% 120% at 28% 18%,#3f454e 0%,#252a31 44%,#14171c 100%)!important}
   .cert-sheet .s3-fx,.cert-sheet .s3-medal-par{transform:none!important}
   .cert-sheet .s3-sweep,.cert-sheet .s3-pulse,.cert-sheet .s3-flash,.cert-sheet .s3-shine,.cert-sheet .s3-fx-g{display:none!important}
+
+  /* B167 — latar TERANG saat dicetak (pilihan di dialog cetak; di layar lembar tetap gelap). Objeknya sama (kristal arang-emas, medali kaca asap,
+     pelat QR putih); yang berganti hanya kertas, teks, dan panel kaca. Token = token terang S3 dengan kontras yang sudah dikoreksi. */
+  .cert-sheet[data-paper="terang"]{
+  --s3-bg:#f5f5f5;--s3-card:#ffffff;--s3-line:#d0d5dd;
+  --s3-text:#1e2329;--s3-sub:#474d57;
+  --s3-label:#474d57;--s3-label-g:#474d57;           /* teks kecil: muted FE #707a8a hanya 3,98:1 di #f5f5f5 → sub */
+  --s3-gold-tx:#8a6a00;                               /* teks emas kecil ≥ 4,5:1 (FE #d99e00 hanya 2,18:1 di #f5f5f5) */
+  --s3-gold-a:#a77d00;--s3-gold-b:#8a6a00;            /* teks emas besar (≥ 24 px) ≥ 3:1 */
+  --s3-atmo:radial-gradient(900px 660px at 100% 0%,rgba(240,185,11,.17),rgba(240,185,11,0) 60%),
+    radial-gradient(520px 420px at 0% 100%,rgba(240,185,11,.12),rgba(240,185,11,0) 66%),
+    radial-gradient(720px 540px at 26% 40%,#ffffff,rgba(255,255,255,0) 70%),
+    linear-gradient(135deg,#fbfbfb 0%,#f5f5f5 52%,#eeeff1 100%);
+  --s3-glass:linear-gradient(140deg,rgba(255,255,255,.86),rgba(255,255,255,.72));
+  --s3-glass-edge:rgba(255,255,255,.95);--s3-glass-ring:rgba(30,35,41,.09);
+  --s3-glass-shadow:0 26px 50px -26px rgba(30,35,41,.42),0 3px 10px -4px rgba(30,35,41,.12);
+  --s3-hair:rgba(30,35,41,.13);
+  --s3-chip-bg:rgba(217,158,0,.10);--s3-chip-line:rgba(138,106,0,.4);
+  --s3-tag-bg:rgba(30,35,41,.05);--s3-tag-line:rgba(30,35,41,.17);
+  --s3-rod:linear-gradient(90deg,#8a6a00,#b38600 55%,#d99e00);--s3-rod-cut:rgba(255,255,255,.95);
+  --s3-glint:#ffffff;--s3-shine:rgba(255,255,255,.5);--s3-sweep:rgba(255,255,255,.95);
+  --s3-pill-bg:#ffffff;--s3-pill-tx:#1e2329;--s3-pill-line:rgba(30,35,41,.2);
+  --s3-tile-ring:rgba(30,35,41,.11);
+    background:var(--s3-bg);color:var(--s3-text);box-shadow:none !important}
+  .cert-sheet[data-paper="terang"] .s3-glass{background:rgba(255,255,255,.95)!important;box-shadow:inset 0 0 0 1px rgba(30,35,41,.15)!important}
+  .cert-layer[data-paper="terang"]{background:#f5f5f5 !important}
+  html:has(.cert-layer[data-paper="terang"]),body:has(.cert-layer[data-paper="terang"]){background:#f5f5f5 !important}
 }
