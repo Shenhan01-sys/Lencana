@@ -42,12 +42,18 @@ terlihat di Findings, hub desain sertifikat, dan START-HERE.
 | pembacaan RPC yang gagal | — | tidak dihitung memegang artefak, ditandai gagal, alasan terpisah (`probe`; tampilan di peramban tidak diuji — AC-B164#3) |
 | konfigurasi eksplisit satu instance | — | `certs: []` dan lapis tambahan dibuang (T87 langkah 4; `probe` 6 pemeriksaan) |
 | uji punya gigi | — | perilaku lama dikembalikan → 15 pemeriksaan merah dari 173 (termasuk "B153 → token=null"), lalu 173/0 |
-| `tsc` · `probe` · `build` | 0 · 147/0 · 0 | 0 · **173/0** · 0 (`probe` dicetak ulang 5 Okt malam, 1 menit 19 detik) |
+| `tsc` · `probe` · `build` | 0 · 147/0 · 0 | 0 · **173/0** · 0 (`probe` dicetak ulang 5 Okt malam, 1 menit 19 detik); baterai `sync:numbers` 37 harness · 37 hijau, 1.477 pemeriksaan; `audit` bersih; `check:labels` 8/0 |
+| verifier **produksi** untuk hash B153 | "Optional / Not Minted" (T87 langkah 0) | "Minted & Locked", tiga lapis, tanpa penimpaan konfigurasi (T87 §LIVE) |
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — perubahan belum didorong; produksi (`https://lencana-psi.vercel.app`) masih menjalankan kode lama sehingga B153
-tampil "Not Minted" di verifier bawaan. AC-B164#12 (LIVE) OPEN sampai dorongan dan pembacaan ulang di bundel produksi.
+~~**SELESAI di kode, belum LIVE** — perubahan belum didorong; produksi masih menjalankan kode lama sehingga B153 tampil "Not Minted" di verifier bawaan; AC-B164#12 (LIVE) OPEN.~~
+**SELESAI · LIVE** — didorong `7259153..a962ff7` atas kata builder (5 Okt 21.54 WIB, "Kalau udh di push dulu aja"). Dibaca sesudah dorongan: bundel produksi berganti ke
+`assets/index-BxD6KH3I.js` (869.594 byte) — nama dan ukuran sama dengan hasil `npm run build` lokal sebelum commit — dan memuat teks panel lapis. Chrome 154 bersih membuka
+verifier produksi untuk hash B153: TOKEN ID #841214031867952989208…, "🔒 Soulbound (ERC-5192)", "4. Soulbound NFT: **Minted & Locked**", tiga lapis terdaftar
+(`0xA5eB…` kosong · `0xc338…` ada, D42/D43 ✓ · `0xC6FD…` ada, D42/D43 ✗), `localStorage` kosong, galat konsol 0 (T87 §LIVE; AC-B164#12 PASS).
+Run GitHub Actions `deploy-signer` 37328503623 (dipicu karena `web/src/**` ada di filter jalurnya; signer tidak berubah oleh B164) masih berjalan saat ini dicatat — hasilnya
+belum dibaca.
 
 ## 4. Risiko tersisa
 

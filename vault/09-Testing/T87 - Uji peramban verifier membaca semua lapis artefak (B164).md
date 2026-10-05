@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-05
 command: server dev Vite sementara di 127.0.0.1:5174 (kode baru) dan verifier produksi `https://lencana-psi.vercel.app` (kode lama, sebagai pembanding "sebelum"); Chrome 154 tanpa kepala lewat `puppeteer-core`; chain 97 publik lewat RPC publik; hash B153 `0xb9fb06e5…6430c31`, akun 1 `0x12f6…11DF`
 measured: 2026-10-05
-result: VERIFIER MEMBACA SEMUA LAPIS ARTEFAK — di kode baru, hash B153 tampil "Minted & Locked" (Token ID #84121403…, "🔒 Soulbound (ERC-5192)") tanpa menimpa konfigurasi; panel mendaftar tiga lapis (lama: tidak ada · A: ada, D42/D43 ✓ · B: ada, D42/D43 ✗); daftar kredensial akun 1 punya kolom "Artefak (NFT)" ("soulbound · 2 lapis"); panel konfigurasi menjatuhkan lapis tambahan bila `cert` diubah; nol galat konsol. Sebelum perbaikan (produksi): bawaan "Optional / Not Minted", dan "Minted & Locked" hanya bila `cert` ditimpa. `probe` 173 / 0 dengan uji negatif 15 merah. LIVE belum
+result: VERIFIER MEMBACA SEMUA LAPIS ARTEFAK — di kode baru, hash B153 tampil "Minted & Locked" (Token ID #84121403…, "🔒 Soulbound (ERC-5192)") tanpa menimpa konfigurasi; panel mendaftar tiga lapis (lama: tidak ada · A: ada, D42/D43 ✓ · B: ada, D42/D43 ✗); daftar kredensial akun 1 punya kolom "Artefak (NFT)" ("soulbound · 2 lapis"); panel konfigurasi menjatuhkan lapis tambahan bila `cert` diubah; nol galat konsol. Sebelum perbaikan (produksi): bawaan "Optional / Not Minted", dan "Minted & Locked" hanya bila `cert` ditimpa. `probe` 173 / 0 dengan uji negatif 15 merah. LIVE sudah: verifier produksi (`assets/index-BxD6KH3I.js`) menampilkan B153 "Minted & Locked" dengan tiga lapis, tanpa penimpaan konfigurasi dan tanpa galat konsol
 ---
 
 # T87 - Uji peramban verifier membaca semua lapis artefak (B164)
@@ -41,6 +41,22 @@ tanpa mengubah perilaku untuk artefak lama, dan tanpa menyamakan "gagal dibaca" 
 
 **Gerbang 5 Okt malam:** `npx tsc --noEmit` exit 0; `npm run probe` **173 / 0** (147 + 26 grup B164); `npm run build` exit 0.
 
+## LIVE (5 Okt malam, sesudah dorongan `7259153..a962ff7`)
+
+Skrip yang sama (tanpa langkah `readMyCredentials`, karena modul `/src/…` hanya ada di Vite dev) dijalankan terhadap `https://lencana-psi.vercel.app/` dengan konteks Chrome bersih
+(tanpa `localStorage`), sesudah bundel produksi berganti dari `assets/index-CSniFuxJ.js` ke `assets/index-BxD6KH3I.js` (869.594 byte — nama dan ukuran sama dengan
+`web/dist/assets/index-BxD6KH3I.js` dari `npm run build` 21.52 WIB, sebelum commit).
+
+| langkah | hasil produksi |
+|---|---|
+| verifier bawaan, hash B153 | TOKEN ID **#841214031867952989208…**, "🔒 Soulbound (ERC-5192)", "4. Soulbound NFT: **Minted & Locked**" (sebelum dorongan: "Optional / Not Minted") |
+| panel artefak | "NFT Contract" `0xc338AF7F…`; "Contract layers read": `0xA5eB807A…` *none*, `0xc338AF7F…` *artifact present · D42/D43 ✓*, `0xC6FD12B0…` *artifact present · D42/D43 ✗*; "Layer enforces D42/D43?" yes; Token ID = hash dalam desimal; "Owned by" `0x12f6F95E…11DF`; locked() yes; ERC-5192 yes; "Token Metadata URI" JSON "Lencana — VALID"; "NFT Wired to Active Resolver?" yes |
+| `localStorage['bnb-credential-endpoint-v1']` sesudah memuat | kosong (`null`) — tidak ada penimpaan konfigurasi |
+| hash asing (`0x1111…1111`) | "Could not verify — not recognized" (bukan kredensial; tidak ada klaim artefak) |
+| galat | `pageerror` dan `console.error`: **0** |
+
+Halaman `/app/credentials` produksi tetap di balik login; kolom "Artefak (NFT)" belum diamati sebagai pengguna masuk (AC-B164#7 PARTIAL).
+
 ## Perbaikan kecil yang ikut (bukan kriteria)
 
 - Label "Layer enforces D42/D43?" semula terlalu panjang dan menimpa nilainya di kolom sempit; dipendekkan dan penjelasannya dipindah ke petunjuk.
@@ -50,5 +66,5 @@ tanpa mengubah perilaku untuk artefak lama, dan tanpa menyamakan "gagal dibaca" 
 
 - RPC **tidak dipaksa gagal**: tampilan "gagal dibaca" dan alasan pembacaan gagal hanya terbukti sebagai logika murni di `probe` (AC-B164#3 PARTIAL).
 - `/app/credentials` yang asli ada di balik login; yang diuji adalah fungsi yang dipakainya dengan alamat akun 1 (AC-B164#7 PARTIAL).
-- Yang diuji kode DEV lokal terhadap chain publik. **Produksi belum** menjalankan kode baru (AC-B164#12 OPEN) sampai dorongan atas kata builder; bagian ini diisi sesudahnya.
+- Langkah 1–5 menguji kode DEV lokal terhadap chain publik; ~~**Produksi belum** menjalankan kode baru (AC-B164#12 OPEN) sampai dorongan atas kata builder~~ produksi sudah menjalankan kode baru dan diuji di bagian "LIVE" (AC-B164#12 PASS).
 - Hanya Chrome 154; hanya tab bahasa Inggris (bawaan) yang diperiksa visual — kamus Indonesia ditambahkan tetapi tidak dibuka di peramban.
