@@ -50,7 +50,10 @@ lembar untuk kredensial orang lain; status "BERLAKU" sebagai klaim di lembar.
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — perubahan belum didorong; produksi masih menampilkan tabel lama. AC-B165#21 (LIVE) OPEN sampai dorongan atas kata builder dan pembacaan ulang di bundel produksi.
+~~**SELESAI di kode, belum LIVE** — perubahan belum didorong; produksi masih menampilkan tabel lama; AC-B165#21 (LIVE) OPEN.~~
+**SELESAI · LIVE** — didorong `8b58481..e2fc546` atas kata builder ("gas", 5 Okt 23.33 WIB). Dibaca sesudah dorongan: bundel produksi berganti ke `assets/index-DjuuhFae.js` (934.267 byte) — nama dan ukuran sama dengan
+`npm run build` lokal — dan memuat teks kartu dan lembar; skrip T88 utama diulang terhadap `https://lencana-psi.vercel.app/` dengan hasil sama seperti di dev (kartu, lembar, QR terbaca, dialog, cetak 1 halaman, kredensial orang lain
+ditolak, RPC gagal ≠ kosong, dokumen 404 ≠ 500, DICABUT berpenanda, ponsel, Inggris), nol galat konsol (T88 §LIVE; AC-B165#21 PASS). Run `deploy-signer` 37341787181 untuk dorongan ini selesai **sukses** dalam 1 menit 21 detik (dipicu filter jalur `web/src/**`; signer tidak berubah).
 
 ## 4. Risiko tersisa
 

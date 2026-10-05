@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-05
 command: server dev Vite sementara di 127.0.0.1:5174 (kode baru, dimatikan sesudah uji); Chrome 154 tanpa kepala lewat `puppeteer-core`, konteks bersih tiap skenario; identitas uji = alamat peserta B153 `0x12f6…11DF` (publik) dengan kunci acak yang tidak pernah dipakai menandatangani apa pun di jalur ini; chain 97 publik dan host tepi publik sungguhan, kecuali yang disebut "dipalsukan" (lapisan jaringan peramban)
 measured: 2026-10-05
-result: KARTU DAN LEMBAR BEKERJA END-TO-END — "Kredensial saya" menampilkan satu kartu B153 (BERLAKU · 87/100 · 5 Oktober 2026 → 5 Oktober 2027 · NFT soulbound 2 lapis) tanpa tabel; "Lihat sertifikat" membuka lembar S3 dengan semua bidang dari dokumen nyata; QR terbaca sama dengan tautan verifier; dialog alamat/nama, nama muat 2–60 huruf, HTML di nama tidak dieksekusi; cetak = 1 halaman gelap; status dicabut dan penerbit ditarik tampil dengan penanda; RPC gagal tampil sebagai galat (bukan kosong); dokumen 404 dan 500 dibedakan; kredensial orang lain tidak membuat lembar; ponsel 390 px tanpa luapan; nol galat konsol. Putaran pertama merah di satu hal nyata (kaki lembar menimpa isian) dan diperbaiki. `probe` 210 / 0. LIVE belum
+result: KARTU DAN LEMBAR BEKERJA END-TO-END — "Kredensial saya" menampilkan satu kartu B153 (BERLAKU · 87/100 · 5 Oktober 2026 → 5 Oktober 2027 · NFT soulbound 2 lapis) tanpa tabel; "Lihat sertifikat" membuka lembar S3 dengan semua bidang dari dokumen nyata; QR terbaca sama dengan tautan verifier; dialog alamat/nama, nama muat 2–60 huruf, HTML di nama tidak dieksekusi; cetak = 1 halaman gelap; status dicabut dan penerbit ditarik tampil dengan penanda; RPC gagal tampil sebagai galat (bukan kosong); dokumen 404 dan 500 dibedakan; kredensial orang lain tidak membuat lembar; ponsel 390 px tanpa luapan; nol galat konsol. Putaran pertama merah di satu hal nyata (kaki lembar menimpa isian) dan diperbaiki. `probe` 210 / 0. LIVE sudah: skrip utama diulang terhadap produksi (`assets/index-DjuuhFae.js`) dengan hasil sama, nol galat konsol
 ---
 
 # T88 - Uji peramban kartu kredensial dan lembar sertifikat (B165)
@@ -57,9 +57,19 @@ merapatkan "Budi⏎Santoso" menjadi "BudiSantoso" (ditemukan `probe`, bukan pera
 
 **Gerbang 5 Okt malam:** `npx tsc --noEmit` exit 0; `npm run probe` **210 / 0** (173 + 37 grup B165, termasuk pemeriksaan baru bahwa `main.ts` mengekspor ulang `CREDENTIAL_HOST`/`APP_HOST` dari `config.ts`); `npm run build` exit 0.
 
+## LIVE (5 Okt malam, sesudah dorongan `8b58481..e2fc546`)
+
+Skrip utama yang sama (langkah 1–15 dan 20; langkah 17–19 hanya dijalankan terhadap dev) dijalankan terhadap `https://lencana-psi.vercel.app/` sesudah bundel produksi berganti dari
+`assets/index-BxD6KH3I.js` ke `assets/index-DjuuhFae.js` (934.267 byte — nama dan ukuran sama dengan `npm run build` lokal; memuat "Belum ada kredensial", "Lihat sertifikat", "Bukan kredensialmu",
+"Disusun dari dokumen kredensial publik", dan kunci `lencana.sertifikat.penerima`). Hasilnya sama dengan di dev: kartu B153 (BERLAKU · 87 · 5 Oktober 2026 → 5 Oktober 2027 · NFT 2 lapis, tanpa tabel); lembar dengan penerbit
+"Yayasan Literasi Digital Nusantara" + "institusi demo, fiktif", QR terbaca = tautan verifier; dialog (Esc, nama kosong ditolak, `print` 1×); nama 58/58/34/21/37 px dan HTML tidak dieksekusi; cetak: lembar di (0,0) 1122 × 793,
+latar `rgb(11,14,17)`, saudara `<body>` tersembunyi, skor 87, **1 halaman**; Esc, pindah ke bagian lain, dan pindah ke verifier menutup lapisan; tautan langsung membuka lembar; "Bukan kredensialmu" untuk hash orang lain; ponsel 390 px tanpa luapan;
+akun kosong "Belum ada kredensial"; RPC dibatalkan "Kredensialmu tidak terbaca" (bukan kosong); dokumen 404/500 dibedakan; DICABUT berpenanda (jarak kaki 28 px); kasus terburuk kaki (PENERBIT DITARIK, 2 + 1 baris, jarak 13 px);
+bahasa Inggris; `pageerror`/`console.error` **0**. Deploy `deploy-signer` untuk dorongan ini dipicu karena `web/src/**` ada di filter jalurnya; signer tidak berubah (run B164 sebelumnya selesai sukses dalam 20 menit 59 detik).
+
 ## Batas
 
 - **Cetak di kertas sungguhan belum**; PDF diperiksa lewat `page.pdf` (jumlah halaman) dan media `print` (geometri, latar), tidak dirasterisasi.
 - Hanya Chrome 154; hanya tema gelap yang dipakai skrip (Lencana selalu gelap — tidak ada tema lain untuk diuji).
 - Identitas uji memakai kunci acak: `POST /me/roles` mengembalikan 401 dan penjaga kursi jalan seperti saat penerbit tak terjangkau; akun sungguhan dengan tanda tangan Privy tidak diamati.
-- Yang diuji kode DEV lokal terhadap chain dan tepi publik. **Produksi belum** menjalankan kode baru (AC-B165#21 OPEN) sampai dorongan atas kata builder.
+- Langkah 1–20 menguji kode DEV lokal terhadap chain dan tepi publik; ~~**Produksi belum** menjalankan kode baru (AC-B165#21 OPEN) sampai dorongan atas kata builder~~ produksi sudah menjalankan kode baru dan skrip utamanya diulang di bagian "LIVE" (AC-B165#21 PASS).

@@ -1,6 +1,6 @@
 ---
 tags: [frontend, "FE9", credentials, certificate]
-status: built-local
+status: live
 updated: 2026-10-05
 ---
 
