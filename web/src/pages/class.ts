@@ -78,28 +78,40 @@ function serverSummaryFor (courseId: string) {
 function kickSync (courseId: string, rerender: Rerender): void {
   if (!learnerAddress()) return
   const s = snapshot()
-  if (s.pending || (s.courseId === courseId && (s.summary || s.error))) return
+  if (s.pending) return
+  if (s.courseId === courseId && (s.summary || s.error)) {
+    // Ringkasan kursus ini sudah dibaca halaman lain (halaman kursus, login, bayar) sebelum peserta masuk kelas: penyusulan
+    // lesson tetap jalan. Dulu cabang ini langsung keluar, dan lesson yang sudah punya hasil di penerbit tidak pernah tersusul.
+    if (s.summary) void catchUpLessons(courseId, s.summary, rerender)
+    return
+  }
   void syncCourse(courseId).then((sum) => {
     rerender()
     void catchUpLessons(courseId, sum, rerender)
   })
 }
 
-// Lencana-B160 status=SELESAI 2026-10-05 —lesson kuis dan esai tercatat selesai di penerbit: setelah kuis lulus dan esai diterima halaman memanggil `completeLesson`, dan saat kelas dibuka (atau "muat ulang" ditekan) lesson yang sudah punya hasil di penerbit disusulkan lewat `reconcileLessons` — dari bukti di penerbit, bukan dari catatan perangkat. Buktikan ulang: cd web && npm run probe (grup B160), lalu uji peramban T85. JANGAN dibalik/diulang tanpa membuka kembali baris B160 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B160 status=SELESAI 2026-10-05 — lesson kuis dan esai tercatat selesai di penerbit: setelah kuis lulus dan esai diterima halaman memanggil `completeLesson`, dan saat kelas dibuka (atau "muat ulang" ditekan) lesson yang sudah punya hasil di penerbit disusulkan lewat `reconcileLessons` — dari bukti di penerbit, bukan dari catatan perangkat; jalannya tidak bergantung pada siapa yang menyinkronkan kursus lebih dulu. Buktikan ulang: cd web && npm run probe (grup B160), lalu uji peramban T85. JANGAN dibalik/diulang tanpa membuka kembali baris B160 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 const reconciling = new Set<string>()
+/** `alamat|kursus` yang sudah disusul sekali di muat halaman ini: render ulang dan pindah lesson tidak mengulanginya. */
+const caughtUp = new Set<string>()
 
 /**
  * Lesson yang sudah punya hasil di penerbit (kuis lulus, esai dinilai, praktik bernilai chain) tetapi belum tercatat selesai
- * — mis. dikerjakan sebelum perbaikan ini — disusulkan sekali saat kelas dibuka. Dompet ekstensi (`dompet`) dilewati di jalur
- * otomatis: setiap tanda tangannya membuka jendela konfirmasi; tombol "muat ulang" tetap bisa memintanya.
+ * — mis. dikerjakan sebelum perbaikan ini — disusulkan sekali per akun dan kursus saat kelas dibuka. Dompet ekstensi (`dompet`)
+ * dilewati di jalur otomatis: setiap tanda tangannya membuka jendela konfirmasi; tombol "muat ulang" tetap bisa memintanya.
+ * Gagal membaca bukti tidak menandai "sudah disusul", jadi render berikutnya mencoba lagi; render ulang hanya terjadi bila ada
+ * lesson yang tersusul, jadi kegagalan tidak membuat putaran.
  */
 async function catchUpLessons (courseId: string, sum: ServerSummary | null, rerender: Rerender): Promise<void> {
   const c = findCourse(courseId)
-  if (!sum || !c || sum.lessonsCompleted >= sum.lessonsTotal || reconciling.has(courseId)) return
+  const key = `${learnerAddress() ?? ''}|${courseId}`
+  if (!sum || !c || sum.lessonsCompleted >= sum.lessonsTotal || reconciling.has(courseId) || caughtUp.has(key)) return
   if (snapshot().identity?.kind === 'dompet') return
   reconciling.add(courseId)
   try {
     const r = await reconcileLessons(courseId, c.modules.flatMap((m) => m.lessons))
+    if (r.ok) caughtUp.add(key)
     if (r.completed.length) rerender()
   } finally {
     reconciling.delete(courseId)
