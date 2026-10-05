@@ -9,6 +9,12 @@ result: MEJA PENGESAHAN HIJAU — 31 pemeriksaan / 0 gagal (5 Okt, B144; run per
 
 # T74 - signer review-check.js — B144: meja pengesahan agen pengesah
 
+> **Koreksi 5 Okt (B161):** baterai penuh sesudah B157/B160 menjadikan harness ini **merah 31 / 1** — pemeriksaan "usulan per kriteria dalam poin = yang diusulkan #2534"
+> mendapat `points: null` untuk semua kriteria butir uji. Bukan cacat harness dan bukan flaky (merah lagi dijalankan sendirian): `queuePendingReviews` membaca komponen
+> semua baris `judged` dalam satu kueri dan PostgREST memotong jawaban di 1000 baris tanpa tanda (133 sisa uji `web3-dasar` sudah menumpuk). Diperbaiki di `signer/src/db.js`
+> (komponen hanya untuk butir yang dikembalikan, per 25 butir; baris uji disaring di SQL): **31 / 0** pada keadaan database yang sama. Rincian dan bukti:
+> [[07-Backlog/Acceptance-Criteria/AC-B161 - Antrean pengesahan dan batas 1000 baris]]. Baris `result` di atas ("run pertama 31 / 0") adalah hasil 5 Okt pagi, sebelum sisa uji melewati ambang.
+
 **Hub:** [[09-Testing/00 - Hub Testing]] · **Backlog:** B144 di [[07-Backlog/03 - Findings and Tasks 2026-09-26]] ·
 **AC:** [[07-Backlog/Acceptance-Criteria/AC-B144 - Meja pengesahan agen pengesah]] ·
 **Uji peramban:** [[09-Testing/T75 - Uji peramban meja pengesahan (B144)]] · **Summary:** [[08-Results/B144 - Executive Summary]] ·

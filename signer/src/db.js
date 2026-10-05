@@ -1445,28 +1445,35 @@ export async function graderOwnersOf (courseId) {
  * Yang sudah disahkan disaring di sini (dua kueri, bukan anti-join bersarang) dan baru sesudah itu dipotong ke `limit`.
  * Baris harness (`origin=test`) disaring kecuali diminta, seperti dasbor penerbit: pengesah sungguhan tidak boleh disodori sisa uji.
  */
+// Lencana-B161 status=SELESAI 2026-10-05 —antrean pengesahan membaca komponen nilai hanya untuk butir yang dikembalikan, per potongan kecil, dan menyaring baris uji di SQL: dulu komponen SEMUA baris `judged` (sampai 500) dibaca sekaligus, PostgREST memotong jawaban di 1000 baris tanpa tanda, dan komponen butir terbaru hilang diam-diam (`points: null`) begitu sisa uji menumpuk (134 baris, 5 Okt) — `verify:review` merah. Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B161 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** Butir per kueri komponen: ≤ 25 × (kriteria + tanda mekanis) jauh di bawah batas 1000 baris PostgREST yang memotong jawaban tanpa tanda. */
+const COMPONENT_CHUNK = 25
+
 export async function queuePendingReviews (courseId, limit = 20, { includeTest = false } = {}) {
   const subs = ((await rest('submissions', {
     query: `?state=eq.judged&course_id=eq.${encodeURIComponent(courseId)}&order=judged_at.asc&limit=500`
       + '&select=attempt_id,learner,course_id,lesson_key,body,words,judged_at,'
       + 'attempts!inner(id,kind,attempt_no,score,verdict,judge_model,graded_by_agent,difficulty_label,enrollments!inner(origin))'
-      + '&attempts.kind=eq.esai&attempts.judge_model=not.is.null&attempts.score=not.is.null&attempts.verdict=neq.incomplete',
+      + '&attempts.kind=eq.esai&attempts.judge_model=not.is.null&attempts.score=not.is.null&attempts.verdict=neq.incomplete'
+      // Sisa uji disaring di SQL, bukan sesudah 500 baris pertama diambil: sisa yang menumpuk tidak boleh menyingkirkan esai sungguhan.
+      + (includeTest ? '' : '&attempts.enrollments.origin=neq.test'),
   })) ?? []).filter((s) => includeTest || s.attempts?.enrollments?.origin !== 'test')
   if (!subs.length) return []
-  const ids = `(${subs.map((s) => Number(s.attempt_id)).join(',')})`
-  const [reviewed, comps] = await Promise.all([
-    rest('judgement_reviews', { query: `?attempt_id=in.${ids}&select=attempt_id` }),
-    rest('attempt_components', { query: `?attempt_id=in.${ids}&select=attempt_id,item_id,score,weight,graded_by` }),
-  ])
+  const reviewed = await rest('judgement_reviews', { query: `?attempt_id=in.(${subs.map((s) => Number(s.attempt_id)).join(',')})&select=attempt_id` })
   const done = new Set((reviewed ?? []).map((r) => Number(r.attempt_id)))
+  // Disaring dan dipotong ke `limit` DULU; komponen hanya dibaca untuk yang benar-benar dikembalikan.
+  const open = subs.filter((s) => !done.has(Number(s.attempt_id))).slice(0, Number(limit) || 20)
   const byAttempt = new Map()
-  for (const c of comps ?? []) {
-    const k = Number(c.attempt_id)
-    if (!byAttempt.has(k)) byAttempt.set(k, [])
-    byAttempt.get(k).push(c)
+  for (let i = 0; i < open.length; i += COMPONENT_CHUNK) {
+    const part = open.slice(i, i + COMPONENT_CHUNK).map((s) => Number(s.attempt_id)).join(',')
+    const comps = await rest('attempt_components', { query: `?attempt_id=in.(${part})&select=attempt_id,item_id,score,weight,graded_by&order=attempt_id.asc,id.asc` })
+    for (const c of comps ?? []) {
+      const k = Number(c.attempt_id)
+      if (!byAttempt.has(k)) byAttempt.set(k, [])
+      byAttempt.get(k).push(c)
+    }
   }
-  return subs.filter((s) => !done.has(Number(s.attempt_id))).slice(0, Number(limit) || 20)
-    .map((s) => ({ ...s, components: byAttempt.get(Number(s.attempt_id)) ?? [] }))
+  return open.map((s) => ({ ...s, components: byAttempt.get(Number(s.attempt_id)) ?? [] }))
 }
 
 /**
