@@ -39,8 +39,9 @@ updated: 2026-10-05
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — commit lokal; FE ke Vercel menunggu kata dorong builder. Pemakaian oleh pemilik agen
-sungguhan sesudah dorongan belum tercatat (AC-B158#10 **PARTIAL**).
+~~**SELESAI di kode, belum LIVE** — commit lokal; FE ke Vercel menunggu kata dorong builder.~~ **SELESAI · LIVE** — didorong
+`c386c9e..1a2df2e` atas kata builder (5 Okt); bundel Vercel `assets/index-HWRMcOLN.js` memuat `lencana:llm-key` dan "tersimpan
+di perangkat ini" (dibaca 5 Okt sesudah dorongan). Pemakaian oleh pemilik agen sungguhan belum tercatat (AC-B158#10 **PARTIAL**).
 
 ## 4. Risiko tersisa
 

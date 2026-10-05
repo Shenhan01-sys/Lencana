@@ -37,8 +37,10 @@ updated: 2026-10-05
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — commit lokal; FE ke Vercel menunggu kata dorong builder. Pemakaian di antrean dan meja
-pengesahan sungguhan belum tercatat (AC-B159#10 **PARTIAL**).
+~~**SELESAI di kode, belum LIVE** — commit lokal; FE ke Vercel menunggu kata dorong builder.~~ **SELESAI · LIVE** — didorong
+`c386c9e..1a2df2e` atas kata builder (5 Okt); bundel Vercel `assets/index-HWRMcOLN.js` memuat "Seberapa berat menilai esai
+ini?" (dibaca 5 Okt sesudah dorongan); workflow `deploy-signer` run `37269781564` ikut jalan (berkas `web/src/**`) dan sukses,
+`/healthz` 200. Pemakaian di antrean dan meja pengesahan sungguhan belum tercatat (AC-B159#10 **PARTIAL**).
 
 ## 4. Risiko tersisa
 
