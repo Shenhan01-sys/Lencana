@@ -201,7 +201,12 @@ drops the variable before the server starts. That key is `agent-cloud` — a key
 lists, **not** the key that signs credentials. Secrets live only in the service variables, set one by one with
 `railway variable set <NAME> --stdin` so no value ever reaches a command line.
 
-Deploy from committed files only, so `.env`, `.keys`, `.store` and anything untracked never leave the machine:
+Since B156 (5 Oct) the service is connected to the GitHub repo (`main`), so a push redeploys it the way it redeploys the
+Vercel front-end — and GitHub only ever holds committed files. Nothing has to run on a laptop: the battery starts its own
+short-lived signer for `serve-probe`, and local front-end development talks to this hosted signer unless
+`VITE_SIGNER_URL=http://127.0.0.1:8787` is set while testing signer changes before they are deployed. A manual deploy, if
+ever needed, still goes from committed files only, so `.env`, `.keys`, `.store` and anything untracked never leave the
+machine:
 
 ```bash
 git archive HEAD signer web/package.json web/package-lock.json web/.npmrc web/tsconfig.json web/src | tar -x -C <staging>

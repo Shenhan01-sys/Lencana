@@ -17,6 +17,13 @@ npm run serve                 # probe ini MEMBACA server yang sedang jalan, tida
 node scripts/serve-probe.js
 ```
 
+**Sejak B156 (5 Okt):** di baterai (`npm run sync:numbers`, termasuk `-- --only=serveProbe`) signer **tidak** perlu
+dinyalakan dulu — baterai menyalakan signer sementara di port bebas (`LANCENA_ORIGIN=test`, kode + `.store` di mesin ini),
+menjalankan probe terhadapnya lewat `BASE_URL`, lalu mematikannya (`signer/scripts/sync-numbers.js`, `withOwnSigner`).
+Diukur 5 Okt dengan :8787 mati: **50 / 0** dalam 24,5 detik. Probe yang dijalankan sendiri (`npm run probe:serve`) tetap
+membaca server yang sedang jalan seperti di bawah. Signer cloud (B154) bukan sasaran probe ini: `.store`-nya kosong, jadi
+pemeriksaan dokumen dan bit status akan merah karena datanya memang tidak ada di sana.
+
 ⚠️ Halaman ini pernah menulis bahwa probe "starts the server in-process" — tidak. Ia memanggil
 `BASE_URL` lewat HTTP dan **mati dengan `HTTP 404`/`ECONNREFUSED` kalau servernya tidak ada**; ia
 membutuhkan server yang sedang berjalan. Diketemukan 28 Sep ketika probe merah karena server yang

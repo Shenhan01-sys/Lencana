@@ -26,9 +26,10 @@
 // Lencana-B93 status=SELESAI 2026-09-29 — satu sumber angka + --verify memarahi halaman yang basi. Buktikan ulang: npm run sync:numbers -- --verify. JANGAN dibalik/diulang tanpa membuka kembali baris B93 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 // Lencana-B107 status=SELESAI 2026-09-29 — merah harness wajib cetak prasyarat + 12 baris keluaran anak; --only menolak menulis numbers.json. Buktikan ulang: npm run sync:numbers -- --only=serveProbe. JANGAN dibalik/diulang tanpa membuka kembali baris B107 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { execFile } from 'node:child_process'
+import { execFile, spawn, spawnSync } from 'node:child_process'
 import { readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
+import { createServer } from 'node:net'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
@@ -47,12 +48,50 @@ const ONLY = (_oi > -1 ? process.argv[_oi + 1] : (process.argv.find((a) => a.sta
 const texts = new Map()
 const tailOf = (id, n = 12) => (texts.get(id) ?? '').split(/\r?\n/).filter((s) => s.trim()).slice(-n)
 
+// Lencana-B156 status=TERBUKA 2026-10-05 — baterai tidak lagi menuntut signer lokal menyala terus: harness `ownSigner` (serve-probe) dijalankan terhadap signer sementara di port bebas yang dinyalakan dan dimatikan baterai sendiri; BASE_URL di lingkungan tetap menang. Buktikan ulang: npm run sync:numbers -- --only=serveProbe dengan :8787 mati. JANGAN dibalik/diulang tanpa membuka kembali baris B156 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+const freePort = () => new Promise((ok, no) => {
+  const s = createServer()
+  s.on('error', no)
+  s.listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => ok(port)) })
+})
+/**
+ * Signer sementara untuk harness yang menguji server yang SEDANG berjalan. Sejak backend hanya di Railway (B156) tidak ada
+ * lagi signer lokal yang menyala terus, jadi baterai menyalakannya sendiri — kode dan `.store` di mesin ini, port bebas,
+ * `LANCENA_ORIGIN=test` (konvensi harness yang menyalakan servernya sendiri) — lalu mematikan pohon prosesnya.
+ * `BASE_URL` di lingkungan menang: dengan itu probe tetap bisa diarahkan ke signer yang sudah berjalan.
+ */
+async function withOwnSigner (fn) {
+  if (process.env.BASE_URL) return fn({})
+  const port = await freePort()
+  const base = `http://127.0.0.1:${port}`
+  const child = spawn('npm', ['run', 'serve'], {
+    cwd: SIGNER, stdio: 'ignore', shell: true, detached: process.platform !== 'win32',
+    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', BASE_URL: base, LANCENA_ORIGIN: 'test' },
+  })
+  const stop = () => {
+    if (!child.pid) return
+    if (process.platform === 'win32') spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+    else { try { process.kill(-child.pid) } catch { child.kill() } }
+  }
+  try {
+    let up = false
+    for (let i = 0; i < 120 && !up; i++) {
+      try { up = (await fetch(`${base}/catalog/published`, { signal: AbortSignal.timeout(3000) })).ok } catch { /* belum mendengarkan */ }
+      if (!up) await new Promise((r) => setTimeout(r, 500))
+    }
+    if (!up) throw new Error(`signer sementara tidak menjawab di ${base} dalam 60 detik`)
+    return await fn({ BASE_URL: base })
+  } finally {
+    stop()
+  }
+}
+
 /** Harness yang jadi sumber angka. `re` wajib menangkap "lulus / gagal". */
 // Lencana-B128 status=TERBUKA 2026-10-02 — lima pola pertama dulu hanya cocok dengan "HIJAU", jadi run merah (mis. "CHECK MERAH — 106 pemeriksaan, 1 gagal", 2 Okt) dilaporkan "tidak berjalan" alih-alih jumlah gagalnya; kini HIJAU|MERAH seperti harness lain. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 const HARNESS = [
   { id: 'check', label: 'check.js', cwd: SIGNER, cmd: ['npm', ['run', 'check']], re: /CHECK (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'verifyDb', label: 'verify:db', cwd: SIGNER, cmd: ['npm', ['run', 'verify:db']], re: /DB (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
-  { id: 'serveProbe', label: 'serve-probe', needs: 'signer lokal hidup — jalankan npm run serve lebih dulu (probe ini menguji proses yang sedang berjalan, bukan menyalakannya)', cwd: SIGNER, cmd: ['npm', ['run', 'probe:serve']], re: /PROBE SERVE (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  { id: 'serveProbe', label: 'serve-probe', ownSigner: true, needs: 'signer sementara dinyalakan baterai sendiri (port bebas, LANCENA_ORIGIN=test) lalu dimatikan — B156; untuk menguji signer yang sudah berjalan: BASE_URL=<url> npm run probe:serve', cwd: SIGNER, cmd: ['npm', ['run', 'probe:serve']], re: /PROBE SERVE (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'e2e', label: 'e2e', cwd: SIGNER, cmd: ['npm', ['run', 'e2e']], re: /E2E (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'liveCert', label: 'verify:live-cert', cwd: SIGNER, cmd: ['npm', ['run', 'verify:live-cert']], re: /LAPIS ARTEFAK (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   { id: 'attempts', label: 'verify:attempts (offline)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m },
@@ -119,7 +158,8 @@ async function collect () {
   const out = {}
   for (const h of HARNESS.filter((x) => !ONLY || x.id === ONLY || x.label === ONLY)) {
     try {
-      const { stdout, stderr } = await run(h.cmd[0], h.cmd[1], { cwd: h.cwd, maxBuffer: 24 * 1024 * 1024, shell: true })
+      const exec = (env) => run(h.cmd[0], h.cmd[1], { cwd: h.cwd, maxBuffer: 24 * 1024 * 1024, shell: true, env: { ...process.env, ...env } })
+      const { stdout, stderr } = h.ownSigner ? await withOwnSigner(exec) : await exec({})
       const text = `${stdout}\n${stderr}`
       texts.set(h.id, text)
       const m = h.re.exec(text)
@@ -156,7 +196,7 @@ async function collect () {
       const lines = tailOf(id)
       console.log('  · ' + (h?.label ?? id) + ': ' + m.error)
       if (h?.needs) console.log('      prasyarat : ' + h.needs)
-      if (/ECONNREFUSED|fetch failed|tidak menjawab|server .* tidak|connect/i.test(lines.join('\n'))) {
+      if (!h?.ownSigner && /ECONNREFUSED|fetch failed|tidak menjawab|server .* tidak|connect/i.test(lines.join('\n'))) {
         console.log('      penyelamat: npm run serve   (lalu ulangi harness ini saja)')
       }
       if (lines.length) {

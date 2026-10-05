@@ -61,19 +61,18 @@ const EP_KEY = 'lencana-signer-url-v2'
 const ID_KEY = 'lencana-learner-v1'
 const AUTH_KEY = 'lencana-explicit-learner-session-v1'
 const ON_PUBLIC_HOST = typeof location !== 'undefined' && !['127.0.0.1', 'localhost'].includes(location.hostname)
+// Lencana-B156 status=TERBUKA 2026-10-05 — backend hanya di Railway: default endpoint di semua lingkungan (produksi, server dev lokal, Node) = signer cloud; signer lokal hanya bila diminta lewat VITE_SIGNER_URL, terowongan hanya lewat VITE_SIGNER_SAME_ORIGIN=1. Buktikan ulang: uji peramban server dev lokal → signer cloud (vault B156). JANGAN dibalik/diulang tanpa membuka kembali baris B156 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
- * B154: signer cloud (Railway, project lencana). Bisa ditimpa saat build lewat `VITE_SIGNER_URL`.
- * Default endpoint:
- *  - server dev / build terowongan (`VITE_SIGNER_SAME_ORIGIN=1`) yang dibuka dari host publik (mis. ngrok dari HP): proxy vite
- *    `/signer` di asal yang sama (`web/vite.config.ts`), karena `127.0.0.1` di peramban itu adalah HP-nya sendiri;
- *  - build produksi biasa yang dibuka dari host publik (Vercel): signer cloud;
- *  - peramban lokal (127.0.0.1 / localhost): signer lokal `127.0.0.1:8787`, seperti sebelumnya.
+ * Signer cloud (Railway, project lencana — B154). Default endpoint (B156: tidak ada lagi signer lokal yang wajib menyala):
+ *  - semua lingkungan — Vercel, HP, server dev di `127.0.0.1`, Node — memakai signer cloud;
+ *  - `VITE_SIGNER_URL` menimpanya saat build/dev, mis. `VITE_SIGNER_URL=http://127.0.0.1:8787 npm run dev` untuk menguji
+ *    perubahan signer sebelum dideploy;
+ *  - build terowongan yang sengaja dibuat (`VITE_SIGNER_SAME_ORIGIN=1`) dan dibuka dari host publik memakai proxy vite
+ *    `/signer` di asal yang sama (`web/vite.config.ts`) ke signer lokal.
  */
 const CLOUD_EP = String(import.meta.env?.VITE_SIGNER_URL || 'https://signer-production-e4f2.up.railway.app').replace(/\/$/, '')
-const SAME_ORIGIN = Boolean(import.meta.env?.DEV || import.meta.env?.VITE_SIGNER_SAME_ORIGIN === '1')
-const DEFAULT_EP = ON_PUBLIC_HOST && SAME_ORIGIN
-  ? `${location.origin}/signer`
-  : ON_PUBLIC_HOST ? CLOUD_EP : 'http://127.0.0.1:8787'
+const TUNNEL = import.meta.env?.VITE_SIGNER_SAME_ORIGIN === '1' && ON_PUBLIC_HOST
+const DEFAULT_EP = TUNNEL ? `${location.origin}/signer` : CLOUD_EP
 /** localStorage: "peramban ini punya sesi login email" — supaya tab baru tahu ada yang bisa dipulihkan. Tanpa data pribadi. */
 const PRIVY_MARK = 'lencana-privy-v1'
 

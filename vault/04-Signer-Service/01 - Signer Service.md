@@ -53,6 +53,7 @@ npm run verify:deploy            # 15/15 (28 Sep) — reads expectations from th
 ```
 
 *(Koreksi 3 Okt: komentar `serve-probe.js` di atas salah — probe memanggil `BASE_URL` lewat HTTP dan **butuh server yang sudah jalan** (`npm run serve` dulu, lalu `npm run probe:serve`); ia tidak menyalakan server di dalam prosesnya sendiri (`signer/scripts/serve-probe.js:10`). Koreksi yang sama untuk T8 tercatat 28 Sep di [[00-Overview/04 - Corrections]] (B48); halaman ini tertinggal. Angka-angka di blok ini bertanggal — angka kini ada di `09-Testing/numbers.json`.)*
+*(5 Okt, B154 + B156: signer yang dipakai produk berjalan di Railway — `https://signer-production-e4f2.up.railway.app`, terdeploy otomatis dari `main` GitHub; tidak ada lagi signer lokal yang wajib menyala. Baterai menyalakan signer sementaranya sendiri untuk `serve-probe`. Lihat [[09-Testing/T78 - Uji signer cloud Railway dan build produksi (B154)]] dan [[09-Testing/T80 - Uji alur kerja tanpa server lokal (B156)]].)*
 
 ⚠️ The chain-reading harnesses read `process.env` directly. Without `RPC_URL`, `RESOLVER_ADDRESS`,
 `BAS_ADDRESS` and the watched hashes they **fall back to defaults and skip whole groups of checks**
