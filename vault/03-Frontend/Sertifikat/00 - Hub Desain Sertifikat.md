@@ -21,6 +21,13 @@ taruh di vault", dengan referensi folder `app/References/Certificates` (8 gambar
 jaringan atau API (`ECONNRESET`, lalu `ENOTFOUND`) sebelum sempat menyimpan apa pun dan dihidupkan ulang (S1 dan S2 dua kali, S4 sekali) — akibatnya hanya waktu. Tinjauan saya menemukan masalah di empat desain dan masukan gerak di satu desain; semuanya
 diperbaiki sebelum dinyatakan selesai (rincian di "Hasil tinjauan"). Menunggu: review dan pilihan builder.
 
+## Keputusan builder (5 Okt malam)
+
+1. **Baris penerima — dinamis:** "sebelum print bisa minta usernya pilih mau alamat wallet atau nama". Dikerjakan di S3 (dialog sebelum cetak, input nama, nama muat otomatis); nama tetap tidak ikut tanda tangan dan alamat pendek tetap tampil.
+2. **Desain terpilih: S3 (Kaca Segitiga), dengan palet disesuaikan ke FE Lencana** (gelap bawaan FE dan terang, cetak selalu terang). Versi biru semula disimpan sebagai `s3-kaca-segitiga-biru.html`. S1, S2, S4, S5 tetap di folder sebagai pembanding.
+3. **NFT — gabungan A+B** ("penting semua"): dicetak di kedua instance, lihat pertanyaan 5 di bawah.
+4. **Dorong commit lokal:** didorong (`52ed28e..ed2dd1e`).
+
 ## Peta dokumen
 
 | id | nama | estetika (Palet doktrin FE §7) | berkas HTML | brief | status |
@@ -109,16 +116,28 @@ Temuan lintas desain: skrip uji cetak di spesifikasi gagal (`SecurityError`) mem
    kredensial B153 **bukan NFT** — sesuai D15 ("kredensial bukan NFT") ia dokumen OB 3.0 bertanda tangan + attestation BAS + resolver + daftar status; artefak `SoulboundCert` (ERC-721 + ERC-5192) adalah
    lapis **opsional** yang hanya bisa dicetak platform (`mint()` hanya `owner()`, `contracts/SoulboundCert.sol:107`, D30/D32) dan verifier menandai kredensial ini "Optional / Not Minted".
    Pencetakannya tidak ada di `issue`, tidak ada rute, tidak ada tombol — hanya skrip PowerShell + Foundry (`scripts/mint-edge-artefact.ps1`, `scripts/mint-showcase.ps1`). Dua hal yang harus diputuskan sebelum mencetak:
-   (a) **instance** — `web/src/config.ts` (preset `bsc97`) membaca `0xC6FD12B0…`, instance sebelum D42/D43; lapis yang menegakkan D42/D43 (`0xc338AF7F…`) sengaja tidak dijadikan bawaan (D46), jadi artefak di sana belum tampil di verifier;
+   (a) **instance** — ~~`web/src/config.ts` (preset `bsc97`) membaca `0xC6FD12B0…`, instance sebelum D42/D43~~ *(koreksi 5 Okt malam, salah baca saya: yang dibaca verifier **bawaan** adalah `defaultEndpoint()` di `web/src/verify.ts:188-197` = `0xA5eB807A…`, instance paling tua dan sama dengan `CERT_ADDRESS` di `.env`; `0xC6FD12B0…` hanyalah preset `bsc97` di `web/src/config.ts:35` yang harus dipilih manual)*; lapis yang menegakkan D42/D43 (`0xc338AF7F…`) sengaja tidak dijadikan bawaan (D46), jadi artefak di sana belum tampil di verifier;
    (b) **gambar** — ~~`tokenURI` dibekukan saat mint dan gambar bisa ditambah lewat hosting~~ *(koreksi 5 Okt malam, dari membaca `contracts/SoulboundCert.sol:245-267`: yang beku hanya `external_url` — alamat dokumen; metadata dirakit on-chain tiap dibaca dengan
    status hidup dari resolver; **tidak ada field `image`** di kedua kontrak, jadi desain sertifikat tidak bisa menjadi gambar NFT tanpa versi kontrak baru. Yang beku adalah lokasi, bukan isi: host tepi bisa kelak menyajikan halaman sertifikat untuk
    browser di alamat yang sama, dan JSON untuk mesin.)* Karena itu urutan "pilih desain dulu baru cetak" **tidak** diperlukan untuk alamat; keputusan yang tersisa hanya instance.
    **Simulasi 5 Okt malam (tanpa transaksi, `simulateContract` + `estimateGas` dari dompet platform):** `mint(0x12f6…11DF, 0xb9fb06e5…, <alamat dokumen tepi>)` **lolos di ketiga instance** — `0xA5eB807A…` (5.102 byte, `CERT_ADDRESS` di `.env`;
-   ±283.389 gas), `0xC6FD12B0…` (6.729 byte, bawaan web; ±308.899 gas), `0xc338AF7F…` (7.968 byte, lapis D42/D43, `LIVE_CERT_ADDRESS`; ±312.754 gas) — dengan `owner()` = dompet platform, `registry()` = resolver kita, dan kredensial **belum terikat**
+   ±283.389 gas), `0xC6FD12B0…` (6.729 byte, preset `bsc97`; ±308.899 gas), `0xc338AF7F…` (7.968 byte, lapis D42/D43, `LIVE_CERT_ADDRESS`; ±312.754 gas) — dengan `owner()` = dompet platform, `registry()` = resolver kita, dan kredensial **belum terikat**
    (`tokenOfCredential` = 0). Harga gas 0,1 gwei, saldo dompet platform 0,3855 tBNB: biaya ±0,00003 tBNB. Jadi mencetak itu mudah secara teknis; yang tidak bisa diulang adalah ikatannya (satu kredensial satu token per instance, `external_url` beku, tak ada jalan menghancurkan token).
    **Beda A dan B (dibaca 5 Okt malam dari kontrak, vault C2/T17/D42–D46, dan ukuran bytecode):** A `0xc338AF7F…` (7.968 byte) menegakkan D42 (hanya level kursus) dan punya `mintBatch` (D43), dijaga `verify:live-cert`, tetapi tidak dibaca verifier bawaan;
-   B `0xC6FD12B0…` (6.729 byte) tidak menegakkan D42/D43 tetapi dibaca verifier bawaan, dan bila kredensial ini kelak menjadi baris validator VALID **terakhir** di `validator-runs.jsonl`, `verify:live-cert` menuntut artefaknya ada di A (T17: "artefak kredensial yang divalidasi ada di lapis yang hidup"). Metadata `tokenURI` berstatus hidup di keduanya; keduanya tanpa `image`.
-   Catatan pemilihan: D46 menaruh kredensial yang terbit sesudah D42/D43 di `0xc338AF7F…`, tetapi verifier bawaan membaca `0xC6FD12B0…`, jadi artefak di `0xc338…` baru tampil di verifier bila alamatnya diisi di panel konfigurasi atau preset `bsc97` diubah (perubahan kecil di `web/src/config.ts`, tetapi mengubah apa yang tampil untuk artefak lama).
+   B `0xC6FD12B0…` (6.729 byte) tidak menegakkan D42/D43 ~~tetapi dibaca verifier bawaan~~ *(salah: bukan bawaan, lihat koreksi di (a))*, dan bila kredensial ini kelak menjadi baris validator VALID **terakhir** di `validator-runs.jsonl`, `verify:live-cert` menuntut artefaknya ada di A (T17: "artefak kredensial yang divalidasi ada di lapis yang hidup"). Metadata `tokenURI` berstatus hidup di keduanya; keduanya tanpa `image`.
+   ~~Catatan pemilihan: D46 menaruh kredensial yang terbit sesudah D42/D43 di `0xc338AF7F…`, tetapi verifier bawaan membaca `0xC6FD12B0…`, jadi artefak di `0xc338…` baru tampil di verifier bila alamatnya diisi di panel konfigurasi atau preset `bsc97` diubah.~~
+   *(Koreksi: verifier bawaan membaca `0xA5eB807A…`; artefak di A atau B baru tampil bila alamatnya ditimpa — preset `bsc97` untuk B, isian manual untuk A.)*
+
+   **Keputusan builder 5 Okt malam: cetak di A dan B ("penting semua"), dikerjakan.** Satu kredensial kini punya **dua** artefak (satu per instance; keunikan ditegakkan per kontrak):
+
+   | instance | transaksi | blok | gas | tokenId | baca ulang dari chain |
+   |---|---|---|---|---|---|
+   | A `0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa` | `0xbb218f9bc108cfc41aa13360a6bb59a7bbdc878e8e63dbd841d21882947b5723` | 135.010.144 | 309.133 | `uint256(credentialHash)` = 84121403186795298920828483866352784394121030368831233674664771831378544364593 | `ownerOf` = penerima, `locked` = true, `tokenURI` = JSON "Lencana — VALID" |
+   | B `0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd` | `0x1ae1585b39d31bcad80fa49e36577afbe30e72aae3ae57c72d6ce33b2f5491a0` | 135.010.151 | 305.309 | sama | sama |
+
+   Dikirim dari dompet platform (`owner()` kedua kontrak), `uri` = alamat dokumen di host tepi; `tokenURI` kini berisi `external_url` itu, status "VALID" hidup dari resolver, dan hash kredensial (tanpa `image`).
+   **Yang dilihat verifier produksi untuk hash ini (dibaca sesudah cetak, dengan `cert` ditimpa lewat localStorage `bnb-credential-endpoint-v1`):** bawaan kode (`0xA5eB807A…`) → "Optional / Not Minted"; preset `bsc97` (B) → "Minted & Locked", Token ID #84121403…, "🔒 Soulbound (ERC-5192)"; A diisi manual → "Minted & Locked". Jadi kedua token terbaca benar,
+   tetapi **tampilan bawaan masih "Not Minted"** — itu celah di verifier, bukan di token → diusulkan **B164** (verifier membaca semua lapis artefak) di [[07-Backlog/03 - Findings and Tasks 2026-09-26]].
 6. **Pilihan kecil yang diangkat tiap desainer** (juga tertulis di catatan masing-masing):
    S1 — pusat segel tetap skor atau logo; stub sobek (perforasi) atau garis putus biasa; warna pita berbeda per kelas. ·
    S2 — pertahankan atau buang subjudul Inggris dan tag `uji-bayar-2026`; pantaskah kursor ukur di sertifikat publik; bobot angka (500 sekarang). ·
