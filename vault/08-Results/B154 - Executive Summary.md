@@ -57,3 +57,23 @@ builder). Baris B154 tetap **TERBUKA** sampai login Privy dari HP oleh builder (
 ## 5. Bukti
 
 Commit `67a6549` (kode + T78 langkah 1–10), `4126d51` (T78 langkah 11 dicatat sesudah dorongan). T78 langkah 1–11. D74.
+
+## 6. Catatan 5 Okt malam — "backend Lencana sudah di Railway? kok hanya x402 yang kelihatan"
+
+Pertanyaan builder sesudah melihat dasbor Railway. Jawabannya dibaca hari itu (bukan dari ingatan):
+
+- **Satu service, seluruh backend.** Akun Railway yang login di laptop (workspace "Hans Gunawan's Projects") memegang tiga project — `lencana`,
+  `fabius-engine`, `tessera-backend`; **tidak ada** yang bernama x402. Project `lencana` (environment `production`) berisi tepat **satu** service,
+  `signer`, domain `signer-production-e4f2.up.railway.app` (dibaca lewat `railway api`). Proses itu satu: rute belajar (`/enroll`, `/progress`,
+  `/grade`, `/essay`, `/praktik`, `/me/records`), kredensial dan daftar status, relay, dan x402 (`/verify` berbayar; pembayaran `/enroll`).
+- **Kenapa kelihatannya hanya x402.** Banner log saat start hanya mencetak empat URL dan satu keterangan — `/verify (POST, x402 exact, harga 1000 @
+  eip155:97)` — jadi di tab Logs, itulah satu-satunya baris yang menyebut jenis layanan. Dan `GET /` di domain itu menjawab 404 dengan petunjuk yang hanya
+  menyebut sebagian rute (kredensial, status, `/verify`, `/relay`, `/deposit`, `/healthz`). Deploy diunggah dari GitHub Actions (`railway up`), bukan
+  pemicu GitHub bawaan Railway, jadi metadata deployment terbaru tidak memuat `commitHash` maupun `repo` (dibaca lewat `railway deployment list --json`,
+  status SUCCESS) dan layanan memang tidak bertaut ke repo GitHub (pemicunya Actions).
+- **Bukti jalan (5 Okt 16.0x WIB).** `GET /healthz` → `ok:true`, `paywall:on`, `agent:agent-cloud`, `startedAt` 2026-10-05T09:04:30Z;
+  `GET /progress?learner=<akun builder>&course=uji-bayar-2026` → `enrollmentId 580`, `lessonsCompleted 1` dari `lessonsTotal 4`, `gradedAttempts 2`,
+  `bestScore 98` — dibaca dari database lewat Railway; `POST /grade` dengan badan kosong → 400 `requires lesson (quiz slug)` (rute belajar, bukan x402).
+- **Tidak diubah.** Banner log dan petunjuk 404 tetap; melengkapinya (semua keluarga rute) bisa jadi satu baris backlog bila builder mau — tidak dibuat
+  tanpa permintaan. Kalau dasbor yang dibuka builder menampilkan sesuatu bernama x402, itu bukan project di akun Railway ini (akun lain atau
+  workspace lain) — belum dicek karena tidak terlihat dari sini.

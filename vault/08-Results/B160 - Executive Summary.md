@@ -51,10 +51,13 @@ credential belum turun"; direproduksi di peramban (T85 skenario 8, kode lama mer
 ~~**SELESAI di kode, belum LIVE** — commit lokal; dorongan FE menunggu kata builder.~~ **SELESAI · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); bundel Vercel `assets/index-CIcJcqoE.js` memuat "dicatat selesai karena hasilnya sudah ada di penerbit" dan "belum ditandai selesai di penerbit" (dibaca sesudah dorongan). Bukti dari akun builder sungguhan belum ada
 (AC-B160#11 **PARTIAL**): sesudah kelas dibuka dari HP, kuis dan esai harus tersusul (3/4) dan bacaan tinggal "Tandai selesai".
 
-**Koreksi 5 Okt malam: SELESAI di kode, belum LIVE** — commit lokal (`web/src/pages/class.ts`); dorongan menunggu kata builder. Sampai itu
-LIVE, jalan yang sudah bekerja di versi yang beredar: buka URL lesson langsung (muat penuh — halaman kelas sendiri yang menyinkronkan, jadi
-penyusulan jalan) atau tekan "muat ulang" di kotak rekaman. Penyebab 1/4 di akun builder **belum terbukti** lubang ini: halaman lama yang masih
-terbuka dan tidak tahu ada versi baru (B162, DIUSULKAN, belum disetujui) sama mungkin.
+**Koreksi 5 Okt malam:** ~~SELESAI di kode, belum LIVE — commit lokal (`web/src/pages/class.ts`); dorongan menunggu kata builder~~ **SELESAI · LIVE** —
+didorong `1cd68b1..52ed28e` atas kata builder (5 Okt 16.02 WIB, run `deploy-signer` sukses). Dibaca sesudah dorongan: halaman utama Vercel memuat
+`assets/index-CSniFuxJ.js` — nama yang sama dengan hasil `npm run build` lokal sebelum commit (864,50 kB) — dan isinya memuat kunci `alamat|kursus`
+serta `Set` penjaganya di `catchUpLessons`; `/healthz` penerbit di Railway `startedAt` 2026-10-05T09:04:30Z. Sebelum itu LIVE, jalan yang bekerja di
+versi yang beredar: buka URL lesson langsung (muat penuh — halaman kelas sendiri yang menyinkronkan, jadi penyusulan jalan) atau tekan "muat ulang"
+di kotak rekaman. Penyebab 1/4 di akun builder **belum terbukti** lubang ini: halaman lama yang masih terbuka dan tidak tahu ada versi baru
+(B162, DIUSULKAN, belum disetujui) sama mungkin; bukti dari akun builder sungguhan tetap menunggu pemakaian (AC-B160#11 **PARTIAL**).
 
 ## 4. Risiko tersisa
 

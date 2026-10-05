@@ -84,6 +84,12 @@ jalan; render ulang hanya dipicu bila ada lesson yang tersusul, jadi kegagalan t
 **Gerbang sesudah koreksi (5 Okt, dicetak ulang):** `npx tsc --noEmit` exit 0; `npm run probe` **147 / 0** (tidak berubah — `probe` tidak punya DOM, jadi
 tidak menyentuh `class.ts`); `npm run build` exit 0; `npm run audit` bersih; `npm run check:labels` hijau (8 pemeriksaan, 296 marker di 97 ID).
 
+**LIVE (dibaca sesudah dorongan `1cd68b1..52ed28e` atas kata builder, 5 Okt 16.02 WIB):** halaman utama `https://lencana-psi.vercel.app/` memuat
+`assets/index-CSniFuxJ.js` — nama yang sama dengan hasil `npm run build` lokal sebelum commit (864,50 kB); isi bundel memuat kunci
+alamat + kursus dan `Set` penjaganya di `catchUpLessons`; run `deploy-signer` untuk `52ed28e` sukses dan `/healthz` penerbit Railway melaporkan `startedAt`
+2026-10-05T09:04:30Z (penerbit ikut dibangun ulang karena jalur `web/src/**` memicu alur kerja; kodenya tidak berubah). Yang **belum** ada: bukti dari akun
+builder sungguhan (AC-B160#11 PARTIAL).
+
 ## Batas
 
 - **Pemicu di `class.ts` tidak punya uji deterministik.** Logika penyusulan (`reconcileLessons`, aturan selesai) diuji `probe`; *kapan* ia dipanggil
