@@ -34,7 +34,7 @@ updated: 2026-10-05
 
 ## 3. Status
 
-~~**SELESAI di kode (tahap 1), belum LIVE** — commit lokal; dorongan FE menunggu kata builder.~~ **SELESAI (tahap 1) · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); bundel Vercel `assets/index-CIcJcqoE.js` memuat "Kirim bukti praktik", `lencana-praktik-submit`, "Bukti diterima" dan "Isi keluaran" (dibaca sesudah dorongan); workflow `deploy-signer` run `37282435768` sukses. Bukti dari akun builder sungguhan belum ada (AC-B157#13 **PARTIAL**).
+~~**SELESAI di kode (tahap 1), belum LIVE** — commit lokal; dorongan FE menunggu kata builder.~~ **SELESAI (tahap 1) · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); bundel Vercel `assets/index-CIcJcqoE.js` memuat "Kirim bukti praktik", `lencana-praktik-submit`, "Bukti diterima" dan "Isi keluaran" (dibaca sesudah dorongan); workflow `deploy-signer` run `37282435768` sukses. ~~Bukti dari akun builder sungguhan belum ada (AC-B157#13 **PARTIAL**).~~ **Bukti dari server sungguhan ada (5 Okt malam, AC-B157#13 PASS):** usaha `praktik` #1019 (`praktik-baca-koin`, 100, `pass`) tercatat 09:36:48Z untuk enrollment #580, `praktik_proofs` #267 (`eth-call`, chain 97, blok 134991214); gerbang penerbitan membacanya "dinilai chain (3 pemeriksaan cocok)". Keluaran yang ditempel disediakan asisten atas permintaan builder — uji alur, bukan bukti belajar (batas klaim di AC-B157).
 Baris **B121 tetap TERBUKA** (tiga jenis bukti lain belum punya formulir).
 
 ## 4. Risiko tersisa

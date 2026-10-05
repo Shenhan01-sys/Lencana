@@ -87,8 +87,11 @@ tidak menyentuh `class.ts`); `npm run build` exit 0; `npm run audit` bersih; `np
 **LIVE (dibaca sesudah dorongan `1cd68b1..52ed28e` atas kata builder, 5 Okt 16.02 WIB):** halaman utama `https://lencana-psi.vercel.app/` memuat
 `assets/index-CSniFuxJ.js` — nama yang sama dengan hasil `npm run build` lokal sebelum commit (864,50 kB); isi bundel memuat kunci
 alamat + kursus dan `Set` penjaganya di `catchUpLessons`; run `deploy-signer` untuk `52ed28e` sukses dan `/healthz` penerbit Railway melaporkan `startedAt`
-2026-10-05T09:04:30Z (penerbit ikut dibangun ulang karena jalur `web/src/**` memicu alur kerja; kodenya tidak berubah). Yang **belum** ada: bukti dari akun
-builder sungguhan (AC-B160#11 PARTIAL).
+2026-10-05T09:04:30Z (penerbit ikut dibangun ulang karena jalur `web/src/**` memicu alur kerja; kodenya tidak berubah). ~~Yang **belum** ada: bukti dari akun
+builder sungguhan (AC-B160#11 PARTIAL).~~ **Bukti dari akun builder sungguhan ada (5 Okt malam, AC-B160#11 PASS):** dibaca 09:38Z — `lesson_progress`
+enrollment #580 empat lesson `completed`; `progress_events` kuis 09:33:36–39Z dan esai 09:33:42–47Z (tiga langkah tiap lesson, tanpa usaha baru: usaha tetap
+#963 dan #964), bacaan 09:37:07–12Z; `course_gates` 4/4. Sebelumnya, 08:50Z, akun itu masih 1/4; dari jejak tidak bisa dibedakan apakah sebabnya lubang
+skenario 8 atau tab lama (B162).
 
 ## Batas
 
@@ -96,8 +99,8 @@ builder sungguhan (AC-B160#11 PARTIAL).
   (`kickSync`, `catchUpLessons`) hanya terbukti lewat peramban headless — skenario 8 dua arah (kode lama merah, kode baru hijau), 9 dan 5′ — karena
   `probe` berjalan tanpa DOM. Regresi di pemicu itu tidak akan ditangkap `npm run probe`; ulangi skenario 8 dan 9 bila `kickSync` disentuh.
 - Penerbit tiruan menegakkan mesin state dan bentuk balasan yang dibaca halaman, tetapi bukan server sungguhan: tanda tangan tidak diverifikasi,
-  `gradedAttempts` di tiruan hanya jumlah usaha. Bukti ke server sungguhan baru ada sesudah dorongan dan pemakaian akun builder
-  (AC-B160#10 PARTIAL).
+  `gradedAttempts` di tiruan hanya jumlah usaha. ~~Bukti ke server sungguhan baru ada sesudah dorongan dan pemakaian akun builder
+  (AC-B160#10 PARTIAL).~~ Bukti ke server sungguhan ada sejak 5 Okt malam (lihat "LIVE" di atas; AC-B160#11 PASS).
 - Identitas yang diuji hanya jenis `perangkat`. Jalur Privy (akun builder) memakai `signMessage` yang sama; jalur otomatis dilewati untuk
   `dompet` (jendela konfirmasi per tanda tangan) dan itu diperiksa dari kode, bukan diamati.
 - Jalur praktik (`kind=praktik`, `chainChecked`) diuji di `probe` (fungsi murni dan rekonsiliasi), tidak di peramban — formulir praktik belum ada (B157).

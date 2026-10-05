@@ -48,8 +48,10 @@ credential belum turun"; direproduksi di peramban (T85 skenario 8, kode lama mer
 
 ## 3. Status
 
-~~**SELESAI di kode, belum LIVE** — commit lokal; dorongan FE menunggu kata builder.~~ **SELESAI · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); bundel Vercel `assets/index-CIcJcqoE.js` memuat "dicatat selesai karena hasilnya sudah ada di penerbit" dan "belum ditandai selesai di penerbit" (dibaca sesudah dorongan). Bukti dari akun builder sungguhan belum ada
-(AC-B160#11 **PARTIAL**): sesudah kelas dibuka dari HP, kuis dan esai harus tersusul (3/4) dan bacaan tinggal "Tandai selesai".
+~~**SELESAI di kode, belum LIVE** — commit lokal; dorongan FE menunggu kata builder.~~ **SELESAI · LIVE** — didorong `1a2df2e..6a865cc` atas kata builder (5 Okt 15.14 WIB); bundel Vercel `assets/index-CIcJcqoE.js` memuat "dicatat selesai karena hasilnya sudah ada di penerbit" dan "belum ditandai selesai di penerbit" (dibaca sesudah dorongan). ~~Bukti dari akun builder sungguhan belum ada
+(AC-B160#11 **PARTIAL**): sesudah kelas dibuka dari HP, kuis dan esai harus tersusul (3/4) dan bacaan tinggal "Tandai selesai".~~ **Bukti dari akun
+builder sungguhan ada (5 Okt malam, AC-B160#11 PASS):** `progress_events` enrollment #580 — kuis 09:33:36–39Z dan esai 09:33:42–47Z tersusul tanpa
+usaha baru, bacaan 09:37:07–12Z; `course_gates` 4/4.
 
 **Koreksi 5 Okt malam:** ~~SELESAI di kode, belum LIVE — commit lokal (`web/src/pages/class.ts`); dorongan menunggu kata builder~~ **SELESAI · LIVE** —
 didorong `1cd68b1..52ed28e` atas kata builder (5 Okt 16.02 WIB, run `deploy-signer` sukses). Dibaca sesudah dorongan: halaman utama Vercel memuat
@@ -57,7 +59,7 @@ didorong `1cd68b1..52ed28e` atas kata builder (5 Okt 16.02 WIB, run `deploy-sign
 serta `Set` penjaganya di `catchUpLessons`; `/healthz` penerbit di Railway `startedAt` 2026-10-05T09:04:30Z. Sebelum itu LIVE, jalan yang bekerja di
 versi yang beredar: buka URL lesson langsung (muat penuh — halaman kelas sendiri yang menyinkronkan, jadi penyusulan jalan) atau tekan "muat ulang"
 di kotak rekaman. Penyebab 1/4 di akun builder **belum terbukti** lubang ini: halaman lama yang masih terbuka dan tidak tahu ada versi baru
-(B162, DIUSULKAN, belum disetujui) sama mungkin; bukti dari akun builder sungguhan tetap menunggu pemakaian (AC-B160#11 **PARTIAL**).
+(B162, DIUSULKAN, belum disetujui) sama mungkin ~~; bukti dari akun builder sungguhan tetap menunggu pemakaian (AC-B160#11 **PARTIAL**)~~ — dari jejak saja tidak bisa dibedakan; sesudah builder menutup semua tab dan membuka ulang, akun itu 4/4 (AC-B160#11 PASS).
 
 ## 4. Risiko tersisa
 
