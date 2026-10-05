@@ -42,6 +42,7 @@ The items live in one document so Dave can read them in a single pass:
 | OI-29 | UI lama yang mati dibuang (B139, D71, 3 Okt; daftar disetujui builder lebih dulu): dok demo, landing lama `#page-home`, `#page-courses`/`#page-submit`/`#page-portfolio` + tiga modalnya dari `index.html`, kodenya dari `main.ts`, aturan CSS yang hanya menunjuk bagian itu dari `style.css`; video latar hero pindah ke `pages/landing.ts`; halaman publik (Verifier, Trust Center, Publishers) tidak berubah — diukur lewat perbandingan computed style |
 | OI-30 | menu hamburger navbar di layar HP (B149, 5 Okt): berkas baru `nav-mobile.ts` + `.css`; `main.ts` hanya mendapat satu impor + satu panggilan; panel dibangun ulang dari `.nav-links` yang hidup, pemilih EN/ID navbar pindah ke panel di ≤ 860 px |
 | OI-31 | ruang kelas di layar HP (B151, 5 Okt): berkas baru `pages/class.css` (≤ 900 px satu kolom + kurikulum jadi laci, ≤ 1100 px rail disembunyikan, tautan breadcrumb abu); `class.ts` mendapat tombol Kurikulum + laci + latar; `style.css` tidak disunting — catatan: `transition: all` di `.lesson-item` |
+| OI-32 | halaman publik di layar HP (B150, 5 Okt): berkas baru `mobile.css` (kolom kartu Pusat Kepercayaan/Penerbit mengikuti layar, URL kartu memecah, bayangan tepi area geser matriks Verifier) + satu impor di `main.ts`; diserahkan: baris matriks Verifier sangat tinggi di HP |
 
 **Status per butir diukur ulang 30 Sep (B117)** dan ditulis di
 [[10-Contributors/Open-Items-for-Dave]] bagian "Status terukur 30 Sep": OI-6, OI-12, OI-13, OI-14, OI-15

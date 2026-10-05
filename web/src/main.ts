@@ -32,6 +32,8 @@ import { installFetchTracking } from './lib/loading'
 import { syncNavBalance } from './balance'
 import { loadPublishedCourses } from './catalog-live'
 import { mountMobileNav } from './nav-mobile'
+// B150: halaman publik di layar HP (kartu Trust Center/Penerbit, tanda geser matriks Verifier) — tanpa menyunting style.css.
+import './mobile.css'
 
 installFetchTracking()
 

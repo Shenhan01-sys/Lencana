@@ -763,3 +763,19 @@ laci baru dibuka sehingga tidak bisa difokus. Di `class.css` transisinya diperse
 **Yang harus tetap:** di ≤ 900 px kurikulum tidak boleh kembali berdampingan dengan isi (isi jadi tidak terlihat), dan
 laci yang tertutup harus tetap `visibility: hidden` supaya tautannya tidak tercapai lewat Tab. Kalau titik 900/1100 px
 diubah, ubah juga `(min-width: 901px)` di `bindCurriculumGlobals`. Bukti: [[09-Testing/T77 - Uji peramban ruang kelas di HP (B151)]].
+
+## OI-32 — halaman publik di layar HP: kartu Pusat Kepercayaan/Penerbit dan matriks Verifier (B150, 5 Okt)
+
+Permintaan builder 5 Okt: "beberapa ada yg keluar card". Di 375 px kolom `.agent-roster-grid` (minimal 360 px) lebih lebar
+dari layar, sehingga kartu Pusat Kepercayaan dan Penerbit meluap ke 384 px; URL dokumen penerbit di kartu terpotong
+`overflow: hidden`; dan matriks spesifikasi Verifier bisa digeser tanpa tanda. `style.css` **tidak disunting**:
+
+| berkas | perubahan |
+|---|---|
+| `web/src/mobile.css` (baru) | `.agent-roster-grid` → `minmax(min(360px, 100%), 1fr)` (sama dengan 360 px begitu wadahnya lebih lebar — desktop tetap); `.agent-card a, .agent-card .section-sub` → `overflow-wrap: anywhere`; ≤ 560 px: `gap: 16px`, `.agent-card` padding 22 px; ≤ 760 px: bayangan tepi pada `#page-verify .spec-table-scroll` (lapis `local` sewarna `.spec-matrix-section`, `rgb(16, 19, 24)` — kalau warna panel itu kamu ubah, ubah juga `--mobile-scroll-cover`) |
+| `web/src/main.ts` | satu impor `import './mobile.css'` (`web/src/main.ts:36`) |
+
+**Yang kuserahkan kepadamu (tidak dikerjakan):** di HP baris matriks Verifier sangat tinggi — kolom terlihat hanya ±274 px,
+dan deskripsi aturan membungkus panjang di kolom sempit. Tata letak bertumpuk per baris (label kolom di depan nilainya)
+butuh label kolom di markup (`index.html` + perender matriks), jadi itu keputusan tampilanmu. Bukti dan angka sebelum/sesudah:
+[[09-Testing/T79 - Uji peramban isi keluar kartu di HP (B150)]].

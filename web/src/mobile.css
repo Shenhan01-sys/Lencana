@@ -1,0 +1,36 @@
+/*
+ * B150 — halaman publik di layar HP: aturan pelengkap untuk markup `index.html` / `main.ts` yang gayanya di `style.css`
+ * (berkas pemelihara front-end; tidak disunting). Dimuat `main.ts` dengan satu impor. Desktop tidak berubah: `min()`
+ * sama dengan 360 px begitu wadahnya lebih lebar dari itu, dan sisanya ada di media query.
+ *
+ * Diukur 5 Okt di 375 px: kartu Trust Center dan Penerbit selebar 360 px di wadah 312 px (meluap ke 384 px), URL
+ * dokumen penerbit di kartu terpotong `overflow: hidden` (65–473 px), dan matriks Verifier (620+ px) bisa digeser tanpa
+ * tanda apa pun bahwa ia bisa digeser.
+ */
+
+/* Kolom kartu minimal 360 px lebih lebar dari layar HP; `min()` membuatnya mengikuti wadah bila wadahnya lebih sempit. */
+.agent-roster-grid { grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); }
+
+/* URL dan alamat panjang di kartu memecah di mana saja alih-alih terpotong tepi kartu. */
+.agent-card a,
+.agent-card .section-sub { overflow-wrap: anywhere; }
+
+@media (max-width: 560px) {
+  .agent-roster-grid { gap: 16px; }
+  .agent-card { padding: 22px; }
+}
+
+/* Matriks Verifier: bayangan di tepi yang masih menyimpan kolom — kiri muncul sesudah digeser, kanan hilang di ujung.
+   Lapisan `local` (warna panel) menutupi bayangan `scroll` saat tepinya sudah tercapai. */
+@media (max-width: 760px) {
+  #page-verify .spec-table-scroll {
+    /* = latar `.spec-matrix-section` (diukur computed style 5 Okt); penutup harus sewarna panel atau ia tampil sebagai pita */
+    --mobile-scroll-cover: rgb(16, 19, 24);
+    background:
+      linear-gradient(90deg, var(--mobile-scroll-cover) 30%, transparent) left center / 40px 100% no-repeat local,
+      linear-gradient(270deg, var(--mobile-scroll-cover) 30%, transparent) right center / 40px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgba(240, 185, 11, 0.4), transparent) left center / 14px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgba(240, 185, 11, 0.4), transparent) right center / 14px 100% no-repeat scroll;
+    background-color: var(--mobile-scroll-cover);
+  }
+}

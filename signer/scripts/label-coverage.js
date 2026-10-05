@@ -211,7 +211,9 @@ if (process.argv.includes('--self-test')) { selfTest(); process.exit(process.exi
 const berkas = []
 ;(function w (d) {
   for (const e of fs.readdirSync(d, { withFileTypes: true })) {
-    if (SKIP.has(e.name)) continue
+    // `lib` hanya dilewati di akar repo (pustaka Foundry). Sebelum B150 nama itu dilewati di mana saja, sehingga marker di
+    // `web/src/lib/*.ts` tidak pernah diadili (ketahuan saat marker B150 di `web/src/lib/charts.ts` tidak terbaca).
+    if (SKIP.has(e.name) && (e.name !== 'lib' || d === REPO)) continue
     const p = path.join(d, e.name)
     e.isDirectory() ? w(p) : EXT.test(e.name) && berkas.push(p)
   }

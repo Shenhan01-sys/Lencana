@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-05
 command: railway up (staging dari git archive HEAD + berkas deploy) ke project lencana / production, layanan signer; curl + skrip asap ke domain publik; build produksi web dilayani di IP LAN 172.16.0.2:4174 + Chromium headless dengan peserta sekali-pakai
 measured: 2026-10-05
-result: SIGNER CLOUD HIDUP DAN DIPAKAI BUILD PRODUKSI — katalog, healthz, preflight CORS, rute bertanda tangan + tolak replay, faucet, dan bayar + daftar Kelas Uji (settlement di chain, struk status 1) semuanya lewat signer-production-e4f2.up.railway.app; Vercel baru ikut sesudah commit front-end didorong
+result: SIGNER CLOUD HIDUP DAN DIPAKAI BUILD PRODUKSI — katalog, healthz, preflight CORS, rute bertanda tangan + tolak replay, faucet, dan bayar + daftar Kelas Uji (settlement di chain, struk status 1) semuanya lewat signer-production-e4f2.up.railway.app; sesudah didorong, halaman Vercel terbukti memanggilnya
 ---
 
 # T78 - Uji signer cloud Railway dan build produksi (B154)
@@ -42,13 +42,14 @@ dan apakah build produksi front-end yang dibuka dari host publik benar-benar mem
 | 8 | build produksi di `172.16.0.2:4174`, dasbor `#/app` | semua panggilan signer ke `signer-production-e4f2.up.railway.app`: `/catalog/published` 200, `/me/roles` 200, `/me/records` 200; Ringkasan tampil |
 | 9 | "Ambil koin uji" di halaman Kelas Uji | `POST /faucet` **200** (±10 s), "Koin uji sudah masuk." |
 | 10 | "Bayar & daftar · 5 LDC-demo" | `POST /enroll` **402** (syarat x402) → **200** sesudah settlement (±20 s), halaman pindah ke `#/class/uji-bayar-2026`; DB: order `paid`, 5 LDC-demo, tx `0x1ffea27e898ca8c87be3058918ba48edbd28bfc027832f0cb0afc60967cf1e87`; struk chain 97: status `0x1`, blok 134885312 |
+| 11 | sesudah dorongan `2c42604..67a6549` (atas "Gas" builder): `https://lencana-psi.vercel.app` | bundel live `assets/index-BhLAFVG6.js` memuat `signer-production-e4f2.up.railway.app` dan `lencana-signer-url-v2`; halaman Vercel di Chromium memanggil `GET signer-production-e4f2.up.railway.app/catalog/published` → **200** |
 
 ## Batas
 
 - Login Privy (email) tidak diuji — butuh kode OTP ke email builder; rutenya `POST /auth/privy` memakai variabel
   `PRIVY_APP_ID` + `PRIVY_APP_SECRET` yang sama dengan signer lokal.
-- Vercel belum memakai signer cloud: perubahan default endpoint ada di commit front-end yang menunggu kata dorong builder.
-  Sampai itu, `https://lencana-psi.vercel.app` tetap menunjuk `127.0.0.1:8787`.
+- ~~Vercel belum memakai signer cloud: perubahan default endpoint ada di commit front-end yang menunggu kata dorong builder.
+  Sampai itu, `https://lencana-psi.vercel.app` tetap menunjuk `127.0.0.1:8787`.~~ *(Lewat 5 Okt: didorong, langkah 11.)*
 - Daftar status di signer cloud kosong (penyimpanan `.store` tidak dibawa); dokumen kredensial memang menunjuk daftar status
   di edge worker, bukan signer, dan tidak ada halaman yang membaca rute daftar status signer.
 - Pemeriksaan kesehatan Railway tidak terpasang (config-as-code tidak dipakai); deploy dianggap sehat saat kontainer jalan.

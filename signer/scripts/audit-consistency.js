@@ -303,7 +303,8 @@ async function collect () {
       let es = []
       try { es = readdirSync(d, { withFileTypes: true }) } catch { return }
       for (const e of es) {
-        if (skipTag.has(e.name)) continue
+        // `lib` hanya dilewati di akar repo (pustaka Foundry); sebelum B150 `web/src/lib` ikut terlewat.
+        if (skipTag.has(e.name) && (e.name !== 'lib' || d === REPO)) continue
         const p = join(d, e.name)
         if (e.isDirectory()) walkTag(p)
         // `sh` sejak B154 (skrip start signer cloud membawa marker).

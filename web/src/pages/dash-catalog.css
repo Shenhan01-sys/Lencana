@@ -244,6 +244,11 @@ html.cg-lock { overflow: hidden; }
 .app-shell .ov-todo-text small { color: #a9b0ba; font-size: 12px; }
 .app-shell .ov-path { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); color: inherit; text-decoration: none; }
 .app-shell .ov-card h2 + .ov-path { border-top: 0; }
+/* B150: judul kursus `nowrap` menjadi lebar minimum dua lapis grid — baris di kartu dan kolom isinya (kolom `auto`) —
+   sehingga di 375 px baris ini meluap ke 492 px. Dengan 0 di keduanya, judulnya yang terpotong (ellipsis), bukan kartunya
+   yang jebol (diukur: perbaikan lapis luar saja masih menyisakan isi 85–492 px). */
+.app-shell .ov-path { min-width: 0; }
+.app-shell .ov-path-main { grid-template-columns: minmax(0, 1fr); }
 .app-shell .ov-path-em { line-height: 0; }
 .app-shell .ov-path-main { display: grid; gap: 6px; min-width: 0; }
 .app-shell .ov-path-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -301,6 +306,13 @@ html.cg-lock { overflow: hidden; }
   .app-shell .cg-filters { display: grid; gap: 8px; }
   .app-shell .cg-chips { flex-wrap: nowrap; padding-bottom: 2px; overflow-x: auto; scrollbar-width: none; }
   .app-shell .cg-chips::-webkit-scrollbar { display: none; }
+  /* B150: chip yang terpotong tegas di tepi baris terbaca "keluar kartu". Tepi kanan memudar sebagai tanda geser, dan
+     ruang kosong di ujung membuat chip terakhir bisa digeser keluar dari zona pudar. */
+  .app-shell .cg-chips {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+  }
+  .app-shell .cg-chips::after { content: ''; flex: none; width: 24px; }
   .app-shell .cg-chip { flex: none; }
   .app-shell .cg-chips-label { flex: none; min-width: 64px; }
   .app-shell .ov-tiles { grid-template-columns: 1fr 1fr; }
