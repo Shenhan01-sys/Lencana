@@ -7,6 +7,16 @@ measured: 2026-10-03
 result: KURSI PENERBIT HIJAU — 57 pemeriksaan / 0 gagal (3 Okt, sesudah B131 +4 pemeriksaan; 2 Okt, B129 53 / 0 — run pertama 51 / 0 hijau, +2 sesudah aturan "menunggu pengesahan" disamakan dengan view gerbang 0009)
 ---
 
+> **5 Okt, koreksi prasyarat (Kelas Uji dipakai alur nyata):** baterai penuh 5 Okt siang menjadikan `verify:publisher` **merah 57 / 1** — satu-satunya
+> yang gagal: "`uji-bayar-2026` belum punya agen penilai sebelum harness → `["2549"]`". Sebabnya data, bukan kode: harness ini memakai Kelas Uji sebagai
+> kursus sandbox (kelas uji, `unlisted`), dan hari itu builder memakainya untuk alur nyata (sewa #2549 oleh akun 1, pengesah #2547). **Bukti bahwa data nyata
+> tidak tersentuh:** bersih-bersih (bagian F) hanya menghapus baris milik anggota uji (`hired_by` / `added_by` ∈ anggota uji); baris `agent_hires` #2549 dan
+> `review_roles` #2547 untuk `uji-bayar-2026` dibaca ulang sesudah baterai dan sesudah dua run harness: utuh. **Perbaikan:** prasyarat dikoreksi, bukan dihapus —
+> dari "kursus tanpa penilai sama sekali" menjadi "agen yang akan disewa (#2534) dan ditunjuk (#2542) belum menempel", karena itu yang benar-benar dibutuhkan
+> langkah di bawahnya (sewa yang ditolak karena agen sudah menempel akan merah karena sebab yang salah). Kontrol negatif (ekspresi yang sama, lima masukan):
+> data nyata → lolos, kursus kosong → lolos, tanpa baris kursus → lolos, #2534 sudah disewa → **gagal**, #2542 sudah ditunjuk → **gagal**. Hasil: `verify:publisher`
+> **57 / 0** (5 Okt). Berkas: `signer/scripts/publisher-check.js` (satu pemeriksaan; teks pemeriksaan berubah, jumlah pemeriksaan tetap 57).
+>
 > **3 Okt, B131 (D66):** satu akun nyata = satu peran. Kunci pemilik agen tim berperan Agent Owner, jadi tidak bisa diberi
 > keanggotaan. Supaya aturan "anggota tidak menyewa/menunjuk agennya sendiri" tetap teruji (aturan itu masih berlaku untuk akun
 > dev), harness ini menjadikan kedua kunci itu **akun dev selama run** (+2 pemeriksaan) dan menghapus tandanya di F (+1:
@@ -31,7 +41,7 @@ ulang sisanya.
 |---|---|
 | A — pengajuan | pesan menyebut penerbit lain → 400; kunci lain atas nama akun → 401; catatan > 280 karakter → 400; pengajuan sah → 201 `pending` dengan catatan; pengajuan kedua selagi menunggu → 409 + menunjuk yang ada; `/me/roles` tetap peserta saja dengan status `pending`; dasbor → 403 (pengajuan tidak memberi kursi); tolak bertanda tangan kunci lain → 401; tolak oleh kunci penerbit → `rejected`; tolak lagi → 400; ajukan lagi → 201; hibah kunci penerbit → 200 dan **menutup pengajuan itu** (`approvedRequest`); `/me/roles` → `via member`; anggota mengajukan lagi → 409 |
 | B — dasbor | tanpa pesan → 400; tanda tangan keperluan lain → 400; kunci lain → 401; akun tanpa kursi → 403; anggota → 200 dengan penerbit + kursi pembacanya; satu baris per kursus manifest (8); `platformBps` = nilai yang dibaca harness sendiri dari `SettlementSplit` (1000); platform + bersih = kotor; platform = kotor × bps / 10000 (pembulatan ke bawah seperti kontrak); jumlah per kursus = total; total = jumlah order lunas yang terdaftar, tiap order membawa tx 32 byte; tanpa baris `origin=test` kecuali diminta; `includeTest` tidak mengurangi; alur esai lengkap kategorinya; "menunggu pengesahan" hanya usulan model/agen dan nilai langsung kunci penerbit tidak ikut (aturan view gerbang `0009`); tidak ada `body`/`answer`/`signature`/`message` di jawaban; tim mencantumkan anggota dengan wewenangnya |
-| C — sewa oleh anggota | `uji-bayar-2026` belum punya agen penilai sebelum harness; anggota tanpa `hire=1` → 403; bukan anggota → 403; pesan tanpa agentId → 401; kunci lain → 401; Agent Owner #2534 sebagai anggota menyewa agennya sendiri → **422**; anggota `hire=1` menyewa #2534 → 200, `hiredBy` = anggota; dasbor menandai sewa itu `byMember` |
+| C — sewa oleh anggota | ~~`uji-bayar-2026` belum punya agen penilai sebelum harness~~ *(koreksi 5 Okt, lihat catatan di bawah)* `uji-bayar-2026`: agen yang akan disewa (#2534) dan ditunjuk (#2542) belum menempel sebelum harness; anggota tanpa `hire=1` → 403; bukan anggota → 403; pesan tanpa agentId → 401; kunci lain → 401; Agent Owner #2534 sebagai anggota menyewa agennya sendiri → **422**; anggota `hire=1` menyewa #2534 → 200, `hiredBy` = anggota; dasbor menandai sewa itu `byMember` |
 | D — tunjuk oleh anggota | dompet #2542 dibaca dari registry; anggota tanpa `appoint=1` → 403; Agent Owner #2542 menunjuk agennya sendiri → **422**; aturan B120 tetap: penilai kursus ini (#2534) tidak bisa jadi pengesahnya → 422; anggota `appoint=1` menunjuk #2542 → 200, `addedBy` = anggota; dasbor menandainya; baris kursus memuat penilai #2534 + pengesah `agent:2542` |
 | F — bersih-bersih | `review_roles`, `agent_hires`, `publisher_members`, `member_requests`: baris uji dihapus, sisa 0 (kueri ulang) |
 

@@ -186,7 +186,13 @@ try {
   check('tim: anggota ini tercantum dengan wewenangnya', (o.team?.members ?? []).some((m) => same(m.member, applicant.address) && m.canHire && m.canAppoint), json(o.team))
 
   console.log(`\n— C. POST /publisher/agents/hire: anggota menyewa agen penilai untuk ${COURSE}`)
-  check(`${COURSE} belum punya agen penilai sebelum harness`, !(o.courses ?? []).find((c) => c.id === COURSE)?.graders?.length, json((o.courses ?? []).find((c) => c.id === COURSE)?.graders))
+  // Prasyarat yang benar-benar dipakai harness: agen yang AKAN ia sewa (#GRADER_ID) dan tunjuk (#REVIEWER_ID) belum menempel di kursus ini
+  // — kalau sudah, sewanya sendiri ditolak dan langkah di bawah merah karena sebab yang salah. Dulu: "kursus belum punya penilai sama sekali".
+  // 5 Okt kelas uji dipakai builder untuk alur nyata (sewa #2549, pengesah #2547) dan prasyarat lama merah, padahal bersih-bersih (F) hanya
+  // menghapus baris milik anggota uji dan tidak menyentuh baris nyata (dibuktikan: baris nyata utuh sesudah baterai). Dikoreksi, tidak dihapus.
+  const before = (o.courses ?? []).find((c) => c.id === COURSE)
+  check(`${COURSE}: agen yang akan disewa (#${GRADER_ID}) dan ditunjuk (#${REVIEWER_ID}) belum menempel sebelum harness`,
+    !(before?.graders ?? []).includes(GRADER_ID) && !(before?.reviewers ?? []).includes(`agent:${REVIEWER_ID}`), json({ g: before?.graders, r: before?.reviewers }))
   await decide('grant', appointOnly.address, { hire: false, appoint: true })
   const noRight = await hireAs(appointOnly, GRADER_ID)
   check('anggota tanpa hire=1 → 403', noRight.status === 403, noRight.text.slice(0, 160))
