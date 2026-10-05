@@ -30,6 +30,8 @@ diperbaiki sebelum dinyatakan selesai (rincian di "Hasil tinjauan"). Menunggu: r
 
 **Pertanyaan baru dari perancang S3 (5 Okt malam, belum dijawab builder):** (a) dua token mode terang FE gagal kontras di atas `#f5f5f5` — teks emas `#d99e00` hanya 2,18:1 dan abu `#707a8a` 3,98:1 (dihitung rumus WCAG oleh perancang, dicatat di S3 §Kontras): perbaiki token FE? di lembar dipakai `#8a6a00`, `#a77d00`, `#474d57`; (b) pilihan tema diingat antar kunjungan (sekarang mengikuti sistem kecuali diganti di sesi itu)? (c) dialog alamat/nama ini jadi pola halaman sertifikat sungguhan di `/app/credentials`?
 
+**Jawaban builder (5 Okt malam):** (a) bertanya balik "Emgnya Lencana ada toggle light mode?" — **tidak ada**: FE hanya punya `@media (prefers-color-scheme: light)` (`web/src/style.css:57`), tanpa tombol; kontras emas 2,18:1 dan abu 3,98:1 di atas `#f5f5f5` dihitung ulang dan benar, tetapi hanya terlihat pengguna dengan sistem terang — keputusan token menunggu builder; (b) bertanya "Maksudnya?" — dijelaskan di chat: "diingat" = pilihan tema disimpan di peramban untuk kunjungan berikutnya; karena FE tidak punya toggle, usulan untuk halaman sertifikat di app: ikut tema sistem, tanpa toggle, cetak selalu terang; (c) **"Betul sekali"** — dialog ini jadi pola halaman sertifikat sungguhan → baris **B165** (DIUSULKAN, menunggu acc dan keputusan dependensi QR) di [[07-Backlog/03 - Findings and Tasks 2026-09-26]].
+
 ## Peta dokumen
 
 | id | nama | estetika (Palet doktrin FE §7) | berkas HTML | brief | status |
