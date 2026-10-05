@@ -201,8 +201,11 @@ drops the variable before the server starts. That key is `agent-cloud` — a key
 lists, **not** the key that signs credentials. Secrets live only in the service variables, set one by one with
 `railway variable set <NAME> --stdin` so no value ever reaches a command line.
 
-Since B156 (5 Oct) the service is connected to the GitHub repo (`main`), so a push redeploys it the way it redeploys the
-Vercel front-end — and GitHub only ever holds committed files. Nothing has to run on a laptop: the battery starts its own
+~~Since B156 (5 Oct) the service is connected to the GitHub repo (`main`), so a push redeploys it the way it redeploys the
+Vercel front-end — and GitHub only ever holds committed files.~~
+*(Corrected 5 Oct, same day: not yet. The service's source is the repo and connecting it deployed once, but Railway holds
+no deployment trigger for it — creating one fails with "no one in the project has access to it" until the Railway account
+is given GitHub access to the repo. The next push, `d0ee46c`, did not deploy. Until then a deploy is the manual one below.)* Nothing has to run on a laptop: the battery starts its own
 short-lived signer for `serve-probe`, and local front-end development talks to this hosted signer unless
 `VITE_SIGNER_URL=http://127.0.0.1:8787` is set while testing signer changes before they are deployed. A manual deploy, if
 ever needed, still goes from committed files only, so `.env`, `.keys`, `.store` and anything untracked never leave the

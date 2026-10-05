@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-05
 command: signer lokal :8787 dimatikan; npm run sync:numbers (penuh dan --only=serveProbe); server dev web di 127.0.0.1:5173 + Chromium headless; railway service source connect + deployment list + uji asap domain publik
 measured: 2026-10-05
-result: TIDAK ADA SERVER LOKAL YANG DIBUTUHKAN — baterai hijau tanpa :8787 (serve-probe menyalakan signer sementaranya sendiri), server dev lokal memakai signer cloud, dan backend terdeploy dari main GitHub (deploy pertama sukses, uji asap hijau)
+result: TIDAK ADA SERVER LOKAL YANG DIBUTUHKAN UNTUK MENJALANKAN DAN MENGUJI — baterai hijau tanpa :8787 (serve-probe menyalakan signer sementaranya sendiri), server dev lokal memakai signer cloud, sumber layanan Railway = main GitHub (deploy pertama sukses, uji asap hijau); DEPLOY DARI DORONGAN BELUM JALAN — akun Railway belum punya akses GitHub ke repo (langkah 7)
 ---
 
 # T80 - Uji alur kerja tanpa server lokal (B156)
@@ -35,6 +35,7 @@ dev front-end di laptop tetap bisa dipakai, dan (3) backend tetap terdeploy tanp
 | 5 | sambungkan layanan ke GitHub | sumber `Shenhan01-sys/Lencana` cabang `main`; dua deployment terpicu (perintah dijalankan dua kali), yang terbaru `dc4925c6` **SUCCESS** dari commit `67a6549`, yang lain diganti |
 | 5b | pengaturan layanan lewat `railway api` (`serviceInstanceUpdate`), dibaca balik dengan `serviceInstance` | `healthcheckPath` `/catalog/published` (120 s) — dorongan tidak memindahkan lalu lintas ke kontainer yang belum menjawab; `restartPolicyType` `ON_FAILURE` ×5; `watchPatterns` `/signer/**`, `/web/src/**`, `/web/package.json`, `/web/package-lock.json`, `/web/.npmrc`, `/web/tsconfig.json` — commit yang hanya menyentuh vault tidak mendeploy ulang backend; sumber `Shenhan01-sys/Lencana` |
 | 6 | uji asap signer hasil build GitHub | `/catalog/published` 200, `/healthz` 200 (0,38 s), `POST /me/roles` alamat acak 200, ulangan nonce **401**; log start: tanpa `.env`, konteks JSON-LD sha256 cocok, issuer `agent-cloud` |
+| 7 | dorongan builder `67a6549..d0ee46c` (commit B150 + B156 menyentuh `signer/**`) | **tidak ada deployment baru** — deploy terakhir tetap `dc4925c6`. `deploymentTriggers` layanan kosong; `deploymentTriggerCreate` (branch `main`, provider `github`) ditolak: "Cannot create deployment trigger for Shenhan01-sys/Lencana because no one in the project has access to it". Sambungan sumber hanya mendeploy sekali; deploy dari dorongan butuh akun Railway diberi akses GitHub ke repo (aksi builder di peramban). Kode server tidak berubah sejak `67a6549` (dua commit itu hanya menyentuh `signer/scripts` dan README), jadi signer cloud tetap setara `main` |
 
 ## Batas
 
@@ -42,7 +43,9 @@ dev front-end di laptop tetap bisa dipakai, dan (3) backend tetap terdeploy tanp
   didorong, bukan server yang dibutuhkan produk.
 - Menguji kode signer yang belum dideploy dari peramban tetap butuh signer lokal sementara
   (`VITE_SIGNER_URL=http://127.0.0.1:8787 npm run dev`).
-- Deploy otomatis diuji dengan pemicu sambungan; deploy dari dorongan berikutnya diperiksa saat dorongan itu terjadi.
+- ~~Deploy otomatis diuji dengan pemicu sambungan; deploy dari dorongan berikutnya diperiksa saat dorongan itu terjadi.~~
+  Diperiksa: dorongan berikutnya **tidak** mendeploy (langkah 7). Sampai builder memberi akun Railway akses GitHub ke repo
+  (memasang GitHub App Railway untuk `Shenhan01-sys/Lencana`), deploy backend tetap manual dari berkas ter-commit.
 
 ## Bersih-bersih
 
