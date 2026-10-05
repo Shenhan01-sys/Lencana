@@ -32,7 +32,7 @@ Keputusan builder 5 Okt malam: "Boleh kalau untuk sertif ini" — atas usul saya
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — belum didorong; AC-B167#11 OPEN.
+~~**SELESAI di kode, belum LIVE** — belum didorong; AC-B167#11 OPEN.~~ **SELESAI · LIVE** — didorong `e2fc546..539d02e` atas kata builder ("Gas", 6 Okt 00.34 WIB); bundel produksi `assets/index-Czasyl8x.js` = build lokal; T90 diulang di produksi dengan hasil sama, termasuk kontras 0 gagal dari 38 teks di kedua latar (AC-B167#11 PASS); run `deploy-signer` 37349466841 sukses.
 
 ## 4. Risiko tersisa
 

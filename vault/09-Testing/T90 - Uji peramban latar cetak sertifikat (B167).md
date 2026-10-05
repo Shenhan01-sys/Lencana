@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-06
 command: server dev Vite sementara di 127.0.0.1:5174 (dimatikan sesudah uji); Chrome 154 tanpa kepala lewat `puppeteer-core`; lembar B153 dengan identitas uji (alamat B153 publik, kunci acak); media `print` diemulasikan dan `page.pdf` dipakai untuk jumlah halaman; kontras diukur dari piksel tangkapan lembar
 measured: 2026-10-06
-result: LATAR CETAK BEKERJA — dialog punya pilihan Gelap (bawaan) / Terang; Batal tidak mengubah apa pun; Terang → print 1×, tersimpan per alamat, layar TETAP gelap; media print terang: kertas/lapisan/body/html rgb(245,245,245), kaca putih, QR putih, 1 halaman; Gelap lagi mengembalikan rgb(11,14,17); pilihan diingat saat dibuka ulang; kontras terukur dari piksel: 0 gagal dari 38 teks di KEDUA latar (terburuk 4,94:1 terang, 4,99:1 gelap); nol galat konsol. LIVE belum
+result: LATAR CETAK BEKERJA — dialog punya pilihan Gelap (bawaan) / Terang; Batal tidak mengubah apa pun; Terang → print 1×, tersimpan per alamat, layar TETAP gelap; media print terang: kertas/lapisan/body/html rgb(245,245,245), kaca putih, QR putih, 1 halaman; Gelap lagi mengembalikan rgb(11,14,17); pilihan diingat saat dibuka ulang; kontras terukur dari piksel: 0 gagal dari 38 teks di KEDUA latar (terburuk 4,94:1 terang, 4,99:1 gelap); nol galat konsol. LIVE sudah: skrip diulang terhadap produksi (`index-Czasyl8x.js`) dengan hasil sama
 ---
 
 # T90 - Uji peramban latar cetak sertifikat (B167)
@@ -37,9 +37,16 @@ Tangkapan: `b167-dialog.png`, `b167-layar-setelah-pilih-terang.png`, `b167-cetak
 
 **Pengukuran pertama (salah alat, diperbaiki):** untuk teks SVG (label cincin "Kuis 50%" dst.) skrip memakai `color`, bukan `fill`, sehingga latar terang tampak gagal (1,12–2,6:1); teks itu dicat `#eaecef` di atas cakram gelap di kedua latar. Setelah memakai `fill`, hasilnya 0 gagal.
 
+## LIVE (6 Okt, sesudah dorongan `e2fc546..539d02e`)
+
+Skrip yang sama dijalankan terhadap `https://lencana-psi.vercel.app/` (bundel `assets/index-Czasyl8x.js`, 935.503 byte = hasil `npm run build` lokal). Hasil sama dengan di dev: dialog dengan "Gelap — seperti di layar" (terpilih) dan "Terang — hemat tinta";
+Batal → `data-paper` `gelap`, `print` 0×, penyimpanan kosong; Terang + Cetak → `print` 1×, tersimpan `terang`; layar tetap `rgb(11,14,17)`; media print: lembar di (0,0) 1122 × 793, kertas/lapisan/body/html `rgb(245,245,245)`, judul `rgb(30,35,41)`,
+kaca `rgba(255,255,255,0.95)`, QR putih, skor 87, **1 halaman**; Gelap lagi → `rgb(11,14,17)`, tersimpan `gelap`, 1 halaman; dibuka ulang dengan `terang` → radio Terang terpilih dan layar tetap gelap; **kontras dari piksel: 38 teks, 0 gagal di latar terang (terburuk 4,94:1) dan gelap (4,99:1)**; `pageerror`/`console.error` 0.
+Run `deploy-signer` 37349466841 sukses (1m1s).
+
 ## Batas
 
 - Cetak di kertas sungguhan belum; PDF hanya diperiksa lewat jumlah halaman dan media `print`, tidak dirasterisasi.
 - Kontras = median piksel di kotak teks (perkiraan; latar kristal dan kaca bergradasi), bukan pemeriksaan per piksel di bawah huruf.
 - Chrome 154 saja; `:has()` dipakai untuk latar halaman di balik lembar (Chrome 105+, Safari 15.4+, Firefox 121+).
-- Produksi belum menjalankan perubahan ini (AC-B167#11 OPEN) sampai dorongan atas kata builder.
+- ~~Produksi belum menjalankan perubahan ini (AC-B167#11 OPEN) sampai dorongan atas kata builder.~~ Produksi sudah menjalankannya dan skripnya diulang (bagian "LIVE"; AC-B167#11 PASS).

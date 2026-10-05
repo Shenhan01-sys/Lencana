@@ -26,7 +26,7 @@ tulisan "Lencana" di navbar menjadi gelap di atas gelap dan kapsul menjadi teran
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — belum didorong. **TANPA TAG KODE**: satu-satunya berkas yang berubah, `web/src/style.css`, tidak dipindai penjaga marker.
+~~**SELESAI di kode, belum LIVE** — belum didorong.~~ **SELESAI · LIVE** — didorong `e2fc546..539d02e` atas kata builder ("Gas", 6 Okt 00.34 WIB); bundel produksi `assets/index-Czasyl8x.js` = build lokal, CSS produksi tanpa `prefers-color-scheme: light` dan dengan `color-scheme: dark`; T89 diulang di produksi dengan hasil sama (AC-B166#8 PASS); run `deploy-signer` 37349466841 sukses. **TANPA TAG KODE**: satu-satunya berkas yang berubah, `web/src/style.css`, tidak dipindai penjaga marker.
 
 ## 4. Risiko tersisa
 

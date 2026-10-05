@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-06
 command: server dev Vite sementara di 127.0.0.1:5174 (dimatikan sesudah uji); Chrome 154 tanpa kepala lewat `puppeteer-core` dengan `prefers-color-scheme` diemulasikan `light` dan `dark`; halaman `#/app/credentials` dengan identitas uji (alamat B153 publik, kunci acak)
 measured: 2026-10-06
-result: DI SISTEM TERANG TOKEN FE SAMA PERSIS DENGAN DI SISTEM GELAP — `--bg-app` #0b0e11, `--text-main` #eaecef, `--bnb-gold` #f0b90b, `color-scheme` dark; tulisan "Lencana" di navbar rgb(234,236,239) (sebelum B166 gelap di atas gelap, T88 langkah 19); lapisan dan lembar sertifikat tetap gelap; nol galat konsol. LIVE belum
+result: DI SISTEM TERANG TOKEN FE SAMA PERSIS DENGAN DI SISTEM GELAP — `--bg-app` #0b0e11, `--text-main` #eaecef, `--bnb-gold` #f0b90b, `color-scheme` dark; tulisan "Lencana" di navbar rgb(234,236,239) (sebelum B166 gelap di atas gelap, T88 langkah 19); lapisan dan lembar sertifikat tetap gelap; nol galat konsol. LIVE sudah: skrip diulang terhadap produksi (`index-Czasyl8x.js`) dengan hasil sama
 ---
 
 # T89 - Uji peramban Lencana selalu gelap (B166)
@@ -29,8 +29,14 @@ result: DI SISTEM TERANG TOKEN FE SAMA PERSIS DENGAN DI SISTEM GELAP — `--bg-a
 
 Tangkapan: `b166-sistem-terang.png` (daftar kartu di sistem terang — gelap penuh, navbar terbaca).
 
+## LIVE (6 Okt, sesudah dorongan `e2fc546..539d02e`)
+
+Skrip yang sama dijalankan terhadap `https://lencana-psi.vercel.app/` sesudah bundel produksi berganti dari `assets/index-DjuuhFae.js` ke `assets/index-Czasyl8x.js` (935.503 byte — nama dan ukuran sama dengan `npm run build` lokal).
+CSS produksi `assets/index-8FlGF6oI.css` tidak lagi memuat `prefers-color-scheme: light` dan memuat `color-scheme: dark`. Hasil: token di sistem terang = sistem gelap (`--bg-app` `#0b0e11`, `--text-main` `#eaecef`, `--bnb-gold` `#f0b90b`),
+`color-scheme` dark, `body` `rgb(11,14,17)`, tulisan "Lencana" di navbar `rgb(234,236,239)`, lapisan dan lembar `rgb(11,14,17)`, `pageerror`/`console.error` 0. Run `deploy-signer` 37349466841 sukses (1m1s; dipicu filter jalur, signer tidak berubah).
+
 ## Batas
 
 - Hanya halaman Kredensial dan lembar yang dibuka di sistem terang; halaman lain memakai token yang sama tetapi tidak dibuka satu per satu.
 - Chrome 154, tanpa perangkat dengan mode terang sungguhan (emulasi media).
-- Produksi belum menjalankan perubahan ini (AC-B166#8 OPEN) sampai dorongan atas kata builder.
+- ~~Produksi belum menjalankan perubahan ini (AC-B166#8 OPEN) sampai dorongan atas kata builder.~~ Produksi sudah menjalankannya dan skripnya diulang (bagian "LIVE"; AC-B166#8 PASS).

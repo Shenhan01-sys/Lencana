@@ -23,6 +23,6 @@ Yang berubah: blok media itu dibuang dan `:root` mendapat `color-scheme: dark`. 
 | AC-B166#5 | halaman lain di sistem terang | **PARTIAL** | hanya halaman Kredensial (dan lembar) yang dibuka di sistem terang; halaman lain memakai token yang sama (AC#2) tetapi tidak dibuka satu per satu |
 | AC-B166#6 | tidak ada tombol tema dan tidak ada kode pemilih tema di `web/src` | **PASS** | `grep -rn "prefers-color-scheme" web/src` → hanya komentar di `style.css` |
 | AC-B166#7 | gerbang | **PASS** | `tsc` 0, `build` 0, `probe` 212/0 (tidak ada pemeriksaan B166 di `probe` — perubahannya CSS), `audit` bersih, `check:labels` 8/0; baterai di Summary |
-| AC-B166#8 | **LIVE** | **OPEN** — menunggu dorongan atas kata builder | — |
+| AC-B166#8 | **LIVE** | ~~**OPEN** — menunggu dorongan atas kata builder~~ **PASS** 6 Okt — didorong `e2fc546..539d02e` atas kata builder ("Gas", 6 Okt 00.34 WIB); bundel produksi `assets/index-Czasyl8x.js` (935.503 byte) sama dengan `npm run build` lokal dan CSS produksi `index-8FlGF6oI.css` tidak lagi memuat `prefers-color-scheme: light` dan memuat `color-scheme: dark`; skrip T89 diulang terhadap produksi: token terang = gelap (`#0b0e11` / `#eaecef` / `#f0b90b`), `color-scheme` dark, tulisan "Lencana" `rgb(234,236,239)`, lembar dan lapisan gelap, nol galat | T89 §LIVE |
 
 **Batas klaim:** "selalu gelap" diuji di halaman Kredensial; cetak sertifikat dengan latar terang (B167) adalah pilihan terpisah yang hanya berlaku di media `print`.
