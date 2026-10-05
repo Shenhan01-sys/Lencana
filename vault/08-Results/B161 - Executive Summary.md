@@ -31,7 +31,7 @@ updated: 2026-10-05
 ## 3. Status
 
 **SELESAI di kode, belum LIVE** — commit lokal; deploy signer lewat dorongan ke `main` (GitHub Actions) menunggu kata builder. Dampak nyata bagi builder saat ini: tidak ada
-(meja pengesah sungguhan memakai `includeTest=false`); yang rusak hanya harness. Gerbang akhir: lihat baris B161 di backlog dan hub Testing (baterai penuh sesudah perbaikan).
+(meja pengesah sungguhan memakai `includeTest=false`); yang rusak hanya harness. **Gerbang 5 Okt:** baterai penuh **37 harness · 37 hijau, 1.449 pemeriksaan** (`capturedAt` 2026-10-05T08:03Z), `verify:review` 31 / 0, `verify:publisher` 57 / 0; `sync:numbers -- --verify` hijau (70 klaim); `npm run audit` bersih; `check:labels` 8/0.
 
 ## 4. Risiko tersisa
 

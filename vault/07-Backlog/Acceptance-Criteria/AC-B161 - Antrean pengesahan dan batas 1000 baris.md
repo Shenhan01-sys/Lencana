@@ -21,7 +21,7 @@ builder; kerja kecil yang menjadi syarat baterai hijau.
 | AC-B161#4 | komponen dibaca per potongan kecil (25 butir) dan hanya untuk butir yang dikembalikan | **PASS** 5 Okt — dibaca dari kode | `signer/src/db.js` `COMPONENT_CHUNK`, `queuePendingReviews` |
 | AC-B161#5 | tidak ada baris yang dihapus; `cleanup -- --apply` tidak dijalankan | **PASS** 5 Okt | sisa uji `origin=test` tetap ada (133 + 1 `judged`); pembersihan = keputusan builder |
 | AC-B161#6 | regresi dijaga oleh tes yang gagal bila bug kembali | **PARTIAL** | pemeriksaan "usulan per kriteria dalam poin" di `verify:review` menangkapnya (sudah terbukti merah), tetapi hanya bila sisa uji cukup banyak; tidak ada tes deterministik tanpa database |
-| AC-B161#7 | gerbang | lihat Summary (baterai penuh, `audit`, `check:labels`) | — |
+| AC-B161#7 | gerbang | **PASS** 5 Okt | baterai penuh **37 harness · 37 hijau, 1.449 pemeriksaan** (`capturedAt` 2026-10-05T08:03Z = 15.03 WIB), termasuk `verify:review` **31 / 0** dan `verify:publisher` **57 / 0**; sesudahnya `sync:numbers -- --verify` hijau (70 klaim), `npm run audit` bersih (28 klaim README cocok), `check:labels` 8/0; `verify:review` dijalankan ulang sesudah komentar `db.js` dirapikan: 31 / 0 |
 
 **Batas klaim:** perbaikan menghilangkan pembacaan massal yang rawan terpotong; ia **tidak** membersihkan sisa uji, dan tidak mengaudit semua pembacaan
 PostgREST lain di signer (hanya pola `attempt_components` `in.(…)` yang dicari — satu tempat).

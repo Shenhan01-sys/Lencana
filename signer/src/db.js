@@ -1438,6 +1438,10 @@ export async function graderOwnersOf (courseId) {
   return (await rest('agent_hires', { query: `?course_id=eq.${encodeURIComponent(courseId)}&select=agent_id,agent_owner` })) ?? []
 }
 
+// Lencana-B161 status=SELESAI 2026-10-05 — antrean pengesahan membaca komponen nilai hanya untuk butir yang dikembalikan, per potongan kecil, dan menyaring baris uji di SQL: dulu komponen SEMUA baris `judged` (sampai 500) dibaca sekaligus, PostgREST memotong jawaban di 1000 baris tanpa tanda, dan komponen butir terbaru hilang diam-diam (`points: null`) begitu sisa uji menumpuk (134 baris, 5 Okt) — `verify:review` merah. Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B161 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/** Butir per kueri komponen: ≤ 25 × (kriteria + tanda mekanis) jauh di bawah batas 1000 baris PostgREST yang memotong jawaban tanpa tanda. */
+const COMPONENT_CHUNK = 25
+
 /**
  * B144: esai satu kursus yang sudah punya usulan bernilai (model atau agen) dan BELUM disahkan, terlama dulu, lengkap dengan
  * teks dan komponen per kriteria. Pembacanya dompet pengesah yang ditunjuk penerbit — yang menandatangani nilai akhirnya.
@@ -1445,10 +1449,6 @@ export async function graderOwnersOf (courseId) {
  * Yang sudah disahkan disaring di sini (dua kueri, bukan anti-join bersarang) dan baru sesudah itu dipotong ke `limit`.
  * Baris harness (`origin=test`) disaring kecuali diminta, seperti dasbor penerbit: pengesah sungguhan tidak boleh disodori sisa uji.
  */
-// Lencana-B161 status=SELESAI 2026-10-05 —antrean pengesahan membaca komponen nilai hanya untuk butir yang dikembalikan, per potongan kecil, dan menyaring baris uji di SQL: dulu komponen SEMUA baris `judged` (sampai 500) dibaca sekaligus, PostgREST memotong jawaban di 1000 baris tanpa tanda, dan komponen butir terbaru hilang diam-diam (`points: null`) begitu sisa uji menumpuk (134 baris, 5 Okt) — `verify:review` merah. Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B161 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-/** Butir per kueri komponen: ≤ 25 × (kriteria + tanda mekanis) jauh di bawah batas 1000 baris PostgREST yang memotong jawaban tanpa tanda. */
-const COMPONENT_CHUNK = 25
-
 export async function queuePendingReviews (courseId, limit = 20, { includeTest = false } = {}) {
   const subs = ((await rest('submissions', {
     query: `?state=eq.judged&course_id=eq.${encodeURIComponent(courseId)}&order=judged_at.asc&limit=500`

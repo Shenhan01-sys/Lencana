@@ -29,6 +29,9 @@ command and a page disagree, the run wins.**
 > 5 Okt 02.03 WIB: **36 harness · 36 hijau** — B144 menambah `verify:review` 31/0; angka keenam harness di atas tetap sama.
 > 5 Okt 09.20 WIB: **36 harness · 36 hijau tanpa signer lokal :8787** — sejak B156 `serve-probe` memakai signer sementara milik
 > baterai (50/0). 10.29 WIB: **37 harness · 37 hijau** — B155 menambah `verify:limits` 23/0; angka keenam harness di atas tetap sama.)*
+> *(5 Okt 15.03 WIB: **37 harness · 37 hijau, 1.449 pemeriksaan** — web probe **147/0** (B160 +16, B157 +13; sebelumnya 118/0), `verify:publisher` 57/0, `verify:review` 31/0; angka harness lain
+> tetap sama. Dua baterai sebelumnya hari itu merah karena data dan ambang, bukan regresi web: `verify:publisher` — prasyarat "Kelas Uji tanpa penilai" gagal sesudah sewa nyata #2549, dikoreksi
+> ([[09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit)]]); `verify:review` — komponen nilai terpotong batas 1000 baris PostgREST, B161.)*
 
 | command (from `app/`) | prints | last |
 |---|---|---|
