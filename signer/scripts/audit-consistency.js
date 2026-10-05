@@ -426,7 +426,7 @@ async function collect () {
         'npm run check:contexts': 'contexts',
         // Lencana-B144 status=TERBUKA 2026-10-05 — baris README `verify:review` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:review': 'review',
-        // Lencana-B155 status=TERBUKA 2026-10-05 — baris README `verify:limits` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B155 status=SELESAI 2026-10-05— baris README `verify:limits` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:limits': 'limits',
       }
       const salah = []

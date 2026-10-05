@@ -61,7 +61,7 @@ const EP_KEY = 'lencana-signer-url-v2'
 const ID_KEY = 'lencana-learner-v1'
 const AUTH_KEY = 'lencana-explicit-learner-session-v1'
 const ON_PUBLIC_HOST = typeof location !== 'undefined' && !['127.0.0.1', 'localhost'].includes(location.hostname)
-// Lencana-B156 status=TERBUKA 2026-10-05 — backend hanya di Railway: default endpoint di semua lingkungan (produksi, server dev lokal, Node) = signer cloud; signer lokal hanya bila diminta lewat VITE_SIGNER_URL, terowongan hanya lewat VITE_SIGNER_SAME_ORIGIN=1. Buktikan ulang: uji peramban server dev lokal → signer cloud (vault B156). JANGAN dibalik/diulang tanpa membuka kembali baris B156 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B156 status=SELESAI 2026-10-05 — backend hanya di Railway: default endpoint di semua lingkungan (produksi, server dev lokal, Node) = signer cloud; signer lokal hanya bila diminta lewat VITE_SIGNER_URL, terowongan hanya lewat VITE_SIGNER_SAME_ORIGIN=1. Buktikan ulang: uji peramban server dev lokal → signer cloud (vault B156). JANGAN dibalik/diulang tanpa membuka kembali baris B156 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * Signer cloud (Railway, project lencana — B154). Default endpoint (B156: tidak ada lagi signer lokal yang wajib menyala):
  *  - semua lingkungan — Vercel, HP, server dev di `127.0.0.1`, Node — memakai signer cloud;

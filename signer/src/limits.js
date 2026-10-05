@@ -1,4 +1,4 @@
-// Lencana-B155 status=TERBUKA 2026-10-05 — pemberian dari dompet deployer di server publik dibatasi per IP (24 jam bergulir) dan kuota global harian per jalur (faucet koin uji, gas pemilik agen); IP klien dari X-Forwarded-For hanya di belakang proxy tepercaya. Buktikan ulang: npm run verify:limits. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B155 status=SELESAI 2026-10-05 — pemberian dari dompet deployer di server publik dibatasi per IP (24 jam bergulir) dan kuota global harian per jalur (faucet koin uji, gas pemilik agen); IP klien dari X-Forwarded-For hanya di belakang proxy tepercaya. Buktikan ulang: npm run verify:limits. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `limits.js` — batas pemberian dari dompet deployer (B155).
  *

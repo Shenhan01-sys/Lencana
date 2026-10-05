@@ -37,6 +37,12 @@ BATAS PEMBERIAN HIJAU — 23 pemeriksaan, 0 gagal
 **BATAS PEMBERIAN MERAH — 23 pemeriksaan, 1 gagal**: `POST /faucet` dijawab 401 (tanda tangan diperiksa) alih-alih 429.
 Dikembalikan → **23 / 0**.
 
+## Di signer cloud (5 Okt)
+
+Didorong `f28ac21..729dad4`; workflow `deploy-signer` run `37259823357` sukses → deployment Railway `3778fdeb`. `GET /healthz`
+di `https://signer-production-e4f2.up.railway.app` (proses mulai 03:34:06Z): `deployer` = `0xAEc63F6cEbBfacdC3516992b6ec396147c9c8361`,
+saldo **0,3755 tBNB**; `limits.faucet` = 3/IP, 200/hari, 0 diberikan; `limits.gas` = 2/IP, 30/hari, 0 diberikan; tidak ada IP.
+
 ## Batas
 
 - Penghitung hidup di memori satu proses; deploy ulang mengosongkannya. Pengunjung tidak bisa memicu deploy.

@@ -205,7 +205,11 @@ lists, **not** the key that signs credentials. Secrets live only in the service 
 Vercel front-end — and GitHub only ever holds committed files.~~
 *(Corrected 5 Oct, same day: not yet. The service's source is the repo and connecting it deployed once, but Railway holds
 no deployment trigger for it — creating one fails with "no one in the project has access to it" until the Railway account
-is given GitHub access to the repo. The next push, `d0ee46c`, did not deploy. Until then a deploy is the manual one below.)* Nothing has to run on a laptop: the battery starts its own
+is given GitHub access to the repo. The next push, `d0ee46c`, did not deploy. Until then a deploy is the manual one below.)*
+*(Resolved 5 Oct, differently: the repo belongs to another GitHub account, so the Railway app cannot be installed by a
+collaborator. A push to `main` that touches `signer/**` or the `web` files the server imports now runs the
+`.github/workflows/deploy-signer.yml` workflow — `railway up --ci --service signer` with a Railway project token in the
+repo secret `RAILWAY_TOKEN`, then a smoke test of the public domain. First run: deployment `3778fdeb`, smoke test 200.)* Nothing has to run on a laptop: the battery starts its own
 short-lived signer for `serve-probe`, and local front-end development talks to this hosted signer unless
 `VITE_SIGNER_URL=http://127.0.0.1:8787` is set while testing signer changes before they are deployed. A manual deploy, if
 ever needed, still goes from committed files only, so `.env`, `.keys`, `.store` and anything untracked never leave the

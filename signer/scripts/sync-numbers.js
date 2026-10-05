@@ -48,7 +48,7 @@ const ONLY = (_oi > -1 ? process.argv[_oi + 1] : (process.argv.find((a) => a.sta
 const texts = new Map()
 const tailOf = (id, n = 12) => (texts.get(id) ?? '').split(/\r?\n/).filter((s) => s.trim()).slice(-n)
 
-// Lencana-B156 status=TERBUKA 2026-10-05 — baterai tidak lagi menuntut signer lokal menyala terus: harness `ownSigner` (serve-probe) dijalankan terhadap signer sementara di port bebas yang dinyalakan dan dimatikan baterai sendiri; BASE_URL di lingkungan tetap menang. Buktikan ulang: npm run sync:numbers -- --only=serveProbe dengan :8787 mati. JANGAN dibalik/diulang tanpa membuka kembali baris B156 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B156 status=SELESAI 2026-10-05 — baterai tidak lagi menuntut signer lokal menyala terus: harness `ownSigner` (serve-probe) dijalankan terhadap signer sementara di port bebas yang dinyalakan dan dimatikan baterai sendiri; BASE_URL di lingkungan tetap menang. Buktikan ulang: npm run sync:numbers -- --only=serveProbe dengan :8787 mati. JANGAN dibalik/diulang tanpa membuka kembali baris B156 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 const freePort = () => new Promise((ok, no) => {
   const s = createServer()
   s.on('error', no)
@@ -144,7 +144,7 @@ const HARNESS = [
   { id: 'contexts', label: 'check:contexts (konteks JSON-LD dari salinan repo, tanpa jaringan)', cwd: SIGNER, cmd: ['npm', ['run', 'check:contexts']], re: /KONTEKS JSON-LD (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B144 status=TERBUKA 2026-10-05 — verify:review ikut baterai murah (tanpa gas): meja pengesahan agen pengesah, rubrik pengesahan/penilaian milik esainya sendiri, bersih-bersih baris peserta uji. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'review', label: 'verify:review (meja pengesahan: antrean dompet pengesah, rubrik milik esainya)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:review']], re: /MEJA PENGESAHAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
-  // Lencana-B155 status=TERBUKA 2026-10-05 — verify:limits ikut baterai murah (tanpa gas): batas faucet + gas per IP dan kuota harian, IP klien hanya dari proxy tepercaya, /faucet ditolak sebelum tanda tangan dipakai. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B155 status=SELESAI 2026-10-05 — verify:limits ikut baterai murah (tanpa gas): batas faucet + gas per IP dan kuota harian, IP klien hanya dari proxy tepercaya, /faucet ditolak sebelum tanda tangan dipakai. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'limits', label: 'verify:limits (batas faucet + gas per IP dan kuota harian, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:limits']], re: /BATAS PEMBERIAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
