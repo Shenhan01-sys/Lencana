@@ -45,6 +45,27 @@ function yn(v: boolean | null | undefined, lang: Lang): string {
   return v ? `<span class="yes">${esc(dict.yes)}</span>` : `<span class="no">${esc(dict.no)}</span>`
 }
 
+/**
+ * `tokenURI` kontrak artefak yang hidup (B38) adalah JSON yang dirakit on-chain, bukan URL: menaruhnya di `href` menghasilkan tautan rusak.
+ * Tampilkan JSON-nya sebagai kode dan, bila `external_url`-nya URL http(s), beri tautan ke situ. String lain (URL biasa) tetap tautan.
+ */
+function tokenUriHtml(uri: string): string {
+  const s = uri.trim()
+  if (s.startsWith('{')) {
+    let ext = ''
+    try {
+      const j = JSON.parse(s) as { external_url?: unknown }
+      if (typeof j.external_url === 'string' && /^https?:\/\//.test(j.external_url)) {
+        ext = ` <a href="${esc(j.external_url)}" target="_blank" rel="noopener" class="exp-link">external_url ↗</a>`
+      }
+    } catch {
+      /* bukan JSON utuh: tampilkan apa adanya */
+    }
+    return `<code>${esc(s)}</code>${ext}`
+  }
+  return `<a href="${esc(s)}" target="_blank" rel="noopener"><code>${esc(s)}</code></a>`
+}
+
 function row(label: string, value: string, hint = ''): string {
   return `<tr><th>${esc(label)}</th><td>${value}${hint ? `<div class="hint">${esc(hint)}</div>` : ''}</td></tr>`
 }
@@ -381,16 +402,33 @@ export function renderReport(r: Report, lang: Lang = 'id'): string {
 
   // TAB 3: Soulbound NFT (ERC-5192)
   const pSbt = dict.panels.soulboundArtifact
+  // Lencana-B164 status=SELESAI 2026-10-05 — panel artefak menampilkan SEMUA lapis kontrak yang dibaca (ada / tidak ada / gagal dibaca) dan apakah lapis yang ditampilkan menegakkan D42/D43 (diukur dari bytecode). Buktikan ulang: cd web && npm run probe (grup B164), lalu uji peramban T87. JANGAN dibalik/diulang tanpa membuka kembali baris B164 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  const shownLayer = r.cert.layers.find((l) => l.address === r.cert.address)
+  const layerRows = r.cert.layers.length
+    ? row(
+        pSbt.layers,
+        r.cert.layers
+          .map((l) => {
+            const state = l.tokenId !== null ? pSbt.layerHolds : l.readOk ? pSbt.layerEmpty : pSbt.layerFailed
+            const cls = l.tokenId !== null ? 'yes' : l.readOk ? 'na' : 'no'
+            const rule = l.tokenId !== null && l.enforcesCourseLevel !== null ? ` · D42/D43 ${l.enforcesCourseLevel ? '✓' : '✗'}` : ''
+            return `<div>${addr(ep, l.address, lang)} <span class="${cls}">${esc(state)}${esc(rule)}</span></div>`
+          })
+          .join(''),
+        pSbt.layersHint,
+      ) + (shownLayer?.tokenId ? row(pSbt.layerEnforces, yn(shownLayer.enforcesCourseLevel, lang), pSbt.layerEnforcesHint) : '')
+    : ''
   const tab3Content = panel(
     pSbt.title,
     table(
       row(pSbt.contract, addr(ep, r.cert.address, lang)) +
+        layerRows +
         row(pSbt.nameSymbol, `${esc(r.cert.name ?? '—')} / ${esc(r.cert.symbol ?? '—')}`) +
         row(pSbt.tokenId, r.cert.tokenId ? `<code>${esc(r.cert.tokenId)}</code>` : `<span class="na">${esc(pSbt.noArtifact)}</span>`, pSbt.tokenIdHint) +
         row(pSbt.ownedBy, addr(ep, r.cert.owner, lang)) +
         row(pSbt.isLocked, yn(r.cert.locked, lang)) +
         row(pSbt.supportsErc5192, yn(r.cert.supportsErc5192, lang), pSbt.supportsErc5192Hint) +
-        row(pSbt.tokenUri, r.cert.tokenUri ? `<a href="${esc(r.cert.tokenUri)}" target="_blank" rel="noopener"><code>${esc(r.cert.tokenUri)}</code></a>` : '<span class="na">—</span>') +
+        row(pSbt.tokenUri, r.cert.tokenUri ? tokenUriHtml(r.cert.tokenUri) : '<span class="na">—</span>') +
         row(pSbt.holderBalance, r.cert.holderBalance ? `<code>${esc(r.cert.holderBalance)}</code>` : '<span class="na">—</span>') +
         row(pSbt.wiredToResolver, yn(r.cert.wiredToThisResolver, lang)),
     ),

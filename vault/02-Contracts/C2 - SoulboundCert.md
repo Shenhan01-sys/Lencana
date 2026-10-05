@@ -110,6 +110,13 @@ dipakai untuk kredensial yang terbit sesudahnya. Konsekuensinya disebut terang-t
 "artefak ikut berubah saat kredensial dicabut" berlaku untuk `0xC6FD12…` dan `0xc338AF7F…`, **tidak**
 untuk corpus demo di `0xA5eB80…` yang metadata-nya beku.
 
+**Pembacaan di verifier (B164, 5 Okt malam).** Verifier tidak lagi hanya membaca satu alamat: bawaannya `cert = 0xA5eB…` (tidak dipindah) **ditambah**
+daftar lapis `CERT_LAYERS_97` (`web/src/verify.ts:211`: `0xc338…`, `0xC6FD…`, `0xA5eB…`) dan menampilkan lapis pertama yang memegang token untuk kredensial itu,
+beserta daftar semua lapis dan apakah tiap lapis menegakkan D42/D43 (selector di bytecode). Kredensial B153 (`0xb9fb06e5…6430c31`) punya **dua** token — satu di
+`0xc338…` (menegakkan D42/D43) dan satu di `0xC6FD…` (tidak) — dan keduanya terlihat sebagai "Minted & Locked" tanpa konfigurasi apa pun. Satu kredensial
+dengan satu token per instance sah menurut kontrak (tokenId = `uint256(hash)`, per instance); yang diubah B164 hanya apa yang terlihat.
+Rincian: [[08-Results/B164 - Executive Summary]].
+
 Satu koreksi yang membuat keadaan ini lebih baik daripada terlihat: test fork **tidak** membaca
 kontrak lama. `test/CredentialEndToEndOnBsc.fork.t.sol:76` membuat `new SoulboundCert(...)` dari
 source di atas fork 97/56, jadi bukti B38 dan D42/D43 berlaku untuk kontrak seperti yang kita tulis —

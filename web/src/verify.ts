@@ -33,8 +33,14 @@ export type Endpoint = {
   rpcUrl: string
   /** CredentialResolver kita. Belum ter-deploy → isi address nol dan halaman menjelaskan. */
   resolver: Address
-  /** SoulboundCert kita. */
+  /** SoulboundCert kita — lapis UTAMA: dibaca lebih dulu dan menjadi yang ditampilkan bila tidak ada lapis lain yang memegang artefak. */
   cert: Address
+  /**
+   * Lapis artefak TAMBAHAN yang ikut dibaca (B164). Sejak D46 tiga instance `SoulboundCert` hidup berdampingan di chain 97 dan satu
+   * kredensial bisa punya artefak di lebih dari satu; membaca hanya `cert` membuat artefak di lapis lain terbaca "belum dicetak".
+   * Kosong/tidak ada = hanya `cert` (konfigurasi eksplisit di panel, fork lokal, mainnet).
+   */
+  certs?: Address[]
   /** BAS core di chain ini (fork EAS 1.3.0) — bukan milik kita, address diverifikasi. */
   bas: Address
   chainId: number
@@ -111,7 +117,24 @@ export type ResolverInfo = {
   hasCode: boolean
 }
 
+/**
+ * Satu lapis artefak yang dibaca untuk sebuah kredensial (B164). `readOk = false` berarti pembacaannya GAGAL — itu bukan "belum dicetak":
+ * kosong dan gagal-baca sengaja dibedakan, seperti di seluruh halaman ini.
+ */
+export type CertLayer = {
+  address: Address
+  /** `tokenOfCredential(hash)` di lapis ini; null = tidak ada artefak (atau pembacaan gagal, lihat `readOk`). */
+  tokenId: string | null
+  readOk: boolean
+  /**
+   * Apakah kontrak di alamat ini menegakkan D42 (hanya level kursus) dan D43 (`mintBatch`) — DIUKUR dari bytecode (ketiga selector ada),
+   * bukan dipercaya dari catatan (B53). null = belum diperiksa atau bytecode tak terbaca; hanya dihitung untuk lapis yang memegang artefak.
+   */
+  enforcesCourseLevel: boolean | null
+}
+
 export type CertInfo = {
+  /** Lapis yang ditampilkan: yang pertama memegang artefak kredensial ini, atau lapis utama bila tidak ada. */
   address: Address | null
   name: string | null
   symbol: string | null
@@ -123,6 +146,8 @@ export type CertInfo = {
   holderBalance: string | null
   wiredToThisResolver: boolean | null
   hasCode: boolean
+  /** Semua lapis yang dibaca (B164), dalam urutan baca. Kosong bila hashnya belum diketahui. */
+  layers: CertLayer[]
 }
 
 export type ChainNode = { uid: Hex; status: 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'UNKNOWN'; depth: number }
@@ -177,6 +202,18 @@ const LIMITS = [
   'Halaman ini membaca chain langsung, tanpa backend kami di jalur verifikasi. Status kebenaran selalu gratis; yang berbayar hanyalah kenyamanan (verifikasi massal).',
 ]
 
+// Lencana-B164 status=SELESAI 2026-10-05 — verifier dan daftar kredensial membaca SEMUA lapis artefak soulbound yang dikenal, bukan satu alamat bawaan; lapis yang menegakkan D42/D43 ditandai dari bytecode. Ditemukan saat mencetak artefak B153 di dua instance: bawaan hanya membaca 0xA5eB…, jadi artefak di lapis lain terbaca "belum dicetak". Buktikan ulang: cd web && npm run probe (grup B164), lalu uji peramban T87. JANGAN dibalik/diulang tanpa membuka kembali baris B164 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+/**
+ * Semua lapis artefak soulbound yang dikenal di chain 97 (B164). Urutan = urutan dibaca sesudah `cert` (duplikat `cert` dibuang): lapis yang menegakkan
+ * D42/D43 (28 Sep, 7.968 byte) lebih dulu, lalu yang 27 Sep (status hidup, tanpa D42/D43), lalu yang paling tua (5.102 byte). Bawaan `cert` (`0xA5eB…`, yang paling
+ * tua) TIDAK dipindah: D46 menahannya supaya artefak korpus demo tetap terbaca dan harness tidak merah atas alasan yang salah.
+ */
+export const CERT_LAYERS_97: Address[] = [
+  '0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa',
+  '0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd',
+  '0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c',
+]
+
 /**
  * Default: BSC testnet chain 97 — deployment PUBLIK kita sendiri, ter-deploy 21 Sep.
  *
@@ -190,10 +227,69 @@ export function defaultEndpoint(): Endpoint {
     rpcUrl: 'https://bsc-testnet.publicnode.com',
     resolver: '0x7CA624caFDe5cA3A27b33d26be56F73a90792065',
     cert: '0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c',
+    certs: [...CERT_LAYERS_97],
     bas: '0x6c2270298b1e6046898a322acB3Cbad6F99f7CBD',
     chainId: 97,
     label: 'BNB Smart Chain Testnet',
   }
+}
+
+/**
+ * Lapis artefak yang dibaca untuk sebuah endpoint, berurutan: `cert` dulu, lalu `certs`; tanpa alamat nol dan tanpa duplikat
+ * (huruf besar/kecil tidak dibedakan). Fungsi murni — diuji di `probe` tanpa chain.
+ */
+export function certCandidates(ep: Pick<Endpoint, 'cert' | 'certs'>): Address[] {
+  const seen = new Set<string>()
+  const out: Address[] = []
+  for (const a of [ep.cert, ...(ep.certs ?? [])]) {
+    if (!a || a === ZERO_ADDR) continue
+    const k = a.toLowerCase()
+    if (seen.has(k)) continue
+    seen.add(k)
+    out.push(a)
+  }
+  return out
+}
+
+/**
+ * Memilih lapis yang ditampilkan: yang PERTAMA (menurut urutan baca) memegang artefak kredensial ini; kalau tidak ada yang memegang,
+ * lapis utama (`fallback`) tetap yang ditampilkan supaya panel "belum dicetak" membaca kontrak yang dikonfigurasi. `others` = lapis lain
+ * yang juga memegang artefak untuk kredensial yang sama. Pembacaan yang GAGAL tidak dihitung memegang artefak. Fungsi murni.
+ */
+export function pickArtefactLayer(layers: CertLayer[], fallback: Address): { chosen: Address; others: CertLayer[] } {
+  const holding = layers.filter((l) => l.tokenId !== null)
+  if (!holding.length) return { chosen: fallback, others: [] }
+  return { chosen: holding[0].address, others: holding.slice(1) }
+}
+
+const ARTEFACT_D42_D43_SELECTORS = [
+  'mintBatch(address[],bytes32[],string[])', // D43
+  'attestationOf(bytes32)', // D42: pintu level-kursus memanggil registry lewat dua selector ini
+  'lessonOf(bytes32)',
+].map((sig) => toFunctionSelector(sig).slice(2).toLowerCase())
+
+/** Ketiga selector D42/D43 ada di bytecode? Sama dengan pemeriksaan `signer/scripts/verify-live-cert.js`. null = bytecode tak terbaca. Fungsi murni. */
+export function enforcesCourseLevel(code: Hex | undefined | null): boolean | null {
+  if (!code || code === '0x') return null
+  const c = code.toLowerCase()
+  return ARTEFACT_D42_D43_SELECTORS.every((s) => c.includes(s))
+}
+
+/**
+ * Membaca `tokenOfCredential(hash)` di SETIAP lapis dan mengembalikan satu baris per lapis. Dipakai verifier dan daftar kredensial peserta.
+ * Pembacaan yang gagal ditandai `readOk=false` — tidak pernah disamakan dengan "belum dicetak".
+ */
+export async function artefactLayersOf(hash: Hex, ep: Pick<Endpoint, 'cert' | 'certs'>, client: PublicClient): Promise<CertLayer[]> {
+  const out: CertLayer[] = []
+  for (const address of certCandidates(ep)) {
+    try {
+      const t = (await client.readContract({ address, abi: soulboundCertAbi, functionName: 'tokenOfCredential', args: [hash] })) as bigint
+      out.push({ address, tokenId: t > 0n ? t.toString() : null, readOk: true, enforcesCourseLevel: null })
+    } catch {
+      out.push({ address, tokenId: null, readOk: false, enforcesCourseLevel: null })
+    }
+  }
+  return out
 }
 
 export function mainnetEndpoint(): Endpoint {
@@ -344,6 +440,7 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
       holderBalance: null,
       wiredToThisResolver: null,
       hasCode: false,
+      layers: [],
     },
     issuerAgent: {
       standard: 'ERC-8004', registry: null, agentId: null, claimedBy: null,
@@ -487,9 +584,19 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
     report.resolver.issuerApproved = await read<boolean>('CredentialResolver.isIssuer(input)', ep.resolver, input, () =>
       client.readContract({ address: ep.resolver, abi: credentialResolverAbi, functionName: 'isIssuer', args: [input as Address] }),
     )
-    report.cert.holderBalance = await read<string>('SoulboundCert.balanceOf(input)', ep.cert, input, () =>
-      client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'balanceOf', args: [input as Address] }),
-    )
+    // B164: artefak seorang peserta bisa tersebar di beberapa lapis kontrak — jumlahkan semuanya, jangan hanya membaca lapis utama.
+    const holderLayers = certCandidates(ep)
+    if (!holderLayers.length) {
+      await read<bigint>('SoulboundCert.balanceOf(input)', ep.cert, input, () => Promise.resolve(0n)) // mencatat "belum dikonfigurasi"
+    }
+    let heldTotal: bigint | null = null
+    for (const addr of holderLayers) {
+      const b = await read<bigint>('SoulboundCert.balanceOf(input)', addr, input, () =>
+        client.readContract({ address: addr, abi: soulboundCertAbi, functionName: 'balanceOf', args: [input as Address] }),
+      )
+      if (b !== null) heldTotal = (heldTotal ?? 0n) + b
+    }
+    report.cert.holderBalance = heldTotal === null ? null : heldTotal.toString()
     finish(report, ep)
     return report
   }
@@ -520,9 +627,14 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
   } else if (isDecimal(input)) {
     tokenId = input
     report.input.interpretedAs = 'sbtTokenId'
-    const fromCert = await read<Hex>('SoulboundCert.credentialOf(tokenId)', ep.cert, input, () =>
-      client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'credentialOf', args: [BigInt(input)] }),
-    )
+    // B164: tokenId = angka dari credentialHash di SEMUA lapis, jadi tanyakan lapis demi lapis sampai ada yang mengenalinya.
+    let fromCert: Hex | null = null
+    for (const addr of certCandidates(ep).length ? certCandidates(ep) : [ep.cert]) {
+      fromCert = await read<Hex>('SoulboundCert.credentialOf(tokenId)', addr, input, () =>
+        client.readContract({ address: addr, abi: soulboundCertAbi, functionName: 'credentialOf', args: [BigInt(input)] }),
+      )
+      if (fromCert && fromCert !== EMPTY_UID) break
+    }
     if (fromCert && fromCert !== EMPTY_UID) {
       credentialHash = fromCert
       report.input.note = 'Input adalah tokenId artefak; hash kredensialnya terbaca dari kontrak SBT.'
@@ -661,43 +773,77 @@ export async function verify(rawInput: string, ep: Endpoint): Promise<Report> {
   }
 
   // -------------------------------------------- 6. artefak soulbound
-  if (ep.cert !== ZERO_ADDR) {
-    report.cert.address = ep.cert
-    if (!tokenId && credentialHash) {
-      const t = await read<bigint>('SoulboundCert.tokenOfCredential(hash)', ep.cert, credentialHash, () =>
-        client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'tokenOfCredential', args: [credentialHash as Hex] }),
+  // B164: baca SEMUA lapis yang dikenal (`cert` lalu `certs`), bukan satu alamat. Yang ditampilkan = lapis pertama yang memegang artefak kredensial
+  // ini (atau lapis utama bila tidak ada); lapis lain yang juga memegangnya tercatat di `cert.layers`.
+  const certLayers = certCandidates(ep)
+  if (certLayers.length) {
+    const layers: CertLayer[] = []
+    for (const addr of certLayers) {
+      if (!credentialHash) {
+        layers.push({ address: addr, tokenId: null, readOk: true, enforcesCourseLevel: null })
+        continue
+      }
+      const t = await read<bigint>('SoulboundCert.tokenOfCredential(hash)', addr, credentialHash, () =>
+        client.readContract({ address: addr, abi: soulboundCertAbi, functionName: 'tokenOfCredential', args: [credentialHash as Hex] }),
       )
-      if (t && t > 0n) tokenId = t.toString()
+      layers.push({ address: addr, tokenId: t !== null && t > 0n ? t.toString() : null, readOk: t !== null, enforcesCourseLevel: null })
+    }
+    const { chosen, others } = pickArtefactLayer(layers, certLayers[0])
+    // Bytecode hanya untuk lapis yang memegang artefak dan yang dipilih: cukup untuk menandai mana yang menegakkan D42/D43.
+    const codeOf = new Map<string, Hex | undefined>()
+    if (ep.cert !== ZERO_ADDR) codeOf.set(ep.cert.toLowerCase(), certCode ?? undefined)
+    for (const l of layers) {
+      if (l.tokenId === null && l.address !== chosen) continue
+      const k = l.address.toLowerCase()
+      if (!codeOf.has(k)) {
+        const code = await read<Hex | undefined>('eth_getCode(lapis artefak)', l.address, '', () => client.getBytecode({ address: l.address }))
+        codeOf.set(k, code ?? undefined)
+      }
+      l.enforcesCourseLevel = enforcesCourseLevel(codeOf.get(k))
+    }
+    report.cert.layers = layers
+    report.cert.address = chosen
+    const chosenCode = codeOf.get(chosen.toLowerCase())
+    report.cert.hasCode = Boolean(chosenCode && chosenCode !== '0x')
+    if (!tokenId) tokenId = layers.find((l) => l.address === chosen)?.tokenId ?? null
+    if (others.length) {
+      reasons.push(
+        `Artefak soulbound untuk kredensial ini tercetak di ${others.length + 1} lapis kontrak (${[chosen, ...others.map((o) => o.address)].join(', ')}) — satu token per kontrak, tokenId sama. Yang ditampilkan di panel adalah lapis pertama yang dibaca.`,
+      )
+    } else if (!layers.some((l) => l.tokenId !== null) && layers.some((l) => !l.readOk)) {
+      reasons.push(
+        `Pembacaan artefak di ${layers.filter((l) => !l.readOk).length} dari ${layers.length} lapis kontrak GAGAL — itu bukan "belum dicetak"; baca ulang atau ganti RPC sebelum menyimpulkan apa pun tentang artefaknya.`,
+      )
     }
     report.cert.tokenId = tokenId
-    report.cert.name = await read<string>('SoulboundCert.name()', ep.cert, '', () =>
-      client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'name' }),
+    report.cert.name = await read<string>('SoulboundCert.name()', chosen, '', () =>
+      client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'name' }),
     )
-    report.cert.symbol = await read<string>('SoulboundCert.symbol()', ep.cert, '', () =>
-      client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'symbol' }),
+    report.cert.symbol = await read<string>('SoulboundCert.symbol()', chosen, '', () =>
+      client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'symbol' }),
     )
-    report.cert.supportsErc5192 = await read<boolean>('SoulboundCert.supportsInterface(0xb45a3c0e)', ep.cert, ERC5192_INTERFACE_ID, () =>
-      client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'supportsInterface', args: [ERC5192_INTERFACE_ID] }),
+    report.cert.supportsErc5192 = await read<boolean>('SoulboundCert.supportsInterface(0xb45a3c0e)', chosen, ERC5192_INTERFACE_ID, () =>
+      client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'supportsInterface', args: [ERC5192_INTERFACE_ID] }),
     )
-    const wired = await read<Address>('SoulboundCert.registry()', ep.cert, ep.resolver, () =>
-      client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'registry' }),
+    const wired = await read<Address>('SoulboundCert.registry()', chosen, ep.resolver, () =>
+      client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'registry' }),
     )
     report.cert.wiredToThisResolver = wired ? wired.toLowerCase() === ep.resolver.toLowerCase() : null
 
     if (tokenId) {
       const tid = BigInt(tokenId)
-      report.cert.owner = await read<Address>('SoulboundCert.ownerOf(tokenId)', ep.cert, tokenId, () =>
-        client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'ownerOf', args: [tid] }),
+      report.cert.owner = await read<Address>('SoulboundCert.ownerOf(tokenId)', chosen, tokenId, () =>
+        client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'ownerOf', args: [tid] }),
       )
-      report.cert.locked = await read<boolean>('SoulboundCert.locked(tokenId)', ep.cert, tokenId, () =>
-        client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'locked', args: [tid] }),
+      report.cert.locked = await read<boolean>('SoulboundCert.locked(tokenId)', chosen, tokenId, () =>
+        client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'locked', args: [tid] }),
       )
-      report.cert.tokenUri = await read<string>('SoulboundCert.tokenURI(tokenId)', ep.cert, tokenId, () =>
-        client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'tokenURI', args: [tid] }),
+      report.cert.tokenUri = await read<string>('SoulboundCert.tokenURI(tokenId)', chosen, tokenId, () =>
+        client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'tokenURI', args: [tid] }),
       )
       if (report.cert.owner) {
-        report.cert.holderBalance = await read<string>('SoulboundCert.balanceOf(owner)', ep.cert, report.cert.owner, () =>
-          client.readContract({ address: ep.cert, abi: soulboundCertAbi, functionName: 'balanceOf', args: [report.cert.owner as Address] }),
+        report.cert.holderBalance = await read<string>('SoulboundCert.balanceOf(owner)', chosen, report.cert.owner, () =>
+          client.readContract({ address: chosen, abi: soulboundCertAbi, functionName: 'balanceOf', args: [report.cert.owner as Address] }),
         )
       }
     }
@@ -842,6 +988,8 @@ function finish(r: Report, ep: Endpoint) {
     r.credential.uid && ep.bas !== ZERO_ADDR ? `cast call ${ep.bas} "getAttestation(bytes32)" ${r.credential.uid} --rpc-url ${ep.rpcUrl}` : '',
     r.credential.issuer ? `cast call ${ep.resolver} "isIssuer(address)" ${r.credential.issuer} --rpc-url ${ep.rpcUrl}` : '',
     r.credential.issuer ? `cast call ${ep.resolver} "isDelisted(address)" ${r.credential.issuer} --rpc-url ${ep.rpcUrl}` : '',
+    // B164: satu baris per lapis artefak, supaya "belum dicetak" bisa dicek ulang di lapis mana pun tanpa halaman ini.
+    ...(r.credential.hash ? certCandidates(ep).map((a) => `cast call ${a} "tokenOfCredential(bytes32)" ${r.credential.hash} --rpc-url ${ep.rpcUrl}`) : []),
   ].filter(Boolean)
 
   r.reproduction.curl = [

@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sertifikat · spesimen desain</title>
+<!-- DESIGN:HEAD — tautan font (Google Fonts) dan <meta> khusus desain. Tanpa skrip eksternal, tanpa gambar eksternal. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300..700&display=swap" rel="stylesheet" crossorigin="anonymous">
+<meta name="theme-color" content="#0a1f4a">
+<!-- /DESIGN:HEAD -->
+<style>
+/* ===================== SHARED SHELL — JANGAN UBAH (identik di kelima desain) ===================== */
+:root{
+  --sheet-w:1122px; --sheet-h:793px;           /* A4 landscape pada 96 dpi, dikurangi sedikit supaya muat satu halaman cetak */
+  --scale:1;
+  --cx-bg:#e7e8ec; --cx-bar:#15171c; --cx-bar-ink:#e9eaee; --cx-bar-mute:#9aa0ab; --cx-accent:#f0b90b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+.cx-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px;background:var(--cx-bar);color:var(--cx-bar-ink)}
+.cx-bar a{color:var(--cx-bar-ink);text-decoration:none;opacity:.8}
+.cx-bar a:hover{opacity:1;text-decoration:underline}
+.cx-bar .cx-title{font-weight:650;letter-spacing:.01em}
+.cx-bar .cx-title small{display:block;font-weight:400;color:var(--cx-bar-mute);font-size:12px;letter-spacing:0}
+.cx-bar .cx-sp{flex:1 1 auto}
+.cx-seg{display:inline-flex;border:1px solid #3a3e48;border-radius:8px;overflow:hidden}
+.cx-seg button{all:unset;cursor:pointer;padding:6px 12px;font-size:13px;color:var(--cx-bar-mute)}
+.cx-seg button[aria-pressed="true"]{background:var(--cx-accent);color:#15171c;font-weight:600}
+.cx-seg button:focus-visible,.cx-btn:focus-visible{outline:2px solid var(--cx-accent);outline-offset:2px}
+.cx-btn{all:unset;cursor:pointer;padding:6px 12px;border:1px solid #3a3e48;border-radius:8px;font-size:13px;color:var(--cx-bar-ink)}
+.cx-btn:hover{border-color:var(--cx-accent)}
+.cx-stage{display:grid;place-items:center;padding:20px 12px 8px}
+.cx-fit{position:relative;width:calc(var(--sheet-w) * var(--scale));height:calc(var(--sheet-h) * var(--scale))}
+.cx-scale{position:absolute;left:0;top:0;width:var(--sheet-w);height:var(--sheet-h);transform:scale(var(--scale));transform-origin:0 0}   /* satu pemilik transform: skala */
+.cx-tilt{width:100%;height:100%;transform:perspective(1800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}   /* satu pemilik transform: miring (interaksi) */
+.sheet{position:relative;width:var(--sheet-w);height:var(--sheet-h);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.18),0 18px 50px rgba(20,22,30,.28);isolation:isolate}
+.cx-foot{max-width:1122px;margin:10px auto 0;padding:0 16px;color:#5b616c;font-size:12.5px}
+.cx-foot a{color:#2b4a9a}
+.cx-notes{max-width:1122px;margin:18px auto 56px;padding:0 16px}
+.cx-notes details{background:#fff;border:1px solid #d6d8de;border-radius:12px;padding:14px 18px}
+.cx-notes summary{cursor:pointer;font-weight:650}
+.cx-notes dl{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:6px 18px;margin:14px 0 0}
+.cx-notes dt{color:#5b616c}
+.cx-notes dd{margin:0}
+.cx-notes ul{margin:0;padding-left:18px}
+.cx-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
+@media (max-width:640px){.cx-notes dl{grid-template-columns:1fr}.cx-notes dt{margin-top:8px}}
+
+/* tampilan alamat ⇄ nama contoh: desain menandai elemen dengan data-show="alamat" atau data-show="nama" */
+.sheet[data-mode="alamat"] [data-show="nama"],.sheet[data-mode="nama"] [data-show="alamat"]{display:none !important}
+
+@page{size:297mm 210mm;margin:0}
+@media print{
+  html,body.cx{background:#fff !important;min-height:0}
+  .cx-bar,.cx-foot,.cx-notes{display:none !important}
+  .cx-stage{display:block;padding:0;place-items:normal;justify-items:normal;align-items:normal}
+  .cx-fit{width:auto;height:auto;position:static;margin:0}
+  .cx-scale{position:static;width:auto;height:auto;transform:none !important}
+  .cx-tilt{transform:none !important;transition:none !important}
+  .sheet{box-shadow:none !important;margin:0;break-inside:avoid;page-break-inside:avoid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet,.sheet *{animation:none !important;transition:none !important}   /* cetak = keadaan akhir, bukan separuh jalan */
+}
+/* ===================== /SHARED SHELL ===================== */
+
+/* ===================== DESIGN CSS ===================== */
+/* ATURAN GERAK: keadaan AKHIR adalah gaya bawaan. Semua animasi (masuk dan berkelanjutan) hanya berlaku di bawah `.sheet.is-playing …`,
+   dengan animation-fill-mode: both. Tanpa kelas itu (reduce-motion, ?motion=off, cetak) kertas tampil utuh dan diam. */
+/* S3 · Kaca Segitiga — Glass / Soft-depth. Lapisan: atmosfer → facet kristal (3 kedalaman) → kaca buram → pelat QR putih padat. */
+.sheet{--s3-navy:#0a1f4a;--s3-royal:#2457d6;--s3-cyan:#38c8ee;--s3-violet:#7a6cf0;--s3-base:#f3f7ff;--s3-ink2:#2b3d66;--s3-ink3:#4a5b80;
+  --s3-sans:Outfit,"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --s3-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono","SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+  --s3-spring:cubic-bezier(.34,1.56,.64,1);--s3-out:cubic-bezier(.22,1,.36,1);
+  background:var(--s3-base);color:var(--s3-navy);font-family:var(--s3-sans)}
+.sheet p,.sheet h1,.sheet dl,.sheet dd,.sheet ul{margin:0}
+.s3-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* atmosfer: dasar putih bercahaya + diagonal biru sangat tipis */
+.s3-atmo{position:absolute;inset:0;z-index:0;background:
+  radial-gradient(900px 660px at 100% 0%,rgba(36,87,214,.17),rgba(36,87,214,0) 62%),
+  radial-gradient(520px 420px at 0% 100%,rgba(56,200,238,.20),rgba(56,200,238,0) 66%),
+  radial-gradient(720px 540px at 26% 40%,rgba(255,255,255,.96),rgba(255,255,255,0) 70%),
+  linear-gradient(135deg,#f8fbff 0%,#f1f6ff 50%,#e8f0ff 100%)}
+
+/* facet: tiga kedalaman, paralaks lewat --mx/--my (hanya transform) */
+.s3-fx{position:absolute;left:0;top:0;width:1122px;height:793px;overflow:visible;pointer-events:none;z-index:1;
+  transform:translate3d(calc((50% - var(--mx,50%)) * var(--k)),calc((50% - var(--my,50%)) * var(--k)),0);
+  transition:transform 1.1s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.s3-fx-bl{--k:.012}
+.s3-fx-tr{--k:.022}
+.s3-fx-front{--k:.042;z-index:2}
+.s3-fx .f{transform-box:fill-box;transform-origin:50% 50%}
+.s3-fx-g{opacity:.2}
+
+/* kaca */
+.s3-glass{background:linear-gradient(140deg,rgba(255,255,255,.76),rgba(255,255,255,.6));
+  -webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(255,255,255,.62),0 26px 50px -26px rgba(16,52,150,.45),0 3px 10px -4px rgba(10,31,74,.12)}
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){.s3-glass{background:rgba(255,255,255,.9)}}
+.s3-sweep{position:absolute;top:-40%;left:0;width:110px;height:180%;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(36,87,214,.1) 30%,rgba(255,255,255,.95) 50%,rgba(56,200,238,.12) 64%,rgba(255,255,255,0));transform:translateX(-170px) rotate(18deg)}
+/* cahaya diagonal yang lewat DI BELAKANG kaca: terlihat pada kristal dan menembus kaca buram */
+.s3-shine{position:absolute;left:0;top:-320px;width:260px;height:1440px;z-index:2;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.16) 30%,rgba(255,255,255,.5) 50%,rgba(255,255,255,.16) 70%,rgba(255,255,255,0));
+  transform:translateX(-420px) rotate(24deg);opacity:0}
+
+/* merek */
+.s3-brand{position:absolute;left:72px;top:46px;display:flex;align-items:center;gap:14px;z-index:5}
+.s3-tile{position:relative;width:54px;height:54px;border-radius:16px;display:grid;place-items:center;overflow:hidden;
+  background:linear-gradient(145deg,#3b7cf3 0%,#2457d6 50%,#1a3fae 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 0 0 1px rgba(255,255,255,.18),0 12px 26px -10px rgba(36,87,214,.7)}
+.s3-tile svg{position:relative;z-index:1;width:36px;height:34px;--logo-a:#ffffff;--logo-b:#0a1f4a}
+.s3-tile .s3-sweep{--travel:120px;width:36px}
+.s3-word{display:flex;flex-direction:column;font-weight:600;font-size:22px;line-height:1.05;letter-spacing:-.01em;color:var(--s3-navy)}
+.s3-word small{margin-top:5px;font-size:11.5px;font-weight:500;letter-spacing:.01em;color:var(--s3-ink3)}
+
+/* judul */
+.s3-title{position:absolute;left:66px;top:120px;width:620px;z-index:5;font-weight:700;font-size:80px;line-height:.98;letter-spacing:-.04em;color:var(--s3-navy)}
+.s3-title .t1,.s3-title .t2{display:block}
+.s3-title .t2{color:var(--s3-royal);padding-bottom:.04em}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  .s3-title .t2{background:linear-gradient(100deg,#1b3aa6 0%,#2457d6 45%,#1c7fc4 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}}
+
+/* penerima */
+.s3-who{position:absolute;left:72px;top:300px;width:620px;z-index:5}
+.s3-eyebrow{margin:0 0 8px!important;font-size:14px;font-weight:500;color:var(--s3-ink3);letter-spacing:.01em}
+.s3-addr{display:flex;align-items:flex-start;gap:10px;font-family:var(--s3-mono);color:var(--s3-navy)}
+.s3-addr .ox{font-size:15px;font-weight:600;color:var(--s3-royal);padding-top:9px}
+.s3-addr .g{font-size:30px;font-weight:500;line-height:1.22;width:16.5em;word-spacing:.32em;letter-spacing:0}
+.s3-cap{margin-top:8px!important;font-size:12px;color:var(--s3-ink3)}
+.s3-name{font-size:58px;font-weight:700;letter-spacing:-.03em;line-height:1.02;color:var(--s3-navy)}
+.s3-namesub{margin-top:12px!important;display:flex;align-items:center;gap:12px}
+.s3-chip{flex:none;font-family:var(--s3-mono);font-size:13px;font-weight:500;color:var(--s3-navy);padding:5px 11px;border-radius:999px;background:rgba(36,87,214,.08);box-shadow:inset 0 0 0 1px rgba(36,87,214,.2)}
+.s3-note{font-size:11.5px;line-height:1.35;color:var(--s3-ink3);max-width:400px}
+
+/* kelas */
+.s3-what{position:absolute;left:72px;top:452px;width:600px;z-index:5}
+.s3-course{font-size:25px;font-weight:600;letter-spacing:-.01em;line-height:1.2;color:var(--s3-navy)}
+
+/* medali kaca + cincin nilai */
+.s3-medal{position:absolute;left:720px;top:82px;width:360px;height:360px;z-index:4}
+.s3-medal-par,.s3-medal-float,.s3-medal-in{position:absolute;inset:0}
+.s3-medal-par{transform:translate3d(calc((50% - var(--mx,50%)) * .08),calc((50% - var(--my,50%)) * .08),0);transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+.s3-ribbons{position:absolute;left:0;top:0;width:360px;height:470px;overflow:visible}
+.s3-pulse{position:absolute;left:14px;top:14px;width:332px;height:332px;border-radius:50%;border:2px solid rgba(56,200,238,.9);box-shadow:0 0 26px rgba(56,200,238,.5);opacity:0;pointer-events:none}
+.s3-disc{position:absolute;left:42px;top:42px;width:276px;height:276px;border-radius:50%;overflow:hidden;
+  background:radial-gradient(120% 120% at 28% 18%,rgba(255,255,255,.9) 0%,rgba(255,255,255,.64) 44%,rgba(228,239,255,.52) 100%);
+  -webkit-backdrop-filter:blur(14px) saturate(175%);backdrop-filter:blur(14px) saturate(175%);
+  box-shadow:inset 0 2px 2px rgba(255,255,255,.95),inset 0 -18px 38px rgba(36,87,214,.2),0 36px 64px -22px rgba(10,31,74,.6),0 10px 24px -6px rgba(36,87,214,.32)}
+.s3-disc::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(78% 56% at 32% 10%,rgba(255,255,255,.95),rgba(255,255,255,0) 62%),radial-gradient(40% 22% at 70% 92%,rgba(56,200,238,.22),rgba(56,200,238,0) 70%)}
+.s3-disc::after{content:"";position:absolute;inset:0;border-radius:50%;padding:1.6px;
+  background:conic-gradient(from 200deg,rgba(255,255,255,1),rgba(255,255,255,.15) 22%,rgba(56,200,238,.85) 48%,rgba(255,255,255,.2) 72%,rgba(255,255,255,1));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.s3-disc .s3-sweep{--travel:420px}
+.s3-flash{position:absolute;inset:0;border-radius:50%;opacity:0;pointer-events:none;background:radial-gradient(circle at 36% 30%,rgba(255,255,255,1),rgba(255,255,255,.4) 58%,rgba(255,255,255,0) 76%)}
+.s3-dial{position:absolute;left:0;top:0;width:360px;height:360px;overflow:visible}
+.s3-dial .s3-notch,.s3-dial .s3-tick,.s3-dial .s3-pillg{transform-box:fill-box;transform-origin:50% 50%}
+.s3-dial .s3-tick{filter:drop-shadow(0 0 5px rgba(56,200,238,.95))}
+.s3-dial .s3-arc{filter:drop-shadow(0 0 4px rgba(56,200,238,.85)) drop-shadow(0 0 1px rgba(10,31,74,.35))}
+.s3-dial text{font-family:var(--s3-sans);font-size:10.5px;font-weight:600;letter-spacing:.02em;fill:var(--s3-navy)}
+.s3-dial .s3-pilltxt{font-size:10.5px;font-weight:600;fill:var(--s3-navy)}
+.s3-read{position:absolute;left:80px;top:106px;width:200px;height:148px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.s3-res{font-size:11px;font-weight:500;letter-spacing:.04em;color:var(--s3-ink3)}
+.s3-num{display:flex;align-items:flex-start;font-weight:700;font-size:88px;line-height:.92;letter-spacing:-.045em;color:var(--s3-navy);font-variant-numeric:tabular-nums lining-nums;margin-top:2px}
+.s3-num small{font-size:15px;font-weight:500;letter-spacing:0;color:var(--s3-ink3);margin:12px 0 0 6px}
+.s3-pass{margin-top:10px;padding:4px 12px 4px 15px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.22em;color:#fff;
+  background:linear-gradient(135deg,#2a63e6,#1d48bf);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 14px -6px rgba(36,87,214,.85)}
+
+/* pelat QR: putih padat, tidak pernah di atas kaca */
+.s3-qr{position:absolute;left:802px;top:500px;width:196px;z-index:6}
+/* padding 20 px dengan radius 20 px: sudut zona tenang 4 modul (≈13,9 px) tetap di dalam pelat putih */
+.s3-qrplate{background:#fff;border-radius:20px;padding:20px 20px 14px;transform:translateY(-2px);
+  box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(10,31,74,.07),0 24px 42px -16px rgba(10,31,74,.5),0 6px 14px -6px rgba(36,87,214,.28)}
+.s3-qrcode{display:block;width:156px;height:156px;color:var(--s3-navy)}
+.s3-scan{margin-top:10px!important;font-size:11px;line-height:1.3;font-weight:500;color:var(--s3-navy)}
+.s3-id{margin-top:7px!important;display:flex;flex-direction:column;gap:1px;font-size:10px;color:var(--s3-ink3)}
+.s3-id b{font-family:var(--s3-mono);font-weight:500;font-size:10.5px;color:var(--s3-navy);letter-spacing:-.01em}
+
+/* pelat fakta kaca di atas kristal kiri bawah */
+.s3-plate{position:absolute;left:48px;top:560px;width:734px;height:214px;border-radius:24px;overflow:hidden;z-index:3}
+.s3-plate .s3-sweep{--travel:900px;opacity:.5}
+.s3-f{position:absolute}
+.s3-f dt{font-size:11.5px;font-weight:500;letter-spacing:.01em;color:var(--s3-ink3)}
+.s3-f dd{margin-top:3px;font-size:16px;font-weight:600;line-height:1.25;color:var(--s3-navy);font-variant-numeric:tabular-nums}
+.s3-f-iss{left:26px;top:20px}
+.s3-time{margin-left:8px;font-size:13px;font-weight:500;color:var(--s3-ink2)}
+.s3-f-val{right:26px;top:20px;text-align:right}
+.s3-span{position:absolute;left:266px;right:180px;top:24px;height:36px}
+.s3-days{position:absolute;left:0;right:0;top:0;text-align:center;font-size:11px;font-weight:500;color:var(--s3-ink3)}
+.s3-rod{position:absolute;left:0;right:0;top:24px;height:6px;border-radius:3px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 calc(100%/12 - 1.5px),rgba(255,255,255,.95) calc(100%/12 - 1.5px) calc(100%/12)),linear-gradient(90deg,var(--s3-royal),#2f8fe2 70%,var(--s3-cyan));
+  box-shadow:0 2px 6px -2px rgba(36,87,214,.6)}
+.s3-rod::before,.s3-rod::after{content:"";position:absolute;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%}
+.s3-rod::before{left:-6px;background:var(--s3-navy);box-shadow:0 0 0 3px rgba(255,255,255,.95)}
+.s3-rod::after{right:-6px;background:#fff;box-shadow:inset 0 0 0 2.5px var(--s3-royal),0 0 0 3px rgba(255,255,255,.95)}
+.s3-f-pub{left:26px;top:86px;width:340px}
+.s3-f-sig{left:392px;top:86px;width:316px}
+.s3-pill{display:table;margin-top:5px;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:500;line-height:1.35;color:var(--s3-ink2);background:rgba(10,31,74,.06);box-shadow:inset 0 0 0 1px rgba(10,31,74,.15)}
+.s3-proof{display:block;margin-top:3px;font-family:var(--s3-mono);font-size:10.5px;font-weight:500;color:var(--s3-ink2)}
+.s3-foot{position:absolute;left:26px;right:26px;bottom:13px;padding-top:9px;border-top:1px solid rgba(10,31,74,.12);font-size:10.5px;line-height:1.42;color:var(--s3-ink2)}
+
+/* ---------- gerak: hanya di bawah .is-playing ---------- */
+@keyframes s3-facet{from{opacity:0;transform:scale(.12) rotate(-24deg)}}
+@keyframes s3-rise{from{opacity:0;transform:translateY(18px);filter:blur(8px)}}
+@keyframes s3-fade{from{opacity:0}}
+@keyframes s3-medal{from{transform:scale(.82)}}
+@keyframes s3-ribbon{from{opacity:0;transform:translateY(-46px)}}
+@keyframes s3-draw{from{stroke-dashoffset:var(--len)}}
+@keyframes s3-pop{0%{opacity:0;transform:scale(.2)}60%{opacity:1;transform:scale(1.28)}100%{opacity:1;transform:scale(1)}}
+@keyframes s3-pulse{0%{opacity:.9;transform:scale(.97)}100%{opacity:0;transform:scale(1.34)}}
+@keyframes s3-flash{0%{opacity:0}16%{opacity:.6}100%{opacity:0}}
+@keyframes s3-sweep{0%{transform:translateX(-170px) rotate(18deg)}10%,100%{transform:translateX(var(--travel)) rotate(18deg)}}
+@keyframes s3-lift{from{transform:translateY(0);box-shadow:inset 0 1px 0 #fff,0 0 0 1px rgba(10,31,74,.07),0 12px 22px -14px rgba(10,31,74,.4),0 3px 8px -6px rgba(36,87,214,.2)}}
+@keyframes s3-float{0%,100%{transform:translateY(0)}25%{transform:translateY(-4px)}75%{transform:translateY(4px)}}
+@keyframes s3-breathe{0%,100%{opacity:0}50%{opacity:.7}}
+@keyframes s3-shine{0%{opacity:1;transform:translateX(-420px) rotate(24deg)}22%{opacity:1;transform:translateX(1420px) rotate(24deg)}22.01%,100%{opacity:0;transform:translateX(1420px) rotate(24deg)}}
+.sheet.is-playing .s3-shine{animation:s3-shine 8s cubic-bezier(.4,0,.25,1) 1.03s infinite both}
+.sheet.is-playing .s3-fx .f{animation:s3-facet .75s var(--s3-spring) var(--d,0ms) both}
+.sheet.is-playing .s3-fx-g{animation:s3-breathe 7s ease-in-out var(--gd,2.6s) infinite both}
+.sheet.is-playing .s3-brand{animation:s3-rise .8s var(--s3-out) .12s both}
+.sheet.is-playing .s3-title .t1{animation:s3-rise .9s var(--s3-out) .2s both}
+.sheet.is-playing .s3-title .t2{animation:s3-rise .9s var(--s3-out) .3s both}
+.sheet.is-playing .s3-who{animation:s3-rise .9s var(--s3-out) .45s both}
+.sheet.is-playing .s3-what{animation:s3-rise .9s var(--s3-out) .56s both}
+.sheet.is-playing .s3-plate{animation:s3-rise 1s var(--s3-out) .8s both}
+.sheet.is-playing .s3-qr{animation:s3-rise 1s var(--s3-out) .9s both}
+.sheet.is-playing .s3-qrplate{animation:s3-lift .6s var(--s3-spring) 1.95s both}
+.sheet.is-playing .s3-medal-in{animation:s3-medal 1.1s var(--s3-spring) .3s both}
+.sheet.is-playing .s3-disc{animation:s3-fade .8s var(--s3-out) .3s both}
+.sheet.is-playing .s3-read{animation:s3-fade .6s var(--s3-out) .55s both}
+.sheet.is-playing .s3-ribbons{animation:s3-ribbon .9s var(--s3-spring) .6s both}
+.sheet.is-playing .s3-dial .s3-trk{animation:s3-fade .6s ease-out .4s both}
+.sheet.is-playing .s3-dial .s3-arc{animation:s3-draw 1.3s var(--s3-out) .65s both}
+.sheet.is-playing .s3-dial .s3-cf{animation:s3-draw .7s var(--s3-out) var(--cd,1.15s) both}
+.sheet.is-playing .s3-dial .s3-lab{animation:s3-fade .6s ease-out 1.25s both}
+.sheet.is-playing .s3-dial .s3-notch,.sheet.is-playing .s3-dial .s3-pillg{animation:s3-pop .55s var(--s3-spring) .95s both}
+.sheet.is-playing .s3-dial .s3-tick{animation:s3-pop .55s var(--s3-spring) 1.95s both}
+.sheet.is-playing .s3-pulse{animation:s3-pulse 1s var(--s3-out) 1.95s both}
+.sheet.is-playing .s3-flash{animation:s3-flash .8s ease-out 1.95s both}
+.sheet.is-playing .s3-disc .s3-sweep{animation:s3-sweep 8s cubic-bezier(.45,0,.2,1) 1.95s infinite both}
+.sheet.is-playing .s3-plate .s3-sweep{animation:s3-sweep 8s cubic-bezier(.45,0,.2,1) 1.45s infinite both}
+.sheet.is-playing .s3-tile .s3-sweep{animation:s3-sweep 8s cubic-bezier(.45,0,.2,1) 1.15s infinite both}
+.sheet.is-playing .s3-medal-float{animation:s3-float 7s ease-in-out 2.4s infinite both}
+
+/* ---------- cetak: tanpa backdrop-filter, kaca jadi putih semi-padat, atmosfer tetap ---------- */
+@media print{
+  .sheet .s3-glass{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:rgba(255,255,255,.9)!important;box-shadow:inset 0 0 0 1px rgba(10,31,74,.12)!important}
+  .sheet .s3-disc{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:radial-gradient(120% 120% at 28% 18%,#fff 0%,rgba(255,255,255,.94) 50%,rgba(236,243,255,.92) 100%)!important}
+  .sheet .s3-fx,.sheet .s3-medal-par{transform:none!important}
+  .sheet .s3-sweep,.sheet .s3-pulse,.sheet .s3-flash,.sheet .s3-shine{display:none!important}
+}
+/* ===================== /DESIGN CSS ===================== */
+</style>
+</head>
+<body class="cx">
+<header class="cx-bar">
+  <a href="index.html" aria-label="Kembali ke semua desain">← Semua desain</a>
+  <div class="cx-title"><span data-design="title">Desain</span><small data-design="row"></small></div>
+  <span class="cx-sp"></span>
+  <div class="cx-seg" role="group" aria-label="Isi baris penerima">
+    <button type="button" data-mode-btn="alamat" aria-pressed="true" title="Yang sebenarnya ada di data kredensial">Alamat dompet</button>
+    <button type="button" data-mode-btn="nama" aria-pressed="false" title="Contoh tampilan jika nanti ada nama tampilan — belum ada di kredensial">Nama contoh</button>
+  </div>
+  <button class="cx-btn" type="button" data-act="replay">▶ Ulangi gerak</button>
+  <button class="cx-btn" type="button" data-act="print">Cetak / simpan PDF</button>
+</header>
+
+<main class="cx-stage">
+  <div class="cx-fit"><div class="cx-scale"><div class="cx-tilt">
+    <article class="sheet" data-mode="alamat" aria-label="Sertifikat Kelulusan — spesimen desain">
+<!-- DESIGN:SHEET — isi lembar (HTML + SVG inline). Ukuran tetap 1122×793 px. Nilai nyata hanya lewat data-bind / data-txt / svg[data-qr] / svg[data-logo]. -->
+<div class="s3-atmo" aria-hidden="true"></div>
+<svg class="s3-fx s3-fx-bl" data-s3-fx="bl" viewBox="0 0 1122 793" aria-hidden="true" focusable="false"></svg>
+<svg class="s3-fx s3-fx-tr" data-s3-fx="tr" viewBox="0 0 1122 793" aria-hidden="true" focusable="false"></svg>
+<svg class="s3-fx s3-fx-tr s3-fx-g" data-s3-fx="g0" viewBox="0 0 1122 793" fill="#ffffff" style="--gd:2.6s" aria-hidden="true" focusable="false"></svg>
+<svg class="s3-fx s3-fx-tr s3-fx-g" data-s3-fx="g1" viewBox="0 0 1122 793" fill="#ffffff" style="--gd:4.9s" aria-hidden="true" focusable="false"></svg>
+<svg class="s3-fx s3-fx-tr s3-fx-g" data-s3-fx="g2" viewBox="0 0 1122 793" fill="#ffffff" style="--gd:7.2s" aria-hidden="true" focusable="false"></svg>
+<svg class="s3-fx s3-fx-front" data-s3-fx="front" viewBox="0 0 1122 793" aria-hidden="true" focusable="false"></svg>
+<i class="s3-shine" aria-hidden="true"></i>
+
+<header class="s3-brand">
+  <span class="s3-tile"><svg data-logo></svg><i class="s3-sweep" aria-hidden="true"></i></span>
+  <span class="s3-word">Lencana<small>format <span data-bind="format"></span></small></span>
+</header>
+
+<h1 class="s3-title" data-s3-title></h1>
+
+<section class="s3-who" aria-label="Penerima">
+  <p class="s3-eyebrow" data-txt="presentedTo"></p>
+  <div data-show="alamat">
+    <p class="s3-addr"><span class="ox" data-s3-0x></span><span class="g" data-bind="addressGroups"></span></p>
+    <p class="s3-cap" data-txt="wallet"></p>
+  </div>
+  <div data-show="nama">
+    <p class="s3-name" data-bind="name"></p>
+    <p class="s3-namesub"><span class="s3-chip" data-bind="addressShort"></span><span class="s3-note" data-txt="nameNote"></span></p>
+  </div>
+</section>
+
+<section class="s3-what" aria-label="Kelas">
+  <p class="s3-eyebrow" data-txt="forPassing"></p>
+  <p class="s3-course" data-bind="course"></p>
+</section>
+
+<section class="s3-result" aria-label="Hasil">
+  <div class="s3-medal">
+    <div class="s3-medal-par"><div class="s3-medal-float"><div class="s3-medal-in">
+      <svg class="s3-ribbons" viewBox="0 0 360 470" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="s3-rbA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a5fe0"/><stop offset="1" stop-color="#0f2a6b"/></linearGradient>
+          <linearGradient id="s3-rbB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a92f2"/><stop offset="1" stop-color="#1d4fc8"/></linearGradient>
+        </defs>
+        <path d="M146 250 L188 256 L148 452 L126 430 L104 446 Z" fill="url(#s3-rbA)"/>
+        <path d="M156 258 L162 258 L120 440 L114 440 Z" fill="#ffffff" fill-opacity=".22"/>
+        <path d="M214 250 L172 256 L212 452 L234 430 L256 446 Z" fill="url(#s3-rbB)"/>
+        <path d="M200 258 L206 258 L246 440 L240 440 Z" fill="#ffffff" fill-opacity=".26"/>
+      </svg>
+      <span class="s3-pulse" aria-hidden="true"></span>
+      <div class="s3-disc" aria-hidden="true"><i class="s3-flash"></i><i class="s3-sweep"></i></div>
+      <svg class="s3-dial" data-s3-dial viewBox="-180 -180 360 360" aria-hidden="true" focusable="false"></svg>
+      <div class="s3-read">
+        <span class="s3-res" data-txt="result"></span>
+        <span class="s3-num"><span data-bind="score" data-s3-score></span><small>/100</small></span>
+        <span class="s3-pass" data-txt="passed"></span>
+      </div>
+    </div></div></div>
+  </div>
+  <p class="s3-sr" data-txt="scoreLine"></p>
+  <ul class="s3-sr" data-s3-comp></ul>
+</section>
+
+<aside class="s3-qr" aria-label="Periksa kredensial">
+  <div class="s3-qrplate">
+    <svg data-qr class="s3-qrcode"></svg>
+    <p class="s3-scan" data-txt="scanToCheck"></p>
+    <p class="s3-id"><span data-txt="credentialId"></span><b data-bind="hashShort"></b></p>
+  </div>
+</aside>
+
+<section class="s3-plate s3-glass" aria-label="Rincian penerbitan">
+  <i class="s3-sweep" aria-hidden="true"></i>
+  <div class="s3-span" aria-hidden="true"><span class="s3-days" data-s3-days></span><i class="s3-rod"></i></div>
+  <dl>
+    <div class="s3-f s3-f-iss"><dt data-txt="issued"></dt><dd><span data-bind="issuedDate"></span><span class="s3-time" data-bind="issuedTime"></span></dd></div>
+    <div class="s3-f s3-f-val"><dt data-txt="validUntil"></dt><dd data-bind="validUntilDate"></dd></div>
+    <div class="s3-f s3-f-pub"><dt data-txt="publisher"></dt><dd><span data-bind="publisher"></span><span class="s3-pill" data-bind="publisherNote"></span></dd></div>
+    <div class="s3-f s3-f-sig"><dt><span data-txt="signed"></span> <span data-txt="signedBy"></span></dt><dd><span data-bind="issuerName"></span><span class="s3-proof" data-bind="proof"></span></dd></div>
+  </dl>
+  <div class="s3-foot">
+    <p data-txt="limit"></p>
+    <p><span data-txt="demo"></span><span aria-hidden="true"> · </span><span data-txt="statusNote"></span></p>
+  </div>
+</section>
+<!-- /DESIGN:SHEET -->
+    </article>
+  </div></div></div>
+  <p class="cx-foot">Spesimen desain — data dari kredensial uji B153 (5 Okt 2026), penerbit demo fiktif. Bukan ijazah. <a href="https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31" target="_blank" rel="noopener">Dokumen publik ↗</a> · <a href="https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify" target="_blank" rel="noopener">Verifier ↗</a></p>
+</main>
+
+<section class="cx-notes" aria-label="Catatan desain"><details open><summary>Catatan desain</summary><div data-design="notes"></div></details></section>
+
+<script>
+/* ===================== SHARED SHELL JS — JANGAN UBAH ===================== */
+(() => {
+  'use strict';
+  /* ---- Data nyata (satu sumber). Dibaca dari kredensial uji B153 yang terbit 5 Okt 2026; lihat hub desain untuk cara membacanya ulang. ---- */
+  const CERT = {
+    hash:   '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31',
+    uid:    '0xe4990885327d488ff45757b2cb1cb26b0eabeb3f4880bf2c58c8b6d2a1d77506',   // attestation UID di BAS (bukan hash transaksi)
+    tx:     '0xfdeb99b2df97c81754cd91230ca845faa04879d24ee02ace5fdfc44abe57d137',   // transaksi attestation
+    block:  134991781,
+    chain:  { name: 'BNB Smart Chain testnet', id: 97 },
+    learner:'0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF',
+    nameSample: 'Nadia Rahmawati',                                                  // CONTOH tampilan — TIDAK ada di kredensial
+    course: { id: 'uji-bayar-2026', title: 'Kelas Uji — Membayar dengan Tanda Tangan' },
+    publisher: 'Yayasan Literasi Digital Nusantara', publisherNote: 'institusi demo, fiktif',
+    issuerAgent: { name: 'Lencana Demo Agent', eoa: '0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE' },
+    score: 87, passMark: 60,
+    components: [ { key: 'kuis', label: 'Kuis', score: 75, weight: 50 }, { key: 'esai', label: 'Esai', score: 98, weight: 30 }, { key: 'praktik', label: 'Praktik', score: 100, weight: 20 } ],
+    issuedAt: '2026-10-05T09:41:01Z', validUntil: '2027-10-05T09:41:01Z', validDays: 365,
+    statusLabel: 'BERLAKU', statusReadOn: '2026-10-05',
+    checks: [ { id: 'bas', label: 'Attestation BAS', value: 'Tercatat' }, { id: 'whitelist', label: 'Penerbit terdaftar', value: 'Disetujui' }, { id: 'revocation', label: 'Status pencabutan', value: 'Bersih' } ],
+    proof: { type: 'DataIntegrityProof', suite: 'eddsa-rdfc-2022' },
+    format: 'Open Badges 3.0', rubricRef: '6d33c95b4ecc', statusIndex: 76,
+    verifyUrl: 'https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify', edgeUrl: 'https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31', verifyHost: 'lencana-psi.vercel.app',
+    qr:   { modules: 45, version: 7, ec: 'M', path: 'M0 0h7v1h-7zM13 0h2v1h-2zM17 0h1v1h-1zM25 0h3v1h-3zM29 0h2v1h-2zM32 0h2v1h-2zM36 0h1v1h-1zM38 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM12 1h3v1h-3zM20 1h5v1h-5zM26 1h3v1h-3zM31 1h3v1h-3zM35 1h1v1h-1zM38 1h1v1h-1zM44 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h3v1h-3zM12 2h3v1h-3zM16 2h3v1h-3zM21 2h1v1h-1zM23 2h1v1h-1zM27 2h2v1h-2zM30 2h2v1h-2zM35 2h1v1h-1zM38 2h1v1h-1zM40 2h3v1h-3zM44 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h2v1h-2zM13 3h2v1h-2zM16 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h2v1h-2zM30 3h1v1h-1zM32 3h2v1h-2zM35 3h2v1h-2zM38 3h1v1h-1zM40 3h3v1h-3zM44 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h2v1h-2zM13 4h12v1h-12zM28 4h4v1h-4zM34 4h3v1h-3zM38 4h1v1h-1zM40 4h3v1h-3zM44 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM15 5h1v1h-1zM17 5h1v1h-1zM20 5h1v1h-1zM24 5h2v1h-2zM31 5h1v1h-1zM38 5h1v1h-1zM44 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM36 6h1v1h-1zM38 6h7v1h-7zM8 7h2v1h-2zM11 7h3v1h-3zM15 7h2v1h-2zM19 7h2v1h-2zM24 7h8v1h-8zM34 7h2v1h-2zM0 8h1v1h-1zM2 8h5v1h-5zM9 8h2v1h-2zM12 8h2v1h-2zM17 8h1v1h-1zM20 8h5v1h-5zM26 8h2v1h-2zM29 8h2v1h-2zM32 8h2v1h-2zM35 8h2v1h-2zM38 8h5v1h-5zM0 9h1v1h-1zM3 9h2v1h-2zM12 9h2v1h-2zM15 9h1v1h-1zM18 9h1v1h-1zM21 9h5v1h-5zM31 9h1v1h-1zM36 9h1v1h-1zM40 9h2v1h-2zM43 9h2v1h-2zM0 10h3v1h-3zM5 10h3v1h-3zM9 10h2v1h-2zM12 10h1v1h-1zM18 10h2v1h-2zM21 10h1v1h-1zM24 10h8v1h-8zM33 10h2v1h-2zM36 10h4v1h-4zM41 10h1v1h-1zM43 10h1v1h-1zM0 11h2v1h-2zM3 11h2v1h-2zM9 11h1v1h-1zM11 11h6v1h-6zM18 11h1v1h-1zM22 11h4v1h-4zM27 11h1v1h-1zM31 11h3v1h-3zM36 11h1v1h-1zM38 11h2v1h-2zM41 11h2v1h-2zM5 12h2v1h-2zM8 12h1v1h-1zM13 12h2v1h-2zM16 12h4v1h-4zM21 12h2v1h-2zM24 12h1v1h-1zM28 12h3v1h-3zM33 12h2v1h-2zM39 12h3v1h-3zM44 12h1v1h-1zM0 13h3v1h-3zM5 13h1v1h-1zM8 13h3v1h-3zM13 13h2v1h-2zM16 13h2v1h-2zM22 13h1v1h-1zM24 13h2v1h-2zM27 13h3v1h-3zM31 13h1v1h-1zM33 13h1v1h-1zM35 13h3v1h-3zM43 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1zM5 14h2v1h-2zM8 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1zM17 14h2v1h-2zM21 14h2v1h-2zM26 14h1v1h-1zM28 14h1v1h-1zM31 14h1v1h-1zM34 14h1v1h-1zM38 14h2v1h-2zM42 14h3v1h-3zM0 15h1v1h-1zM2 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM16 15h5v1h-5zM22 15h4v1h-4zM27 15h1v1h-1zM30 15h1v1h-1zM32 15h5v1h-5zM40 15h1v1h-1zM42 15h1v1h-1zM0 16h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM8 16h3v1h-3zM12 16h2v1h-2zM15 16h4v1h-4zM21 16h1v1h-1zM23 16h1v1h-1zM27 16h5v1h-5zM33 16h2v1h-2zM37 16h1v1h-1zM39 16h1v1h-1zM41 16h1v1h-1zM43 16h1v1h-1zM2 17h2v1h-2zM12 17h2v1h-2zM23 17h1v1h-1zM25 17h2v1h-2zM30 17h2v1h-2zM33 17h5v1h-5zM43 17h2v1h-2zM4 18h1v1h-1zM6 18h1v1h-1zM9 18h2v1h-2zM14 18h5v1h-5zM20 18h1v1h-1zM24 18h1v1h-1zM26 18h2v1h-2zM33 18h3v1h-3zM38 18h1v1h-1zM42 18h1v1h-1zM1 19h2v1h-2zM4 19h2v1h-2zM7 19h1v1h-1zM9 19h4v1h-4zM15 19h1v1h-1zM17 19h3v1h-3zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM34 19h2v1h-2zM37 19h2v1h-2zM40 19h2v1h-2zM43 19h2v1h-2zM0 20h3v1h-3zM4 20h5v1h-5zM13 20h1v1h-1zM15 20h2v1h-2zM19 20h6v1h-6zM26 20h2v1h-2zM29 20h1v1h-1zM32 20h1v1h-1zM36 20h7v1h-7zM0 21h5v1h-5zM8 21h1v1h-1zM10 21h2v1h-2zM13 21h2v1h-2zM16 21h5v1h-5zM24 21h3v1h-3zM28 21h1v1h-1zM30 21h2v1h-2zM34 21h1v1h-1zM36 21h1v1h-1zM40 21h5v1h-5zM0 22h3v1h-3zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM16 22h1v1h-1zM18 22h3v1h-3zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM32 22h1v1h-1zM36 22h1v1h-1zM38 22h1v1h-1zM40 22h1v1h-1zM42 22h1v1h-1zM0 23h1v1h-1zM4 23h1v1h-1zM8 23h5v1h-5zM15 23h1v1h-1zM17 23h2v1h-2zM20 23h1v1h-1zM24 23h2v1h-2zM27 23h2v1h-2zM30 23h1v1h-1zM35 23h2v1h-2zM40 23h5v1h-5zM0 24h10v1h-10zM11 24h1v1h-1zM15 24h1v1h-1zM18 24h1v1h-1zM20 24h5v1h-5zM26 24h1v1h-1zM29 24h2v1h-2zM32 24h1v1h-1zM36 24h6v1h-6zM43 24h2v1h-2zM0 25h3v1h-3zM5 25h1v1h-1zM7 25h2v1h-2zM11 25h1v1h-1zM13 25h1v1h-1zM17 25h6v1h-6zM24 25h2v1h-2zM28 25h1v1h-1zM42 25h1v1h-1zM44 25h1v1h-1zM0 26h3v1h-3zM6 26h3v1h-3zM12 26h1v1h-1zM16 26h3v1h-3zM26 26h2v1h-2zM30 26h1v1h-1zM33 26h2v1h-2zM37 26h3v1h-3zM41 26h3v1h-3zM0 27h2v1h-2zM3 27h1v1h-1zM7 27h1v1h-1zM9 27h2v1h-2zM14 27h2v1h-2zM17 27h1v1h-1zM19 27h3v1h-3zM23 27h2v1h-2zM29 27h5v1h-5zM36 27h1v1h-1zM39 27h1v1h-1zM42 27h2v1h-2zM0 28h1v1h-1zM6 28h1v1h-1zM10 28h2v1h-2zM13 28h1v1h-1zM15 28h1v1h-1zM18 28h2v1h-2zM25 28h3v1h-3zM30 28h1v1h-1zM33 28h1v1h-1zM38 28h1v1h-1zM40 28h2v1h-2zM43 28h1v1h-1zM3 29h3v1h-3zM7 29h1v1h-1zM13 29h5v1h-5zM20 29h3v1h-3zM24 29h1v1h-1zM30 29h2v1h-2zM33 29h1v1h-1zM36 29h1v1h-1zM38 29h1v1h-1zM42 29h1v1h-1zM44 29h1v1h-1zM0 30h1v1h-1zM2 30h1v1h-1zM4 30h4v1h-4zM9 30h2v1h-2zM12 30h2v1h-2zM15 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM24 30h4v1h-4zM30 30h2v1h-2zM34 30h1v1h-1zM36 30h1v1h-1zM39 30h1v1h-1zM41 30h4v1h-4zM0 31h1v1h-1zM3 31h1v1h-1zM5 31h1v1h-1zM8 31h1v1h-1zM10 31h2v1h-2zM13 31h1v1h-1zM18 31h4v1h-4zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM32 31h1v1h-1zM34 31h2v1h-2zM38 31h2v1h-2zM41 31h2v1h-2zM2 32h1v1h-1zM4 32h3v1h-3zM8 32h5v1h-5zM14 32h1v1h-1zM16 32h1v1h-1zM19 32h1v1h-1zM22 32h1v1h-1zM25 32h1v1h-1zM28 32h4v1h-4zM33 32h2v1h-2zM39 32h1v1h-1zM44 32h1v1h-1zM0 33h3v1h-3zM4 33h2v1h-2zM9 33h1v1h-1zM11 33h5v1h-5zM17 33h7v1h-7zM26 33h2v1h-2zM29 33h5v1h-5zM36 33h1v1h-1zM38 33h1v1h-1zM40 33h1v1h-1zM42 33h3v1h-3zM4 34h1v1h-1zM6 34h2v1h-2zM9 34h2v1h-2zM14 34h1v1h-1zM16 34h2v1h-2zM19 34h1v1h-1zM21 34h1v1h-1zM24 34h2v1h-2zM27 34h1v1h-1zM29 34h1v1h-1zM33 34h4v1h-4zM39 34h1v1h-1zM42 34h1v1h-1zM1 35h4v1h-4zM7 35h1v1h-1zM9 35h1v1h-1zM11 35h3v1h-3zM16 35h1v1h-1zM23 35h1v1h-1zM27 35h2v1h-2zM33 35h6v1h-6zM40 35h2v1h-2zM0 36h1v1h-1zM3 36h2v1h-2zM6 36h1v1h-1zM8 36h1v1h-1zM10 36h1v1h-1zM13 36h3v1h-3zM17 36h2v1h-2zM20 36h6v1h-6zM29 36h4v1h-4zM36 36h5v1h-5zM42 36h2v1h-2zM8 37h1v1h-1zM12 37h1v1h-1zM14 37h1v1h-1zM19 37h2v1h-2zM24 37h1v1h-1zM27 37h2v1h-2zM30 37h2v1h-2zM33 37h4v1h-4zM40 37h3v1h-3zM44 37h1v1h-1zM0 38h7v1h-7zM9 38h2v1h-2zM17 38h1v1h-1zM19 38h2v1h-2zM22 38h1v1h-1zM24 38h2v1h-2zM29 38h1v1h-1zM31 38h1v1h-1zM35 38h2v1h-2zM38 38h1v1h-1zM40 38h1v1h-1zM42 38h1v1h-1zM0 39h1v1h-1zM6 39h1v1h-1zM8 39h1v1h-1zM11 39h2v1h-2zM15 39h1v1h-1zM17 39h2v1h-2zM20 39h1v1h-1zM24 39h2v1h-2zM28 39h4v1h-4zM34 39h3v1h-3zM40 39h3v1h-3zM0 40h1v1h-1zM2 40h3v1h-3zM6 40h1v1h-1zM8 40h1v1h-1zM12 40h1v1h-1zM15 40h1v1h-1zM18 40h1v1h-1zM20 40h6v1h-6zM29 40h13v1h-13zM0 41h1v1h-1zM2 41h3v1h-3zM6 41h1v1h-1zM8 41h2v1h-2zM13 41h2v1h-2zM16 41h6v1h-6zM24 41h2v1h-2zM27 41h1v1h-1zM31 41h2v1h-2zM36 41h1v1h-1zM39 41h3v1h-3zM0 42h1v1h-1zM2 42h3v1h-3zM6 42h1v1h-1zM8 42h2v1h-2zM11 42h3v1h-3zM16 42h3v1h-3zM25 42h3v1h-3zM29 42h2v1h-2zM33 42h3v1h-3zM37 42h2v1h-2zM41 42h3v1h-3zM0 43h1v1h-1zM6 43h1v1h-1zM9 43h1v1h-1zM13 43h1v1h-1zM15 43h1v1h-1zM17 43h2v1h-2zM20 43h1v1h-1zM22 43h2v1h-2zM25 43h1v1h-1zM27 43h1v1h-1zM29 43h1v1h-1zM32 43h1v1h-1zM36 43h2v1h-2zM42 43h1v1h-1zM0 44h7v1h-7zM8 44h1v1h-1zM12 44h7v1h-7zM21 44h1v1h-1zM24 44h1v1h-1zM28 44h1v1h-1zM31 44h1v1h-1zM33 44h3v1h-3zM38 44h2v1h-2zM41 44h1v1h-1zM43 44h1v1h-1z' },
+    logo: { w: 424, h: 393, black: 'M 155.722 59.372 C 117.823 78.576, 94.724 90.844, 92.612 92.891 C 86.944 98.386, 86.999 97.564, 87.009 175.616 L 87.019 247.500 89.994 242.313 C 91.630 239.460, 94.438 236.015, 96.234 234.658 C 99.248 232.382, 160.905 195.284, 202 171.022 C 211.625 165.340, 220.284 160.018, 221.243 159.197 C 222.867 157.805, 222.982 153.476, 222.930 96.042 C 222.870 30.106, 222.840 29.702, 217.977 29.291 C 216.416 29.159, 193.385 40.287, 155.722 59.372 M 323.500 239.680 C 314.700 243.828, 292.200 254.303, 273.500 262.958 C 254.800 271.613, 229.488 283.375, 217.251 289.097 L 195.002 299.500 195.001 329.633 L 195 359.766 200.750 363.235 C 203.912 365.143, 210.620 369.246, 215.655 372.352 C 220.690 375.458, 225.088 378, 225.428 378 C 225.957 378, 257.539 361.050, 299 338.514 C 305.325 335.076, 315.675 329.534, 322 326.198 C 333.898 319.922, 338.113 316.512, 339.936 311.685 C 341.161 308.444, 341.462 231.957, 340.250 232.069 C 339.837 232.107, 332.300 235.532, 323.500 239.680', gold: 'M 209 31.879 C 139.819 66.504, 95.937 88.735, 93.634 90.324 C 92.058 91.411, 89.700 94.596, 88.394 97.401 L 86.020 102.500 86.010 175.750 C 86.003 223.672, 86.344 249, 86.995 249 C 87.542 249, 88.976 246.901, 90.182 244.336 C 94.206 235.775, 89.640 238.784, 183.250 182.992 L 224 158.704 224 95.807 L 224 32.909 221.545 30.455 C 218.419 27.328, 217.997 27.376, 209 31.879 M 328 133.074 C 326.619 133.955, 286.397 153.469, 272.500 160.001 C 269.200 161.552, 258.175 166.743, 248 171.537 C 237.825 176.330, 226.350 181.713, 222.500 183.498 C 180.656 202.899, 159.399 212.802, 148.500 217.971 C 141.350 221.361, 126.163 228.433, 114.751 233.685 C 85.921 246.953, 86.644 245.930, 87.178 272.707 L 87.500 288.836 90.543 293.168 C 92.216 295.551, 94.916 298.326, 96.543 299.336 C 98.169 300.345, 112.325 309.075, 128 318.735 C 143.675 328.395, 163.601 340.732, 172.280 346.149 C 180.958 351.567, 188.496 356, 189.030 356 C 189.634 356, 190 345.214, 190 327.385 L 190 298.771 192.702 293.807 C 194.219 291.020, 196.690 288.177, 198.337 287.326 C 199.951 286.491, 207.848 281.725, 215.886 276.734 C 223.923 271.744, 232.975 266.228, 236 264.478 C 239.025 262.728, 246.675 258.143, 253 254.290 C 263.826 247.695, 296.489 228.883, 316.500 217.717 C 335.046 207.369, 339.061 204.837, 340.563 202.544 C 341.889 200.520, 342.064 195.727, 341.803 168.507 L 341.500 136.824 338.694 134.412 C 335.778 131.905, 330.808 131.283, 328 133.074 M 339 231.742 C 338.175 232.064, 331.875 234.997, 325 238.260 C 304.672 247.908, 283.503 257.779, 273.166 262.432 C 254.676 270.753, 225.089 284.478, 206.736 293.247 L 193.972 299.346 194.236 329.823 L 194.500 360.301 209.921 369.807 L 225.342 379.314 229.921 376.794 C 238.591 372.022, 284.546 347.173, 309 334.034 C 333.465 320.890, 337.931 317.887, 340.589 312.800 C 342.131 309.849, 342.769 230.919, 341.250 231.079 C 340.837 231.122, 339.825 231.421, 339 231.742' }
+  };
+  /* ---- Kalimat baku. Klaim di lembar hanya boleh dari sini; kalimat baru wajib dicatat di Catatan desain dan lolos Claims-Cheat-Sheet. ---- */
+  const TXT = {
+    title:       'Sertifikat Kelulusan',
+    titleEn:     'Certificate of Completion',
+    presentedTo: 'Diberikan kepada',
+    forPassing:  'atas kelulusan di kelas',
+    result:      'Hasil',
+    passed:      'LULUS',
+    scoreLine:   'Nilai akhir 87 dari 100 · batas lulus 60',
+    issued:      'Diterbitkan',
+    validUntil:  'Berlaku sampai',
+    publisher:   'Penerbit',
+    signed:      'Ditandatangani',
+    signedBy:    'oleh agen penerbit',
+    scanToCheck: 'Pindai untuk memeriksa status dan tanda tangannya',
+    onChain:     'Bukti penerbitan tercatat di BNB Smart Chain testnet (97)',
+    limit:       'Hanya menyatakan peserta menyelesaikan kelas pendek ini — bukan keahlian Web3.',
+    demo:        'Penerbit demo (fiktif) · jaringan uji · bukan ijazah',
+    nameNote:    'Nama tampilan — tidak ikut tanda tangan. Yang tertanda tangan adalah alamat dompet.',
+    statusNote:  'Status dibaca dari chain pada 5 Okt 2026; pindai QR untuk status terkini.',
+    wallet:      'Alamat dompet peserta',
+    credentialId:'ID kredensial',
+    attestation: 'Attestation UID',
+    transaction: 'Transaksi',
+    block:       'Blok',
+    rubric:      'Rubrik',
+    kuis: 'Kuis', esai: 'Esai', praktik: 'Praktik'
+  };
+  window.CERT = CERT; window.TXT = TXT;
+
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const MON3   = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const wib = (iso) => new Date(new Date(iso).getTime() + 7 * 3600e3);          // baca bidang UTC dari hasil → jam dinding WIB
+  const p2 = (n) => String(n).padStart(2, '0');
+  const idDate  = (iso) => { const d = wib(iso); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idShort = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())} ${MON3[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idNum   = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())}.${p2(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`; };
+  const idTime  = (iso) => { const d = wib(iso); return `${p2(d.getUTCHours())}.${p2(d.getUTCMinutes())} WIB`; };
+  const mid = (h, a, b) => h.slice(0, a) + '…' + h.slice(-b);
+  const FMT = {
+    address:        () => CERT.learner,
+    addressShort:   () => mid(CERT.learner, 6, 4),
+    addressGroups:  () => CERT.learner.slice(2).match(/.{4}/g).join(' '),
+    name:           () => CERT.nameSample,
+    course:         () => CERT.course.title,
+    courseId:       () => CERT.course.id,
+    publisher:      () => CERT.publisher,
+    publisherNote:  () => CERT.publisherNote,
+    issuerName:     () => CERT.issuerAgent.name,
+    issuerEoa:      () => CERT.issuerAgent.eoa,
+    issuerEoaShort: () => mid(CERT.issuerAgent.eoa, 6, 4),
+    score:          () => String(CERT.score),
+    passMark:       () => String(CERT.passMark),
+    hash:           () => CERT.hash,
+    hashShort:      () => mid(CERT.hash, 10, 8),
+    uid:            () => CERT.uid,
+    uidShort:       () => mid(CERT.uid, 10, 8),
+    tx:             () => CERT.tx,
+    txShort:        () => mid(CERT.tx, 10, 8),
+    block:          () => CERT.block.toLocaleString('id-ID'),
+    chain:          () => `${CERT.chain.name} (${CERT.chain.id})`,
+    issuedDate:     () => idDate(CERT.issuedAt),
+    issuedShort:    () => idShort(CERT.issuedAt),
+    issuedNum:      () => idNum(CERT.issuedAt),
+    issuedTime:     () => idTime(CERT.issuedAt),
+    validUntilDate: () => idDate(CERT.validUntil),
+    validUntilShort:() => idShort(CERT.validUntil),
+    validUntilNum:  () => idNum(CERT.validUntil),
+    statusReadOn:   () => idDate(CERT.statusReadOn + 'T00:00:00Z'),
+    status:         () => CERT.statusLabel,
+    proof:          () => `${CERT.proof.type} · ${CERT.proof.suite}`,
+    format:         () => CERT.format,
+    rubricRef:      () => CERT.rubricRef,
+    verifyHost:     () => CERT.verifyHost,
+    verifyUrl:      () => CERT.verifyUrl,
+    verifyUrlShort: () => CERT.verifyHost + '/?q=' + CERT.hash.slice(0, 10) + '…#/verify'
+  };
+  window.FMT = FMT;
+  const bind = (root = document) => {
+    $$('[data-bind]', root).forEach((el) => { const f = FMT[el.dataset.bind]; if (f) el.textContent = f(); else console.warn('data-bind tidak dikenal:', el.dataset.bind); });
+    $$('[data-txt]',  root).forEach((el) => { const v = TXT[el.dataset.txt]; if (v !== undefined) el.textContent = v; else console.warn('data-txt tidak dikenal:', el.dataset.txt); });
+  };
+  /* ---- QR dan logo: SVG inline dari data nyata. QR wajib di atas pelat terang dengan zona tenang ≥ 4 modul. ---- */
+  const injectQR = (root = document) => $$('svg[data-qr]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.qr.modules} ${CERT.qr.modules}`);
+    svg.setAttribute('shape-rendering', 'crispEdges'); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Kode QR menuju halaman verifikasi kredensial ini');
+    svg.innerHTML = `<path d="${CERT.qr.path}" fill="currentColor"/>`;
+  });
+  const injectLogo = (root = document) => $$('svg[data-logo]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.logo.w} ${CERT.logo.h}`); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'Lambang Lencana');
+    svg.innerHTML = `<path d="${CERT.logo.gold}" fill="var(--logo-a,#f0b90b)"/><path d="${CERT.logo.black}" fill="var(--logo-b,#0b0e11)"/>`;
+  });
+  /* ---- Alat jejak-hash: geometri turunan hash kredensial (nilai sama → gambar sama; kredensial lain → gambar lain). ---- */
+  const BYTES = Uint8Array.from(CERT.hash.slice(2).match(/../g).map((h) => parseInt(h, 16)));
+  const HASHART = {
+    bytes: BYTES,
+    byteAt: (i) => BYTES[((i % 32) + 32) % 32],
+    /** PRNG deterministik (mulberry32) bibitnya diambil dari 4 byte hash mulai offset `from`. */
+    rng: (from = 0) => { let a = ((BYTES[from % 32] << 24) | (BYTES[(from + 1) % 32] << 16) | (BYTES[(from + 2) % 32] << 8) | BYTES[(from + 3) % 32]) >>> 0;
+      return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  };
+  window.HASHART = HASHART;
+  /** Hitung-naik angka (untuk gerak masuk); `ease` = fungsi 0..1 → 0..1. Menulis hasil akhir persis (bukan pembulatan bergerak). */
+  window.countUp = (el, to, { ms = 1100, ease = (t) => 1 - Math.pow(1 - t, 3), from = 0, fmt = (v) => String(Math.round(v)) } = {}) => {
+    const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / ms); el.textContent = fmt(from + (to - from) * ease(k)); if (k < 1) requestAnimationFrame(tick); else el.textContent = fmt(to); }; requestAnimationFrame(tick);
+  };
+
+  /* ---- Skala ke layar, miring (interaksi), gerak, cetak ---- */
+  const root = document.documentElement, sheet = $('.sheet'), tilt = $('.cx-tilt'), fitBox = $('.cx-fit'), bar = $('.cx-bar');
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=off/.test(location.search);
+  const fit = () => { const w = innerWidth - 24, h = innerHeight - (bar ? bar.offsetHeight : 0) - 56; root.style.setProperty('--scale', Math.max(0.25, Math.min(w / 1122, h / 793, 1.6)).toFixed(4)); };
+  addEventListener('resize', fit); fit();
+  const play = () => { sheet.classList.remove('is-playing'); void sheet.offsetWidth; const r = reduced(); if (!r) sheet.classList.add('is-playing'); document.dispatchEvent(new CustomEvent('cx:play', { detail: { reduced: r } })); };
+  window.cxPlay = play;
+  fitBox.addEventListener('pointermove', (e) => {
+    if (reduced() || e.pointerType === 'touch') return; const r = fitBox.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    tilt.style.setProperty('--ry', ((x - .5) * 5).toFixed(2) + 'deg'); tilt.style.setProperty('--rx', ((.5 - y) * 3.6).toFixed(2) + 'deg');
+    sheet.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); sheet.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+  });
+  fitBox.addEventListener('pointerleave', () => { tilt.style.setProperty('--ry', '0deg'); tilt.style.setProperty('--rx', '0deg'); sheet.style.setProperty('--mx', '50%'); sheet.style.setProperty('--my', '50%'); });
+  $$('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => { sheet.dataset.mode = b.dataset.modeBtn; $$('[data-mode-btn]').forEach((o) => o.setAttribute('aria-pressed', String(o === b))); }));
+  $('[data-act="replay"]').addEventListener('click', play);
+  $('[data-act="print"]').addEventListener('click', () => window.print());
+  addEventListener('beforeprint', () => sheet.classList.remove('is-playing'));
+  addEventListener('afterprint', () => { sheet.classList.add('is-playing'); });
+
+  /* ---- Catatan desain (dari window.DESIGN yang diisi DESIGN:JS) ---- */
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const renderNotes = () => {
+    const D = window.DESIGN; if (!D) return;
+    document.title = `Sertifikat · ${D.id} ${D.name} (spesimen desain)`;
+    $$('[data-design="title"]').forEach((e) => { e.textContent = `${D.id} · ${D.name}`; });
+    $$('[data-design="row"]').forEach((e) => { e.textContent = D.row; });
+    const li = (a) => '<ul>' + (a || []).map((x) => `<li>${esc(x)}</li>`).join('') + '</ul>';
+    const sw = (D.palette || []).map((c) => `<span><i class="cx-sw" style="background:${esc(c.hex)}"></i>${esc(c.name)} <code>${esc(c.hex)}</code>${c.use ? ' — ' + esc(c.use) : ''}</span>`).join('<br>');
+    $('[data-design="notes"]').innerHTML = `<dl>
+      <dt>Estetika (doktrin §7)</dt><dd>${esc(D.row)} — ${esc(D.tagline || '')}</dd>
+      <dt>Proses yang diwakili</dt><dd>${esc(D.brief.process)}</dd>
+      <dt>Objek inti</dt><dd>${esc(D.brief.core)}</dd>
+      <dt>Metafora ruang</dt><dd>${esc(D.brief.metaphor)}</dd>
+      <dt>Geometri mengodekan</dt><dd>${li(D.encodes)}</dd>
+      <dt>Tipografi</dt><dd>${(D.fonts || []).map((f) => `${esc(f.role)}: <b>${esc(f.name)}</b>`).join(' · ')}</dd>
+      <dt>Palet</dt><dd>${sw}</dd>
+      <dt>Motif</dt><dd>${esc(D.motif)}</dd>
+      <dt>Gerak</dt><dd>${li([`Masuk: ${D.motion.entrance}`, `Berkelanjutan: ${D.motion.continuous}`, `Interaksi: ${D.motion.interaction}`, `Micro-beat: ${D.motion.micro}`])}</dd>
+      <dt>Batas dan catatan klaim</dt><dd>${li(D.limits)}</dd>
+    </dl>`;
+  };
+
+  const init = () => { bind(); injectQR(); injectLogo(); renderNotes(); fit();
+    const go = () => { play(); }; (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve()).then(go); };
+  window.__cxInit = init;   // DESIGN:JS memanggil __cxInit() SETELAH window.DESIGN dan handler 'cx:play' terpasang
+})();
+/* ===================== /SHARED SHELL JS ===================== */
+</script>
+<script>
+/* ===================== DESIGN JS ===================== */
+/* 1) window.DESIGN = { id, name, row, tagline, brief:{process,core,relationship,metaphor}, encodes:[…], fonts:[{role,name}], palette:[{name,hex,use}], motif, motion:{entrance,continuous,interaction,micro}, limits:[…] }
+   2) document.addEventListener('cx:play', (e) => { … hitung-naik, micro-beat … }) — e.detail.reduced === true → langsung tulis nilai akhir tanpa gerak
+   3) window.__cxInit()   ← terakhir */
+(() => {
+  'use strict';
+  const CERT = window.CERT, HA = window.HASHART, TXT = window.TXT;
+  const q = (s, r = document) => r.querySelector(s);
+
+  /* ---- teks turunan data (bukan hard-code) ---- */
+  const h1 = q('[data-s3-title]');
+  if (h1) { const w = TXT.title.split(' '); const a = document.createElement('span'), b = document.createElement('span');
+    a.className = 't1'; b.className = 't2'; a.textContent = w[0]; b.textContent = w.slice(1).join(' '); h1.replaceChildren(a, document.createTextNode(' '), b); }
+  q('[data-s3-0x]').textContent = CERT.learner.slice(0, 2);
+  q('[data-s3-days]').textContent = CERT.validDays + ' hari';
+  q('[data-s3-comp]').innerHTML = CERT.components.map((c) => `<li>${c.label}: ${c.score} (bobot ${c.weight}%)</li>`).join('');
+
+  /* ---- medan facet: kisi bergetar → segitiga; tinggi tiap titik = byte hash, cahaya dari kiri atas ---- */
+  const W = 1122, H = 793, ORIGIN = [900, 262];
+  const STOPS = [[0, [8, 24, 66]], [0.28, [19, 54, 156]], [0.52, [36, 87, 214]], [0.72, [58, 136, 236]], [0.86, [86, 190, 242]], [0.98, [196, 230, 252]], [1.1, [236, 246, 255]]];
+  /* zona bebas-facet di belakang teks (judul, penerima, kelas) — teks kecil tidak pernah duduk di atas kristal */
+  const KEEP = [[52, 104, 660, 292], [52, 286, 650, 446], [52, 440, 690, 512]];
+  const inKeep = (x, y) => KEEP.some((r) => x > r[0] - 18 && x < r[2] + 18 && y > r[1] - 18 && y < r[3] + 18);
+  const mixc = (c1, c2, k) => [c1[0] + (c2[0] - c1[0]) * k, c1[1] + (c2[1] - c1[1]) * k, c1[2] + (c2[2] - c1[2]) * k];
+  const ramp = (t) => { if (t <= STOPS[0][0]) return STOPS[0][1];
+    for (let i = 1; i < STOPS.length; i++) if (t <= STOPS[i][0]) return mixc(STOPS[i - 1][1], STOPS[i][1], (t - STOPS[i - 1][0]) / (STOPS[i][0] - STOPS[i - 1][0]));
+    return STOPS[STOPS.length - 1][1]; };
+  const VIOLET = [122, 108, 240], WHITE = [255, 255, 255], DEEP = [3, 10, 32];
+  const LIGHT = (() => { const v = [-0.48, -0.7, 0.9], n = Math.hypot(v[0], v[1], v[2]); return v.map((x) => x / n); })();
+  const rgb = (c) => 'rgb(' + c.map((v) => Math.max(0, Math.min(255, Math.round(v)))).join(',') + ')';
+  const CLUSTERS = [
+    { id: 'tr', cx: W, cy: 0, rx: 545, ry: 660, x0: 470, y0: -70, x1: W + 70, y1: 780, cell: 58, seed: 0, hz: 34 },
+    { id: 'bl', cx: 0, cy: H, rx: 310, ry: 250, x0: -70, y0: 500, x1: 380, y1: H + 70, cell: 52, seed: 16, hz: 30 }
+  ];
+  const out = { tr: [], bl: [], front: [], g: [[], [], []] };
+  const facet = (o, t, idx) => {
+    const cx = (t[0][0] + t[1][0] + t[2][0]) / 3, cy = (t[0][1] + t[1][1] + t[2][1]) / 3;
+    const f = Math.hypot((cx - o.cx) / o.rx, (cy - o.cy) / o.ry);
+    const by = HA.byteAt(idx * 7 + (idx >> 5) * 11), by2 = HA.byteAt(idx * 5 + 3 + (idx >> 5) * 5);
+    const thr = 0.86 + 0.16 * (by2 / 255);
+    let kind; if (f < thr) kind = 'core'; else if (f < thr + 0.16 && by > 196) kind = 'shard'; else return;
+    if (t.some((p) => inKeep(p[0], p[1])) || inKeep(cx, cy)) return;
+    const u = [t[1][0] - t[0][0], t[1][1] - t[0][1], t[1][2] - t[0][2]], v = [t[2][0] - t[0][0], t[2][1] - t[0][1], t[2][2] - t[0][2]];
+    let nx = u[1] * v[2] - u[2] * v[1], ny = u[2] * v[0] - u[0] * v[2], nz = u[0] * v[1] - u[1] * v[0];
+    if (nz < 0) { nx = -nx; ny = -ny; nz = -nz; }
+    const s = (nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]) / (Math.hypot(nx, ny, nz) || 1);
+    let col = ramp(f);
+    if (by % 13 === 0 && f > 0.3 && f < 0.8) col = mixc(col, VIOLET, 0.34);
+    const k = (s - 0.85) * 1.7 + (by / 255 - 0.5) * 0.1;
+    col = k > 0 ? mixc(col, WHITE, Math.min(0.42, k)) : mixc(col, DEEP, Math.min(0.36, -k));
+    let pts = t, op = 1;
+    if (kind === 'shard') { pts = t.map((p) => [cx + (p[0] - cx) * 0.66, cy + (p[1] - cy) * 0.66]); op = 0.5 + 0.28 * (by2 / 255);
+      col = mixc(ramp(0.66 + 0.22 * (by / 255)), WHITE, Math.max(0, k) * 0.5); }
+    else if (f > thr - 0.1) op = 0.86;
+    const dly = Math.round(Math.hypot(cx - ORIGIN[0], cy - ORIGIN[1]) / 30) * 32;
+    const ps = pts.map((p) => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+    const c = rgb(col);
+    const el = `<polygon class="f" points="${ps}" fill="${c}"` + (op < 1 ? ` fill-opacity="${op.toFixed(2)}"` : ` stroke="${c}" stroke-width=".7" stroke-linejoin="round"`) + ` style="--d:${dly}ms"/>`;
+    (kind === 'shard' ? out.front : out[o.id]).push(el);
+    if (kind === 'core' && o.id === 'tr' && f >= 0.35 && (s > 0.96 || by > 226)) out.g[idx % 3].push(`<polygon points="${ps}"/>`);
+  };
+  let n = 0;
+  for (const o of CLUSTERS) {
+    const rnd = HA.rng(o.seed);
+    const cols = Math.ceil((o.x1 - o.x0) / o.cell) + 1, rows = Math.ceil((o.y1 - o.y0) / o.cell) + 1, P = [];
+    for (let j = 0; j < rows; j++) { const row = []; for (let i = 0; i < cols; i++) {
+      const jx = (rnd() - 0.5) * o.cell * 0.64, jy = (rnd() - 0.5) * o.cell * 0.64;
+      row.push([o.x0 + i * o.cell + jx, o.y0 + j * o.cell + jy, HA.byteAt(i * 7 + j * 13 + o.seed) / 255 * o.hz]); } P.push(row); }
+    for (let j = 0; j < rows - 1; j++) for (let i = 0; i < cols - 1; i++) {
+      const a = P[j][i], b = P[j][i + 1], c = P[j + 1][i], d = P[j + 1][i + 1];
+      const d1 = (a[0] - d[0]) ** 2 + (a[1] - d[1]) ** 2, d2 = (b[0] - c[0]) ** 2 + (b[1] - c[1]) ** 2;
+      const tris = d1 < d2 ? [[a, b, d], [a, d, c]] : [[a, b, c], [b, d, c]];
+      for (const t of tris) facet(o, t, n++);
+    }
+  }
+  q('[data-s3-fx="tr"]').innerHTML = out.tr.join('');
+  q('[data-s3-fx="bl"]').innerHTML = out.bl.join('');
+  q('[data-s3-fx="front"]').innerHTML = out.front.join('');
+  out.g.forEach((g, i) => { q(`[data-s3-fx="g${i}"]`).innerHTML = g.join(''); });
+
+  /* ---- cincin nilai (87, takik 60) + cincin komponen (busur ∝ bobot, isi ∝ nilai) ---- */
+  const R = 160, RC = 118, G = 0.007;
+  const ang = (f) => (f * 360 - 90) * Math.PI / 180;
+  const P2 = (r, f) => [r * Math.cos(ang(f)), r * Math.sin(ang(f))];
+  const fx = (v) => v.toFixed(2);
+  const arc = (r, f0, f1, ccw) => { const s = P2(r, ccw ? f1 : f0), e = P2(r, ccw ? f0 : f1);
+    return `M${fx(s[0])} ${fx(s[1])}A${r} ${r} 0 ${f1 - f0 > 0.5 ? 1 : 0} ${ccw ? 0 : 1} ${fx(e[0])} ${fx(e[1])}`; };
+  const sc = CERT.score / 100, pm = CERT.passMark / 100;
+  const lenA = 2 * Math.PI * R * sc;
+  let svg = `<defs>
+    <linearGradient id="s3-arcg" gradientUnits="userSpaceOnUse" x1="120" y1="-170" x2="-120" y2="170"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#d4f5ff"/><stop offset="1" stop-color="#6fd9f8"/></linearGradient>
+    <mask id="s3-notchm" maskUnits="userSpaceOnUse" x="-180" y="-180" width="360" height="360"><rect x="-180" y="-180" width="360" height="360" fill="#fff"/><rect x="-4" y="${-R - 16}" width="8" height="32" fill="#000" transform="rotate(${fx(pm * 360)})"/></mask>
+  </defs>`;
+  svg += `<g class="s3-trk" mask="url(#s3-notchm)"><circle r="${R}" fill="none" stroke="#0a1f4a" stroke-opacity=".3" stroke-width="13"/><circle r="${R}" fill="none" stroke="#ffffff" stroke-opacity=".2" stroke-width="9"/></g>`;
+  svg += `<g mask="url(#s3-notchm)"><path class="s3-arc" d="${arc(R, 0, sc)}" fill="none" stroke="url(#s3-arcg)" stroke-width="9" stroke-linecap="round" style="--len:${fx(lenA)}px;stroke-dasharray:${fx(lenA)} ${fx(lenA + 40)}"/></g>`;
+  svg += `<g transform="rotate(${fx(pm * 360)})"><polygon class="s3-notch" points="0,${-R - 8} -8,${-R - 24} 8,${-R - 24}" fill="#ffffff" stroke="#0a1f4a" stroke-opacity=".5" stroke-width="1"/></g>`;
+  const pp = P2(R + 42, pm);
+  svg += `<g transform="translate(${fx(pp[0])} ${fx(pp[1])})"><g class="s3-pillg"><rect x="-30" y="-11" width="60" height="22" rx="11" fill="#ffffff" stroke="#0a1f4a" stroke-opacity=".14"/><text class="s3-pilltxt" text-anchor="middle" dy="3.8">batas ${CERT.passMark}</text></g></g>`;
+  svg += `<g transform="rotate(${fx(sc * 360)})"><g class="s3-tick"><line x1="0" y1="${-R + 13}" x2="0" y2="${-R - 13}" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/><circle cx="0" cy="${-R}" r="6.5" fill="#ffffff" stroke="#0a1f4a" stroke-opacity=".45" stroke-width="1.5"/></g></g>`;
+  const COMP = ['#0a1f4a', '#2457d6', '#1593c6'];
+  let f0 = 0.25;
+  CERT.components.forEach((c, i) => {
+    const span = c.weight / 100, a0 = f0 + G, a1 = f0 + span - G, fill = a0 + (a1 - a0) * c.score / 100;
+    const Lc = 2 * Math.PI * RC * (fill - a0);
+    svg += `<path class="s3-trk" d="${arc(RC, a0, a1)}" fill="none" stroke="#0a1f4a" stroke-opacity=".1" stroke-width="7" stroke-linecap="round"/>`;
+    svg += `<path class="s3-cf" d="${arc(RC, a0, fill)}" fill="none" stroke="${COMP[i % 3]}" stroke-width="7" stroke-linecap="round" style="--len:${fx(Lc)}px;--cd:${1150 + i * 120}ms;stroke-dasharray:${fx(Lc)} ${fx(Lc + 30)}"/>`;
+    const mid = f0 + span / 2, bottom = Math.sin(ang(mid)) > 0.2, rr = bottom ? RC - 11 : RC - 15, half = Math.min(span / 2 - 2 * G, 0.16);
+    svg += `<path id="s3-lp${i}" d="${arc(rr, mid - half, mid + half, bottom)}" fill="none"/>`;
+    svg += `<text class="s3-lab"><textPath href="#s3-lp${i}" xlink:href="#s3-lp${i}" startOffset="50%" text-anchor="middle">${c.label} ${c.score} × ${c.weight}%</textPath></text>`;
+    f0 += span;
+  });
+  q('[data-s3-dial]').innerHTML = svg;
+
+  /* ---- hitung-naik selaras dengan sapuan cincin (cubic-bezier yang sama dengan CSS) ---- */
+  const bez = (x1, y1, x2, y2) => { const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+    const X = (t) => ((ax * t + bx) * t + cx) * t, Y = (t) => ((ay * t + by) * t + cy) * t, dX = (t) => (3 * ax * t + 2 * bx) * t + cx;
+    return (x) => { if (x <= 0) return 0; if (x >= 1) return 1; let t = x; for (let i = 0; i < 8; i++) { const e = X(t) - x, d = dX(t); if (Math.abs(e) < 1e-5 || Math.abs(d) < 1e-6) break; t -= e / d; } return Y(Math.min(1, Math.max(0, t))); }; };
+  const easeOut = bez(0.22, 1, 0.36, 1);
+  let gen = 0;
+  document.addEventListener('cx:play', (e) => {
+    const host = q('[data-s3-score]'), g = ++gen;
+    if (e.detail && e.detail.reduced) { host.textContent = String(CERT.score); return; }
+    const span = document.createElement('span'); span.textContent = '0'; host.replaceChildren(span);
+    setTimeout(() => { if (g === gen) window.countUp(span, CERT.score, { ms: 1300, ease: easeOut }); }, 650);
+  });
+
+  window.DESIGN = {
+    id: 'S3', name: 'Kaca Segitiga', row: 'Glass / Soft-depth',
+    tagline: 'medali kaca di atas kristal yang dipahat oleh hash kredensial ini; cincin nilai menyapu sampai 87 melewati takik batas lulus 60.',
+    brief: {
+      process: 'Kredensial diterbitkan dan ditandatangani agen penerbit; bukti penerbitannya tercatat di BNB Smart Chain testnet; siapa pun memeriksanya dengan memindai QR.',
+      core: 'Lensa kaca (medali) yang memegang hasil, berdiri di atas kristal low-poly yang facetnya dibentuk dari byte hash kredensial.',
+      relationship: 'Diagonal: kristal pekat di kanan atas (hasil) → kanal putih bercahaya (siapa, kelas apa) → kristal kecil kiri bawah di balik pelat fakta; QR di kaki medali, pita medali masuk ke balik pelat QR.',
+      metaphor: 'Lensa dan kristal: kaca buram tetap memperlihatkan kristal di belakangnya — isinya terbuka dan dapat diperiksa.'
+    },
+    encodes: [
+      'Busur cincin luar: panjang = nilai akhir 87 dari 100 (mulai pukul 12, searah jarum jam); takik + label = batas lulus 60; garis + manik di ujung = 87.',
+      'Cincin dalam dibagi tiga busur, panjangnya sebanding bobot (kuis 50 %, esai 30 %, praktik 20 %); bagian terisi tiap busur sebanding nilainya (75, 98, 100). Jumlah bagian terisi = 86,9 % lingkaran.',
+      'Setiap segitiga kristal: tinggi titik kisinya = byte hash kredensial, lalu disinari dari kiri atas → terang-gelap facet; geser terang dan rona violet tiap facet juga dari byte hash (violet hanya bila byte kelipatan 13). Kredensial lain → kristal lain.',
+      'Batang masa berlaku dari tanggal terbit ke tanggal akhir: 12 ruas = 12 bulan, label dari validDays.',
+      'Alamat dompet dikelompokkan 4 karakter dalam kisi 5 × 2 (mono) supaya bisa dicocokkan per kelompok.'
+    ],
+    fonts: [{ role: 'Judul, teks, angka', name: 'Outfit' }, { role: 'Alamat & hash', name: 'JetBrains Mono' }],
+    palette: [
+      { name: 'Dasar bercahaya', hex: '#f3f7ff', use: 'kertas' },
+      { name: 'Navy dalam', hex: '#0a1f4a', use: 'teks, inti kristal' },
+      { name: 'Biru kerajaan', hex: '#2457d6', use: 'aksen, busur' },
+      { name: 'Sian listrik', hex: '#38c8ee', use: 'tepi kristal, cahaya' },
+      { name: 'Violet tipis', hex: '#7a6cf0', use: 'sedikit facet saja' }
+    ],
+    motif: 'Segitiga facet low-poly + kaca buram bertepi cahaya 1 px; satu bahasa kedalaman: blur + bayangan biru lembut.',
+    motion: {
+      entrance: 'facet merakit dari medali ke luar (gelombang ±32 ms, pegas); panel naik dengan blur-in; cincin menyapu ke 87 sambil angka menghitung naik.',
+      continuous: 'medali mengapung ±4 px (7 dtk); kilau diagonal melintasi kaca tiap 8 dtk; beberapa facet bernapas.',
+      interaction: 'paralaks penunjuk: tiga lapis facet dan medali bergeser dengan kedalaman berbeda lewat --mx/--my (hanya transform).',
+      micro: 'saat cincin menutup: denyut cincin melebar, kilat cahaya melintasi kaca, pelat QR terangkat 2 px.'
+    },
+    limits: [
+      'Kalimat/label baru: "format", "batas 60", "365 hari", "/100", label komponen "Kuis 75 × 50%" dst. — semuanya angka dari kredensial, tanpa klaim.',
+      'Tidak ada klaim verifikasi identitas; nama contoh hanya di mode nama, selalu disertai nameNote dan alamat pendek.',
+      'Saat cetak kaca (backdrop-filter) dimatikan: panel diberi isi putih semi-padat; atmosfer dan kristal tetap tercetak.'
+    ]
+  };
+  window.__cxInit();
+})();
+/* ===================== /DESIGN JS ===================== */
+</script>
+</body>
+</html>

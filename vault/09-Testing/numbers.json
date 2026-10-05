@@ -1,12 +1,12 @@
 {
-  "capturedAt": "2026-10-05T08:03:07.664Z",
+  "capturedAt": "2026-10-05T14:49:29.281Z",
   "note": "Dihasilkan npm run sync:numbers. Halaman vault yang mengutip angka harness wajib cocok dengan berkas ini (verify: npm run sync:numbers -- --verify).",
   "items": {
     "check": {
-      "total": 114,
+      "total": 116,
       "fail": 0,
       "skipped": 0,
-      "pass": 114
+      "pass": 116
     },
     "verifyDb": {
       "total": 70,
@@ -44,8 +44,8 @@
       "skipped": 0,
       "pass": 10,
       "ratio": {
-        "a": 30,
-        "b": 30
+        "a": 31,
+        "b": 31
       }
     },
     "forgeOffline": {
@@ -55,10 +55,10 @@
       "pass": 65
     },
     "webProbe": {
-      "total": 147,
+      "total": 173,
       "fail": 0,
       "skipped": 0,
-      "pass": 147
+      "pass": 173
     },
     "samples": {
       "total": 11,

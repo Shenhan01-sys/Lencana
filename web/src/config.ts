@@ -22,6 +22,7 @@ export const PRESETS: Preset[] = [
       chainId: 97,
       resolver: '0xe01a16e50fd9d8c0ff4230874f8d8c086e811627',
       cert: '0x021356a0e3b9ab440a571d4af62b215841a7c891',
+      certs: [], // fork lokal: hanya instance hasil SeedDemo, bukan lapis publik (B164)
       label: 'Anvil fork (97)',
     },
     note: 'Fork chain 97 lokal dengan kontrak ter-deploy dari SeedDemo.',
@@ -39,7 +40,7 @@ export const PRESETS: Preset[] = [
   {
     id: 'bsc56',
     label: 'BSC Mainnet (56) — kontrol silang',
-    endpoint: mainnetEndpoint(),
+    endpoint: { ...mainnetEndpoint(), certs: [] },
     note: 'Dipakai untuk membuktikan primitifnya sama di dua chain. Bukan target demo.',
   },
 ]
@@ -49,7 +50,11 @@ export function loadEndpoint(): Endpoint {
     const raw = localStorage.getItem(KEY)
     if (!raw) return defaultEndpoint()
     const parsed = JSON.parse(raw) as Partial<Endpoint>
-    return { ...defaultEndpoint(), ...parsed }
+    const base = defaultEndpoint()
+    // B164: lapis artefak tambahan hanya berlaku untuk deployment publik bawaan. Konfigurasi tersimpan yang menunjuk resolver atau chain lain tidak
+    // boleh mewarisinya, kecuali ia menyimpan daftar `certs`-nya sendiri.
+    const sameDeployment = (parsed.resolver ?? base.resolver).toLowerCase() === base.resolver.toLowerCase() && (parsed.chainId ?? base.chainId) === base.chainId
+    return { ...base, ...parsed, certs: parsed.certs ?? (sameDeployment ? base.certs : []) }
   } catch {
     return defaultEndpoint()
   }

@@ -57,6 +57,15 @@ testable and being inferred from how it renders. The page prints the verdict, ev
 - Endpoint config lives in `localStorage` under `bnb-credential-endpoint-v1` with three presets
   (`web/src/config.ts:12`, `:16`); `defaultEndpoint()` carries the public 97 deployment
   (`web/src/verify.ts:159`).
+- **Soulbound artefact is read across ALL known contract layers, not one address (B164, 5 Okt malam).** `defaultEndpoint().cert` stays
+  `0xA5eB807A…` (the oldest instance; D46 — `CERT_ADDRESS` is not moved), but `defaultEndpoint().certs` is `CERT_LAYERS_97`
+  (`web/src/verify.ts:211`: A `0xc338AF7F…`, B `0xC6FD12B0…`, then `0xA5eB…`). `certCandidates` (`:241`) orders them and drops duplicates;
+  `pickArtefactLayer` (`:259`) shows the first layer that holds a token for the credential and never counts a failed read as "none";
+  `enforcesCourseLevel` (`:272`) measures D42/D43 from the bytecode selectors (`mintBatch`, `attestationOf`, `lessonOf`). Presets for a local fork
+  and mainnet carry `certs: []`, and `loadEndpoint()` (`web/src/config.ts:48`) only inherits the default layers when the stored resolver and
+  chain equal the default. Before B164 the default verifier showed credential B153 as "Optional / Not Minted" although its artefact existed in
+  two layers ([[08-Results/B164 - Executive Summary]], [[09-Testing/T87 - Uji peramban verifier membaca semua lapis artefak (B164)]]).
+  A new contract instance must be added to `CERT_LAYERS_97` or the verifier will not see it.
 - The page reads `?q=` once at boot and runs immediately (`web/src/main.ts:2386`); hash routing
   maps `#/verify` to `page-verify` (`web/src/main.ts:1151`). `render.ts` is string-only — no
   `document`, no `window` — because `web/scripts/probe.ts:26` calls `renderReport()` from Node.

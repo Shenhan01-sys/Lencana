@@ -30,7 +30,7 @@
 
 // Lencana-B100 status=SELESAI 2026-09-29 — probe mengadili penghitung yang sama seperti halaman, bukan menempel PASS. Buktikan ulang: npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B100 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { reportLoaded } from './load-env'
-import { verify, type Endpoint, type Report } from '../src/verify'
+import { verify, certCandidates, pickArtefactLayer, enforcesCourseLevel, defaultEndpoint, CERT_LAYERS_97, type CertLayer, type Endpoint, type Report } from '../src/verify'
 import { renderReport } from '../src/render'
 
 reportLoaded('probe')
@@ -734,6 +734,96 @@ async function main() {
       g.fetch = realFetch3
       delete g.sessionStorage
       forgetLearner()
+    }
+  }
+
+  // --- 9. artefak soulbound di SEMUA lapis kontrak (B164) ------------------------
+  // Lencana-B164 status=SELESAI 2026-10-05 — probe mengadili pemilihan lapis artefak: murni (urutan, duplikat, gagal-baca ≠ kosong, bytecode D42/D43) dan, di chain 97 publik, terhadap kredensial B153 yang artefaknya tercetak di DUA lapis. Buktikan ulang: cd web && npm run probe (grup B164). JANGAN dibalik/diulang tanpa membuka kembali baris B164 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  {
+    console.log('\n--artefak soulbound di semua lapis kontrak (B164)--')
+    type Addr = `0x${string}`
+    const LA: Addr = '0xc338AF7F20F12E71eD858F0eeD66e2A5632d62aa'
+    const LB: Addr = '0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd'
+    const LC: Addr = '0xA5eB807A98BB73432fE5a1F171bb1154dE9c309c'
+    const NOL = ZERO as Addr
+    const same = (a: readonly string[], b: readonly string[]) => JSON.stringify(a.map((x) => x.toLowerCase())) === JSON.stringify(b.map((x) => x.toLowerCase()))
+    check('lapis dibaca berurutan: cert dulu, lalu certs; duplikat (huruf besar/kecil) dan alamat nol dibuang',
+      same(certCandidates({ cert: LC, certs: [LA, LB, LC.toLowerCase() as Addr, NOL] }), [LC, LA, LB]), JSON.stringify(certCandidates({ cert: LC, certs: [LA, LB, LC, NOL] })))
+    check('konfigurasi eksplisit satu instance (tanpa certs) hanya membaca cert; cert nol tanpa certs = tidak ada lapis',
+      same(certCandidates({ cert: LB }), [LB]) && certCandidates({ cert: NOL }).length === 0)
+    const L = (address: Addr, tokenId: string | null, readOk = true): CertLayer => ({ address, tokenId, readOk, enforcesCourseLevel: null })
+    check('tidak ada lapis yang memegang artefak -> tetap menampilkan lapis utama, tanpa lapis lain',
+      (() => { const p = pickArtefactLayer([L(LC, null), L(LA, null), L(LB, null)], LC); return p.chosen === LC && p.others.length === 0 })())
+    check('lapis pertama (menurut urutan baca) yang memegang artefak dipilih; lapis lain yang juga memegangnya dicatat',
+      (() => { const p = pickArtefactLayer([L(LC, null), L(LA, '5'), L(LB, '5')], LC); return p.chosen === LA && p.others.length === 1 && p.others[0].address === LB })())
+    check('pembacaan yang GAGAL tidak dihitung memegang artefak (gagal-baca ≠ ada, dan ≠ kosong)',
+      (() => { const p = pickArtefactLayer([L(LC, null, false), L(LA, '5')], LC); return p.chosen === LA && p.others.length === 0 })())
+    const { toFunctionSelector } = await import('viem')
+    const sels = ['mintBatch(address[],bytes32[],string[])', 'attestationOf(bytes32)', 'lessonOf(bytes32)'].map((sg) => toFunctionSelector(sg).slice(2))
+    check('bytecode dengan ketiga selector (mintBatch, attestationOf, lessonOf) = menegakkan D42/D43',
+      enforcesCourseLevel(`0x6080${sels.join('00')}` as Addr) === true)
+    check('bytecode tanpa mintBatch = tidak menegakkan (lapis sebelum D43)', enforcesCourseLevel(`0x6080${sels[1]}00${sels[2]}` as Addr) === false)
+    check('bytecode kosong atau tak terbaca -> null (tidak ditebak)', enforcesCourseLevel('0x') === null && enforcesCourseLevel(undefined) === null && enforcesCourseLevel(null) === null)
+    check('bawaan chain 97: cert tetap lapis paling tua (D46) dan ketiga lapis dibaca, dengan cert lebih dulu',
+      (() => { const d = defaultEndpoint(); const c = certCandidates(d); return d.cert === LC && c.length === 3 && c[0] === LC && same(CERT_LAYERS_97, [LA, LB, LC]) })())
+    const { PRESETS, loadEndpoint } = await import('../src/config')
+    // fork lokal: hanya cert hasil SeedDemo (1 lapis); mainnet: cert masih nol dan tidak mewarisi lapis chain 97 (0 lapis).
+    check('preset fork lokal dan mainnet tidak mewarisi lapis publik',
+      (() => { const n = (id: string) => certCandidates(PRESETS.find((p) => p.id === id)?.endpoint ?? { cert: NOL }).length; return n('anvil') === 1 && n('bsc56') === 0 })(),
+      PRESETS.map((p) => `${p.id}:${certCandidates(p.endpoint).length}`).join(' '))
+    check('preset bsc97 membaca cert-nya lebih dulu lalu dua lapis lain',
+      (() => { const p = PRESETS.find((x) => x.id === 'bsc97'); const c = p ? certCandidates(p.endpoint) : []; return c.length === 3 && c[0] === LB })())
+    const gg = globalThis as unknown as { localStorage?: { getItem: (k: string) => string | null; setItem: (k: string, v: string) => void } }
+    const savedLS = gg.localStorage
+    try {
+      let stored: string | null = null
+      gg.localStorage = { getItem: () => stored, setItem: (_k, v) => { stored = v } }
+      stored = JSON.stringify({ rpcUrl: 'https://x.invalid' })
+      check('konfigurasi tersimpan lama (tanpa certs) di deployment publik tetap mewarisi ketiga lapis', certCandidates(loadEndpoint()).length === 3)
+      stored = JSON.stringify({ resolver: '0x' + '12'.repeat(20) })
+      check('konfigurasi tersimpan yang menunjuk resolver lain TIDAK mewarisi lapis publik', certCandidates(loadEndpoint()).length === 1)
+      stored = JSON.stringify({ cert: LB, certs: [] })
+      check('certs kosong yang disimpan eksplisit dihormati (satu instance)', same(certCandidates(loadEndpoint()), [LB]))
+    } finally {
+      if (savedLS) gg.localStorage = savedLS
+      else delete gg.localStorage
+    }
+
+    // Terhadap chain 97 publik: kredensial B153 (terbit 5 Okt 2026) punya artefak di DUA lapis (A dan B), dan tidak di lapis paling tua.
+    const B153: Addr = '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31'
+    const B153_LEARNER = '0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF'
+    const publicDeploy = ep.chainId === 97 && ep.resolver.toLowerCase() === defaultEndpoint().resolver.toLowerCase()
+    if (!publicDeploy) {
+      skipped.push('B164 terhadap B153 (hanya ada di deployment publik chain 97)')
+    } else {
+      const epL: Endpoint = { ...ep, cert: LC, certs: [...CERT_LAYERS_97] }
+      const rb = await verify(B153, epL)
+      const byAddr = (a: string) => rb.cert.layers.find((l) => l.address.toLowerCase() === a.toLowerCase())
+      check('B153 -> VALID dan artefaknya DITEMUKAN walau lapis utama (paling tua) kosong', rb.verdict === 'VALID' && Boolean(rb.cert.tokenId), `${rb.verdict} token=${rb.cert.tokenId}`)
+      check('B153 -> tokenId = angka dari credentialHash dan artefak terkunci milik peserta',
+        rb.cert.tokenId === BigInt(B153).toString() && rb.cert.locked === true && rb.cert.owner?.toLowerCase() === B153_LEARNER.toLowerCase(), `${rb.cert.tokenId} ${rb.cert.locked} ${rb.cert.owner}`)
+      check('B153 -> yang ditampilkan lapis D42/D43 (pertama yang memegang), bukan lapis paling tua', rb.cert.address?.toLowerCase() === LA.toLowerCase(), String(rb.cert.address))
+      check('B153 -> ketiga lapis dibaca; paling tua kosong, dua lainnya memegang artefak',
+        rb.cert.layers.length === 3 && byAddr(LC)?.tokenId === null && byAddr(LC)?.readOk === true && Boolean(byAddr(LA)?.tokenId) && Boolean(byAddr(LB)?.tokenId),
+        JSON.stringify(rb.cert.layers.map((l) => [l.address.slice(0, 8), l.tokenId ? 'ada' : l.readOk ? 'kosong' : 'gagal'])))
+      check('B153 -> penegakan D42/D43 diukur dari bytecode: lapis A ya, lapis B tidak', byAddr(LA)?.enforcesCourseLevel === true && byAddr(LB)?.enforcesCourseLevel === false, JSON.stringify(rb.cert.layers.map((l) => l.enforcesCourseLevel)))
+      check('B153 -> alasan menyebut artefak di dua lapis, dan semua pembacaan berhasil', rb.reasons.some((x) => /2 lapis/.test(x)) && rb.readLog.every((l) => l.ok), rb.readLog.filter((l) => !l.ok).map((l) => l.label).join(', '))
+      check('B153 -> perintah ulang menyertakan satu tokenOfCredential per lapis', rb.reproduction.cast.filter((x) => /tokenOfCredential\(bytes32\)/.test(x)).length === 3)
+      const { DICTIONARIES: DI } = await import('../src/i18n')
+      const htmlB = renderReport(rb)
+      check('B153 -> panel menampilkan semua lapis, label "ada artefak", dan penanda D42/D43',
+        htmlB.includes(DI.id.panels.soulboundArtifact.layerHolds) && htmlB.includes(LA) && htmlB.includes(LC) && /D42\/D43 [✓✗]/.test(htmlB))
+      const ra = await verify(B153_LEARNER, epL)
+      check('alamat peserta B153 -> jumlah artefak dijumlahkan dari semua lapis (≥ 2), bukan hanya lapis utama', Number(ra.cert.holderBalance ?? '0') >= 2, String(ra.cert.holderBalance))
+      const rs = await verify(BigInt(B153).toString(), epL)
+      check('tokenId desimal milik B153 -> dikenali di lapis mana pun dan kembali ke credentialHash-nya', rs.input.interpretedAs === 'sbtTokenId' && rs.credential.hash?.toLowerCase() === B153, `${rs.input.interpretedAs} ${rs.credential.hash}`)
+      const rx = await verify('0x' + '11'.repeat(32), epL)
+      check('hash asing -> semua lapis dibaca, tidak ada yang memegang artefak, dan tidak ada yang ditandai gagal', rx.cert.layers.length === 3 && rx.cert.layers.every((l) => l.tokenId === null && l.readOk))
+      if (demo && demoHash) {
+        const rd = await verify(demoHash, epL)
+        check('kredensial demo lama -> artefaknya tetap terbaca di lapis utama (korpus D46 tidak hilang)',
+          Boolean(rd.cert.tokenId) && rd.cert.address?.toLowerCase() === LC.toLowerCase(), `${rd.cert.address} ${rd.cert.tokenId}`)
+      }
     }
   }
 

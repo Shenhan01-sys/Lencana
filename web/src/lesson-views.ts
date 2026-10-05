@@ -18,7 +18,7 @@
 import { isAddress } from 'viem'
 import { credentialResolverAbi } from './abi'
 import { isConfigured, loadEndpoint } from './config'
-import { makeClient } from './verify'
+import { artefactLayersOf, makeClient } from './verify'
 import { esc } from './render'
 import { courseIdOf, lessonIdOf, type Block, type Course, type Lesson, type LessonKind } from './content'
 import { COURSES, findCourse, findLesson } from './courses/index'
@@ -384,11 +384,17 @@ export async function readMyCredentials(addr: string): Promise<string> {
         const [exists, revoked, expired, delisted] = s
         const verdict = !exists ? 'tidak dikenal' : revoked ? 'DICABUT' : expired ? 'KEDALUWARSA' : delisted ? 'PENERBIT DITARIK' : 'BERLAKU'
         const q = verifyLink(h)
-        return `<tr><td><a href="${q}">${h.slice(0, 12)}…</a></td><td>${esc(verdict)}</td></tr>`
+        // Lencana-B164 status=SELESAI 2026-10-05 — kolom artefak soulbound: dibaca di SEMUA lapis kontrak yang dikenal; pembacaan yang gagal tampil sebagai 'gagal dibaca', bukan 'belum dicetak'. Buktikan ulang: uji peramban T87. JANGAN dibalik/diulang tanpa membuka kembali baris B164 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        const layers = await artefactLayersOf(h, ep, client)
+        const held = layers.filter((l) => l.tokenId !== null)
+        const nft = held.length
+          ? `<span class="yes" title="${esc(held.map((l) => l.address).join(' · '))}">🔒 soulbound · ${held.length} lapis</span>`
+          : layers.some((l) => !l.readOk) ? '<span class="bad">gagal dibaca</span>' : '<span class="muted">belum dicetak</span>'
+        return `<tr><td><a href="${q}">${h.slice(0, 12)}…</a></td><td>${esc(verdict)}</td><td>${nft}</td></tr>`
       }),
     )
-    return `<table><thead><tr><th>Kredensial</th><th>Status di chain</th></tr></thead><tbody>${rows.join('')}</tbody></table>
-      <p class="muted">${hashes.length} kredensial${hashes.length > 24 ? ` · 24 pertama ditampilkan` : ''}. Tiap baris bisa dibuka di verifier.</p>`
+    return `<table><thead><tr><th>Kredensial</th><th>Status di chain</th><th>Artefak (NFT)</th></tr></thead><tbody>${rows.join('')}</tbody></table>
+      <p class="muted">${hashes.length} kredensial${hashes.length > 24 ? ` · 24 pertama ditampilkan` : ''}. Tiap baris bisa dibuka di verifier. Artefak soulbound bersifat opsional dan dicetak platform; kredensialnya sendiri adalah dokumen bertanda tangan dengan bukti di BAS.</p>`
   } catch (err) {
     return `<p class="bad">GAGAL membaca chain: ${esc(err instanceof Error ? err.message : String(err))}
     <br />Ini bukan "kamu tidak punya apa-apa": ini pembacaan yang gagal. Bedanya penting.</p>`

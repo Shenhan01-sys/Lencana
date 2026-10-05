@@ -378,6 +378,14 @@ export interface TranslationDictionary {
       tokenUri: string
       holderBalance: string
       wiredToResolver: string
+      // B164: artefak dibaca di SEMUA lapis kontrak yang dikenal
+      layers: string
+      layersHint: string
+      layerHolds: string
+      layerEmpty: string
+      layerFailed: string
+      layerEnforces: string
+      layerEnforcesHint: string
     }
     rawBasRecord: {
       title: string
@@ -941,6 +949,13 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
         tokenUri: 'Token Metadata URI',
         holderBalance: 'Holder Total Balance',
         wiredToResolver: 'NFT Wired to Active Resolver?',
+        layers: 'Contract layers read',
+        layersHint: 'Several SoulboundCert deployments coexist on chain 97 (D46); one credential can have an artifact in more than one. A failed read is shown as such — it is NOT "not minted".',
+        layerHolds: 'artifact present',
+        layerEmpty: 'none',
+        layerFailed: 'read failed',
+        layerEnforces: 'Layer enforces D42/D43?',
+        layerEnforcesHint: 'D42 = artifacts only for course-level credentials, D43 = mintBatch. Measured from the contract bytecode (mintBatch + attestationOf + lessonOf selectors), not taken from notes',
       },
       rawBasRecord: {
         title: 'Raw Record on BAS (Immutable Third-Party Layer)',
@@ -1621,6 +1636,13 @@ export const DICTIONARIES: Record<Lang, TranslationDictionary> = {
         tokenUri: 'tokenURI',
         holderBalance: 'Jumlah artefak milik pemegang',
         wiredToResolver: 'Artefak menunjuk resolver ini?',
+        layers: 'Lapis kontrak yang dibaca',
+        layersHint: 'Beberapa deployment SoulboundCert hidup berdampingan di chain 97 (D46); satu kredensial bisa punya artefak di lebih dari satu. Pembacaan yang gagal ditampilkan apa adanya — itu BUKAN "belum dicetak".',
+        layerHolds: 'ada artefak',
+        layerEmpty: 'tidak ada',
+        layerFailed: 'gagal dibaca',
+        layerEnforces: 'Lapis menegakkan D42/D43?',
+        layerEnforcesHint: 'D42 = artefak hanya untuk kredensial level kursus, D43 = mintBatch. Diukur dari bytecode kontrak (selector mintBatch + attestationOf + lessonOf), bukan dari catatan',
       },
       rawBasRecord: {
         title: 'Rekaman mentah di BAS (pihak ketiga, tidak bisa kami ubah)',

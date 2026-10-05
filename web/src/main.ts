@@ -628,7 +628,10 @@ function collectFromForm() {
   const chainId = Number(($('cfg-chain') as HTMLInputElement)?.value) || ep.chainId
   const label = ($('cfg-label') as HTMLInputElement)?.value.trim() ?? ep.label
 
-  ep = { rpcUrl: rpc, resolver, cert, bas, chainId, label }
+  // B164: mengubah resolver, chain, atau alamat `cert` di panel = konfigurasi eksplisit satu instance; daftar lapis tambahan ikut dibuang.
+  // Yang hanya mengubah RPC atau label tetap memakai daftar yang ada.
+  const sameDeployment = resolver.toLowerCase() === ep.resolver.toLowerCase() && chainId === ep.chainId && cert.toLowerCase() === ep.cert.toLowerCase()
+  ep = { rpcUrl: rpc, resolver, cert, certs: sameDeployment ? (ep.certs ?? []) : [], bas, chainId, label }
   saveEndpoint(ep)
   paintBanner()
   setText('badge-name', ep.label || `Chain ${ep.chainId}`)
