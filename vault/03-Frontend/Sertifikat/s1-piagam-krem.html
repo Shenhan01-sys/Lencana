@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sertifikat · spesimen desain</title>
+<!-- DESIGN:HEAD — tautan font (Google Fonts) dan <meta> khusus desain. Tanpa skrip eksternal, tanpa gambar eksternal. -->
+<meta name="description" content="S1 · Piagam Krem — piagam kertas krem dengan pita dan segel kuningan yang ditekan; guilloche turunan hash kredensial.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<!-- /DESIGN:HEAD -->
+<style>
+/* ===================== SHARED SHELL — JANGAN UBAH (identik di kelima desain) ===================== */
+:root{
+  --sheet-w:1122px; --sheet-h:793px;           /* A4 landscape pada 96 dpi, dikurangi sedikit supaya muat satu halaman cetak */
+  --scale:1;
+  --cx-bg:#e7e8ec; --cx-bar:#15171c; --cx-bar-ink:#e9eaee; --cx-bar-mute:#9aa0ab; --cx-accent:#f0b90b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+.cx-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px;background:var(--cx-bar);color:var(--cx-bar-ink)}
+.cx-bar a{color:var(--cx-bar-ink);text-decoration:none;opacity:.8}
+.cx-bar a:hover{opacity:1;text-decoration:underline}
+.cx-bar .cx-title{font-weight:650;letter-spacing:.01em}
+.cx-bar .cx-title small{display:block;font-weight:400;color:var(--cx-bar-mute);font-size:12px;letter-spacing:0}
+.cx-bar .cx-sp{flex:1 1 auto}
+.cx-seg{display:inline-flex;border:1px solid #3a3e48;border-radius:8px;overflow:hidden}
+.cx-seg button{all:unset;cursor:pointer;padding:6px 12px;font-size:13px;color:var(--cx-bar-mute)}
+.cx-seg button[aria-pressed="true"]{background:var(--cx-accent);color:#15171c;font-weight:600}
+.cx-seg button:focus-visible,.cx-btn:focus-visible{outline:2px solid var(--cx-accent);outline-offset:2px}
+.cx-btn{all:unset;cursor:pointer;padding:6px 12px;border:1px solid #3a3e48;border-radius:8px;font-size:13px;color:var(--cx-bar-ink)}
+.cx-btn:hover{border-color:var(--cx-accent)}
+.cx-stage{display:grid;place-items:center;padding:20px 12px 8px}
+.cx-fit{position:relative;width:calc(var(--sheet-w) * var(--scale));height:calc(var(--sheet-h) * var(--scale))}
+.cx-scale{position:absolute;left:0;top:0;width:var(--sheet-w);height:var(--sheet-h);transform:scale(var(--scale));transform-origin:0 0}   /* satu pemilik transform: skala */
+.cx-tilt{width:100%;height:100%;transform:perspective(1800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}   /* satu pemilik transform: miring (interaksi) */
+.sheet{position:relative;width:var(--sheet-w);height:var(--sheet-h);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.18),0 18px 50px rgba(20,22,30,.28);isolation:isolate}
+.cx-foot{max-width:1122px;margin:10px auto 0;padding:0 16px;color:#5b616c;font-size:12.5px}
+.cx-foot a{color:#2b4a9a}
+.cx-notes{max-width:1122px;margin:18px auto 56px;padding:0 16px}
+.cx-notes details{background:#fff;border:1px solid #d6d8de;border-radius:12px;padding:14px 18px}
+.cx-notes summary{cursor:pointer;font-weight:650}
+.cx-notes dl{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:6px 18px;margin:14px 0 0}
+.cx-notes dt{color:#5b616c}
+.cx-notes dd{margin:0}
+.cx-notes ul{margin:0;padding-left:18px}
+.cx-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
+@media (max-width:640px){.cx-notes dl{grid-template-columns:1fr}.cx-notes dt{margin-top:8px}}
+
+/* tampilan alamat ⇄ nama contoh: desain menandai elemen dengan data-show="alamat" atau data-show="nama" */
+.sheet[data-mode="alamat"] [data-show="nama"],.sheet[data-mode="nama"] [data-show="alamat"]{display:none !important}
+
+@page{size:297mm 210mm;margin:0}
+@media print{
+  html,body.cx{background:#fff !important;min-height:0}
+  .cx-bar,.cx-foot,.cx-notes{display:none !important}
+  .cx-stage{display:block;padding:0;place-items:normal;justify-items:normal;align-items:normal}
+  .cx-fit{width:auto;height:auto;position:static;margin:0}
+  .cx-scale{position:static;width:auto;height:auto;transform:none !important}
+  .cx-tilt{transform:none !important;transition:none !important}
+  .sheet{box-shadow:none !important;margin:0;break-inside:avoid;page-break-inside:avoid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet,.sheet *{animation:none !important;transition:none !important}   /* cetak = keadaan akhir, bukan separuh jalan */
+}
+/* ===================== /SHARED SHELL ===================== */
+
+/* ===================== DESIGN CSS ===================== */
+/* ATURAN GERAK: keadaan AKHIR adalah gaya bawaan. Semua animasi (masuk dan berkelanjutan) hanya berlaku di bawah `.sheet.is-playing …`,
+   dengan animation-fill-mode: both. Tanpa kelas itu (reduce-motion, ?motion=off, cetak) kertas tampil utuh dan diam. */
+/* ---- S1 · Piagam Krem — token ---- */
+.sheet{--paper:#f4ecd8;--paper-2:#efe6cf;--ink:#1f3a36;--ink-2:#2f4a45;--ink-mute:#33463f;--brass-hi:#e3c878;--brass:#b08d3c;--brass-lo:#7a5c1e;--stamp:#8a3a2c;
+  --f-display:'Cinzel','Trajan Pro','Cormorant SC',Georgia,'Times New Roman',serif;
+  --f-body:'Cormorant Garamond','Cormorant','EB Garamond',Garamond,Georgia,'Times New Roman',serif;
+  --f-mono:'JetBrains Mono',ui-monospace,'Cascadia Mono',Consolas,'Courier New',monospace;
+  background:var(--paper);color:var(--ink);font-family:var(--f-body);font-kerning:normal;text-rendering:optimizeLegibility}
+.sheet p,.sheet dl,.sheet dd,.sheet dt,.sheet h1,.sheet ul{margin:0}
+@media screen{.sheet.s1-wait{opacity:0}}
+
+/* ---- kertas: dasar, potongan periksa, serat, cahaya kiri-atas, lipatan perforasi ---- */
+.s1-layer{position:absolute;left:0;top:0;pointer-events:none}
+.s1-paper{width:1122px;height:793px;z-index:0;background:linear-gradient(162deg,#f7f0de 0%,#f3ead5 38%,#efe6cf 72%,#e9dec3 100%)}
+.s1-stub-bg{left:892px;width:230px;height:793px;z-index:0;background:linear-gradient(172deg,#fbf7ec 0%,#f6f0e1 100%)}
+.s1-art{z-index:1;overflow:visible}
+.s1-grain{z-index:2}
+.s1-light{width:1122px;height:793px;z-index:2;background:radial-gradient(115% 85% at 6% -4%,rgba(255,252,242,.6) 0%,rgba(255,252,242,0) 50%),radial-gradient(150% 120% at 46% 42%,rgba(0,0,0,0) 58%,rgba(104,78,36,.12) 100%)}
+.s1-crease{left:878px;width:28px;height:793px;z-index:1;background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(118,90,46,.08) 46%,rgba(255,255,255,.5) 54%,rgba(255,255,255,0) 100%)}
+
+/* ---- garis cetak (SVG) ---- */
+.s1-fr{fill:none;stroke:var(--ink-2)}
+.s1-fr-a{stroke-width:1.1}
+.s1-fr-b{stroke-width:.55}
+.s1-wv{fill:none;stroke:var(--ink-2);stroke-width:.42;stroke-opacity:.66}
+.s1-wv2{stroke-opacity:.42}
+.s1-crn circle{fill:none;stroke:var(--ink-2);stroke-width:.6}
+.s1-crn path{fill:none;stroke:var(--ink-2);stroke-width:.42;stroke-opacity:.8}
+.s1-crn .s1-dot{fill:var(--ink-2);stroke:none}
+.s1-und{fill:none;stroke:var(--ink-2);stroke-width:.5;stroke-opacity:.09}
+.s1-mt{font-family:var(--f-mono);font-size:4.2px;font-weight:500;fill:var(--ink-2);fill-opacity:.85}
+.s1-micro-ros{fill:none;stroke:var(--brass-lo);stroke-width:.4}
+.s1-perf-hole{fill:#c9bb98}
+.s1-perf-rim{fill:#fffdf5;fill-opacity:.85}
+
+/* ---- pita ---- */
+.s1-ribbon{z-index:3;overflow:visible}
+.s1-rib-main,.s1-tail-drop,.s1-tail-sway{transform-box:fill-box;transform-origin:50% 0}
+
+/* ---- segel ---- */
+.s1-seal-pos{position:absolute;left:61px;top:175px;width:250px;height:250px;z-index:5}
+.s1-seal-shadow{position:absolute;left:0;top:0;width:250px;height:250px;overflow:visible;pointer-events:none}
+.s1-seal-ring{position:absolute;left:5px;top:5px;width:240px;height:240px;border-radius:50%;border:2px solid rgba(176,141,60,.75);box-shadow:inset 0 0 0 1px rgba(255,248,220,.55);opacity:0;pointer-events:none}
+.s1-seal-btn{position:absolute;left:0;top:0;width:250px;height:250px;padding:0;margin:0;border:0;background:none;border-radius:50%;cursor:pointer;color:inherit;font:inherit;-webkit-appearance:none;appearance:none;-webkit-tap-highlight-color:transparent}
+.s1-seal-btn:focus{outline:none}
+.s1-seal-btn:focus-visible{outline:2px solid var(--ink);outline-offset:-1px}
+.s1-seal-press{display:block;width:250px;height:250px;transition:transform .18s cubic-bezier(.3,.7,.4,1)}
+.s1-seal-btn:active .s1-seal-press{transform:scale(.972)}
+.s1-seal-stamp{display:block;position:relative;width:250px;height:250px}
+.s1-seal-art{display:block;width:250px;height:250px;overflow:visible}
+.s1-spec,.s1-sheen-clip{position:absolute;left:13px;top:13px;width:224px;height:224px;border-radius:50%;pointer-events:none}
+.s1-spec{--hx:clamp(-10%,calc(30% + (var(--mx,50%) - 50%) * 1.3),110%);--hy:clamp(-10%,calc(24% + (var(--my,50%) - 50%) * 1.3),110%);background:radial-gradient(circle at var(--hx) var(--hy),rgba(255,251,232,.6) 0,rgba(255,251,232,.22) 16%,rgba(255,251,232,0) 44%)}
+.s1-sheen-clip{overflow:hidden}
+.s1-sheen{position:absolute;left:0;top:-10%;width:100%;height:120%;background:linear-gradient(102deg,rgba(255,250,226,0) 32%,rgba(255,250,226,.36) 46%,rgba(255,255,250,.72) 50%,rgba(255,250,226,.36) 54%,rgba(255,250,226,0) 68%);transform:translateX(-125%)}
+.s1-reed{fill:none;stroke:#5a4214;stroke-opacity:.3;stroke-width:.55}
+.s1-tk-track{fill:none;stroke:#7a5c1e;stroke-opacity:.42;stroke-width:.7}
+.s1-tk{stroke:#3e2c0b;stroke-width:1.25;stroke-linecap:round}
+.s1-notch{fill:var(--ink);stroke:#0d211e;stroke-width:.5}
+.s1-notch-hl{fill:none;stroke:#fff3c8;stroke-opacity:.8;stroke-width:.6}
+.s1-notch-l{stroke:var(--ink);stroke-width:1.7;stroke-linecap:round}
+.s1-bead{fill:url(#s1-g-bead);stroke:#4a3510;stroke-width:.6;transform-box:fill-box;transform-origin:center}
+.s1-ros{fill:none;stroke:#5e4415;stroke-width:.42;stroke-opacity:.66}
+.s1-ros2{stroke-opacity:.42}
+.s1-turn{fill:none;stroke:#7a5c1e;stroke-opacity:.15;stroke-width:.45}
+.s1-star{fill:#5a4113}
+.s1-rt{font-family:var(--f-display);font-size:10.5px;font-weight:700;letter-spacing:.24em}
+.s1-rt-b{font-size:10px;letter-spacing:.13em}
+.s1-num{font-family:var(--f-body);font-size:46px;font-weight:700;font-variant-numeric:lining-nums tabular-nums}
+.s1-med-lbl{font-family:var(--f-display);font-size:10px;font-weight:700;letter-spacing:.28em}
+.s1-med-sub{font-family:var(--f-body);font-size:12.5px;font-style:italic;font-weight:600}
+.s1-emb .hl{fill:#fff8dc;fill-opacity:.9}
+.s1-emb .sh{fill:#3a2806;fill-opacity:.5}
+.s1-emb .mn{fill:#46330c}
+
+/* ---- nomor seri ---- */
+.s1-serial{position:absolute;right:286px;top:56px;z-index:4;font:500 11.5px/1 var(--f-mono);color:var(--stamp);letter-spacing:.05em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.s1-serial span:first-child{font:700 10.5px/1 var(--f-display);letter-spacing:.12em;margin-right:6px}
+
+/* ---- blok teks utama ---- */
+.s1-body{position:absolute;left:330px;top:74px;width:516px;text-align:center;z-index:4}
+.s1-title{font:600 31px/1 var(--f-display);letter-spacing:.12em;padding-left:.12em;text-transform:uppercase;color:var(--ink);text-shadow:-.5px -.5px 0 rgba(255,255,255,.65),.6px .8px .4px rgba(31,58,54,.22)}
+.s1-micro{display:block;width:420px;height:12px;margin:11px auto 0;overflow:visible}
+.s1-title-en{font:italic 600 16px/1.2 var(--f-body);letter-spacing:.06em;color:var(--ink-2);margin-top:5px}
+.s1-kicker{font:italic 500 19px/1.15 var(--f-body);color:var(--ink-2)}
+.s1-recip{margin-top:24px}
+.s1-who{height:78px;display:flex;align-items:center;justify-content:center;margin-top:6px}
+.s1-addrbox{position:relative;display:inline-block}
+.s1-0x{position:absolute;right:100%;top:8px;margin-right:9px;font:500 13px/1 var(--f-mono);color:var(--ink-2);letter-spacing:.02em}
+.s1-addr{display:block;width:26ch;font:500 24px/34px var(--f-mono);color:var(--ink);word-spacing:.22em;text-align:left;font-variant-ligatures:none}
+.s1-g{display:inline-block;word-spacing:normal}
+.s1-g:nth-child(even){color:#3e5c55}
+.s1-name{font:italic 600 54px/1 var(--f-body);color:var(--ink);text-shadow:-.5px -.5px 0 rgba(255,255,255,.6)}
+.s1-rule{display:block;width:440px;height:8px;margin:4px auto 0;overflow:visible}
+.s1-rule path{fill:none;stroke:var(--ink-2);stroke-width:.8}
+.s1-rule .s1-dia{fill:var(--brass);stroke:var(--brass-lo);stroke-width:.5}
+.s1-under{height:34px;margin-top:6px}
+.s1-under-lbl{font:700 10.5px/1.3 var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-2)}
+.s1-addr-short{display:block;font:500 13px/1.3 var(--f-mono);color:var(--ink)}
+.s1-name-note{display:block;font:italic 600 13px/1.3 var(--f-body);color:var(--ink-2)}
+.s1-course{margin-top:14px}
+.s1-course-title{font:600 28px/1.12 var(--f-body);color:var(--ink);margin:4px auto 0;max-width:500px;text-wrap:balance}
+.s1-result{margin-top:18px}
+.s1-verdict{display:flex;align-items:center;justify-content:center;gap:14px}
+.s1-lulus{font:700 15px/1 var(--f-display);letter-spacing:.34em;padding:6px 6px 5px calc(.34em + 6px);color:var(--ink);border:1.25px solid var(--ink);box-shadow:inset 0 0 0 2.5px rgba(244,236,216,.9),inset 0 0 0 3.25px var(--ink-2)}
+.s1-scoreline{font:italic 600 17px/1.2 var(--f-body);color:var(--ink-2);font-variant-numeric:lining-nums tabular-nums}
+.s1-pips{list-style:none;padding:0;margin-top:14px;display:flex;justify-content:center;gap:24px}
+.s1-pips li{display:flex;align-items:center;gap:7px;text-align:left}
+.s1-pip{width:46px;height:46px;flex:none;overflow:visible}
+.s1-pip-track{fill:none;stroke:var(--ink-2);stroke-opacity:.18;stroke-width:2.4}
+.s1-pipa{fill:none;stroke:var(--ink);stroke-width:2.4}
+.s1-pipd{transform-box:fill-box;transform-origin:center}
+.s1-pip-t{display:block;font:600 15px/1.1 var(--f-body);color:var(--ink)}
+.s1-pip-t b{font-weight:700;font-variant-numeric:lining-nums tabular-nums}
+.s1-pip-w{display:block;font:italic 600 13.5px/1.2 var(--f-body);color:var(--ink-2);font-variant-numeric:lining-nums tabular-nums}
+
+/* ---- pita bawah: penerbit · tanda tangan · tanggal ---- */
+.s1-band{position:absolute;left:64px;top:562px;width:740px;display:grid;grid-template-columns:220px 282px 1fr;column-gap:26px;align-items:start;z-index:4}
+.s1-cell dt{font:700 10px/1.25 var(--f-display);letter-spacing:.15em;text-transform:uppercase;color:var(--ink-2)}
+.s1-pub-name{display:block;font:600 18px/1.15 var(--f-body);color:var(--ink);margin-top:6px}
+.s1-pub-note{display:block;font:italic 600 14px/1.3 var(--f-body);color:var(--ink-2);margin-top:3px}
+.s1-sig-name{display:block;font:italic 600 23px/1.1 var(--f-body);color:var(--ink);margin-top:8px}
+.s1-sig-line{display:block;height:1px;margin:7px 0 6px;background:linear-gradient(90deg,var(--ink-2),var(--ink-2) 78%,rgba(47,74,69,0))}
+.s1-proof{display:block;font:500 10.5px/1.35 var(--f-mono);color:var(--ink-2)}
+.s1-dates{display:grid;row-gap:9px}
+.s1-date{display:inline-block;margin-top:4px;font:600 17px/1.15 var(--f-body);color:var(--ink);font-variant-numeric:lining-nums tabular-nums}
+.s1-time{margin-left:6px;font:600 13px/1 var(--f-body);color:var(--ink-2);font-variant-numeric:lining-nums tabular-nums}
+.s1-valid{display:block;width:180px;height:16px;margin-top:5px;overflow:visible}
+.s1-vl{fill:none;stroke:var(--ink-2);stroke-width:.8}
+.s1-vmark{fill:var(--stamp)}
+
+/* ---- kaki ---- */
+.s1-foot{position:absolute;left:64px;top:700px;width:782px;text-align:center;z-index:4}
+.s1-limit{font:italic 600 14px/1.25 var(--f-body);color:var(--ink)}
+.s1-demo{margin-top:5px;font:700 10.5px/1.2 var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+
+/* ---- potongan periksa (stub) ---- */
+.s1-stubc{position:absolute;left:892px;top:0;width:230px;height:793px;padding:36px 22px 0;text-align:center;z-index:4}
+.s1-brand{display:flex;align-items:center;justify-content:center;gap:8px}
+.s1-logo{display:block;width:26px;height:24px;--logo-a:#b08d3c;--logo-b:#1f3a36}
+.s1-wordmark{font:700 12.5px/1 var(--f-display);letter-spacing:.34em;padding-left:.34em;color:var(--ink)}
+.s1-idl{margin-top:16px}
+.s1-idl dt,.s1-chain dt{font:700 10px/1.25 var(--f-display);letter-spacing:.15em;text-transform:uppercase;color:var(--ink-2)}
+.s1-idl dd{margin-top:3px;font:500 12.5px/1.2 var(--f-mono);color:var(--stamp);letter-spacing:.03em}
+.s1-plate{width:182px;height:182px;margin:14px auto 0;padding:14px;background:#fffdf7;border:1px solid rgba(31,58,54,.38);box-shadow:0 1px 0 rgba(255,255,255,.8),0 2px 6px -3px rgba(60,45,20,.25)}
+.s1-qr{display:block;width:152px;height:152px;color:#13211f}
+.s1-host{margin-top:10px;font:500 12px/1.2 var(--f-mono);color:var(--ink);letter-spacing:.01em}
+.s1-scan{margin-top:5px;font:italic 600 13.5px/1.25 var(--f-body);color:var(--ink)}
+.s1-chain{margin-top:16px;padding-top:12px;border-top:1px solid rgba(31,58,54,.3);text-align:left;display:grid;row-gap:8px}
+.s1-chain dd{margin-top:2px;font:500 11.5px/1.2 var(--f-mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.s1-onchain{margin-top:12px;text-align:left;font:italic 600 13.5px/1.25 var(--f-body);color:var(--ink)}
+.s1-status-note{position:absolute;left:22px;right:22px;bottom:34px;text-align:left;font:italic 600 13.5px/1.25 var(--f-body);color:var(--ink)}
+
+/* ---- cap status bertanggal (melintasi perforasi) ---- */
+.s1-stamp-pos{position:absolute;left:806px;top:588px;width:178px;height:80px;z-index:6;pointer-events:none}
+.s1-stamp{width:178px;height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:4px double var(--stamp);border-radius:10px;color:var(--stamp);transform:rotate(-7deg);filter:url(#s1-f-ink);opacity:.93}
+.s1-stamp-main{font:700 25px/1 var(--f-display);letter-spacing:.14em;padding-left:.14em}
+.s1-stamp-sub{margin-top:7px;font:700 10.5px/1 var(--f-display);letter-spacing:.1em}
+
+/* ---- GERAK — semua di bawah .sheet.is-playing; keadaan akhir = gaya bawaan di atas ---- */
+@keyframes s1-settle{from{opacity:0;transform:translate3d(0,-12px,0) rotate(-.45deg) scale(1.01)}to{opacity:1;transform:none}}
+@keyframes s1-fade{from{opacity:0}to{opacity:1}}
+@keyframes s1-rise{from{opacity:0;transform:translate3d(0,7px,0)}to{opacity:1;transform:none}}
+@keyframes s1-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes s1-unroll{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes s1-stamp{0%{opacity:0;transform:scale(1.42) rotate(-7deg);animation-timing-function:cubic-bezier(.55,0,.9,.35)}55%{opacity:1;transform:scale(.955) rotate(.6deg);animation-timing-function:cubic-bezier(.2,.7,.35,1)}76%{transform:scale(1.016) rotate(-.2deg);animation-timing-function:ease-out}100%{opacity:1;transform:none}}
+@keyframes s1-shadow{0%{opacity:0;transform:translate3d(18px,28px,0) scale(1.22);animation-timing-function:cubic-bezier(.55,0,.9,.35)}55%{opacity:1;transform:translate3d(-1px,-2px,0) scale(.97);animation-timing-function:ease-out}100%{opacity:1;transform:none}}
+@keyframes s1-ring{0%{opacity:0;transform:scale(.94)}8%{opacity:.8;transform:scale(.97)}100%{opacity:0;transform:scale(1.34)}}
+@keyframes s1-pop{0%{opacity:0;transform:scale(0)}60%{opacity:1;transform:scale(1.22)}100%{opacity:1;transform:none}}
+@keyframes s1-drop{0%{opacity:0;transform:rotate(var(--r0,0deg)) scaleY(.4)}62%{opacity:1;transform:rotate(calc(var(--r0,0deg) * -.18)) scaleY(1.02)}100%{opacity:1;transform:none}}
+@keyframes s1-sway{from{transform:rotate(-.8deg)}to{transform:rotate(.8deg)}}
+@keyframes s1-slam{0%{opacity:0;transform:scale(1.75) rotate(-15deg);animation-timing-function:cubic-bezier(.6,0,.9,.4)}58%{opacity:.95;transform:scale(.95) rotate(-6.2deg);animation-timing-function:cubic-bezier(.2,.7,.35,1)}80%{transform:scale(1.02) rotate(-7.3deg)}100%{opacity:.93;transform:rotate(-7deg)}}
+@keyframes s1-sheen{0%{transform:translateX(-125%)}28%{transform:translateX(125%)}100%{transform:translateX(125%)}}
+@keyframes s1-arc{from{stroke-dashoffset:var(--v,100)}to{stroke-dashoffset:0}}
+.sheet.is-playing{animation:s1-settle .95s cubic-bezier(.2,.85,.25,1) both}
+.sheet.is-playing .s1-fr{animation:s1-fade .8s ease-out .2s both}
+.sheet.is-playing .s1-draw{stroke-dasharray:1 2;animation:s1-draw var(--du,1.5s) cubic-bezier(.45,.05,.2,1) both;animation-delay:var(--dl,.3s)}
+.sheet.is-playing .s1-mt,.sheet.is-playing .s1-perf-hole,.sheet.is-playing .s1-perf-rim{animation:s1-fade 1s ease-out .9s both}
+.sheet.is-playing .s1-rv{animation:s1-rise .75s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--dl,.4s)}
+.sheet.is-playing:not(.s1-moded) .s1-g{animation:s1-rise .42s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.95s + var(--i,0) * 55ms)}
+.sheet.s1-moded [data-show],.sheet.s1-moded [data-show] *{animation:none !important}   /* ganti mode = tampil seketika, tidak mengulang jeda masuk */
+.sheet.is-playing .s1-rib-main{animation:s1-unroll .75s cubic-bezier(.3,.85,.3,1) .55s both}
+.sheet.is-playing .s1-rib-shadow{animation:s1-fade .5s ease-out 1s both}
+.sheet.is-playing .s1-seal-stamp{animation:s1-stamp .62s linear 1.2s both}
+.sheet.is-playing .s1-seal-shadow{animation:s1-shadow .62s linear 1.2s both}
+.sheet.is-playing .s1-seal-ring{animation:s1-ring .75s cubic-bezier(.2,.7,.3,1) 1.54s both}
+.sheet.is-playing .s1-tk{animation:s1-fade .22s ease-out both;animation-delay:calc(1.55s + var(--d,0ms))}
+.sheet.is-playing .s1-bead{animation:s1-pop .45s cubic-bezier(.3,1.5,.5,1) 2.62s both}
+.sheet.is-playing .s1-tail-drop{animation:s1-drop .95s cubic-bezier(.3,.9,.35,1) 1.42s both}
+.sheet.is-playing .s1-tail-sway{animation:s1-sway 6.4s ease-in-out 2.4s infinite alternate both}
+.sheet.is-playing .s1-sway-b{animation-duration:7.6s;animation-delay:2.9s;animation-direction:alternate-reverse}
+.sheet.is-playing .s1-stamp{animation:s1-slam .55s linear 2.35s both}
+.sheet.is-playing .s1-sheen{animation:s1-sheen 7.5s cubic-bezier(.45,0,.3,1) 3.3s infinite both}
+.sheet.is-playing .s1-pipd{animation:s1-pop .5s cubic-bezier(.3,1.5,.5,1) both;animation-delay:var(--dl,1.9s)}
+.sheet.is-playing .s1-pipa{animation:s1-arc .9s cubic-bezier(.3,.7,.3,1) both;animation-delay:var(--dl,2s)}
+
+@media print{
+  .s1-sheen-clip,.s1-seal-ring{display:none}
+  .s1-grain rect:first-child{opacity:.08}
+  .s1-grain rect:last-child{opacity:.18}
+  .s1-seal-btn{cursor:default}
+}
+/* ===================== /DESIGN CSS ===================== */
+</style>
+</head>
+<body class="cx">
+<header class="cx-bar">
+  <a href="index.html" aria-label="Kembali ke semua desain">← Semua desain</a>
+  <div class="cx-title"><span data-design="title">Desain</span><small data-design="row"></small></div>
+  <span class="cx-sp"></span>
+  <div class="cx-seg" role="group" aria-label="Isi baris penerima">
+    <button type="button" data-mode-btn="alamat" aria-pressed="true" title="Yang sebenarnya ada di data kredensial">Alamat dompet</button>
+    <button type="button" data-mode-btn="nama" aria-pressed="false" title="Contoh tampilan jika nanti ada nama tampilan — belum ada di kredensial">Nama contoh</button>
+  </div>
+  <button class="cx-btn" type="button" data-act="replay">▶ Ulangi gerak</button>
+  <button class="cx-btn" type="button" data-act="print">Cetak / simpan PDF</button>
+</header>
+
+<main class="cx-stage">
+  <div class="cx-fit"><div class="cx-scale"><div class="cx-tilt">
+    <article class="sheet" data-mode="alamat" aria-label="Sertifikat Kelulusan — spesimen desain">
+<!-- DESIGN:SHEET — isi lembar (HTML + SVG inline). Ukuran tetap 1122×793 px. Nilai nyata hanya lewat data-bind / data-txt / svg[data-qr] / svg[data-logo]. -->
+<svg class="s1-defs" width="0" height="0" style="position:absolute;overflow:hidden" aria-hidden="true" focusable="false">
+  <defs>
+    <path id="s1-scallop" d="M0 -112Z"/>
+    <path id="s1-arc-top" d="M-73.41 -19.67A76 76 0 0 1 73.41 -19.67"/>
+    <path id="s1-arc-bot" d="M-81.74 -14.41A83 83 0 1 0 81.74 -14.41"/>
+    <clipPath id="s1-c-seal"><use href="#s1-scallop"/></clipPath>
+    <linearGradient id="s1-g-foil" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7e9b4"/><stop offset=".16" stop-color="#e5c978"/><stop offset=".33" stop-color="#c39d48"/><stop offset=".47" stop-color="#edd795"/><stop offset=".62" stop-color="#b8933f"/><stop offset=".8" stop-color="#8d6b28"/><stop offset="1" stop-color="#6b501b"/>
+    </linearGradient>
+    <linearGradient id="s1-g-field" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f6e7ac"/><stop offset=".45" stop-color="#e8ce85"/><stop offset=".78" stop-color="#d6b468"/><stop offset="1" stop-color="#c6a256"/>
+    </linearGradient>
+    <radialGradient id="s1-g-medal" cx=".38" cy=".32" r=".78">
+      <stop offset="0" stop-color="#fff6d2"/><stop offset=".5" stop-color="#f0d98f"/><stop offset="1" stop-color="#d1ae5f"/>
+    </radialGradient>
+    <radialGradient id="s1-g-bead" cx=".35" cy=".3" r=".8">
+      <stop offset="0" stop-color="#fffbe6"/><stop offset=".5" stop-color="#e9cf83"/><stop offset="1" stop-color="#8d6b28"/>
+    </radialGradient>
+    <linearGradient id="s1-g-edge-hi" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff8dc"/><stop offset=".45" stop-color="#e6cd85"/><stop offset=".55" stop-color="#b38f3e"/><stop offset="1" stop-color="#4f3a10"/>
+    </linearGradient>
+    <linearGradient id="s1-g-edge-lo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5a4214"/><stop offset=".45" stop-color="#a5832f"/><stop offset=".55" stop-color="#e2c77c"/><stop offset="1" stop-color="#fff4cc"/>
+    </linearGradient>
+    <linearGradient id="s1-g-rib" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#132a26"/><stop offset=".1" stop-color="#22403b"/><stop offset=".32" stop-color="#3b5f57"/><stop offset=".5" stop-color="#31524b"/><stop offset=".78" stop-color="#22413b"/><stop offset="1" stop-color="#112623"/>
+    </linearGradient>
+    <linearGradient id="s1-g-ribtop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1816" stop-opacity=".92"/><stop offset="1" stop-color="#0a1816" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="s1-g-tail" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset=".42" stop-color="#000" stop-opacity=".04"/><stop offset=".72" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#000" stop-opacity=".2"/>
+    </linearGradient>
+    <pattern id="s1-p-rib" width="9" height="2.3" patternUnits="userSpaceOnUse"><rect width="9" height="1" fill="#000" fill-opacity=".17"/><rect y="1" width="9" height=".5" fill="#fff" fill-opacity=".05"/></pattern>
+    <filter id="s1-f-grain" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="3" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .33  0 0 0 0 .26  0 0 0 0 .15  0 0 0 2.6 -1.18"/>
+    </filter>
+    <filter id="s1-f-mottle" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".008 .014" numOctaves="3" seed="8"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .2  0 0 0 1.2 -.5"/>
+    </filter>
+    <filter id="s1-f-foil" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="1.15" numOctaves="2" seed="9"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 .25  0 0 0 0 .17  0 0 0 0 .04  0 0 0 2.4 -1.1"/>
+    </filter>
+    <filter id="s1-f-ink" x="-4%" y="-8%" width="108%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="17" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -6 4.72" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in" result="ink"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="5" result="w"/>
+      <feDisplacementMap in="ink" in2="w" scale="1.8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="s1-f-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.6"/></filter>
+    <filter id="s1-f-sh5" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+    <filter id="s1-f-sh1" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.2"/></filter>
+  </defs>
+</svg>
+
+<div class="s1-layer s1-paper" aria-hidden="true"></div>
+<div class="s1-layer s1-stub-bg" aria-hidden="true"></div>
+<div class="s1-layer s1-crease" aria-hidden="true"></div>
+<svg class="s1-layer s1-art" viewBox="0 0 1122 793" width="1122" height="793" aria-hidden="true" focusable="false">
+  <g id="s1-und"></g>
+  <g id="s1-artg"></g>
+  <path class="s1-fr s1-fr-b" d="M64 548.5H846"/>
+  <path class="s1-fr s1-fr-a" d="M906 16H1106V777H906Z"/>
+  <path class="s1-fr s1-fr-b" d="M910 20H1102V773H910Z"/>
+  <g id="s1-perf"></g>
+</svg>
+<svg class="s1-layer s1-grain" viewBox="0 0 1122 793" width="1122" height="793" aria-hidden="true" focusable="false"><rect width="1122" height="793" filter="url(#s1-f-mottle)" opacity=".16"/><rect width="1122" height="793" filter="url(#s1-f-grain)" opacity=".26"/></svg>
+<div class="s1-layer s1-light" aria-hidden="true"></div>
+
+<svg class="s1-layer s1-ribbon" viewBox="0 0 380 560" width="380" height="560" aria-hidden="true" focusable="false">
+  <g transform="translate(167 336) rotate(11)">
+    <g class="s1-tail-drop" style="--r0:-16deg"><g class="s1-tail-sway">
+      <path d="M-31 2H35V198L2 174L-31 198Z" fill="#2a1e08" opacity=".28" filter="url(#s1-f-soft)" transform="translate(4 5)"/>
+      <path d="M-33 0H33V196L0 172L-33 196Z" fill="url(#s1-g-rib)"/>
+      <path d="M-33 0H33V196L0 172L-33 196Z" fill="url(#s1-p-rib)"/>
+      <path d="M-33 0H33V196L0 172L-33 196Z" fill="url(#s1-g-tail)"/>
+      <path d="M-27.5 0V192M27.5 0V192" fill="none" stroke="#c9a650" stroke-width="1.5"/>
+      <path d="M-25.5 0V190.6M25.5 0V190.6" fill="none" stroke="#0d1d1a" stroke-opacity=".45" stroke-width=".7"/>
+      <path d="M-33 116L33 98" stroke="#000" stroke-opacity=".22"/>
+      <path d="M-33 117.4L33 99.4" stroke="#fff" stroke-opacity=".08"/>
+    </g></g>
+  </g>
+  <g transform="translate(205 336) rotate(-11)">
+    <g class="s1-tail-drop" style="--r0:16deg"><g class="s1-tail-sway s1-sway-b">
+      <path d="M-29 2H37V198L4 174L-29 198Z" fill="#2a1e08" opacity=".28" filter="url(#s1-f-soft)" transform="translate(4 5)"/>
+      <path d="M-33 0H33V196L0 172L-33 196Z" fill="url(#s1-g-rib)"/>
+      <path d="M-33 0H33V196L0 172L-33 196Z" fill="url(#s1-p-rib)"/>
+      <path d="M-33 0H33V196L0 172L-33 196Z" fill="url(#s1-g-tail)"/>
+      <path d="M-27.5 0V192M27.5 0V192" fill="none" stroke="#c9a650" stroke-width="1.5"/>
+      <path d="M-25.5 0V190.6M25.5 0V190.6" fill="none" stroke="#0d1d1a" stroke-opacity=".45" stroke-width=".7"/>
+      <path d="M-33 98L33 116" stroke="#000" stroke-opacity=".22"/>
+      <path d="M-33 99.4L33 117.4" stroke="#fff" stroke-opacity=".08"/>
+    </g></g>
+  </g>
+  <rect class="s1-rib-shadow" x="150" y="0" width="84" height="300" fill="#2a1e08" opacity=".3" filter="url(#s1-f-soft)"/>
+  <g class="s1-rib-main">
+    <rect x="144" y="-6" width="84" height="306" fill="url(#s1-g-rib)"/>
+    <rect x="144" y="-6" width="84" height="306" fill="url(#s1-p-rib)"/>
+    <path d="M149.5 -6V300M222.5 -6V300" fill="none" stroke="#c9a650" stroke-width="1.6"/>
+    <path d="M151.6 -6V300M220.4 -6V300" fill="none" stroke="#0d1d1a" stroke-opacity=".45" stroke-width=".7"/>
+    <rect x="144" y="-6" width="84" height="26" fill="url(#s1-g-ribtop)"/>
+    <path d="M144 19.5H228" stroke="#fff" stroke-opacity=".12"/>
+  </g>
+</svg>
+
+<div class="s1-seal-pos">
+  <svg class="s1-seal-shadow" viewBox="-125 -125 250 250" width="250" height="250" aria-hidden="true" focusable="false">
+    <use href="#s1-scallop" fill="#2a1d06" opacity=".38" transform="translate(5 8)" filter="url(#s1-f-sh5)"/>
+    <use href="#s1-scallop" fill="#2a1d06" opacity=".5" transform="translate(1.3 2)" filter="url(#s1-f-sh1)"/>
+  </svg>
+  <div class="s1-seal-ring" aria-hidden="true"></div>
+  <button class="s1-seal-btn" type="button" title="Tekan untuk mengulang cap segel">
+    <span class="s1-seal-press"><span class="s1-seal-stamp">
+      <svg class="s1-seal-art" viewBox="-125 -125 250 250" width="250" height="250" aria-hidden="true" focusable="false">
+        <use href="#s1-scallop" fill="url(#s1-g-foil)"/>
+        <g clip-path="url(#s1-c-seal)"><rect x="-125" y="-125" width="250" height="250" fill="#000" filter="url(#s1-f-foil)" opacity=".55"/></g>
+        <use href="#s1-scallop" fill="none" stroke="url(#s1-g-edge-hi)" stroke-width="1.5"/>
+        <g id="s1-reed"></g>
+        <circle r="103.2" fill="url(#s1-g-field)"/>
+        <circle r="103.2" fill="none" stroke="url(#s1-g-edge-lo)" stroke-width="1.5"/>
+        <g id="s1-gauge"></g>
+        <circle r="87.6" fill="none" stroke="#5a4113" stroke-opacity=".75" stroke-width=".7"/>
+        <circle r="86.7" fill="none" stroke="#fff6d4" stroke-opacity=".8" stroke-width=".6"/>
+        <g id="s1-legend" class="s1-emb"></g>
+        <circle r="70.4" fill="none" stroke="#5a4113" stroke-opacity=".75" stroke-width=".7"/>
+        <circle r="69.5" fill="none" stroke="#fff6d4" stroke-opacity=".8" stroke-width=".6"/>
+        <g id="s1-ros"></g>
+        <circle r="45.2" fill="url(#s1-g-medal)"/>
+        <circle r="45.2" fill="none" stroke="url(#s1-g-edge-lo)" stroke-width="1.4"/>
+        <g id="s1-turn"></g>
+        <g id="s1-medal" class="s1-emb"></g>
+        <g id="s1-gtop"></g>
+      </svg>
+      <span class="s1-spec" aria-hidden="true"></span>
+      <span class="s1-sheen-clip" aria-hidden="true"><span class="s1-sheen"></span></span>
+    </span></span>
+  </button>
+</div>
+
+<p class="s1-serial s1-rv" style="--dl:1.2s"><span>No.</span><span data-bind="hashShort"></span></p>
+
+<div class="s1-body">
+  <h1 class="s1-title s1-rv" style="--dl:.35s" data-txt="title"></h1>
+  <svg class="s1-micro" viewBox="0 0 420 12" width="420" height="12" aria-hidden="true" focusable="false"></svg>
+  <p class="s1-title-en s1-rv" style="--dl:.5s" data-txt="titleEn"></p>
+  <div class="s1-recip">
+    <p class="s1-kicker s1-rv" style="--dl:.62s" data-txt="presentedTo"></p>
+    <div class="s1-rv" style="--dl:.8s">
+      <div class="s1-who" data-show="alamat"><span class="s1-addrbox"><span class="s1-0x">0x</span><span class="s1-addr" data-bind="addressGroups"></span></span></div>
+      <div class="s1-who" data-show="nama"><span class="s1-name" data-bind="name"></span></div>
+    </div>
+    <svg class="s1-rule s1-rv" style="--dl:.85s" viewBox="0 0 440 8" width="440" height="8" aria-hidden="true" focusable="false"><path d="M15 4H425"/><path class="s1-dia" d="M3 4L8 1.6L13 4L8 6.4ZM427 4L432 1.6L437 4L432 6.4Z"/></svg>
+    <div class="s1-rv" style="--dl:.95s">
+      <p class="s1-under" data-show="alamat"><span class="s1-under-lbl" data-txt="wallet"></span></p>
+      <p class="s1-under" data-show="nama"><span class="s1-addr-short" data-bind="addressShort"></span><span class="s1-name-note" data-txt="nameNote"></span></p>
+    </div>
+  </div>
+  <div class="s1-course">
+    <p class="s1-kicker s1-rv" style="--dl:1.02s" data-txt="forPassing"></p>
+    <p class="s1-course-title s1-rv" style="--dl:1.1s" data-bind="course"></p>
+  </div>
+  <div class="s1-result">
+    <p class="s1-verdict s1-rv" style="--dl:1.75s"><span class="s1-lulus" data-txt="passed"></span><span class="s1-scoreline" data-txt="scoreLine"></span></p>
+    <ul class="s1-pips s1-rv" style="--dl:1.85s" aria-label="Komponen nilai"></ul>
+  </div>
+</div>
+
+<div class="s1-band">
+  <dl class="s1-cell s1-rv" style="--dl:1.2s">
+    <dt data-txt="publisher"></dt>
+    <dd><span class="s1-pub-name" data-bind="publisher"></span><span class="s1-pub-note">(<span data-bind="publisherNote"></span>)</span></dd>
+  </dl>
+  <dl class="s1-cell s1-rv" style="--dl:1.3s">
+    <dt><span data-txt="signed"></span> <span data-txt="signedBy"></span></dt>
+    <dd><span class="s1-sig-name" data-bind="issuerName"></span><span class="s1-sig-line" aria-hidden="true"></span><span class="s1-proof" data-bind="proof"></span></dd>
+  </dl>
+  <dl class="s1-cell s1-dates s1-rv" style="--dl:1.4s">
+    <div><dt data-txt="issued"></dt><dd><span class="s1-date" data-bind="issuedDate"></span><span class="s1-time" data-bind="issuedTime"></span></dd></div>
+    <div><dt data-txt="validUntil"></dt><dd><span class="s1-date" data-bind="validUntilDate"></span><svg class="s1-valid" viewBox="0 0 180 16" width="180" height="16" aria-hidden="true" focusable="false"></svg></dd></div>
+  </dl>
+</div>
+
+<footer class="s1-foot s1-rv" style="--dl:1.45s">
+  <p class="s1-limit" data-txt="limit"></p>
+  <p class="s1-demo" data-txt="demo"></p>
+</footer>
+
+<aside class="s1-stubc" aria-label="Potongan periksa">
+  <div class="s1-brand s1-rv" style="--dl:.7s"><svg class="s1-logo" data-logo></svg><span class="s1-wordmark">Lencana</span></div>
+  <dl class="s1-idl s1-rv" style="--dl:.8s"><dt data-txt="credentialId"></dt><dd data-bind="hashShort"></dd></dl>
+  <div class="s1-plate s1-rv" style="--dl:.9s"><svg class="s1-qr" data-qr></svg></div>
+  <p class="s1-host s1-rv" style="--dl:1s" data-bind="verifyHost"></p>
+  <p class="s1-scan s1-rv" style="--dl:1.05s" data-txt="scanToCheck"></p>
+  <dl class="s1-chain s1-rv" style="--dl:1.15s">
+    <div><dt data-txt="attestation"></dt><dd data-bind="uidShort"></dd></div>
+    <div><dt data-txt="transaction"></dt><dd data-bind="txShort"></dd></div>
+    <div><dt data-txt="block"></dt><dd data-bind="block"></dd></div>
+  </dl>
+  <p class="s1-onchain s1-rv" style="--dl:1.25s" data-txt="onChain"></p>
+  <p class="s1-status-note s1-rv" style="--dl:2.6s" data-txt="statusNote"></p>
+</aside>
+
+<div class="s1-stamp-pos"><p class="s1-stamp"><span class="s1-stamp-main" data-bind="status"></span><span class="s1-stamp-sub">per <span data-bind="statusReadOn"></span></span></p></div>
+<!-- /DESIGN:SHEET -->
+    </article>
+  </div></div></div>
+  <p class="cx-foot">Spesimen desain — data dari kredensial uji B153 (5 Okt 2026), penerbit demo fiktif. Bukan ijazah. <a href="https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31" target="_blank" rel="noopener">Dokumen publik ↗</a> · <a href="https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify" target="_blank" rel="noopener">Verifier ↗</a></p>
+</main>
+
+<section class="cx-notes" aria-label="Catatan desain"><details open><summary>Catatan desain</summary><div data-design="notes"></div></details></section>
+
+<script>
+/* ===================== SHARED SHELL JS — JANGAN UBAH ===================== */
+(() => {
+  'use strict';
+  /* ---- Data nyata (satu sumber). Dibaca dari kredensial uji B153 yang terbit 5 Okt 2026; lihat hub desain untuk cara membacanya ulang. ---- */
+  const CERT = {
+    hash:   '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31',
+    uid:    '0xe4990885327d488ff45757b2cb1cb26b0eabeb3f4880bf2c58c8b6d2a1d77506',   // attestation UID di BAS (bukan hash transaksi)
+    tx:     '0xfdeb99b2df97c81754cd91230ca845faa04879d24ee02ace5fdfc44abe57d137',   // transaksi attestation
+    block:  134991781,
+    chain:  { name: 'BNB Smart Chain testnet', id: 97 },
+    learner:'0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF',
+    nameSample: 'Nadia Rahmawati',                                                  // CONTOH tampilan — TIDAK ada di kredensial
+    course: { id: 'uji-bayar-2026', title: 'Kelas Uji — Membayar dengan Tanda Tangan' },
+    publisher: 'Yayasan Literasi Digital Nusantara', publisherNote: 'institusi demo, fiktif',
+    issuerAgent: { name: 'Lencana Demo Agent', eoa: '0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE' },
+    score: 87, passMark: 60,
+    components: [ { key: 'kuis', label: 'Kuis', score: 75, weight: 50 }, { key: 'esai', label: 'Esai', score: 98, weight: 30 }, { key: 'praktik', label: 'Praktik', score: 100, weight: 20 } ],
+    issuedAt: '2026-10-05T09:41:01Z', validUntil: '2027-10-05T09:41:01Z', validDays: 365,
+    statusLabel: 'BERLAKU', statusReadOn: '2026-10-05',
+    checks: [ { id: 'bas', label: 'Attestation BAS', value: 'Tercatat' }, { id: 'whitelist', label: 'Penerbit terdaftar', value: 'Disetujui' }, { id: 'revocation', label: 'Status pencabutan', value: 'Bersih' } ],
+    proof: { type: 'DataIntegrityProof', suite: 'eddsa-rdfc-2022' },
+    format: 'Open Badges 3.0', rubricRef: '6d33c95b4ecc', statusIndex: 76,
+    verifyUrl: 'https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify', edgeUrl: 'https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31', verifyHost: 'lencana-psi.vercel.app',
+    qr:   { modules: 45, version: 7, ec: 'M', path: 'M0 0h7v1h-7zM13 0h2v1h-2zM17 0h1v1h-1zM25 0h3v1h-3zM29 0h2v1h-2zM32 0h2v1h-2zM36 0h1v1h-1zM38 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM12 1h3v1h-3zM20 1h5v1h-5zM26 1h3v1h-3zM31 1h3v1h-3zM35 1h1v1h-1zM38 1h1v1h-1zM44 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h3v1h-3zM12 2h3v1h-3zM16 2h3v1h-3zM21 2h1v1h-1zM23 2h1v1h-1zM27 2h2v1h-2zM30 2h2v1h-2zM35 2h1v1h-1zM38 2h1v1h-1zM40 2h3v1h-3zM44 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h2v1h-2zM13 3h2v1h-2zM16 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h2v1h-2zM30 3h1v1h-1zM32 3h2v1h-2zM35 3h2v1h-2zM38 3h1v1h-1zM40 3h3v1h-3zM44 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h2v1h-2zM13 4h12v1h-12zM28 4h4v1h-4zM34 4h3v1h-3zM38 4h1v1h-1zM40 4h3v1h-3zM44 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM15 5h1v1h-1zM17 5h1v1h-1zM20 5h1v1h-1zM24 5h2v1h-2zM31 5h1v1h-1zM38 5h1v1h-1zM44 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM36 6h1v1h-1zM38 6h7v1h-7zM8 7h2v1h-2zM11 7h3v1h-3zM15 7h2v1h-2zM19 7h2v1h-2zM24 7h8v1h-8zM34 7h2v1h-2zM0 8h1v1h-1zM2 8h5v1h-5zM9 8h2v1h-2zM12 8h2v1h-2zM17 8h1v1h-1zM20 8h5v1h-5zM26 8h2v1h-2zM29 8h2v1h-2zM32 8h2v1h-2zM35 8h2v1h-2zM38 8h5v1h-5zM0 9h1v1h-1zM3 9h2v1h-2zM12 9h2v1h-2zM15 9h1v1h-1zM18 9h1v1h-1zM21 9h5v1h-5zM31 9h1v1h-1zM36 9h1v1h-1zM40 9h2v1h-2zM43 9h2v1h-2zM0 10h3v1h-3zM5 10h3v1h-3zM9 10h2v1h-2zM12 10h1v1h-1zM18 10h2v1h-2zM21 10h1v1h-1zM24 10h8v1h-8zM33 10h2v1h-2zM36 10h4v1h-4zM41 10h1v1h-1zM43 10h1v1h-1zM0 11h2v1h-2zM3 11h2v1h-2zM9 11h1v1h-1zM11 11h6v1h-6zM18 11h1v1h-1zM22 11h4v1h-4zM27 11h1v1h-1zM31 11h3v1h-3zM36 11h1v1h-1zM38 11h2v1h-2zM41 11h2v1h-2zM5 12h2v1h-2zM8 12h1v1h-1zM13 12h2v1h-2zM16 12h4v1h-4zM21 12h2v1h-2zM24 12h1v1h-1zM28 12h3v1h-3zM33 12h2v1h-2zM39 12h3v1h-3zM44 12h1v1h-1zM0 13h3v1h-3zM5 13h1v1h-1zM8 13h3v1h-3zM13 13h2v1h-2zM16 13h2v1h-2zM22 13h1v1h-1zM24 13h2v1h-2zM27 13h3v1h-3zM31 13h1v1h-1zM33 13h1v1h-1zM35 13h3v1h-3zM43 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1zM5 14h2v1h-2zM8 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1zM17 14h2v1h-2zM21 14h2v1h-2zM26 14h1v1h-1zM28 14h1v1h-1zM31 14h1v1h-1zM34 14h1v1h-1zM38 14h2v1h-2zM42 14h3v1h-3zM0 15h1v1h-1zM2 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM16 15h5v1h-5zM22 15h4v1h-4zM27 15h1v1h-1zM30 15h1v1h-1zM32 15h5v1h-5zM40 15h1v1h-1zM42 15h1v1h-1zM0 16h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM8 16h3v1h-3zM12 16h2v1h-2zM15 16h4v1h-4zM21 16h1v1h-1zM23 16h1v1h-1zM27 16h5v1h-5zM33 16h2v1h-2zM37 16h1v1h-1zM39 16h1v1h-1zM41 16h1v1h-1zM43 16h1v1h-1zM2 17h2v1h-2zM12 17h2v1h-2zM23 17h1v1h-1zM25 17h2v1h-2zM30 17h2v1h-2zM33 17h5v1h-5zM43 17h2v1h-2zM4 18h1v1h-1zM6 18h1v1h-1zM9 18h2v1h-2zM14 18h5v1h-5zM20 18h1v1h-1zM24 18h1v1h-1zM26 18h2v1h-2zM33 18h3v1h-3zM38 18h1v1h-1zM42 18h1v1h-1zM1 19h2v1h-2zM4 19h2v1h-2zM7 19h1v1h-1zM9 19h4v1h-4zM15 19h1v1h-1zM17 19h3v1h-3zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM34 19h2v1h-2zM37 19h2v1h-2zM40 19h2v1h-2zM43 19h2v1h-2zM0 20h3v1h-3zM4 20h5v1h-5zM13 20h1v1h-1zM15 20h2v1h-2zM19 20h6v1h-6zM26 20h2v1h-2zM29 20h1v1h-1zM32 20h1v1h-1zM36 20h7v1h-7zM0 21h5v1h-5zM8 21h1v1h-1zM10 21h2v1h-2zM13 21h2v1h-2zM16 21h5v1h-5zM24 21h3v1h-3zM28 21h1v1h-1zM30 21h2v1h-2zM34 21h1v1h-1zM36 21h1v1h-1zM40 21h5v1h-5zM0 22h3v1h-3zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM16 22h1v1h-1zM18 22h3v1h-3zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM32 22h1v1h-1zM36 22h1v1h-1zM38 22h1v1h-1zM40 22h1v1h-1zM42 22h1v1h-1zM0 23h1v1h-1zM4 23h1v1h-1zM8 23h5v1h-5zM15 23h1v1h-1zM17 23h2v1h-2zM20 23h1v1h-1zM24 23h2v1h-2zM27 23h2v1h-2zM30 23h1v1h-1zM35 23h2v1h-2zM40 23h5v1h-5zM0 24h10v1h-10zM11 24h1v1h-1zM15 24h1v1h-1zM18 24h1v1h-1zM20 24h5v1h-5zM26 24h1v1h-1zM29 24h2v1h-2zM32 24h1v1h-1zM36 24h6v1h-6zM43 24h2v1h-2zM0 25h3v1h-3zM5 25h1v1h-1zM7 25h2v1h-2zM11 25h1v1h-1zM13 25h1v1h-1zM17 25h6v1h-6zM24 25h2v1h-2zM28 25h1v1h-1zM42 25h1v1h-1zM44 25h1v1h-1zM0 26h3v1h-3zM6 26h3v1h-3zM12 26h1v1h-1zM16 26h3v1h-3zM26 26h2v1h-2zM30 26h1v1h-1zM33 26h2v1h-2zM37 26h3v1h-3zM41 26h3v1h-3zM0 27h2v1h-2zM3 27h1v1h-1zM7 27h1v1h-1zM9 27h2v1h-2zM14 27h2v1h-2zM17 27h1v1h-1zM19 27h3v1h-3zM23 27h2v1h-2zM29 27h5v1h-5zM36 27h1v1h-1zM39 27h1v1h-1zM42 27h2v1h-2zM0 28h1v1h-1zM6 28h1v1h-1zM10 28h2v1h-2zM13 28h1v1h-1zM15 28h1v1h-1zM18 28h2v1h-2zM25 28h3v1h-3zM30 28h1v1h-1zM33 28h1v1h-1zM38 28h1v1h-1zM40 28h2v1h-2zM43 28h1v1h-1zM3 29h3v1h-3zM7 29h1v1h-1zM13 29h5v1h-5zM20 29h3v1h-3zM24 29h1v1h-1zM30 29h2v1h-2zM33 29h1v1h-1zM36 29h1v1h-1zM38 29h1v1h-1zM42 29h1v1h-1zM44 29h1v1h-1zM0 30h1v1h-1zM2 30h1v1h-1zM4 30h4v1h-4zM9 30h2v1h-2zM12 30h2v1h-2zM15 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM24 30h4v1h-4zM30 30h2v1h-2zM34 30h1v1h-1zM36 30h1v1h-1zM39 30h1v1h-1zM41 30h4v1h-4zM0 31h1v1h-1zM3 31h1v1h-1zM5 31h1v1h-1zM8 31h1v1h-1zM10 31h2v1h-2zM13 31h1v1h-1zM18 31h4v1h-4zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM32 31h1v1h-1zM34 31h2v1h-2zM38 31h2v1h-2zM41 31h2v1h-2zM2 32h1v1h-1zM4 32h3v1h-3zM8 32h5v1h-5zM14 32h1v1h-1zM16 32h1v1h-1zM19 32h1v1h-1zM22 32h1v1h-1zM25 32h1v1h-1zM28 32h4v1h-4zM33 32h2v1h-2zM39 32h1v1h-1zM44 32h1v1h-1zM0 33h3v1h-3zM4 33h2v1h-2zM9 33h1v1h-1zM11 33h5v1h-5zM17 33h7v1h-7zM26 33h2v1h-2zM29 33h5v1h-5zM36 33h1v1h-1zM38 33h1v1h-1zM40 33h1v1h-1zM42 33h3v1h-3zM4 34h1v1h-1zM6 34h2v1h-2zM9 34h2v1h-2zM14 34h1v1h-1zM16 34h2v1h-2zM19 34h1v1h-1zM21 34h1v1h-1zM24 34h2v1h-2zM27 34h1v1h-1zM29 34h1v1h-1zM33 34h4v1h-4zM39 34h1v1h-1zM42 34h1v1h-1zM1 35h4v1h-4zM7 35h1v1h-1zM9 35h1v1h-1zM11 35h3v1h-3zM16 35h1v1h-1zM23 35h1v1h-1zM27 35h2v1h-2zM33 35h6v1h-6zM40 35h2v1h-2zM0 36h1v1h-1zM3 36h2v1h-2zM6 36h1v1h-1zM8 36h1v1h-1zM10 36h1v1h-1zM13 36h3v1h-3zM17 36h2v1h-2zM20 36h6v1h-6zM29 36h4v1h-4zM36 36h5v1h-5zM42 36h2v1h-2zM8 37h1v1h-1zM12 37h1v1h-1zM14 37h1v1h-1zM19 37h2v1h-2zM24 37h1v1h-1zM27 37h2v1h-2zM30 37h2v1h-2zM33 37h4v1h-4zM40 37h3v1h-3zM44 37h1v1h-1zM0 38h7v1h-7zM9 38h2v1h-2zM17 38h1v1h-1zM19 38h2v1h-2zM22 38h1v1h-1zM24 38h2v1h-2zM29 38h1v1h-1zM31 38h1v1h-1zM35 38h2v1h-2zM38 38h1v1h-1zM40 38h1v1h-1zM42 38h1v1h-1zM0 39h1v1h-1zM6 39h1v1h-1zM8 39h1v1h-1zM11 39h2v1h-2zM15 39h1v1h-1zM17 39h2v1h-2zM20 39h1v1h-1zM24 39h2v1h-2zM28 39h4v1h-4zM34 39h3v1h-3zM40 39h3v1h-3zM0 40h1v1h-1zM2 40h3v1h-3zM6 40h1v1h-1zM8 40h1v1h-1zM12 40h1v1h-1zM15 40h1v1h-1zM18 40h1v1h-1zM20 40h6v1h-6zM29 40h13v1h-13zM0 41h1v1h-1zM2 41h3v1h-3zM6 41h1v1h-1zM8 41h2v1h-2zM13 41h2v1h-2zM16 41h6v1h-6zM24 41h2v1h-2zM27 41h1v1h-1zM31 41h2v1h-2zM36 41h1v1h-1zM39 41h3v1h-3zM0 42h1v1h-1zM2 42h3v1h-3zM6 42h1v1h-1zM8 42h2v1h-2zM11 42h3v1h-3zM16 42h3v1h-3zM25 42h3v1h-3zM29 42h2v1h-2zM33 42h3v1h-3zM37 42h2v1h-2zM41 42h3v1h-3zM0 43h1v1h-1zM6 43h1v1h-1zM9 43h1v1h-1zM13 43h1v1h-1zM15 43h1v1h-1zM17 43h2v1h-2zM20 43h1v1h-1zM22 43h2v1h-2zM25 43h1v1h-1zM27 43h1v1h-1zM29 43h1v1h-1zM32 43h1v1h-1zM36 43h2v1h-2zM42 43h1v1h-1zM0 44h7v1h-7zM8 44h1v1h-1zM12 44h7v1h-7zM21 44h1v1h-1zM24 44h1v1h-1zM28 44h1v1h-1zM31 44h1v1h-1zM33 44h3v1h-3zM38 44h2v1h-2zM41 44h1v1h-1zM43 44h1v1h-1z' },
+    logo: { w: 424, h: 393, black: 'M 155.722 59.372 C 117.823 78.576, 94.724 90.844, 92.612 92.891 C 86.944 98.386, 86.999 97.564, 87.009 175.616 L 87.019 247.500 89.994 242.313 C 91.630 239.460, 94.438 236.015, 96.234 234.658 C 99.248 232.382, 160.905 195.284, 202 171.022 C 211.625 165.340, 220.284 160.018, 221.243 159.197 C 222.867 157.805, 222.982 153.476, 222.930 96.042 C 222.870 30.106, 222.840 29.702, 217.977 29.291 C 216.416 29.159, 193.385 40.287, 155.722 59.372 M 323.500 239.680 C 314.700 243.828, 292.200 254.303, 273.500 262.958 C 254.800 271.613, 229.488 283.375, 217.251 289.097 L 195.002 299.500 195.001 329.633 L 195 359.766 200.750 363.235 C 203.912 365.143, 210.620 369.246, 215.655 372.352 C 220.690 375.458, 225.088 378, 225.428 378 C 225.957 378, 257.539 361.050, 299 338.514 C 305.325 335.076, 315.675 329.534, 322 326.198 C 333.898 319.922, 338.113 316.512, 339.936 311.685 C 341.161 308.444, 341.462 231.957, 340.250 232.069 C 339.837 232.107, 332.300 235.532, 323.500 239.680', gold: 'M 209 31.879 C 139.819 66.504, 95.937 88.735, 93.634 90.324 C 92.058 91.411, 89.700 94.596, 88.394 97.401 L 86.020 102.500 86.010 175.750 C 86.003 223.672, 86.344 249, 86.995 249 C 87.542 249, 88.976 246.901, 90.182 244.336 C 94.206 235.775, 89.640 238.784, 183.250 182.992 L 224 158.704 224 95.807 L 224 32.909 221.545 30.455 C 218.419 27.328, 217.997 27.376, 209 31.879 M 328 133.074 C 326.619 133.955, 286.397 153.469, 272.500 160.001 C 269.200 161.552, 258.175 166.743, 248 171.537 C 237.825 176.330, 226.350 181.713, 222.500 183.498 C 180.656 202.899, 159.399 212.802, 148.500 217.971 C 141.350 221.361, 126.163 228.433, 114.751 233.685 C 85.921 246.953, 86.644 245.930, 87.178 272.707 L 87.500 288.836 90.543 293.168 C 92.216 295.551, 94.916 298.326, 96.543 299.336 C 98.169 300.345, 112.325 309.075, 128 318.735 C 143.675 328.395, 163.601 340.732, 172.280 346.149 C 180.958 351.567, 188.496 356, 189.030 356 C 189.634 356, 190 345.214, 190 327.385 L 190 298.771 192.702 293.807 C 194.219 291.020, 196.690 288.177, 198.337 287.326 C 199.951 286.491, 207.848 281.725, 215.886 276.734 C 223.923 271.744, 232.975 266.228, 236 264.478 C 239.025 262.728, 246.675 258.143, 253 254.290 C 263.826 247.695, 296.489 228.883, 316.500 217.717 C 335.046 207.369, 339.061 204.837, 340.563 202.544 C 341.889 200.520, 342.064 195.727, 341.803 168.507 L 341.500 136.824 338.694 134.412 C 335.778 131.905, 330.808 131.283, 328 133.074 M 339 231.742 C 338.175 232.064, 331.875 234.997, 325 238.260 C 304.672 247.908, 283.503 257.779, 273.166 262.432 C 254.676 270.753, 225.089 284.478, 206.736 293.247 L 193.972 299.346 194.236 329.823 L 194.500 360.301 209.921 369.807 L 225.342 379.314 229.921 376.794 C 238.591 372.022, 284.546 347.173, 309 334.034 C 333.465 320.890, 337.931 317.887, 340.589 312.800 C 342.131 309.849, 342.769 230.919, 341.250 231.079 C 340.837 231.122, 339.825 231.421, 339 231.742' }
+  };
+  /* ---- Kalimat baku. Klaim di lembar hanya boleh dari sini; kalimat baru wajib dicatat di Catatan desain dan lolos Claims-Cheat-Sheet. ---- */
+  const TXT = {
+    title:       'Sertifikat Kelulusan',
+    titleEn:     'Certificate of Completion',
+    presentedTo: 'Diberikan kepada',
+    forPassing:  'atas kelulusan di kelas',
+    result:      'Hasil',
+    passed:      'LULUS',
+    scoreLine:   'Nilai akhir 87 dari 100 · batas lulus 60',
+    issued:      'Diterbitkan',
+    validUntil:  'Berlaku sampai',
+    publisher:   'Penerbit',
+    signed:      'Ditandatangani',
+    signedBy:    'oleh agen penerbit',
+    scanToCheck: 'Pindai untuk memeriksa status dan tanda tangannya',
+    onChain:     'Bukti penerbitan tercatat di BNB Smart Chain testnet (97)',
+    limit:       'Hanya menyatakan peserta menyelesaikan kelas pendek ini — bukan keahlian Web3.',
+    demo:        'Penerbit demo (fiktif) · jaringan uji · bukan ijazah',
+    nameNote:    'Nama tampilan — tidak ikut tanda tangan. Yang tertanda tangan adalah alamat dompet.',
+    statusNote:  'Status dibaca dari chain pada 5 Okt 2026; pindai QR untuk status terkini.',
+    wallet:      'Alamat dompet peserta',
+    credentialId:'ID kredensial',
+    attestation: 'Attestation UID',
+    transaction: 'Transaksi',
+    block:       'Blok',
+    rubric:      'Rubrik',
+    kuis: 'Kuis', esai: 'Esai', praktik: 'Praktik'
+  };
+  window.CERT = CERT; window.TXT = TXT;
+
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const MON3   = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const wib = (iso) => new Date(new Date(iso).getTime() + 7 * 3600e3);          // baca bidang UTC dari hasil → jam dinding WIB
+  const p2 = (n) => String(n).padStart(2, '0');
+  const idDate  = (iso) => { const d = wib(iso); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idShort = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())} ${MON3[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idNum   = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())}.${p2(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`; };
+  const idTime  = (iso) => { const d = wib(iso); return `${p2(d.getUTCHours())}.${p2(d.getUTCMinutes())} WIB`; };
+  const mid = (h, a, b) => h.slice(0, a) + '…' + h.slice(-b);
+  const FMT = {
+    address:        () => CERT.learner,
+    addressShort:   () => mid(CERT.learner, 6, 4),
+    addressGroups:  () => CERT.learner.slice(2).match(/.{4}/g).join(' '),
+    name:           () => CERT.nameSample,
+    course:         () => CERT.course.title,
+    courseId:       () => CERT.course.id,
+    publisher:      () => CERT.publisher,
+    publisherNote:  () => CERT.publisherNote,
+    issuerName:     () => CERT.issuerAgent.name,
+    issuerEoa:      () => CERT.issuerAgent.eoa,
+    issuerEoaShort: () => mid(CERT.issuerAgent.eoa, 6, 4),
+    score:          () => String(CERT.score),
+    passMark:       () => String(CERT.passMark),
+    hash:           () => CERT.hash,
+    hashShort:      () => mid(CERT.hash, 10, 8),
+    uid:            () => CERT.uid,
+    uidShort:       () => mid(CERT.uid, 10, 8),
+    tx:             () => CERT.tx,
+    txShort:        () => mid(CERT.tx, 10, 8),
+    block:          () => CERT.block.toLocaleString('id-ID'),
+    chain:          () => `${CERT.chain.name} (${CERT.chain.id})`,
+    issuedDate:     () => idDate(CERT.issuedAt),
+    issuedShort:    () => idShort(CERT.issuedAt),
+    issuedNum:      () => idNum(CERT.issuedAt),
+    issuedTime:     () => idTime(CERT.issuedAt),
+    validUntilDate: () => idDate(CERT.validUntil),
+    validUntilShort:() => idShort(CERT.validUntil),
+    validUntilNum:  () => idNum(CERT.validUntil),
+    statusReadOn:   () => idDate(CERT.statusReadOn + 'T00:00:00Z'),
+    status:         () => CERT.statusLabel,
+    proof:          () => `${CERT.proof.type} · ${CERT.proof.suite}`,
+    format:         () => CERT.format,
+    rubricRef:      () => CERT.rubricRef,
+    verifyHost:     () => CERT.verifyHost,
+    verifyUrl:      () => CERT.verifyUrl,
+    verifyUrlShort: () => CERT.verifyHost + '/?q=' + CERT.hash.slice(0, 10) + '…#/verify'
+  };
+  window.FMT = FMT;
+  const bind = (root = document) => {
+    $$('[data-bind]', root).forEach((el) => { const f = FMT[el.dataset.bind]; if (f) el.textContent = f(); else console.warn('data-bind tidak dikenal:', el.dataset.bind); });
+    $$('[data-txt]',  root).forEach((el) => { const v = TXT[el.dataset.txt]; if (v !== undefined) el.textContent = v; else console.warn('data-txt tidak dikenal:', el.dataset.txt); });
+  };
+  /* ---- QR dan logo: SVG inline dari data nyata. QR wajib di atas pelat terang dengan zona tenang ≥ 4 modul. ---- */
+  const injectQR = (root = document) => $$('svg[data-qr]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.qr.modules} ${CERT.qr.modules}`);
+    svg.setAttribute('shape-rendering', 'crispEdges'); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Kode QR menuju halaman verifikasi kredensial ini');
+    svg.innerHTML = `<path d="${CERT.qr.path}" fill="currentColor"/>`;
+  });
+  const injectLogo = (root = document) => $$('svg[data-logo]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.logo.w} ${CERT.logo.h}`); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'Lambang Lencana');
+    svg.innerHTML = `<path d="${CERT.logo.gold}" fill="var(--logo-a,#f0b90b)"/><path d="${CERT.logo.black}" fill="var(--logo-b,#0b0e11)"/>`;
+  });
+  /* ---- Alat jejak-hash: geometri turunan hash kredensial (nilai sama → gambar sama; kredensial lain → gambar lain). ---- */
+  const BYTES = Uint8Array.from(CERT.hash.slice(2).match(/../g).map((h) => parseInt(h, 16)));
+  const HASHART = {
+    bytes: BYTES,
+    byteAt: (i) => BYTES[((i % 32) + 32) % 32],
+    /** PRNG deterministik (mulberry32) bibitnya diambil dari 4 byte hash mulai offset `from`. */
+    rng: (from = 0) => { let a = ((BYTES[from % 32] << 24) | (BYTES[(from + 1) % 32] << 16) | (BYTES[(from + 2) % 32] << 8) | BYTES[(from + 3) % 32]) >>> 0;
+      return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  };
+  window.HASHART = HASHART;
+  /** Hitung-naik angka (untuk gerak masuk); `ease` = fungsi 0..1 → 0..1. Menulis hasil akhir persis (bukan pembulatan bergerak). */
+  window.countUp = (el, to, { ms = 1100, ease = (t) => 1 - Math.pow(1 - t, 3), from = 0, fmt = (v) => String(Math.round(v)) } = {}) => {
+    const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / ms); el.textContent = fmt(from + (to - from) * ease(k)); if (k < 1) requestAnimationFrame(tick); else el.textContent = fmt(to); }; requestAnimationFrame(tick);
+  };
+
+  /* ---- Skala ke layar, miring (interaksi), gerak, cetak ---- */
+  const root = document.documentElement, sheet = $('.sheet'), tilt = $('.cx-tilt'), fitBox = $('.cx-fit'), bar = $('.cx-bar');
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=off/.test(location.search);
+  const fit = () => { const w = innerWidth - 24, h = innerHeight - (bar ? bar.offsetHeight : 0) - 56; root.style.setProperty('--scale', Math.max(0.25, Math.min(w / 1122, h / 793, 1.6)).toFixed(4)); };
+  addEventListener('resize', fit); fit();
+  const play = () => { sheet.classList.remove('is-playing'); void sheet.offsetWidth; const r = reduced(); if (!r) sheet.classList.add('is-playing'); document.dispatchEvent(new CustomEvent('cx:play', { detail: { reduced: r } })); };
+  window.cxPlay = play;
+  fitBox.addEventListener('pointermove', (e) => {
+    if (reduced() || e.pointerType === 'touch') return; const r = fitBox.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    tilt.style.setProperty('--ry', ((x - .5) * 5).toFixed(2) + 'deg'); tilt.style.setProperty('--rx', ((.5 - y) * 3.6).toFixed(2) + 'deg');
+    sheet.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); sheet.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+  });
+  fitBox.addEventListener('pointerleave', () => { tilt.style.setProperty('--ry', '0deg'); tilt.style.setProperty('--rx', '0deg'); sheet.style.setProperty('--mx', '50%'); sheet.style.setProperty('--my', '50%'); });
+  $$('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => { sheet.dataset.mode = b.dataset.modeBtn; $$('[data-mode-btn]').forEach((o) => o.setAttribute('aria-pressed', String(o === b))); }));
+  $('[data-act="replay"]').addEventListener('click', play);
+  $('[data-act="print"]').addEventListener('click', () => window.print());
+  addEventListener('beforeprint', () => sheet.classList.remove('is-playing'));
+  addEventListener('afterprint', () => { sheet.classList.add('is-playing'); });
+
+  /* ---- Catatan desain (dari window.DESIGN yang diisi DESIGN:JS) ---- */
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const renderNotes = () => {
+    const D = window.DESIGN; if (!D) return;
+    document.title = `Sertifikat · ${D.id} ${D.name} (spesimen desain)`;
+    $$('[data-design="title"]').forEach((e) => { e.textContent = `${D.id} · ${D.name}`; });
+    $$('[data-design="row"]').forEach((e) => { e.textContent = D.row; });
+    const li = (a) => '<ul>' + (a || []).map((x) => `<li>${esc(x)}</li>`).join('') + '</ul>';
+    const sw = (D.palette || []).map((c) => `<span><i class="cx-sw" style="background:${esc(c.hex)}"></i>${esc(c.name)} <code>${esc(c.hex)}</code>${c.use ? ' — ' + esc(c.use) : ''}</span>`).join('<br>');
+    $('[data-design="notes"]').innerHTML = `<dl>
+      <dt>Estetika (doktrin §7)</dt><dd>${esc(D.row)} — ${esc(D.tagline || '')}</dd>
+      <dt>Proses yang diwakili</dt><dd>${esc(D.brief.process)}</dd>
+      <dt>Objek inti</dt><dd>${esc(D.brief.core)}</dd>
+      <dt>Metafora ruang</dt><dd>${esc(D.brief.metaphor)}</dd>
+      <dt>Geometri mengodekan</dt><dd>${li(D.encodes)}</dd>
+      <dt>Tipografi</dt><dd>${(D.fonts || []).map((f) => `${esc(f.role)}: <b>${esc(f.name)}</b>`).join(' · ')}</dd>
+      <dt>Palet</dt><dd>${sw}</dd>
+      <dt>Motif</dt><dd>${esc(D.motif)}</dd>
+      <dt>Gerak</dt><dd>${li([`Masuk: ${D.motion.entrance}`, `Berkelanjutan: ${D.motion.continuous}`, `Interaksi: ${D.motion.interaction}`, `Micro-beat: ${D.motion.micro}`])}</dd>
+      <dt>Batas dan catatan klaim</dt><dd>${li(D.limits)}</dd>
+    </dl>`;
+  };
+
+  const init = () => { bind(); injectQR(); injectLogo(); renderNotes(); fit();
+    const go = () => { play(); }; (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve()).then(go); };
+  window.__cxInit = init;   // DESIGN:JS memanggil __cxInit() SETELAH window.DESIGN dan handler 'cx:play' terpasang
+})();
+/* ===================== /SHARED SHELL JS ===================== */
+</script>
+<script>
+/* ===================== DESIGN JS ===================== */
+/* 1) window.DESIGN = { id, name, row, tagline, brief:{process,core,relationship,metaphor}, encodes:[…], fonts:[{role,name}], palette:[{name,hex,use}], motif, motion:{entrance,continuous,interaction,micro}, limits:[…] }
+   2) document.addEventListener('cx:play', (e) => { … hitung-naik, micro-beat … }) — e.detail.reduced === true → langsung tulis nilai akhir tanpa gerak
+   3) window.__cxInit()   ← terakhir */
+(() => {
+  'use strict';
+  const C = window.CERT, T = window.TXT, F = window.FMT, H = window.HASHART;
+  const NS = 'http://www.w3.org/2000/svg', XL = 'http://www.w3.org/1999/xlink', TAU = Math.PI * 2;
+  const q = (s, r = document) => r.querySelector(s);
+  const sheet = q('.sheet');
+  const mk = (tag, at, parent) => { const e = document.createElementNS(NS, tag); if (at) for (const k in at) e.setAttribute(k, String(at[k])); if (parent) parent.appendChild(e); return e; };
+  const B = (i) => H.byteAt(i);
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const P = (x, y) => r2(x) + ' ' + r2(y);
+  /* kurva kutub tertutup; θ diukur dari arah jam 12 searah jarum jam */
+  const polar = (rf, cx, cy, steps) => { let d = ''; for (let i = 0; i < steps; i++) { const t = i / steps * TAU, r = rf(t); d += (i ? 'L' : 'M') + P(cx + r * Math.sin(t), cy - r * Math.cos(t)); } return d + 'Z'; };
+  const draw = (el, dl, du) => { el.classList.add('s1-draw'); el.setAttribute('pathLength', '1'); el.style.setProperty('--dl', dl.toFixed(2) + 's'); el.style.setProperty('--du', du + 's'); return el; };
+  const COUNT_MS = 1100;
+  sheet.classList.add('s1-wait');   // disembunyikan hanya sampai cx:play pertama (layar saja; cetak tidak terpengaruh)
+
+  /* ---- 1. parameter turunan hash: kredensial ini → pola ini ---- */
+  const G = { scallops: 30 + (B(0) % 9), scPhase: B(1) / 256, rosA: 12 + (B(2) % 7), rosPh: B(16) / 255 * TAU,
+    lam1: 20 + (B(4) % 10), lamK: 1.75 + (B(6) % 4) * 0.25, strands: 4 + (B(5) % 3), wvPh: B(9) / 255 * Math.PI,
+    crnN: 5 + (B(7) % 5), undN: 9 + (B(12) % 7) };
+  G.rosB = G.rosA + 5 + (B(3) % 5); G.undM = G.undN + 3 + (B(13) % 4); G.lam2 = r2(G.lam1 * G.lamK);
+  const microText = (len, fs) => { const n = Math.floor(len / (fs * 0.6)), u = 'LENCANA ' + C.hash + ' '; let s = ''; while (s.length < n) s += u; return s.slice(0, n); };
+
+  /* ---- 2. bingkai: garis rambut ganda, gelombang guilloche, roset sudut, mikroteks ---- */
+  const art = q('#s1-artg'), W = 892, HH = 793, BC = 30, RR = 24.5;
+  const fr = mk('g', null, art);
+  [[16, 's1-fr s1-fr-a'], [20, 's1-fr s1-fr-b'], [40, 's1-fr s1-fr-b'], [44, 's1-fr s1-fr-a']].forEach(([ins, cls]) => {
+    const dy = Math.abs(ins - BC), cut = Math.sqrt(RR * RR - dy * dy), a = BC + cut, bx = W - BC - cut, by = HH - BC - cut;
+    mk('path', { d: `M${P(a, ins)}H${r2(bx)}M${P(W - ins, a)}V${r2(by)}M${P(bx, HH - ins)}H${r2(a)}M${P(ins, by)}V${r2(a)}`, class: cls }, fr);
+  });
+  const wv = mk('g', null, art), E = 26;
+  [[BC + E, BC, W - BC - E, BC], [W - BC, BC + E, W - BC, HH - BC - E], [W - BC - E, HH - BC, BC + E, HH - BC], [BC, HH - BC - E, BC, BC + E]].forEach(([x0, y0, x1, y1], ei) => {
+    const L = Math.hypot(x1 - x0, y1 - y0), ux = (x1 - x0) / L, uy = (y1 - y0) / L, nx = -uy, ny = ux, steps = Math.ceil(L / 1.5);
+    [[G.lam1, 6.3, 0, 1, 's1-wv'], [G.lam2, 6.3, G.wvPh, -1, 's1-wv s1-wv2']].forEach(([lam, amp, ph0, dir, cls], fi) => {
+      const k = TAU * Math.max(1, Math.round(L / lam)) / L;
+      for (let s = 0; s < G.strands; s++) {
+        const ph = ph0 + dir * s * TAU / G.strands; let d = '';
+        for (let i = 0; i <= steps; i++) { const u = i / steps * L, o = amp * Math.sin(k * u + ph); d += (i ? 'L' : 'M') + P(x0 + ux * u + nx * o, y0 + uy * u + ny * o); }
+        draw(mk('path', { d, class: cls }, wv), 0.25 + ei * 0.14 + fi * 0.18 + s * 0.04, 1.5);
+      }
+    });
+  });
+  const crn = mk('g', { class: 's1-crn' }, art);
+  [[BC, BC], [W - BC, BC], [W - BC, HH - BC], [BC, HH - BC]].forEach(([cx, cy], ci) => {
+    mk('circle', { cx, cy, r: RR }, crn); mk('circle', { cx, cy, r: RR - 2.6 }, crn);
+    const ph = B(20 + ci) / 255 * TAU;
+    for (let k = 0; k < 7; k++) draw(mk('path', { d: polar((t) => 12.6 + 7.4 * Math.sin(G.crnN * t + ph + k * TAU / 7), cx, cy, 200) }, crn), 0.5 + ci * 0.1 + k * 0.035, 1.1);
+    mk('circle', { cx, cy, r: 1.8, class: 's1-dot' }, crn);
+  });
+  const mtg = mk('g', null, art);
+  [[780, 'translate(56 49.6)'], [681, 'translate(842.4 56) rotate(90)'], [780, 'translate(836 743.4) rotate(180)'], [681, 'translate(49.6 737) rotate(-90)']].forEach(([len, tr]) => {
+    mk('text', { class: 's1-mt', transform: tr, textLength: len, lengthAdjust: 'spacing' }, mtg).textContent = microText(len, 4.2);
+  });
+  /* roset latar (underprint) di belakang blok teks */
+  const und = q('#s1-und'), ux0 = 588, uy0 = 318;
+  for (let k = 0; k < 12; k++) draw(mk('path', { d: polar((t) => 152 + 60 * Math.sin(G.undN * t + k * TAU / 12), ux0, uy0, 900), class: 's1-und' }, und), 0.35 + k * 0.05, 2.2);
+  for (let k = 0; k < 8; k++) draw(mk('path', { d: polar((t) => 152 + 38 * Math.sin(G.undM * t - k * TAU / 8 + G.wvPh), ux0, uy0, 900), class: 's1-und' }, und), 0.6 + k * 0.05, 2.2);
+  /* perforasi potongan periksa */
+  const perf = q('#s1-perf');
+  for (let y = 8; y < 790; y += 9) { mk('circle', { cx: 892.6, cy: y + 0.7, r: 2.1, class: 's1-perf-rim' }, perf); mk('circle', { cx: 892, cy: y, r: 2, class: 's1-perf-hole' }, perf); }
+  /* garis mikroteks di bawah judul */
+  const mic = q('.s1-micro');
+  [[0, 188], [232, 188]].forEach(([x, len]) => { mk('text', { x, y: 7.4, class: 's1-mt', textLength: len, lengthAdjust: 'spacing' }, mic).textContent = microText(len, 4.2); mk('path', { d: `M${x} 10.2H${x + len}`, class: 's1-fr s1-fr-b' }, mic); });
+  for (let k = 0; k < 5; k++) mk('path', { d: polar((t) => 3.6 + 2.2 * Math.sin(G.crnN * t + k * TAU / 5), 210, 6, 90), class: 's1-micro-ros' }, mic);
+
+  /* ---- 3. segel: gerigi (hash) → cincin ukur (nilai) → legenda → roset (hash) → medali (angka) ---- */
+  const N = G.scallops, ph0 = G.scPhase * TAU / N, RV = 112, rho = 2 * RV * Math.sin(Math.PI / N) * 0.6;
+  let sd = '';
+  for (let i = 0; i <= N; i++) { const t = ph0 + i * TAU / N; sd += (i ? `A${r2(rho)} ${r2(rho)} 0 0 1 ` : 'M') + P(RV * Math.sin(t), -RV * Math.cos(t)); }
+  q('#s1-scallop').setAttribute('d', sd + 'Z');
+  let rd = '';
+  for (let i = 0; i < 180; i++) { const t = i / 180 * TAU, s = Math.sin(t), c = Math.cos(t); rd += `M${P(104.6 * s, -104.6 * c)}L${P(110.2 * s, -110.2 * c)}`; }
+  mk('path', { d: rd, class: 's1-reed' }, q('#s1-reed'));
+  const gauge = q('#s1-gauge');
+  let td = '';
+  for (let k = 1; k <= 100; k++) { const t = (k - 0.5) / 100 * TAU, s = Math.sin(t), c = Math.cos(t), r0 = k % 10 ? 94.5 : 91.5; td += `M${P(r0 * s, -r0 * c)}L${P(100.6 * s, -100.6 * c)}`; }
+  mk('path', { d: td, class: 's1-tk-track' }, gauge);
+  const easeInv = (y) => 1 - Math.cbrt(1 - y);   // kebalikan easeOutCubic milik countUp → garis menyala selaras angka
+  for (let k = 1; k <= C.score; k++) {
+    const t = (k - 0.5) / 100 * TAU, s = Math.sin(t), c = Math.cos(t), r0 = k % 10 ? 92.6 : 89.6;
+    mk('line', { x1: r2(r0 * s), y1: r2(-r0 * c), x2: r2(101 * s), y2: r2(-101 * c), class: 's1-tk' }, gauge).style.setProperty('--d', Math.round(easeInv(k / C.score) * COUNT_MS) + 'ms');
+  }
+  const gtop = q('#s1-gtop'), tp = C.passMark / 100 * TAU, te = C.score / 100 * TAU;
+  const at = (r, dt) => P(r * Math.sin(tp + dt), -r * Math.cos(tp + dt));
+  mk('path', { d: `M${at(86.9, 0)}L${at(101, 0)}`, class: 's1-notch-l' }, gtop);
+  mk('path', { d: `M${at(110.4, -0.034)}L${at(110.4, 0.034)}L${at(100.6, 0)}Z`, class: 's1-notch' }, gtop);
+  mk('path', { d: `M${at(110.1, 0.03)}L${at(101.2, 0.003)}`, class: 's1-notch-hl' }, gtop);
+  mk('circle', { cx: r2(96.4 * Math.sin(te)), cy: r2(-96.4 * Math.cos(te)), r: 3.4, class: 's1-bead' }, gtop);
+  const leg = q('#s1-legend');
+  const ringText = (id, txt, cls) => [[-0.6, -0.6, 'hl'], [0.7, 0.8, 'sh'], [0, 0, 'mn']].forEach(([dx, dy, c]) => {
+    const t = mk('text', { class: `${cls} ${c}`, transform: `translate(${dx} ${dy})`, 'text-anchor': 'middle' }, leg);
+    const p = mk('textPath', { href: '#' + id, startOffset: '50%' }, t); p.setAttributeNS(XL, 'xlink:href', '#' + id); p.textContent = txt;
+  });
+  ringText('s1-arc-top', T.title.toUpperCase(), 's1-rt');
+  ringText('s1-arc-bot', `${C.course.id} · ${C.format}`.toUpperCase(), 's1-rt s1-rt-b');
+  [77.5, -77.5].forEach((deg) => { const t = deg * Math.PI / 180, x = 79.4 * Math.sin(t), y = -79.4 * Math.cos(t);
+    mk('path', { d: `M${P(x, y - 3.2)}L${P(x + 0.9, y - 0.9)}L${P(x + 3.2, y)}L${P(x + 0.9, y + 0.9)}L${P(x, y + 3.2)}L${P(x - 0.9, y + 0.9)}L${P(x - 3.2, y)}L${P(x - 0.9, y - 0.9)}Z`, class: 's1-star' }, leg); });
+  const ros = q('#s1-ros');
+  for (let k = 0; k < 8; k++) mk('path', { d: polar((t) => 57.6 + 9.4 * Math.sin(G.rosA * t + G.rosPh + k * TAU / 8), 0, 0, 720), class: 's1-ros' }, ros);
+  for (let k = 0; k < 6; k++) mk('path', { d: polar((t) => 57.6 + 9.4 * (0.6 * Math.sin(G.rosB * t - k * TAU / 6) + 0.4 * Math.sin((G.rosB - G.rosA) * t + k * TAU / 6 + G.rosPh)), 0, 0, 900), class: 's1-ros s1-ros2' }, ros);
+  let cd = '';
+  for (let r = 4; r < 44; r += 2.1) cd += `M${r2(-r)} 0a${r2(r)} ${r2(r)} 0 1 0 ${r2(2 * r)} 0a${r2(r)} ${r2(r)} 0 1 0 ${r2(-2 * r)} 0`;
+  mk('path', { d: cd, class: 's1-turn' }, q('#s1-turn'));
+  const medal = q('#s1-medal');
+  const emb3 = (x, y, txt, cls) => [[-0.6, -0.6, 'hl'], [0.8, 0.9, 'sh'], [0, 0, 'mn']].map(([dx, dy, c]) => { const t = mk('text', { x: r2(x + dx), y: r2(y + dy), 'text-anchor': 'middle', class: `${cls} ${c}` }, medal); t.textContent = txt; return t; });
+  emb3(1.4, -23, 'NILAI', 's1-med-lbl');
+  const numEls = emb3(0, 15.5, F.score(), 's1-num');
+  emb3(0, 31, 'dari 100', 's1-med-sub');
+  q('.s1-seal-btn').setAttribute('aria-label', `Segel kredensial: nilai akhir ${C.score} dari 100, batas lulus ${C.passMark}. Tekan untuk mengulang cap.`);
+
+  /* ---- 4. pip komponen: luas cakram ∝ bobot, busur email = skor komponen ---- */
+  const ul = q('.s1-pips');
+  C.components.forEach((c, i) => {
+    const li = document.createElement('li');
+    const sv = mk('svg', { class: 's1-pip', viewBox: '-23 -23 46 46', width: 46, height: 46, 'aria-hidden': 'true', focusable: 'false' });
+    const rad = 14 * Math.sqrt(c.weight / 50);
+    mk('circle', { r: 19.5, class: 's1-pip-track' }, sv);
+    const arc = mk('circle', { r: 19.5, class: 's1-pipa', pathLength: 100, transform: 'rotate(-90)', 'stroke-dasharray': `${c.score} 100` }, sv);
+    arc.style.setProperty('--v', c.score); arc.style.setProperty('--dl', (2.0 + i * 0.14).toFixed(2) + 's');
+    const g = mk('g', { class: 's1-pipd' }, sv); g.style.setProperty('--dl', (1.9 + i * 0.14).toFixed(2) + 's');
+    mk('circle', { r: r2(rad), fill: 'url(#s1-g-medal)' }, g);
+    mk('circle', { r: r2(rad), fill: 'none', stroke: 'url(#s1-g-edge-hi)', 'stroke-width': 1.1 }, g);
+    mk('circle', { r: r2(Math.max(rad - 2.3, 2)), fill: 'none', stroke: 'url(#s1-g-edge-lo)', 'stroke-width': 0.8 }, g);
+    li.append(sv);
+    const tx = document.createElement('span'), t1 = document.createElement('span'), b = document.createElement('b'), t2 = document.createElement('span');
+    t1.className = 's1-pip-t'; t1.append(`${T[c.key]} `); b.textContent = String(c.score); t1.append(b);
+    t2.className = 's1-pip-w'; t2.textContent = `bobot ${c.weight}%`;
+    tx.append(t1, t2); li.append(tx); ul.append(li);
+  });
+
+  /* ---- 5. penggaris masa berlaku: ruas bulan, segitiga = hari status dibaca ---- */
+  const months = Math.max(1, Math.round(C.validDays / 30.44)), vs = q('.s1-valid');
+  let vd = 'M3 8H177';
+  for (let m = 0; m <= months; m++) { const x = 3 + m / months * 174, h = (m === 0 || m === months) ? 5 : (m % 3 ? 2 : 3.4); vd += `M${r2(x)} ${r2(8 - h)}V${r2(8 + h)}`; }
+  mk('path', { d: vd, class: 's1-vl' }, vs);
+  const t0 = Date.parse(C.issuedAt), t1v = Date.parse(C.validUntil), tr = Date.parse(C.statusReadOn + 'T00:00:00Z');
+  const fx = 3 + Math.min(1, Math.max(0, (tr - t0) / (t1v - t0))) * 174;
+  mk('path', { d: `M${r2(fx - 3.4)} -1.5L${r2(fx + 3.4)} -1.5L${r2(fx)} 3.6Z`, class: 's1-vmark' }, vs);
+
+  /* ---- 6. alamat dikelompokkan per 4 (dua baris × 5 kelompok), warna berselang ---- */
+  const addr = q('.s1-addr');
+  if (addr) { addr.removeAttribute('data-bind'); addr.textContent = ''; F.addressGroups().split(' ').forEach((g, i, a) => { const s = document.createElement('span'); s.className = 's1-g'; s.style.setProperty('--i', i); s.textContent = g; addr.append(s); if (i < a.length - 1) addr.append(' '); }); }
+
+  /* ---- 7. gerak: hitung-naik angka (selaras garis ukur), cap ulang saat segel ditekan ---- */
+  let gen = 0;
+  const setNum = (v) => numEls.forEach((e) => { e.textContent = v; });
+  const count = (delay, ms) => { const my = ++gen; setNum('0'); setTimeout(() => { if (my !== gen) return; numEls.forEach((e) => window.countUp(e, C.score, { ms, fmt: (v) => (my === gen ? String(Math.round(v)) : e.textContent) })); }, delay); };
+  /* ganti mode alamat ⇄ nama sesudah masuk: elemen mode tampil seketika (catatan nama + alamat pendek ikut bersama nama) */
+  document.querySelectorAll('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => sheet.classList.add('s1-moded')));
+  document.addEventListener('cx:play', (e) => {
+    sheet.classList.remove('s1-wait', 's1-moded');
+    if (e.detail && e.detail.reduced) { gen++; setNum(F.score()); return; }
+    count(1550, COUNT_MS);
+  });
+  const btn = q('.s1-seal-btn'), stampEl = q('.s1-seal-stamp'), shEl = q('.s1-seal-shadow'), ringEl = q('.s1-seal-ring');
+  const reducedNow = () => matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=off/.test(location.search);
+  btn.addEventListener('click', () => {
+    if (reducedNow() || !stampEl.animate) return;
+    const D = 640;
+    stampEl.animate([
+      { transform: 'none', offset: 0, easing: 'cubic-bezier(.2,.7,.3,1)' },
+      { transform: 'scale(1.16) rotate(-2.5deg)', offset: 0.32, easing: 'cubic-bezier(.6,0,.9,.4)' },
+      { transform: 'scale(.955) rotate(.4deg)', offset: 0.6, easing: 'cubic-bezier(.2,.7,.35,1)' },
+      { transform: 'scale(1.014)', offset: 0.8, easing: 'ease-out' },
+      { transform: 'none', offset: 1 }], { duration: D });
+    shEl.animate([
+      { transform: 'none', opacity: 1, offset: 0, easing: 'cubic-bezier(.2,.7,.3,1)' },
+      { transform: 'translate(12px,18px) scale(1.14)', opacity: 0.45, offset: 0.32, easing: 'cubic-bezier(.6,0,.9,.4)' },
+      { transform: 'translate(-1px,-2px) scale(.97)', opacity: 1, offset: 0.6, easing: 'ease-out' },
+      { transform: 'none', opacity: 1, offset: 1 }], { duration: D });
+    ringEl.animate([{ opacity: 0.8, transform: 'scale(.94)' }, { opacity: 0, transform: 'scale(1.34)' }], { duration: 700, delay: D * 0.6, easing: 'cubic-bezier(.2,.7,.3,1)' });
+  });
+
+  /* ---- 8. catatan desain ---- */
+  const ws = C.components.map((c) => `${T[c.key]} ${c.weight}%`).join(' · '), ss = C.components.map((c) => `${T[c.key]} ${c.score}`).join(' · ');
+  window.DESIGN = {
+    id: 'S1', name: 'Piagam Krem',
+    row: 'Skeuomorfik / taktil — piagam kertas dengan segel tekan',
+    tagline: 'Kertas krem bercetak halus, pita hijau-batu, dan segel kuningan yang ditekan; seluruh guilloche-nya adalah sidik visual hash kredensial ini.',
+    brief: {
+      process: 'Kredensial diterbitkan, ditandatangani agen penerbit (DataIntegrityProof), bukti penerbitannya dicatat di BNB Smart Chain testnet (97), lalu siapa pun memeriksanya lewat QR.',
+      core: 'Selembar piagam berkertas krem: segel kuningan ditekan di atas pita, garis guilloche dan mikroteks dari hash, serta potongan periksa berperforasi yang memuat QR.',
+      relationship: 'Badan piagam memuat upacaranya (siapa, kelas apa, seberapa baik, siapa penerbit); potongan periksa memuat alat periksanya (ID, QR, UID attestation, transaksi, blok). Cap status bertanggal melintasi perforasi dan menyatukan keduanya.',
+      metaphor: 'Segel yang ditekan = komitmen pada kredensial persis ini. Gerigi segel, roset, bingkai bergelombang, roset sudut, dan roset latar diturunkan dari byte hash; kredensial lain mencetak pola lain.'
+    },
+    encodes: [
+      `Cincin ukur segel: 100 garis, ${C.score} terisi = nilai akhir; takik email hijau-batu di ${C.passMark} = batas lulus; manik kuningan di ujung isian.`,
+      'Angka besar di medali segel = nilai akhir (hitung naik selaras garis ukur yang menyala).',
+      `Tiga pip kuningan: luas cakram ∝ bobot (${ws}); busur di sekelilingnya = skor komponen (${ss}).`,
+      `Gerigi tepi segel: ${G.scallops} lekuk (30 + byte 0 mod 9), fase dari byte 1 hash.`,
+      `Roset segel: dua keluarga gelombang, ${G.rosA} dan ${G.rosB} lekuk (byte 2, 3, 16).`,
+      `Bingkai: ${G.strands} helai × 2 keluarga gelombang, periode ${G.lam1} px dan ${G.lam2} px (byte 4, 5, 6, 9); roset sudut ${G.crnN} kelopak (byte 7, 20–23); roset latar ${G.undN}/${G.undM} lekuk (byte 12–13).`,
+      'Mikroteks bingkai dalam dan garis di bawah judul = hash kredensial lengkap, diulang.',
+      `Penggaris masa berlaku: ${months} ruas bulan = ${C.validDays} hari; segitiga merah-cokelat = hari status dibaca.`,
+      'Nomor seri merah-cokelat (ID kredensial) dicetak dua kali: badan piagam dan potongan periksa.',
+      'Cap status melintasi perforasi: snapshot bertanggal; status terkini lewat QR di potongan periksa.'
+    ],
+    fonts: [{ role: 'Judul & label ukir', name: 'Cinzel' }, { role: 'Badan, nama, kelas, angka', name: 'Cormorant Garamond' }, { role: 'Hash & alamat', name: 'JetBrains Mono' }],
+    palette: [
+      { name: 'Kertas krem', hex: '#f4ecd8', use: 'badan piagam, bergradasi ke #efe6cf' },
+      { name: 'Tinta hijau-batu', hex: '#1f3a36', use: 'judul, teks, garis rambut, pita, email takik' },
+      { name: 'Hijau-batu muda', hex: '#2f4a45', use: 'guilloche, teks sekunder' },
+      { name: 'Kuningan', hex: '#b08d3c', use: 'segel foil, pip komponen' },
+      { name: 'Kuningan terang', hex: '#e3c878', use: 'kilau dan bevel segel' },
+      { name: 'Tinta cap', hex: '#8a3a2c', use: 'cap status bertanggal, nomor seri' }
+    ],
+    motif: 'Cetak pengaman ala uang kertas: guilloche, mikroteks, nomor seri merah ganda, perforasi; segel foil kuningan bergerigi di atas pita = lencana.',
+    motion: {
+      entrance: 'Kertas turun dan mengendap; guilloche menggambar dirinya berlapis (bingkai → roset sudut → roset latar); teks naik berurutan; pita terurai dari tepi atas; segel menghantam; ekor pita jatuh; cap status menghantam terakhir.',
+      continuous: 'Kilau foil menyapu segel tiap ±7,5 detik; ekor pita berayun sangat pelan (±0,8°).',
+      interaction: 'Pantulan cahaya pada segel bergeser mengikuti penunjuk; segel bisa diklik atau ditekan (Enter/Spasi) untuk mengulang cap.',
+      micro: `Segel menghantam (skala 1,42 → 0,955 → 1) dengan cincin benturan dan denyut bayangan; lalu ${C.score} garis ukur menyala berurutan selaras hitung-naik angka nilai.`
+    },
+    limits: [
+      'Label baru (bukan klaim): "No." untuk ID kredensial, "NILAI" dan "dari 100" di medali segel, "bobot …%" pada pip, "per <tanggal>" pada cap, merek "Lencana" di potongan periksa, label aria "Potongan periksa", "Komponen nilai", dan label tombol segel.',
+      'Cap "BERLAKU" adalah snapshot bertanggal (FMT.statusReadOn); TXT.statusNote tepat di bawahnya di potongan periksa mengarahkan ke QR untuk status terkini.',
+      'Guilloche, mikroteks, dan nomor seri adalah ornamen turunan hash (sidik visual), bukan fitur pengaman; pemeriksaan tetap lewat QR dan tanda tangan.',
+      'Tanda tangan ditulis sebagai nama agen dalam huruf miring biasa, bukan tiruan tanda tangan tangan; jenis bukti (DataIntegrityProof · eddsa-rdfc-2022) tercetak di bawah garisnya.',
+      'Segel adalah lencana produk dan pembawa data (nilai, hash), bukan cap lembaga; penerbit tetap tertulis sebagai institusi demo, fiktif.',
+      'Belum ideal: cincin ukur segel tidak berlabel angka (dibaca bersama baris hasil); pola hash tidak bisa dicocokkan dengan mata telanjang tanpa alat.'
+    ]
+  };
+})();
+window.__cxInit();
+/* ===================== /DESIGN JS ===================== */
+</script>
+</body>
+</html>

@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sertifikat · spesimen desain</title>
+<!-- DESIGN:HEAD — tautan font (Google Fonts) dan <meta> khusus desain. Tanpa skrip eksternal, tanpa gambar eksternal. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap">
+<meta name="description" content="S5 · Bukti Mentah — spesimen desain sertifikat Lencana (Data / Terminal)">
+<!-- /DESIGN:HEAD -->
+<style>
+/* ===================== SHARED SHELL — JANGAN UBAH (identik di kelima desain) ===================== */
+:root{
+  --sheet-w:1122px; --sheet-h:793px;           /* A4 landscape pada 96 dpi, dikurangi sedikit supaya muat satu halaman cetak */
+  --scale:1;
+  --cx-bg:#e7e8ec; --cx-bar:#15171c; --cx-bar-ink:#e9eaee; --cx-bar-mute:#9aa0ab; --cx-accent:#f0b90b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+.cx-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px;background:var(--cx-bar);color:var(--cx-bar-ink)}
+.cx-bar a{color:var(--cx-bar-ink);text-decoration:none;opacity:.8}
+.cx-bar a:hover{opacity:1;text-decoration:underline}
+.cx-bar .cx-title{font-weight:650;letter-spacing:.01em}
+.cx-bar .cx-title small{display:block;font-weight:400;color:var(--cx-bar-mute);font-size:12px;letter-spacing:0}
+.cx-bar .cx-sp{flex:1 1 auto}
+.cx-seg{display:inline-flex;border:1px solid #3a3e48;border-radius:8px;overflow:hidden}
+.cx-seg button{all:unset;cursor:pointer;padding:6px 12px;font-size:13px;color:var(--cx-bar-mute)}
+.cx-seg button[aria-pressed="true"]{background:var(--cx-accent);color:#15171c;font-weight:600}
+.cx-seg button:focus-visible,.cx-btn:focus-visible{outline:2px solid var(--cx-accent);outline-offset:2px}
+.cx-btn{all:unset;cursor:pointer;padding:6px 12px;border:1px solid #3a3e48;border-radius:8px;font-size:13px;color:var(--cx-bar-ink)}
+.cx-btn:hover{border-color:var(--cx-accent)}
+.cx-stage{display:grid;place-items:center;padding:20px 12px 8px}
+.cx-fit{position:relative;width:calc(var(--sheet-w) * var(--scale));height:calc(var(--sheet-h) * var(--scale))}
+.cx-scale{position:absolute;left:0;top:0;width:var(--sheet-w);height:var(--sheet-h);transform:scale(var(--scale));transform-origin:0 0}   /* satu pemilik transform: skala */
+.cx-tilt{width:100%;height:100%;transform:perspective(1800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}   /* satu pemilik transform: miring (interaksi) */
+.sheet{position:relative;width:var(--sheet-w);height:var(--sheet-h);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.18),0 18px 50px rgba(20,22,30,.28);isolation:isolate}
+.cx-foot{max-width:1122px;margin:10px auto 0;padding:0 16px;color:#5b616c;font-size:12.5px}
+.cx-foot a{color:#2b4a9a}
+.cx-notes{max-width:1122px;margin:18px auto 56px;padding:0 16px}
+.cx-notes details{background:#fff;border:1px solid #d6d8de;border-radius:12px;padding:14px 18px}
+.cx-notes summary{cursor:pointer;font-weight:650}
+.cx-notes dl{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:6px 18px;margin:14px 0 0}
+.cx-notes dt{color:#5b616c}
+.cx-notes dd{margin:0}
+.cx-notes ul{margin:0;padding-left:18px}
+.cx-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
+@media (max-width:640px){.cx-notes dl{grid-template-columns:1fr}.cx-notes dt{margin-top:8px}}
+
+/* tampilan alamat ⇄ nama contoh: desain menandai elemen dengan data-show="alamat" atau data-show="nama" */
+.sheet[data-mode="alamat"] [data-show="nama"],.sheet[data-mode="nama"] [data-show="alamat"]{display:none !important}
+
+@page{size:297mm 210mm;margin:0}
+@media print{
+  html,body.cx{background:#fff !important;min-height:0}
+  .cx-bar,.cx-foot,.cx-notes{display:none !important}
+  .cx-stage{display:block;padding:0;place-items:normal;justify-items:normal;align-items:normal}
+  .cx-fit{width:auto;height:auto;position:static;margin:0}
+  .cx-scale{position:static;width:auto;height:auto;transform:none !important}
+  .cx-tilt{transform:none !important;transition:none !important}
+  .sheet{box-shadow:none !important;margin:0;break-inside:avoid;page-break-inside:avoid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet,.sheet *{animation:none !important;transition:none !important}   /* cetak = keadaan akhir, bukan separuh jalan */
+}
+/* ===================== /SHARED SHELL ===================== */
+
+/* ===================== DESIGN CSS ===================== */
+/* ATURAN GERAK: keadaan AKHIR adalah gaya bawaan. Semua animasi (masuk dan berkelanjutan) hanya berlaku di bawah `.sheet.is-playing …`,
+   dengan animation-fill-mode: both. Tanpa kelas itu (reduce-motion, ?motion=off, cetak) kertas tampil utuh dan diam. */
+/* ATURAN GERAK: keadaan AKHIR adalah gaya bawaan. Semua animasi (masuk dan berkelanjutan) hanya berlaku di bawah `.sheet.is-playing …`,
+   dengan animation-fill-mode: both. Tanpa kelas itu (reduce-motion, ?motion=off, cetak) kertas tampil utuh dan diam. */
+/* ---------- S5 · Bukti Mentah — Data / Terminal. Token (layar gelap; varian cetak terang di @media print paling bawah) ---------- */
+.sheet{
+  --bg:#0b0e11; --panel:#181a20; --panel2:#1e2329; --rule:#2b313a; --ink:#eaecef; --mute:#848e9c;
+  --acc:#f0b90b; --acc-hi:#fcd535; --acc-t:#f0b90b; --acc-t2:#fcd535; --ok:#0ecb81;
+  --lo:#7d600f; --empty:#222831; --grid:rgba(43,49,58,.32); --scan:rgba(255,255,255,.017);
+  --logo-a:#f0b90b; --logo-b:#eaecef;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular","Cascadia Mono","Segoe UI Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --spring:cubic-bezier(.34,1.56,.64,1); --out:cubic-bezier(.2,.8,.2,1);
+  background:var(--bg); color:var(--ink);
+  font:400 12px/1.5 var(--mono);
+  font-variant-ligatures:none; font-variant-numeric:tabular-nums;
+}
+.s5,.s5 *{box-sizing:border-box}
+.s5{position:absolute;inset:0}
+.s5 :where(p,h1,dl,dd,dt,ol,li,figure,figcaption){margin:0;padding:0}
+.s5 :where(ol){list-style:none}
+.s5 em,.s5 i{font-style:normal}
+.s5-sr{position:absolute !important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.s5-shake{position:absolute;inset:0}
+
+/* ---------- permukaan: kisi garis-rambut + garis pindai (sangat tipis) ---------- */
+.s5-bg{position:absolute;inset:22px;pointer-events:none;
+  background:
+    repeating-linear-gradient(180deg,var(--scan) 0 1px,transparent 1px 3px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px) 10px 10px/24px 24px,
+    linear-gradient(180deg,var(--grid) 1px,transparent 1px) 10px 10px/24px 24px}
+.s5-sweep{position:absolute;left:0;right:0;top:0;height:150px;pointer-events:none;opacity:0;
+  background:linear-gradient(180deg,transparent,rgba(252,213,53,.018) 70%,rgba(252,213,53,.042) 96%,transparent)}
+.s5-flash{position:absolute;inset:0;pointer-events:none;background:var(--acc-hi);opacity:0}
+
+/* ---------- bingkai: dua garis-rambut + braket sudut emas ---------- */
+.s5-frame{position:absolute;inset:16px;border:1px solid var(--rule);pointer-events:none}
+.s5-frame::before{content:"";position:absolute;inset:4px;border:1px solid var(--rule)}
+.s5-frame i{position:absolute;width:26px;height:26px;border:0 solid var(--acc)}
+.s5-frame .tl{left:-5px;top:-5px;border-left-width:2px;border-top-width:2px}
+.s5-frame .tr{right:-5px;top:-5px;border-right-width:2px;border-top-width:2px}
+.s5-frame .bl{left:-5px;bottom:-5px;border-left-width:2px;border-bottom-width:2px}
+.s5-frame .br{right:-5px;bottom:-5px;border-right-width:2px;border-bottom-width:2px}
+.s5-flab{position:absolute;top:767px;height:14px;padding:0 10px;background:var(--bg);font-size:10.5px;line-height:14px;color:var(--mute);letter-spacing:.02em;white-space:nowrap}
+.s5-flab.l{left:46px}
+.s5-flab.r{right:46px}
+.s5-flab::before{content:"";display:inline-block;width:6px;height:6px;background:var(--acc);margin-right:8px;vertical-align:1px}
+.s5-perf{position:absolute;left:703px;top:40px;height:712px;width:1px;background:repeating-linear-gradient(180deg,var(--rule) 0 4px,transparent 4px 9px)}
+
+/* ---------- label bagian: ── LABEL ─────────── ---------- */
+.s5-rule{display:flex;align-items:center;gap:8px;height:16px;margin-bottom:10px;font-size:10.5px;line-height:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+.s5-rule::before{content:"";width:14px;height:1px;background:var(--acc);flex:none}
+.s5-rule::after{content:"";flex:1 1 auto;height:1px;background:var(--rule);order:1}
+.s5-rule em{order:2;letter-spacing:.04em;text-transform:none}
+.s5-rule em b{color:var(--ink);font-weight:700}
+
+/* ---------- kepala ---------- */
+.s5-head{position:absolute;left:56px;top:40px;display:flex;align-items:center;gap:14px}
+.s5-logo{width:40px;height:37px;flex:none;display:block}
+.s5-h1{font-size:24px;line-height:30px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.s5-h1 .br{color:var(--acc-t)}
+.s5-h1 .ar{color:var(--mute);font-weight:500}
+.s5-en{font-size:11.5px;line-height:16px;color:var(--mute);margin-top:1px}
+.s5-prompt{position:absolute;left:56px;top:100px;display:flex;align-items:center;font-size:14px;line-height:20px;font-weight:500;white-space:nowrap}
+.s5-prompt .ps{color:var(--acc-t);font-weight:800;margin-right:10px}
+.s5-prompt .hs{color:var(--acc-t2)}
+.s5-caret{display:inline-block;width:.6em;height:17px;margin-left:3px;background:var(--acc)}
+
+/* ---------- penerima ---------- */
+.s5-rcp{position:absolute;left:56px;top:146px;width:624px}
+.s5-fp{display:flex;align-items:flex-start;gap:12px;font-size:32px;line-height:40px;font-weight:700;color:var(--ink)}
+.s5-fp .px{color:var(--acc-t);font-weight:500;opacity:.8}
+.s5-fp .rows{display:flex;flex-direction:column}
+.s5-fp .row{display:flex;align-items:center}
+.s5-fp .g{display:inline-block;width:4ch;white-space:pre}
+.s5-fp .sep{position:relative;width:24px;height:40px;flex:none}
+.s5-fp .sep::before{content:"";position:absolute;left:9px;top:19px;width:6px;height:6px;background:var(--acc)}
+.s5-cap{font-size:11px;line-height:16px;color:var(--mute);margin:6px 0 0 50px}
+.s5-nm .nm{font-size:40px;line-height:48px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.s5-nm .ad{font-size:15px;line-height:22px;color:var(--acc-t);margin-top:6px;white-space:nowrap}
+.s5-nm .ad .mu{color:var(--mute);font-size:11px}
+.s5-nm .nt{font-size:11px;line-height:16px;color:var(--mute);margin-top:6px;max-width:600px}
+
+/* ---------- kelas ---------- */
+.s5-course{position:absolute;left:56px;top:290px;width:624px}
+.s5-course .ttl{display:flex;align-items:center;gap:14px;font-size:19px;line-height:26px;font-weight:700;white-space:nowrap}
+.s5-course .lim{margin-top:6px;font-size:11px;line-height:16px;color:var(--mute);white-space:nowrap}
+.s5-tag{font-size:11px;line-height:16px;font-weight:500;color:var(--acc-t);border:1px solid rgba(240,185,11,.5);padding:0 6px}
+
+/* ---------- hasil: batang blok ---------- */
+.s5-score{position:absolute;left:56px;top:384px;width:624px}
+.s5-chart{position:relative;display:grid;grid-template-columns:60px 30px 40px 300px 46px 1fr;column-gap:12px;grid-template-rows:18px 26px 26px 26px 34px 14px;align-items:center}
+.s5-chart .sc{grid-row:1;grid-column:4;position:relative;height:18px;font-size:10px;line-height:12px;color:var(--mute)}
+.s5-chart .sc span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.s5-chart .sc .t0{left:0;transform:none}
+.s5-chart .sc .t1{left:100%;transform:translateX(-100%)}
+.s5-chart .sc .pm{color:var(--acc-t2);font-weight:700}
+.s5-chart .lb{grid-column:1;font-size:12px;color:var(--mute)}
+.s5-chart .sv{grid-column:2;justify-self:end;font-size:13px;font-weight:700}
+.s5-chart .wt{grid-column:3;font-size:11px;color:var(--mute)}
+.s5-chart .ct{grid-column:5;justify-self:end;font-size:12px;color:var(--ink)}
+.s5-chart .ct.tot{white-space:nowrap;font-weight:700}
+.s5-chart .lb.tot{color:var(--ink);font-weight:700}
+.s5-chart .trk{grid-column:4;position:relative;height:26px;align-self:stretch;
+  background:linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/30px 100%;box-shadow:inset -1px 0 0 var(--grid)}
+.s5-chart .trk::after{content:"";position:absolute;left:calc(var(--pass) * 1%);top:0;bottom:0;width:2px;margin-left:-2px;background:var(--acc-hi);z-index:2}
+.s5-chart .blk{position:absolute;left:0;right:0;bottom:5px;height:var(--h);background:var(--empty);overflow:hidden;
+  -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 10px,transparent 10px 12px);mask-image:repeating-linear-gradient(90deg,#000 0 10px,transparent 10px 12px)}
+.s5-chart .fill{position:absolute;left:0;top:0;bottom:0;width:calc(var(--w) * 1%);background:var(--acc);transform-origin:0 50%}
+.s5-chart .trk.tot{height:34px}
+.s5-chart .sumw{position:absolute;left:0;right:0;bottom:8px;height:18px}
+.s5-chart .sumw > div{position:absolute;inset:0}
+.s5-chart .seg{position:absolute;top:0;bottom:0}
+.s5-chart .lo .seg{background:var(--lo)}
+.s5-chart .hi{clip-path:inset(0 0 0 calc(var(--pass) * 1%))}
+.s5-chart .hi .seg{background:var(--acc-hi)}
+.s5-chart .sl{grid-row:6;grid-column:4;position:relative;height:14px;font-size:10px;line-height:12px;color:var(--mute)}
+.s5-chart .sl span{position:absolute;top:0;text-align:center;white-space:nowrap}
+.s5-chart .ro{grid-column:6;grid-row:2 / span 4;justify-self:end;align-self:center;display:flex;flex-direction:column;align-items:flex-end}
+.s5-chart .big{display:inline-block;font-size:60px;line-height:54px;font-weight:800;color:var(--acc-t2);letter-spacing:-.03em;transform-origin:100% 60%}
+.s5-chart .of{font-size:12px;line-height:16px;color:var(--mute)}
+.s5-chart .pass{display:inline-block;margin-top:8px;padding:1px 6px;border:1px solid var(--ok);color:var(--ok);font-size:11px;line-height:14px;font-weight:700;letter-spacing:.16em}
+/* bidik (crosshair) emas yang mengikuti --mx/--my di atas batang */
+.s5-xh{position:absolute;left:-56px;top:-384px;width:1122px;height:793px;pointer-events:none;opacity:0;transition:opacity .25s var(--out);z-index:3}
+.s5-xh i{position:absolute;left:0;top:0;width:100%;height:100%}
+.s5-xh .v{border-right:1px solid var(--acc-hi);transform:translateX(calc(var(--mx,50%) - 100%))}
+.s5-xh .h{border-bottom:1px dashed rgba(252,213,53,.55);transform:translateY(calc(var(--my,50%) - 100%))}
+.s5-xh .lab{position:absolute;right:0;top:var(--lt,0px);transform:translateX(50%);font:700 10px/14px var(--mono);color:var(--bg);background:var(--acc-hi);padding:0 4px}
+.s5-xh .lab:empty{display:none}
+.sheet.is-playing .s5-score:hover .s5-xh{opacity:1}
+
+/* ---------- masa berlaku ---------- */
+.s5-valid{position:absolute;left:56px;top:580px;width:552px}
+.s5-vbar{position:relative;height:40px}
+.s5-vbar .ax{position:absolute;left:0;right:0;top:18px;height:1px;background:var(--mute);transform-origin:0 50%}
+.s5-vbar .cap{position:absolute;top:11px;width:1px;height:15px;background:var(--mute)}
+.s5-vbar .rem{position:absolute;left:var(--p0);right:0;top:16px;height:5px;background:var(--acc);transform-origin:0 50%}
+.s5-vbar .tk{position:absolute;top:21px;width:1px;height:5px;background:var(--mute)}
+.s5-vbar .tk.yr{top:12px;height:14px;background:var(--ink)}
+.s5-vbar .tk span{position:absolute;top:7px;left:0;transform:translateX(-50%);font-size:10px;line-height:12px;color:var(--mute)}
+.s5-vbar .tk.yr span{top:16px;color:var(--ink)}
+.s5-vbar .mk{position:absolute;left:var(--p0);top:0;width:0;height:0}
+.s5-vbar .mk b{position:absolute;left:-5px;top:4px;width:0;height:0;border:5px solid transparent;border-top:7px solid var(--acc-hi)}
+.s5-vbar .mk span{position:absolute;left:10px;top:-2px;font-size:10px;line-height:12px;color:var(--acc-t2);white-space:nowrap}
+.s5-vends{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;line-height:16px}
+.s5-vends div{display:flex;gap:8px}
+.s5-vends dt{color:var(--mute)}
+.s5-vends dd{color:var(--ink);font-weight:500}
+
+/* ---------- blok tanda tangan bergaris ---------- */
+.s5-sig{position:absolute;left:56px;top:672px;width:624px;display:grid;grid-template-columns:214px 150px 1fr;column-gap:28px}
+.s5-sig .sg{display:flex;flex-direction:column}
+.s5-sig dt{order:9;margin-top:6px;padding-top:5px;border-top:1px solid var(--mute);font-size:10.5px;line-height:14px;color:var(--mute);white-space:nowrap}
+.s5-sig .v{min-height:34px;display:flex;align-items:flex-end;font-size:12.5px;line-height:17px;font-weight:700;color:var(--ink)}
+.s5-sig .s{font-size:11px;line-height:16px;color:var(--acc-t);white-space:nowrap}
+
+/* ---------- kanan: peta byte hash ---------- */
+.s5-kred{position:absolute;left:728px;top:40px;width:336px}
+.s5-hex{display:flex;flex-direction:column;gap:6px}
+.s5-hex .hr{display:grid;grid-template-columns:24px repeat(16,1fr);align-items:end}
+.s5-hex .off{font-size:10px;line-height:13px;color:var(--mute)}
+.s5-hex .cell{all:unset;box-sizing:border-box;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:52px;cursor:crosshair}
+.s5-hex .cell::before{content:"";position:absolute;left:calc(50% - 6px);bottom:17px;width:12px;height:33px;background:var(--panel)}
+.s5-hex .bw{position:relative;width:12px;height:calc(3px + var(--v) * 30px);transform-origin:50% 100%}
+.s5-hex .b{position:absolute;inset:0;background:var(--acc);opacity:calc(.22 + var(--v) * .78)}
+.s5-hex .x{font-size:10px;line-height:13px;margin-top:4px;color:var(--mute)}
+.s5-hex .cell.on .x{color:var(--acc-t2);font-weight:700}
+.s5-hex .cell.on .b{opacity:1;background:var(--acc-hi)}
+.s5-hex .cell:focus-visible{outline:1px solid var(--acc-hi);outline-offset:1px}
+.s5-read{margin-top:8px;font-size:11px;line-height:16px;color:var(--mute);white-space:nowrap}
+.s5-read b{color:var(--acc-t2);font-weight:700}
+
+/* ---------- kanan: cek chain ---------- */
+.s5-run{position:absolute;left:728px;top:228px;width:336px}
+.s5-checks li,.s5-proof{display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:22px;white-space:nowrap}
+.s5-checks .mk{color:var(--ok);font-weight:700;white-space:pre}
+.s5-checks .st{display:inline-grid}
+.s5-checks .st > span{grid-area:1 / 1;display:inline-block}
+.s5-checks .pd{opacity:0;color:var(--mute)}
+.s5-dots{flex:1 1 auto;min-width:12px;border-bottom:1px dotted #3a414c;transform:translateY(-4px)}
+.s5-checks .val{display:inline-block;color:var(--ok);font-weight:700}
+.s5-proof .mk{color:var(--mute);font-weight:700;white-space:pre}
+.s5-proof .pq{color:var(--acc-t2);font-weight:700}
+.s5-pv{font-size:11px;line-height:16px;color:var(--mute);margin-left:56px;white-space:nowrap}
+
+/* ---------- kanan: catatan chain ---------- */
+.s5-chain{position:absolute;left:728px;top:376px;width:336px}
+.s5-chain dl > div{display:grid;grid-template-columns:118px 1fr;font-size:12px;line-height:20px}
+.s5-chain dt{color:var(--mute)}
+.s5-chain dd{color:var(--ink);white-space:nowrap}
+
+/* ---------- cap BERLAKU (snapshot bertanggal) + QR ---------- */
+.s5-stamp{position:absolute;left:640px;top:540px;z-index:4}
+.s5-stamp .rot{transform:rotate(-7deg)}
+.s5-stamp .ink{padding:8px 16px 7px;border:3px double var(--acc-hi);background:rgba(11,14,17,.78);color:var(--acc-t2);text-align:center;box-shadow:0 0 0 1px rgba(11,14,17,.9)}
+.s5-stamp b{display:block;font-size:30px;line-height:34px;font-weight:800;letter-spacing:.2em;margin-right:-.2em}
+.s5-stamp .rd{display:block;font-size:11px;line-height:15px;font-weight:700;letter-spacing:.06em}
+.s5-qr{position:absolute;left:870px;top:470px;width:194px}
+.s5-qr .plate{position:relative;width:194px;height:194px;padding:16px;background:#fff}
+.s5-qr svg{display:block;width:162px;height:162px;color:#0b0e11}
+.s5-qr .plate::before,.s5-qr .plate::after{content:"";position:absolute;width:16px;height:16px;border:0 solid var(--acc)}
+.s5-qr .plate::before{left:-7px;top:-7px;border-left-width:2px;border-top-width:2px}
+.s5-qr .plate::after{right:-7px;bottom:-7px;border-right-width:2px;border-bottom-width:2px}
+.s5-qr figcaption{margin-top:10px;font-size:10.5px;line-height:15px;color:var(--mute)}
+.s5-qr .host{color:var(--acc-t2);font-weight:700}
+.s5-dot{position:relative;display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--acc-hi);margin-right:7px;vertical-align:1px}
+.s5-dot::after{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid var(--acc-hi);opacity:0}
+.s5-snap{position:absolute;left:728px;top:716px;width:336px;font-size:10.5px;line-height:15px;color:var(--mute)}
+
+/* =========================================================================================
+   GERAK — hanya di bawah .sheet.is-playing; fill-mode both; tanpa kelas = keadaan akhir.
+   Struktur statis (bingkai, kisi, label bagian, trek kosong, sumbu waktu, garis tanda tangan, QR) tampil sejak bingkai 0.
+   Yang bergerak hanya NILAI: perintah diketik, gelombang byte, alamat mengendap, batang tumbuh, cek berganti, nilai chain,
+   tanda tangan tercetak — lalu cap sebagai ketukan terakhir (±3,2 dtk total).
+   ========================================================================================= */
+.ln{width:fit-content;max-width:100%}
+/* steps(n+1, jump-none): progres 0 = tersembunyi penuh (juga selama jeda), tiap langkah = tepat 1 karakter (lebar baris = n ch),
+   dan langkah terakhir tetap tercapai walau progres akhir jatuh di 0,9999… (pembulatan durasi n × ms) */
+.sheet.is-playing .ln{animation:s5-type calc(var(--n,32) * var(--cps,7ms)) steps(var(--n1,33),jump-none) var(--d,0ms) both}
+@keyframes s5-type{from{clip-path:inset(-6px 100% -6px -6px)}to{clip-path:inset(-6px 0% -6px -6px)}}
+@keyframes s5-wipe{from{clip-path:inset(-4px 100% -4px -4px)}to{clip-path:inset(-4px 0% -4px -4px)}}
+@keyframes s5-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+/* ganti mode sesudah masuk: hanya nama yang diketik ulang (selesai < 600 ms); alamat mengendap ulang lewat JS (< 600 ms) */
+.sheet.is-playing .s5-rcp.s5-swap .nm{--d:0ms !important;--cps:24ms !important}
+/* 120 ms — perintah diketik, kursor ikut di grid karakter */
+.sheet.is-playing .s5-cmd{animation:s5-type calc(var(--n,28) * 22ms) steps(var(--n1,29),jump-none) 120ms both}
+.sheet.is-playing .s5-caret{animation:s5-cmove calc(var(--n,28) * 22ms) steps(var(--n1,29),jump-none) 120ms both,s5-blink 1.1s linear calc(120ms + var(--n,28) * 22ms) infinite}
+@keyframes s5-cmove{from{transform:translateX(calc(var(--n,28) * -1ch))}to{transform:none}}
+@keyframes s5-blink{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+/* 80 ms — byte hash menyala dalam gelombang diagonal (batang naik dengan pegas, hex berkilat emas lalu kembali) */
+.sheet.is-playing .s5-hex .bw{animation:s5-rise 520ms var(--spring) calc(80ms + var(--k) * 24ms) both}
+.sheet.is-playing .s5-hex .x{animation:s5-lit 640ms var(--out) calc(80ms + var(--k) * 24ms) both}
+@keyframes s5-rise{from{transform:scaleY(0)}to{transform:none}}
+@keyframes s5-lit{0%{color:var(--mute)}30%{color:var(--acc-t2)}100%{color:var(--mute)}}
+.s5-hex .cell.on .x{color:var(--acc-t2) !important}
+/* 650 ms — batang nilai tumbuh dengan pegas; 1000 ms — total tersapu; 87 dihitung naik lalu berdetak */
+.sheet.is-playing .s5-chart .fill{animation:s5-grow 760ms var(--spring) calc(650ms + var(--i) * 110ms) both}
+@keyframes s5-grow{from{transform:scaleX(0)}to{transform:none}}
+.sheet.is-playing .s5-chart .sumw{animation:s5-wipe 700ms var(--out) 1000ms both}
+.sheet.is-playing .s5-chart .big{animation:s5-thump 520ms var(--spring) 1780ms both}
+@keyframes s5-thump{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:none}}
+.sheet.is-playing .s5-chart .pass{animation:s5-pop 460ms var(--spring) 1820ms both}
+/* 500/800/1100 ms — cek chain: [ .. ] lalu [ ok ] (jeda 300 ms) */
+.sheet.is-playing .s5-checks .pd{animation:s5-pend var(--t,300ms) linear var(--d,0ms) both}
+.sheet.is-playing .s5-checks .ok,.sheet.is-playing .s5-checks .val{animation:s5-okpop 420ms var(--spring) calc(var(--d,0ms) + var(--t,300ms)) both}
+@keyframes s5-pend{0%,99.9%{opacity:1}100%{opacity:0}}
+@keyframes s5-okpop{0%{opacity:0;transform:scale(1.7)}55%{opacity:1}100%{opacity:1;transform:none}}
+/* 1450 ms — sisa masa berlaku tumbuh dari penanda baca (tanpa pegas: tidak boleh sesaat melewati tanggal akhir) */
+.sheet.is-playing .s5-vbar .rem{animation:s5-grow 700ms var(--out) 1450ms both}
+.sheet.is-playing .s5-vbar .mk{animation:s5-drop 560ms var(--spring) 1450ms both}
+@keyframes s5-drop{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+/* 2500 ms — ketukan terakhir: cap menghantam, bingkai bergetar, satu kilat emas */
+.sheet.is-playing .s5-stamp .ink{animation:s5-slam 520ms cubic-bezier(.2,1.5,.4,1) 2500ms both}
+@keyframes s5-slam{0%{opacity:0;transform:scale(1.5)}55%{opacity:1;transform:scale(.95)}100%{opacity:1;transform:none}}
+.sheet.is-playing .s5-shake{animation:s5-shake 300ms cubic-bezier(.36,.07,.19,.97) 2660ms both}
+@keyframes s5-shake{0%,100%{transform:none}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,1px)}80%{transform:translate(2px,-1px)}}
+.sheet.is-playing .s5-flash{animation:s5-flash 560ms var(--out) 2660ms both}
+@keyframes s5-flash{0%{opacity:0}16%{opacity:.14}100%{opacity:0}}
+/* berkelanjutan: kursor berkedip (di atas), garis pindai samar menyapu tiap ±6 dtk, titik "status terkini" di QR berdenyut */
+.sheet.is-playing .s5-sweep{animation:s5-sweep 6s cubic-bezier(.45,0,.55,1) 3.4s infinite both}
+@keyframes s5-sweep{0%{opacity:1;transform:translateY(-150px)}62%{opacity:1;transform:translateY(793px)}62.1%,100%{opacity:0;transform:translateY(793px)}}
+.sheet.is-playing .s5-dot::after{animation:s5-ping 1.8s var(--out) 3s infinite both}
+@keyframes s5-ping{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(3.4)}}
+
+/* =========================================================================================
+   CETAK — varian terang hemat tinta (latar putih, teks hampir hitam, emas → amber tua, hijau → hijau tua)
+   ========================================================================================= */
+@media print{
+  .sheet{--bg:#ffffff;--panel:#f1f2f4;--panel2:#eceef1;--rule:#c9ced6;--ink:#111418;--mute:#4a525e;
+    --acc:#b58500;--acc-hi:#9a6f00;--acc-t:#8a6100;--acc-t2:#7a5600;--ok:#0a7a4f;--lo:#e6cf86;--empty:#e7e9ed;--grid:rgba(0,0,0,.07);--scan:transparent;
+    --logo-a:#c99400;--logo-b:#111418;background:#fff;color:var(--ink)}
+  .s5-bg,.s5-sweep,.s5-flash,.s5-xh{display:none !important}
+  .s5-stamp .ink{background:#fff;box-shadow:none}
+  .s5-qr .plate{box-shadow:0 0 0 1px #c9ced6}
+  .s5-dots{border-bottom-color:#9aa1ab}
+  .s5-tag{border-color:#b58500}
+  .s5-hex .b{opacity:calc(.3 + var(--v) * .7)}
+}
+/* ===================== /DESIGN CSS ===================== */
+</style>
+</head>
+<body class="cx">
+<header class="cx-bar">
+  <a href="index.html" aria-label="Kembali ke semua desain">← Semua desain</a>
+  <div class="cx-title"><span data-design="title">Desain</span><small data-design="row"></small></div>
+  <span class="cx-sp"></span>
+  <div class="cx-seg" role="group" aria-label="Isi baris penerima">
+    <button type="button" data-mode-btn="alamat" aria-pressed="true" title="Yang sebenarnya ada di data kredensial">Alamat dompet</button>
+    <button type="button" data-mode-btn="nama" aria-pressed="false" title="Contoh tampilan jika nanti ada nama tampilan — belum ada di kredensial">Nama contoh</button>
+  </div>
+  <button class="cx-btn" type="button" data-act="replay">▶ Ulangi gerak</button>
+  <button class="cx-btn" type="button" data-act="print">Cetak / simpan PDF</button>
+</header>
+
+<main class="cx-stage">
+  <div class="cx-fit"><div class="cx-scale"><div class="cx-tilt">
+    <article class="sheet" data-mode="alamat" aria-label="Sertifikat Kelulusan — spesimen desain">
+<!-- DESIGN:SHEET — isi lembar (HTML + SVG inline). Ukuran tetap 1122×793 px. Nilai nyata hanya lewat data-bind / data-txt / svg[data-qr] / svg[data-logo]. -->
+      <div class="s5">
+       <div class="s5-shake">
+        <div class="s5-bg" aria-hidden="true"></div>
+        <div class="s5-sweep" aria-hidden="true"></div>
+        <div class="s5-frame" aria-hidden="true"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
+        <i class="s5-perf" aria-hidden="true"></i>
+
+        <!-- KIRI — sertifikat: siapa, kelas apa, seberapa baik, kapan, siapa yang menandatangani -->
+        <header class="s5-head">
+          <svg data-logo class="s5-logo"></svg>
+          <div>
+            <h1 class="s5-h1"><span class="br">Lencana</span><span class="ar" aria-hidden="true"> ▸ </span><span data-txt="title"></span></h1>
+            <p class="s5-en"><span aria-hidden="true">// </span><span data-txt="titleEn" lang="en"></span></p>
+          </div>
+        </header>
+
+        <p class="s5-prompt"><span class="ps" aria-hidden="true">$</span><span class="s5-cmd"><span class="vb">periksa</span> <span class="hs" data-bind="hashShort"></span></span><i class="s5-caret" aria-hidden="true"></i></p>
+
+        <section class="s5-rcp" aria-label="Penerima">
+          <div class="s5-rule"><span data-txt="presentedTo"></span></div>
+          <div class="s5-addr" data-show="alamat">
+            <p class="s5-sr" data-bind="address"></p>
+            <div class="s5-fp" aria-hidden="true"></div>
+            <p class="s5-cap"><span data-txt="wallet"></span></p>
+          </div>
+          <div class="s5-nm" data-show="nama">
+            <p class="nm ln" style="--d:120ms;--cps:26ms" data-bind="name"></p>
+            <p class="ad"><span data-bind="addressShort"></span><span class="mu"> · <span data-txt="wallet"></span></span></p>
+            <p class="nt"><span aria-hidden="true"># </span><span data-txt="nameNote"></span></p>
+          </div>
+        </section>
+
+        <section class="s5-course" aria-label="Kelas">
+          <div class="s5-rule"><span data-txt="forPassing"></span></div>
+          <p class="ttl ln" style="--d:300ms;--cps:9ms"><span data-bind="course"></span><span class="s5-tag" data-bind="courseId"></span></p>
+          <p class="lim"><span aria-hidden="true"># </span><span data-txt="limit"></span></p>
+        </section>
+
+        <section class="s5-score" aria-label="Hasil">
+          <div class="s5-rule"><span data-txt="result"></span><em>lebar = nilai · tebal = bobot</em></div>
+          <p class="s5-sr" data-txt="scoreLine"></p>
+          <div class="s5-chart" aria-hidden="true"></div>
+          <div class="s5-xh" aria-hidden="true"><i class="h"></i><i class="v"><b class="lab"></b></i></div>
+        </section>
+
+        <section class="s5-valid" aria-label="Masa berlaku">
+          <div class="s5-rule"><span>Masa berlaku</span><em><b class="s5-days"></b> hari</em></div>
+          <div class="s5-vbar" aria-hidden="true"></div>
+          <dl class="s5-vends">
+            <div><dt class="s5-sr" data-txt="issued"></dt><dd data-bind="issuedShort"></dd></div>
+            <div><dt data-txt="validUntil"></dt><dd data-bind="validUntilShort"></dd></div>
+          </dl>
+        </section>
+
+        <dl class="s5-sig">
+          <div class="sg"><dt><span data-txt="signed"></span> <span data-txt="signedBy"></span></dt><dd class="v ln" style="--d:1650ms" data-bind="issuerName"></dd><dd class="s ln" style="--d:1720ms" data-bind="issuerEoaShort"></dd></div>
+          <div class="sg"><dt data-txt="issued"></dt><dd class="v ln" style="--d:1730ms" data-bind="issuedDate"></dd><dd class="s ln" style="--d:1800ms" data-bind="issuedTime"></dd></div>
+          <div class="sg"><dt data-txt="publisher"></dt><dd class="v ln" style="--d:1810ms;--cps:5ms" data-bind="publisher"></dd><dd class="s ln" style="--d:1880ms" data-bind="publisherNote"></dd></div>
+        </dl>
+
+        <!-- KANAN — potongan bukti: byte hash, cek chain, catatan chain, QR, cap -->
+        <section class="s5-kred" aria-label="Kredensial">
+          <div class="s5-rule"><span data-txt="credentialId"></span><em class="s5-nb"></em></div>
+          <div class="s5-hex" role="group" aria-label="Peta byte hash kredensial; panah untuk berpindah sel"></div>
+          <p class="s5-read" aria-hidden="true">› tinggi batang = nilai byte (0–255)</p>
+        </section>
+
+        <section class="s5-run" aria-label="Cek chain">
+          <div class="s5-rule"><span>Cek chain</span><em>dibaca <span data-bind="statusReadOn"></span></em></div>
+          <ol class="s5-checks"></ol>
+          <p class="s5-proof"><span class="mk" aria-hidden="true">[ -- ]</span><span data-txt="signed"></span><i class="s5-dots" aria-hidden="true"></i><span class="pq"><span aria-hidden="true">↓ </span>QR</span></p>
+          <p class="s5-pv" data-bind="proof"></p>
+        </section>
+
+        <section class="s5-chain" aria-label="Catatan chain">
+          <div class="s5-rule"><span data-bind="chain"></span></div>
+          <dl>
+            <div><dt data-txt="attestation"></dt><dd class="ln" style="--d:900ms;--cps:8ms" data-bind="uidShort"></dd></div>
+            <div><dt data-txt="transaction"></dt><dd class="ln" style="--d:980ms;--cps:8ms" data-bind="txShort"></dd></div>
+            <div><dt data-txt="block"></dt><dd class="ln" style="--d:1060ms;--cps:12ms" data-bind="block"></dd></div>
+          </dl>
+        </section>
+
+        <figure class="s5-qr">
+          <div class="plate"><svg data-qr></svg></div>
+          <figcaption><span class="s5-dot" aria-hidden="true"></span><span data-txt="scanToCheck"></span><br><span class="host" data-bind="verifyHost"></span></figcaption>
+        </figure>
+        <p class="s5-snap" data-txt="statusNote"></p>
+
+        <div class="s5-stamp"><div class="rot"><p class="ink"><b data-bind="status"></b><span class="rd">dibaca <span data-bind="statusReadOn"></span></span></p></div></div>
+
+        <p class="s5-flab l" data-txt="demo"></p>
+        <p class="s5-flab r"><span>format</span> <span data-bind="format"></span></p>
+       </div>
+       <div class="s5-flash" aria-hidden="true"></div>
+      </div>
+<!-- /DESIGN:SHEET -->
+    </article>
+  </div></div></div>
+  <p class="cx-foot">Spesimen desain — data dari kredensial uji B153 (5 Okt 2026), penerbit demo fiktif. Bukan ijazah. <a href="https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31" target="_blank" rel="noopener">Dokumen publik ↗</a> · <a href="https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify" target="_blank" rel="noopener">Verifier ↗</a></p>
+</main>
+
+<section class="cx-notes" aria-label="Catatan desain"><details open><summary>Catatan desain</summary><div data-design="notes"></div></details></section>
+
+<script>
+/* ===================== SHARED SHELL JS — JANGAN UBAH ===================== */
+(() => {
+  'use strict';
+  /* ---- Data nyata (satu sumber). Dibaca dari kredensial uji B153 yang terbit 5 Okt 2026; lihat hub desain untuk cara membacanya ulang. ---- */
+  const CERT = {
+    hash:   '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31',
+    uid:    '0xe4990885327d488ff45757b2cb1cb26b0eabeb3f4880bf2c58c8b6d2a1d77506',   // attestation UID di BAS (bukan hash transaksi)
+    tx:     '0xfdeb99b2df97c81754cd91230ca845faa04879d24ee02ace5fdfc44abe57d137',   // transaksi attestation
+    block:  134991781,
+    chain:  { name: 'BNB Smart Chain testnet', id: 97 },
+    learner:'0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF',
+    nameSample: 'Nadia Rahmawati',                                                  // CONTOH tampilan — TIDAK ada di kredensial
+    course: { id: 'uji-bayar-2026', title: 'Kelas Uji — Membayar dengan Tanda Tangan' },
+    publisher: 'Yayasan Literasi Digital Nusantara', publisherNote: 'institusi demo, fiktif',
+    issuerAgent: { name: 'Lencana Demo Agent', eoa: '0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE' },
+    score: 87, passMark: 60,
+    components: [ { key: 'kuis', label: 'Kuis', score: 75, weight: 50 }, { key: 'esai', label: 'Esai', score: 98, weight: 30 }, { key: 'praktik', label: 'Praktik', score: 100, weight: 20 } ],
+    issuedAt: '2026-10-05T09:41:01Z', validUntil: '2027-10-05T09:41:01Z', validDays: 365,
+    statusLabel: 'BERLAKU', statusReadOn: '2026-10-05',
+    checks: [ { id: 'bas', label: 'Attestation BAS', value: 'Tercatat' }, { id: 'whitelist', label: 'Penerbit terdaftar', value: 'Disetujui' }, { id: 'revocation', label: 'Status pencabutan', value: 'Bersih' } ],
+    proof: { type: 'DataIntegrityProof', suite: 'eddsa-rdfc-2022' },
+    format: 'Open Badges 3.0', rubricRef: '6d33c95b4ecc', statusIndex: 76,
+    verifyUrl: 'https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify', edgeUrl: 'https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31', verifyHost: 'lencana-psi.vercel.app',
+    qr:   { modules: 45, version: 7, ec: 'M', path: 'M0 0h7v1h-7zM13 0h2v1h-2zM17 0h1v1h-1zM25 0h3v1h-3zM29 0h2v1h-2zM32 0h2v1h-2zM36 0h1v1h-1zM38 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM12 1h3v1h-3zM20 1h5v1h-5zM26 1h3v1h-3zM31 1h3v1h-3zM35 1h1v1h-1zM38 1h1v1h-1zM44 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h3v1h-3zM12 2h3v1h-3zM16 2h3v1h-3zM21 2h1v1h-1zM23 2h1v1h-1zM27 2h2v1h-2zM30 2h2v1h-2zM35 2h1v1h-1zM38 2h1v1h-1zM40 2h3v1h-3zM44 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h2v1h-2zM13 3h2v1h-2zM16 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h2v1h-2zM30 3h1v1h-1zM32 3h2v1h-2zM35 3h2v1h-2zM38 3h1v1h-1zM40 3h3v1h-3zM44 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h2v1h-2zM13 4h12v1h-12zM28 4h4v1h-4zM34 4h3v1h-3zM38 4h1v1h-1zM40 4h3v1h-3zM44 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM15 5h1v1h-1zM17 5h1v1h-1zM20 5h1v1h-1zM24 5h2v1h-2zM31 5h1v1h-1zM38 5h1v1h-1zM44 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM36 6h1v1h-1zM38 6h7v1h-7zM8 7h2v1h-2zM11 7h3v1h-3zM15 7h2v1h-2zM19 7h2v1h-2zM24 7h8v1h-8zM34 7h2v1h-2zM0 8h1v1h-1zM2 8h5v1h-5zM9 8h2v1h-2zM12 8h2v1h-2zM17 8h1v1h-1zM20 8h5v1h-5zM26 8h2v1h-2zM29 8h2v1h-2zM32 8h2v1h-2zM35 8h2v1h-2zM38 8h5v1h-5zM0 9h1v1h-1zM3 9h2v1h-2zM12 9h2v1h-2zM15 9h1v1h-1zM18 9h1v1h-1zM21 9h5v1h-5zM31 9h1v1h-1zM36 9h1v1h-1zM40 9h2v1h-2zM43 9h2v1h-2zM0 10h3v1h-3zM5 10h3v1h-3zM9 10h2v1h-2zM12 10h1v1h-1zM18 10h2v1h-2zM21 10h1v1h-1zM24 10h8v1h-8zM33 10h2v1h-2zM36 10h4v1h-4zM41 10h1v1h-1zM43 10h1v1h-1zM0 11h2v1h-2zM3 11h2v1h-2zM9 11h1v1h-1zM11 11h6v1h-6zM18 11h1v1h-1zM22 11h4v1h-4zM27 11h1v1h-1zM31 11h3v1h-3zM36 11h1v1h-1zM38 11h2v1h-2zM41 11h2v1h-2zM5 12h2v1h-2zM8 12h1v1h-1zM13 12h2v1h-2zM16 12h4v1h-4zM21 12h2v1h-2zM24 12h1v1h-1zM28 12h3v1h-3zM33 12h2v1h-2zM39 12h3v1h-3zM44 12h1v1h-1zM0 13h3v1h-3zM5 13h1v1h-1zM8 13h3v1h-3zM13 13h2v1h-2zM16 13h2v1h-2zM22 13h1v1h-1zM24 13h2v1h-2zM27 13h3v1h-3zM31 13h1v1h-1zM33 13h1v1h-1zM35 13h3v1h-3zM43 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1zM5 14h2v1h-2zM8 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1zM17 14h2v1h-2zM21 14h2v1h-2zM26 14h1v1h-1zM28 14h1v1h-1zM31 14h1v1h-1zM34 14h1v1h-1zM38 14h2v1h-2zM42 14h3v1h-3zM0 15h1v1h-1zM2 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM16 15h5v1h-5zM22 15h4v1h-4zM27 15h1v1h-1zM30 15h1v1h-1zM32 15h5v1h-5zM40 15h1v1h-1zM42 15h1v1h-1zM0 16h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM8 16h3v1h-3zM12 16h2v1h-2zM15 16h4v1h-4zM21 16h1v1h-1zM23 16h1v1h-1zM27 16h5v1h-5zM33 16h2v1h-2zM37 16h1v1h-1zM39 16h1v1h-1zM41 16h1v1h-1zM43 16h1v1h-1zM2 17h2v1h-2zM12 17h2v1h-2zM23 17h1v1h-1zM25 17h2v1h-2zM30 17h2v1h-2zM33 17h5v1h-5zM43 17h2v1h-2zM4 18h1v1h-1zM6 18h1v1h-1zM9 18h2v1h-2zM14 18h5v1h-5zM20 18h1v1h-1zM24 18h1v1h-1zM26 18h2v1h-2zM33 18h3v1h-3zM38 18h1v1h-1zM42 18h1v1h-1zM1 19h2v1h-2zM4 19h2v1h-2zM7 19h1v1h-1zM9 19h4v1h-4zM15 19h1v1h-1zM17 19h3v1h-3zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM34 19h2v1h-2zM37 19h2v1h-2zM40 19h2v1h-2zM43 19h2v1h-2zM0 20h3v1h-3zM4 20h5v1h-5zM13 20h1v1h-1zM15 20h2v1h-2zM19 20h6v1h-6zM26 20h2v1h-2zM29 20h1v1h-1zM32 20h1v1h-1zM36 20h7v1h-7zM0 21h5v1h-5zM8 21h1v1h-1zM10 21h2v1h-2zM13 21h2v1h-2zM16 21h5v1h-5zM24 21h3v1h-3zM28 21h1v1h-1zM30 21h2v1h-2zM34 21h1v1h-1zM36 21h1v1h-1zM40 21h5v1h-5zM0 22h3v1h-3zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM16 22h1v1h-1zM18 22h3v1h-3zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM32 22h1v1h-1zM36 22h1v1h-1zM38 22h1v1h-1zM40 22h1v1h-1zM42 22h1v1h-1zM0 23h1v1h-1zM4 23h1v1h-1zM8 23h5v1h-5zM15 23h1v1h-1zM17 23h2v1h-2zM20 23h1v1h-1zM24 23h2v1h-2zM27 23h2v1h-2zM30 23h1v1h-1zM35 23h2v1h-2zM40 23h5v1h-5zM0 24h10v1h-10zM11 24h1v1h-1zM15 24h1v1h-1zM18 24h1v1h-1zM20 24h5v1h-5zM26 24h1v1h-1zM29 24h2v1h-2zM32 24h1v1h-1zM36 24h6v1h-6zM43 24h2v1h-2zM0 25h3v1h-3zM5 25h1v1h-1zM7 25h2v1h-2zM11 25h1v1h-1zM13 25h1v1h-1zM17 25h6v1h-6zM24 25h2v1h-2zM28 25h1v1h-1zM42 25h1v1h-1zM44 25h1v1h-1zM0 26h3v1h-3zM6 26h3v1h-3zM12 26h1v1h-1zM16 26h3v1h-3zM26 26h2v1h-2zM30 26h1v1h-1zM33 26h2v1h-2zM37 26h3v1h-3zM41 26h3v1h-3zM0 27h2v1h-2zM3 27h1v1h-1zM7 27h1v1h-1zM9 27h2v1h-2zM14 27h2v1h-2zM17 27h1v1h-1zM19 27h3v1h-3zM23 27h2v1h-2zM29 27h5v1h-5zM36 27h1v1h-1zM39 27h1v1h-1zM42 27h2v1h-2zM0 28h1v1h-1zM6 28h1v1h-1zM10 28h2v1h-2zM13 28h1v1h-1zM15 28h1v1h-1zM18 28h2v1h-2zM25 28h3v1h-3zM30 28h1v1h-1zM33 28h1v1h-1zM38 28h1v1h-1zM40 28h2v1h-2zM43 28h1v1h-1zM3 29h3v1h-3zM7 29h1v1h-1zM13 29h5v1h-5zM20 29h3v1h-3zM24 29h1v1h-1zM30 29h2v1h-2zM33 29h1v1h-1zM36 29h1v1h-1zM38 29h1v1h-1zM42 29h1v1h-1zM44 29h1v1h-1zM0 30h1v1h-1zM2 30h1v1h-1zM4 30h4v1h-4zM9 30h2v1h-2zM12 30h2v1h-2zM15 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM24 30h4v1h-4zM30 30h2v1h-2zM34 30h1v1h-1zM36 30h1v1h-1zM39 30h1v1h-1zM41 30h4v1h-4zM0 31h1v1h-1zM3 31h1v1h-1zM5 31h1v1h-1zM8 31h1v1h-1zM10 31h2v1h-2zM13 31h1v1h-1zM18 31h4v1h-4zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM32 31h1v1h-1zM34 31h2v1h-2zM38 31h2v1h-2zM41 31h2v1h-2zM2 32h1v1h-1zM4 32h3v1h-3zM8 32h5v1h-5zM14 32h1v1h-1zM16 32h1v1h-1zM19 32h1v1h-1zM22 32h1v1h-1zM25 32h1v1h-1zM28 32h4v1h-4zM33 32h2v1h-2zM39 32h1v1h-1zM44 32h1v1h-1zM0 33h3v1h-3zM4 33h2v1h-2zM9 33h1v1h-1zM11 33h5v1h-5zM17 33h7v1h-7zM26 33h2v1h-2zM29 33h5v1h-5zM36 33h1v1h-1zM38 33h1v1h-1zM40 33h1v1h-1zM42 33h3v1h-3zM4 34h1v1h-1zM6 34h2v1h-2zM9 34h2v1h-2zM14 34h1v1h-1zM16 34h2v1h-2zM19 34h1v1h-1zM21 34h1v1h-1zM24 34h2v1h-2zM27 34h1v1h-1zM29 34h1v1h-1zM33 34h4v1h-4zM39 34h1v1h-1zM42 34h1v1h-1zM1 35h4v1h-4zM7 35h1v1h-1zM9 35h1v1h-1zM11 35h3v1h-3zM16 35h1v1h-1zM23 35h1v1h-1zM27 35h2v1h-2zM33 35h6v1h-6zM40 35h2v1h-2zM0 36h1v1h-1zM3 36h2v1h-2zM6 36h1v1h-1zM8 36h1v1h-1zM10 36h1v1h-1zM13 36h3v1h-3zM17 36h2v1h-2zM20 36h6v1h-6zM29 36h4v1h-4zM36 36h5v1h-5zM42 36h2v1h-2zM8 37h1v1h-1zM12 37h1v1h-1zM14 37h1v1h-1zM19 37h2v1h-2zM24 37h1v1h-1zM27 37h2v1h-2zM30 37h2v1h-2zM33 37h4v1h-4zM40 37h3v1h-3zM44 37h1v1h-1zM0 38h7v1h-7zM9 38h2v1h-2zM17 38h1v1h-1zM19 38h2v1h-2zM22 38h1v1h-1zM24 38h2v1h-2zM29 38h1v1h-1zM31 38h1v1h-1zM35 38h2v1h-2zM38 38h1v1h-1zM40 38h1v1h-1zM42 38h1v1h-1zM0 39h1v1h-1zM6 39h1v1h-1zM8 39h1v1h-1zM11 39h2v1h-2zM15 39h1v1h-1zM17 39h2v1h-2zM20 39h1v1h-1zM24 39h2v1h-2zM28 39h4v1h-4zM34 39h3v1h-3zM40 39h3v1h-3zM0 40h1v1h-1zM2 40h3v1h-3zM6 40h1v1h-1zM8 40h1v1h-1zM12 40h1v1h-1zM15 40h1v1h-1zM18 40h1v1h-1zM20 40h6v1h-6zM29 40h13v1h-13zM0 41h1v1h-1zM2 41h3v1h-3zM6 41h1v1h-1zM8 41h2v1h-2zM13 41h2v1h-2zM16 41h6v1h-6zM24 41h2v1h-2zM27 41h1v1h-1zM31 41h2v1h-2zM36 41h1v1h-1zM39 41h3v1h-3zM0 42h1v1h-1zM2 42h3v1h-3zM6 42h1v1h-1zM8 42h2v1h-2zM11 42h3v1h-3zM16 42h3v1h-3zM25 42h3v1h-3zM29 42h2v1h-2zM33 42h3v1h-3zM37 42h2v1h-2zM41 42h3v1h-3zM0 43h1v1h-1zM6 43h1v1h-1zM9 43h1v1h-1zM13 43h1v1h-1zM15 43h1v1h-1zM17 43h2v1h-2zM20 43h1v1h-1zM22 43h2v1h-2zM25 43h1v1h-1zM27 43h1v1h-1zM29 43h1v1h-1zM32 43h1v1h-1zM36 43h2v1h-2zM42 43h1v1h-1zM0 44h7v1h-7zM8 44h1v1h-1zM12 44h7v1h-7zM21 44h1v1h-1zM24 44h1v1h-1zM28 44h1v1h-1zM31 44h1v1h-1zM33 44h3v1h-3zM38 44h2v1h-2zM41 44h1v1h-1zM43 44h1v1h-1z' },
+    logo: { w: 424, h: 393, black: 'M 155.722 59.372 C 117.823 78.576, 94.724 90.844, 92.612 92.891 C 86.944 98.386, 86.999 97.564, 87.009 175.616 L 87.019 247.500 89.994 242.313 C 91.630 239.460, 94.438 236.015, 96.234 234.658 C 99.248 232.382, 160.905 195.284, 202 171.022 C 211.625 165.340, 220.284 160.018, 221.243 159.197 C 222.867 157.805, 222.982 153.476, 222.930 96.042 C 222.870 30.106, 222.840 29.702, 217.977 29.291 C 216.416 29.159, 193.385 40.287, 155.722 59.372 M 323.500 239.680 C 314.700 243.828, 292.200 254.303, 273.500 262.958 C 254.800 271.613, 229.488 283.375, 217.251 289.097 L 195.002 299.500 195.001 329.633 L 195 359.766 200.750 363.235 C 203.912 365.143, 210.620 369.246, 215.655 372.352 C 220.690 375.458, 225.088 378, 225.428 378 C 225.957 378, 257.539 361.050, 299 338.514 C 305.325 335.076, 315.675 329.534, 322 326.198 C 333.898 319.922, 338.113 316.512, 339.936 311.685 C 341.161 308.444, 341.462 231.957, 340.250 232.069 C 339.837 232.107, 332.300 235.532, 323.500 239.680', gold: 'M 209 31.879 C 139.819 66.504, 95.937 88.735, 93.634 90.324 C 92.058 91.411, 89.700 94.596, 88.394 97.401 L 86.020 102.500 86.010 175.750 C 86.003 223.672, 86.344 249, 86.995 249 C 87.542 249, 88.976 246.901, 90.182 244.336 C 94.206 235.775, 89.640 238.784, 183.250 182.992 L 224 158.704 224 95.807 L 224 32.909 221.545 30.455 C 218.419 27.328, 217.997 27.376, 209 31.879 M 328 133.074 C 326.619 133.955, 286.397 153.469, 272.500 160.001 C 269.200 161.552, 258.175 166.743, 248 171.537 C 237.825 176.330, 226.350 181.713, 222.500 183.498 C 180.656 202.899, 159.399 212.802, 148.500 217.971 C 141.350 221.361, 126.163 228.433, 114.751 233.685 C 85.921 246.953, 86.644 245.930, 87.178 272.707 L 87.500 288.836 90.543 293.168 C 92.216 295.551, 94.916 298.326, 96.543 299.336 C 98.169 300.345, 112.325 309.075, 128 318.735 C 143.675 328.395, 163.601 340.732, 172.280 346.149 C 180.958 351.567, 188.496 356, 189.030 356 C 189.634 356, 190 345.214, 190 327.385 L 190 298.771 192.702 293.807 C 194.219 291.020, 196.690 288.177, 198.337 287.326 C 199.951 286.491, 207.848 281.725, 215.886 276.734 C 223.923 271.744, 232.975 266.228, 236 264.478 C 239.025 262.728, 246.675 258.143, 253 254.290 C 263.826 247.695, 296.489 228.883, 316.500 217.717 C 335.046 207.369, 339.061 204.837, 340.563 202.544 C 341.889 200.520, 342.064 195.727, 341.803 168.507 L 341.500 136.824 338.694 134.412 C 335.778 131.905, 330.808 131.283, 328 133.074 M 339 231.742 C 338.175 232.064, 331.875 234.997, 325 238.260 C 304.672 247.908, 283.503 257.779, 273.166 262.432 C 254.676 270.753, 225.089 284.478, 206.736 293.247 L 193.972 299.346 194.236 329.823 L 194.500 360.301 209.921 369.807 L 225.342 379.314 229.921 376.794 C 238.591 372.022, 284.546 347.173, 309 334.034 C 333.465 320.890, 337.931 317.887, 340.589 312.800 C 342.131 309.849, 342.769 230.919, 341.250 231.079 C 340.837 231.122, 339.825 231.421, 339 231.742' }
+  };
+  /* ---- Kalimat baku. Klaim di lembar hanya boleh dari sini; kalimat baru wajib dicatat di Catatan desain dan lolos Claims-Cheat-Sheet. ---- */
+  const TXT = {
+    title:       'Sertifikat Kelulusan',
+    titleEn:     'Certificate of Completion',
+    presentedTo: 'Diberikan kepada',
+    forPassing:  'atas kelulusan di kelas',
+    result:      'Hasil',
+    passed:      'LULUS',
+    scoreLine:   'Nilai akhir 87 dari 100 · batas lulus 60',
+    issued:      'Diterbitkan',
+    validUntil:  'Berlaku sampai',
+    publisher:   'Penerbit',
+    signed:      'Ditandatangani',
+    signedBy:    'oleh agen penerbit',
+    scanToCheck: 'Pindai untuk memeriksa status dan tanda tangannya',
+    onChain:     'Bukti penerbitan tercatat di BNB Smart Chain testnet (97)',
+    limit:       'Hanya menyatakan peserta menyelesaikan kelas pendek ini — bukan keahlian Web3.',
+    demo:        'Penerbit demo (fiktif) · jaringan uji · bukan ijazah',
+    nameNote:    'Nama tampilan — tidak ikut tanda tangan. Yang tertanda tangan adalah alamat dompet.',
+    statusNote:  'Status dibaca dari chain pada 5 Okt 2026; pindai QR untuk status terkini.',
+    wallet:      'Alamat dompet peserta',
+    credentialId:'ID kredensial',
+    attestation: 'Attestation UID',
+    transaction: 'Transaksi',
+    block:       'Blok',
+    rubric:      'Rubrik',
+    kuis: 'Kuis', esai: 'Esai', praktik: 'Praktik'
+  };
+  window.CERT = CERT; window.TXT = TXT;
+
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const MON3   = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const wib = (iso) => new Date(new Date(iso).getTime() + 7 * 3600e3);          // baca bidang UTC dari hasil → jam dinding WIB
+  const p2 = (n) => String(n).padStart(2, '0');
+  const idDate  = (iso) => { const d = wib(iso); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idShort = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())} ${MON3[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idNum   = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())}.${p2(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`; };
+  const idTime  = (iso) => { const d = wib(iso); return `${p2(d.getUTCHours())}.${p2(d.getUTCMinutes())} WIB`; };
+  const mid = (h, a, b) => h.slice(0, a) + '…' + h.slice(-b);
+  const FMT = {
+    address:        () => CERT.learner,
+    addressShort:   () => mid(CERT.learner, 6, 4),
+    addressGroups:  () => CERT.learner.slice(2).match(/.{4}/g).join(' '),
+    name:           () => CERT.nameSample,
+    course:         () => CERT.course.title,
+    courseId:       () => CERT.course.id,
+    publisher:      () => CERT.publisher,
+    publisherNote:  () => CERT.publisherNote,
+    issuerName:     () => CERT.issuerAgent.name,
+    issuerEoa:      () => CERT.issuerAgent.eoa,
+    issuerEoaShort: () => mid(CERT.issuerAgent.eoa, 6, 4),
+    score:          () => String(CERT.score),
+    passMark:       () => String(CERT.passMark),
+    hash:           () => CERT.hash,
+    hashShort:      () => mid(CERT.hash, 10, 8),
+    uid:            () => CERT.uid,
+    uidShort:       () => mid(CERT.uid, 10, 8),
+    tx:             () => CERT.tx,
+    txShort:        () => mid(CERT.tx, 10, 8),
+    block:          () => CERT.block.toLocaleString('id-ID'),
+    chain:          () => `${CERT.chain.name} (${CERT.chain.id})`,
+    issuedDate:     () => idDate(CERT.issuedAt),
+    issuedShort:    () => idShort(CERT.issuedAt),
+    issuedNum:      () => idNum(CERT.issuedAt),
+    issuedTime:     () => idTime(CERT.issuedAt),
+    validUntilDate: () => idDate(CERT.validUntil),
+    validUntilShort:() => idShort(CERT.validUntil),
+    validUntilNum:  () => idNum(CERT.validUntil),
+    statusReadOn:   () => idDate(CERT.statusReadOn + 'T00:00:00Z'),
+    status:         () => CERT.statusLabel,
+    proof:          () => `${CERT.proof.type} · ${CERT.proof.suite}`,
+    format:         () => CERT.format,
+    rubricRef:      () => CERT.rubricRef,
+    verifyHost:     () => CERT.verifyHost,
+    verifyUrl:      () => CERT.verifyUrl,
+    verifyUrlShort: () => CERT.verifyHost + '/?q=' + CERT.hash.slice(0, 10) + '…#/verify'
+  };
+  window.FMT = FMT;
+  const bind = (root = document) => {
+    $$('[data-bind]', root).forEach((el) => { const f = FMT[el.dataset.bind]; if (f) el.textContent = f(); else console.warn('data-bind tidak dikenal:', el.dataset.bind); });
+    $$('[data-txt]',  root).forEach((el) => { const v = TXT[el.dataset.txt]; if (v !== undefined) el.textContent = v; else console.warn('data-txt tidak dikenal:', el.dataset.txt); });
+  };
+  /* ---- QR dan logo: SVG inline dari data nyata. QR wajib di atas pelat terang dengan zona tenang ≥ 4 modul. ---- */
+  const injectQR = (root = document) => $$('svg[data-qr]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.qr.modules} ${CERT.qr.modules}`);
+    svg.setAttribute('shape-rendering', 'crispEdges'); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Kode QR menuju halaman verifikasi kredensial ini');
+    svg.innerHTML = `<path d="${CERT.qr.path}" fill="currentColor"/>`;
+  });
+  const injectLogo = (root = document) => $$('svg[data-logo]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.logo.w} ${CERT.logo.h}`); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'Lambang Lencana');
+    svg.innerHTML = `<path d="${CERT.logo.gold}" fill="var(--logo-a,#f0b90b)"/><path d="${CERT.logo.black}" fill="var(--logo-b,#0b0e11)"/>`;
+  });
+  /* ---- Alat jejak-hash: geometri turunan hash kredensial (nilai sama → gambar sama; kredensial lain → gambar lain). ---- */
+  const BYTES = Uint8Array.from(CERT.hash.slice(2).match(/../g).map((h) => parseInt(h, 16)));
+  const HASHART = {
+    bytes: BYTES,
+    byteAt: (i) => BYTES[((i % 32) + 32) % 32],
+    /** PRNG deterministik (mulberry32) bibitnya diambil dari 4 byte hash mulai offset `from`. */
+    rng: (from = 0) => { let a = ((BYTES[from % 32] << 24) | (BYTES[(from + 1) % 32] << 16) | (BYTES[(from + 2) % 32] << 8) | BYTES[(from + 3) % 32]) >>> 0;
+      return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  };
+  window.HASHART = HASHART;
+  /** Hitung-naik angka (untuk gerak masuk); `ease` = fungsi 0..1 → 0..1. Menulis hasil akhir persis (bukan pembulatan bergerak). */
+  window.countUp = (el, to, { ms = 1100, ease = (t) => 1 - Math.pow(1 - t, 3), from = 0, fmt = (v) => String(Math.round(v)) } = {}) => {
+    const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / ms); el.textContent = fmt(from + (to - from) * ease(k)); if (k < 1) requestAnimationFrame(tick); else el.textContent = fmt(to); }; requestAnimationFrame(tick);
+  };
+
+  /* ---- Skala ke layar, miring (interaksi), gerak, cetak ---- */
+  const root = document.documentElement, sheet = $('.sheet'), tilt = $('.cx-tilt'), fitBox = $('.cx-fit'), bar = $('.cx-bar');
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=off/.test(location.search);
+  const fit = () => { const w = innerWidth - 24, h = innerHeight - (bar ? bar.offsetHeight : 0) - 56; root.style.setProperty('--scale', Math.max(0.25, Math.min(w / 1122, h / 793, 1.6)).toFixed(4)); };
+  addEventListener('resize', fit); fit();
+  const play = () => { sheet.classList.remove('is-playing'); void sheet.offsetWidth; const r = reduced(); if (!r) sheet.classList.add('is-playing'); document.dispatchEvent(new CustomEvent('cx:play', { detail: { reduced: r } })); };
+  window.cxPlay = play;
+  fitBox.addEventListener('pointermove', (e) => {
+    if (reduced() || e.pointerType === 'touch') return; const r = fitBox.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    tilt.style.setProperty('--ry', ((x - .5) * 5).toFixed(2) + 'deg'); tilt.style.setProperty('--rx', ((.5 - y) * 3.6).toFixed(2) + 'deg');
+    sheet.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); sheet.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+  });
+  fitBox.addEventListener('pointerleave', () => { tilt.style.setProperty('--ry', '0deg'); tilt.style.setProperty('--rx', '0deg'); sheet.style.setProperty('--mx', '50%'); sheet.style.setProperty('--my', '50%'); });
+  $$('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => { sheet.dataset.mode = b.dataset.modeBtn; $$('[data-mode-btn]').forEach((o) => o.setAttribute('aria-pressed', String(o === b))); }));
+  $('[data-act="replay"]').addEventListener('click', play);
+  $('[data-act="print"]').addEventListener('click', () => window.print());
+  addEventListener('beforeprint', () => sheet.classList.remove('is-playing'));
+  addEventListener('afterprint', () => { sheet.classList.add('is-playing'); });
+
+  /* ---- Catatan desain (dari window.DESIGN yang diisi DESIGN:JS) ---- */
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const renderNotes = () => {
+    const D = window.DESIGN; if (!D) return;
+    document.title = `Sertifikat · ${D.id} ${D.name} (spesimen desain)`;
+    $$('[data-design="title"]').forEach((e) => { e.textContent = `${D.id} · ${D.name}`; });
+    $$('[data-design="row"]').forEach((e) => { e.textContent = D.row; });
+    const li = (a) => '<ul>' + (a || []).map((x) => `<li>${esc(x)}</li>`).join('') + '</ul>';
+    const sw = (D.palette || []).map((c) => `<span><i class="cx-sw" style="background:${esc(c.hex)}"></i>${esc(c.name)} <code>${esc(c.hex)}</code>${c.use ? ' — ' + esc(c.use) : ''}</span>`).join('<br>');
+    $('[data-design="notes"]').innerHTML = `<dl>
+      <dt>Estetika (doktrin §7)</dt><dd>${esc(D.row)} — ${esc(D.tagline || '')}</dd>
+      <dt>Proses yang diwakili</dt><dd>${esc(D.brief.process)}</dd>
+      <dt>Objek inti</dt><dd>${esc(D.brief.core)}</dd>
+      <dt>Metafora ruang</dt><dd>${esc(D.brief.metaphor)}</dd>
+      <dt>Geometri mengodekan</dt><dd>${li(D.encodes)}</dd>
+      <dt>Tipografi</dt><dd>${(D.fonts || []).map((f) => `${esc(f.role)}: <b>${esc(f.name)}</b>`).join(' · ')}</dd>
+      <dt>Palet</dt><dd>${sw}</dd>
+      <dt>Motif</dt><dd>${esc(D.motif)}</dd>
+      <dt>Gerak</dt><dd>${li([`Masuk: ${D.motion.entrance}`, `Berkelanjutan: ${D.motion.continuous}`, `Interaksi: ${D.motion.interaction}`, `Micro-beat: ${D.motion.micro}`])}</dd>
+      <dt>Batas dan catatan klaim</dt><dd>${li(D.limits)}</dd>
+    </dl>`;
+  };
+
+  const init = () => { bind(); injectQR(); injectLogo(); renderNotes(); fit();
+    const go = () => { play(); }; (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve()).then(go); };
+  window.__cxInit = init;   // DESIGN:JS memanggil __cxInit() SETELAH window.DESIGN dan handler 'cx:play' terpasang
+})();
+/* ===================== /SHARED SHELL JS ===================== */
+</script>
+<script>
+/* ===================== DESIGN JS ===================== */
+/* 1) window.DESIGN = { id, name, row, tagline, brief:{process,core,relationship,metaphor}, encodes:[…], fonts:[{role,name}], palette:[{name,hex,use}], motif, motion:{entrance,continuous,interaction,micro}, limits:[…] }
+   2) document.addEventListener('cx:play', (e) => { … hitung-naik, micro-beat … }) — e.detail.reduced === true → langsung tulis nilai akhir tanpa gerak
+   3) window.__cxInit()   ← terakhir */
+/* S5 · Bukti Mentah — semua geometri dibangun dari window.CERT / FMT / TXT / HASHART; tidak ada nilai nyata yang ditulis tangan. */
+(() => {
+  'use strict';
+  const C = window.CERT, T = window.TXT, F = window.FMT, H = window.HASHART;
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const sheet = $('.sheet'), root = $('.s5');
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const nf1 = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const h2 = (v) => v.toString(16).padStart(2, '0');
+  const p2 = (n) => String(n).padStart(2, '0');
+
+  /* 1) Alamat dompet sebagai sidik jari: kelompok 4 karakter, dua baris (gaya sidik jari kunci) */
+  const groups = F.addressGroups().split(' ');
+  const half = Math.ceil(groups.length / 2);
+  const fpRow = (gs) => '<span class="row">' + gs.map((g, k) => (k ? '<i class="sep"></i>' : '') + `<span class="g" data-v="${esc(g)}">${esc(g)}</span>`).join('') + '</span>';
+  $('.s5-fp').innerHTML = `<span class="px">${esc(C.learner.slice(0, 2))}</span><span class="rows">${fpRow(groups.slice(0, half))}${fpRow(groups.slice(half))}</span>`;
+
+  /* 2) Peta byte hash kredensial: 32 sel, 2 baris × 16 seperti hexdump; tinggi + kecerahan ∝ nilai byte */
+  const B = Array.from(H.bytes), NB = B.length, COLS = 16;
+  const hex = $('.s5-hex');
+  let hh = '';
+  for (let r = 0; r * COLS < NB; r++) {
+    hh += `<div class="hr"><span class="off" aria-hidden="true">${h2(r * COLS)}</span>`;
+    for (let c = 0; c < COLS && r * COLS + c < NB; c++) {
+      const i = r * COLS + c, v = B[i];
+      hh += `<button type="button" class="cell" data-i="${i}" tabindex="${i ? -1 : 0}" style="--v:${(v / 255).toFixed(3)};--k:${c + r}" aria-label="Byte ${i + 1} dari ${NB}: heksadesimal ${h2(v)}, nilai ${v}"><span class="bw"><i class="b"></i></span><span class="x" aria-hidden="true">${h2(v)}</span></button>`;
+    }
+    hh += '</div>';
+  }
+  hex.innerHTML = hh;
+  $('.s5-nb').textContent = `${NB} byte`;
+  const read = $('.s5-read'), readDefault = read.innerHTML;
+  const showByte = (i) => { const v = B[i]; read.innerHTML = `› byte <b>${p2(i)}</b> · 0x<b>${h2(v)}</b> · <b>${v}</b>/255`; $$('.cell', hex).forEach((c) => c.classList.toggle('on', +c.dataset.i === i)); };
+  const hideByte = () => { read.innerHTML = readDefault; $$('.cell.on', hex).forEach((c) => c.classList.remove('on')); };
+  hex.addEventListener('pointerover', (e) => { const c = e.target.closest('.cell'); if (c) showByte(+c.dataset.i); });
+  hex.addEventListener('pointerleave', () => { const a = document.activeElement; if (a && hex.contains(a) && a.dataset.i) showByte(+a.dataset.i); else hideByte(); });
+  hex.addEventListener('focusin', (e) => { const c = e.target.closest('.cell'); if (c) showByte(+c.dataset.i); });
+  hex.addEventListener('focusout', (e) => { if (!hex.contains(e.relatedTarget)) hideByte(); });
+  hex.addEventListener('keydown', (e) => {
+    const c = e.target.closest('.cell'); if (!c) return;
+    let i = +c.dataset.i; const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: COLS, ArrowUp: -COLS }[e.key];
+    if (step !== undefined) i = (i + step + NB) % NB; else if (e.key === 'Home') i = 0; else if (e.key === 'End') i = NB - 1; else return;
+    e.preventDefault();
+    $$('.cell', hex).forEach((x) => { x.tabIndex = -1; });
+    const t = hex.querySelector(`.cell[data-i="${i}"]`); t.tabIndex = 0; t.focus();
+  });
+
+  /* 3) Hasil: panjang batang ∝ nilai (0–100), tebal ∝ bobot → luas ∝ kontribusi; total = kontribusi berurutan */
+  const comps = C.components, pass = C.passMark;
+  const contrib = comps.map((c) => c.score * c.weight / 100);
+  const sum = contrib.reduce((a, b) => a + b, 0);
+  const maxW = Math.max(...comps.map((c) => c.weight));
+  const chart = $('.s5-chart');
+  chart.style.setProperty('--pass', pass);
+  /* label, skala, dan trek kosong = struktur statis; yang bergerak hanya isi batang dan angkanya (cd = jeda hitung-naik, ms) */
+  let ch = `<div class="sc"><span class="t0">0</span><span class="pm" style="left:${pass}%">${pass} · batas lulus</span><span class="t1">100</span></div>`;
+  comps.forEach((c, i) => {
+    const r = i + 2, d = 650 + i * 110;   // sama dengan jeda .fill di CSS
+    ch += `<span class="lb" style="grid-row:${r}">${esc(c.label)}</span>`
+      + `<b class="sv" style="grid-row:${r}" data-to="${c.score}" data-cd="${d}" data-ms="700">${c.score}</b>`
+      + `<span class="wt" style="grid-row:${r}">×${c.weight}%</span>`
+      + `<div class="trk" style="grid-row:${r};--w:${c.score};--h:${(16 * c.weight / maxW).toFixed(1)}px;--i:${i}"><div class="blk"><i class="fill"></i></div></div>`
+      + `<span class="ct" style="grid-row:${r}" data-to="${contrib[i]}" data-dec="1" data-cd="${d + 60}" data-ms="700">${nf1.format(contrib[i])}</span>`;
+  });
+  let acc = 0;
+  const segs = contrib.map((v) => { const s = `<i class="seg" style="left:${acc}%;width:calc(${v}% - 2px)"></i>`; acc += v; return s; }).join('');
+  ch += `<span class="lb tot" style="grid-row:5">Total</span>`
+    + `<div class="trk tot" style="grid-row:5"><div class="sumw"><div class="lo">${segs}</div><div class="hi">${segs}</div></div></div>`
+    + `<span class="ct tot" style="grid-row:5"><span data-to="${sum}" data-dec="1" data-cd="1000" data-ms="700">${nf1.format(sum)}</span> →</span>`;
+  acc = 0;
+  ch += '<div class="sl">' + comps.map((c, i) => { const s = `<span style="left:${acc}%;width:${contrib[i]}%">${esc(c.label)}</span>`; acc += contrib[i]; return s; }).join('') + '</div>';
+  ch += `<div class="ro"><b class="big" data-to="${C.score}" data-cd="1000" data-ms="760">${C.score}</b><span class="of">/100</span><em class="pass">${esc(T.passed)}</em></div>`;
+  chart.innerHTML = ch;
+
+  /* 4) Tiga cek chain dari CERT.checks — baris (label) statis; penanda [ .. ] berganti [ ok ] + nilai, jeda 300 ms */
+  $('.s5-checks').innerHTML = C.checks.map((c, i) => `<li style="--d:${500 + i * 300}ms;--t:300ms"><span class="mk" aria-hidden="true">[ <span class="st"><span class="pd">..</span><span class="ok">ok</span></span> ]</span><span>${esc(c.label)}</span><i class="s5-dots" aria-hidden="true"></i><span class="val">${esc(c.value)}</span></li>`).join('');
+
+  /* 5) Sumbu masa berlaku: terbit → berlaku sampai; tik tiap awal bulan (WIB); penanda di tanggal baca */
+  const W7 = 7 * 3600e3, DAY = 864e5;
+  const t0 = Date.parse(C.issuedAt), t1 = Date.parse(C.validUntil), span = t1 - t0;
+  const M1 = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+  let vb = '<i class="ax"></i><i class="cap" style="left:0"></i><i class="cap" style="left:100%;margin-left:-1px"></i>';
+  const w0 = new Date(t0 + W7); let yy = w0.getUTCFullYear(), mm = w0.getUTCMonth() + 1, jj = 0;
+  for (let guard = 0; guard < 40; guard++) {
+    if (mm > 11) { mm = 0; yy++; }
+    const tt = Date.UTC(yy, mm, 1) - W7; if (tt >= t1) break;
+    vb += `<i class="tk${mm === 0 ? ' yr' : ''}" style="left:${((tt - t0) / span * 100).toFixed(3)}%;--j:${jj++}"><span>${mm === 0 ? yy : M1[mm]}</span></i>`;
+    mm++;
+  }
+  const elapsed = Math.max(0, Math.floor(Date.parse(C.statusReadOn + 'T00:00:00Z') / DAY) - Math.floor((t0 + W7) / DAY));
+  const p0 = Math.min(100, Math.max(0, elapsed * DAY / span * 100));
+  vb += `<i class="rem"></i><i class="mk"><b></b><span>dibaca · hari ke-${elapsed}</span></i>`;
+  const vbar = $('.s5-vbar'); vbar.style.setProperty('--p0', p0 + '%'); vbar.innerHTML = vb;
+  $('.s5-days').textContent = String(C.validDays);
+
+  /* 6) Bidik emas di atas batang (posisi dari --mx/--my milik cangkang); label = nilai pada skala 0–100 */
+  const offs = (el) => { let x = 0, y = 0; while (el && el !== root) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; } return { x, y }; };
+  const xh = $('.s5-xh'), lab = $('.s5-xh .lab'), trk0 = chart.querySelector('.trk'), trkT = chart.querySelector('.trk.tot');
+  const clipXh = () => {
+    const a = offs(trk0), b = offs(trkT);
+    xh.style.setProperty('--lt', (a.y - 16) + 'px');
+    xh.style.clipPath = `inset(${a.y - 16}px ${1122 - (a.x + trk0.offsetWidth) - 1}px ${793 - (b.y + trkT.offsetHeight)}px ${a.x - 1}px)`;
+  };
+  clipXh();
+  $('.s5-score').addEventListener('pointermove', (e) => {
+    const r = trk0.getBoundingClientRect(); const v = (e.clientX - r.left) / r.width * 100;
+    lab.textContent = v >= -0.5 && v <= 100.5 ? String(Math.round(Math.min(100, Math.max(0, v)))) : '';
+  });
+
+  /* 7) Gerak: steps() = jumlah karakter tiap baris; alamat "mengendap" dari acak ke nilai; angka dihitung naik */
+  let G = 0;
+  const setN = (el, n) => { n = Math.max(1, n); el.style.setProperty('--n', n); el.style.setProperty('--n1', n + 1); };
+  const measure = () => {
+    $$('.ln', sheet).forEach((el) => setN(el, Array.from(el.textContent.trim()).length));
+    setN($('.s5-prompt'), Array.from($('.s5-cmd').textContent).length);
+    clipXh();
+  };
+  const fmtOf = (el) => (el.dataset.dec ? (v) => nf1.format(v) : (v) => String(Math.round(v)));
+  const finals = () => {
+    $$('.s5-fp .g').forEach((el) => { el.textContent = el.dataset.v; });
+    $$('[data-to]', root).forEach((el) => { el.textContent = fmtOf(el)(+el.dataset.to); });
+  };
+  const HEXC = '0123456789abcdefABCDEF';
+  let S = 0;   // generasi acak-alamat (yang terbaru menang)
+  const settleAddr = () => $$('.s5-fp .g').forEach((el) => { el.textContent = el.dataset.v; });
+  /* alamat "mengendap": derau hex sejak bingkai 0, lalu tiap kelompok (kiri → kanan) dan tiap karakter jatuh ke nilai aslinya */
+  const scramble = (base, stagger, settle, per) => {
+    const s = ++S, els = $$('.s5-fp .g'), rnd = H.rng(11), start = performance.now();
+    const noise = Array.from({ length: 61 }, () => HEXC[(rnd() * HEXC.length) | 0]);
+    const frame = (now) => {
+      let done = true; const bucket = Math.floor(now / 55);
+      els.forEach((el, gi) => {
+        const v = el.dataset.v, g0 = start + base + gi * stagger; let out = '';
+        for (let ci = 0; ci < v.length; ci++) {
+          if (now >= g0 + settle + ci * per) out += v[ci];
+          else { done = false; out += noise[(gi * 7 + ci * 13 + bucket * 5) % noise.length]; }
+        }
+        if (el.textContent !== out) el.textContent = out;
+      });
+      return done;
+    };
+    frame(start);
+    const tick = (now) => { if (s !== S) return; if (!frame(now)) requestAnimationFrame(tick); else settleAddr(); };
+    requestAnimationFrame(tick);
+  };
+  const counts = (p) => {
+    $$('[data-to]', root).forEach((el) => {
+      const to = +el.dataset.to, fmt = fmtOf(el), ms = +(el.dataset.ms || 760);
+      el.textContent = el.dataset.dec ? '--,-' : '--';   // nilai belum dihitung = "--" (konvensi terminal), bukan 0
+      setTimeout(() => { if (p === G) window.countUp(el, to, { ms, fmt, ease: (t) => 1 - Math.pow(1 - t, 3) }); }, +(el.dataset.cd || 0));
+    });
+  };
+  const reducedNow = () => matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=off/.test(location.search);
+  /* mode alamat ⇄ nama sesudah masuk: nama diketik ulang (CSS, < 600 ms); alamat mengendap ulang lebih cepat (≈ 500 ms) */
+  const rcp = $('.s5-rcp');
+  new MutationObserver(() => {
+    rcp.classList.add('s5-swap');
+    if (sheet.dataset.mode === 'alamat' && sheet.classList.contains('is-playing') && !reducedNow()) scramble(0, 34, 120, 26);
+  }).observe(sheet, { attributes: true, attributeFilter: ['data-mode'] });
+  document.addEventListener('cx:play', (e) => {
+    G++; measure(); rcp.classList.remove('s5-swap');
+    if (e.detail && e.detail.reduced) { S++; finals(); return; }
+    scramble(120, 50, 140, 30); counts(G);   // alamat selesai ≈ 800 ms
+  });
+  addEventListener('beforeprint', () => { G++; S++; finals(); });
+
+  /* 8) Catatan desain */
+  window.DESIGN = {
+    id: 'S5', name: 'Bukti Mentah', row: 'Data / Terminal',
+    tagline: 'sesi pemeriksaan yang dicetak sebagai sertifikat: mono di mana-mana, permukaan gelap, emas sebagai sinyal, hijau hanya untuk cek yang lolos',
+    brief: {
+      process: 'Kredensial diperiksa: hash dibaca → penerima (alamat dompet) → kelas → nilai dan batas lulus → tiga cek chain yang dibaca 5 Okt 2026 → status snapshot → QR untuk status dan tanda tangan terkini.',
+      core: 'Struk bukti: satu baris perintah yang mencetak keluarannya baris demi baris, ditutup cap BERLAKU yang bertanggal.',
+      relationship: 'Kiri = sertifikat (siapa, kelas apa, seberapa baik, sampai kapan, siapa yang menandatangani); kanan = potongan bukti (byte hash, cek chain, catatan chain, QR), dipisah garis sobek seperti potongan tiket.',
+      metaphor: 'Log terminal yang mengalir atas→bawah; nilai sebagai tangga batang blok; masa berlaku sebagai sumbu waktu; hash sebagai hexdump yang digambar.'
+    },
+    encodes: [
+      'Peta byte: 32 batang = 32 byte hash kredensial (HASHART.bytes); tinggi dan kecerahan ∝ nilai byte 0–255; hex dicetak di bawahnya; arahkan atau fokus (panah) untuk indeks + nilai. Kredensial lain → gambar lain.',
+      'Batang nilai: panjang ∝ nilai komponen (skala 0–100, satu blok = 4 poin), tebal ∝ bobot 50/30/20 → luas batang ∝ kontribusinya ke total.',
+      'Batang total: tiga kontribusi (nilai × bobot) disusun berurutan; garis emas = batas lulus; bagian yang melewati batas diterangkan; ujungnya = nilai gabungan sebelum dibulatkan.',
+      'Tiga cek chain dari CERT.checks, berurutan [ .. ] → [ ok ], dengan tanggal baca (snapshot). Tanda tangan sengaja [ -- ] dan menunjuk ke QR.',
+      'Sumbu masa berlaku: terbit → berlaku sampai, satu tik per awal bulan, tik tahun lebih tinggi; penanda emas di tanggal baca (hari ke-sekian sejak terbit); batang emas = sisa masa berlaku saat dibaca.',
+      'Alamat dompet: kelompok 4 karakter dalam dua baris, seperti sidik jari kunci; pemisah emas tidak ikut tersalin sebagai karakter.'
+    ],
+    fonts: [{ role: 'Judul, isi, angka (tabular)', name: 'JetBrains Mono 400/500/700/800' }],
+    palette: [
+      { name: 'Lembar', hex: '#0b0e11', use: 'permukaan' },
+      { name: 'Panel', hex: '#181a20', use: 'slot byte' },
+      { name: 'Garis-rambut', hex: '#2b313a', use: 'bingkai, kisi, garis bagian' },
+      { name: 'Tinta', hex: '#eaecef', use: 'teks utama' },
+      { name: 'Redup', hex: '#848e9c', use: 'label dan catatan' },
+      { name: 'Emas Lencana', hex: '#f0b90b', use: 'sinyal utama, batang' },
+      { name: 'Emas terang', hex: '#fcd535', use: 'lewat batas lulus, cap, bidik' },
+      { name: 'Hijau ok', hex: '#0ecb81', use: 'hanya cek yang lolos dan LULUS' }
+    ],
+    motif: 'Garis bagian "── LABEL ───" + kisi garis-rambut 24 px + braket sudut emas; garis sobek putus-putus memisahkan sertifikat dari potongan bukti. Kedalaman: datar, hanya garis-rambut (tanpa bayangan, tanpa gradasi warna).',
+    motion: {
+      entrance: 'Struktur (bingkai, label bagian, trek kosong, sumbu waktu, garis tanda tangan, QR) tampil sejak bingkai 0; hanya nilai yang bergerak: perintah diketik dengan kursor, byte hash menyala dalam gelombang diagonal, alamat mengendap dari derau hex, batang tumbuh dengan pegas sementara angkanya dihitung naik dari "--", cek chain berganti [ .. ] → [ ok ] berjeda 300 ms, nilai chain dan tanda tangan tercetak. Selesai ±3,2 dtk.',
+      continuous: 'Kursor berkedip di baris perintah; garis pindai samar menyapu atas→bawah tiap ±6 dtk; titik di samping QR berdenyut (status terkini ada di balik QR).',
+      interaction: 'Arahkan/fokus sel byte → indeks dan nilai; bidik emas mengikuti penunjuk di atas batang dengan pembacaan skala 0–100; lembar miring mengikuti penunjuk (cangkang).',
+      micro: 'Ketukan terakhir (±2,5 dtk): cap BERLAKU · dibaca <tanggal> menghantam (1,5 → 1), bingkai bergetar 2–3 px, satu kilat emas.'
+    },
+    limits: [
+      'Baris "$ periksa <hash>" adalah metafora tampilan (sesi pemeriksaan yang dicetak), bukan perintah CLI yang benar-benar ada.',
+      'Tiga baris [ ok ] menyalin hasil cek chain yang dibaca 5 Okt 2026 (CERT.checks) — snapshot, bukan pemeriksaan langsung oleh halaman ini.',
+      'Tanda tangan DataIntegrityProof · eddsa-rdfc-2022 diberi penanda [ -- ] dan "↓ QR": halaman statis ini tidak memeriksa tanda tangan, jadi tidak boleh tampil hijau.',
+      'Cap BERLAKU selalu membawa tanggal baca; titik berdenyut sengaja ditaruh di samping QR, bukan di samping cap, supaya kertas tidak terkesan memantau status secara langsung.',
+      'Label baru (bukan klaim): "Masa berlaku", "Cek chain", "dibaca", "hari ke-…", "batas lulus", "lebar = nilai · tebal = bobot", "tinggi batang = nilai byte (0–255)", "format", "periksa".',
+      'Kontribusi per komponen dan nilai gabungan sebelum dibulatkan dihitung di JS dari CERT.components (nilai × bobot); nilai akhir dari CERT.score.'
+    ]
+  };
+
+  window.__cxInit();
+})();
+/* ===================== /DESIGN JS ===================== */
+</script>
+</body>
+</html>

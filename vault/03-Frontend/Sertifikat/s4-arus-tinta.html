@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sertifikat · spesimen desain</title>
+<!-- DESIGN:HEAD — tautan font (Google Fonts) dan <meta> khusus desain. Tanpa skrip eksternal, tanpa gambar eksternal. -->
+<meta name="description" content="S4 · Arus Tinta — spesimen desain sertifikat Lencana: tiga pita bertekstur titik mengalir ke satu cap tinta.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400;1,500&family=Caveat:wght@500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=JetBrains+Mono:wght@400;500&family=Mrs+Saint+Delafield&display=swap">
+<!-- /DESIGN:HEAD -->
+<style>
+/* ===================== SHARED SHELL — JANGAN UBAH (identik di kelima desain) ===================== */
+:root{
+  --sheet-w:1122px; --sheet-h:793px;           /* A4 landscape pada 96 dpi, dikurangi sedikit supaya muat satu halaman cetak */
+  --scale:1;
+  --cx-bg:#e7e8ec; --cx-bar:#15171c; --cx-bar-ink:#e9eaee; --cx-bar-mute:#9aa0ab; --cx-accent:#f0b90b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body.cx{background:var(--cx-bg);color:#1b1d22;font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+.cx-bar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 16px;background:var(--cx-bar);color:var(--cx-bar-ink)}
+.cx-bar a{color:var(--cx-bar-ink);text-decoration:none;opacity:.8}
+.cx-bar a:hover{opacity:1;text-decoration:underline}
+.cx-bar .cx-title{font-weight:650;letter-spacing:.01em}
+.cx-bar .cx-title small{display:block;font-weight:400;color:var(--cx-bar-mute);font-size:12px;letter-spacing:0}
+.cx-bar .cx-sp{flex:1 1 auto}
+.cx-seg{display:inline-flex;border:1px solid #3a3e48;border-radius:8px;overflow:hidden}
+.cx-seg button{all:unset;cursor:pointer;padding:6px 12px;font-size:13px;color:var(--cx-bar-mute)}
+.cx-seg button[aria-pressed="true"]{background:var(--cx-accent);color:#15171c;font-weight:600}
+.cx-seg button:focus-visible,.cx-btn:focus-visible{outline:2px solid var(--cx-accent);outline-offset:2px}
+.cx-btn{all:unset;cursor:pointer;padding:6px 12px;border:1px solid #3a3e48;border-radius:8px;font-size:13px;color:var(--cx-bar-ink)}
+.cx-btn:hover{border-color:var(--cx-accent)}
+.cx-stage{display:grid;place-items:center;padding:20px 12px 8px}
+.cx-fit{position:relative;width:calc(var(--sheet-w) * var(--scale));height:calc(var(--sheet-h) * var(--scale))}
+.cx-scale{position:absolute;left:0;top:0;width:var(--sheet-w);height:var(--sheet-h);transform:scale(var(--scale));transform-origin:0 0}   /* satu pemilik transform: skala */
+.cx-tilt{width:100%;height:100%;transform:perspective(1800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}   /* satu pemilik transform: miring (interaksi) */
+.sheet{position:relative;width:var(--sheet-w);height:var(--sheet-h);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.18),0 18px 50px rgba(20,22,30,.28);isolation:isolate}
+.cx-foot{max-width:1122px;margin:10px auto 0;padding:0 16px;color:#5b616c;font-size:12.5px}
+.cx-foot a{color:#2b4a9a}
+.cx-notes{max-width:1122px;margin:18px auto 56px;padding:0 16px}
+.cx-notes details{background:#fff;border:1px solid #d6d8de;border-radius:12px;padding:14px 18px}
+.cx-notes summary{cursor:pointer;font-weight:650}
+.cx-notes dl{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:6px 18px;margin:14px 0 0}
+.cx-notes dt{color:#5b616c}
+.cx-notes dd{margin:0}
+.cx-notes ul{margin:0;padding-left:18px}
+.cx-sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
+@media (max-width:640px){.cx-notes dl{grid-template-columns:1fr}.cx-notes dt{margin-top:8px}}
+
+/* tampilan alamat ⇄ nama contoh: desain menandai elemen dengan data-show="alamat" atau data-show="nama" */
+.sheet[data-mode="alamat"] [data-show="nama"],.sheet[data-mode="nama"] [data-show="alamat"]{display:none !important}
+
+@page{size:297mm 210mm;margin:0}
+@media print{
+  html,body.cx{background:#fff !important;min-height:0}
+  .cx-bar,.cx-foot,.cx-notes{display:none !important}
+  .cx-stage{display:block;padding:0;place-items:normal;justify-items:normal;align-items:normal}
+  .cx-fit{width:auto;height:auto;position:static;margin:0}
+  .cx-scale{position:static;width:auto;height:auto;transform:none !important}
+  .cx-tilt{transform:none !important;transition:none !important}
+  .sheet{box-shadow:none !important;margin:0;break-inside:avoid;page-break-inside:avoid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet,.sheet *{animation:none !important;transition:none !important}   /* cetak = keadaan akhir, bukan separuh jalan */
+}
+/* ===================== /SHARED SHELL ===================== */
+
+/* ===================== DESIGN CSS ===================== */
+/* ATURAN GERAK: keadaan AKHIR adalah gaya bawaan. Semua animasi (masuk dan berkelanjutan) hanya berlaku di bawah `.sheet.is-playing …`,
+   dengan animation-fill-mode: both. Tanpa kelas itu (reduce-motion, ?motion=off, cetak) kertas tampil utuh dan diam. */
+/* ---------- S4 · Arus Tinta — token ---------- */
+.sheet{
+  --paper:#efeadf; --paper-hi:#f7f3ea; --ink:#16303a; --ink-2:#27434b; --mute:#4b5d61;
+  --t-deep:#17565c; --t-mid:#1f7a7d; --t-light:#5fa8a6; --t-pale:#b9dcd8;
+  --terra:#ac4c2d; --terra-ink:#a3472a; --graphite:#4f585b;
+  --f-display:"Fraunces","Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+  --f-body:"Alegreya","Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+  --f-hand:"Caveat","Segoe Print","Bradley Hand","Comic Sans MS",cursive;
+  --f-script:"Mrs Saint Delafield","Segoe Script","Snell Roundhand","Apple Chancery",cursive;
+  --f-mono:"JetBrains Mono","Cascadia Mono",Consolas,ui-monospace,Menlo,monospace;
+  --spring:cubic-bezier(.34,1.56,.64,1); --out:cubic-bezier(.16,1,.3,1); --flow:cubic-bezier(.3,.1,.25,1); --sine:cubic-bezier(.37,0,.63,1);
+  background:var(--paper); color:var(--ink); font-family:var(--f-body); font-size:14px; line-height:1.4;
+}
+.sheet p,.sheet dl,.sheet dd,.sheet h1{margin:0}
+.sheet .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+
+/* ---------- kertas ---------- */
+.sheet .paper{position:absolute;left:0;top:0;z-index:0;display:block}
+
+/* ---------- pita (lapisan dibangun JS) ---------- */
+.sheet .art{position:absolute;inset:0;z-index:1;pointer-events:none}
+.rl{position:absolute;inset:0;pointer-events:none;will-change:transform;transition:transform 1.3s cubic-bezier(.2,.8,.2,1),opacity .4s ease}
+.rl>.sw{position:absolute;inset:0}
+.rl svg{position:absolute;left:0;top:0;overflow:visible;display:block}
+.rl .base{pointer-events:visiblePainted;cursor:default}
+.rl.k{transform:translate3d(calc((var(--mx,50%) - 50%) * -.006),calc((var(--my,50%) - 50%) * -.009),0)}
+.rl.e{transform:translate3d(calc((var(--mx,50%) - 50%) * -.011),calc((var(--my,50%) - 50%) * -.015),0)}
+.rl.p{transform:translate3d(calc((var(--mx,50%) - 50%) * -.017),calc((var(--my,50%) - 50%) * -.023),0)}
+.rl .gls{will-change:transform}
+.rl .gl{fill:none;stroke-linecap:round;stroke-dashoffset:0}
+.rv{fill:none;stroke:#fff;stroke-dasharray:100 112;stroke-dashoffset:0}
+.sheet[data-hot] .rl{opacity:.55}
+.sheet[data-hot="kuis"] .rl.k,.sheet[data-hot="esai"] .rl.e,.sheet[data-hot="praktik"] .rl.p{opacity:1}
+.sheet[data-hot="kuis"] .rl.k .gl,.sheet[data-hot="esai"] .rl.e .gl,.sheet[data-hot="praktik"] .rl.p .gl{stroke-opacity:1}
+
+/* ---------- label tangan ---------- */
+.sheet .tags{position:absolute;inset:0;z-index:5;pointer-events:none}
+.tag{all:unset;position:absolute;pointer-events:auto;cursor:default;white-space:nowrap;color:var(--ink);border-radius:6px;
+  font:600 25px/1 var(--f-hand)}
+.tag .tg-in{display:inline-block;padding:2px 4px}
+.tag .tv{font:600 15px/1 var(--f-display);font-variant-numeric:tabular-nums lining-nums;letter-spacing:.02em;margin-left:5px;vertical-align:2px;color:var(--t-deep)}
+.tag .tw{display:block;font:500 17px/1 var(--f-hand);color:var(--terra-ink);margin-top:1px}
+.tag .ul{position:absolute;left:4px;right:4px;bottom:-2px;height:2px;border-radius:2px;background:var(--terra);transform:scaleX(0);transform-origin:0 50%;transition:transform .45s var(--out)}
+.tag:focus-visible{outline:2px solid var(--terra);outline-offset:3px}
+.sheet[data-hot="kuis"] .tag.k .ul,.sheet[data-hot="esai"] .tag.e .ul,.sheet[data-hot="praktik"] .tag.p .ul{transform:scaleX(1)}
+.tags .ld{fill:none;stroke:var(--ink);stroke-width:.9;stroke-linecap:round}
+.tags .ld-dot{fill:var(--paper-hi);stroke:var(--ink);stroke-width:1}
+
+/* ---------- cap tinta ---------- */
+.seal{position:absolute;z-index:4;width:280px;height:280px}
+.seal .disc-in{position:absolute;inset:0}
+.seal-disc{position:absolute;left:0;top:0;overflow:visible}
+.seal-halo{position:absolute;left:28px;top:28px;width:224px;height:224px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(172,76,45,0) 58%,rgba(172,76,45,.16) 80%,rgba(172,76,45,0) 100%);opacity:.9}
+.seal-press{position:absolute;left:10px;top:10px;width:260px;height:260px}
+.seal-rot{width:100%;height:100%;transform:rotate(var(--rest,-7deg))}
+.stamp{display:block;overflow:visible;--logo-a:rgba(172,76,45,.55);--logo-b:#ac4c2d}
+.stamp .ring-a{fill:none;stroke:var(--terra);stroke-width:5.2}
+.stamp .ring-b{fill:none;stroke:var(--terra);stroke-width:1.3}
+.stamp .ring-c{fill:none;stroke:var(--terra);stroke-width:1.2}
+.stamp .ring-t{fill:var(--terra);font:700 18px/1 var(--f-display);letter-spacing:.2em;font-variation-settings:"SOFT" 40,"WONK" 0;font-variant-numeric:lining-nums}
+.stamp .ring-dot{fill:var(--terra)}
+.stamp .sc{fill:var(--terra);font:650 44px/1 var(--f-display);font-variant-numeric:tabular-nums lining-nums;text-anchor:middle;font-variation-settings:"SOFT" 60,"WONK" 0}
+.stamp .bd{fill:var(--terra)}
+.stamp .bd.off{fill:none;stroke:var(--terra);stroke-width:.9;opacity:.7}
+.stamp .tick{stroke:var(--terra);stroke-width:2.3;stroke-linecap:round}
+.splat{position:absolute;left:-60px;top:-60px;overflow:visible;pointer-events:none}
+.splat .sp{fill:var(--terra);transform-box:fill-box;transform-origin:center}
+.score-line{position:absolute;z-index:4;width:300px;text-align:center;font:italic 400 14px/1.3 var(--f-body);color:var(--ink-2)}
+
+/* ---------- catatan tangan (kunci) ---------- */
+.key{position:absolute;z-index:4;color:var(--terra-ink);font:500 20px/1.05 var(--f-hand);transform:rotate(-3deg);transform-origin:0 0}
+.key span{display:block;white-space:nowrap}
+.key .k2{font-size:19px;margin-top:2px}
+
+/* ---------- judul ---------- */
+.ttl{position:absolute;left:530px;top:50px;width:540px;z-index:3}
+.ttl h1{font-weight:400}
+.ttl .t1{display:block;font:620 56px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--ink);font-variation-settings:"SOFT" 30,"WONK" 0}
+.ttl .t2{display:block;margin-top:6px;font:italic 380 40px/1.05 var(--f-display);color:var(--t-deep);font-variation-settings:"SOFT" 100,"WONK" 1}
+
+/* ---------- penerima ---------- */
+.mid{position:absolute;left:530px;top:198px;width:540px;z-index:3}
+.lbl{font:italic 400 18px/1.25 var(--f-body);color:var(--mute)}
+.addr{position:relative;margin-top:6px}
+.addr .ox{position:absolute;left:-30px;top:13px;font:italic 500 17px/1 var(--f-display);color:var(--t-deep)}
+.addr .groups{display:block;font:italic 420 35px/1.27 var(--f-display);color:var(--ink);font-variant-numeric:lining-nums proportional-nums;letter-spacing:.012em;font-variation-settings:"SOFT" 50,"WONK" 0}
+.addr .g{display:inline-block;margin-right:.36em}
+.addr .br{display:block;height:0}
+.nm-wrap{margin:0 0 0 -6px;height:84px;line-height:84px;white-space:nowrap}
+.named .nm{display:inline-block;padding:0 14px 0 6px;font:400 var(--nm-size,74px)/1 var(--f-script);color:var(--ink);vertical-align:middle}
+.nm-addr{margin-top:0;font:italic 420 19px/1.3 var(--f-display);color:var(--ink);font-variation-settings:"SOFT" 50,"WONK" 0;font-variant-numeric:lining-nums;white-space:nowrap}
+.nm-addr .nm-k{font:italic 400 15px/1 var(--f-body);color:var(--mute);margin-right:4px}
+.nm-note{margin-top:3px;max-width:540px;font:italic 400 13px/1.35 var(--f-body);color:var(--mute)}
+
+/* ---------- kelas ---------- */
+.crs{margin-top:20px;width:520px}
+.course{margin-top:4px;font:520 29px/1.16 var(--f-display);color:var(--ink);font-variation-settings:"SOFT" 50,"WONK" 0;text-wrap:balance}
+
+/* ---------- fakta ---------- */
+.facts{position:absolute;left:530px;top:478px;width:318px;z-index:3;display:grid;grid-template-columns:1fr 1fr;column-gap:14px;row-gap:10px}
+.facts dt{font:500 11px/1.2 var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+.facts .f-date dd{margin-top:3px}
+.facts .hand{display:block;font:600 25px/1 var(--f-hand);color:var(--ink);white-space:nowrap}
+.facts .time{display:block;font:400 12px/1.2 var(--f-body);color:var(--mute);margin-top:2px;font-variant-numeric:tabular-nums}
+.span365{position:absolute;left:532px;top:541px;width:318px;height:28px;z-index:3;pointer-events:none}
+.span365 svg{position:absolute;left:0;top:0;overflow:visible}
+.span365 .arrow{fill:none;stroke:var(--terra);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.span365 .days{position:absolute;left:116px;top:12px;padding:0 6px;background:var(--paper);font:500 18px/1 var(--f-hand);color:var(--terra-ink)}
+.facts .f-pub{grid-column:1/-1;margin-top:26px}
+.facts .f-sig{grid-column:1/-1}
+.facts .pub{font:500 15px/1.25 var(--f-body);color:var(--ink)}
+.facts .pub-note{font:italic 400 13.5px/1.25 var(--f-body);color:var(--mute)}
+.facts .f-sig dd{position:relative}
+.facts .hashbars{display:block;margin:2px 0 2px 0;overflow:visible}
+.facts .hashbars .hb{stroke:var(--ink);stroke-width:2.1;stroke-linecap:round;opacity:.82;transform-box:fill-box;transform-origin:50% 100%}
+.facts .sig-line{display:block;border-top:1px solid rgba(22,48,58,.42);padding-top:4px;font:400 13.5px/1.3 var(--f-body);color:var(--ink-2)}
+.facts .sig-line b{font-weight:700;color:var(--ink)}
+.facts .proof{display:block;font:italic 400 12.5px/1.3 var(--f-body);color:var(--mute)}
+
+/* ---------- slip periksa (QR) ---------- */
+.slip{position:absolute;left:866px;top:452px;width:202px;height:268px;z-index:3;transform-origin:50% 0}
+.slip-bg{position:absolute;left:0;top:0;overflow:visible}
+.qr-plate{position:absolute;left:8px;top:9px;width:186px;height:186px;background:#fdfbf6;display:grid;place-items:center}
+.qr-plate .qr{width:156px;height:156px;display:block;color:#0f2229}
+.slip .host{position:absolute;left:8px;right:8px;top:202px;text-align:center;font:500 12px/1.2 var(--f-mono);color:var(--ink);letter-spacing:-.01em}
+.slip .scan{position:absolute;left:14px;right:14px;top:221px;text-align:center;font:italic 400 13px/1.25 var(--f-body);color:var(--ink-2)}
+
+/* ---------- kolofon id + kaki ---------- */
+.ids{position:absolute;left:48px;top:724px;right:48px;z-index:3;display:flex;flex-wrap:wrap;gap:0 22px}
+.ids>div{display:flex;gap:6px;align-items:baseline}
+.ids dt{font:400 11px/1.4 var(--f-body);color:var(--mute)}
+.ids dd{font:400 11px/1.4 var(--f-mono);color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.foot{position:absolute;left:48px;right:48px;top:744px;z-index:3;font:400 11.5px/1.42 var(--f-body);color:var(--mute)}
+.foot .demo{font-weight:700;color:var(--ink-2)}
+.foot .sep{color:var(--t-light)}
+/* ==================== GERAK (hanya di bawah .is-playing; keadaan akhir = gaya bawaan) ==================== */
+.sheet.is-playing .rv.k{animation:s4-reveal 1.75s var(--flow) 0s both}
+.sheet.is-playing .rv.e{animation:s4-reveal 1.5s var(--flow) .18s both}
+.sheet.is-playing .rv.p{animation:s4-reveal 1.62s var(--flow) .34s both}
+@keyframes s4-reveal{from{stroke-dashoffset:104}to{stroke-dashoffset:0}}
+
+.sheet.is-playing .sw.k{animation:s4-sway-k 14s var(--sine) 2s infinite both}
+.sheet.is-playing .sw.e{animation:s4-sway-e 12s var(--sine) 2s infinite both}
+.sheet.is-playing .sw.p{animation:s4-sway-p 16s var(--sine) 2s infinite both}
+@keyframes s4-sway-k{0%,100%{transform:translate3d(0,0,0)}25%{transform:translate3d(3px,-2px,0)}50%{transform:translate3d(1px,-4px,0)}75%{transform:translate3d(-3px,-1px,0)}}
+@keyframes s4-sway-e{0%,100%{transform:translate3d(0,0,0)}25%{transform:translate3d(-2px,3px,0)}50%{transform:translate3d(2px,4px,0)}75%{transform:translate3d(4px,1px,0)}}
+@keyframes s4-sway-p{0%,100%{transform:translate3d(0,0,0)}25%{transform:translate3d(2px,4px,0)}50%{transform:translate3d(-3px,3px,0)}75%{transform:translate3d(-4px,-2px,0)}}
+
+.sheet.is-playing .gl{animation:s4-glide 13s var(--sine) 2.2s infinite alternate both}
+.sheet.is-playing .gl.g2{animation-duration:9.5s;animation-delay:2.6s}
+@keyframes s4-glide{from{stroke-dashoffset:0}to{stroke-dashoffset:-96}}
+
+.sheet.is-playing .tag .tg-in{animation:s4-pop .62s var(--spring) var(--d,1.2s) both}
+.sheet.is-playing .tags .ld{animation:s4-draw .5s var(--out) var(--dl,1s) both}
+.sheet.is-playing .tags .ld-dot{animation:s4-fade .3s ease-out var(--dl,1s) both}
+@keyframes s4-pop{from{opacity:0;transform:translateY(7px) scale(.7) rotate(-7deg)}to{opacity:1;transform:none}}
+@keyframes s4-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes s4-fade{from{opacity:0}to{opacity:1}}
+
+.sheet.is-playing .disc-in{animation:s4-disc .8s var(--spring) 1.3s both}
+@keyframes s4-disc{from{opacity:0;transform:scale(.86) rotate(-8deg)}to{opacity:1;transform:none}}
+.sheet.is-playing .seal-disc{animation:s4-dip .5s var(--out) 2.12s both}
+@keyframes s4-dip{0%{transform:scale(1)}30%{transform:scale(.982)}100%{transform:scale(1)}}
+.sheet.is-playing .seal-press{animation:s4-press .62s cubic-bezier(.55,0,.85,.3) 1.92s both}
+@keyframes s4-press{0%{opacity:0;transform:scale(1.55)}38%{opacity:.25}62%{opacity:1;transform:scale(.955);animation-timing-function:cubic-bezier(.2,.9,.3,1)}100%{opacity:1;transform:scale(1)}}
+.sheet.is-playing .seal-rot{animation:s4-wobble 1.05s cubic-bezier(.3,.7,.4,1) 1.92s both}
+@keyframes s4-wobble{0%{transform:rotate(calc(var(--rest,-7deg) - 10deg))}38%{transform:rotate(calc(var(--rest,-7deg) + 3deg))}58%{transform:rotate(calc(var(--rest,-7deg) - 2deg))}78%{transform:rotate(calc(var(--rest,-7deg) + .8deg))}100%{transform:rotate(var(--rest,-7deg))}}
+.sheet.is-playing .seal-halo{animation:s4-halo 1.1s var(--out) 2.18s both}
+@keyframes s4-halo{0%{opacity:0;transform:scale(.55)}45%{opacity:1;transform:scale(1.07)}100%{opacity:.9;transform:scale(1)}}
+.sheet.is-playing .splat .sp{animation:s4-splat .5s var(--spring) calc(2.2s + var(--i,0) * 28ms) both}
+@keyframes s4-splat{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+.sheet.is-playing .beads .on{animation:s4-fade .22s ease-out calc(2.3s + var(--i,0) * 7ms) both}
+.sheet.is-playing .score-line{animation:s4-rise .8s var(--out) 2.7s both}
+
+.sheet.is-playing .ttl .t1{animation:s4-rise 1s var(--out) .1s both}
+.sheet.is-playing .ttl .t2{animation:s4-rise 1s var(--out) .26s both}
+.sheet.is-playing .rcp .lbl{animation:s4-rise .8s var(--out) .45s both}
+.sheet.is-playing .addr .g,.sheet.is-playing .addr .ox{animation:s4-ink .7s var(--out) calc(.55s + var(--i,0) * 55ms) both}
+.sheet.is-playing .named .nm{animation:s4-write 1.3s cubic-bezier(.5,.1,.3,1) .5s both}
+.sheet.is-playing .span365{animation:s4-fade .7s ease-out 1.25s both}
+.sheet.is-playing .nm-addr,.sheet.is-playing .nm-note{animation:s4-rise .8s var(--out) 1.1s both}
+.sheet.is-playing .crs{animation:s4-rise .9s var(--out) .75s both}
+.sheet.is-playing .facts>div{animation:s4-rise .8s var(--out) calc(1s + var(--i,0) * 90ms) both}
+.sheet.is-playing .hashbars .hb{animation:s4-bar .45s var(--spring) calc(1.35s + var(--i,0) * 22ms) both}
+@keyframes s4-bar{from{transform:scaleY(0)}to{transform:none}}
+.sheet.is-playing .slip{animation:s4-slip .95s var(--spring) 1.15s both}
+.sheet.is-playing .ids{animation:s4-rise .8s var(--out) 1.5s both}
+.sheet.is-playing .key{animation:s4-key .7s var(--spring) 1.85s both}
+.sheet.is-playing .foot{animation:s4-fade .9s ease-out 1.6s both}
+@keyframes s4-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes s4-ink{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes s4-write{from{clip-path:inset(-60% 100% -80% -40%)}to{clip-path:inset(-60% -40% -80% -40%)}}
+@keyframes s4-slip{from{opacity:0;transform:translateY(22px) rotate(2.5deg)}to{opacity:1;transform:none}}
+@keyframes s4-key{from{opacity:0;transform:rotate(-3deg) translateY(6px) scale(.9)}to{opacity:1;transform:rotate(-3deg)}}
+
+/* ---------- cetak ---------- */
+@media print{
+  .sheet{background:#efeadf}
+  .rl,.rl.k,.rl.e,.rl.p{transform:none !important;opacity:1 !important}
+  .tag .ul{display:none}
+}
+/* ===================== /DESIGN CSS ===================== */
+</style>
+</head>
+<body class="cx">
+<header class="cx-bar">
+  <a href="index.html" aria-label="Kembali ke semua desain">← Semua desain</a>
+  <div class="cx-title"><span data-design="title">Desain</span><small data-design="row"></small></div>
+  <span class="cx-sp"></span>
+  <div class="cx-seg" role="group" aria-label="Isi baris penerima">
+    <button type="button" data-mode-btn="alamat" aria-pressed="true" title="Yang sebenarnya ada di data kredensial">Alamat dompet</button>
+    <button type="button" data-mode-btn="nama" aria-pressed="false" title="Contoh tampilan jika nanti ada nama tampilan — belum ada di kredensial">Nama contoh</button>
+  </div>
+  <button class="cx-btn" type="button" data-act="replay">▶ Ulangi gerak</button>
+  <button class="cx-btn" type="button" data-act="print">Cetak / simpan PDF</button>
+</header>
+
+<main class="cx-stage">
+  <div class="cx-fit"><div class="cx-scale"><div class="cx-tilt">
+    <article class="sheet" data-mode="alamat" aria-label="Sertifikat Kelulusan — spesimen desain">
+<!-- DESIGN:SHEET — isi lembar (HTML + SVG inline). Ukuran tetap 1122×793 px. Nilai nyata hanya lewat data-bind / data-txt / svg[data-qr] / svg[data-logo]. -->
+      <!-- kertas: warna dasar, belang halus, bintik serat (bintik dibibit dari hash kredensial) -->
+      <svg class="paper" viewBox="0 0 1122 793" width="1122" height="793" aria-hidden="true" focusable="false">
+        <defs>
+          <filter id="s4-mottle" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency=".011 .016" numOctaves="4" seed="4" result="n"/>
+            <feColorMatrix in="n" type="matrix" values="0 0 0 0 .45  0 0 0 0 .38  0 0 0 0 .26  0 0 0 .9 -.38"/>
+          </filter>
+          <radialGradient id="s4-vign" cx="56%" cy="46%" r="78%">
+            <stop offset=".62" stop-color="#7a6248" stop-opacity="0"/>
+            <stop offset="1" stop-color="#7a6248" stop-opacity=".13"/>
+          </radialGradient>
+        </defs>
+        <rect width="1122" height="793" fill="#efeadf"/>
+        <rect width="1122" height="793" filter="url(#s4-mottle)" opacity=".26"/>
+        <g class="specks"></g>
+        <rect width="1122" height="793" fill="url(#s4-vign)"/>
+      </svg>
+
+      <!-- pita: lapisan dibangun JS (urutan z mengikuti anyaman kuis/esai/praktik) -->
+      <div class="art" aria-hidden="true"></div>
+
+      <!-- label tangan tiap pita (bisa difokus: menyorot pitanya) -->
+      <div class="tags"></div>
+
+      <!-- cap tinta: piringan kertas + cap + percikan -->
+      <div class="seal" role="img" aria-label="">
+        <div class="seal-halo" aria-hidden="true"></div>
+        <div class="disc-in"><svg class="seal-disc" viewBox="-140 -140 280 280" width="280" height="280" aria-hidden="true" focusable="false"></svg></div>
+        <div class="seal-press"><div class="seal-rot">
+          <svg class="stamp" viewBox="-130 -130 260 260" width="260" height="260" aria-hidden="true" focusable="false">
+            <defs>
+              <filter id="s4-ink" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="11" result="n1"/>
+                <feDisplacementMap in="SourceGraphic" in2="n1" scale="3.4" xChannelSelector="R" yChannelSelector="G" result="d"/>
+                <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="5" result="n2"/>
+                <feColorMatrix in="n2" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3.2 0 0 0 -.62" result="m2"/>
+                <feTurbulence type="fractalNoise" baseFrequency=".055" numOctaves="1" seed="9" result="n3"/>
+                <feColorMatrix in="n3" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1.5 0 0 0 .12" result="m3"/>
+                <feComposite in="m2" in2="m3" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="m"/>
+                <feComposite in="d" in2="m" operator="in" result="inked"/>
+                <feMorphology in="d" operator="dilate" radius=".6" result="dd"/>
+                <feGaussianBlur in="dd" stdDeviation="1.1" result="bl"/>
+                <feComponentTransfer in="bl" result="bleed"><feFuncA type="linear" slope=".28"/></feComponentTransfer>
+                <feMerge><feMergeNode in="bleed"/><feMergeNode in="inked"/></feMerge>
+              </filter>
+              <path id="s4-arc-top" d="M-84,0 A84,84 0 0,1 84,0"/><path id="s4-arc-bot" d="M-95.5,0 A95.5,95.5 0 0,0 95.5,0"/>
+            </defs>
+            <g class="ink" filter="url(#s4-ink)">
+              <circle r="108" class="ring-a"/>
+              <circle r="99.5" class="ring-b"/>
+              <text class="ring-t"><textPath class="rt-top" href="#s4-arc-top" startOffset="50%" text-anchor="middle"></textPath></text><text class="ring-t"><textPath class="rt-bot" href="#s4-arc-bot" startOffset="50%" text-anchor="middle"></textPath></text><circle class="ring-dot" cx="-90" cy="0" r="2.6"/><circle class="ring-dot" cx="90" cy="0" r="2.6"/>
+              <circle r="72" class="ring-c"/>
+              <g class="beads"></g>
+              <svg data-logo x="-30" y="-58" width="60" height="56"></svg>
+              <text class="sc" x="0" y="44" data-bind="score"></text>
+            </g>
+          </svg>
+        </div></div>
+        <svg class="splat" viewBox="-200 -200 400 400" width="400" height="400" aria-hidden="true" focusable="false"></svg>
+      </div>
+      <p class="score-line" data-txt="scoreLine"></p>
+
+      <!-- catatan tangan: kunci membaca lebar pita -->
+      <div class="key" aria-hidden="true">
+        <span class="k1"></span>
+        <span class="k2"></span>
+      </div>
+
+      <header class="ttl">
+        <h1><span class="t1"></span> <span class="t2"></span></h1>
+      </header>
+
+      <div class="mid">
+      <section class="rcp" aria-label="Penerima">
+        <p class="lbl" data-txt="presentedTo"></p>
+        <div class="addr" data-show="alamat">
+          <span class="ox" aria-hidden="true">0x</span>
+          <span class="groups" aria-hidden="true"></span>
+          <span class="sr" data-bind="address"></span>
+        </div>
+        <div class="named" data-show="nama">
+          <p class="nm-wrap"><span class="nm" data-bind="name"></span></p>
+          <p class="nm-addr"><span class="nm-k" data-txt="wallet"></span> <span class="nm-v" data-bind="addressShort"></span></p>
+          <p class="nm-note" data-txt="nameNote"></p>
+        </div>
+      </section>
+
+      <section class="crs" aria-label="Kelas">
+        <p class="lbl" data-txt="forPassing"></p>
+        <p class="course" data-bind="course"></p>
+      </section>
+      </div>
+
+      <dl class="facts">
+        <div class="f-date f-iss"><dt data-txt="issued"></dt><dd><span class="hand" data-bind="issuedDate"></span><span class="time" data-bind="issuedTime"></span></dd></div>
+        <div class="f-date f-val"><dt data-txt="validUntil"></dt><dd><span class="hand" data-bind="validUntilDate"></span></dd></div>
+        <div class="f-pub"><dt data-txt="publisher"></dt><dd><span class="pub" data-bind="publisher"></span> <span class="pub-note">(<span data-bind="publisherNote"></span>)</span></dd></div>
+        <div class="f-sig"><dt data-txt="signed"></dt><dd><svg class="hashbars" viewBox="0 0 236 30" width="236" height="30" aria-hidden="true" focusable="false"></svg><span class="sig-line"><span data-txt="signedBy"></span> <b data-bind="issuerName"></b></span><span class="proof" data-bind="proof"></span></dd></div>
+      </dl>
+
+      <div class="span365" aria-hidden="true"><svg viewBox="0 0 300 26" width="300" height="26"><path class="arrow" d="M6 6 C 8 15, 14 17, 40 16 C 120 13, 190 19, 268 15 C 284 14, 290 11, 292 5"/><path class="arrow" d="M286 9 L292 4 L296 11"/></svg><span class="days"></span></div>
+
+      <aside class="slip" aria-label="Pemeriksaan">
+        <svg class="slip-bg" viewBox="0 0 202 268" width="202" height="268" aria-hidden="true" focusable="false"></svg>
+        <div class="qr-plate"><svg data-qr class="qr"></svg></div>
+        <p class="host" data-bind="verifyHost"></p>
+        <p class="scan" data-txt="scanToCheck"></p>
+      </aside>
+
+      <dl class="ids">
+        <div><dt data-txt="credentialId"></dt><dd data-bind="hashShort"></dd></div>
+        <div><dt data-txt="attestation"></dt><dd data-bind="uidShort"></dd></div>
+        <div><dt data-txt="transaction"></dt><dd data-bind="txShort"></dd></div>
+        <div><dt data-txt="block"></dt><dd data-bind="block"></dd></div>
+      </dl>
+
+      <footer class="foot">
+        <p><span class="demo" data-txt="demo"></span><span class="sep" aria-hidden="true"> · </span><span data-txt="limit"></span></p>
+        <p><span data-txt="onChain"></span><span class="sep" aria-hidden="true"> · </span><span data-txt="statusNote"></span></p>
+      </footer>
+<!-- /DESIGN:SHEET -->
+    </article>
+  </div></div></div>
+  <p class="cx-foot">Spesimen desain — data dari kredensial uji B153 (5 Okt 2026), penerbit demo fiktif. Bukan ijazah. <a href="https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31" target="_blank" rel="noopener">Dokumen publik ↗</a> · <a href="https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify" target="_blank" rel="noopener">Verifier ↗</a></p>
+</main>
+
+<section class="cx-notes" aria-label="Catatan desain"><details open><summary>Catatan desain</summary><div data-design="notes"></div></details></section>
+
+<script>
+/* ===================== SHARED SHELL JS — JANGAN UBAH ===================== */
+(() => {
+  'use strict';
+  /* ---- Data nyata (satu sumber). Dibaca dari kredensial uji B153 yang terbit 5 Okt 2026; lihat hub desain untuk cara membacanya ulang. ---- */
+  const CERT = {
+    hash:   '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31',
+    uid:    '0xe4990885327d488ff45757b2cb1cb26b0eabeb3f4880bf2c58c8b6d2a1d77506',   // attestation UID di BAS (bukan hash transaksi)
+    tx:     '0xfdeb99b2df97c81754cd91230ca845faa04879d24ee02ace5fdfc44abe57d137',   // transaksi attestation
+    block:  134991781,
+    chain:  { name: 'BNB Smart Chain testnet', id: 97 },
+    learner:'0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF',
+    nameSample: 'Nadia Rahmawati',                                                  // CONTOH tampilan — TIDAK ada di kredensial
+    course: { id: 'uji-bayar-2026', title: 'Kelas Uji — Membayar dengan Tanda Tangan' },
+    publisher: 'Yayasan Literasi Digital Nusantara', publisherNote: 'institusi demo, fiktif',
+    issuerAgent: { name: 'Lencana Demo Agent', eoa: '0x82113098D1C287Fee862D5c2F1BE3f382c87F7DE' },
+    score: 87, passMark: 60,
+    components: [ { key: 'kuis', label: 'Kuis', score: 75, weight: 50 }, { key: 'esai', label: 'Esai', score: 98, weight: 30 }, { key: 'praktik', label: 'Praktik', score: 100, weight: 20 } ],
+    issuedAt: '2026-10-05T09:41:01Z', validUntil: '2027-10-05T09:41:01Z', validDays: 365,
+    statusLabel: 'BERLAKU', statusReadOn: '2026-10-05',
+    checks: [ { id: 'bas', label: 'Attestation BAS', value: 'Tercatat' }, { id: 'whitelist', label: 'Penerbit terdaftar', value: 'Disetujui' }, { id: 'revocation', label: 'Status pencabutan', value: 'Bersih' } ],
+    proof: { type: 'DataIntegrityProof', suite: 'eddsa-rdfc-2022' },
+    format: 'Open Badges 3.0', rubricRef: '6d33c95b4ecc', statusIndex: 76,
+    verifyUrl: 'https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify', edgeUrl: 'https://lencana-edge.hansgunawan775.workers.dev/credentials/0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31', verifyHost: 'lencana-psi.vercel.app',
+    qr:   { modules: 45, version: 7, ec: 'M', path: 'M0 0h7v1h-7zM13 0h2v1h-2zM17 0h1v1h-1zM25 0h3v1h-3zM29 0h2v1h-2zM32 0h2v1h-2zM36 0h1v1h-1zM38 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM12 1h3v1h-3zM20 1h5v1h-5zM26 1h3v1h-3zM31 1h3v1h-3zM35 1h1v1h-1zM38 1h1v1h-1zM44 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h3v1h-3zM12 2h3v1h-3zM16 2h3v1h-3zM21 2h1v1h-1zM23 2h1v1h-1zM27 2h2v1h-2zM30 2h2v1h-2zM35 2h1v1h-1zM38 2h1v1h-1zM40 2h3v1h-3zM44 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h2v1h-2zM13 3h2v1h-2zM16 3h1v1h-1zM19 3h2v1h-2zM22 3h1v1h-1zM24 3h2v1h-2zM30 3h1v1h-1zM32 3h2v1h-2zM35 3h2v1h-2zM38 3h1v1h-1zM40 3h3v1h-3zM44 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h2v1h-2zM13 4h12v1h-12zM28 4h4v1h-4zM34 4h3v1h-3zM38 4h1v1h-1zM40 4h3v1h-3zM44 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM15 5h1v1h-1zM17 5h1v1h-1zM20 5h1v1h-1zM24 5h2v1h-2zM31 5h1v1h-1zM38 5h1v1h-1zM44 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM36 6h1v1h-1zM38 6h7v1h-7zM8 7h2v1h-2zM11 7h3v1h-3zM15 7h2v1h-2zM19 7h2v1h-2zM24 7h8v1h-8zM34 7h2v1h-2zM0 8h1v1h-1zM2 8h5v1h-5zM9 8h2v1h-2zM12 8h2v1h-2zM17 8h1v1h-1zM20 8h5v1h-5zM26 8h2v1h-2zM29 8h2v1h-2zM32 8h2v1h-2zM35 8h2v1h-2zM38 8h5v1h-5zM0 9h1v1h-1zM3 9h2v1h-2zM12 9h2v1h-2zM15 9h1v1h-1zM18 9h1v1h-1zM21 9h5v1h-5zM31 9h1v1h-1zM36 9h1v1h-1zM40 9h2v1h-2zM43 9h2v1h-2zM0 10h3v1h-3zM5 10h3v1h-3zM9 10h2v1h-2zM12 10h1v1h-1zM18 10h2v1h-2zM21 10h1v1h-1zM24 10h8v1h-8zM33 10h2v1h-2zM36 10h4v1h-4zM41 10h1v1h-1zM43 10h1v1h-1zM0 11h2v1h-2zM3 11h2v1h-2zM9 11h1v1h-1zM11 11h6v1h-6zM18 11h1v1h-1zM22 11h4v1h-4zM27 11h1v1h-1zM31 11h3v1h-3zM36 11h1v1h-1zM38 11h2v1h-2zM41 11h2v1h-2zM5 12h2v1h-2zM8 12h1v1h-1zM13 12h2v1h-2zM16 12h4v1h-4zM21 12h2v1h-2zM24 12h1v1h-1zM28 12h3v1h-3zM33 12h2v1h-2zM39 12h3v1h-3zM44 12h1v1h-1zM0 13h3v1h-3zM5 13h1v1h-1zM8 13h3v1h-3zM13 13h2v1h-2zM16 13h2v1h-2zM22 13h1v1h-1zM24 13h2v1h-2zM27 13h3v1h-3zM31 13h1v1h-1zM33 13h1v1h-1zM35 13h3v1h-3zM43 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1zM5 14h2v1h-2zM8 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1zM17 14h2v1h-2zM21 14h2v1h-2zM26 14h1v1h-1zM28 14h1v1h-1zM31 14h1v1h-1zM34 14h1v1h-1zM38 14h2v1h-2zM42 14h3v1h-3zM0 15h1v1h-1zM2 15h2v1h-2zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM16 15h5v1h-5zM22 15h4v1h-4zM27 15h1v1h-1zM30 15h1v1h-1zM32 15h5v1h-5zM40 15h1v1h-1zM42 15h1v1h-1zM0 16h1v1h-1zM3 16h1v1h-1zM5 16h2v1h-2zM8 16h3v1h-3zM12 16h2v1h-2zM15 16h4v1h-4zM21 16h1v1h-1zM23 16h1v1h-1zM27 16h5v1h-5zM33 16h2v1h-2zM37 16h1v1h-1zM39 16h1v1h-1zM41 16h1v1h-1zM43 16h1v1h-1zM2 17h2v1h-2zM12 17h2v1h-2zM23 17h1v1h-1zM25 17h2v1h-2zM30 17h2v1h-2zM33 17h5v1h-5zM43 17h2v1h-2zM4 18h1v1h-1zM6 18h1v1h-1zM9 18h2v1h-2zM14 18h5v1h-5zM20 18h1v1h-1zM24 18h1v1h-1zM26 18h2v1h-2zM33 18h3v1h-3zM38 18h1v1h-1zM42 18h1v1h-1zM1 19h2v1h-2zM4 19h2v1h-2zM7 19h1v1h-1zM9 19h4v1h-4zM15 19h1v1h-1zM17 19h3v1h-3zM23 19h4v1h-4zM28 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM34 19h2v1h-2zM37 19h2v1h-2zM40 19h2v1h-2zM43 19h2v1h-2zM0 20h3v1h-3zM4 20h5v1h-5zM13 20h1v1h-1zM15 20h2v1h-2zM19 20h6v1h-6zM26 20h2v1h-2zM29 20h1v1h-1zM32 20h1v1h-1zM36 20h7v1h-7zM0 21h5v1h-5zM8 21h1v1h-1zM10 21h2v1h-2zM13 21h2v1h-2zM16 21h5v1h-5zM24 21h3v1h-3zM28 21h1v1h-1zM30 21h2v1h-2zM34 21h1v1h-1zM36 21h1v1h-1zM40 21h5v1h-5zM0 22h3v1h-3zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM16 22h1v1h-1zM18 22h3v1h-3zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM32 22h1v1h-1zM36 22h1v1h-1zM38 22h1v1h-1zM40 22h1v1h-1zM42 22h1v1h-1zM0 23h1v1h-1zM4 23h1v1h-1zM8 23h5v1h-5zM15 23h1v1h-1zM17 23h2v1h-2zM20 23h1v1h-1zM24 23h2v1h-2zM27 23h2v1h-2zM30 23h1v1h-1zM35 23h2v1h-2zM40 23h5v1h-5zM0 24h10v1h-10zM11 24h1v1h-1zM15 24h1v1h-1zM18 24h1v1h-1zM20 24h5v1h-5zM26 24h1v1h-1zM29 24h2v1h-2zM32 24h1v1h-1zM36 24h6v1h-6zM43 24h2v1h-2zM0 25h3v1h-3zM5 25h1v1h-1zM7 25h2v1h-2zM11 25h1v1h-1zM13 25h1v1h-1zM17 25h6v1h-6zM24 25h2v1h-2zM28 25h1v1h-1zM42 25h1v1h-1zM44 25h1v1h-1zM0 26h3v1h-3zM6 26h3v1h-3zM12 26h1v1h-1zM16 26h3v1h-3zM26 26h2v1h-2zM30 26h1v1h-1zM33 26h2v1h-2zM37 26h3v1h-3zM41 26h3v1h-3zM0 27h2v1h-2zM3 27h1v1h-1zM7 27h1v1h-1zM9 27h2v1h-2zM14 27h2v1h-2zM17 27h1v1h-1zM19 27h3v1h-3zM23 27h2v1h-2zM29 27h5v1h-5zM36 27h1v1h-1zM39 27h1v1h-1zM42 27h2v1h-2zM0 28h1v1h-1zM6 28h1v1h-1zM10 28h2v1h-2zM13 28h1v1h-1zM15 28h1v1h-1zM18 28h2v1h-2zM25 28h3v1h-3zM30 28h1v1h-1zM33 28h1v1h-1zM38 28h1v1h-1zM40 28h2v1h-2zM43 28h1v1h-1zM3 29h3v1h-3zM7 29h1v1h-1zM13 29h5v1h-5zM20 29h3v1h-3zM24 29h1v1h-1zM30 29h2v1h-2zM33 29h1v1h-1zM36 29h1v1h-1zM38 29h1v1h-1zM42 29h1v1h-1zM44 29h1v1h-1zM0 30h1v1h-1zM2 30h1v1h-1zM4 30h4v1h-4zM9 30h2v1h-2zM12 30h2v1h-2zM15 30h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM24 30h4v1h-4zM30 30h2v1h-2zM34 30h1v1h-1zM36 30h1v1h-1zM39 30h1v1h-1zM41 30h4v1h-4zM0 31h1v1h-1zM3 31h1v1h-1zM5 31h1v1h-1zM8 31h1v1h-1zM10 31h2v1h-2zM13 31h1v1h-1zM18 31h4v1h-4zM23 31h1v1h-1zM25 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM32 31h1v1h-1zM34 31h2v1h-2zM38 31h2v1h-2zM41 31h2v1h-2zM2 32h1v1h-1zM4 32h3v1h-3zM8 32h5v1h-5zM14 32h1v1h-1zM16 32h1v1h-1zM19 32h1v1h-1zM22 32h1v1h-1zM25 32h1v1h-1zM28 32h4v1h-4zM33 32h2v1h-2zM39 32h1v1h-1zM44 32h1v1h-1zM0 33h3v1h-3zM4 33h2v1h-2zM9 33h1v1h-1zM11 33h5v1h-5zM17 33h7v1h-7zM26 33h2v1h-2zM29 33h5v1h-5zM36 33h1v1h-1zM38 33h1v1h-1zM40 33h1v1h-1zM42 33h3v1h-3zM4 34h1v1h-1zM6 34h2v1h-2zM9 34h2v1h-2zM14 34h1v1h-1zM16 34h2v1h-2zM19 34h1v1h-1zM21 34h1v1h-1zM24 34h2v1h-2zM27 34h1v1h-1zM29 34h1v1h-1zM33 34h4v1h-4zM39 34h1v1h-1zM42 34h1v1h-1zM1 35h4v1h-4zM7 35h1v1h-1zM9 35h1v1h-1zM11 35h3v1h-3zM16 35h1v1h-1zM23 35h1v1h-1zM27 35h2v1h-2zM33 35h6v1h-6zM40 35h2v1h-2zM0 36h1v1h-1zM3 36h2v1h-2zM6 36h1v1h-1zM8 36h1v1h-1zM10 36h1v1h-1zM13 36h3v1h-3zM17 36h2v1h-2zM20 36h6v1h-6zM29 36h4v1h-4zM36 36h5v1h-5zM42 36h2v1h-2zM8 37h1v1h-1zM12 37h1v1h-1zM14 37h1v1h-1zM19 37h2v1h-2zM24 37h1v1h-1zM27 37h2v1h-2zM30 37h2v1h-2zM33 37h4v1h-4zM40 37h3v1h-3zM44 37h1v1h-1zM0 38h7v1h-7zM9 38h2v1h-2zM17 38h1v1h-1zM19 38h2v1h-2zM22 38h1v1h-1zM24 38h2v1h-2zM29 38h1v1h-1zM31 38h1v1h-1zM35 38h2v1h-2zM38 38h1v1h-1zM40 38h1v1h-1zM42 38h1v1h-1zM0 39h1v1h-1zM6 39h1v1h-1zM8 39h1v1h-1zM11 39h2v1h-2zM15 39h1v1h-1zM17 39h2v1h-2zM20 39h1v1h-1zM24 39h2v1h-2zM28 39h4v1h-4zM34 39h3v1h-3zM40 39h3v1h-3zM0 40h1v1h-1zM2 40h3v1h-3zM6 40h1v1h-1zM8 40h1v1h-1zM12 40h1v1h-1zM15 40h1v1h-1zM18 40h1v1h-1zM20 40h6v1h-6zM29 40h13v1h-13zM0 41h1v1h-1zM2 41h3v1h-3zM6 41h1v1h-1zM8 41h2v1h-2zM13 41h2v1h-2zM16 41h6v1h-6zM24 41h2v1h-2zM27 41h1v1h-1zM31 41h2v1h-2zM36 41h1v1h-1zM39 41h3v1h-3zM0 42h1v1h-1zM2 42h3v1h-3zM6 42h1v1h-1zM8 42h2v1h-2zM11 42h3v1h-3zM16 42h3v1h-3zM25 42h3v1h-3zM29 42h2v1h-2zM33 42h3v1h-3zM37 42h2v1h-2zM41 42h3v1h-3zM0 43h1v1h-1zM6 43h1v1h-1zM9 43h1v1h-1zM13 43h1v1h-1zM15 43h1v1h-1zM17 43h2v1h-2zM20 43h1v1h-1zM22 43h2v1h-2zM25 43h1v1h-1zM27 43h1v1h-1zM29 43h1v1h-1zM32 43h1v1h-1zM36 43h2v1h-2zM42 43h1v1h-1zM0 44h7v1h-7zM8 44h1v1h-1zM12 44h7v1h-7zM21 44h1v1h-1zM24 44h1v1h-1zM28 44h1v1h-1zM31 44h1v1h-1zM33 44h3v1h-3zM38 44h2v1h-2zM41 44h1v1h-1zM43 44h1v1h-1z' },
+    logo: { w: 424, h: 393, black: 'M 155.722 59.372 C 117.823 78.576, 94.724 90.844, 92.612 92.891 C 86.944 98.386, 86.999 97.564, 87.009 175.616 L 87.019 247.500 89.994 242.313 C 91.630 239.460, 94.438 236.015, 96.234 234.658 C 99.248 232.382, 160.905 195.284, 202 171.022 C 211.625 165.340, 220.284 160.018, 221.243 159.197 C 222.867 157.805, 222.982 153.476, 222.930 96.042 C 222.870 30.106, 222.840 29.702, 217.977 29.291 C 216.416 29.159, 193.385 40.287, 155.722 59.372 M 323.500 239.680 C 314.700 243.828, 292.200 254.303, 273.500 262.958 C 254.800 271.613, 229.488 283.375, 217.251 289.097 L 195.002 299.500 195.001 329.633 L 195 359.766 200.750 363.235 C 203.912 365.143, 210.620 369.246, 215.655 372.352 C 220.690 375.458, 225.088 378, 225.428 378 C 225.957 378, 257.539 361.050, 299 338.514 C 305.325 335.076, 315.675 329.534, 322 326.198 C 333.898 319.922, 338.113 316.512, 339.936 311.685 C 341.161 308.444, 341.462 231.957, 340.250 232.069 C 339.837 232.107, 332.300 235.532, 323.500 239.680', gold: 'M 209 31.879 C 139.819 66.504, 95.937 88.735, 93.634 90.324 C 92.058 91.411, 89.700 94.596, 88.394 97.401 L 86.020 102.500 86.010 175.750 C 86.003 223.672, 86.344 249, 86.995 249 C 87.542 249, 88.976 246.901, 90.182 244.336 C 94.206 235.775, 89.640 238.784, 183.250 182.992 L 224 158.704 224 95.807 L 224 32.909 221.545 30.455 C 218.419 27.328, 217.997 27.376, 209 31.879 M 328 133.074 C 326.619 133.955, 286.397 153.469, 272.500 160.001 C 269.200 161.552, 258.175 166.743, 248 171.537 C 237.825 176.330, 226.350 181.713, 222.500 183.498 C 180.656 202.899, 159.399 212.802, 148.500 217.971 C 141.350 221.361, 126.163 228.433, 114.751 233.685 C 85.921 246.953, 86.644 245.930, 87.178 272.707 L 87.500 288.836 90.543 293.168 C 92.216 295.551, 94.916 298.326, 96.543 299.336 C 98.169 300.345, 112.325 309.075, 128 318.735 C 143.675 328.395, 163.601 340.732, 172.280 346.149 C 180.958 351.567, 188.496 356, 189.030 356 C 189.634 356, 190 345.214, 190 327.385 L 190 298.771 192.702 293.807 C 194.219 291.020, 196.690 288.177, 198.337 287.326 C 199.951 286.491, 207.848 281.725, 215.886 276.734 C 223.923 271.744, 232.975 266.228, 236 264.478 C 239.025 262.728, 246.675 258.143, 253 254.290 C 263.826 247.695, 296.489 228.883, 316.500 217.717 C 335.046 207.369, 339.061 204.837, 340.563 202.544 C 341.889 200.520, 342.064 195.727, 341.803 168.507 L 341.500 136.824 338.694 134.412 C 335.778 131.905, 330.808 131.283, 328 133.074 M 339 231.742 C 338.175 232.064, 331.875 234.997, 325 238.260 C 304.672 247.908, 283.503 257.779, 273.166 262.432 C 254.676 270.753, 225.089 284.478, 206.736 293.247 L 193.972 299.346 194.236 329.823 L 194.500 360.301 209.921 369.807 L 225.342 379.314 229.921 376.794 C 238.591 372.022, 284.546 347.173, 309 334.034 C 333.465 320.890, 337.931 317.887, 340.589 312.800 C 342.131 309.849, 342.769 230.919, 341.250 231.079 C 340.837 231.122, 339.825 231.421, 339 231.742' }
+  };
+  /* ---- Kalimat baku. Klaim di lembar hanya boleh dari sini; kalimat baru wajib dicatat di Catatan desain dan lolos Claims-Cheat-Sheet. ---- */
+  const TXT = {
+    title:       'Sertifikat Kelulusan',
+    titleEn:     'Certificate of Completion',
+    presentedTo: 'Diberikan kepada',
+    forPassing:  'atas kelulusan di kelas',
+    result:      'Hasil',
+    passed:      'LULUS',
+    scoreLine:   'Nilai akhir 87 dari 100 · batas lulus 60',
+    issued:      'Diterbitkan',
+    validUntil:  'Berlaku sampai',
+    publisher:   'Penerbit',
+    signed:      'Ditandatangani',
+    signedBy:    'oleh agen penerbit',
+    scanToCheck: 'Pindai untuk memeriksa status dan tanda tangannya',
+    onChain:     'Bukti penerbitan tercatat di BNB Smart Chain testnet (97)',
+    limit:       'Hanya menyatakan peserta menyelesaikan kelas pendek ini — bukan keahlian Web3.',
+    demo:        'Penerbit demo (fiktif) · jaringan uji · bukan ijazah',
+    nameNote:    'Nama tampilan — tidak ikut tanda tangan. Yang tertanda tangan adalah alamat dompet.',
+    statusNote:  'Status dibaca dari chain pada 5 Okt 2026; pindai QR untuk status terkini.',
+    wallet:      'Alamat dompet peserta',
+    credentialId:'ID kredensial',
+    attestation: 'Attestation UID',
+    transaction: 'Transaksi',
+    block:       'Blok',
+    rubric:      'Rubrik',
+    kuis: 'Kuis', esai: 'Esai', praktik: 'Praktik'
+  };
+  window.CERT = CERT; window.TXT = TXT;
+
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const MON3   = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  const wib = (iso) => new Date(new Date(iso).getTime() + 7 * 3600e3);          // baca bidang UTC dari hasil → jam dinding WIB
+  const p2 = (n) => String(n).padStart(2, '0');
+  const idDate  = (iso) => { const d = wib(iso); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idShort = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())} ${MON3[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const idNum   = (iso) => { const d = wib(iso); return `${p2(d.getUTCDate())}.${p2(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`; };
+  const idTime  = (iso) => { const d = wib(iso); return `${p2(d.getUTCHours())}.${p2(d.getUTCMinutes())} WIB`; };
+  const mid = (h, a, b) => h.slice(0, a) + '…' + h.slice(-b);
+  const FMT = {
+    address:        () => CERT.learner,
+    addressShort:   () => mid(CERT.learner, 6, 4),
+    addressGroups:  () => CERT.learner.slice(2).match(/.{4}/g).join(' '),
+    name:           () => CERT.nameSample,
+    course:         () => CERT.course.title,
+    courseId:       () => CERT.course.id,
+    publisher:      () => CERT.publisher,
+    publisherNote:  () => CERT.publisherNote,
+    issuerName:     () => CERT.issuerAgent.name,
+    issuerEoa:      () => CERT.issuerAgent.eoa,
+    issuerEoaShort: () => mid(CERT.issuerAgent.eoa, 6, 4),
+    score:          () => String(CERT.score),
+    passMark:       () => String(CERT.passMark),
+    hash:           () => CERT.hash,
+    hashShort:      () => mid(CERT.hash, 10, 8),
+    uid:            () => CERT.uid,
+    uidShort:       () => mid(CERT.uid, 10, 8),
+    tx:             () => CERT.tx,
+    txShort:        () => mid(CERT.tx, 10, 8),
+    block:          () => CERT.block.toLocaleString('id-ID'),
+    chain:          () => `${CERT.chain.name} (${CERT.chain.id})`,
+    issuedDate:     () => idDate(CERT.issuedAt),
+    issuedShort:    () => idShort(CERT.issuedAt),
+    issuedNum:      () => idNum(CERT.issuedAt),
+    issuedTime:     () => idTime(CERT.issuedAt),
+    validUntilDate: () => idDate(CERT.validUntil),
+    validUntilShort:() => idShort(CERT.validUntil),
+    validUntilNum:  () => idNum(CERT.validUntil),
+    statusReadOn:   () => idDate(CERT.statusReadOn + 'T00:00:00Z'),
+    status:         () => CERT.statusLabel,
+    proof:          () => `${CERT.proof.type} · ${CERT.proof.suite}`,
+    format:         () => CERT.format,
+    rubricRef:      () => CERT.rubricRef,
+    verifyHost:     () => CERT.verifyHost,
+    verifyUrl:      () => CERT.verifyUrl,
+    verifyUrlShort: () => CERT.verifyHost + '/?q=' + CERT.hash.slice(0, 10) + '…#/verify'
+  };
+  window.FMT = FMT;
+  const bind = (root = document) => {
+    $$('[data-bind]', root).forEach((el) => { const f = FMT[el.dataset.bind]; if (f) el.textContent = f(); else console.warn('data-bind tidak dikenal:', el.dataset.bind); });
+    $$('[data-txt]',  root).forEach((el) => { const v = TXT[el.dataset.txt]; if (v !== undefined) el.textContent = v; else console.warn('data-txt tidak dikenal:', el.dataset.txt); });
+  };
+  /* ---- QR dan logo: SVG inline dari data nyata. QR wajib di atas pelat terang dengan zona tenang ≥ 4 modul. ---- */
+  const injectQR = (root = document) => $$('svg[data-qr]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.qr.modules} ${CERT.qr.modules}`);
+    svg.setAttribute('shape-rendering', 'crispEdges'); svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Kode QR menuju halaman verifikasi kredensial ini');
+    svg.innerHTML = `<path d="${CERT.qr.path}" fill="currentColor"/>`;
+  });
+  const injectLogo = (root = document) => $$('svg[data-logo]', root).forEach((svg) => {
+    svg.setAttribute('viewBox', `0 0 ${CERT.logo.w} ${CERT.logo.h}`); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', 'Lambang Lencana');
+    svg.innerHTML = `<path d="${CERT.logo.gold}" fill="var(--logo-a,#f0b90b)"/><path d="${CERT.logo.black}" fill="var(--logo-b,#0b0e11)"/>`;
+  });
+  /* ---- Alat jejak-hash: geometri turunan hash kredensial (nilai sama → gambar sama; kredensial lain → gambar lain). ---- */
+  const BYTES = Uint8Array.from(CERT.hash.slice(2).match(/../g).map((h) => parseInt(h, 16)));
+  const HASHART = {
+    bytes: BYTES,
+    byteAt: (i) => BYTES[((i % 32) + 32) % 32],
+    /** PRNG deterministik (mulberry32) bibitnya diambil dari 4 byte hash mulai offset `from`. */
+    rng: (from = 0) => { let a = ((BYTES[from % 32] << 24) | (BYTES[(from + 1) % 32] << 16) | (BYTES[(from + 2) % 32] << 8) | BYTES[(from + 3) % 32]) >>> 0;
+      return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  };
+  window.HASHART = HASHART;
+  /** Hitung-naik angka (untuk gerak masuk); `ease` = fungsi 0..1 → 0..1. Menulis hasil akhir persis (bukan pembulatan bergerak). */
+  window.countUp = (el, to, { ms = 1100, ease = (t) => 1 - Math.pow(1 - t, 3), from = 0, fmt = (v) => String(Math.round(v)) } = {}) => {
+    const t0 = performance.now(); const tick = (now) => { const k = Math.min(1, (now - t0) / ms); el.textContent = fmt(from + (to - from) * ease(k)); if (k < 1) requestAnimationFrame(tick); else el.textContent = fmt(to); }; requestAnimationFrame(tick);
+  };
+
+  /* ---- Skala ke layar, miring (interaksi), gerak, cetak ---- */
+  const root = document.documentElement, sheet = $('.sheet'), tilt = $('.cx-tilt'), fitBox = $('.cx-fit'), bar = $('.cx-bar');
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]motion=off/.test(location.search);
+  const fit = () => { const w = innerWidth - 24, h = innerHeight - (bar ? bar.offsetHeight : 0) - 56; root.style.setProperty('--scale', Math.max(0.25, Math.min(w / 1122, h / 793, 1.6)).toFixed(4)); };
+  addEventListener('resize', fit); fit();
+  const play = () => { sheet.classList.remove('is-playing'); void sheet.offsetWidth; const r = reduced(); if (!r) sheet.classList.add('is-playing'); document.dispatchEvent(new CustomEvent('cx:play', { detail: { reduced: r } })); };
+  window.cxPlay = play;
+  fitBox.addEventListener('pointermove', (e) => {
+    if (reduced() || e.pointerType === 'touch') return; const r = fitBox.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    tilt.style.setProperty('--ry', ((x - .5) * 5).toFixed(2) + 'deg'); tilt.style.setProperty('--rx', ((.5 - y) * 3.6).toFixed(2) + 'deg');
+    sheet.style.setProperty('--mx', (x * 100).toFixed(1) + '%'); sheet.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+  });
+  fitBox.addEventListener('pointerleave', () => { tilt.style.setProperty('--ry', '0deg'); tilt.style.setProperty('--rx', '0deg'); sheet.style.setProperty('--mx', '50%'); sheet.style.setProperty('--my', '50%'); });
+  $$('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => { sheet.dataset.mode = b.dataset.modeBtn; $$('[data-mode-btn]').forEach((o) => o.setAttribute('aria-pressed', String(o === b))); }));
+  $('[data-act="replay"]').addEventListener('click', play);
+  $('[data-act="print"]').addEventListener('click', () => window.print());
+  addEventListener('beforeprint', () => sheet.classList.remove('is-playing'));
+  addEventListener('afterprint', () => { sheet.classList.add('is-playing'); });
+
+  /* ---- Catatan desain (dari window.DESIGN yang diisi DESIGN:JS) ---- */
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const renderNotes = () => {
+    const D = window.DESIGN; if (!D) return;
+    document.title = `Sertifikat · ${D.id} ${D.name} (spesimen desain)`;
+    $$('[data-design="title"]').forEach((e) => { e.textContent = `${D.id} · ${D.name}`; });
+    $$('[data-design="row"]').forEach((e) => { e.textContent = D.row; });
+    const li = (a) => '<ul>' + (a || []).map((x) => `<li>${esc(x)}</li>`).join('') + '</ul>';
+    const sw = (D.palette || []).map((c) => `<span><i class="cx-sw" style="background:${esc(c.hex)}"></i>${esc(c.name)} <code>${esc(c.hex)}</code>${c.use ? ' — ' + esc(c.use) : ''}</span>`).join('<br>');
+    $('[data-design="notes"]').innerHTML = `<dl>
+      <dt>Estetika (doktrin §7)</dt><dd>${esc(D.row)} — ${esc(D.tagline || '')}</dd>
+      <dt>Proses yang diwakili</dt><dd>${esc(D.brief.process)}</dd>
+      <dt>Objek inti</dt><dd>${esc(D.brief.core)}</dd>
+      <dt>Metafora ruang</dt><dd>${esc(D.brief.metaphor)}</dd>
+      <dt>Geometri mengodekan</dt><dd>${li(D.encodes)}</dd>
+      <dt>Tipografi</dt><dd>${(D.fonts || []).map((f) => `${esc(f.role)}: <b>${esc(f.name)}</b>`).join(' · ')}</dd>
+      <dt>Palet</dt><dd>${sw}</dd>
+      <dt>Motif</dt><dd>${esc(D.motif)}</dd>
+      <dt>Gerak</dt><dd>${li([`Masuk: ${D.motion.entrance}`, `Berkelanjutan: ${D.motion.continuous}`, `Interaksi: ${D.motion.interaction}`, `Micro-beat: ${D.motion.micro}`])}</dd>
+      <dt>Batas dan catatan klaim</dt><dd>${li(D.limits)}</dd>
+    </dl>`;
+  };
+
+  const init = () => { bind(); injectQR(); injectLogo(); renderNotes(); fit();
+    const go = () => { play(); }; (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve()).then(go); };
+  window.__cxInit = init;   // DESIGN:JS memanggil __cxInit() SETELAH window.DESIGN dan handler 'cx:play' terpasang
+})();
+/* ===================== /SHARED SHELL JS ===================== */
+</script>
+<script>
+/* ===================== DESIGN JS ===================== */
+/* 1) window.DESIGN = { id, name, row, tagline, brief:{process,core,relationship,metaphor}, encodes:[…], fonts:[{role,name}], palette:[{name,hex,use}], motif, motion:{entrance,continuous,interaction,micro}, limits:[…] }
+   2) document.addEventListener('cx:play', (e) => { … hitung-naik, micro-beat … }) — e.detail.reduced === true → langsung tulis nilai akhir tanpa gerak
+   3) window.__cxInit()   ← terakhir */
+(() => {
+  'use strict';
+  const C = window.CERT, T = window.TXT, F = window.FMT, H = window.HASHART;
+  const sheet = document.querySelector('.sheet');
+  const q = (s, r = sheet) => r.querySelector(s);
+  const DEBUG = /[?&]debug/.test(location.search);
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const sstep = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+  const fx = (v) => String(Math.round(v * 10) / 10);
+  const dec1 = (v) => (Math.round(v * 10) / 10).toFixed(1).replace('.', ',');
+
+  /* ======================= data → geometri ======================= */
+  const PX = 2.2;                                   // 1 poin sumbangan = 2,2 px lebar pita
+  const COMP = {}; C.components.forEach((c) => { COMP[c.key] = Object.assign({}, c, { contrib: c.score * c.weight / 100 }); });
+  const TOTAL = C.components.reduce((a, c) => a + c.score * c.weight / 100, 0);
+  const S = [310, 560];                             // pusat cap
+  const DISC_R = 118;
+  const AX = -160, AW = 680, AH = 793;              // kotak seni (koordinat lembar)
+  const LIGHT = (() => { const x = -.48, y = -.88, l = Math.hypot(x, y); return [x / l, y / l]; })();
+
+  /* ---------- kurva: rantai Bézier → titik berjarak busur seragam ---------- */
+  const bez = (a, b, c, d, t) => { const u = 1 - t, A = u * u * u, B = 3 * u * u * t, Cc = 3 * u * t * t, D = t * t * t; return [A * a[0] + B * b[0] + Cc * c[0] + D * d[0], A * a[1] + B * b[1] + Cc * c[1] + D * d[1]]; };
+  function curve(anchors, step = 2) {
+    const raw = [];
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const A = anchors[i], B = anchors[i + 1];
+      const p0 = A.p, p1 = [A.p[0] + A.d[0], A.p[1] + A.d[1]], p2 = [B.p[0] - B.d[0], B.p[1] - B.d[1]], p3 = B.p;
+      for (let j = i ? 1 : 0; j <= 120; j++) raw.push(bez(p0, p1, p2, p3, j / 120));
+    }
+    return fromRaw(raw, step);
+  }
+  function fromRaw(raw, step = 2) {
+    const cum = [0];
+    for (let i = 1; i < raw.length; i++) cum.push(cum[i - 1] + Math.hypot(raw[i][0] - raw[i - 1][0], raw[i][1] - raw[i - 1][1]));
+    const L = cum[cum.length - 1], n = Math.ceil(L / step), pts = [];
+    let k = 0;
+    for (let i = 0; i <= n; i++) {
+      const s = Math.min(L, i * step);
+      while (k < raw.length - 2 && cum[k + 1] < s) k++;
+      const seg = (cum[k + 1] - cum[k]) || 1, f = (s - cum[k]) / seg;
+      pts.push([raw[k][0] + (raw[k + 1][0] - raw[k][0]) * f, raw[k][1] + (raw[k + 1][1] - raw[k][1]) * f]);
+    }
+    const tan = pts.map((p, i) => { const a = pts[Math.max(0, i - 2)], b = pts[Math.min(pts.length - 1, i + 2)]; const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; });
+    const nor = tan.map(([x, y]) => [-y, x]);
+    return { pts, tan, nor, L, step, n: pts.length };
+  }
+  const idxOf = (c, s) => clamp(Math.round(s / c.step), 0, c.n - 1);
+  const band = (c, hw, s0 = 0, s1 = c.L, ext = 0) => {
+    const i0 = idxOf(c, s0 - ext), i1 = idxOf(c, s1 + ext), Lp = [], Rp = [];
+    for (let i = i0; i <= i1; i++) { const p = c.pts[i], nn = c.nor[i]; Lp.push(fx(p[0] + nn[0] * hw) + ' ' + fx(p[1] + nn[1] * hw)); Rp.push(fx(p[0] - nn[0] * hw) + ' ' + fx(p[1] - nn[1] * hw)); }
+    return 'M' + Lp.join('L') + 'L' + Rp.reverse().join('L') + 'Z';
+  };
+  const along = (c, off, s0 = 0, s1 = c.L) => {
+    const i0 = idxOf(c, s0), i1 = idxOf(c, s1); let d = '';
+    for (let i = i0; i <= i1; i++) { const p = c.pts[i], nn = c.nor[i], o = off(i); d += (i === i0 ? 'M' : 'L') + fx(p[0] + nn[0] * o) + ' ' + fx(p[1] + nn[1] * o); }
+    return d;
+  };
+
+  /* ---------- tiga pita: kuis / esai / praktik (titik jangkar sedikit digeser oleh hash) ---------- */
+  const jr = H.rng(28), J = (v) => v + (jr() - .5) * 12;
+  // poros bersama kuis+esai (Bézier kuadrat) — keduanya berpilin: silang, lensa terbuka, silang lagi, lalu menyatu di cap
+  const M0 = [-210, 168], CQ = [J(140), J(252)];
+  const axis = (u) => { const v = 1 - u; return [v * v * M0[0] + 2 * u * v * CQ[0] + u * u * S[0], v * v * M0[1] + 2 * u * v * CQ[1] + u * u * S[1]]; };
+  const axisN = (u) => { const v = 1 - u, tx = 2 * v * (CQ[0] - M0[0]) + 2 * u * (S[0] - CQ[0]), ty = 2 * v * (CQ[1] - M0[1]) + 2 * u * (S[1] - CQ[1]), l = Math.hypot(tx, ty) || 1; return [ty / l, -tx / l]; };
+  const U1 = .4 + (jr() - .5) * .02, U2 = .7 + (jr() - .5) * .02, KPH = Math.PI / (U2 - U1), PH0 = Math.PI - KPH * U1;
+  const amp = (u) => 78 * Math.pow(Math.max(0, 1 - u), .62) / Math.pow(.75, .62);
+  const twin = (sign) => { const raw = []; for (let k = 0; k <= 700; k++) { const u = k / 700, A = axis(u), N = axisN(u), o = sign * amp(u) * Math.sin(PH0 + KPH * u); raw.push([A[0] + N[0] * o, A[1] + N[1] * o]); } return raw; };
+  const RIBS = [
+    { key: 'kuis', cls: 'k', col: '#17565c', dk: '#03222a', dkA: .74, lt: '#a3d0c9', ltA: .62, gl: '#effaf7', depth: 0, raw: twin(1) },
+    { key: 'esai', cls: 'e', col: '#1f7a7d', dk: '#08363c', dkA: .68, lt: '#c7e5e0', ltA: .62, gl: '#f4fbf9', depth: 1, raw: twin(-1) },
+    { key: 'praktik', cls: 'p', col: '#5fa8a6', dk: '#195458', dkA: .62, lt: '#f2faf8', ltA: .72, gl: '#ffffff', depth: 2,
+      anchors: [{ p: [-170, 664], d: [130, -14] }, { p: [J(40), J(588)], d: [58, -80] }, { p: [J(138), J(336)], d: [58, -104] }, { p: [J(282), J(156)], d: [104, 0] }, { p: [J(412), J(318)], d: [8, 104] }, { p: [S[0] + 8, S[1] - 6], d: [-56, 64] }] }
+  ];
+  const RB = {}; RIBS.forEach((r) => { RB[r.key] = r; r.c = r.raw ? fromRaw(r.raw) : curve(r.anchors); r.anchors = r.anchors || []; r.hw = COMP[r.key].contrib * PX / 2; r.full = COMP[r.key].weight * PX;
+    let i = 0; while (i < r.c.n - 1 && r.c.pts[i][0] < -r.hw - 26) i++; r.sIn = i * r.c.step; });
+  /* ---------- medan jarak kasar (4 px) per pita: jarak ke garis tengah + indeks titik terdekat ---------- */
+  const G = 4, GW = Math.ceil(AW / G), GH = Math.ceil(AH / G);
+  RIBS.forEach((r) => {
+    const dist = new Float32Array(GW * GH).fill(1e9), arg = new Int32Array(GW * GH).fill(-1), R = r.hw + 46;
+    for (let i = 0; i < r.c.n; i++) {
+      const p = r.c.pts[i], gx0 = Math.max(0, Math.floor((p[0] - AX - R) / G)), gx1 = Math.min(GW - 1, Math.ceil((p[0] - AX + R) / G)), gy0 = Math.max(0, Math.floor((p[1] - R) / G)), gy1 = Math.min(GH - 1, Math.ceil((p[1] + R) / G));
+      for (let gy = gy0; gy <= gy1; gy++) for (let gx = gx0; gx <= gx1; gx++) {
+        const cx = AX + gx * G + G / 2, cy = gy * G + G / 2, d = Math.hypot(cx - p[0], cy - p[1]), k = gy * GW + gx;
+        if (d < dist[k]) { dist[k] = d; arg[k] = i; }
+      }
+    }
+    r.field = { dist, arg };
+  });
+  const look = (r, x, y) => { const gx = Math.floor((x - AX) / G), gy = Math.floor(y / G); if (gx < 0 || gy < 0 || gx >= GW || gy >= GH) return { d: 1e9, i: -1 }; const k = gy * GW + gx; return { d: r.field.dist[k], i: r.field.arg[k] }; };
+  const near = (o, x, y) => { const l = look(o, x, y); if (l.i < 0) return l; let best = 1e9, bi = l.i; for (let j = Math.max(0, l.i - 5); j <= Math.min(o.c.n - 1, l.i + 5); j++) { const p = o.c.pts[j], d = Math.hypot(x - p[0], y - p[1]); if (d < best) { best = d; bi = j; } } return { d: best, i: bi }; };
+  const covered = (x, y, exceptKey, pad = 0) => RIBS.some((o) => { if (o.key === exceptKey) return false; return near(o, x, y).d < o.hw + pad; });
+
+  /* ---------- persilangan + urutan z (anyaman: kuis atas esai, praktik atas kuis, esai atas praktik) ---------- */
+  const OVER = { 'kuis|esai': 'kuis', 'esai|kuis': 'kuis', 'kuis|praktik': 'praktik', 'praktik|kuis': 'praktik', 'esai|praktik': 'praktik', 'praktik|esai': 'praktik' };
+  const segX = (a, b, c, d) => { const r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]], den = r[0] * s[1] - r[1] * s[0]; if (Math.abs(den) < 1e-9) return null; const t = ((c[0] - a[0]) * s[1] - (c[1] - a[1]) * s[0]) / den, u = ((c[0] - a[0]) * r[1] - (c[1] - a[1]) * r[0]) / den; return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null; };
+  const crosses = [];
+  for (let i = 0; i < RIBS.length; i++) for (let j = i + 1; j < RIBS.length; j++) {
+    const A = RIBS[i], B = RIBS[j], seen = [];
+    for (let a = 0; a < A.c.n - 1; a++) {
+      const pa = A.c.pts[a]; if (Math.hypot(pa[0] - S[0], pa[1] - S[1]) < DISC_R - 30) continue;
+      for (let b = 0; b < B.c.n - 1; b++) {
+        const pb = B.c.pts[b]; if (Math.abs(pb[0] - pa[0]) > 6 || Math.abs(pb[1] - pa[1]) > 6) continue;
+        const t = segX(pa, A.c.pts[a + 1], pb, B.c.pts[b + 1]);
+        if (t !== null && !seen.some((x) => Math.abs(x - a) < 20)) { seen.push(a); crosses.push({ A: A.key, B: B.key, sA: a * A.c.step, sB: b * B.c.step, p: pa, over: OVER[A.key + '|' + B.key] }); }
+      }
+    }
+  }
+  (() => { const byPair = {}; crosses.forEach((x) => { (byPair[x.A + '|' + x.B] = byPair[x.A + '|' + x.B] || []).push(x); }); Object.values(byPair).forEach((list) => { list.sort((u, v) => u.sA - v.sA).forEach((x, k) => { if (k % 2) x.over = x.over === x.A ? x.B : x.A; }); }); })();
+  // potong tiap pita di titik paling lapang antara dua persilangan berurutan → sambungan tidak pernah jatuh di atas pita lain
+  const clearance = (r, s) => { const p = r.c.pts[idxOf(r.c, s)]; if (Math.hypot(p[0] - S[0], p[1] - S[1]) < DISC_R - 10) return -1e9; let m = 1e9; RIBS.forEach((o) => { if (o === r) return; m = Math.min(m, look(o, p[0], p[1]).d - o.hw - r.hw); }); return m; };
+  const segs = [];
+  RIBS.forEach((r) => {
+    const xs = crosses.filter((x) => x.A === r.key || x.B === r.key).map((x) => (x.A === r.key ? x.sA : x.sB)).sort((a, b) => a - b);
+    const cuts = [0];
+    for (let i = 0; i < xs.length - 1; i++) { let best = (xs[i] + xs[i + 1]) / 2, bv = -1e9; for (let s = xs[i]; s <= xs[i + 1]; s += 3) { const v = clearance(r, s); if (v > bv) { bv = v; best = s; } } cuts.push(best); r.cutClear = Math.min(r.cutClear === undefined ? 1e9 : r.cutClear, bv); }
+    cuts.push(r.c.L);
+    r.segs = [];
+    for (let i = 0; i < cuts.length - 1; i++) { const sg = { r, s0: cuts[i], s1: cuts[i + 1], id: r.cls + i, above: [] }; r.segs.push(sg); segs.push(sg); }
+  });
+  const segAt = (r, s) => r.segs.find((g) => s >= g.s0 && s <= g.s1) || r.segs[r.segs.length - 1];
+  crosses.forEach((x) => { const a = segAt(RB[x.A], x.sA), b = segAt(RB[x.B], x.sB); if (x.over === x.A) b.above.push(a); else a.above.push(b); });
+  // urutan topologis (bawah → atas); seri dipecah oleh kedalaman bawaan pita
+  const order = [], done = new Set(), visiting = new Set();
+  const visit = (g) => { if (done.has(g) || visiting.has(g)) return; visiting.add(g); segs.filter((o) => o.above.includes(g)).forEach(visit); visiting.delete(g); done.add(g); order.push(g); };
+  segs.slice().sort((a, b) => a.r.depth - b.r.depth).forEach(visit);
+  order.forEach((g, i) => { g.z = i; });
+  /* ---------- stipel: titik berbibit hash, rapat di tepi bayangan + di bawah pita yang menindih ---------- */
+  function stipple(r) {
+    const rng = H.rng(r.depth * 7 + 1), c = r.c, out = {};
+    r.segs.forEach((g) => { out[g.id] = { d1: [], d2: [], l1: [] }; });
+    const cand = Math.round(c.L * r.hw * 2 * .62), ph = rng() * 6.28, ph2 = rng() * 6.28;
+    for (let k = 0; k < cand; k++) {
+      const s = rng() * c.L, t = rng() * 2 - 1, fi = clamp(s / c.step, 0, c.n - 1.001), i = Math.floor(fi), fr = fi - i;
+      const pA = c.pts[i], pB = c.pts[i + 1], nA = c.nor[i], nB = c.nor[i + 1];
+      const p = [pA[0] + (pB[0] - pA[0]) * fr, pA[1] + (pB[1] - pA[1]) * fr];
+      const nx0 = nA[0] + (nB[0] - nA[0]) * fr, ny0 = nA[1] + (nB[1] - nA[1]) * fr, nl = Math.hypot(nx0, ny0) || 1, nn = [nx0 / nl, ny0 / nl];
+      const x = p[0] + nn[0] * t * r.hw, y = p[1] + nn[1] * t * r.hw;
+      if (x < -14 || y < -10 || y > AH + 10) continue;
+      if (Math.hypot(x - S[0], y - S[1]) < DISC_R - 16) continue;
+      const f = nn[0] * LIGHT[0] + nn[1] * LIGHT[1], u = t * clamp(f * 1.8, -1, 1);
+      const tw = .55 + .45 * Math.sin(s / 104 + ph);
+      let pd = .028 + .52 * Math.pow(sstep(.05, 1, -u), 1.35) * tw;
+      // bayangan dari pita yang menindih (z lebih tinggi), digeser menjauhi cahaya
+      const g = segAt(r, s);
+      let sh = 0;
+      RIBS.forEach((o) => {
+        if (o === r) return;
+        const l = near(o, x + LIGHT[0] * 7, y + LIGHT[1] * 7); if (l.i < 0) return;
+        const og = segAt(o, l.i * o.c.step); if (og.z <= g.z) return;
+        sh = Math.max(sh, 1 - sstep(-2, 20, l.d - o.hw));
+      });
+      pd += .82 * sh;
+      const pl = .34 * Math.pow(sstep(.3, 1, u), 1.5) * (.6 + .4 * Math.sin(s / 77 + ph2)) * (1 - sh);
+      const roll = rng();
+      if (roll < pd) (rng() < .72 ? out[g.id].d1 : out[g.id].d2).push(x, y);
+      else if (roll < pd + pl) out[g.id].l1.push(x, y);
+    }
+    return out;
+  }
+  const dots = (arr) => { let d = ''; for (let i = 0; i < arr.length; i += 2) d += 'M' + fx(arr[i]) + ' ' + fx(arr[i + 1]) + 'h.01'; return d; };
+
+  /* ---------- bangun lapisan ---------- */
+  const art = q('.art');
+  const VB = `${AX} 0 ${AW} ${AH}`;
+  const svgOpen = (cls = '') => `<svg class="${cls}" viewBox="${VB}" width="${AW}" height="${AH}" aria-hidden="true" focusable="false">`;
+  const revealPath = (r, extra) => `<path fill="none" stroke="#fff" stroke-width="${fx(r.hw * 2 + extra)}" d="${along(r.c, () => 0, 0, r.sIn + 2)}"/><path class="rv ${r.cls}" pathLength="100" stroke-width="${fx(r.hw * 2 + extra)}" d="${along(r.c, () => 0, r.sIn, r.c.L)}"/>`;
+  let html = '';
+
+  // 1) lapisan pensil: lebar penuh (bobot × 100) — terlihat bila nilai < 100
+  RIBS.forEach((r) => {
+    const gap = r.full - r.hw * 2; r.gap = gap; if (gap < 2.5) return;
+    let best = null;
+    [1, -1].forEach((side) => {
+      let vis = 0; for (let i = 0; i < r.c.n; i += 3) { const p = r.c.pts[i], nn = r.c.nor[i], o = side * (r.hw + gap); const x = p[0] + nn[0] * o, y = p[1] + nn[1] * o; if (x > 0 && !covered(x, y, r.key, 1) && Math.hypot(x - S[0], y - S[1]) > DISC_R) vis++; }
+      if (!best || vis > best.vis) best = { side, vis };
+    });
+    r.ghostSide = best.side;
+    const off = (i) => best.side * (r.hw + gap);
+    html += `<div class="rl ${r.cls} gh"><div class="sw ${r.cls}">${svgOpen()}<defs><mask id="s4-mg-${r.cls}" maskUnits="userSpaceOnUse" x="-400" y="-200" width="1400" height="1200">${revealPath(r, gap * 2 + 40)}</mask></defs>
+      <pattern id="s4-hatch-${r.cls}" width="4.6" height="4.6" patternUnits="userSpaceOnUse" patternTransform="rotate(38)"><line x1="0" y1="0" x2="0" y2="4.6" stroke="#4f585b" stroke-width=".75" stroke-opacity=".34"/></pattern>
+      <g mask="url(#s4-mg-${r.cls})"><path d="${along(r.c, (i) => best.side * (r.hw - 1))}L${along(r.c, off).slice(1).split('L').reverse().join('L')}Z" fill="url(#s4-hatch-${r.cls})"/><path class="ghost" d="${along(r.c, off)}" fill="none" stroke="#4f585b" stroke-opacity=".6" stroke-width=".9" stroke-dasharray="3.2 3.4" stroke-linecap="round"/></g></svg></div></div>`;
+  });
+
+  // 2) potongan pita, bawah → atas
+  const STIP = {}; RIBS.forEach((r) => Object.assign(STIP, stipple(r)));
+  order.forEach((g) => {
+    const r = g.r, poly = band(r.c, r.hw, g.s0, g.s1, g.s0 > 0 ? 1.5 : 0), st = STIP[g.id];
+    const lower = order.filter((o) => o.z < g.z && o.r !== r).map((o) => band(o.r.c, o.r.hw, o.s0, o.s1, 1)).join('');
+    const sdx = fx(-LIGHT[0] * 7), sdy = fx(-LIGHT[1] * 7);
+    const glOff = (i) => { const nn = r.c.nor[i], f = nn[0] * LIGHT[0] + nn[1] * LIGHT[1]; return r.hw * .5 * Math.tanh(2.4 * f); };
+    const glow = along(r.c, glOff, g.s0, g.s1);
+    const glL = along(r.c, glOff), gl2 = along(r.c, (i) => glOff(i) * .78 - Math.sign(glOff(i) || 1) * 2.2);
+    const id = `s4-${g.id}`;
+    html += `<div class="rl ${r.cls}"><div class="sw ${r.cls}">${svgOpen()}<defs>
+      <mask id="${id}-m" maskUnits="userSpaceOnUse" x="-400" y="-200" width="1400" height="1200">${revealPath(r, 60)}</mask>
+      <clipPath id="${id}-c"><path d="${poly}"/></clipPath>
+      ${lower ? `<clipPath id="${id}-l"><path d="${lower}"/></clipPath>` : ''}
+      <filter id="${id}-b" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+      <filter id="${id}-p" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
+    </defs><g mask="url(#${id}-m)">
+      <path d="${poly}" transform="translate(${fx(-LIGHT[0] * 5)} ${fx(-LIGHT[1] * 5)})" fill="#3b2f1f" opacity=".13" filter="url(#${id}-p)"/>
+      ${lower ? `<g clip-path="url(#${id}-l)"><path d="${poly}" transform="translate(${sdx} ${sdy})" fill="#04181d" opacity=".42" filter="url(#${id}-b)"/></g>` : ''}
+      <path class="base" data-rb="${r.key}" d="${poly}" fill="${r.col}"/>
+      <g clip-path="url(#${id}-c)">
+        <path d="${glow}" fill="none" stroke="#ffffff" stroke-opacity=".1" stroke-width="${fx(r.hw * .5)}" stroke-linecap="round"/>
+        <path d="${dots(st.d1)}" fill="none" stroke="${r.dk}" stroke-opacity="${r.dkA}" stroke-width="1.25" stroke-linecap="round"/>
+        <path d="${dots(st.d2)}" fill="none" stroke="${r.dk}" stroke-opacity="${r.dkA}" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="${dots(st.l1)}" fill="none" stroke="${r.lt}" stroke-opacity="${r.ltA}" stroke-width="1.2" stroke-linecap="round"/>
+      </g></g></svg>
+      ${svgOpen('gls')}<defs><mask id="${id}-gm" maskUnits="userSpaceOnUse" x="-400" y="-200" width="1400" height="1200">${revealPath(r, 60)}</mask><clipPath id="${id}-gc"><path d="${poly}"/></clipPath></defs>
+      <g mask="url(#${id}-gm)"><g clip-path="url(#${id}-gc)">
+        <path class="gl" d="${glL}" stroke="${r.gl}" stroke-opacity=".82" stroke-width="${fx(Math.max(2, r.hw * .075))}" stroke-dasharray="${r.depth === 0 ? '84 22 10 16 30 250' : r.depth === 1 ? '62 18 8 14 46 230' : '48 14 22 200'}"/>
+        <path class="gl g2" d="${gl2}" stroke="${r.gl}" stroke-opacity=".55" stroke-width="1.1" stroke-dasharray="${r.depth === 2 ? '20 160' : '26 12 6 190'}"/>
+      </g></g></svg></div></div>`;
+  });
+  art.innerHTML = html;
+  art.style.cssText = `left:${AX}px;top:0;width:${AW}px;height:${AH}px;right:auto;bottom:auto`;
+
+  /* ---------- label tangan + garis penunjuk (penempatan dicari di kertas kosong) ---------- */
+  const tagsEl = q('.tags');
+  tagsEl.style.cssText = `left:${AX}px;top:0;width:${AW}px;height:${AH}px;right:auto;bottom:auto`;
+  const KEYBOX = [30, 26, 262, 64];   // catatan kunci di kiri atas (x, y, w, h)
+  const busy = [KEYBOX.slice()];   // kotak label yang sudah dipakai
+  const freeBox = (x, y, w, h) => {
+    if (x < 8 || y < 10 || x + w > 486 || y + h > 704) return false;
+    if (busy.some((b) => x < b[0] + b[2] + 6 && x + w > b[0] - 6 && y < b[1] + b[3] + 6 && y + h > b[1] - 6)) return false;
+    for (let yy = y; yy <= y + h; yy += 5) for (let xx = x; xx <= x + w; xx += 5) {
+      if (covered(xx, yy, '', 7)) return false;
+      if (Math.hypot(xx - S[0], yy - S[1]) < DISC_R + 10) return false;
+    }
+    return true;
+  };
+  const PREF = { kuis: [.08, .3], esai: [.1, .3], praktik: [.1, .3] };
+  let tagHtml = '';
+  RIBS.forEach((r) => {
+    const cmp = COMP[r.key], label = cmp.label, h = 50, w = Math.round(Math.max((label.length + 1 + String(cmp.score).length) * 11.4, 13 * 7.8) + 12);
+    let pick = null;
+    const [a, b] = PREF[r.key];
+    const tries = [];
+    for (let fr = a; fr <= .86; fr += .015) tries.push(fr);
+    for (const fr of tries) {
+      const s = fr * r.c.L, i = idxOf(r.c, s), p = r.c.pts[i];
+      if (p[0] < 16 || Math.hypot(p[0] - S[0], p[1] - S[1]) < DISC_R + 8) continue;
+      for (const side of [-1, 1]) {
+        const nn = r.c.nor[i], ex = p[0] + nn[0] * side * r.hw, ey = p[1] + nn[1] * side * r.hw;
+        if (covered(ex + nn[0] * side * 3, ey + nn[1] * side * 3, r.key, 0) || covered(ex - nn[0] * side * 3, ey - nn[1] * side * 3, r.key, 0)) continue;
+        for (const len of [22, 34, 48, 64, 82]) {
+          for (const rot of [0, .45, -.45]) {
+            const dx = nn[0] * side, dy = nn[1] * side, ux = dx * Math.cos(rot) - dy * Math.sin(rot), uy = dx * Math.sin(rot) + dy * Math.cos(rot);
+            const lx = ex + ux * len, ly = ey + uy * len;
+            let bx, by, right = ux >= 0, mode = 'side';
+            if (Math.abs(uy) > .72) { mode = uy < 0 ? 'up' : 'down'; bx = lx - 10; by = uy < 0 ? ly - h - 2 : ly + 2; right = true; }
+            else { bx = right ? lx + 4 : lx - w - 4; by = ly - h / 2; }
+            let clear = true; for (let k = 4; k < len; k += 6) { if (covered(ex + ux * k, ey + uy * k, '', 2)) { clear = false; break; } }
+            if (clear && freeBox(bx, by, w, h)) { pick = { s, ex, ey, lx, ly, bx, by, right, mode }; break; }
+          }
+          if (pick) break;
+        }
+        if (pick) break;
+      }
+      if (pick) break;
+    }
+    if (!pick) { const i = idxOf(r.c, .5 * r.c.L), p = r.c.pts[i]; pick = { s: .5 * r.c.L, ex: p[0], ey: p[1], lx: p[0] + 30, ly: p[1] - 40, bx: Math.max(10, p[0] + 34), by: p[1] - 64, right: true, mode: 'side' }; }    busy.push([pick.bx, pick.by, w, h]);
+    r.tag = pick;
+    // jeda pop = saat tirai pita melewati titik jangkar
+    const rv = { k: [0, 1.75], e: [.18, 1.5], p: [.34, 1.62] }[r.cls];
+    const ease = (t) => { const cx = .3, bx2 = .25, cy = .1, by2 = 1; let lo = 0, hi = 1; for (let it = 0; it < 30; it++) { const m = (lo + hi) / 2, u = 1 - m, X = 3 * u * u * m * cx + 3 * u * m * m * bx2 + m * m * m; if (X < t) lo = m; else hi = m; } const m = (lo + hi) / 2, u = 1 - m; return 3 * u * u * m * cy + 3 * u * m * m * by2 + m * m * m; };
+    const need = (100 * Math.max(0, pick.s - r.sIn) / (r.c.L - r.sIn) + 4) / 104; let tt = 0; for (let k = 0; k <= 200; k++) { if (ease(k / 200) >= need) { tt = k / 200; break; } }
+    const dl = rv[0] + rv[1] * tt;
+    const lead = pick.mode === 'side' ? `M${fx(pick.ex)} ${fx(pick.ey)}L${fx(pick.lx)} ${fx(pick.ly)}L${fx(pick.right ? pick.lx + 4 : pick.lx - 4)} ${fx(pick.ly)}` : `M${fx(pick.ex)} ${fx(pick.ey)}L${fx(pick.lx)} ${fx(pick.ly)}`;
+    const tx = pick.bx - AX, ty = pick.by;
+    tagHtml += `<div class="rl ${r.cls} tg"><div class="sw ${r.cls}">${svgOpen()}<path class="ld" pathLength="1" d="${lead}" style="--dl:${(dl - .05).toFixed(2)}s;stroke-dasharray:1 1"/><circle class="ld-dot" cx="${fx(pick.ex)}" cy="${fx(pick.ey)}" r="2.6" style="--dl:${(dl - .05).toFixed(2)}s"/></svg>
+      <button type="button" class="tag ${r.cls}" data-rb="${r.key}" style="left:${fx(tx)}px;top:${fx(ty)}px;width:${w}px;--d:${dl.toFixed(2)}s;text-align:${pick.right ? 'left' : 'right'}" aria-label="${label}: nilai ${cmp.score}, bobot ${cmp.weight} persen, sumbangan ${dec1(cmp.contrib)} poin. Sorot pitanya.">
+        <span class="tg-in"><span class="tn">${label} ${cmp.score}</span><span class="tw">×${cmp.weight}% → ${dec1(cmp.contrib)}</span><span class="ul"></span></span></button></div></div>`;
+  });
+  tagsEl.innerHTML = tagHtml;
+
+  /* ---------- kertas: bintik + serat (berbibit hash) ---------- */
+  (() => {
+    const rng = H.rng(20); let a = '', b = '', fib = '', tl = '', tr = '';
+    for (let i = 0; i < 2600; i++) { const x = rng() * 1122, y = rng() * 793; (rng() < .82 ? (a += 'M' + fx(x) + ' ' + fx(y) + 'h.01') : (b += 'M' + fx(x) + ' ' + fx(y) + 'h.01')); }
+    for (let i = 0; i < 70; i++) { const x = rng() * 1122, y = rng() * 793, an = rng() * 6.28, l = 3 + rng() * 8, bend = (rng() - .5) * 4; fib += `M${fx(x)} ${fx(y)}q${fx(Math.cos(an) * l / 2 + bend)} ${fx(Math.sin(an) * l / 2 - bend)} ${fx(Math.cos(an) * l)} ${fx(Math.sin(an) * l)}`; }
+    for (let i = 0; i < 40; i++) tl += 'M' + fx(rng() * 1122) + ' ' + fx(rng() * 793) + 'h.01';
+    for (let i = 0; i < 14; i++) tr += 'M' + fx(rng() * 1122) + ' ' + fx(rng() * 793) + 'h.01';
+    q('.paper .specks').innerHTML = `<path d="${a}" stroke="#6b6152" stroke-opacity=".34" stroke-width="1" stroke-linecap="round" fill="none"/>
+      <path d="${b}" stroke="#7c705d" stroke-opacity=".3" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+      <path d="${fib}" stroke="#8b7d66" stroke-opacity=".28" stroke-width=".6" fill="none" stroke-linecap="round"/>
+      <path d="${tl}" stroke="#1f7a7d" stroke-opacity=".35" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+      <path d="${tr}" stroke="#b4532f" stroke-opacity=".32" stroke-width="1.2" stroke-linecap="round" fill="none"/>`;
+  })();
+
+  /* ---------- cap tinta ---------- */
+  const seal = q('.seal');
+  seal.style.left = (S[0] - 140) + 'px'; seal.style.top = (S[1] - 140) + 'px';
+  seal.setAttribute('aria-label', `Cap tinta: ${T.passed}, ${T.scoreLine}`);
+  const rest = -4 - (H.byteAt(5) / 255) * 6; seal.style.setProperty('--rest', rest.toFixed(2) + 'deg');
+  (() => {   // piringan kertas bertepi sobek
+    const rng = H.rng(12); let d = '';
+    for (let k = 0; k <= 180; k++) { const a = k / 180 * Math.PI * 2, rr = DISC_R + (rng() - .5) * 2.2 + Math.sin(a * 7 + 1) * .9 + (rng() < .05 ? -2.2 : 0); d += (k ? 'L' : 'M') + fx(Math.cos(a) * rr) + ' ' + fx(Math.sin(a) * rr); }
+    q('.seal-disc').innerHTML = `<defs><filter id="s4-dsh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="1.5" dy="3" stdDeviation="3.2" flood-color="#2a2014" flood-opacity=".22"/></filter>
+      <radialGradient id="s4-dg" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="#fbf8f1"/><stop offset="1" stop-color="#f1ece1"/></radialGradient></defs>
+      <path d="${d}Z" fill="url(#s4-dg)" filter="url(#s4-dsh)"/><path d="${d}Z" fill="none" stroke="#d9d0bf" stroke-width=".8"/>`;
+  })();
+  q('.stamp .rt-top').textContent = `${T.passed} · ${C.score} / 100`;
+  q('.stamp .rt-bot').textContent = 'lencana';
+  (() => {   // 100 butir: yang bertinta = nilai; tanda di butir batas lulus
+    let g = ''; const R = 63;
+    for (let k = 0; k < 100; k++) { const a = k / 100 * Math.PI * 2, x = Math.sin(a) * R, y = -Math.cos(a) * R, on = k < C.score; g += `<circle class="bd${on ? ' on' : ' off'}" cx="${fx(x)}" cy="${fx(y)}" r="${on ? 2.05 : 1.55}" style="--i:${k}"/>`; }
+    const a = C.passMark / 100 * Math.PI * 2; g += `<line class="tick" x1="${fx(Math.sin(a) * 55)}" y1="${fx(-Math.cos(a) * 55)}" x2="${fx(Math.sin(a) * 71)}" y2="${fx(-Math.cos(a) * 71)}"/>`;
+    q('.stamp .beads').innerHTML = g;
+  })();
+  (() => {   // percikan tinta 6 titik
+    const rng = H.rng(24); let g = '';
+    for (let k = 0; k < 6; k++) {
+      const a = (200 + rng() * 190) * Math.PI / 180, d = 132 + rng() * 40, r = 1.4 + rng() * 3.6, x = Math.cos(a) * d, y = Math.sin(a) * d;
+      g += `<circle class="sp" cx="${fx(x)}" cy="${fx(y)}" r="${fx(r)}" style="--i:${k}"/>`;
+      if (rng() < .6) { const d2 = d + 6 + rng() * 10, r2 = .8 + rng() * 1.2; g += `<circle class="sp" cx="${fx(Math.cos(a) * d2)}" cy="${fx(Math.sin(a) * d2)}" r="${fx(r2)}" style="--i:${k + 1}"/>`; }
+    }
+    q('.splat').innerHTML = g;
+  })();
+  const sl = q('.score-line'); sl.style.left = (S[0] - 150) + 'px'; sl.style.top = (S[1] + DISC_R + 10) + 'px';
+
+  /* ---------- catatan tangan: kunci membaca lebar pita ---------- */
+  const keyEl = q('.key');
+  keyEl.querySelector('.k1').textContent = 'lebar pita = bobot × nilai';
+  keyEl.querySelector('.k2').textContent = C.components.map((c) => dec1(c.score * c.weight / 100)).join(' + ') + ' = ' + dec1(TOTAL) + ' → ' + C.score;
+  keyEl.style.left = KEYBOX[0] + 'px'; keyEl.style.top = KEYBOX[1] + 'px';
+
+  /* ---------- tipografi data ---------- */
+  const words = T.title.split(' ');
+  q('.ttl .t1').textContent = words[0]; q('.ttl .t2').textContent = words.slice(1).join(' ');
+  const grp = F.addressGroups().split(' ');
+  q('.addr .groups').innerHTML = grp.map((g, i) => `<span class="g" style="--i:${i + 1}">${g}</span>${i === 4 ? '<span class="br"></span>' : ''}`).join('');
+  q('.span365 .days').textContent = `${C.validDays} hari`;
+  q('.facts').querySelectorAll(':scope > div').forEach((d, i) => d.style.setProperty('--i', i));
+
+  /* ---------- 32 batang tinta = 32 byte hash kredensial (bukan tanda tangan tangan) ---------- */
+  (() => {
+    let g = '';
+    for (let k = 0; k < 32; k++) { const b = H.byteAt(k), x = 3 + k * 7.3, hgt = 3 + (b / 255) * 22; g += `<line class="hb" x1="${fx(x)}" y1="28" x2="${fx(x + (k % 3 - 1) * .4)}" y2="${fx(28 - hgt)}" style="--i:${k}"/>`; }
+    q('.hashbars').innerHTML = g;
+  })();
+
+  /* ---------- nama contoh: ukur supaya nama lengkap muat di kolom (≤ 520 px) ---------- */
+  const fitName = () => {
+    const el = q('.named .nm'); if (!el || !el.offsetParent) return;
+    let size = 74; el.style.setProperty('--nm-size', size + 'px');
+    while (el.scrollWidth > 524 && size > 40) { size -= 2; el.style.setProperty('--nm-size', size + 'px'); }
+  };
+  document.querySelectorAll('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => { fitName(); }));
+  if (document.fonts) {   // nama tersembunyi tidak memicu unduhan fon → muat sendiri, lalu ukur ulang
+    document.fonts.ready.then(fitName);
+    if (document.fonts.load) document.fonts.load('74px "Mrs Saint Delafield"', 'Nadia').then(fitName, () => {});
+    if (document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', fitName);
+  }
+  /* ---------- slip periksa: kertas bertepi sobek ---------- */
+  (() => {
+    const rng = H.rng(16), w = 214, h = 300; const e = (x0, y0, x1, y1, n) => { let d = ''; for (let k = 1; k <= n; k++) { const t = k / n, j = (rng() - .5) * 1.8; d += 'L' + fx(x0 + (x1 - x0) * t + (y0 === y1 ? 0 : j)) + ' ' + fx(y0 + (y1 - y0) * t + (y0 === y1 ? j : 0)); } return d; };
+    const d = 'M2 2' + e(2, 2, w - 2, 2, 60) + e(w - 2, 2, w - 2, h - 2, 80) + e(w - 2, h - 2, 2, h - 2, 60) + e(2, h - 2, 2, 2, 80) + 'Z';
+    q('.slip-bg').innerHTML = `<defs><filter id="s4-ssh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="1.5" dy="3" stdDeviation="3" flood-color="#2a2014" flood-opacity=".2"/></filter></defs><path d="${d}" fill="#f8f5ee" filter="url(#s4-ssh)"/>`;
+  })();
+
+  /* ---------- interaksi: sorot pita + labelnya ---------- */
+  const hot = (k) => { if (k) sheet.dataset.hot = k; else delete sheet.dataset.hot; };
+  art.addEventListener('pointerover', (e) => { const t = e.target.closest('[data-rb]'); if (t) hot(t.dataset.rb); });
+  art.addEventListener('pointerout', (e) => { const t = e.target.closest('[data-rb]'); if (t) hot(null); });
+  tagsEl.querySelectorAll('.tag').forEach((b) => {
+    b.addEventListener('pointerenter', () => hot(b.dataset.rb)); b.addEventListener('pointerleave', () => hot(null));
+    b.addEventListener('focus', () => hot(b.dataset.rb)); b.addEventListener('blur', () => hot(null));
+  });
+
+  /* ---------- debug: garis tengah + persilangan ---------- */
+  if (DEBUG) {
+    let d = svgOpen() + '<g fill="none" stroke-width="1">';
+    RIBS.forEach((r) => { d += `<path d="${along(r.c, () => 0)}" stroke="#f0f"/>`; r.anchors.forEach((a) => { d += `<circle cx="${a.p[0]}" cy="${a.p[1]}" r="4" stroke="#f0f"/>`; }); });
+    crosses.forEach((x) => { d += `<circle cx="${fx(x.p[0])}" cy="${fx(x.p[1])}" r="7" stroke="#f00" stroke-width="2"/>`; });
+    art.insertAdjacentHTML('beforeend', '<div class="rl" style="z-index:9">' + d + '</g></svg></div>');
+    window.__s4 = { crosses, order: order.map((g) => g.id + ':' + g.z), counts: Object.keys(STIP).map((k) => k + ':' + (STIP[k].d1.length + STIP[k].d2.length + STIP[k].l1.length) / 2) };
+  }
+
+  document.addEventListener('cx:play', () => { hot(null); fitName(); });
+
+  window.DESIGN = {
+    id: 'S4', name: 'Arus Tinta', row: 'Organik / buatan tangan',
+    tagline: 'tiga pita bertekstur titik — kuis, esai, praktik — mengalir dari tepi kiri, saling anyam, lalu terkumpul di bawah satu cap tinta yang ditekan tangan.',
+    brief: {
+      process: 'Nilai tiap komponen (kuis, esai, praktik) dibobot lalu dijumlah menjadi nilai akhir; kredensial ditandatangani agen penerbit, bukti penerbitannya dicatat, dan siapa pun dapat memeriksanya lewat QR.',
+      core: 'Tiga pita yang mengalir dan dianyam, lalu dikunci oleh cap tinta — cap itulah hasil akhirnya.',
+      relationship: 'Tepi kiri (asal tiap komponen) → anyaman (kuis dan esai berpilin, praktik melengkung di atas keduanya) → cap (nilai akhir) → slip QR di kanan bawah (cara memeriksa).',
+      metaphor: 'Arus/anyaman: pita = komponen nilai, ketebalan = sumbangannya, cap = hasil yang dikunci; tepi kertas sobek = benda nyata yang bisa dipegang.'
+    },
+    encodes: [
+      `Lebar pita = bobot × nilai × ${PX} px: kuis ${dec1(COMP.kuis.contrib)}, esai ${dec1(COMP.esai.contrib)}, praktik ${dec1(COMP.praktik.contrib)} poin.`,
+      `Jumlah lebar ketiga pita = ${dec1(TOTAL)} poin → nilai akhir ${C.score} di tengah cap.`,
+      'Garis pensil putus-putus + arsir = lebar penuh kuis bila nilainya 100 (bobot × 100); arsir = bagian yang tidak tercapai. Esai dan praktik tidak punya celah yang terlihat (98 dan 100).',
+      `Cincin 100 butir di cap: ${C.score} bertinta, sisanya kosong; garis kecil di butir ke-${C.passMark} = batas lulus.`,
+      `Panah tangan di antara dua tanggal = masa berlaku ${C.validDays} hari.`,
+      '32 batang tinta di atas baris tanda tangan = 32 byte hash kredensial (tinggi batang = nilai byte). Itu jejak data, bukan tanda tangan tangan; tanda tangan sebenarnya adalah proof kriptografis (DataIntegrityProof).',
+      'Bintik kertas, titik stipel pita, kilau, percikan tinta, sudut cap, dan sedikit geser jalur pita diturunkan dari hash kredensial (HASHART): kredensial lain → gambar lain.'
+    ],
+    fonts: [{ role: 'Judul, alamat, kelas', name: 'Fraunces (SOFT/WONK; alamat WONK 0 supaya b ≠ 6)' }, { role: 'Teks', name: 'Alegreya' }, { role: 'Catatan & tanggal', name: 'Caveat' }, { role: 'Nama contoh', name: 'Mrs Saint Delafield' }, { role: 'Hash', name: 'JetBrains Mono' }],
+    palette: [
+      { name: 'Kertas berbintik', hex: '#efeadf', use: 'dasar lembar' },
+      { name: 'Teal dalam', hex: '#17565c', use: 'pita kuis, teks sekunder' },
+      { name: 'Teal tengah', hex: '#1f7a7d', use: 'pita esai' },
+      { name: 'Teal muda', hex: '#5fa8a6', use: 'pita praktik' },
+      { name: 'Teal pucat', hex: '#b9dcd8', use: 'bintik terang di sisi bercahaya' },
+      { name: 'Tinta biru tua', hex: '#16303a', use: 'teks' },
+      { name: 'Terakota', hex: '#ac4c2d', use: 'hanya cap + catatan kecil (#a3472a untuk teks kecil)' }
+    ],
+    motif: 'Stipel titik berbibit hash dengan bayangan silang + tepi kertas sobek (piringan cap, slip QR) + tinta tangan terakota.',
+    motion: {
+      entrance: 'Ketiga pita mengalir masuk dari tepi kiri sepanjang jalurnya (1,75 / 1,5 / 1,62 dtk, jeda bertingkat); label meletup dengan lontaran kecil saat pitanya lewat; teks naik bertahap, alamat ditinta per kelompok; slip QR jatuh dan mantul.',
+      continuous: 'Pita bergoyang pelan (±3–4 px, 12–16 dtk, fase masing-masing); kilau meluncur maju-mundur di sepanjang pita.',
+      interaction: 'Lapisan pita bergeser mengikuti penunjuk pada kedalaman berbeda; arahkan atau fokus (Tab) pada pita/labelnya → pita itu tetap pekat, yang lain memudar sehingga seluruh jalurnya terlihat menembus anyaman.',
+      micro: 'Cap mendarat dari atas (goyang ±3° lalu diam), piringan kertas sedikit tertekan, tinta melebar, 6 percikan muncul, 87 butir terisi berurutan.'
+    },
+    limits: [
+      'Kalimat baru: "lebar pita = bobot × nilai" dan rumus penjumlahannya — hanya menjelaskan geometri; angkanya dihitung dari CERT.components.',
+      'Label "×bobot% → sumbangan" pada tiap pita dan "365 hari" dihitung dari CERT (components, validDays), tidak ditulis tangan.',
+      'Teks cincin cap: TXT.passed + CERT.score + "/ 100" dan kata "lencana" (nama produk). Status di lembar hanya catatan bertanggal (TXT.statusNote); tidak ada kata BERLAKU.',
+      'Batang di atas garis tanda tangan digambar dari byte hash kredensial — jejak data, sengaja tidak menyerupai tulisan tangan; tidak mewakili nilai proof dan tidak menyiratkan tanda tangan manusia.',
+      'Mode nama: nama contoh fiktif + TXT.nameNote; alamat dompet pendek tetap tampil dengan labelnya.',
+      'Kunci arsir pensil (lebar penuh kuis) belum diberi label di lembar; dijelaskan di catatan ini.'
+    ]
+  };
+  window.__cxInit();
+})();
+/* ===================== /DESIGN JS ===================== */
+</script>
+</body>
+</html>
