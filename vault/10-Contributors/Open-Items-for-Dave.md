@@ -779,3 +779,19 @@ dari layar, sehingga kartu Pusat Kepercayaan dan Penerbit meluap ke 384 px; URL 
 dan deskripsi aturan membungkus panjang di kolom sempit. Tata letak bertumpuk per baris (label kolom di depan nilainya)
 butuh label kolom di markup (`index.html` + perender matriks), jadi itu keputusan tampilanmu. Bukti dan angka sebelum/sesudah:
 [[09-Testing/T79 - Uji peramban isi keluar kartu di HP (B150)]].
+
+## OI-33 — situs bisa dipasang sebagai aplikasi (PWA): manifest, ikon, service worker (B152, 5 Okt)
+
+Permintaan builder 5 Okt: "dibuat jadi pwa jg". Berkas baru: `web/public/manifest.webmanifest`, `web/public/icons/*`
+(dari `lencana-logo.jpg`), `web/public/sw.js`, `web/src/pwa.ts`. Berkasmu yang tersentuh:
+
+| berkas | perubahan |
+|---|---|
+| `web/index.html` | empat tag di `<head>` (`web/index.html:11-15`): `theme-color` `#090a0c`, `manifest`, `icon`, `apple-touch-icon` |
+| `web/src/main.ts` | `import { registerServiceWorker } from './pwa'` (`web/src/main.ts:38`) dan satu panggilan sesudah `installFetchTracking()` (`web/src/main.ts:41`) |
+
+**Yang harus tetap:** service worker tidak boleh menyimpan apa pun yang beda asal (signer, RPC chain, dokumen tepi dan daftar
+status) — status kredensial harus selalu segar; yang disimpan hanya cangkang halaman (jaringan lebih dulu) dan berkas build
+ber-hash. Kalau kamu mengganti warna latar halaman, samakan `theme_color` / `background_color` di manifest dan `theme-color`
+di `index.html`. Mengubah strategi cache di `sw.js` = naikkan `VERSION` supaya cache lama dibuang. Bukti:
+[[09-Testing/T81 - Uji PWA bisa dipasang dan offline (B152)]].
