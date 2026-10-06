@@ -24,6 +24,7 @@ import { adminDecide, learnerAddress, readAdminOverview, type AdminOverview, typ
 import { skeleton } from '../lib/loading'
 import { formatLdc } from '../pricing'
 import { navIcon } from './seats'
+import { flowSvg, type FlowNode, type FlowLink, type Orient, type Tone } from './admin-flow'
 
 type Lang = 'en' | 'id'
 type Tab = 'summary' | 'approve' | 'trail' | 'health'
@@ -77,6 +78,14 @@ const COPY = {
   tAgents: { en: 'Known agents', id: 'Agen dikenal' },
   tHires: { en: 'Agent hires', id: 'Sewa agen' },
   tReviewers: { en: 'Reviewers appointed', id: 'Pengesah ditunjuk' },
+  flowTitle: { en: 'Platform at a glance', id: 'Platform sekilas' },
+  flowPeople: { en: 'From enrollment to money', id: 'Dari pendaftaran sampai uang' },
+  flowEssays: { en: 'Essays', id: 'Esai' },
+  flowNote: { en: 'Ribbon thickness = how many. The money ribbons keep the proportion of paid enrollments: what each paid enrollment brought in, split between Lencana and the publisher.', id: 'Tebal pita = jumlahnya. Pita uang mengikuti proporsi pendaftaran berbayar: apa yang dibawa pendaftaran berbayar, terbagi antara Lencana dan penerbit.' },
+  pendingShort: { en: 'waiting', id: 'menunggu' },
+  essaysAll: { en: 'essays', id: 'esai' },
+  moneyIn: { en: 'in', id: 'masuk' },
+  feesDue: { en: 'Agent fees due', id: 'Tagihan agen jatuh tempo' },
   sumFoot: { en: 'Same numbers as the publisher dashboard, without test rows. Money comes from paid orders; the Lencana share is the split read from the chain.', id: 'Angka yang sama dengan dasbor Penerbit, tanpa baris uji. Uang dibaca dari order lunas; bagian Lencana adalah pembagian yang dibaca dari chain.' },
   awaitingJudge: { en: 'Waiting for a grader', id: 'Menunggu penilai' },
   insufficient: { en: 'Not enough to grade', id: 'Kurang bukti' },
@@ -288,28 +297,6 @@ function ticker (el: HTMLElement, to: number): void {
   requestAnimationFrame(step)
 }
 
-function tile (label: string, value: number | string, opts: { hint?: string, icon: string, hot?: boolean, tone?: 'gold' | 'green' | 'red' }): HTMLElement {
-  const v = h('strong', { class: 'adm-tile-v' }, String(value))
-  if (typeof value === 'number') ticker(v, value)
-  return h('div', { class: `adm-tile${opts.hot ? ' hot' : ''}${opts.tone ? ` tone-${opts.tone}` : ''}`, 'data-tile': label },
-    h('div', { class: 'adm-tile-top' }, h('span', { class: 'adm-tile-l' }, label), navIcon(opts.icon)),
-    v,
-    opts.hint ? h('small', { class: 'adm-tile-h' }, opts.hint) : null)
-}
-
-type Seg = { label: string, value: number, cls: string, shown?: string }
-
-/** Bar bertumpuk + legenda: lebar segmen = bagian dari total (data jadi geometri). */
-function stack (segs: Seg[], empty: string): HTMLElement {
-  const total = segs.reduce((s, x) => s + x.value, 0)
-  if (!total) return h('p', { class: 'app-muted' }, empty)
-  const live = segs.filter((s) => s.value > 0)
-  return h('div', { class: 'adm-stack-wrap' },
-    h('div', { class: 'adm-stack', role: 'img', 'aria-label': live.map((s) => `${s.label} ${s.shown ?? s.value}`).join(', ') },
-      ...live.map((s) => h('span', { class: `adm-seg ${s.cls}`, style: `flex-grow:${s.value}`, title: `${s.label}: ${s.shown ?? s.value}` }))),
-    h('ul', { class: 'adm-legend' }, ...live.map((s) => h('li', null, h('i', { class: `adm-dot ${s.cls}`, 'aria-hidden': 'true' }), `${s.label} `, h('b', null, s.shown ?? String(s.value))))))
-}
-
 /** Gauge melingkar (gaya animated-circular-progress-bar Magic UI): lingkaran lintasan + busur isi yang tumbuh dari 0. */
 function gauge (pct: number | null, tone: 'green' | 'amber' | 'red' | 'idle', center: string, label: string, sub: string): HTMLElement {
   const C = 2 * Math.PI * 45
@@ -343,41 +330,87 @@ function summaryPanel (lang: Lang, o: AdminOverview, goApprove: () => void): HTM
   if (!s) { root.appendChild(h('section', { class: 'app-card adm-card' }, h('h2', null, T('tabSummary')), h('p', { class: 'app-muted' }, T('partial')))); return root }
   const sym = s.money.token.symbol
   const num = (v: string) => formatLdc(BigInt(v))
-  const units = (v: string | null) => (v === null ? '—' : `${formatLdc(BigInt(v))} ${sym}`)
+  const units = (v: string | null) => (v === null ? '—' : `${num(v)} ${sym}`)
 
-  root.appendChild(h('section', { class: 'app-card adm-card' }, h('h2', null, T('sumPeople')),
-    h('div', { class: 'adm-tiles' },
-      tile(T('tMembers'), s.members.active, { icon: IC.users, tone: 'green' }),
-      tile(T('tPending'), s.members.pending, { icon: IC.clock, hot: s.members.pending > 0 }),
-      tile(T('tCourses'), s.courses.total, { icon: IC.book, hint: `${s.courses.listed} ${T('tCoursesHint')} ${s.courses.total}` }),
-      tile(T('tLearners'), s.learners.unique, { icon: IC.user, hint: T('tLearnersHint') })),
-    h('div', { class: 'adm-block' }, h('h3', null, `${T('enrollSplit')} · ${s.learners.enrollments}`),
-      stack([{ label: T('paid'), value: s.learners.paid, cls: 'c-green' }, { label: T('free'), value: s.learners.free, cls: 'c-gray' }], '—'))))
+  // ---- strip angka: tipografi, bukan kotak
+  const kpi = (value: number | string, label: string, sub: string, hot = false) => {
+    const v = h('strong', { class: 'adm-kpi-v' }, String(value))
+    if (typeof value === 'number') ticker(v, value)
+    return h('div', { class: `adm-kpi${hot ? ' hot' : ''}`, 'data-kpi': label }, v, h('span', { class: 'adm-kpi-l' }, label), h('small', null, sub))
+  }
+  const strip = h('div', { class: 'adm-kpis' },
+    kpi(s.members.active, T('tMembers'), `${s.members.pending} ${T('pendingShort')}`, s.members.pending > 0),
+    kpi(s.courses.total, T('tCourses'), `${s.courses.listed} ${T('tCoursesHint')}`),
+    kpi(s.learners.unique, T('tLearners'), `${s.learners.enrollments} ${T('enrollSplit').toLowerCase()}`),
+    kpi(num(s.money.gross), T('tGross'), sym),
+    kpi(s.agents.known, T('tAgents'), `${s.agents.hires} ${T('tHires').toLowerCase()} · ${s.agents.reviewers} ${T('tReviewers').toLowerCase()}`))
 
-  const bps = s.money.platformBps
-  root.appendChild(h('section', { class: 'app-card adm-card' }, h('h2', null, T('sumMoney')),
-    h('div', { class: 'adm-tiles' },
-      tile(T('tGross'), num(s.money.gross), { icon: IC.coins, hint: `${sym} · ${T('tGrossHint')}` }),
-      tile(T('tChargesDue'), s.money.chargesDue.count, { icon: IC.file, hot: s.money.chargesDue.count > 0, hint: units(s.money.chargesDue.amount) }),
-      tile(T('tChargesPaid'), s.money.chargesPaid.count, { icon: IC.file, hint: units(s.money.chargesPaid.amount) })),
-    h('div', { class: 'adm-block' }, h('h3', null, T('moneySplit')),
-      s.money.platform === null || s.money.net === null
-        ? h('p', { class: 'app-muted' }, T('noSplit'))
-        : stack([
-          { label: `${T('lencana')}${bps === null ? '' : ` (${(bps / 100).toString()}%)`}`, value: Number(s.money.platform), cls: 'c-gold', shown: units(s.money.platform) },
-          { label: T('net'), value: Number(s.money.net), cls: 'c-green', shown: units(s.money.net) },
-        ], '—'))))
+  // ---- aliran peserta → uang
+  const enr = s.learners.enrollments, paid = s.learners.paid, free = s.learners.free
+  const peopleFlow = (): { nodes: FlowNode[], links: FlowLink[] } | null => {
+    if (enr <= 0) return null
+    const nodes: FlowNode[] = [
+      { id: 'enr', layer: 0, value: enr, label: `${enr} ${T('enrollSplit').toLowerCase()}`, tone: 'blue' },
+      { id: 'free', layer: 1, value: free, label: `${free} ${T('free')}`, tone: 'gray' },
+      { id: 'paid', layer: 1, value: paid, label: `${paid} ${T('paid')}`, tone: 'green' },
+    ]
+    const links: FlowLink[] = [{ from: 'enr', to: 'free', value: free }, { from: 'enr', to: 'paid', value: paid }]
+    if (paid > 0 && s.money.gross !== '0') {
+      nodes.push({ id: 'money', layer: 2, value: paid, label: `${num(s.money.gross)} ${sym}`, tone: 'gold' })
+      links.push({ from: 'paid', to: 'money', value: paid })
+      const bps = s.money.platformBps
+      if (bps !== null && s.money.platform !== null && s.money.net !== null) {
+        const f = bps / 10000
+        nodes.push({ id: 'lencana', layer: 3, value: paid * f, label: `${T('lencana')} ${num(s.money.platform)}`, tone: 'gold' },
+          { id: 'net', layer: 3, value: paid * (1 - f), label: `${T('net')} ${num(s.money.net)}`, tone: 'green' })
+        links.push({ from: 'money', to: 'lencana', value: paid * f }, { from: 'money', to: 'net', value: paid * (1 - f) })
+      }
+    }
+    return { nodes, links }
+  }
 
-  const labels: Record<string, Key> = { awaitingJudge: 'awaitingJudge', insufficient: 'insufficient', awaitingReview: 'awaitingReview', approved: 'approved', adjusted: 'adjusted', rejected: 'rejected', graded: 'graded' }
-  const tone: Record<string, string> = { awaitingJudge: 'c-gray', insufficient: 'c-slate', awaitingReview: 'c-gold', approved: 'c-green', adjusted: 'c-blue', rejected: 'c-red', graded: 'c-teal' }
-  const segs: Seg[] = Object.keys(labels).map((k) => ({ label: T(labels[k]!), value: s.essays.pipeline[k] ?? 0, cls: tone[k]! }))
-  root.appendChild(h('section', { class: 'app-card adm-card' }, h('h2', null, T('sumWork')),
-    h('div', { class: 'adm-block' }, h('h3', null, T('pipelineTitle')), stack(segs, T('pipelineNone'))),
-    h('div', { class: 'adm-tiles' },
-      tile(T('tAgents'), s.agents.known, { icon: IC.bot }),
-      tile(T('tHires'), s.agents.hires, { icon: IC.bot }),
-      tile(T('tReviewers'), s.agents.reviewers, { icon: IC.shield }))))
-  root.appendChild(h('p', { class: 'app-muted adm-foot' }, T('sumFoot')))
+  // ---- aliran esai
+  const pipelineTone: Record<string, Tone> = { awaitingJudge: 'gray', insufficient: 'slate', awaitingReview: 'gold', approved: 'green', adjusted: 'blue', rejected: 'red', graded: 'teal' }
+  const pipelineKey: Record<string, Key> = { awaitingJudge: 'awaitingJudge', insufficient: 'insufficient', awaitingReview: 'awaitingReview', approved: 'approved', adjusted: 'adjusted', rejected: 'rejected', graded: 'graded' }
+  const essayFlow = (): { nodes: FlowNode[], links: FlowLink[] } | null => {
+    const parts = Object.keys(pipelineKey).map((k) => ({ k, v: s.essays.pipeline[k] ?? 0 })).filter((x) => x.v > 0)
+    const total = parts.reduce((sum, x) => sum + x.v, 0)
+    if (!total) return null
+    return {
+      nodes: [{ id: 'all', layer: 0, value: total, label: `${total} ${T('essaysAll')}`, tone: 'blue' },
+        ...parts.map((x) => ({ id: x.k, layer: 1, value: x.v, label: `${x.v} ${T(pipelineKey[x.k]!).toLowerCase()}`, tone: pipelineTone[x.k]! }))],
+      links: parts.map((x) => ({ from: 'all', to: x.k, value: x.v })),
+    }
+  }
+
+  const mq = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(max-width: 720px)') : null
+  const figure = (title: string, empty: string, make: () => { nodes: FlowNode[], links: FlowLink[] } | null, dims: { h: [number, number], v: [number, number] }, name: string) => {
+    const box = h('div', { class: 'adm-flow-box', 'data-flow': name })
+    let drawn = false
+    const draw = () => {
+      // Hanya gambar pertama yang beranimasi; menggambar ulang karena lebar layar berubah tidak memutar ulang animasinya.
+      box.classList.toggle('redrawn', drawn)
+      drawn = true
+      const g = make()
+      if (!g) { box.replaceChildren(h('p', { class: 'app-muted' }, empty)); return }
+      const orient: Orient = mq?.matches ? 'v' : 'h'
+      const [along, cross] = dims[orient]
+      box.innerHTML = flowSvg({ nodes: g.nodes, links: g.links, orient, along, cross, label: `${title}: ${g.nodes.map((n) => n.label).join(', ')}` }).svg
+    }
+    draw()
+    mq?.addEventListener?.('change', () => { if (box.isConnected) draw() })
+    return h('figure', { class: 'adm-fig' }, h('figcaption', null, title), box)
+  }
+  const flows = h('div', { class: 'adm-flows' },
+    figure(T('flowPeople'), T('pipelineNone'), peopleFlow, { h: [640, 230], v: [430, 340] }, 'people'),
+    figure(T('flowEssays'), T('pipelineNone'), essayFlow, { h: [360, 230], v: [300, 340] }, 'essays'))
+
+  root.appendChild(h('section', { class: 'app-card adm-card adm-hero' },
+    h('h2', null, T('flowTitle')),
+    strip,
+    flows,
+    s.money.chargesDue.count > 0 ? h('p', { class: 'adm-due' }, h('b', null, String(s.money.chargesDue.count)), ` ${T('feesDue')} · ${units(s.money.chargesDue.amount)}`) : null,
+    h('p', { class: 'app-muted adm-foot' }, T('flowNote'))))
   return root
 }
 

@@ -106,3 +106,35 @@
 }
 @media (prefers-reduced-motion: reduce) { .adm-shell .adm-g-arc { transition: none; } }
 .adm-shell .adm-g-arc.zero { opacity: 0; }
+
+/* ================================================================ Ringkasan sebagai satu kanvas aliran (builder: "lebih creative, kurangi card-card")
+   Strip angka tanpa kotak + diagram aliran (admin-flow.ts): tebal pita = jumlah. */
+.adm-shell .adm-hero { gap: 22px; padding: 24px; }
+.adm-shell .adm-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.adm-shell .adm-kpi { display: grid; gap: 2px; align-content: start; padding: 2px 18px; border-left: 1px solid var(--o-line, #2b313a); min-width: 0; }
+.adm-shell .adm-kpi:first-child { border-left: 0; padding-left: 0; }
+.adm-shell .adm-kpi-v { color: var(--o-text, #eaecef); font: 800 clamp(30px, 3.6vw, 44px)/1.05 var(--font-mono, ui-monospace, monospace); overflow-wrap: anywhere; }
+.adm-shell .adm-kpi-l { color: #cfd4dc; font-size: 13px; font-weight: 700; }
+.adm-shell .adm-kpi small { color: #848e9c; font-size: 12.5px; }
+.adm-shell .adm-kpi.hot .adm-kpi-v { color: var(--o-amber, #ff9f1a); }
+.adm-shell .adm-kpi.hot small { color: var(--o-amber, #ff9f1a); }
+
+.adm-shell .adm-flows { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 28px 36px; align-items: start; }
+.adm-shell .adm-fig { display: grid; gap: 10px; margin: 0; min-width: 0; }
+.adm-shell .adm-fig figcaption { color: #cfd4dc; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.adm-shell .adm-flow-box svg { display: block; width: 100%; height: auto; overflow: visible; }
+.adm-shell .adm-rb { opacity: 0.62; transition: opacity 0.2s ease; animation: adm-fade 0.8s ease-out backwards; }
+.adm-shell .adm-rb:hover { opacity: 0.95; }
+@keyframes adm-fade { from { opacity: 0; } }
+.adm-shell .adm-flow-box.redrawn .adm-rb { animation: none; }
+.adm-shell .adm-pill text { font-family: var(--font-sans, inherit); }
+.adm-shell .adm-due { margin: 0; padding: 10px 14px; border: 1px solid var(--o-amber, #ff9f1a); border-radius: 10px; color: var(--o-amber, #ff9f1a); font-size: 13.5px; width: fit-content; max-width: 100%; }
+.adm-shell .adm-due b { font-family: var(--font-mono, ui-monospace, monospace); }
+
+@media (max-width: 860px) {
+  .adm-shell .adm-flows { grid-template-columns: minmax(0, 1fr); }
+  .adm-shell .adm-kpi { padding: 10px 14px; border-left: 0; border-top: 1px solid var(--o-line, #2b313a); }
+  .adm-shell .adm-kpi:first-child { border-top: 0; padding-left: 14px; }
+  .adm-shell .adm-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .adm-shell .adm-rb { animation: none !important; } }

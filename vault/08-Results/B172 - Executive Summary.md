@@ -14,7 +14,7 @@ memutuskan keanggotaan penerbit (D76); tiga tab baru hanya membaca.
 ## 1. Apa yang diubah
 
 - **`signer/src/admin.js` (baru) + `POST /admin/overview`:** satu permintaan bertanda tangan kini membawa `summary` (angka yang sama dengan dasbor Penerbit), `trail` (keputusan keanggotaan; penandatangan dipulihkan dari pesan + tanda tangan tersimpan), `health` (saldo deployer, kuota, RPC, database). Satu bagian yang gagal = `null` + nama di `unavailable`; daftar persetujuan tidak ikut jatuh.
-- **`web/src/pages/admin.ts` + `admin-dash.css`:** empat tab. Ringkasan: kartu statistik dengan penghitung angka dan bar bertumpuk (pendaftaran, pembagian uang, alur esai); Persetujuan: yang lama; Jejak: garis waktu dengan peran penandatangan dan bukti yang bisa dibuka; Kesehatan: gauge melingkar (saldo deployer, tiga kuota) dan daftar status layanan.
+- **`web/src/pages/admin.ts` + `admin-dash.css`:** empat tab. Ringkasan: satu kanvas "Platform sekilas" — strip angka tipografis + dua diagram aliran (peserta → pendaftaran → uang → Lencana/penerbit, dan esai → tahap) yang tebal pitanya = jumlah (`admin-flow.ts`; dirombak sesudah builder minta lebih kreatif dan lebih sedikit kartu); Persetujuan: yang lama; Jejak: garis waktu dengan peran penandatangan dan bukti yang bisa dibuka; Kesehatan: gauge melingkar (saldo deployer, tiga kuota) dan daftar status layanan.
 - **Acuan visual dari MCP FE** (21st.dev: kartu statistik, garis waktu aktivitas, bar status; Magic UI: gauge melingkar, penghitung angka) — dibangun ulang dengan TypeScript + CSS polos, tanpa React atau paket baru.
 - **Harness:** `verify:publisher` +8 cek (bentuk, penandatangan dipulihkan, baris uji disaring, kebocoran, 403 tanpa isi).
 
