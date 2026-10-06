@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-06
 command: server dev Vite sementara di 127.0.0.1:5174 (dimatikan sesudah uji); Chrome 154 tanpa kepala lewat `puppeteer-core`; identitas uji lewat server kunci sekali-pakai 127.0.0.1:8999 (kunci tidak pernah dicetak): R_owner (pemilik agen #2548) untuk dasbor Agent Owner, kunci penerbit untuk editor kursus; signer produksi di Railway (data nyata, hanya dibaca kecuali yang disebut)
 measured: 2026-10-06
-result: CATATAN BUILDER 6 OKT MALAM TERUJI — tombol back detail kursus dan kelas → #/app bagi yang masuk (tamu tetap #catalog); dasbor Agent Owner: 4 tab (satu panel tampil, panah kiri/kanan bekerja), halaman Akun (#/app/owner/account), kartu solid tanpa gradient (rgb 24,26,32), tombol nonaktif solid; editor kursus: "⚠ 8 masalah" tombol solid → dialog modal (tinggi bilah 65 → 65, tutup lewat Esc dan tombol); nol galat konsol; admin Lencana (D76) `#/app/admin`: setujui/tolak/cabut bertanda tangan, bukan-admin 403, `verify:publisher` 83/0 + uji negatif
+result: CATATAN BUILDER 6 OKT MALAM TERUJI — tombol back detail kursus dan kelas → #/app bagi yang masuk (tamu tetap #catalog); dasbor Agent Owner: 4 tab (satu panel tampil, panah kiri/kanan bekerja), halaman Akun (#/app/owner/account), kartu solid tanpa gradient (rgb 24,26,32), tombol nonaktif solid; editor kursus: "⚠ 8 masalah" tombol solid → dialog modal (tinggi bilah 65 → 65, tutup lewat Esc dan tombol); nol galat konsol; admin Lencana (D76) `#/app/admin`: setujui/tolak/cabut bertanda tangan, bukan-admin 403, `verify:publisher` 89/0 + uji negatif; baterai penuh 38/38 hijau, 1.649 pemeriksaan
 ---
 
 # T95 - Uji peramban perbaikan catatan builder 6 Okt malam (B124, B129, B130, B133)
@@ -101,4 +101,4 @@ Peramban lokal 127.0.0.1:5174 (vite sementara; untuk bagian admin diarahkan ke s
 
 Tangkapan layar (alat sesi): `b173-brain-desktop`, `b173-head-desktop`, `b173-rack-mobile`, `b173-admin-account`.
 
-**Batas:** produksi masih menjalankan signer lama sampai dorongan — sebelum itu akun shenhan604 yang masuk akan terbaca "belum berperan" (pilih peran); setelah dorongan ia langsung ke halaman Admin. Logo diuji di Chrome 154 saja; logo adalah mark pihak ketiga yang dipakai untuk mengenali provider (penyebutan nominatif).
+**Batas:** produksi sekarang LIVE (dorongan `483f083`: `deploy-signer` sukses, `/healthz` admins 1, bundel Vercel memuat kode logo dan Admin) tetapi login sungguhan shenhan604 belum dicoba builder — akun itu seharusnya langsung masuk ke halaman Admin. Logo diuji di Chrome 154 saja; logo adalah mark pihak ketiga yang dipakai untuk mengenali provider (penyebutan nominatif).

@@ -1,7 +1,7 @@
 ---
 tags: [reference, commands]
 status: active
-updated: 2026-10-04
+updated: 2026-10-06
 ---
 
 # Quick Reference
@@ -33,6 +33,7 @@ command and a page disagree, the run wins.**
 > tetap sama. Dua baterai sebelumnya hari itu merah karena data dan ambang, bukan regresi web: `verify:publisher` — prasyarat "Kelas Uji tanpa penilai" gagal sesudah sewa nyata #2549, dikoreksi
 > ([[09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit)]]); `verify:review` — komponen nilai terpotong batas 1000 baris PostgREST, B161.)*
 > *(6 Okt 18.10 WIB: **38 harness · 38 hijau, 1.616 pemeriksaan** (dihitung dari `numbers.json`, run penuh ke-7 hari itu) — `verify:mint` baru **43/0** (B169); web probe **267/0** (B168 +20, B170 +21, B171 +14); `verify:edge` 32 dari 32. Enam run penuh sebelumnya hari itu masing-masing merah di satu harness: gangguan jaringan (DNS XL Axiata mengalihkan `*.workers.dev`, B171), sisa baris uji dari run yang dihentikan sistem (`verify:publisher`), dan `e2e` ("validator asing" eksternal tidak menjawab, 48/0 saat diulang); satu run dihentikan sistem karena memori rendah.)*
+> *(6 Okt malam 20.37 WIB: **38 harness · 38 hijau, 1.649 pemeriksaan** (dihitung dari `numbers.json`, run penuh ke-9 hari itu, sesudah dorongan `483f083`) — `verify:publisher` **89/0** (admin Lencana D76 +16, admin-saja D77 +6, Alur esai +10), `verify:account` **51/0** (+1); web probe tetap **267/0**; harness lain tidak berubah. Dua run penuh sebelumnya malam itu merah di satu–dua harness: `verify:agents` 35/15 (gangguan sesaat; 35/0 saat diulang sendirian) dan `verify:account` 50/1 (harness masih menuntut dua akun dummy bertanda dev — dibetulkan sesuai keputusan D77); satu run dihentikan sengaja karena kodenya diubah di tengah jalan.)*
 > *(5 Okt malam 23.26 WIB: **37 harness · 37 hijau, 1.514 pemeriksaan** (dihitung dari `numbers.json`) — web probe **210/0** (B165 +37); harness lain tidak berubah.)*
 > *(5 Okt malam 21.49 WIB: **37 harness · 37 hijau, 1.477 pemeriksaan** (dihitung dari `numbers.json`) — web probe **173/0** (B164 +26), `check` **116/0** (korpus 31, sesudah kredensial uji B153),
 > `verify:edge` 10/0 (31 dari 31). Satu baterai sebelumnya malam itu (selesai 21.05 WIB) merah di belasan harness dengan galat `fetch` dan `/healthz` 500 — tanpa perubahan kode,
@@ -99,8 +100,8 @@ never retyped.
 | `npm run verify:records` | B124: `POST /me/records` hanya untuk pemilik alamat (pesan `lencana-records`), proyeksi tanpa teks esai, peserta lain tidak melihat baris ini | REKAMAN HIJAU — 17 pemeriksaan, 0 gagal |
 | `npm run verify:paywall` / `:live` | B125 (D60): kursus berbayar menjawab 402 + syarat x402; bayar = izin token + pesan enroll, penerbit menyiarkan settlement + pembagian; koin uji sekali per alamat per 24 jam | PAYWALL HIJAU — 24 pemeriksaan, 0 gagal |
 | `npm run verify:roles` | B128 (D63): kursi akun dari fakta — kunci penerbit, keanggotaan bertanda tangan kunci penerbit, `ownerOf` ERC-8004 | PERAN HIJAU — 39 pemeriksaan, 0 gagal |
-| `npm run verify:publisher` | B129 (D64): pengajuan anggota → disetujui kunci penerbit, dasbor penerbit (potongan dari chain, tanpa teks esai), aksi anggota sewa/tunjuk agen | ~~53 pemeriksaan~~ KURSI PENERBIT HIJAU — 57 pemeriksaan, 0 gagal *(3 Okt, sesudah B131: +2 kunci tim dijadikan akun dev sementara, +1 peran pemohon tercatat, +1 bersih-bersih)* |
-| `npm run verify:account` | B131 (D66): satu akun nyata satu peran — dipilih sekali bertanda tangan, aksi peran lain ditolak server, peran lama dari rekaman/fakta, akun dev memegang semua kursi | SATU PERAN HIJAU — 50 pemeriksaan, 0 gagal |
+| `npm run verify:publisher` | B129 (D64): pengajuan anggota → disetujui kunci penerbit, dasbor penerbit (potongan dari chain, tanpa teks esai), aksi anggota sewa/tunjuk agen | ~~53 pemeriksaan~~ KURSI PENERBIT HIJAU — 89 pemeriksaan, 0 gagal *(6 Okt malam: 67 sesudah Alur esai, +16 grup G admin Lencana D76, +6 admin-saja D77)* ~~57 pemeriksaan~~ *(3 Okt, sesudah B131: +2 kunci tim dijadikan akun dev sementara, +1 peran pemohon tercatat, +1 bersih-bersih)* |
+| `npm run verify:account` | B131 (D66): satu akun nyata satu peran — dipilih sekali bertanda tangan, aksi peran lain ditolak server, peran lama dari rekaman/fakta, akun dev memegang semua kursi | SATU PERAN HIJAU — 51 pemeriksaan, 0 gagal *(6 Okt malam, D77: +1 — dummy 1 tetap dev, dummy 2 admin-saja bukan dev/anggota)* |
 | `npm run account:dev -- --list` · `<alamat> [--note "…"] [--off] --apply` | B131: tandai/lepas akun dev (dummy builder) — hanya lewat CLI platform, tidak ada rute HTTP; akun di `ADMIN_ADDRESSES` hanya admin (D77), tanda dev tidak berlaku untuknya | 1 akun dev (dummy 1 builder; dummy 2 = shenhan604 dilepas 6 Okt malam, kini admin-saja) |
 | `npm run verify:authoring` | B133 (D67): anggota berhak susun menyimpan/mengajukan draf bertanda tangan atas hash isi; audit draf; terbit/tolak hanya kunci penerbit; kursus terbit masuk katalog server tanpa kunci kuis, bisa didaftari dan kuisnya dinilai server | SUSUN KURSUS HIJAU — 48 pemeriksaan, 0 gagal |
 | `npm run course:publish -- --list [--all]` · `<draftId> [--apply]` · `<draftId> --reject "catatan" --apply` | B133: kunci penerbit memutuskan draf yang diajukan (audit ulang dari isi tersimpan, `rubricHash` + `manifestHash` dihitung dan ikut ditandatangani); kursus terbit dimuat server ≤ 30 detik | — |

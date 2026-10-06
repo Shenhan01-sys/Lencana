@@ -1,10 +1,10 @@
 ---
 tags: [testing, "T56"]
 status: active
-updated: 2026-10-03
+updated: 2026-10-06
 command: npm run verify:account
 measured: 2026-10-03
-result: SATU PERAN HIJAU — 50 pemeriksaan / 0 gagal (3 Okt, B131; run pertama 44 / 6 merah karena id kursus salah di harness, run kedua 48 / 2 merah karena bertabrakan dengan baterai yang sedang jalan — lihat di bawah)
+result: SATU PERAN HIJAU — 51 pemeriksaan / 0 gagal (6 Okt malam, D77: dummy 2 admin-saja bukan lagi dev/anggota — cek dummy diganti dan +1; 3 Okt, B131: 50 / 0; run pertama 44 / 6 merah karena id kursus salah di harness, run kedua 48 / 2 merah karena bertabrakan dengan baterai yang sedang jalan — lihat di bawah)
 ---
 
 # T56 - signer account-check.js — B131: satu akun satu peran
@@ -33,6 +33,7 @@ semua barisnya dihapus di G dan sisanya dihitung ulang dari database.
 
 ```
 SATU PERAN HIJAU — 50 pemeriksaan, 0 gagal
+SATU PERAN HIJAU — 51 pemeriksaan, 0 gagal   (6 Okt malam, D77)
 ```
 
 **Dua run merah sebelum hijau, dicatat apa adanya:**
