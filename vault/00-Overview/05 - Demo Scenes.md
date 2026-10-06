@@ -1,7 +1,7 @@
 ---
 tags: [overview, demo]
 status: active
-updated: 2026-10-03
+updated: 2026-10-07
 ---
 
 # 05 - Demo Scenes
@@ -9,6 +9,10 @@ updated: 2026-10-03
 Five minutes, four scenes. Each scene answers one of the four mechanical questions in
 [[00-Overview/01 - Briefing]], and each is listed here with **the command or page that makes it
 happen** — a scene with no runnable trigger is a slide, not a demo.
+
+> **7 Okt (D79, B173):** builder memilih **video pitch ±90 detik** — motion graphics dengan frame website Lencana yang imersif,
+> Remotion, bahasa Inggris. Rencananya: [[Video-Workspace/B173 - Rencana Video Pitch 90 detik]]. Empat adegan lima menit di bawah tetap berlaku sebagai bahan demo
+> teknis (dan gerbang B65 — `npm run e2e` + `npm run journey` hijau pada hari rekaman — ikut dipakai B173).
 
 | # | scene | what the audience sees | how it is actually produced | honest limits to say out loud |
 |---|---|---|---|---|

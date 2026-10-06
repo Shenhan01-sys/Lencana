@@ -50,6 +50,11 @@ signer/.store/
 .DS_Store
 Thumbs.db
 
+# B173 (7 Okt): bahan referensi video pitch yang ditaruh builder — klip pihak ketiga (hak cipta
+# pemiliknya) dan kit Motion-as-Code (model ONNX 95 MB, SFX buatan ElevenLabs tanpa lisensi tertulis).
+# Tetap di disk untuk dipelajari; tidak pernah masuk riwayat repo publik ini.
+vault/Video-Workspace/Reference-VideoPitchs/
+
 # Cache `wrangler`: state login + artefak build lokal. Yang kita commit dari `cloudflare/` hanya
 # source-nya — `wrangler.toml` sengaja berisi alamat publik saja (resolver + RPC), karena kunci
 # tanda tangan tidak pernah menyentuh tepi sajian.

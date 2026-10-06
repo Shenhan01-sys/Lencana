@@ -11,15 +11,21 @@
 # Run: powershell -ExecutionPolicy Bypass -File scripts\check-lang.ps1
 
 $vault = Split-Path $PSScriptRoot -Parent
-$files = Get-ChildItem -LiteralPath $vault -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch '\\\.obsidian\\' }
+# Same skip list as check-links.ps1. 7 Oct (B173): the Motion-as-Code kit the builder placed in
+# Video-Workspace/ ships an app/node_modules with third-party READMEs (tween.js, fflate, nanoid) that
+# contain CJK - not our prose, so not this check's business.
+$skip = '\\(node_modules|lib|out|cache|broadcast|dist|artifacts|vendor|\.obsidian|\.git|\.store|\.keys)\\'
+$files = Get-ChildItem -LiteralPath $vault -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch $skip }
 $hits = 0
 
 # Hiragana/Katakana 3040-30FF, CJK 4E00-9FFF, Hangul AC00-D7AF
 $range = '[\u3040-\u30ff\u4e00-\u9fff\uac00-\ud7af]'
 
 foreach ($f in $files) {
-  $lines = Get-Content -LiteralPath $f.FullName -Encoding UTF8
-  if (-not $lines) { continue }
+  # @() keeps a one-line file an array: without it Get-Content returns a bare string, $lines[0] is its
+  # first CHARACTER, and a single-line file was never really scanned (found 7 Oct by a red-path self-test).
+  $lines = @(Get-Content -LiteralPath $f.FullName -Encoding UTF8)
+  if ($lines.Count -eq 0) { continue }
   for ($i = 0; $i -lt $lines.Count; $i++) {
     if ($lines[$i] -match $range) {
       Write-Host ("CJK: " + $f.Name + ":" + ($i + 1)) -ForegroundColor Red
