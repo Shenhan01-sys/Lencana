@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipe — Alur proses bisnis Lencana (Admin · Ringkasan)</title>
+<!--
+  PROTOTIPE STANDALONE (B172, 6 Okt malam) — belum terpasang di aplikasi.
+  Permintaan builder: "tiap station gausa pakai station card, langsung UI perwujudan proses bisnisnya, tapi yang solid".
+  Doktrin FE builder: wakili prosesnya, jangan deskripsikan. Tiap station = BENDA nyata dari langkah itu, berdiri di satu sabuk:
+    Kursus → rak buku · Pendaftaran → gerbang + tiket · Kelas & esai → tumpukan kertas ujian · Penilaian agen → robot + papan rekap
+    Pengesahan → meja stempel · Hasil → lencana · Penyelesaian → pipa koin + dua toples.
+  Data jadi geometri: jumlah buku/tiket/kertas/robot/stempel/lencana digambar sungguhan; tinggi isi toples = bagian uang.
+  Gaya: SOLID — warna datar palet Lencana, tanpa gradient halus, tanpa glow, tanpa kartu pembungkus station.
+  Tanpa jaringan, tanpa pustaka. Angka di objek `D` = SAMPEL dari data produksi 6 Okt 2026 (sunting untuk melihat bentuknya berubah).
+  Cara pakai: buka berkas ini di peramban. Klik (atau Enter pada) sebuah benda untuk melihat detailnya.
+-->
+<style>
+  :root {
+    --bg: #0b0e11; --card: #181a20; --inset: #1e2329; --line: #2b313a; --line2: #3a414c;
+    --text: #eaecef; --sub: #b7bdc6; --mute: #848e9c; --steel: #5d6672; --paper: #cfd4dc;
+    --gold: #f0b90b; --green: #0ecb81; --amber: #ff9f1a; --red: #f6465d;
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); }
+  body { min-height: 100vh; padding: 28px 20px 48px; }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  .tag { font: 700 12px var(--mono); letter-spacing: .08em; color: var(--gold); text-transform: uppercase; }
+  h1 { margin: 6px 0 6px; font-size: clamp(26px, 3.4vw, 38px); letter-spacing: -0.01em; }
+  .lede { margin: 0 0 6px; max-width: 70ch; color: var(--sub); font-size: 15.5px; line-height: 1.55; }
+  .note { margin: 0 0 22px; color: var(--mute); font-size: 13px; }
+
+  /* spanduk pengajuan (sama seperti halaman Admin) */
+  .banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin: 0 0 22px; padding: 14px 18px; border: 2px solid var(--gold); border-radius: 14px; background: var(--card); }
+  .banner b { color: var(--gold); font-size: 18px; margin-right: 4px; }
+  .btn { padding: 9px 18px; border: 1px solid var(--line2); border-radius: 10px; background: var(--line); color: var(--text); font: 700 14px var(--font); cursor: pointer; }
+  .btn.pri { border-color: var(--gold); background: var(--gold); color: #14110a; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* ================================================================ lini proses */
+  .line { position: relative; display: flex; align-items: flex-start; padding: 8px 0 0; }
+  .rail { position: absolute; left: 0; right: 0; top: 158px; height: 14px; background: var(--inset); border-top: 2px solid var(--line2); border-bottom: 2px solid var(--line2); border-radius: 3px; overflow: hidden; }
+  .rail::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, var(--line) 0 12px, transparent 12px 24px); animation: belt 1.4s linear infinite; }
+  @keyframes belt { to { background-position: 24px 0; } }
+
+  .st { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 0 2px 6px; border: 0; background: none; color: inherit; font: inherit; text-align: center; cursor: pointer; border-radius: 14px; }
+  .st:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+  .obj { display: block; width: 100%; height: 190px; overflow: visible; transition: transform .18s ease; }
+  .st:hover .obj, .st:focus-visible .obj { transform: translateY(-5px); }
+  .lab { display: grid; gap: 2px; margin-top: 16px; justify-items: center; }
+  .lab b { font: 800 clamp(26px, 2.6vw, 34px)/1 var(--mono); color: var(--text); }
+  .lab strong { color: var(--sub); font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; }
+  .lab small { color: var(--mute); font-size: 12.5px; line-height: 1.35; max-width: 18ch; }
+  .lab small.hot { color: var(--amber); font-weight: 700; }
+  .st .more { margin-top: 8px; color: var(--mute); font: 600 11.5px var(--mono); }
+  .st:hover .more, .st:focus-visible .more { color: var(--gold); }
+
+  .hop { position: absolute; top: 134px; width: 28px; height: 28px; margin-left: -14px; pointer-events: none; z-index: 3; }
+  @keyframes hopx { 0% { transform: translateX(-56px) scale(.15); } 16% { transform: translateX(-36px) scale(1); } 84% { transform: translateX(36px) scale(1); } 100% { transform: translateX(56px) scale(.15); } }
+  .hop svg { display: block; width: 100%; height: 100%; animation: hopx 3.4s linear infinite; }
+
+  /* animasi benda (stempel menekan, koin jatuh, tanda baca) — semuanya transform sederhana */
+  .stamp { animation: press 2.8s ease-in-out infinite; transform-box: fill-box; }
+  @keyframes press { 0%, 55%, 100% { transform: translateY(0); } 70%, 78% { transform: translateY(14px); } }
+  .coin { animation: fall 2.2s linear infinite; }
+  @keyframes fall { 0% { transform: translateY(-14px); opacity: 0; } 15% { opacity: 1; } 70% { opacity: 1; } 100% { transform: translateY(34px); opacity: 0; } }
+  .blink { animation: blink 1.8s steps(2, jump-none) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+
+  /* ================================================================ ponsel / layar sempit: sabuk vertikal */
+  @media (max-width: 1080px) {
+    .line { flex-direction: column; align-items: stretch; }
+    .rail { display: none; }
+    .st { display: grid; grid-template-columns: 188px minmax(0, 1fr); align-items: center; text-align: left; justify-items: start; gap: 0 12px; padding: 0; }
+    .obj { width: 188px; height: 190px; grid-row: 1 / span 2; }
+    .lab { justify-items: start; margin-top: 0; align-self: end; }
+    .st .more { align-self: start; margin-top: 6px; }
+    .lab small { max-width: none; }
+    .hop { position: relative; top: auto; left: auto !important; display: block; width: 28px; height: 64px; margin: 0 0 0 80px; }
+    .hop::before { content: ''; position: absolute; left: 11px; top: 0; bottom: 0; width: 6px; background: var(--inset); border: 2px solid var(--line2); border-radius: 3px; }
+    .hop svg { position: absolute; left: 0; top: 0; width: 28px; height: 28px; animation: hopy 2.8s linear infinite; }
+    @keyframes hopy { 0% { transform: translateY(-6px) scale(.15); } 16% { transform: translateY(2px) scale(1); } 84% { transform: translateY(34px) scale(1); } 100% { transform: translateY(44px) scale(.15); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .rail::after, .hop svg, .stamp, .coin, .blink { animation: none !important; } }
+
+  /* strip angka di bawah lini (tipografi, bukan kotak) */
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 30px 0 6px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .kpi { display: grid; gap: 2px; padding: 2px 18px; border-left: 1px solid var(--line); }
+  .kpi:first-child { border-left: 0; padding-left: 0; }
+  .kpi b { font: 800 clamp(30px, 3.4vw, 42px)/1.05 var(--mono); }
+  .kpi span { color: #cfd4dc; font-size: 13px; font-weight: 700; }
+  .kpi small { color: var(--mute); font-size: 12.5px; }
+  .kpi.hot b, .kpi.hot small { color: var(--amber); }
+  @media (max-width: 700px) { .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kpi { padding: 10px 14px; border-left: 0; border-top: 1px solid var(--line); } .kpi:first-child { border-top: 0; padding-left: 14px; } }
+
+  /* ================================================================ popup detail */
+  dialog { width: min(600px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: var(--text); box-shadow: 0 24px 64px rgba(0, 0, 0, .6); }
+  dialog::backdrop { background: rgba(5, 7, 10, .72); }
+  .d-f { display: grid; gap: 14px; padding: 22px; max-height: min(88vh, 780px); overflow: auto; }
+  .d-head { display: flex; align-items: center; gap: 14px; }
+  .d-head svg { flex: none; width: 96px; height: 100px; overflow: visible; }
+  .d-step { display: block; color: var(--mute); font: 600 12px var(--mono); }
+  .d-head h2 { margin: 0; font-size: 21px; letter-spacing: .02em; }
+  .d-what { margin: 0; color: #cfd4dc; font-size: 14.5px; line-height: 1.6; }
+  .d-rows { display: grid; grid-template-columns: minmax(0, 1fr) auto; margin: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .d-rows dt, .d-rows dd { margin: 0; padding: 9px 14px; border-bottom: 1px solid var(--line); }
+  .d-rows dt:nth-last-of-type(1), .d-rows dd:nth-last-of-type(1) { border-bottom: 0; }
+  .d-rows dt { color: var(--sub); font-size: 13.5px; }
+  .d-rows dd { font: 700 13.5px var(--mono); text-align: right; overflow-wrap: anywhere; }
+  .d-rows dd.gold { color: var(--gold); } .d-rows dd.green { color: var(--green); } .d-rows dd.amber { color: var(--amber); } .d-rows dd.red { color: var(--red); }
+  .d-actors { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--mute); font-size: 12.5px; }
+  .d-actors b { padding: 3px 10px; border: 1px solid var(--line2); border-radius: 999px; background: var(--inset); color: var(--text); font-weight: 600; }
+  .d-src { margin: 0; color: var(--mute); font-size: 12.5px; line-height: 1.5; }
+  .d-src b { color: var(--sub); }
+  .d-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag">Admin Lencana · Ringkasan · prototipe</div>
+  <h1>Platform sekilas</h1>
+  <p class="lede">Perjalanan satu pendaftaran, dari kursus sampai uang. Setiap benda di sabuk adalah langkah prosesnya; jumlah benda = jumlah data. Klik sebuah benda untuk detailnya.</p>
+  <p class="note">Prototipe standalone — angka adalah <b>sampel dari data produksi 6 Okt 2026</b> (objek <code>D</code> di skrip). Belum terpasang di aplikasi.</p>
+
+  <div class="banner" id="banner"><span><b id="pend">1</b> pengajuan menunggu keputusanmu.</span><button class="btn pri" type="button">Tinjau</button></div>
+
+  <div class="line" id="line"><div class="rail" aria-hidden="true"></div></div>
+
+  <div class="strip" id="strip"></div>
+</div>
+
+<script>
+/* ===================================================================== data (SAMPEL produksi 6 Okt 2026) */
+const D = {
+  token: 'LDC-demo',
+  members: { active: 1, pending: 1 },
+  courses: { total: 8, listed: 7 },
+  learners: { unique: 10, enrollments: 13, paid: 3, free: 10 },
+  money: { gross: 27, platformBps: 1000, platform: 2.7, net: 24.3, dueCount: 2, dueAmount: '0.0052', paidCount: 0, paidAmount: '0' },
+  essays: { awaitingJudge: 0, insufficient: 0, awaitingReview: 3, approved: 1, adjusted: 3, rejected: 0, graded: 2 },
+  agents: { known: 6, hires: 3, reviewers: 5 },
+}
+const E = D.essays
+const totalEssays = Object.values(E).reduce((a, b) => a + b, 0)
+const proposals = E.awaitingReview + E.approved + E.adjusted + E.rejected
+const accepted = E.approved + E.adjusted + E.graded
+const decided = E.approved + E.adjusted + E.rejected
+
+const C = { bg: '#0b0e11', card: '#181a20', inset: '#1e2329', line: '#2b313a', line2: '#3a414c', text: '#eaecef', sub: '#b7bdc6', mute: '#848e9c', steel: '#5d6672', paper: '#cfd4dc', gold: '#f0b90b', green: '#0ecb81', amber: '#ff9f1a', red: '#f6465d' }
+const R = (x, y, w, h, fill, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" ${extra}/>`
+
+/* ===================================================================== benda-benda (SVG datar, lantai sabuk di y=150) */
+function shelf () { // rak kursus: satu buku per kursus; emas = terdaftar, abu = belum terdaftar
+  const n = Math.min(D.courses.total, 11)
+  let out = R(14, 40, 152, 112, C.inset, `stroke="${C.line2}" stroke-width="2" rx="4"`) + R(14, 96, 152, 6, C.line2)
+  const books = []
+  for (let i = 0; i < n; i += 1) {
+    const top = i < 6
+    const idx = top ? i : i - 6
+    const x = top ? 24 + idx * 22 : 24 + idx * 21
+    const h = 34 + ((i * 7) % 4) * 4 + (top ? 0 : 2)
+    const base = top ? 94 : 148
+    const fill = i < D.courses.listed ? C.gold : C.steel
+    books.push(R(x, base - h, 17, h, fill, 'rx="2"') + R(x + 3, base - h + 9, 11, 3, C.card) + R(x + 3, base - h + 15, 11, 2, C.card))
+  }
+  out += books.join('')
+  if (D.members.pending > 0) out += `<g transform="rotate(-5 134 128)">${R(108, 112, 52, 34, C.amber, 'rx="4"')}<text x="134" y="132" text-anchor="middle" font-family="ui-monospace,monospace" font-weight="800" font-size="19" fill="#14110a">${D.members.pending}</text><text x="134" y="142" text-anchor="middle" font-size="8" font-weight="800" fill="#14110a">IZIN</text></g>`
+  return out
+}
+
+function gate () { // gerbang masuk: tiket gratis (abu) di kiri, tiket berbayar (hijau + koin) di kanan
+  const free = Math.min(D.learners.free, 12), paid = Math.min(D.learners.paid, 8)
+  let out = ''
+  for (let i = 0; i < free; i += 1) out += R(6 + (i % 2) * 2, 146 - (i + 1) * 5, 40, 4, C.steel, `stroke="${C.line2}" stroke-width="1"`)
+  out += R(58, 62, 64, 88, C.inset, `stroke="${C.line2}" stroke-width="2" rx="4"`) + R(70, 78, 40, 9, C.bg, 'rx="2"') + R(66, 56, 48, 8, C.line2, 'rx="2"')
+  out += `<g stroke="${C.gold}" stroke-width="5" stroke-linecap="round"><line x1="90" y1="116" x2="90" y2="98"/><line x1="90" y1="116" x2="106" y2="125"/><line x1="90" y1="116" x2="74" y2="125"/></g><circle cx="90" cy="116" r="6" fill="${C.gold}"/>`
+  for (let i = 0; i < paid; i += 1) out += R(132, 146 - (i + 1) * 13, 44, 11, C.green, 'rx="2"') + `<circle cx="144" cy="${146 - (i + 1) * 13 + 5.5}" r="3.6" fill="${C.gold}"/>` + R(152, 146 - (i + 1) * 13 + 3, 16, 2.5, '#0b3d2b') + R(152, 146 - (i + 1) * 13 + 7, 11, 2.5, '#0b3d2b')
+  return out
+}
+
+function desk () { // meja dengan tumpukan kertas ujian: satu kertas per esai diserahkan
+  const n = Math.min(Math.max(totalEssays, 1), 14)
+  let out = R(10, 132, 160, 14, C.line, `stroke="${C.line2}" stroke-width="2" rx="3"`) + R(22, 146, 8, 6, C.line2) + R(150, 146, 8, 6, C.line2)
+  for (let i = 0; i < n; i += 1) out += R(44 + (i % 3) * 2, 130 - (i + 1) * 6, 74, 5, C.paper, `stroke="${C.mute}" stroke-width="1"`)
+  const topY = 130 - n * 6
+  out += R(44, topY - 46, 74, 46, C.paper, `stroke="${C.mute}" stroke-width="1.5"`) + R(52, topY - 38, 58, 3, C.steel) + R(52, topY - 30, 50, 3, C.steel) + R(52, topY - 22, 56, 3, C.steel) + R(52, topY - 14, 36, 3, C.steel)
+  out += `<g transform="rotate(-24 150 112)">${R(138, 80, 8, 56, C.gold, 'rx="2"')}<polygon points="138,136 146,136 142,146" fill="${C.paper}"/>${R(138, 76, 8, 6, C.steel, 'rx="2"')}</g>`
+  return out
+}
+
+function robot () { // robot penilai + papan rekap (batang = proporsi status esai) + deretan agen (emas = disewa)
+  let out = R(60, 40, 64, 44, C.sub, 'rx="10"') + `<line x1="92" y1="40" x2="92" y2="26" stroke="${C.sub}" stroke-width="4"/><circle cx="92" cy="22" r="6" fill="${C.gold}"/>`
+  out += `<circle cx="78" cy="60" r="9" fill="${C.card}"/><circle cx="106" cy="60" r="9" fill="${C.card}"/><circle cx="78" cy="60" r="4" fill="${C.gold}"/><circle cx="106" cy="60" r="4" fill="${C.gold}"/>` + R(80, 74, 24, 4, C.card, 'rx="2"')
+  out += R(66, 88, 52, 46, C.sub, 'rx="6"') + R(76, 100, 32, 6, C.card, 'rx="2"') + R(76, 112, 20, 6, C.gold, 'rx="2"') + R(54, 92, 12, 34, C.steel, 'rx="5"') + R(118, 92, 12, 26, C.steel, 'rx="5"')
+  // papan rekap
+  out += R(122, 70, 52, 66, C.paper, `stroke="${C.mute}" stroke-width="1.5" rx="3"`) + R(138, 64, 20, 9, C.gold, 'rx="2"')
+  const bars = [[proposals, C.gold], [E.approved, C.green], [E.adjusted, C.amber], [E.graded, C.steel]]
+  const max = Math.max(totalEssays, 1)
+  bars.forEach(([v, col], i) => { out += R(128, 82 + i * 12, 40, 7, '#a9b0ba', 'rx="1.5"') + R(128, 82 + i * 12, Math.max(v ? 3 : 0, (v / max) * 40), 7, col, 'rx="1.5"') })
+  out += R(76, 134, 10, 16, C.steel, 'rx="2"') + R(98, 134, 10, 16, C.steel, 'rx="2"')
+  // agen dikenal (di bawah sabuk): emas = disewa
+  const n = Math.min(D.agents.known, 9)
+  for (let i = 0; i < n; i += 1) { const x = 90 - (n * 19) / 2 + i * 19; out += R(x, 168, 15, 12, i < D.agents.hires ? C.gold : C.steel, 'rx="3"') + R(x + 3, 171, 3, 3, C.card) + R(x + 9, 171, 3, 3, C.card) }
+  return out
+}
+
+function stampDesk () { // meja stempel: satu kertas usulan per usulan; hijau disahkan, jingga disesuaikan, merah ditolak, garis putus = menunggu
+  const list = [...Array(E.approved).fill('g'), ...Array(E.adjusted).fill('a'), ...Array(E.rejected).fill('r'), ...Array(E.awaitingReview).fill('w')].slice(0, 12)
+  let out = ''
+  const per = Math.min(list.length, 6)
+  list.forEach((k, i) => {
+    const row = i < 6 ? 0 : 1, idx = row ? i - 6 : i
+    const w = 20, gap = 4, count = row ? list.length - 6 : per
+    const x = 90 - (count * (w + gap) - gap) / 2 + idx * (w + gap), y = row ? 148 - 30 - 34 : 148 - 30
+    const paper = R(x, y, w, 30, k === 'w' ? 'none' : C.paper, k === 'w' ? `stroke="${C.mute}" stroke-width="1.5" stroke-dasharray="3 3" rx="2"` : `stroke="${C.mute}" stroke-width="1" rx="2"`)
+    const col = k === 'g' ? C.green : k === 'a' ? C.amber : k === 'r' ? C.red : null
+    out += paper + (col ? `<circle cx="${x + w / 2}" cy="${y + 11}" r="6" fill="${col}"/>` + R(x + 4, y + 21, w - 8, 3, C.steel) : R(x + 4, y + 8, w - 8, 3, C.steel) + R(x + 4, y + 15, w - 10, 3, C.steel))
+  })
+  out += R(30, 140, 120, 10, C.inset, `stroke="${C.line2}" stroke-width="1.5" rx="2"`)
+  out += `<g class="stamp">${`<circle cx="90" cy="26" r="13" fill="${C.gold}"/>`}${R(84, 38, 12, 28, C.sub)}${R(62, 66, 56, 14, C.sub, 'rx="3"')}${R(66, 78, 48, 6, C.green, 'rx="2"')}</g>`
+  return out
+}
+
+function badge () { // lencana: perisai emas dengan centang; deretan peniti kecil = esai diterima
+  let out = `<polygon points="70,112 56,150 76,142 86,152 92,114" fill="${C.green}"/><polygon points="110,112 124,150 104,142 94,152 88,114" fill="${C.green}"/>`
+  out += `<path d="M90 30 L136 46 V84 C136 110 116 126 90 136 C64 126 44 110 44 84 V46 Z" fill="${C.gold}"/><path d="M90 42 L126 54 V84 C126 104 110 117 90 125 C70 117 54 104 54 84 V54 Z" fill="${C.card}"/>`
+  out += `<path d="M72 84 L86 98 L110 68" fill="none" stroke="${C.gold}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>`
+  const n = Math.min(accepted, 10)
+  for (let i = 0; i < n; i += 1) out += `<circle cx="${90 - (n * 17) / 2 + 8.5 + i * 17}" cy="172" r="6.5" fill="${C.green}"/>` + `<path d="M${90 - (n * 17) / 2 + 5.5 + i * 17} 172 l2 2 l4 -4.5" fill="none" stroke="#0b3d2b" stroke-width="1.8" stroke-linecap="round"/>`
+  return out
+}
+
+function jars () { // pipa koin dengan pembagi + dua toples: tinggi isi = bagian uang
+  const f = D.money.platformBps / 10000, H = 56
+  let out = `<polygon points="66,22 114,22 104,50 76,50" fill="${C.sub}"/>` + R(84, 50, 12, 18, C.line2)
+  out += `<path d="M90 68 V82 H44 V96 M90 82 H136 V96" fill="none" stroke="${C.line2}" stroke-width="10" stroke-linejoin="round"/>`
+  out += `<g class="coin"><circle cx="90" cy="30" r="6" fill="${C.gold}"/></g><g class="coin" style="animation-delay:.7s"><circle cx="86" cy="30" r="6" fill="${C.gold}"/></g><g class="coin" style="animation-delay:1.4s"><circle cx="94" cy="30" r="6" fill="${C.gold}"/></g>`
+  // toples kiri = bagian Lencana, kanan = bersih penerbit
+  out += R(18, 96, 52, 54, C.inset, `stroke="${C.line2}" stroke-width="2" rx="4"`) + R(20, 148 - Math.max(3, f * H), 48, Math.max(3, f * H), C.gold)
+  out += R(110, 96, 52, 54, C.inset, `stroke="${C.line2}" stroke-width="2" rx="4"`) + R(112, 148 - (1 - f) * H, 48, (1 - f) * H, C.green)
+  out += `<text x="44" y="90" text-anchor="middle" font-size="10" font-weight="800" fill="${C.gold}" font-family="ui-monospace,monospace">${f * 100}%</text><text x="136" y="90" text-anchor="middle" font-size="10" font-weight="800" fill="${C.green}" font-family="ui-monospace,monospace">${100 - f * 100}%</text>`
+  if (D.money.dueCount > 0) out += R(74, 124, 32, 26, C.amber, 'rx="3"') + `<text x="90" y="141" text-anchor="middle" font-size="16" font-weight="800" fill="#14110a" font-family="ui-monospace,monospace">${D.money.dueCount}</text><text x="90" y="161" text-anchor="middle" font-size="8.5" font-weight="700" fill="${C.amber}">TAGIHAN</text>`
+  return out
+}
+
+/* ===================================================================== benda yang berjalan di sabuk antar station */
+const T = {
+  book: `<svg viewBox="0 0 28 28">${R(6, 3, 16, 22, C.gold, 'rx="2"')}${R(9, 8, 10, 3, C.card)}${R(9, 14, 10, 2, C.card)}</svg>`,
+  ticket: `<svg viewBox="0 0 28 28">${R(2, 8, 24, 13, C.green, 'rx="2"')}<circle cx="14" cy="14.5" r="3.4" fill="${C.gold}"/></svg>`,
+  sheet: `<svg viewBox="0 0 28 28">${R(6, 3, 17, 22, C.paper, `stroke="${C.mute}" rx="2"`)}${R(9, 8, 11, 2, C.steel)}${R(9, 13, 11, 2, C.steel)}${R(9, 18, 7, 2, C.steel)}</svg>`,
+  scored: `<svg viewBox="0 0 28 28">${R(6, 3, 17, 22, C.paper, `stroke="${C.mute}" rx="2"`)}${R(9, 8, 11, 3, C.gold)}${R(9, 14, 8, 3, C.gold)}${R(9, 20, 4, 2, C.steel)}</svg>`,
+  stamped: `<svg viewBox="0 0 28 28">${R(6, 3, 17, 22, C.paper, `stroke="${C.mute}" rx="2"`)}<circle cx="14.5" cy="13" r="5.5" fill="${C.green}"/>${R(9, 21, 11, 2, C.steel)}</svg>`,
+  coin: `<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="10" fill="${C.gold}"/><circle cx="14" cy="14" r="6" fill="none" stroke="#b78900" stroke-width="2"/></svg>`,
+}
+
+/* ===================================================================== station = benda + angka + (popup) */
+const fmtN = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(1))
+const money = (v) => `${fmtN(v)} ${D.token}`
+const S = [
+  { id: 'course', draw: shelf, big: D.courses.total, title: 'Kursus', sub: `${D.courses.listed} terdaftar di katalog`, hot: D.members.pending > 0 ? `${D.members.pending} izin anggota menunggu` : '', tone: 'gold', hop: 'book',
+    what: 'Penerbit menyusun dan menerbitkan kursus; anggota penerbit bekerja dengan wewenang yang disetujui admin Lencana. Semua bermula di sini: kursus harus ada sebelum ada yang mendaftar. Satu buku di rak = satu kursus (emas = terdaftar di katalog, abu = belum).',
+    rows: [['Kursus (total)', D.courses.total], ['Terdaftar di katalog', D.courses.listed], ['Anggota penerbit aktif', D.members.active, 'green'], ['Pengajuan menunggu keputusan', D.members.pending, D.members.pending ? 'amber' : '']],
+    actors: ['Penerbit', 'Anggota penerbit', 'Admin Lencana (menyetujui anggota)'], source: 'Manifest kursus dan tabel keanggotaan penerbit.', action: 'Buka Persetujuan' },
+  { id: 'enroll', draw: gate, big: D.learners.enrollments, title: 'Pendaftaran', sub: `${D.learners.unique} peserta · ${D.learners.paid} berbayar · ${D.learners.free} gratis`, tone: 'gold', hop: 'ticket',
+    what: 'Peserta mendaftar ke sebuah kelas. Kursus berbayar menuntut pembayaran x402 dengan token uji sebelum kelas terbuka; kursus gratis langsung terbuka. Tumpukan abu = tiket gratis, tumpukan hijau = tiket berbayar (satu tiket = satu pendaftaran).',
+    rows: [['Pendaftaran', D.learners.enrollments], ['Peserta unik', D.learners.unique], ['Berbayar', D.learners.paid, 'green'], ['Gratis', D.learners.free], ['Kotor dari order lunas', money(D.money.gross), 'amber']],
+    actors: ['Peserta (dompet tertanam)', 'Platform (menegakkan paywall)'], source: 'Tabel pendaftaran dan order lunas di database — angka yang sama dengan dasbor Penerbit, tanpa baris uji.' },
+  { id: 'essay', draw: desk, big: totalEssays, title: 'Kelas & esai', sub: `${E.awaitingJudge} menunggu penilai`, hot: E.insufficient ? `${E.insufficient} kurang bukti` : '', tone: 'gold', hop: 'sheet',
+    what: 'Peserta menyelesaikan pelajaran; kuis dinilai server dan esai diserahkan. Esai yang belum cukup untuk dinilai dikembalikan kepada peserta. Satu kertas di tumpukan = satu esai.',
+    rows: [['Esai diserahkan', totalEssays], ['Menunggu penilai', E.awaitingJudge], ['Kurang bukti', E.insufficient, E.insufficient ? 'amber' : '']],
+    actors: ['Peserta'], source: 'Esai yang diserahkan dan statusnya (teks esai tidak ditampilkan di sini).' },
+  { id: 'agent', draw: robot, big: D.agents.hires, title: 'Penilaian agen', sub: `${D.agents.known} agen dikenal · ${proposals} usulan`, tone: 'gold', hop: 'scored',
+    what: 'Agen ERC-8004 yang disewa penerbit mengusulkan nilai rubrik untuk tiap esai; pemilik agen menandatangani usulannya. Tiap aktivitas ditagih ke penerbit. Deretan robot kecil = agen yang dikenal platform (emas = sedang disewa); batang di papan = proporsi status esai.',
+    rows: [['Agen dikenal', D.agents.known], ['Sewa aktif', D.agents.hires, 'gold'], ['Usulan diajukan', proposals], ['Dinilai langsung penerbit', E.graded]],
+    actors: ['Agen', 'Pemilik agen (menandatangani)', 'Penerbit (menyewa)'], source: 'Sewa agen dan peran pengesah di database; kepemilikan dibaca dari registry ERC-8004 di chain 97.' },
+  { id: 'review', draw: stampDesk, big: decided, title: 'Pengesahan', sub: `${D.agents.reviewers} pengesah · ${E.awaitingReview} menunggu`, hot: E.awaitingReview ? `${E.awaitingReview} menunggu stempel` : '', tone: 'gold', hop: 'stamped',
+    what: 'Pengesah — orang atau agen lain — memeriksa tiap usulan: setujui, sesuaikan nilainya, atau tolak. Barulah nilainya dihitung. Esai yang ditolak kembali ke peserta. Satu kertas = satu usulan: hijau disahkan, jingga disesuaikan, merah ditolak, garis putus belum diputuskan.',
+    rows: [['Pengesah ditunjuk', D.agents.reviewers], ['Menunggu pengesahan', E.awaitingReview, E.awaitingReview ? 'amber' : ''], ['Disahkan', E.approved, 'green'], ['Disesuaikan', E.adjusted, 'amber'], ['Ditolak', E.rejected, E.rejected ? 'red' : '']],
+    actors: ['Pengesah (orang atau agen)', 'Pemilik agen (bila pengesahnya agen)'], source: 'Keputusan pengesahan dan peran pengesah yang ditunjuk per kursus.' },
+  { id: 'result', draw: badge, big: accepted, title: 'Hasil', sub: `esai diterima · ${E.rejected} ditolak`, tone: 'gold', hop: 'coin',
+    what: 'Nilai akhir menentukan peserta lulus gerbang atau tidak. Penerbit lalu menerbitkan kredensial — admin tidak pernah menerbitkan atau mencabut kredensial. Peniti hijau = satu esai diterima.',
+    rows: [['Esai diterima', accepted, 'green'], ['· disahkan', E.approved], ['· disesuaikan', E.adjusted], ['· dinilai langsung', E.graded], ['Ditolak', E.rejected], ['Kurang bukti', E.insufficient]],
+    actors: ['Penerbit (menerbitkan kredensial)'], source: 'Hasil akhir esai (disahkan, disesuaikan, dinilai langsung) dari tabel pengesahan.' },
+  { id: 'settle', draw: jars, big: fmtN(D.money.gross), title: 'Penyelesaian', sub: `${D.token} · Lencana ${fmtN(D.money.platform)}`, tone: 'gold',
+    what: 'Uang dari order lunas dibagi: bagian Lencana dibaca dari kontrak pembagian di chain, sisanya untuk penerbit. Tagihan agen dihitung per aktivitas dan ditagih ke penerbit. Tinggi isi toples = bagiannya (kiri emas = Lencana, kanan hijau = bersih penerbit).',
+    rows: [['Kotor', money(D.money.gross)], [`Bagian Lencana (${D.money.platformBps / 100}%)`, money(D.money.platform), 'gold'], ['Bersih penerbit', money(D.money.net), 'green'], ['Tagihan agen jatuh tempo', `${D.money.dueCount} · ${D.money.dueAmount} ${D.token}`, D.money.dueCount ? 'amber' : ''], ['Tagihan agen terbayar', `${D.money.paidCount} · ${D.money.paidAmount} ${D.token}`]],
+    actors: ['Platform (kontrak pembagian)', 'Penerbit (membayar tagihan agen)', 'Pemilik agen (menerima tagihan)'], source: 'Order lunas, kontrak SettlementSplit (chain 97), dan tagihan aktivitas agen.' },
+]
+
+/* ===================================================================== render */
+const line = document.getElementById('line')
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+S.forEach((st, i) => {
+  const b = document.createElement('button')
+  b.type = 'button'; b.className = 'st'; b.dataset.station = st.id
+  b.setAttribute('aria-label', `${st.title}: ${st.big}. ${st.sub}. Klik untuk detail`)
+  b.innerHTML = `<svg class="obj" viewBox="0 0 180 190" preserveAspectRatio="xMidYMax meet" aria-hidden="true">${st.draw()}</svg>`
+    + `<span class="lab"><b data-to="${st.big}">${st.big}</b><strong>${st.title}</strong><small>${st.sub}</small>${st.hot ? `<small class="hot">${st.hot}</small>` : ''}</span><span class="more">detail ›</span>`
+  b.addEventListener('click', () => openDetail(st.id))
+  line.appendChild(b)
+  if (st.hop) {
+    const h = document.createElement('div')
+    h.className = 'hop'; h.setAttribute('aria-hidden', 'true'); h.innerHTML = T[st.hop]
+    h.style.left = `${((i + 1) / S.length) * 100}%`; h.firstElementChild.style.animationDelay = `${i * 0.5}s`
+    line.appendChild(h)
+  }
+})
+
+/* penghitung angka (hanya tampilan; teks akhir selalu ada di DOM) */
+if (!reduce) document.querySelectorAll('.lab b').forEach((el) => {
+  const to = Number(el.dataset.to); if (!Number.isFinite(to) || to < 2) return
+  const t0 = performance.now(), dec = String(el.dataset.to).includes('.')
+  const step = (t) => { const p = Math.min(1, (t - t0) / 800), v = to * (1 - (1 - p) ** 3); el.textContent = p < 1 ? (dec ? v.toFixed(1) : String(Math.round(v))) : el.dataset.to; if (p < 1) requestAnimationFrame(step) }
+  el.textContent = '0'; requestAnimationFrame(step)
+})
+
+document.getElementById('pend').textContent = D.members.pending
+document.getElementById('banner').hidden = D.members.pending === 0
+const strip = document.getElementById('strip')
+;[[D.members.active, 'Anggota penerbit', `${D.members.pending} menunggu`, D.members.pending > 0], [D.courses.total, 'Kursus', `${D.courses.listed} terdaftar dari total`], [D.learners.unique, 'Peserta', `${D.learners.enrollments} pendaftaran`], [fmtN(D.money.gross), 'Kotor', D.token], [D.agents.known, 'Agen dikenal', `${D.agents.hires} sewa agen · ${D.agents.reviewers} pengesah ditunjuk`]]
+  .forEach(([v, l, s, hot]) => { const d = document.createElement('div'); d.className = `kpi${hot ? ' hot' : ''}`; d.innerHTML = `<b>${v}</b><span>${l}</span><small>${s}</small>`; strip.appendChild(d) })
+
+/* ===================================================================== popup detail */
+function openDetail (id) {
+  const opener = document.activeElement
+  const dlg = document.createElement('dialog'); dlg.setAttribute('aria-labelledby', 'd-t')
+  let cur = S.findIndex((s) => s.id === id)
+  const render = () => {
+    const s = S[cur]
+    dlg.innerHTML = `<div class="d-f"><div class="d-head"><svg viewBox="0 0 180 190" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${s.draw()}</svg><div><span class="d-step">${cur + 1} / ${S.length}</span><h2 id="d-t">${s.title.toUpperCase()}</h2></div></div>`
+      + `<p class="d-what">${s.what}</p><dl class="d-rows">${s.rows.map(([k, v, tone]) => `<dt>${k}</dt><dd class="${tone || ''}">${v}</dd>`).join('')}</dl>`
+      + `<div class="d-actors"><span>Siapa yang bertindak</span>${s.actors.map((a) => `<b>${a}</b>`).join('')}</div><p class="d-src"><b>Asal angkanya: </b>${s.source}</p>`
+      + (s.action ? `<button type="button" class="btn pri" data-act>${s.action}</button>` : '')
+      + `<div class="d-nav"><button type="button" class="btn" data-prev ${cur === 0 ? 'disabled' : ''}>← Sebelumnya</button><button type="button" class="btn" data-next ${cur === S.length - 1 ? 'disabled' : ''}>Berikutnya →</button><button type="button" class="btn pri" data-close>Tutup</button></div></div>`
+    dlg.querySelector('[data-prev]').onclick = () => { cur -= 1; render(); dlg.querySelector('[data-close]').focus() }
+    dlg.querySelector('[data-next]').onclick = () => { cur += 1; render(); dlg.querySelector('[data-close]').focus() }
+    dlg.querySelector('[data-close]').onclick = () => dlg.close()
+    const act = dlg.querySelector('[data-act]'); if (act) act.onclick = () => { dlg.close(); alert('Di aplikasi: berpindah ke tab Persetujuan.') }
+  }
+  render()
+  dlg.addEventListener('close', () => { dlg.remove(); if (opener && opener.focus) opener.focus() })
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close() })
+  document.body.appendChild(dlg); dlg.showModal(); dlg.querySelector('[data-close]').focus()
+}
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ updated: 2026-10-06
 
 **Hub:** [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Backlog:** B172 di
 [[07-Backlog/03 - Findings and Tasks 2026-09-26]] · **Testing:** [[09-Testing/T96 - Uji peramban halaman Admin ringkasan jejak kesehatan (B172)]] · `verify:publisher` grup G ([[09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit)]]) ·
-**Summary:** [[08-Results/B172 - Executive Summary]] · **Keputusan:** D76, D77, D78 · **Terkait:** [[07-Backlog/Acceptance-Criteria/AC-B129 - Kursi Penerbit, pengajuan anggota, dasbor penerbit]]
+**Summary:** [[08-Results/B172 - Executive Summary]] · **Keputusan:** D76, D77, D78 · **Terkait:** [[07-Backlog/Acceptance-Criteria/AC-B129 - Kursi Penerbit, pengajuan anggota, dasbor penerbit]] · **Prototipe:** [[03-Frontend/FE11 - Prototipe Admin proses bisnis (B172)]]
 
 Builder 6 Okt malam, setelah melihat halaman Admin hanya berisi persetujuan: "Gas tambahin ringkasan, jejak, dll itu" dan "Gunakan MCP FE yang udah ada untuk
 mempercantik pagenya admin". Semua tambahan **hanya-baca**: satu-satunya yang menulis tetap keputusan keanggotaan yang ditandatangani admin (D76).
