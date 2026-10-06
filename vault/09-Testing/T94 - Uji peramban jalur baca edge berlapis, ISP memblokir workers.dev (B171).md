@@ -40,3 +40,17 @@ Dengan **Cloudflare WARP** menyala (`/cdn-cgi/trace`: `warp=on`, DNS lewat `conn
 - Blokir **disimulasikan**; DNS ISP sungguhan belum diuji ulang dengan perbaikan ini (WARP menyala di mesin). AC-B171#15 menunggu builder mematikan WARP dan membuka produksi.
 - Proxy `/edge/*` di langkah 1–4 dijawab oleh intersepsi di peramban, **bukan** oleh Vercel — rewrite Vercel sungguhan baru bisa dibuktikan sesudah dorongan (AC-B171#14).
 - Hanya Chrome 154; dokumen B153 saja.
+
+## Produksi, 6 Okt (sesudah dorongan `4a2026f..bed52bd`)
+
+| langkah | hasil |
+|---|---|
+| `curl https://lencana-psi.vercel.app/edge/healthz` | 200 `application/json` — JSON edge (`edge:true`, `baseUrl` host edge); rewrite Vercel sungguhan bekerja |
+| `/edge/credentials/<hash B153>` dan `/edge/credentials/<hash kredensial uji baru>` | 200 `application/json` keduanya (yang kedua setelah `publish:edge`) |
+| Chrome terhadap produksi, **hanya host edge langsung yang digagalkan** (`namenotresolved`), `/edge/*` dijawab Vercel sungguhan: lembar B153 | termuat ("Kelas Uji — Membayar dengan Tanda Tangan") |
+| verifier produksi `?q=<hash B153>#/verify`, spec audit | **"14 / 14 terpenuhi · 0 gagal · 0 tidak terbaca · 4729 ms"**; permintaan: `direct-blocked` lalu `proxy:/edge/credentials/…`, `status/revocation`, `status/suspension`, `healthz` |
+| galat konsol | `pageerror`: **0** |
+
+Yang belum: DNS ISP sungguhan dengan perbaikan ini (WARP menyala di mesin) — AC-B171#15 menunggu builder mematikan WARP dan membuka produksi.
+
+**Tugas builder (dicatat 6 Okt malam):** uji di jaringan yang benar-benar memblokir `workers.dev` dengan WARP mati — langkah dan tempat mencatat hasil di [[07-Backlog/Acceptance-Criteria/AC-B171 - Jalur baca dokumen edge berlapis]] (bagian "Tugas builder") dan [[07-Backlog/01 - Backlog]] (butir 4 "What is blocking").

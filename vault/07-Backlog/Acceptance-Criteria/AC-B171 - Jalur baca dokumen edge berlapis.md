@@ -32,8 +32,18 @@ yang lain dibatalkan; bila tidak ada, jawaban HTTP nyata (404/5xx) dikembalikan,
 | AC-B171#11 | keduanya gagal → lembar "Sertifikat belum bisa dibuat" dengan petunjuk + tombol **Coba lagi** yang memuat ulang lembar **tanpa muat ulang halaman** begitu jalur pulih | **PASS** | T94 langkah 3 |
 | AC-B171#12 | service worker tidak mengganggu (`/edge/*` bukan navigasi dan bukan aset berhash) | **PASS** (dibaca) | `web/public/sw.js` |
 | AC-B171#13 | gerbang | **PASS** (kecuali baterai) | `tsc` 0, `probe` **267 / 0** (253 + 14), `build` 0, `build:api --check` segar |
-| AC-B171#14 | **LIVE:** produksi menjawab `https://lencana-psi.vercel.app/edge/healthz` dan `/edge/credentials/<hash B153>` dengan JSON edge; peramban terhadap produksi dengan `workers.dev` digagalkan tetap memuat lembar | **OPEN** — menunggu dorongan atas kata builder | — |
-| AC-B171#15 | **di jaringan yang benar-benar memblokir** (builder mematikan WARP/DNS lain, membuka lembar dan verifier di produksi) | **OPEN** — hanya builder yang bisa menguji; di sini blokirnya disimulasikan | — |
+| AC-B171#14 | **LIVE:** produksi menjawab `https://lencana-psi.vercel.app/edge/healthz` dan `/edge/credentials/<hash B153>` dengan JSON edge; peramban terhadap produksi dengan `workers.dev` digagalkan tetap memuat lembar | **PASS** — didorong `4a2026f..bed52bd` 6 Okt; produksi `lencana-psi.vercel.app/edge/healthz` 200 JSON edge; dokumen B153 dan kredensial uji baru lewat `/edge/credentials/<hash>` 200; Chrome terhadap produksi dengan `workers.dev` digagalkan: lembar B153 termuat, audit spesifikasi **14 / 14**, semua GET edge (dokumen, status list, healthz) lewat proxy Vercel sungguhan, nol galat | curl + Chrome 6 Okt |
+| AC-B171#15 | **di jaringan yang benar-benar memblokir** (builder mematikan WARP/DNS lain, membuka lembar dan verifier di produksi) | **OPEN — tugas builder** (dicatat 6 Okt malam; langkah di bagian bawah); di sini blokirnya hanya disimulasikan | — |
+
+## Tugas builder: uji di jaringan yang benar-benar memblokir (AC-B171#15)
+
+1. **Buktikan dulu bahwa jaringanmu memang memblokir:** matikan Cloudflare WARP dan VPN; `nslookup lencana-edge.hansgunawan775.workers.dev` harus menjawab `blockpage.xlaxiata.id` (atau `curl -m 15 https://lencana-edge.hansgunawan775.workers.dev/healthz` timeout). Kalau tidak, tes ini tidak berarti apa-apa.
+2. Chrome biasa (Secure DNS **mati**, bukan jendela yang memakai DoH): buka `https://lencana-psi.vercel.app/?q=0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31#/verify`. **Harapan:** hasil verifier tampil, dan matriks spesifikasi akhirnya "14 / 14 terpenuhi" (±5 dtk).
+3. Masuk dengan akunmu, buka `https://lencana-psi.vercel.app/#/app/credentials` lalu kartu B153. **Harapan:** lembar sertifikat termuat (bukan "Sertifikat belum bisa dibuat").
+4. Bandingkan dengan perilaku lama bila mau: `https://lencana-edge.hansgunawan775.workers.dev/healthz` langsung di tab baru tetap tidak terbuka — itu normal, bukan kegagalan perbaikan.
+5. Catat hasilnya di AC-B171#15 (PASS atau FAIL + pesan yang tampil + tangkapan layar). Bila FAIL dengan pesan "Host dokumen tidak terjangkau …", berarti `vercel.app` juga terblokir di jaringanmu — kabari, itu artinya domain sendiri jadi perlu.
+
+**Hasil (isi saat selesai):** _belum diuji_ — tanggal, jaringan/ISP, PASS atau FAIL, pesan yang tampil, tangkapan layar.
 
 **Batas klaim:** jalur ini hanya membantu **selama `vercel.app` tidak ikut diblokir** di jaringan itu (dan sebaliknya: bila Vercel diblokir, jalur langsung tetap dicoba). Ia tidak membantu jika kedua domain diblokir — penutup yang lebih kuat adalah domain sendiri di depan Worker (belum dikerjakan, butuh domain).
 `id` di dalam dokumen bertanda tangan tetap menunjuk host edge (tidak bisa diganti tanpa menerbitkan ulang); integritas dokumen tetap dari tanda tangan dan chain, bukan dari jalur baca. Pengambil dari server (validator 1EdTech, perayap LinkedIn, fungsi Vercel) tidak terpengaruh blokir DNS pengguna.

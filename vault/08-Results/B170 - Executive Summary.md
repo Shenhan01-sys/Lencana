@@ -33,6 +33,8 @@ Keputusan builder 6 Okt: tahap 3 **ya**.
 
 **Baterai `sync:numbers` 6 Okt 14.22–14.49 WIB (run penuh ke-6):** 38 harness, 37 hijau, **1.600 pemeriksaan**; `probe` **253/0** (termasuk grup B170). `e2e` merah satu pemeriksaan (validator eksternal tidak menjawab; **48/0** saat diulang sendirian) — rincian di [[08-Results/B169 - Executive Summary]].
 
+**Pembaruan, run penuh ke-7 6 Okt 17.46–18.10 WIB (edge sehat, DB bersih):** **38 harness · 38 hijau · 1.616 pemeriksaan**; `e2e` 48/0, `probe` **267/0** (sesudah B171), `verify:edge` 32 dari 32, `verify:mint` 43/0.
+
 ## 3. Status
 
 **SELESAI · LIVE** — didorong `f312539..b77ba40` 6 Okt; di produksi pemeriksa menjawab NOT_OWNER terhadap chain 97 sungguhan, tautan `?own=` langsung memeriksa, nol galat (AC-B170#15). AC-B170#14 (VALID dengan akun nyata di produksi) OPEN.

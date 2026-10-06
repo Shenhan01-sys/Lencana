@@ -30,15 +30,15 @@ Temuan 6 Okt siang saat `verify:mint:live` dan baterai: host edge `lencana-edge�
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE.** Belum didorong; AC-B171#14 (proxy Vercel sungguhan di produksi) dan #15 (uji di jaringan yang benar-benar memblokir, oleh builder) OPEN.
+**SELESAI · LIVE** — didorong `4a2026f..bed52bd` 6 Okt; AC-B171#14 PASS (produksi `lencana-psi.vercel.app/edge/healthz` 200 JSON edge; dokumen B153 dan kredensial uji baru lewat `/edge/credentials/<hash>` 200; Chrome terhadap produksi dengan `workers.dev` digagalkan: lembar B153 termuat, audit spesifikasi **14 / 14**, semua GET edge (dokumen, status list, healthz) lewat proxy Vercel sungguhan, nol galat). AC-B171#15 (uji di jaringan yang benar-benar memblokir, oleh builder dengan WARP dimatikan) OPEN.
 
 ## 4. Risiko tersisa
 
 - **Bila `vercel.app` ikut diblokir di suatu jaringan, jalur langsung tetap jadi satu-satunya** (dan sebaliknya). Dua domain diblokir sekaligus tidak tertolong; penutup yang lebih kuat adalah domain sendiri di depan Worker (butuh domain, belum dikerjakan).
-- Rewrite Vercel ke alamat luar baru terbukti sesudah dorongan; di uji peramban proxy dijawab intersepsi.
+- ~~Rewrite Vercel ke alamat luar baru terbukti sesudah dorongan~~ **Terbukti 6 Okt di produksi** (lihat §3); di uji peramban lokal proxy dijawab intersepsi.
 - Klaim "halaman membaca chain langsung, tanpa backend kami di jalur verifikasi" tetap benar untuk **status** (RPC publik); dokumen dan daftar status dari edge kini bisa lewat Vercel — integritasnya tetap dari tanda tangan, bukan jalur baca.
 - Sebab ISP memblokir `*.workers.dev` tidak diketahui (cek TrustPositif / tanya XL / uji ISP lain belum dilakukan); blokirnya intermiten.
-- **Efek samping lain hari ini:** kredensial uji dari `verify:mint:live` belum dipublish ke tepi, sehingga `verify:edge` merah (tepi 31, store 32) sampai `publish:edge` dijalankan atau keputusan lain (lihat B169).
+- **Efek samping lain hari ini, selesai:** kredensial uji `verify:mint:live` dipublish ke tepi atas acc builder 6 Okt (`publish:edge` 106/107 rute terbaca benar; sisanya keadaan korpus lama: kursus `pengantar-defi-2026` tidak ada di MANIFESTS); `verify:edge` hijau 10/0, 32 dari 32; `/s/<hash>` untuk kredensial itu 200.
 
 ## 5. Bukti
 
