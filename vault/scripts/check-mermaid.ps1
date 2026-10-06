@@ -11,7 +11,10 @@
 # prose review cannot see. Full grammar lives in mermaid itself.
 
 $vault = Split-Path $PSScriptRoot -Parent
-$files = Get-ChildItem -LiteralPath $vault -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch '\\\.obsidian\\' }
+# Same skip list as check-links.ps1 / check-lang.ps1. 7 Oct (B173): node_modules of the video project in
+# Video-Workspace/remotion ship third-party READMEs with their own Mermaid; not vault notes.
+$skip = '\\(node_modules|lib|out|cache|broadcast|dist|artifacts|vendor|\.obsidian|\.git|\.store|\.keys)\\'
+$files = Get-ChildItem -LiteralPath $vault -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch $skip }
 
 $fence = '```'
 $hazards = 0

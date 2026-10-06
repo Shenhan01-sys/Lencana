@@ -1,0 +1,7 @@
+{
+  "fps": 30,
+  "note": "Seconds. voStart = when each VO clip starts; sceneStart = when each scene's picture takes over (snapped to the nearest beat in code). 7 Oct: s3 re-read ('pay by signing — no gas fees', the old 'single signature' was wrong: payment is two signatures, zero transactions) -> s4 +0.4 s, s5 +0.2 s, S4/S5 cuts moved to the next beat.",
+  "voStart": { "s1": 0.5, "s2": 4.81, "s3": 12.37, "s4": 27.45, "s5": 44.73, "s6": 56.97, "s7": 71.51, "s8": 79.79 },
+  "sceneStart": { "s1": 0, "s2": 4.28, "s3": 12.03, "s4": 27.1, "s5": 44.64, "s6": 56.66, "s7": 71.19, "s8": 79.21 },
+  "end": 89.0
+}

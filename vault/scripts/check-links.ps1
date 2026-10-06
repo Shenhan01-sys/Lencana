@@ -14,7 +14,10 @@
 # "setengah diperiksa" adalah persis kegagalan yang kita catat untuk penelitian orang lain (B43).
 
 $vault = Split-Path $PSScriptRoot -Parent
-$files = Get-ChildItem -LiteralPath $vault -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch '\\\.obsidian\\' }
+# One skip list for both passes. 7 Oct (B173): the video project in Video-Workspace/remotion has its own
+# node_modules; third-party READMEs there (e.g. fast-glob: "[[options]]") are not vault notes.
+$skip = '\\(node_modules|lib|out|cache|broadcast|dist|artifacts|vendor|\.obsidian|\.git|\.store|\.keys)\\'
+$files = Get-ChildItem -LiteralPath $vault -Recurse -Filter *.md | Where-Object { $_.FullName -notmatch $skip }
 
 $basemap = @{}; $pathmap = @{}
 foreach ($f in $files) {
@@ -50,7 +53,6 @@ foreach ($f in $files) {
 # README memakai path seperti `vault/00-Overview/...` sementara catatan vault memakai path relatif.
 # ---------------------------------------------------------------------------
 $app = Split-Path $vault -Parent
-$skip = '\\(node_modules|lib|out|cache|broadcast|dist|artifacts|vendor|\.obsidian|\.git|\.store|\.keys)\\'
 $mdFiles = Get-ChildItem -LiteralPath $app -Recurse -Filter *.md -File |
   Where-Object { $_.FullName -notmatch $skip }
 

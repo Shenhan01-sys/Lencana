@@ -1,0 +1,1053 @@
+{
+  "generatedAt": "2026-10-06T21:28:15.799Z",
+  "voice": {
+    "name": "Sarah",
+    "id": "EXAVITQu4vr4xnSDxMaL"
+  },
+  "lines": [
+    {
+      "id": "s1",
+      "file": "vo/s1.mp3",
+      "model": "eleven_v4",
+      "durationSec": 3.76,
+      "words": [
+        {
+          "text": "A",
+          "startMs": 0,
+          "endMs": 80
+        },
+        {
+          "text": "certificate",
+          "startMs": 160,
+          "endMs": 720
+        },
+        {
+          "text": "is",
+          "startMs": 880,
+          "endMs": 1040
+        },
+        {
+          "text": "just",
+          "startMs": 1120,
+          "endMs": 1280
+        },
+        {
+          "text": "a",
+          "startMs": 1360,
+          "endMs": 1440
+        },
+        {
+          "text": "file.",
+          "startMs": 1520,
+          "endMs": 2320
+        },
+        {
+          "text": "Anyone",
+          "startMs": 2560,
+          "endMs": 2800
+        },
+        {
+          "text": "can",
+          "startMs": 2920,
+          "endMs": 3040
+        },
+        {
+          "text": "edit",
+          "startMs": 3160,
+          "endMs": 3280
+        },
+        {
+          "text": "it.",
+          "startMs": 3360,
+          "endMs": 3760
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "file": "vo/s2.mp3",
+      "model": "eleven_v4",
+      "durationSec": 6.96,
+      "words": [
+        {
+          "text": "Meet",
+          "startMs": 0,
+          "endMs": 240
+        },
+        {
+          "text": "Lencana",
+          "startMs": 320,
+          "endMs": 1040
+        },
+        {
+          "text": "learning",
+          "startMs": 1520,
+          "endMs": 1840
+        },
+        {
+          "text": "credentials",
+          "startMs": 1920,
+          "endMs": 2480
+        },
+        {
+          "text": "anyone",
+          "startMs": 2640,
+          "endMs": 3120
+        },
+        {
+          "text": "can",
+          "startMs": 3200,
+          "endMs": 3280
+        },
+        {
+          "text": "check",
+          "startMs": 3360,
+          "endMs": 3520
+        },
+        {
+          "text": "for",
+          "startMs": 3600,
+          "endMs": 3640
+        },
+        {
+          "text": "themselves,",
+          "startMs": 3680,
+          "endMs": 4640
+        },
+        {
+          "text": "without",
+          "startMs": 4840,
+          "endMs": 5040
+        },
+        {
+          "text": "taking",
+          "startMs": 5200,
+          "endMs": 5360
+        },
+        {
+          "text": "our",
+          "startMs": 5520,
+          "endMs": 5680
+        },
+        {
+          "text": "word",
+          "startMs": 5760,
+          "endMs": 6000
+        },
+        {
+          "text": "for",
+          "startMs": 6120,
+          "endMs": 6240
+        },
+        {
+          "text": "it.",
+          "startMs": 6320,
+          "endMs": 6960
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "file": "vo/s3.mp3",
+      "model": "eleven_v4",
+      "durationSec": 14.88,
+      "words": [
+        {
+          "text": "Sign",
+          "startMs": 0,
+          "endMs": 320
+        },
+        {
+          "text": "in",
+          "startMs": 400,
+          "endMs": 560
+        },
+        {
+          "text": "with",
+          "startMs": 640,
+          "endMs": 800
+        },
+        {
+          "text": "just",
+          "startMs": 960,
+          "endMs": 1200
+        },
+        {
+          "text": "your",
+          "startMs": 1280,
+          "endMs": 1360
+        },
+        {
+          "text": "email",
+          "startMs": 1440,
+          "endMs": 1920
+        },
+        {
+          "text": "your",
+          "startMs": 2347,
+          "endMs": 2400
+        },
+        {
+          "text": "wallet",
+          "startMs": 2480,
+          "endMs": 2880
+        },
+        {
+          "text": "is",
+          "startMs": 2960,
+          "endMs": 3040
+        },
+        {
+          "text": "created",
+          "startMs": 3120,
+          "endMs": 3520
+        },
+        {
+          "text": "for",
+          "startMs": 3600,
+          "endMs": 3760
+        },
+        {
+          "text": "you.",
+          "startMs": 3840,
+          "endMs": 4320
+        },
+        {
+          "text": "Pick",
+          "startMs": 4560,
+          "endMs": 4720
+        },
+        {
+          "text": "a",
+          "startMs": 4800,
+          "endMs": 4840
+        },
+        {
+          "text": "course,",
+          "startMs": 4880,
+          "endMs": 5680
+        },
+        {
+          "text": "pay",
+          "startMs": 5760,
+          "endMs": 5840
+        },
+        {
+          "text": "by",
+          "startMs": 5920,
+          "endMs": 6080
+        },
+        {
+          "text": "signing",
+          "startMs": 6160,
+          "endMs": 6560
+        },
+        {
+          "text": "no",
+          "startMs": 6987,
+          "endMs": 7040
+        },
+        {
+          "text": "gas",
+          "startMs": 7120,
+          "endMs": 7440
+        },
+        {
+          "text": "fees",
+          "startMs": 7520,
+          "endMs": 7760
+        },
+        {
+          "text": "and",
+          "startMs": 8267,
+          "endMs": 8320
+        },
+        {
+          "text": "learn",
+          "startMs": 8400,
+          "endMs": 8640
+        },
+        {
+          "text": "at",
+          "startMs": 8720,
+          "endMs": 8880
+        },
+        {
+          "text": "your",
+          "startMs": 9000,
+          "endMs": 9120
+        },
+        {
+          "text": "own",
+          "startMs": 9200,
+          "endMs": 9360
+        },
+        {
+          "text": "pace.",
+          "startMs": 9440,
+          "endMs": 10160
+        },
+        {
+          "text": "Quizzes",
+          "startMs": 10400,
+          "endMs": 10720
+        },
+        {
+          "text": "are",
+          "startMs": 10800,
+          "endMs": 10880
+        },
+        {
+          "text": "graded",
+          "startMs": 11080,
+          "endMs": 11280
+        },
+        {
+          "text": "by",
+          "startMs": 11320,
+          "endMs": 11360
+        },
+        {
+          "text": "the",
+          "startMs": 11440,
+          "endMs": 11520
+        },
+        {
+          "text": "publisher's",
+          "startMs": 11600,
+          "endMs": 12160
+        },
+        {
+          "text": "server,",
+          "startMs": 12360,
+          "endMs": 12800
+        },
+        {
+          "text": "so",
+          "startMs": 12880,
+          "endMs": 12960
+        },
+        {
+          "text": "scores",
+          "startMs": 13040,
+          "endMs": 13440
+        },
+        {
+          "text": "are",
+          "startMs": 13520,
+          "endMs": 13680
+        },
+        {
+          "text": "never",
+          "startMs": 13760,
+          "endMs": 14000
+        },
+        {
+          "text": "typed",
+          "startMs": 14080,
+          "endMs": 14400
+        },
+        {
+          "text": "in.",
+          "startMs": 14480,
+          "endMs": 14880
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "file": "vo/s4.mp3",
+      "model": "eleven_v4",
+      "durationSec": 16.88,
+      "words": [
+        {
+          "text": "Essays",
+          "startMs": 0,
+          "endMs": 480
+        },
+        {
+          "text": "go",
+          "startMs": 560,
+          "endMs": 640
+        },
+        {
+          "text": "to",
+          "startMs": 720,
+          "endMs": 800
+        },
+        {
+          "text": "AI",
+          "startMs": 960,
+          "endMs": 1280
+        },
+        {
+          "text": "grading",
+          "startMs": 1480,
+          "endMs": 1680
+        },
+        {
+          "text": "agents,",
+          "startMs": 1760,
+          "endMs": 2440
+        },
+        {
+          "text": "each",
+          "startMs": 2480,
+          "endMs": 2640
+        },
+        {
+          "text": "with",
+          "startMs": 2720,
+          "endMs": 2800
+        },
+        {
+          "text": "its",
+          "startMs": 2880,
+          "endMs": 3120
+        },
+        {
+          "text": "own",
+          "startMs": 3200,
+          "endMs": 3440
+        },
+        {
+          "text": "on-chain",
+          "startMs": 3600,
+          "endMs": 4000
+        },
+        {
+          "text": "identity.",
+          "startMs": 4080,
+          "endMs": 5160
+        },
+        {
+          "text": "An",
+          "startMs": 5200,
+          "endMs": 5360
+        },
+        {
+          "text": "agent",
+          "startMs": 5440,
+          "endMs": 5840
+        },
+        {
+          "text": "only",
+          "startMs": 5920,
+          "endMs": 6160
+        },
+        {
+          "text": "proposes",
+          "startMs": 6240,
+          "endMs": 6720
+        },
+        {
+          "text": "a",
+          "startMs": 6800,
+          "endMs": 6880
+        },
+        {
+          "text": "score",
+          "startMs": 6960,
+          "endMs": 7680
+        },
+        {
+          "text": "it",
+          "startMs": 7800,
+          "endMs": 7840
+        },
+        {
+          "text": "counts",
+          "startMs": 8040,
+          "endMs": 8240
+        },
+        {
+          "text": "once",
+          "startMs": 8320,
+          "endMs": 8640
+        },
+        {
+          "text": "a",
+          "startMs": 8720,
+          "endMs": 8880
+        },
+        {
+          "text": "second",
+          "startMs": 9040,
+          "endMs": 9200
+        },
+        {
+          "text": "reviewer,",
+          "startMs": 9280,
+          "endMs": 9880
+        },
+        {
+          "text": "appointed",
+          "startMs": 9920,
+          "endMs": 10320
+        },
+        {
+          "text": "by",
+          "startMs": 10400,
+          "endMs": 10480
+        },
+        {
+          "text": "the",
+          "startMs": 10520,
+          "endMs": 10560
+        },
+        {
+          "text": "publisher,",
+          "startMs": 10640,
+          "endMs": 11280
+        },
+        {
+          "text": "approves",
+          "startMs": 11360,
+          "endMs": 11760
+        },
+        {
+          "text": "it.",
+          "startMs": 11840,
+          "endMs": 12600
+        },
+        {
+          "text": "Agent",
+          "startMs": 12640,
+          "endMs": 12960
+        },
+        {
+          "text": "owners",
+          "startMs": 13040,
+          "endMs": 13360
+        },
+        {
+          "text": "bring",
+          "startMs": 13480,
+          "endMs": 13600
+        },
+        {
+          "text": "their",
+          "startMs": 13720,
+          "endMs": 13840
+        },
+        {
+          "text": "own",
+          "startMs": 13920,
+          "endMs": 14160
+        },
+        {
+          "text": "AI",
+          "startMs": 14320,
+          "endMs": 14560
+        },
+        {
+          "text": "model",
+          "startMs": 14800,
+          "endMs": 15093
+        },
+        {
+          "text": "and",
+          "startMs": 15147,
+          "endMs": 15200
+        },
+        {
+          "text": "get",
+          "startMs": 15280,
+          "endMs": 15360
+        },
+        {
+          "text": "hired",
+          "startMs": 15440,
+          "endMs": 15840
+        },
+        {
+          "text": "per",
+          "startMs": 15920,
+          "endMs": 16000
+        },
+        {
+          "text": "job.",
+          "startMs": 16080,
+          "endMs": 16960
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "file": "vo/s5.mp3",
+      "model": "eleven_v4",
+      "durationSec": 11.84,
+      "words": [
+        {
+          "text": "Pass,",
+          "startMs": 0,
+          "endMs": 640
+        },
+        {
+          "text": "and",
+          "startMs": 720,
+          "endMs": 800
+        },
+        {
+          "text": "your",
+          "startMs": 880,
+          "endMs": 960
+        },
+        {
+          "text": "credential",
+          "startMs": 1040,
+          "endMs": 1520
+        },
+        {
+          "text": "is",
+          "startMs": 1600,
+          "endMs": 1760
+        },
+        {
+          "text": "signed",
+          "startMs": 1920,
+          "endMs": 2080
+        },
+        {
+          "text": "by",
+          "startMs": 2160,
+          "endMs": 2240
+        },
+        {
+          "text": "the",
+          "startMs": 2320,
+          "endMs": 2400
+        },
+        {
+          "text": "publisher",
+          "startMs": 2680,
+          "endMs": 2960
+        },
+        {
+          "text": "and",
+          "startMs": 3040,
+          "endMs": 3280
+        },
+        {
+          "text": "anchored",
+          "startMs": 3360,
+          "endMs": 3760
+        },
+        {
+          "text": "on",
+          "startMs": 3840,
+          "endMs": 4000
+        },
+        {
+          "text": "BNB",
+          "startMs": 4080,
+          "endMs": 4560
+        },
+        {
+          "text": "Chain.",
+          "startMs": 5000,
+          "endMs": 5480
+        },
+        {
+          "text": "Mint",
+          "startMs": 5520,
+          "endMs": 5680
+        },
+        {
+          "text": "a",
+          "startMs": 5760,
+          "endMs": 5920
+        },
+        {
+          "text": "soulbound",
+          "startMs": 5960,
+          "endMs": 6480
+        },
+        {
+          "text": "badge",
+          "startMs": 6560,
+          "endMs": 6880
+        },
+        {
+          "text": "that",
+          "startMs": 6960,
+          "endMs": 7120
+        },
+        {
+          "text": "can't",
+          "startMs": 7200,
+          "endMs": 7360
+        },
+        {
+          "text": "be",
+          "startMs": 7440,
+          "endMs": 7600
+        },
+        {
+          "text": "sold",
+          "startMs": 7760,
+          "endMs": 7920
+        },
+        {
+          "text": "or",
+          "startMs": 8000,
+          "endMs": 8160
+        },
+        {
+          "text": "transferred,",
+          "startMs": 8240,
+          "endMs": 9160
+        },
+        {
+          "text": "and",
+          "startMs": 9200,
+          "endMs": 9360
+        },
+        {
+          "text": "add",
+          "startMs": 9440,
+          "endMs": 9520
+        },
+        {
+          "text": "it",
+          "startMs": 9600,
+          "endMs": 9680
+        },
+        {
+          "text": "to",
+          "startMs": 9760,
+          "endMs": 9840
+        },
+        {
+          "text": "LinkedIn",
+          "startMs": 10120,
+          "endMs": 10400
+        },
+        {
+          "text": "straight",
+          "startMs": 10560,
+          "endMs": 10800
+        },
+        {
+          "text": "from",
+          "startMs": 10880,
+          "endMs": 10960
+        },
+        {
+          "text": "the",
+          "startMs": 11040,
+          "endMs": 11120
+        },
+        {
+          "text": "app.",
+          "startMs": 11200,
+          "endMs": 11920
+        }
+      ]
+    },
+    {
+      "id": "s6",
+      "file": "vo/s6.mp3",
+      "model": "eleven_v4",
+      "durationSec": 13.84,
+      "words": [
+        {
+          "text": "Anyone",
+          "startMs": 0,
+          "endMs": 400
+        },
+        {
+          "text": "can",
+          "startMs": 480,
+          "endMs": 640
+        },
+        {
+          "text": "verify",
+          "startMs": 880,
+          "endMs": 1120
+        },
+        {
+          "text": "it",
+          "startMs": 1200,
+          "endMs": 1280
+        },
+        {
+          "text": "from",
+          "startMs": 1360,
+          "endMs": 1440
+        },
+        {
+          "text": "a",
+          "startMs": 1520,
+          "endMs": 1600
+        },
+        {
+          "text": "single",
+          "startMs": 1680,
+          "endMs": 2000
+        },
+        {
+          "text": "link",
+          "startMs": 2080,
+          "endMs": 2640
+        },
+        {
+          "text": "no",
+          "startMs": 2800,
+          "endMs": 2960
+        },
+        {
+          "text": "wallet,",
+          "startMs": 3040,
+          "endMs": 3680
+        },
+        {
+          "text": "no",
+          "startMs": 3760,
+          "endMs": 3920
+        },
+        {
+          "text": "login.",
+          "startMs": 4000,
+          "endMs": 4920
+        },
+        {
+          "text": "If",
+          "startMs": 4960,
+          "endMs": 5000
+        },
+        {
+          "text": "it's",
+          "startMs": 5040,
+          "endMs": 5200
+        },
+        {
+          "text": "ever",
+          "startMs": 5280,
+          "endMs": 5440
+        },
+        {
+          "text": "revoked,",
+          "startMs": 5520,
+          "endMs": 6280
+        },
+        {
+          "text": "everyone",
+          "startMs": 6320,
+          "endMs": 6800
+        },
+        {
+          "text": "sees",
+          "startMs": 6880,
+          "endMs": 7040
+        },
+        {
+          "text": "it.",
+          "startMs": 7120,
+          "endMs": 7720
+        },
+        {
+          "text": "And",
+          "startMs": 7760,
+          "endMs": 8080
+        },
+        {
+          "text": "it",
+          "startMs": 8160,
+          "endMs": 8240
+        },
+        {
+          "text": "passes",
+          "startMs": 8320,
+          "endMs": 8720
+        },
+        {
+          "text": "the",
+          "startMs": 8800,
+          "endMs": 8960
+        },
+        {
+          "text": "1EdTech",
+          "startMs": 9040,
+          "endMs": 9760
+        },
+        {
+          "text": "Open",
+          "startMs": 9840,
+          "endMs": 10080
+        },
+        {
+          "text": "Badges",
+          "startMs": 10200,
+          "endMs": 10560
+        },
+        {
+          "text": "3.0",
+          "startMs": 10640,
+          "endMs": 11280
+        },
+        {
+          "text": "validator",
+          "startMs": 11360,
+          "endMs": 12240
+        },
+        {
+          "text": "with",
+          "startMs": 12320,
+          "endMs": 12400
+        },
+        {
+          "text": "zero",
+          "startMs": 12480,
+          "endMs": 12880
+        },
+        {
+          "text": "errors.",
+          "startMs": 12960,
+          "endMs": 13920
+        }
+      ]
+    },
+    {
+      "id": "s7",
+      "file": "vo/s7.mp3",
+      "model": "eleven_v4",
+      "durationSec": 7.68,
+      "words": [
+        {
+          "text": "Behind",
+          "startMs": 0,
+          "endMs": 400
+        },
+        {
+          "text": "it,",
+          "startMs": 480,
+          "endMs": 1040
+        },
+        {
+          "text": "one",
+          "startMs": 1120,
+          "endMs": 1360
+        },
+        {
+          "text": "transparent",
+          "startMs": 1440,
+          "endMs": 2240
+        },
+        {
+          "text": "pipeline",
+          "startMs": 2720,
+          "endMs": 3200
+        },
+        {
+          "text": "from",
+          "startMs": 3280,
+          "endMs": 3440
+        },
+        {
+          "text": "enrollment",
+          "startMs": 3520,
+          "endMs": 4080
+        },
+        {
+          "text": "to",
+          "startMs": 4160,
+          "endMs": 4240
+        },
+        {
+          "text": "payout,",
+          "startMs": 4320,
+          "endMs": 5120
+        },
+        {
+          "text": "every",
+          "startMs": 5200,
+          "endMs": 5440
+        },
+        {
+          "text": "payment",
+          "startMs": 5520,
+          "endMs": 6000
+        },
+        {
+          "text": "settled",
+          "startMs": 6080,
+          "endMs": 6480
+        },
+        {
+          "text": "on-chain.",
+          "startMs": 6560,
+          "endMs": 7760
+        }
+      ]
+    },
+    {
+      "id": "s8",
+      "file": "vo/s8.mp3",
+      "model": "eleven_v4",
+      "durationSec": 6.08,
+      "words": [
+        {
+          "text": "Lencana.",
+          "startMs": 0,
+          "endMs": 1200
+        },
+        {
+          "text": "Learn,",
+          "startMs": 1400,
+          "endMs": 1760
+        },
+        {
+          "text": "test,",
+          "startMs": 1960,
+          "endMs": 2320
+        },
+        {
+          "text": "and",
+          "startMs": 2400,
+          "endMs": 2480
+        },
+        {
+          "text": "prove",
+          "startMs": 2560,
+          "endMs": 2800
+        },
+        {
+          "text": "it.",
+          "startMs": 2880,
+          "endMs": 3440
+        },
+        {
+          "text": "Live",
+          "startMs": 3520,
+          "endMs": 3760
+        },
+        {
+          "text": "now",
+          "startMs": 3960,
+          "endMs": 4160
+        },
+        {
+          "text": "on",
+          "startMs": 4240,
+          "endMs": 4480
+        },
+        {
+          "text": "BNB",
+          "startMs": 4520,
+          "endMs": 4960
+        },
+        {
+          "text": "Chain",
+          "startMs": 5040,
+          "endMs": 5280
+        },
+        {
+          "text": "testnet.",
+          "startMs": 5360,
+          "endMs": 6160
+        }
+      ]
+    }
+  ]
+}

@@ -11,9 +11,9 @@ updated: 2026-10-07
 **Terkait:** [[00-Overview/05 - Demo Scenes]] (rencana lama 5 menit) · [[00-Overview/12 - Business Process]] §9 (naskah 90 detik lama) ·
 [[03-Frontend/FE11 - Prototipe Admin proses bisnis (B172)]] (sabuk benda) · **Testing / Summary:** menyusul sesudah render pertama (T97, Summary B173)
 
-> **Status 7 Okt 03.20 WIB: RENCANA, belum ada satu frame pun.** Yang sudah dikerjakan hanya riset bahan (bagian 1),
-> pengaman git untuk bahan referensi, dan perbaikan `check-lang.ps1` (temuan sampingan, lihat AC-B173). Produksi mulai
-> sesudah builder menjawab keputusan di bagian 12.
+> **Status 7 Okt 05.00 WIB: DRAF 2 SELESAI, menunggu builder mendengar.** Proyek Remotion di `remotion/` (README berisi
+> semua perintah), draf 2 dimaster −14 LUFS dan lulus gerbang otomatis ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]]).
+> Yang belum: telinga builder atas suara + musik, render final, unggah + submit (builder). *(Status 03.20: rencana saja.)*
 
 ## 0. Permintaan builder
 
@@ -86,7 +86,7 @@ NFT + Bagikan ke LinkedIn, Admin (sabuk proses bisnis FE11).
 |---|---|---|---|
 | 1 | 0:00–0:05 | "A certificate is just a file. Anyone can edit it." | README §Why this exists ("A PDF certificate is forged with Photoshop") |
 | 2 | 0:05–0:13 | "Meet Lencana — learning credentials anyone can check for themselves, without taking our word for it." | README baris 3 ("anyone can verify — no wallet, no login, and without having to trust us") |
-| 3 | 0:13–0:29 | "Sign in with just your email — your wallet is created for you. Pick a course, pay with a single signature, and learn at your own pace. Quizzes are graded by the publisher's server, so scores are never typed in." | Cheat-Sheet baris D57 (email + dompet dibuatkan Privy); B125 (bayar = tanda tangan EIP-2612 + Permit2, tanpa gas); salinan hero beranda + baris `POST /grade` |
+| 3 | 0:12–0:27 | "Sign in with just your email — your wallet is created for you. Pick a course, pay by signing — no gas fees — and learn at your own pace. Quizzes are graded by the publisher's server, so scores are never typed in." *(koreksi 7 Okt saat produksi: draf menulis "pay with a **single** signature" — salah; `web/src/learning.ts:1334` menyebut pembayaran = **dua tanda tangan** (izin EIP-2612 + saksi Permit2), **nol transaksi** dari dompet peserta, settlement disiarkan server penerbit. VO baris ini dibaca ulang.)* | Cheat-Sheet baris D57 (email + dompet dibuatkan Privy); B125 (bayar = tanda tangan EIP-2612 + Permit2, tanpa gas dari peserta); salinan hero beranda + baris `POST /grade` |
 | 4 | 0:29–0:47 | "Essays go to AI grading agents, each with its own on-chain identity. An agent only proposes a score — it counts once a second reviewer, appointed by the publisher, approves it. Agent owners bring their own AI model and get hired per job." | Cheat-Sheet: ERC-8004 (identitas, bukan reputasi), B104/B120 (dihitung sesudah pengesah yang ditunjuk penerbit — **tanpa** kata "human"/"mentor"), B135 (otak + API key milik pemilik), B119 (disewa per aktivitas) |
 | 5 | 0:47–1:01 | "Pass, and your credential is signed by the publisher and anchored on BNB Chain. Mint a soulbound badge that can't be sold or transferred, and add it to LinkedIn straight from the app." *("in one click" sengaja tidak dipakai: tombol "Add to profile" membuka formulir LinkedIn yang masih dikonfirmasi di sana)* | D54 (kunci penerbit menandatangani), README How it works (chain = jangkar, bukan isi), B169 (cetak artefak dari app), ERC-5192 (transfer/approval/burn ditolak), B168 (kit LinkedIn) |
 | 6 | 1:01–1:14 | "Anyone can verify it from a single link — no wallet, no login. If it's ever revoked, everyone sees it. And it passes the 1EdTech Open Badges 3.0 validator with zero errors." | README baris 3; revoke tanpa unrevoke; Cheat-Sheet baris 1 (**lolos** validator — bukan "certified"/"compatible"); validator **dijalankan ulang hari render** |
@@ -232,6 +232,16 @@ Total ±5,5 jam kerja saya di luar waktu builder meninjau.
 3. **SFX kit** (lisensi tidak tertulis, hanya terdengar di video, tidak didistribusikan ulang) boleh jadi pelengkap `@remotion/sfx`, atau tidak.
 4. **Jam tenggat submit hari ini** — jamnya belum tercatat di vault (`START-HERE` masih menulis 30 Sep, basi).
 
+**Jawaban builder 7 Okt ±03.35 WIB:**
+1. "nih pakai elevenlabs, cek aja di .env var ELEVENLABS_API_KEY" → kunci ada di `app/.env` (dibaca skrip, tidak pernah
+   dicetak). Akun: paket **Starter** (lisensi komersial), kredit 40.000 karakter per bulan, terpakai 0 sebelum B173; 21 suara
+   premade; model TTS sampai `eleven_v4`.
+2. "Yg menurutmu paling sesuai dan meningkatkan engagement" → musik **dibuat khusus** dengan ElevenLabs Music (`POST /v1/music`,
+   rencana komposisi per bagian dengan durasi per bagian, instrumental), mengikuti batas adegan sesudah timing VO diketahui —
+   bukan trek pustaka yang dipilih tanpa didengar. Diperiksa dengan spektrogram + loudness; builder mendengar di render draf.
+3. SFX kit: "Gas" → dipakai sebagai pelengkap `@remotion/sfx`.
+4. "Fokus bikin video dulu" → produksi jalan; jam tenggat tidak dibahas.
+
 ## 13. Log
 
 | waktu (WIB) | kejadian |
@@ -239,3 +249,12 @@ Total ±5,5 jam kerja saya di luar waktu builder meninjau.
 | 7 Okt 02.57 | permintaan builder masuk; riset bahan dimulai |
 | 7 Okt 03.10 | rencana ini, AC-B173, D79, baris B173; `.gitignore` referensi; `check-lang.ps1` diperbaiki (lewati `node_modules`, berkas satu baris) |
 | 7 Okt 03.20 | riset dokumentasi Remotion selesai → bagian 7, 8, 12 dilengkapi; menunggu empat keputusan builder |
+| 7 Okt 03.35 | acc builder (ElevenLabs, musik pilihan agent, SFX kit, fokus video) → produksi mulai |
+| 7 Okt 03.45 | validator 1EdTech dijalankan ulang untuk kredensial B153 (`BASE_URL` = host tepi; bawaan `:8787` sudah tidak ada sejak B156): **VALID · 14 pemeriksaan · 0 error · 0 warning**, tercatat di `validator-runs.jsonl` |
+| 7 Okt 03.50 | perancah Remotion 4.0.533 di `remotion/`; VO 8 baris ElevenLabs `eleven_v4` suara Sarah (timing per karakter → per kata); QA VO dengan speech-to-text balik: semua baris terdengar sesuai naskah ("Lencana" terdengar "Lenchana") |
+| 7 Okt 04.00 | musik dibuat ElevenLabs Music `music_v1`, rencana komposisi 8 bagian mengikuti batas adegan, 89,1 dtk; dianalisis: −12,5 LUFS jangka pendek di groove, intro tenang, riser per frasa 16 dtk, pukulan akhir ±84 dtk; grid ketukan 119,8 BPM (`scripts/beats.mjs`) |
+| 7 Okt 04.10–04.35 | tangkapan halaman asli (`scripts/capture.mjs`): publik dari produksi; sertifikat B153 dibaca per alamat; dasbor penerbit, pemilik agen #2534/#2542/#2548 memakai kunci tim di `app/.env` (dibaca skrip, tidak dicetak, tanpa aksi tulis); Admin lewat signer lokal `LANCENA_ORIGIN=test` + admin fixture baru; ringkasan Admin asli disimpan (`src/data/admin-summary.json`: 8 kursus, 13 pendaftaran, `platformBps` 1000 dari chain) |
+| 7 Okt 04.45 | **penjaga akurasi bekerja:** VO baris 3 "single signature" ternyata salah (pembayaran = dua tanda tangan, nol transaksi) → dibaca ulang "pay by signing — no gas fees"; VO baris 4/5 digeser 0,4/0,2 dtk |
+| 7 Okt 04.47 | **draf 1 penuh** dirender (121 dtk render): 89,0 dtk; QA audio: I −14,9 LUFS, true peak +0,3 → wajib master; musik di bawah suara diturunkan ×0,20 → ×0,15 |
+| 7 Okt 04.52 | **draf 2** (dorongan kamera pelan di setiap shot, ghost text S2, tag katalog, zoom bayar) + master −14,0 LUFS / −1,4 dBTP → pratinjau 16 MiB dikirim ke builder; QA HIJAU + jalur merah terbukti (T97); `e2e` 48/0 |
+| 7 Okt 05.00 | `journey` berjalan (gerbang B65 kedua); menunggu telinga builder atas suara + musik |

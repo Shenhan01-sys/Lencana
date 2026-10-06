@@ -1,0 +1,57 @@
+{
+ "readAt": "2026-10-06T21:23:12.985Z",
+ "source": "POST /admin/overview (summary only), production database, rows origin=test excluded",
+ "summary": {
+  "members": {
+   "active": 1,
+   "pending": 0
+  },
+  "courses": {
+   "total": 8,
+   "listed": 7
+  },
+  "learners": {
+   "unique": 10,
+   "enrollments": 13,
+   "paid": 3,
+   "free": 10
+  },
+  "money": {
+   "token": {
+    "address": "0x0B2fA5050912F4CdB5f7C47A5FAd6A8F9398CBaf",
+    "symbol": "LDC-demo",
+    "decimals": 6
+   },
+   "platformBps": 1000,
+   "gross": "27000000",
+   "platform": "2700000",
+   "net": "24300000",
+   "chargesDue": {
+    "count": 2,
+    "amount": "5200"
+   },
+   "chargesPaid": {
+    "count": 0,
+    "amount": "0"
+   }
+  },
+  "essays": {
+   "awaitingJudge": 0,
+   "awaitingReview": 3,
+   "pipeline": {
+    "awaitingJudge": 0,
+    "insufficient": 0,
+    "awaitingReview": 3,
+    "approved": 1,
+    "adjusted": 3,
+    "rejected": 0,
+    "graded": 2
+   }
+  },
+  "agents": {
+   "known": 6,
+   "hires": 3,
+   "reviewers": 5
+  }
+ }
+}

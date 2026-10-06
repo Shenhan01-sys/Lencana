@@ -1,0 +1,46 @@
+{
+  "voice": { "name": "Sarah", "id": "EXAVITQu4vr4xnSDxMaL" },
+  "lines": [
+    {
+      "id": "s1",
+      "text": "A certificate is just a file. Anyone can edit it.",
+      "spoken": "A certificate is just a file. Anyone can edit it."
+    },
+    {
+      "id": "s2",
+      "text": "Meet Lencana — learning credentials anyone can check for themselves, without taking our word for it.",
+      "spoken": "Meet Lenchahna — learning credentials anyone can check for themselves, without taking our word for it."
+    },
+    {
+      "id": "s3",
+      "speed": 1.06,
+      "text": "Sign in with just your email — your wallet is created for you. Pick a course, pay by signing — no gas fees — and learn at your own pace. Quizzes are graded by the publisher's server, so scores are never typed in.",
+      "spoken": "Sign in with just your email — your wallet is created for you. Pick a course, pay by signing — no gas fees — and learn at your own pace. Quizzes are graded by the publisher's server, so scores are never typed in."
+    },
+    {
+      "id": "s4",
+      "text": "Essays go to AI grading agents, each with its own on-chain identity. An agent only proposes a score — it counts once a second reviewer, appointed by the publisher, approves it. Agent owners bring their own AI model and get hired per job.",
+      "spoken": "Essays go to AI grading agents, each with its own on-chain identity. An agent only proposes a score — it counts once a second reviewer, appointed by the publisher, approves it. Agent owners bring their own AI model, and get hired per job."
+    },
+    {
+      "id": "s5",
+      "text": "Pass, and your credential is signed by the publisher and anchored on BNB Chain. Mint a soulbound badge that can't be sold or transferred, and add it to LinkedIn straight from the app.",
+      "spoken": "Pass, and your credential is signed by the publisher and anchored on B N B Chain. Mint a soulbound badge that can't be sold or transferred, and add it to LinkedIn straight from the app."
+    },
+    {
+      "id": "s6",
+      "text": "Anyone can verify it from a single link — no wallet, no login. If it's ever revoked, everyone sees it. And it passes the 1EdTech Open Badges 3.0 validator with zero errors.",
+      "spoken": "Anyone can verify it from a single link — no wallet, no login. If it's ever revoked, everyone sees it. And it passes the one Ed Tech Open Badges three point oh validator, with zero errors."
+    },
+    {
+      "id": "s7",
+      "text": "Behind it, one transparent pipeline — from enrollment to payout, every payment settled on-chain.",
+      "spoken": "Behind it, one transparent pipeline — from enrollment to payout, every payment settled on-chain."
+    },
+    {
+      "id": "s8",
+      "text": "Lencana. Learn, test, and prove it. Live now on BNB Chain testnet.",
+      "spoken": "Lenchahna. Learn, test, and prove it. Live now on B N B Chain testnet."
+    }
+  ]
+}
