@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-07
 command: cd vault/Video-Workspace/remotion && node scripts/qa.mjs out/lencana-pitch-draft-2.mp4 · node scripts/vo-check.mjs · cd signer && npm run e2e · npm run journey · BASE_URL=<host tepi> node scripts/validator-check.js --hash <B153> --record
 measured: 2026-10-07
-result: QA HIJAU (draf 2, sesudah master) — 1920×1080 · 30 fps · H.264+AAC · 89,1 dtk · −14,0 LUFS · true peak −1,4 dBTP · nol kedipan · caption 196 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.411 potong teks); jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0
+result: QA HIJAU (draf 2, sesudah master) — 1920×1080 · 30 fps · H.264+AAC · 89,1 dtk · −14,0 LUFS · true peak −1,4 dBTP · nol kedipan · caption 196 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.411 potong teks); jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
 ---
 
 # T97 - Uji video pitch 90 detik (B173)
@@ -76,7 +76,8 @@ baris 8 terdengar "Linchana" (vokal pertama mendekati schwa). **Yang tetap butuh
 |---|---|
 | `BASE_URL=https://lencana-edge…workers.dev node scripts/validator-check.js --hash 0xb9fb06e5… --record` | **VALIDATOR HIJAU — 10/10**; `outcome VALID · 14 pemeriksaan · 0 error · 0 warning`; tercatat di `validator-runs.jsonl`. Catatan: bawaan `BASE_URL` skrip masih `127.0.0.1:8787` — sejak B156 tidak ada signer lokal, jadi run tanpa `BASE_URL` gagal `ECONNREFUSED` |
 | `cd signer && npm run e2e` | **E2E HIJAU — 48 pemeriksaan, 0 gagal**; termasuk kertas tercabut `0xdbd7c72f…` yang dipakai video (bit tersaji = 1) dan verdict validator pihak ketiga VALID |
-| `cd signer && npm run journey` | _sedang berjalan saat catatan ini ditulis — diisi sesudah selesai_ |
+| `cd signer && npm run journey` | **JOURNEY HIJAU — 34 pemeriksaan, 0 gagal** (10 tahap; dua kertas baru terbit, artefak dicetak `mintBatch`, prasyarat dicabut tanpa merobohkan kertas yang masih berlaku). Temuan: teks naratif "TIDAK ADA DI CORE" di akhir `signer/scripts/journey.js` sudah basi — masih menulis "tabel `orders` tidak pernah ditulis… pembelian kursus belum ada", padahal sejak B125 kursus berbayar menulis `orders` (dicatat, belum diubah) |
+| `cd signer && npm run cleanup -- --apply` (sesudah `e2e` + `journey`) | **CLEANUP HIJAU** — sisa `origin=test` → **0**; `origin=unknown` → 0 (tidak disentuh) |
 | `POST /admin/overview` (signer lokal, admin fixture) | `platformBps` **1000** (dibaca dari chain), kotor 27 LDC-demo, 8 kursus, 13 pendaftaran — angka benda di S7/S8 |
 
 ## 5. Asal tiap layar (produk sungguhan)
