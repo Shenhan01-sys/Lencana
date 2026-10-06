@@ -25,6 +25,7 @@ Bagian `#/app/credentials` di dasbor peserta. Sebelum B165 ia tabel hash; sesuda
 | `web/src/pages/certificate.css` | CSS lembar (disalin skrip dari S3, `.sheet` → `.cert-sheet`) + lapisan, bilah, dialog, cetak | selalu gelap |
 | `web/src/pages/credentials.css` | kartu daftar | |
 | `web/src/pages/certificate-extras.ts` | panel **Bukti on-chain** (B168), kotak **Cetak artefak NFT** (B169, `mintBox`), kotak **Bukti kepemilikan** per kartu (B170, `ownershipBox`), dialog Bagikan ke LinkedIn (B168) | `layers` dibagi dengan dialog bagikan dan diganti di tempat sesudah cetak; DOM saja, logikanya di `share.ts`/`ownership.ts` |
+| `web/src/edge-fallback.ts` | jalur baca dokumen edge berlapis (B171): `edgeFetch`, `edgePathOf`, `installEdgeFallback` — proxy same-origin `/edge/*` (rewrite `vercel.json`) dan host edge langsung serentak; HTML bukan dokumen; gagal total → `TypeError` berpetunjuk blokir ISP | dipasang `main.ts`; tombol Coba lagi di `certificate-view.ts` |
 | `web/src/ownership.ts` | MURNI: pernyataan kepemilikan baku, blok, `checkOwnership` (10 putusan), `chainReader`, `ownershipCast`, `ownershipLink` (B170) | diuji `probe` (21 pemeriksaan, termasuk chain 97 sungguhan) |
 | `web/src/pages/ownership-check.ts` + `ownership.css` | bagian **Periksa bukti kepemilikan** di halaman verifikasi publik (`#ownership-check`) (B170) | dipanggil `main.ts` di `updateStaticText`; tidak menggambar ulang bila bahasa sama |
 | `web/src/config.ts` | `CREDENTIAL_HOST`, `APP_HOST` (dipindah dari `main.ts`) | `main.ts` mengekspor ulang |

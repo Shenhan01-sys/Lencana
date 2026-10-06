@@ -10,6 +10,10 @@
   },
   "rewrites": [
     {
+      "source": "/edge/:path*",
+      "destination": "https://lencana-edge.hansgunawan775.workers.dev/:path*"
+    },
+    {
       "source": "/s/:hash/card.png",
       "destination": "/api/card?hash=:hash"
     },

@@ -1276,6 +1276,93 @@ async function main() {
     }
   }
 
+  // --- 13. jalur baca dokumen edge berlapis (B171) --------------------------------------
+  // Lencana-B171 status=SELESAI 2026-10-06 — probe mengadili jalur baca berlapis: proxy same-origin dan host edge serentak, yang berguna menang, HTML SPA bukan jawaban, 404 nyata tidak ditelan, gagal murni = TypeError dengan petunjuk blokir ISP, aturan rewrite Vercel ada sebelum catch-all. Buktikan ulang: cd web && npx tsx scripts/probe.ts
+  {
+    console.log('\n--jalur baca dokumen edge berlapis (B171)--')
+    const EF = await import('../src/edge-fallback')
+    const { CREDENTIAL_HOST: EH } = await import('../src/hosts')
+    const ORIGIN = 'https://app.example'
+    const P = `${ORIGIN}/edge/credentials/0xabc`
+    const D = `${EH}/credentials/0xabc`
+    type Beh = 'json' | 'html' | 'net' | '404' | '502' | 'hang'
+    const respOf = (b: Beh, tag: string) => b === 'json' ? new Response(JSON.stringify({ via: tag }), { status: 200, headers: { 'content-type': 'application/json' } })
+      : b === 'html' ? new Response('<!doctype html><title>spa</title>', { status: 200, headers: { 'content-type': 'text/html' } })
+        : b === '404' ? new Response('{"error":"not served"}', { status: 404, headers: { 'content-type': 'application/json' } })
+          : new Response('bad gateway', { status: 502 })
+    const mk = (proxy: Beh, direct: Beh, delays: { proxy?: number, direct?: number } = {}) => {
+      const log: Array<{ url: string, aborted: () => boolean }> = []
+      const fetchFn = (input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((resolve, reject) => {
+        const url = String(input)
+        const isProxy = url.startsWith(`${ORIGIN}/edge/`)
+        const beh = isProxy ? proxy : direct
+        const sig = init?.signal
+        log.push({ url, aborted: () => !!sig?.aborted })
+        const onAbort = () => reject(new DOMException('aborted', 'AbortError'))
+        if (sig?.aborted) return onAbort()
+        sig?.addEventListener('abort', onAbort, { once: true })
+        if (beh === 'hang') return
+        const t = setTimeout(() => { if (beh === 'net') reject(new TypeError('Failed to fetch')); else resolve(respOf(beh, isProxy ? 'proxy' : 'direct')) }, (isProxy ? delays.proxy : delays.direct) ?? 0)
+        sig?.addEventListener('abort', () => clearTimeout(t), { once: true })
+      })
+      return { fetchFn, log }
+    }
+    const run = (proxy: Beh, direct: Beh, d: { proxy?: number, direct?: number } = {}, extra: Partial<import('../src/edge-fallback').EdgeDeps> = {}) => {
+      const m = mk(proxy, direct, d)
+      return { ...m, p: EF.edgeFetch('/credentials/0xabc', undefined, { fetch: m.fetchFn, origin: ORIGIN, ...extra }) }
+    }
+    const via = async (p: Promise<Response>) => ((await p).json() as Promise<{ via?: string, error?: string }>)
+
+    check('edgePathOf: GET ke host edge → path + query; POST, host lain, dan URL tanpa path → null',
+      EF.edgePathOf(`${EH}/credentials/0xabc?format=record`) === '/credentials/0xabc?format=record' && EF.edgePathOf(`${EH}/healthz`, { method: 'POST' }) === null
+      && EF.edgePathOf('https://bsc-testnet.publicnode.com/') === null && EF.edgePathOf(EH) === null && EF.edgePathOf(new URL(`${EH}/healthz`)) === '/healthz')
+    const a = run('json', 'json', { proxy: 5, direct: 40 })
+    check('proxy menjawab duluan → dipakai; jalur langsung dibatalkan (signal-nya aborted)', (await via(a.p)).via === 'proxy' && a.log.length === 2 && a.log[1]!.aborted() && a.log[0]!.url === P && a.log[1]!.url === D, JSON.stringify(a.log.map((l) => l.url)))
+    check('proxy gagal jaringan, host langsung sehat → dipakai host langsung', (await via(run('net', 'json').p)).via === 'direct')
+    check('host langsung diblokir ISP (gagal jaringan), proxy sehat → dipakai proxy (kasus XL Axiata)', (await via(run('json', 'net', { proxy: 20 }).p)).via === 'proxy')
+    check('proxy mengembalikan HTML 200 (SPA di dev) → BUKAN dokumen; host langsung dipakai', (await via(run('html', 'json', { direct: 20 }).p)).via === 'direct')
+    let both: unknown = null
+    try { await run('net', 'net').p } catch (e) { both = e }
+    check('keduanya gagal jaringan → TypeError dengan petunjuk blokir ISP/DNS (bukan "Failed to fetch" saja), alasan asli ikut', both instanceof TypeError && /diblokir ISP atau DNS/.test(String((both as Error).message)) && /Failed to fetch/.test(String((both as Error).message)), String(both))
+    const nf = await run('404', '404').p
+    check('keduanya 404 → jawaban 404 nyata dikembalikan (tidak tersaji ≠ jaringan gagal), bukan dilempar', nf.status === 404)
+    const mixed = await run('502', '404').p
+    check('proxy 502 dan langsung 404 → 404 yang dipilih (jawaban nyata mengalahkan galat gerbang)', mixed.status === 404)
+    let htmlOnly: unknown = null
+    try { await run('html', 'net').p } catch (e) { htmlOnly = e }
+    check('HTML 200 saja + sisi lain gagal jaringan → tetap TypeError (HTML bukan jawaban)', htmlOnly instanceof TypeError)
+    let hung: unknown = null
+    const t0 = Date.now()
+    try { await run('hang', 'hang', {}, { timeoutMs: 60 }).p } catch (e) { hung = e }
+    check('kedua jalur menggantung → berhenti oleh batas waktu (bukan menunggu peramban) dengan TypeError berpetunjuk', hung instanceof TypeError && Date.now() - t0 < 2000, `${Date.now() - t0} ms ${String(hung)}`)
+    const ctl = new AbortController()
+    const ab = mk('hang', 'hang')
+    const abP = EF.edgeFetch('/credentials/0xabc', { signal: ctl.signal }, { fetch: ab.fetchFn, origin: ORIGIN })
+    ctl.abort()
+    let abErr: unknown = null
+    try { await abP } catch (e) { abErr = e }
+    check('pemanggil membatalkan (signal) → kedua jalur dibatalkan dan fetch ditolak', abErr instanceof Error && ab.log.every((l) => l.aborted()))
+    const solo = mk('net', 'json')
+    const soloRes = await EF.edgeFetch('/credentials/0xabc', undefined, { fetch: solo.fetchFn, origin: null })
+    check('tanpa origin (bukan http/https) → hanya jalur langsung yang dicoba', solo.log.length === 1 && solo.log[0]!.url === D && soloRes.ok)
+
+    const calls: string[] = []
+    const win = { fetch: ((i: RequestInfo | URL) => { calls.push(String(i)); return Promise.resolve(respOf('json', 'win')) }) as never, location: { origin: ORIGIN } } as { fetch: (i: RequestInfo | URL, init?: RequestInit) => Promise<Response>, location: { origin: string }, __edgeFallback?: boolean }
+    EF.installEdgeFallback(win)
+    const wrapped = win.fetch
+    EF.installEdgeFallback(win)
+    await win.fetch(`${EH}/credentials/0xabc`)
+    const before = calls.length
+    await win.fetch('https://bsc-testnet.publicnode.com/', { method: 'POST' })
+    await win.fetch(`${EH}/healthz`, { method: 'POST' })
+    check('installEdgeFallback: dipasang sekali (idempoten); GET edge lewat dua jalur, POST dan host lain lewat apa adanya',
+      win.fetch === wrapped && calls.slice(0, before).length >= 1 && calls.slice(before).join('|') === `https://bsc-testnet.publicnode.com/|${EH}/healthz` && calls.some((u) => u === P || u === D), JSON.stringify(calls))
+    const vj = JSON.parse((await import('node:fs')).readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8')) as { rewrites: Array<{ source: string, destination: string }> }
+    const iEdge = vj.rewrites.findIndex((r) => r.source === '/edge/:path*')
+    const iAll = vj.rewrites.findIndex((r) => r.source === '/(.*)')
+    check('vercel.json: rewrite /edge/:path* → host edge ada, dan SEBELUM catch-all SPA (kalau sesudahnya, /edge/* menjadi index.html)', iEdge >= 0 && iAll > iEdge && vj.rewrites[iEdge]!.destination === `${EH}/:path*`, JSON.stringify(vj.rewrites.map((r) => r.source)))
+  }
+
   // Diagnosa: tanpa blok ini, probe hanya melaporkan "panggilan X gagal" dan kita tetap
   // buta terhadap SEBABNYA — yang membuat probe tidak lebih berguna dari menebak.
   const anyFail = [r0, ...(demo ? [demo] : [])].flatMap((r) => r.readLog).filter((l) => !l.ok)

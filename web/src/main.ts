@@ -29,6 +29,7 @@ import { initLogin, openLogin, completeGoogleReturn } from './pages/login'
 import { needsOnboarding } from './pages/dashboard'
 // B126: pita pemuatan mengikuti setiap permintaan jaringan (penerbit, RPC chain, login); chip saldo di navbar.
 import { installFetchTracking } from './lib/loading'
+import { installEdgeFallback } from './edge-fallback'
 import { syncNavBalance } from './balance'
 import { loadPublishedCourses } from './catalog-live'
 import { mountMobileNav } from './nav-mobile'
@@ -37,6 +38,7 @@ import './mobile.css'
 // B152: service worker untuk aplikasi yang bisa dipasang (hanya build produksi).
 import { registerServiceWorker } from './pwa'
 
+installEdgeFallback() // B171: sebelum pita pemuatan, supaya dua jalur baca dokumen edge terhitung satu permintaan
 installFetchTracking()
 registerServiceWorker()
 

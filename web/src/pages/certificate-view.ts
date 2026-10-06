@@ -43,6 +43,7 @@ const COPY = {
   failedTitle: { en: 'The certificate could not be made', id: 'Sertifikat belum bisa dibuat' },
   notMineTitle: { en: 'Not your credential', id: 'Bukan kredensialmu' },
   toVerifier: { en: 'Check it in the verifier', id: 'Periksa di verifier' },
+  retry: { en: 'Try again', id: 'Coba lagi' },
   footNote: {
     en: 'Built from the public credential document. A name you type is not verified, is not part of the signature, and is kept only in this browser.',
     id: 'Disusun dari dokumen kredensial publik. Nama yang kamu ketik tidak diverifikasi, tidak ikut tanda tangan, dan hanya disimpan di peramban ini.',
@@ -186,11 +187,12 @@ export function certificateHashOf (routeHash: string): string | null {
   return seg || null
 }
 
-const stateView = (lang: Lang, title: string, text: string, opts: { bad?: boolean, verifyHash?: string } = {}): HTMLElement => h('div', { class: 'cert-state', role: opts.bad ? 'alert' : 'status', 'aria-live': 'polite' },
+const stateView = (lang: Lang, title: string, text: string, opts: { bad?: boolean, verifyHash?: string, retry?: () => void } = {}): HTMLElement => h('div', { class: 'cert-state', role: opts.bad ? 'alert' : 'status', 'aria-live': 'polite' },
   h('h1', null, title),
   h('p', { class: opts.bad ? 'cert-bad' : '' }, text),
   h('div', { class: 'cert-actions' },
     h('a', { class: 'cert-btn cert-btn-pri', href: '#/app/credentials' }, `← ${COPY.back[lang]}`),
+    opts.retry ? h('button', { type: 'button', class: 'cert-btn', 'data-retry': '', onClick: opts.retry }, COPY.retry[lang]) : null, // B171: gagal ambil dokumen (mis. host diblokir ISP) bisa dicoba lagi tanpa memuat ulang halaman
     opts.verifyHash ? h('a', { class: 'cert-btn', href: verifyLink(opts.verifyHash) }, COPY.toVerifier[lang]) : null))
 
 /** Membuka penampil untuk `hash` milik `addr`. Dipanggil `renderCredentials` untuk rute `#/app/credentials/<hash>`. */
@@ -209,13 +211,13 @@ export function openCertificate (hash: string, addr: string, lang: Lang): void {
   void loadCertificate(hash, addr).then((r) => {
     if (current !== layer) return // ditutup atau diganti selagi memuat
     if (!r.ok) {
-      el.replaceChildren(stateView(lang, r.kind === 'not-mine' ? COPY.notMineTitle[lang] : COPY.failedTitle[lang], r.why, { bad: true, verifyHash: r.kind === 'invalid' ? undefined : hash }))
+      el.replaceChildren(stateView(lang, r.kind === 'not-mine' ? COPY.notMineTitle[lang] : COPY.failedTitle[lang], r.why, { bad: true, verifyHash: r.kind === 'invalid' ? undefined : hash, retry: r.kind === 'failed' ? () => openCertificate(hash, addr, lang) : undefined }))
       return
     }
     mountSheet(layer, r.cert, r.layers, addr, lang)
   }).catch((e: unknown) => {
     if (current !== layer) return
-    el.replaceChildren(stateView(lang, COPY.failedTitle[lang], e instanceof Error ? e.message : String(e), { bad: true }))
+    el.replaceChildren(stateView(lang, COPY.failedTitle[lang], e instanceof Error ? e.message : String(e), { bad: true, retry: () => openCertificate(hash, addr, lang) }))
   })
 }
 
