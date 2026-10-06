@@ -4,9 +4,10 @@
 .ab { display: grid; gap: 14px; padding: 20px; border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08)); border-radius: 20px;
   background: radial-gradient(120% 90% at 75% 0%, rgba(55, 214, 122, 0.05), transparent 60%), linear-gradient(180deg, #121519, #0d0f13); }
 .ab [hidden] { display: none !important; }
-.ab-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.ab-head { display: grid; justify-items: start; gap: 8px; }
 .ab-head h2 { margin: 0; font-size: 22px; }
-.ab-head p { flex: 1 1 100%; margin: 0; }
+.ab-head p { margin: 0; max-width: 72ch; }
+.ab-titlerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
 .ab-pill { padding: 2px 10px; border-radius: 999px; font: 600 12px var(--font-mono, ui-monospace, monospace); overflow-wrap: anywhere; }
 .ab-pill.ok { background: rgba(55, 214, 122, 0.12); color: #37d67a; }
 .ab-pill.wait { background: rgba(255, 159, 67, 0.12); color: #ff9f43; }
@@ -41,6 +42,10 @@
   transition: transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.3), border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .ab-chip-name { font: 700 12.5px var(--font-mono, ui-monospace, monospace); line-height: 1.25; }
+/* logo provider menggantikan nama (catatan builder 6 Okt malam); nama tetap di aria-label + tooltip tombolnya */
+.ab-logo { display: grid; place-items: center; height: 30px; color: #e9e6df; }
+.ab-logo svg, .ab-logo img { display: block; width: 28px; height: 28px; }
+.ab-logo img { border-radius: 6px; }
 .ab-chip-pins { height: 8px; margin: 0 -10px; background: repeating-linear-gradient(90deg, #c9a227 0 5px, transparent 5px 9px); opacity: 0.45; }
 .ab-chip:hover:not(:disabled) { border-color: rgba(240, 185, 11, 0.45); }
 .ab-chip.on { transform: translateY(-6px); border-color: rgba(240, 185, 11, 0.8); box-shadow: 0 10px 24px rgba(240, 185, 11, 0.14); }

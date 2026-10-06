@@ -81,3 +81,24 @@ Builder: keputusan atas pengajuan dipindah ke admin Lencana, akun sementara shen
 Konfigurasi produksi: variabel Railway `ADMIN_ADDRESSES` diisi dompet tertanam akun builder (alamat bukan rahasia; dibaca lewat Privy API sekali, skrip dihapus). Dipasang dengan `--skip-deploys`: kode admin belum ada di signer yang berjalan, jadi variabel baru dipakai pada deploy dorongan berikutnya.
 
 **Batas:** persetujuan admin sungguhan di produksi belum diuji (menunggu dorongan; AC-B129#14 TERBUKA); uji lokal memakai dompet uji, bukan sesi Privy sungguhan akun builder; satu admin sementara tanpa pemulihan selain mengganti variabel.
+
+## Bagian B135 dan B131 (pembaruan 6 Okt malam, catatan builder kedua) — logo provider, keterangan, akun admin-saja (D77)
+
+Peramban lokal 127.0.0.1:5174 (vite sementara; untuk bagian admin diarahkan ke signer lokal dengan `ADMIN_ADDRESSES` = akun uji acak, kuncinya dihapus sesudah uji), identitas lewat server kunci sekali-pakai. Bagian logo memakai signer produksi dan akun pemilik agen #2548.
+
+| # | langkah | hasil |
+|---|---|---|
+| 27 | rak provider di tab "Otak & antrean" (`#/app/owner`) | tujuh tombol tanpa teks tampil: logo (enam `<svg>` + satu `<img>` favicon xKiro), masing-masing 30×30 px, `aria-label` dan tooltip = nama provider; satu baris di 1280 px |
+| 28 | pilih Anthropic | hanya satu tombol `aria-pressed=true` (Anthropic), bertepi emas; kolom kunci mengikuti provider |
+| 29 | urutan kepala panel | kicker "Otak agen · #2548" → keterangan "Pilih provider, pakai API key milikmu…" → baris judul "Otak penilai" + status "belum ada otak" (posisi vertikal naik berurutan); sebelumnya keterangan di bawah judul dan status |
+| 30 | ponsel 390 px | rak membungkus ke dua kolom (260 px lebar), tanpa gulir samping; `pageerror` 0 |
+| 31 | akun admin-saja (uji): buka `#/app` | berakhir di `#/app/admin` |
+| 32 | `#/app/pub`, `#/app/owner`, `#/app/courses`, `#/app/welcome` | semuanya berakhir di `#/app/admin` |
+| 33 | `#/app/account` | berakhir di `#/app/admin/account`; kartu "Kursi di akun ini" hanya satu baris: **Admin Lencana** + tombol "Buka halaman Admin" (tanpa baris Peserta / Penerbit / Agent Owner) |
+| 34 | halaman Admin dan sidebar | sidebar dua butir (Admin Lencana, Akun); kartu "Pengajuan menunggu" dan "Anggota penerbit"; `pageerror` 0 |
+| 35 | harness `verify:publisher` | **89 / 0** (83 + 6 cek D77: peran efektif admin, dasbor penerbit 403, rute peserta 403, dasbor Agent Owner 403, memilih peran 409, hibah keanggotaan ke admin ditolak); **uji negatif:** baris admin di `accountOf` dimatikan → 4 merah, dipulihkan → hijau; `cleanup` sisa 0 |
+| 36 | data produksi akun shenhan604 | sebelum: `account_roles` dev (dummy 2 builder), anggota penerbit (hak publish), agen #2547 miliknya di chain; sesudah: `account_roles` kosong, keanggotaan aktif 0 (`grant:member --revoke`), akun dev tinggal 1; NFT #2547 tetap di dompetnya (tidak bisa dicabut dari sini) |
+
+Tangkapan layar (alat sesi): `b173-brain-desktop`, `b173-head-desktop`, `b173-rack-mobile`, `b173-admin-account`.
+
+**Batas:** produksi masih menjalankan signer lama sampai dorongan — sebelum itu akun shenhan604 yang masuk akan terbaca "belum berperan" (pilih peran); setelah dorongan ia langsung ke halaman Admin. Logo diuji di Chrome 154 saja; logo adalah mark pihak ketiga yang dipakai untuk mengenali provider (penyebutan nominatif).

@@ -50,3 +50,7 @@ Penerbit belum bisa menyusun kursus: itu B133.
 ## Pembaruan 6 Okt malam (catatan builder)
 
 Builder 6 Okt malam: "B131 betul" — akun hansgunawan775@gmail.com memegang dua peran karena akun dev. Ditutup.
+
+## Pembaruan 6 Okt malam (D77: admin-saja)
+
+Builder: akun shenhan604 hanya admin, semua grant penerbit / peserta / Agent Owner dicabut. Peran efektif baru `admin` (alamat di `ADMIN_ADDRESSES`, bukan kunci penerbit): server menolak semua aksi peran lain untuknya dan `/me/roles` tanpa kursi; web memindahkan semua dasbor peran lain ke `#/app/admin`. Data produksi: tanda dev dan keanggotaan penerbit akun itu dicabut (akun dev tinggal 1). NFT agen #2547 di dompetnya tetap (chain; tidak bisa dicabut dari sini), tetapi tidak diakui sebagai kursi.

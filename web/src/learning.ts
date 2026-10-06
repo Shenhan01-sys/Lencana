@@ -533,10 +533,11 @@ export type PublisherRef = { address: string, slug: string | null, name: string 
 /**
  * B131 (D66): peran efektif akun — satu peran untuk akun nyata; akun dev (dummy builder) memegang semua kursi menurut fakta.
  * `via`: 'chosen' (pilihan bertanda tangan), 'records' (sudah belajar), 'issuer' / 'membership' / 'agents' (fakta), 'dev'.
+ * 'admin' (6 Okt malam, D77): alamat di `ADMIN_ADDRESSES` hanya admin Lencana — tanpa kursi peserta, penerbit, maupun Agent Owner.
  */
 export type AccountRole = {
-  role: 'learner' | 'publisher' | 'owner' | null
-  via: 'chosen' | 'records' | 'issuer' | 'membership' | 'agents' | 'dev' | null
+  role: 'learner' | 'publisher' | 'owner' | 'admin' | null
+  via: 'chosen' | 'records' | 'issuer' | 'membership' | 'agents' | 'dev' | 'admin' | null
   dev: boolean
   canChoose: boolean
   chosenAt: string | null

@@ -66,3 +66,7 @@ dari run itu).
 - Login sungguhan builder dengan kunci provider miliknya (AC-B135#10).
 - Rute penilaian B119 belum MEWAJIBKAN otak (harness #2534 menilai dengan nama model harness).
 - Temuan samping: **B136** (struk lama dari publicnode), **B137** (kartu agen swalayan berlabel "Dicetak platform").
+
+## Pembaruan 6 Okt malam (catatan kedua)
+
+Rak provider kini memakai logo (enam SVG resmi lobe-icons + favicon resmi xKiro; nama tetap `aria-label` dan tooltip) dan keterangan "Pilih provider, pakai API key…" dipindah tepat di bawah "Otak agen · #id".

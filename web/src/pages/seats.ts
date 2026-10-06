@@ -82,10 +82,10 @@ export function heldSeats (roles: MyRoles | undefined | null): { publisher: bool
   return { publisher: roles.account.role === 'publisher' && facts.publisher, owner: roles.account.role === 'owner' && facts.owner }
 }
 
-/** Dasbor untuk peran akun ini (B131): Penerbit → `#/app/pub`, Agent Owner → `#/app/owner`, selain itu dasbor peserta. */
+/** Dasbor untuk peran akun ini (B131): Penerbit → `#/app/pub`, Agent Owner → `#/app/owner`, Admin Lencana → `#/app/admin` (D77), selain itu dasbor peserta. */
 export function homeOf (roles: MyRoles | undefined | null): string {
   const role = roles && !roles.account.dev ? roles.account.role : null
-  return role === 'publisher' ? '#/app/pub' : role === 'owner' ? '#/app/owner' : '#/app'
+  return role === 'publisher' ? '#/app/pub' : role === 'owner' ? '#/app/owner' : role === 'admin' ? '#/app/admin' : '#/app'
 }
 
 /**

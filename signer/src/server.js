@@ -101,7 +101,7 @@ import { ownedAgentFacts } from './agents.js'
 import { limitsFromEnv, clientIp } from './limits.js'
 import { ownerRecords as dbOwnerRecords, platformAgents as dbPlatformAgents, platformAgentIds as dbPlatformAgentIds } from './db.js'
 // Lencana-B131 status=SELESAI 2026-10-03 — satu akun nyata = satu peran (D66): POST /me/role (pilih sekali, bertanda tangan), /me/roles mengembalikan peran efektif, rute peserta/penerbit/Agent Owner menolak akun berperan lain kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { accountOf, roleRefusal } from './account.js'
+import { accountOf, roleRefusal, isAdminAddress, adminAddresses } from './account.js'
 import { chooseRole as dbChooseRole, recordRole as dbRecordRole } from './db.js'
 // Lencana-B133 status=SELESAI 2026-10-03 — Penerbit menyusun kursus: POST /publisher/drafts (daftar), /publisher/drafts/save dan /publisher/drafts/submit (anggota berhak susun, tanda tangan atas hash isi); kursus yang diterbitkan kunci penerbit digabung ke katalog proses ini (GET /catalog/published tanpa kunci). Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { refreshCatalog, publishedCatalog, courseArchived, dbCourseMeta } from './catalog.js'
@@ -157,8 +157,8 @@ const LIMITS = limitsFromEnv()
 const ARTIFACT_LAYER = process.env.ARTIFACT_LAYER_ADDRESS ?? (CHAIN_ID === 97 ? ARTIFACT_LAYER_97 : null)
 const CREDENTIAL_HOST = process.env.CREDENTIAL_HOST ?? CREDENTIAL_HOST_DEFAULT
 // Admin Lencana (6 Okt malam): alamat yang boleh memutuskan keanggotaan penerbit selain kunci penerbit (`POST /admin/*`). Kosong = tidak ada admin; daftar hanya dari lingkungan server.
-const ADMINS = new Set(String(process.env.ADMIN_ADDRESSES ?? '').split(',').map((a) => a.trim().toLowerCase()).filter((a) => /^0x[0-9a-f]{40}$/.test(a)))
-const isAdmin = (a) => typeof a === 'string' && ADMINS.has(a.toLowerCase())
+// D77: daftar dan aturan "akun admin hanya admin" ada di `account.js` (satu sumber untuk rute dan peran).
+const isAdmin = isAdminAddress
 const DEPLOYER_ADDRESS = process.env.DEPLOYER_PRIVATE_KEY ? privateKeyToAccount(process.env.DEPLOYER_PRIVATE_KEY).address : null
 
 // Setoran tenggat (B90). Premi yang hangus mengalir ke PENERBIT, sama seperti bayaran verifikasi.
@@ -306,6 +306,11 @@ function accepts () {
  */
 async function rolesOf (address) {
   const addr = getAddress(String(address).toLowerCase())
+  // D77: akun admin hanya admin — tidak membaca keanggotaan atau ownerOf (kursi itu tidak diakui walau faktanya masih ada).
+  const adminAcct = isAdmin(addr) ? await accountCheap(addr) : null
+  if (adminAcct?.role === 'admin') {
+    return { address: addr, roles: { learner: false, publisher: null, agentOwner: null }, account: adminAcct, publisherRequest: null, publisherIssuer: null, admin: true }
+  }
   // Keanggotaan (database) dan kepemilikan agen (chain) tidak saling bergantung — dibaca bersamaan.
   const ownedAgents = (async () => {
     if (!AGENTS_READY) return []
@@ -344,6 +349,8 @@ const LEARNER_ROUTES = new Set(['/enroll', '/progress', '/grade', '/essay', '/pr
 async function publisherSeat (address) {
   if (!PAY_PAYEE) return null
   const addr = getAddress(String(address).toLowerCase())
+  // D77: akun admin tidak memegang kursi Penerbit lewat keanggotaan (kunci penerbit sendiri tetap penerbit).
+  if (isAdmin(addr) && addr.toLowerCase() !== PAY_PAYEE.toLowerCase()) return null
   const issuer = MANIFESTS[0]?.issuer
   if (addr.toLowerCase() === PAY_PAYEE.toLowerCase()) {
     return { issuer: getAddress(PAY_PAYEE), slug: issuer?.slug ?? null, name: issuer?.name ?? null, via: 'issuer', canHire: true, canAppoint: true, canAuthor: true, canPublish: true, since: null }
@@ -1629,7 +1636,7 @@ const server = createServer(async (req, res) => {
           ? { address: DEPLOYER_ADDRESS, balanceWei: await nativeBalance(RPC_URL, DEPLOYER_ADDRESS).then(String).catch(() => null) }
           : null,
         limits: { faucet: LIMITS.faucet.snapshot(), gas: LIMITS.gas.snapshot(), mint: LIMITS.mint.snapshot() },
-        admins: ADMINS.size, // hanya jumlah; alamat admin tidak dilaporkan
+        admins: adminAddresses().size, // hanya jumlah; alamat admin tidak dilaporkan
       })
     }
     return send(res, 404, {

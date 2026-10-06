@@ -64,9 +64,13 @@
 
 /* ---------------------------------------------------------------- langkah, provider, kunci, model */
 .ow-shell .ab-num { background: var(--o-gold); color: #14110a; }
-.ow-shell .ab-rack { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 8px; padding-top: 0; }
+.ow-shell .ab-rack { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; padding-top: 0; }
 .ow-shell .ab-chip { min-height: 48px; padding: 10px 12px; clip-path: none; border: 1px solid var(--o-line-strong); border-radius: 10px; background: var(--o-card); color: var(--o-text); transform: none; box-shadow: none; align-content: center; }
 .ow-shell .ab-chip-pins { display: none; }
+.ow-shell .ab-chip { justify-items: center; min-height: 60px; }
+.ow-shell .ab-logo { height: 32px; color: var(--o-text); }
+.ow-shell .ab-logo svg, .ow-shell .ab-logo img { width: 30px; height: 30px; }
+.ow-shell .ab-chip:focus-visible { outline: 2px solid var(--o-gold); outline-offset: 2px; }
 .ow-shell .ab-chip:hover:not(:disabled) { border-color: var(--o-gold); }
 .ow-shell .ab-chip.on { transform: none; border: 2px solid var(--o-gold); background: var(--o-inset); box-shadow: none; padding: 9px 11px; }
 .ow-shell .ab-chip.live::after { top: 8px; right: 8px; box-shadow: none; background: var(--o-green); }

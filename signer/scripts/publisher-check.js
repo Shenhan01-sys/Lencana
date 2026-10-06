@@ -305,6 +305,19 @@ try {
   check('/me/roles: admin ditandai untuk alamat admin, tidak untuk akun lain', adminRoles.body?.admin === true && strangerRoles.body?.admin === false, `${adminRoles.body?.admin} / ${strangerRoles.body?.admin}`)
   const hz = await call('/healthz')
   check('/healthz melaporkan jumlah admin (1), bukan alamatnya', hz.body?.admins === 1 && !hz.text.toLowerCase().includes(adminAcct.address.toLowerCase().slice(2)), `${hz.body?.admins}`)
+  // D77: akun admin hanya admin — tidak punya kursi peserta, penerbit, maupun Agent Owner.
+  check('akun admin: peran efektif "admin" (via admin), tanpa kursi penerbit / Agent Owner / peserta', adminRoles.body?.account?.role === 'admin' && adminRoles.body?.account?.via === 'admin' && adminRoles.body?.roles?.publisher === null && adminRoles.body?.roles?.agentOwner === null && adminRoles.body?.roles?.learner === false, JSON.stringify({ account: adminRoles.body?.account, roles: adminRoles.body?.roles }))
+  const adminPub = await overview(adminAcct)
+  check('akun admin membuka dasbor penerbit → 403 (bukan pemegang kursi Penerbit)', adminPub.status === 403, adminPub.text.slice(0, 140))
+  const adminLearn = await call('/progress', { learner: adminAcct.address })
+  check('akun admin memakai rute peserta → 403 "Lencana admin account"', adminLearn.status === 403 && /Lencana admin account/.test(adminLearn.body?.error ?? ''), adminLearn.text.slice(0, 160))
+  const adminOwn = await call('/owner/overview', { learner: adminAcct.address, ...await signed(adminAcct, `lencana-owner nonce=${nonce()}`) })
+  check('akun admin membuka dasbor Agent Owner → 403 "Lencana admin account"', adminOwn.status === 403 && /Lencana admin account/.test(adminOwn.body?.error ?? ''), adminOwn.text.slice(0, 160))
+  const adminChoose = await call('/me/role', { learner: adminAcct.address, role: 'learner', ...await signed(adminAcct, `lencana-role role=learner nonce=${nonce()}`) })
+  check('akun admin memilih peran peserta → 409 (sudah berperan admin)', adminChoose.status === 409, adminChoose.text.slice(0, 160))
+  const grantAdmin = await decide('grant', adminAcct.address, { hire: true })
+  const adminAfter = await roles(adminAcct)
+  check('kunci penerbit menghibahkan keanggotaan ke akun admin → ditolak, tetap tanpa kursi penerbit', grantAdmin.status >= 400 && adminAfter.body?.roles?.publisher === null, `${grantAdmin.status} ${grantAdmin.text.slice(0, 120)} / ${JSON.stringify(adminAfter.body?.roles?.publisher)}`)
   }
 } catch (e) {
   check('lapis HTTP selesai tanpa pengecualian', false, String(e?.stack ?? e).slice(0, 300))

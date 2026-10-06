@@ -43,6 +43,7 @@ const nonce = () => randomBytes(10).toString('hex')
 const same = (a, b) => String(a ?? '').toLowerCase() === String(b ?? '').toLowerCase()
 const COURSE = 'web3-dasar-2026'
 // Akun dummy builder (D66) — alamat dibaca dari publisher_members dan platform_agents 2 Okt.
+// 6 Okt malam (D77): dummy 2 (shenhan604) dijadikan admin-saja atas permintaan builder — tanda dev dan keanggotaan penerbitnya dicabut di produksi.
 const BUILDER_DUMMIES = ['0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF', '0x632Da38506f32884A111b5BB7Ba85C1ad83B38AF']
 
 const publisher = privateKeyToAccount(env.ISSUER_PRIVATE_KEY)
@@ -198,7 +199,9 @@ try {
   const pvD = await pubOverview(D)
   check('akun dev yang sudah belajar membuka dasbor penerbit → 200 (dua kursi sekaligus)', pvD.status === 200, pvD.text.slice(0, 160))
   const dummies = await pg(`/account_roles?address=in.${inList(BUILDER_DUMMIES)}&dev=is.true&select=address`, { headers: { prefer: 'count=exact' } })
-  check('dua akun dummy builder bertanda dev di database', dummies.total === 2, json(dummies.body))
+  check('dummy 1 builder tetap bertanda dev; dummy 2 (admin-saja, D77) tidak lagi bertanda dev di database', dummies.total === 1 && same(dummies.body?.[0]?.address, BUILDER_DUMMIES[0]), json(dummies.body))
+  const adminMember = await pg(`/publisher_members?member=eq.${BUILDER_DUMMIES[1]}&revoked_at=is.null&select=member`, { headers: { prefer: 'count=exact' } })
+  check('akun admin-saja (dummy 2) bukan anggota penerbit aktif (dicabut 6 Okt malam)', adminMember.total === 0, json(adminMember.body))
 } catch (e) {
   check('lapis HTTP selesai tanpa pengecualian', false, String(e?.stack ?? e).slice(0, 300))
 } finally {

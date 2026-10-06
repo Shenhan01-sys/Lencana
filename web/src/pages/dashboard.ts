@@ -246,7 +246,13 @@ export function renderApp (routeHash: string): HTMLElement {
   )
   main.appendChild(topSlot)
 
-  if (section === 'account') { main.appendChild(renderAccount(lang, addr)); mountSwitch(); return shell }
+  if (section === 'account') {
+    main.appendChild(renderAccount(lang, addr))
+    mountSwitch()
+    // D77: akun admin-saja tidak punya kursi peserta — Akunnya ada di cangkang Admin, bukan di navigasi peserta.
+    void seats().then((r) => { if (r.ok && r.roles?.account.role === 'admin') window.location.hash = '#/app/admin/account' })
+    return shell
+  }
   // B165: kartu kredensial + penampil lembar sertifikat (rute `#/app/credentials/<hash>`); bagian lain menutup penampil di atas.
   if (section === 'credentials') { main.appendChild(renderCredentialsPage(lang, addr, routeHash)); guardSeat('learner', mountSwitch); return shell }
 
@@ -381,7 +387,7 @@ function renderSeats (lang: Lang): HTMLElement {
 
 /** Baris kursi + (bila akun ini admin Lencana) baris Admin di depan. */
 function seatRows (lang: Lang, r: MyRoles, onChange: () => void): HTMLElement[] {
-  const base = seatRowsBase(lang, r, onChange)
+  const base = r.account.role === 'admin' ? [] : seatRowsBase(lang, r, onChange)
   if (!r.admin) return base
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   return [h('div', { class: 'role-row held' },
@@ -442,7 +448,7 @@ function seatRowsBase (lang: Lang, r: MyRoles, onChange: () => void): HTMLElemen
   return [viaLine, rows[a.role === 'learner' ? 0 : a.role === 'publisher' ? 1 : 2]]
 }
 
-const VIA_COPY = { chosen: 'viaChosen', records: 'viaRecords', issuer: 'viaIssuerRole', membership: 'viaMembership', agents: 'viaAgents', dev: 'viaChosen' } as const
+const VIA_COPY = { chosen: 'viaChosen', records: 'viaRecords', issuer: 'viaIssuerRole', membership: 'viaMembership', agents: 'viaAgents', dev: 'viaChosen', admin: 'viaChosen' } as const
 
 function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
@@ -475,6 +481,7 @@ function renderWelcome (lang: Lang, addr: string | null): HTMLElement {
         return
       }
       const acct = r.roles.account
+      if (acct.role === 'admin') { finish('#/app/admin'); return }
       if (acct.dev) stepDevSeats()
       else if (acct.role) stepYourRole(r.roles)
       else stepChoose(r.roles)

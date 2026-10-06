@@ -21,6 +21,7 @@ import { LLM_PROVIDERS, PROVIDER_IDS, isProvider, listModels, judgeEssayWith, ty
 import { runCalibration, calibrationSetup, CALIBRATION_COURSE, type CalibrationResult } from '../calibration'
 import { saveAgentBrain, readAgentQueue, submitAgentJudgement, type OwnerAgent, type OwnerOverview, type QueueItem, type AgentBrainInfo } from '../learning'
 import { formatLdc, PAY_TOKEN_SYMBOL } from '../pricing'
+import { providerLogo } from '../provider-logos'
 import { feeLadder } from './fee-ladder'
 
 type Lang = 'en' | 'id'
@@ -302,8 +303,11 @@ export function agentBrain (lang: Lang, o: OwnerOverview, a: OwnerAgent, reload:
       current ? h('small', null, `${T('installed')} · ${new Date(current.at).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium' })} · ${T('subTag')} ${current.calibration.substantive} / ${T('hollowTag')} ${current.calibration.hollow}`) : null))
   const chips = PROVIDER_IDS.map((id) => {
     const b = h('button', { type: 'button', class: `ab-chip ${id === sel ? 'on' : ''} ${current?.provider === id ? 'live' : ''}`, 'aria-pressed': id === sel ? 'true' : 'false', dataset: { p: id } },
-      h('span', { class: 'ab-chip-name' }, LLM_PROVIDERS[id].label),
+      providerLogo(id),
       h('span', { class: 'ab-chip-pins', 'aria-hidden': 'true' })) as HTMLButtonElement
+    // Catatan builder 6 Okt malam: nama diganti logo; nama provider tetap jadi label aksesibilitas dan tooltip.
+    b.setAttribute('aria-label', LLM_PROVIDERS[id].label)
+    b.title = LLM_PROVIDERS[id].label
     b.addEventListener('click', () => { if (!busy) choose(id) })
     return b
   })
@@ -458,9 +462,11 @@ export function agentBrain (lang: Lang, o: OwnerOverview, a: OwnerAgent, reload:
 
   const head = h('header', { class: 'ab-head' },
     h('span', { class: 'app-kicker' }, `${T('kicker')} · #${a.agentId}`),
-    h('h2', null, T('title')),
-    h('span', { class: `ab-pill ${current ? 'ok' : 'wait'}` }, current ? `${T('installed')} · ${current.modelName}` : a.brain ? T('oldOwner') : T('none')),
-    h('p', { class: 'app-muted' }, T('intro')))
+    // Catatan builder 6 Okt malam: keterangan "Pilih provider…" tepat di bawah "Otak agen · #id", baru judul dan status.
+    h('p', { class: 'app-muted ab-intro' }, T('intro')),
+    h('div', { class: 'ab-titlerow' },
+      h('h2', null, T('title')),
+      h('span', { class: `ab-pill ${current ? 'ok' : 'wait'}` }, current ? `${T('installed')} · ${current.modelName}` : a.brain ? T('oldOwner') : T('none'))))
   return h('section', { class: 'ab lc-enter' },
     head,
     h('div', { class: 'ab-top' }, socket, changeBtn),
