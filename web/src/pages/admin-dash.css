@@ -108,7 +108,7 @@
 .adm-shell .adm-g-arc.zero { opacity: 0; }
 
 /* ================================================================ Ringkasan sebagai satu kanvas aliran (builder: "lebih creative, kurangi card-card")
-   Strip angka tanpa kotak + diagram aliran (admin-flow.ts): tebal pita = jumlah. */
+   Strip angka tanpa kotak di bawah sabuk proses bisnis (admin-objects.ts, gaya di admin-line.css). */
 .adm-shell .adm-hero { gap: 22px; padding: 24px; }
 .adm-shell .adm-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .adm-shell .adm-kpi { display: grid; gap: 2px; align-content: start; padding: 2px 18px; border-left: 1px solid var(--o-line, #2b313a); min-width: 0; }

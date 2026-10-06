@@ -19,13 +19,14 @@
 import './owner-solid.css'
 import './admin.css'
 import './admin-dash.css'
-import './admin-pipeline.css'
+import './admin-line.css'
 import { h } from '../lib/ui'
 import { adminDecide, learnerAddress, readAdminOverview, type AdminOverview, type AdminSummary, type AdminTrailEvent, type AdminHealth, type MemberPerms } from '../learning'
 import { skeleton } from '../lib/loading'
 import { formatLdc } from '../pricing'
 import { navIcon } from './seats'
-import { pipeline, openStationDialog } from './admin-pipeline'
+import { lineEl, drawObject } from './admin-objects'
+import { openDetailDialog } from './admin-detail'
 import { buildStations, ORDER } from './admin-stations'
 
 type Lang = 'en' | 'id'
@@ -81,7 +82,7 @@ const COPY = {
   tHires: { en: 'Agent hires', id: 'Sewa agen' },
   tReviewers: { en: 'Reviewers appointed', id: 'Pengesah ditunjuk' },
   flowTitle: { en: 'Platform at a glance', id: 'Platform sekilas' },
-  flowSub: { en: 'The journey of one enrollment, from course to money. Click a station for its details.', id: 'Perjalanan satu pendaftaran, dari kursus sampai uang. Klik sebuah station untuk detailnya.' },
+  flowSub: { en: 'The journey of one enrollment, from course to money. Every object is a step of the process and the number of objects is the number in the data. Click an object for its details.', id: 'Perjalanan satu pendaftaran, dari kursus sampai uang. Setiap benda adalah langkah prosesnya dan jumlah benda = jumlah data. Klik sebuah benda untuk detailnya.' },
   pendingShort: { en: 'waiting', id: 'menunggu' },
   essaysAll: { en: 'essays', id: 'esai' },
   moneyIn: { en: 'in', id: 'masuk' },
@@ -331,14 +332,12 @@ function summaryPanel (lang: Lang, o: AdminOverview, goApprove: () => void): HTM
   const sym = s.money.token.symbol
   const num = (v: string) => formatLdc(BigInt(v))
 
-  // ---- pipeline gaya n8n (acuan: References/Flow1WithN8N.md): tiap station bisa diklik → popup detail
+  // ---- sabuk proses bisnis (prototipe FE11): tiap langkah = benda nyata, jumlah benda = jumlah data; klik benda → popup detail
   const model = buildStations(lang, s, goApprove)
-  const flow = pipeline({
-    stations: model.stations, hops: model.hops, loop: model.loop, hint: model.hint,
-    open: (id) => openStationDialog({ id, order: [...ORDER], detailOf: model.detailOf, labels: model.labels }),
-  })
+  const open = (id: string) => openDetailDialog({ id, order: [...ORDER], detailOf: model.detailOf, art: (sid) => drawObject(sid, s, lang), labels: model.labels })
+  const flow = lineEl({ stations: model.stations, s, lang, open, hint: model.hint, moreLabel: model.more })
 
-  // ---- strip statistik di bawah pipeline (seperti acuan): tipografi, bukan kotak
+  // ---- strip statistik di bawah sabuk: tipografi, bukan kotak
   const kpi = (value: number | string, label: string, sub: string, hot = false) => {
     const v = h('strong', { class: 'adm-kpi-v' }, String(value))
     if (typeof value === 'number') ticker(v, value)

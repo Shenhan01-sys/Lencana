@@ -10,7 +10,7 @@ updated: 2026-10-06
 **AC:** [[07-Backlog/Acceptance-Criteria/AC-B172 - Halaman Admin ringkasan jejak kesehatan]] · **Summary:** [[08-Results/B172 - Executive Summary]] ·
 **Berkas prototipe:** `FE11 - Prototipe Admin proses bisnis (B172).html` (di folder yang sama; buka langsung di peramban — tanpa jaringan, tanpa pustaka)
 
-**Status: PROTOTIPE standalone, belum terpasang di aplikasi.** Permintaan builder 6 Okt malam, sesudah melihat pipeline gaya n8n di tab Ringkasan:
+**Status: prototipe disetujui builder ("udh nice") dan TERPASANG di tab Ringkasan halaman Admin (6 Okt malam) — `web/src/pages/admin-objects.ts` (benda + sabuk), `admin-stations.ts`, `admin-detail.ts`, `admin-line.css`; berkas HTML ini tetap sebagai acuan standalone.** Permintaan builder 6 Okt malam, sesudah melihat pipeline gaya n8n di tab Ringkasan:
 "tiap station gausa pakai station card, langsung UI perwujudan proses bisnisnya itu aja tapi yang solid; coba design di HTML standalone dulu, taruh di vault".
 
 ## Gagasan
@@ -50,4 +50,4 @@ Catatan alat: animasi `opacity` pada benda yang berpindah tidak tertangkap oleh 
 
 ## Belum
 
-Belum dipasang ke `web/src/pages/admin.ts` (menunggu keputusan builder soal bentuknya); belum ada versi bahasa Inggris; belum diuji di Safari/Firefox.
+Versi aplikasi punya bahasa Indonesia + Inggris; berkas HTML standalone hanya Indonesia. Belum diuji di Safari/Firefox. Di aplikasi tata letak mengikuti lebar kartu (container query 920 px), bukan lebar layar.
