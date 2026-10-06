@@ -8,7 +8,7 @@ updated: 2026-10-06
 
 **Hub:** [[07-Backlog/Acceptance-Criteria/00 - Hub Acceptance Criteria]] · **Backlog:** B129 di
 [[07-Backlog/03 - Findings and Tasks 2026-09-26]] · **Testing:** [[09-Testing/T52 - signer publisher-check.js (B129 kursi Penerbit)]] ·
-[[09-Testing/T53 - Uji peramban dasbor penerbit (B129)]] · **Summary:** [[08-Results/B129 - Executive Summary]] · **Keputusan:** D64, D76 (admin Lencana)
+[[09-Testing/T53 - Uji peramban dasbor penerbit (B129)]] · **Summary:** [[08-Results/B129 - Executive Summary]] · **Keputusan:** D64, D76 (admin Lencana) · isi halaman Admin diperluas di [[07-Backlog/Acceptance-Criteria/AC-B172 - Halaman Admin ringkasan jejak kesehatan]] (B172)
 
 RF7 langkah C2. Builder mencoba dua akun dan bertanya bagaimana menjadi penerbit (2 Okt). Pilihan builder: **ajukan → disetujui
 kunci penerbit**, dan C2 sekarang dengan pemilih kursi Peserta/Penerbit. Terbit/cabut kredensial dan pembayaran tagihan agen tetap

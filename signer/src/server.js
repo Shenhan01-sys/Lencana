@@ -90,8 +90,9 @@ import {
   grantMember as dbGrantMember, revokeMember as dbRevokeMember, membershipsOf as dbMembershipsOf, knownAgentIds as dbKnownAgentIds,
   requestMembership as dbRequestMembership, latestRequest as dbLatestRequest, pendingRequests as dbPendingRequests, rejectRequest as dbRejectRequest,
   publisherRecords as dbPublisherRecords, membersOf as dbMembersOf,
-  adminGrantMember as dbAdminGrant, adminRevokeMember as dbAdminRevoke, adminRejectRequest as dbAdminReject,
+  adminGrantMember as dbAdminGrant, adminRevokeMember as dbAdminRevoke, adminRejectRequest as dbAdminReject, adminTrailRows as dbAdminTrailRows,
 } from './db.js'
+import { buildTrail, shapeSummary, shapeHealth } from './admin.js'
 // Lencana-B129 status=SELESAI 2026-10-02 — kursi Penerbit end-to-end: POST /me/member-request (pengajuan bertanda tangan akun), POST /publisher/overview (dasbor untuk penerbit + anggota aktif), POST /publisher/agents/hire dan POST /publisher/reviewers (aksi anggota dengan tanda tangannya sendiri bila hibahnya menyatakan hire=1 / appoint=1). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { overview as publisherOverview, readPlatformBps, cleanNote } from './publisher.js'
 // Lencana-B130 status=SELESAI 2026-10-02 — kursi Agent Owner end-to-end: POST /owner/overview (dasbor untuk alamat yang ownerOf-nya memegang agen yang dikenal platform) dan POST /owner/gas (platform mengisi gas pemilik agen yang ia cetak, hanya bila saldonya menipis). Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
@@ -363,6 +364,42 @@ async function publisherSeat (address) {
         canPublish: membership.can_publish === true, since: membership.granted_at,
       }
     : null
+}
+
+/** Ringkasan platform untuk halaman Admin (B172): angka yang sama dengan dasbor Penerbit (`overview()`), tanpa baris harness kecuali diminta. */
+async function adminSummary ({ requests, members, includeTest }) {
+  const manifests = MANIFESTS.filter((m) => !m.issuer.eoa || String(m.issuer.eoa).toLowerCase() === PAY_PAYEE.toLowerCase())
+  const [records, platformBps, agentIds] = await Promise.all([
+    dbPublisherRecords({ courseIds: manifests.map((m) => m.course.id), includeTest }),
+    readPlatformBps(RPC_URL, PAY_SPLIT).catch(() => null),
+    dbKnownAgentIds().catch(() => []),
+  ])
+  const ov = publisherOverview({
+    issuer: { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null },
+    seat: { via: 'admin', canHire: false, canAppoint: false, canAuthor: false, canPublish: false, since: null },
+    manifests, priceOf, records, platformBps, members, pending: requests.length, requests, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null, courseMeta: dbCourseMeta,
+    token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
+  })
+  return shapeSummary({ ov, agentIds, members, requests })
+}
+
+/** Kesehatan sistem untuk halaman Admin (B172): angka dan status saja — tanpa kunci, alamat admin, atau IP. */
+async function adminHealth () {
+  let rpc = { ok: false, ms: null }
+  let balance = null
+  if (RPC_URL && DEPLOYER_ADDRESS) {
+    const t0 = Date.now()
+    let timer
+    try {
+      balance = await Promise.race([nativeBalance(RPC_URL, DEPLOYER_ADDRESS), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), 6000) })])
+      rpc = { ok: true, ms: Date.now() - t0 }
+    } catch { rpc = { ok: false, ms: Date.now() - t0 } } finally { clearTimeout(timer) }
+  }
+  return shapeHealth({
+    startedAt: STARTED_AT, chainId: CHAIN_ID, db: dbConfigured(), rpc, paywall: PAYWALL ? 'on' : 'off', admins: adminAddresses().size,
+    deployer: DEPLOYER_ADDRESS ? { address: DEPLOYER_ADDRESS, balanceWei: balance === null ? null : String(balance) } : null,
+    quotas: { faucet: LIMITS.faucet.snapshot(), gas: LIMITS.gas.snapshot(), mint: LIMITS.mint.snapshot() },
+  })
 }
 
 /** 402 untuk enrollment kursus berbayar: syarat x402 yang sama dengan /verify, dengan jumlah = harga kursus. */
@@ -800,11 +837,22 @@ const server = createServer(async (req, res) => {
         if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
         if (isOverview) {
           const [requests, members] = await Promise.all([dbPendingRequests(PAY_PAYEE), dbMembersOf(PAY_PAYEE)])
+          // B172: ringkasan, jejak, dan kesehatan dibentuk terpisah — satu yang gagal tidak menjatuhkan daftar persetujuan (dilaporkan di `unavailable`).
+          const includeTest = body.includeTest === true
+          const parts = await Promise.allSettled([
+            adminSummary({ requests, members, includeTest }),
+            dbAdminTrailRows({ issuer: PAY_PAYEE, includeTest }).then((rows) => buildTrail({ ...rows, issuer: PAY_PAYEE, admins: adminAddresses() })),
+            adminHealth(),
+          ])
+          const [summary, trail, health] = parts.map((r) => (r.status === 'fulfilled' ? r.value : null))
           return send(res, 200, jsonBody({
             issuer: getAddress(PAY_PAYEE),
             publisherName: MANIFESTS[0]?.issuer.name ?? null,
+            generatedAt: new Date().toISOString(),
             requests: requests.map((r) => ({ id: Number(r.id), address: r.applicant, note: cleanNote(r.note), at: r.created_at })),
             members: members.map((m) => ({ member: m.member, canHire: m.can_hire === true, canAppoint: m.can_appoint === true, canAuthor: m.can_author === true, canPublish: m.can_publish === true, since: m.granted_at })),
+            summary, trail, health,
+            unavailable: ['summary', 'trail', 'health'].filter((_, i) => parts[i].status !== 'fulfilled'),
           }))
         }
         if (body.action === 'grant') {

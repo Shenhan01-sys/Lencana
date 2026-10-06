@@ -946,6 +946,20 @@ export async function adminRevokeMember ({ issuer, member, message, signature })
   return writeRevoke({ issuer, member, message, signature })
 }
 
+/**
+ * Bahan jejak keputusan untuk halaman Admin (B172): baris keanggotaan (aktif dan dicabut) + pengajuan satu penerbit, tanpa baris harness
+ * (`origin=test`) kecuali diminta. Hanya-baca; pesan + tanda tangan ikut supaya penandatangannya dipulihkan, bukan dipercaya dari kolom.
+ */
+export async function adminTrailRows ({ issuer, includeTest = false }) {
+  const iss = getAddress(String(issuer).toLowerCase())
+  const origin = includeTest ? '' : '&origin=neq.test'
+  const [grants, requests] = await Promise.all([
+    rest('publisher_members', { query: `?issuer=eq.${iss}${origin}&select=member,can_hire,can_appoint,can_author,can_publish,message,signature,granted_at,revoked_at,revoke_message,revoke_signature,origin&order=granted_at.desc&limit=200` }),
+    rest('member_requests', { query: `?issuer=eq.${iss}${origin}&select=id,applicant,note,status,message,signature,created_at,decided_at,decided_message,decided_signature,origin&order=created_at.desc&limit=200` }),
+  ])
+  return { grants: grants ?? [], requests: requests ?? [] }
+}
+
 export async function adminRejectRequest ({ issuer, applicant, message, signature }) {
   if (!isAddr(applicant)) return { ok: false, kind: 'input', why: 'applicant must be a 20-byte address' }
   return writeReject({ issuer, applicant, message, signature })

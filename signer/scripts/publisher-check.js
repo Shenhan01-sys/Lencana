@@ -20,6 +20,8 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 
 import { loadFileEnvReport } from '../src/env.js'
 import { freePort } from '../src/ports.js'
+// Lencana-B172 status=SELESAI 2026-10-06 — grup G memeriksa ringkasan platform, jejak keputusan (penandatangan dipulihkan, baris uji disaring), dan kesehatan sistem di POST /admin/overview. Buktikan ulang: cd signer && npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali B172.
+import { buildTrail } from '../src/admin.js'
 import { MANIFESTS } from '../../web/src/manifest-keys.ts'
 
 const SIGNER = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -318,6 +320,40 @@ try {
   const grantAdmin = await decide('grant', adminAcct.address, { hire: true })
   const adminAfter = await roles(adminAcct)
   check('kunci penerbit menghibahkan keanggotaan ke akun admin → ditolak, tetap tanpa kursi penerbit', grantAdmin.status >= 400 && adminAfter.body?.roles?.publisher === null, `${grantAdmin.status} ${grantAdmin.text.slice(0, 120)} / ${JSON.stringify(adminAfter.body?.roles?.publisher)}`)
+
+  // ---- B172: ringkasan platform, jejak keputusan, kesehatan sistem (hanya-baca) di POST /admin/overview
+  const dash = await adminCall('/admin/overview', adminAcct, overviewMsg(), { includeTest: true })
+  const sm = dash.body?.summary
+  check('ringkasan admin: anggota/kursus/peserta/uang/esai/agen berbentuk angka, uang dalam string satuan terkecil, tidak ada bagian yang gagal',
+    dash.status === 200 && Array.isArray(dash.body?.unavailable) && dash.body.unavailable.length === 0
+      && Number.isInteger(sm?.members?.active) && sm.members.pending === (dash.body?.requests ?? []).length && sm?.courses?.total >= 1 && Number.isInteger(sm?.learners?.enrollments)
+      && typeof sm?.money?.gross === 'string' && typeof sm?.money?.token?.symbol === 'string' && typeof sm?.essays?.pipeline === 'object' && Number.isInteger(sm?.agents?.known),
+    dash.text.slice(0, 300))
+  const tr = dash.body?.trail ?? []
+  const evOf = (acct, kind) => tr.find((e) => same(e.who, acct.address) && e.kind === kind)
+  check('jejak (dengan baris uji): pengajuan kedua pemohon dicatat dengan penandatangan = pemohon sendiri (peran "self")',
+    ['requested'].every((k) => [adminApplicant, adminRejected].every((a) => { const e = evOf(a, k); return e && same(e.by, a.address) && e.byRole === 'self' && e.test === true })), JSON.stringify(tr.slice(0, 3)).slice(0, 300))
+  const gEv = evOf(adminApplicant, 'granted'), rEv = evOf(adminApplicant, 'revoked'), jEv = evOf(adminRejected, 'rejected')
+  check('jejak: hibah, cabut, dan tolak dipulihkan penandatangannya = akun admin (peran "admin"); wewenang hibah tercatat (hire saja)',
+    gEv && rEv && jEv && [gEv, rEv, jEv].every((e) => same(e.by, adminAcct.address) && e.byRole === 'admin') && gEv.perms?.hire === true && gEv.perms?.appoint === false,
+    JSON.stringify({ gEv, rEv, jEv }).slice(0, 300))
+  check('jejak terurut terbaru dulu dan memuat pesan + tanda tangan (bisa diperiksa ulang)', tr.every((e, i) => i === 0 || Date.parse(tr[i - 1].at) >= Date.parse(e.at)) && tr.every((e) => typeof e.message === 'string' && /^0x[0-9a-f]+$/i.test(e.signature ?? '')), JSON.stringify(tr.slice(0, 2)).slice(0, 200))
+  const plain = await adminCall('/admin/overview', adminAcct, overviewMsg())
+  check('jejak bawaan TIDAK memuat baris uji (origin=test) kecuali diminta', !(plain.body?.trail ?? []).some((e) => same(e.who, adminApplicant.address) || same(e.who, adminRejected.address)), JSON.stringify((plain.body?.trail ?? []).length))
+  const hl = dash.body?.health
+  check('kesehatan: hanya kunci yang dijanjikan (tanpa kunci rahasia / alamat admin), db + rpc terbaca, kuota faucet/gas/mint berangka',
+    JSON.stringify(Object.keys(hl ?? {}).sort()) === JSON.stringify(['admins', 'chainId', 'db', 'deployer', 'paywall', 'quotas', 'rpc', 'startedAt'])
+      && hl.db === true && hl.admins === 1 && ['faucet', 'gas', 'mint'].every((k) => Number.isInteger(hl.quotas?.[k]?.givenInWindow)) && !JSON.stringify(hl).toLowerCase().includes(adminAcct.address.toLowerCase().slice(2)),
+    JSON.stringify(hl).slice(0, 300))
+  // Penandatangan DIPULIHKAN, bukan dipercaya: pesan yang diubah sesudah ditandatangani bukan lagi milik admin.
+  const okMsg = `lencana-admin revoke member=${stranger.address.toLowerCase()} nonce=${nonce()}`
+  const okSig = await adminAcct.signMessage({ message: okMsg })
+  const row = (message) => ({ member: stranger.address, can_hire: false, can_appoint: false, can_author: false, can_publish: false, message, signature: okSig, granted_at: '2026-10-01T00:00:00Z', revoked_at: null, origin: 'demo' })
+  const good = await buildTrail({ grants: [row(okMsg)], requests: [], issuer: publisher.address, admins: new Set([adminAcct.address.toLowerCase()]) })
+  const bad = await buildTrail({ grants: [row(okMsg.replace('revoke', 'grant!'))], requests: [], issuer: publisher.address, admins: new Set([adminAcct.address.toLowerCase()]) })
+  check('buildTrail: pasangan pesan + tanda tangan asli → peran admin; pesan yang diubah → BUKAN admin (penandatangan dipulihkan)', good[0]?.byRole === 'admin' && bad[0]?.byRole !== 'admin' && !same(bad[0]?.by, adminAcct.address), JSON.stringify({ good: good[0]?.byRole, bad: bad[0]?.byRole }))
+  const nonAdminDash = await adminCall('/admin/overview', stranger, overviewMsg(), { includeTest: true })
+  check('akun bukan admin tidak mendapat ringkasan, jejak, maupun kesehatan (403, tanpa isi)', nonAdminDash.status === 403 && !('summary' in (nonAdminDash.body ?? {})) && !('trail' in (nonAdminDash.body ?? {})), nonAdminDash.text.slice(0, 120))
   }
 } catch (e) {
   check('lapis HTTP selesai tanpa pengecualian', false, String(e?.stack ?? e).slice(0, 300))

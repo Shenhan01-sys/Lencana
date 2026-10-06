@@ -704,11 +704,40 @@ export async function requestPublisherMembership (issuer: string, note?: string)
  * Pesan `lencana-admin …` ditandatangani akun admin yang sedang masuk; server memeriksa alamat admin SEBELUM memakai tanda tangan.
  */
 export type MemberPerms = { hire: boolean, appoint: boolean, author: boolean, publish: boolean }
+/** B172: ringkasan platform, jejak keputusan, dan kesehatan sistem di jawaban `/admin/overview` (hanya-baca; satu bagian bisa null bila gagal dibaca). */
+export type AdminSummary = {
+  members: { active: number, pending: number }
+  courses: { total: number, listed: number }
+  learners: { unique: number, enrollments: number, paid: number, free: number }
+  money: {
+    token: { address: string | null, symbol: string, decimals: number }, platformBps: number | null
+    gross: string, platform: string | null, net: string | null
+    chargesDue: { count: number, amount: string }, chargesPaid: { count: number, amount: string }
+  }
+  essays: { awaitingJudge: number, awaitingReview: number, pipeline: Record<string, number> }
+  agents: { known: number, hires: number, reviewers: number }
+}
+export type AdminTrailEvent = {
+  at: string, kind: 'requested' | 'granted' | 'rejected' | 'revoked', who: string
+  /** Penandatangan pesan, DIPULIHKAN server dari pesan + tanda tangan tersimpan. */
+  by: string | null, byRole: 'admin' | 'publisher' | 'self' | 'other' | null
+  perms?: MemberPerms, note?: string | null, message: string, signature: string, test: boolean
+}
+export type AdminHealth = {
+  startedAt: string, chainId: number, db: boolean, rpc: { ok: boolean, ms: number | null }, paywall: 'on' | 'off', admins: number
+  deployer: { address: string, balanceWei: string | null, low: boolean | null, lowWei: string } | null
+  quotas: Record<'faucet' | 'gas' | 'mint', { perIp: number, perDay: number, givenInWindow: number, windowHours: number }>
+}
 export type AdminOverview = {
   issuer: string
   publisherName: string | null
+  generatedAt?: string
   requests: Array<{ id: number, address: string, note: string | null, at: string }>
   members: Array<{ member: string, canHire: boolean, canAppoint: boolean, canAuthor: boolean, canPublish: boolean, since: string | null }>
+  summary?: AdminSummary | null
+  trail?: AdminTrailEvent[] | null
+  health?: AdminHealth | null
+  unavailable?: string[]
 }
 
 export async function readAdminOverview (): Promise<{ ok: boolean, status?: number, why?: string, data?: AdminOverview }> {
