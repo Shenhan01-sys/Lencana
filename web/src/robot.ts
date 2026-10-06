@@ -11,7 +11,7 @@
  *
  * Deterministik dan tanpa DOM: SVG berupa teks, sehingga server bisa memvalidasi rupa dan menghitung ulang gambar yang sama.
  */
-// Lencana-B132 status=TERBUKA 2026-10-03 — robot penilai rakitan: suku cadang tetap, validasi rupa dari berkas registrasi, SVG deterministik untuk chain (statis) dan dasbor (data hidup di bentuknya). Buktikan ulang: cd signer && npm run verify:studio, lalu uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B132 status=SELESAI 2026-10-03 — robot penilai rakitan: suku cadang tetap, validasi rupa dari berkas registrasi, SVG deterministik untuk chain (statis) dan dasbor (data hidup di bentuknya). Buktikan ulang: cd signer && npm run verify:studio, lalu uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 export const ROBOT_PARTS = {
   head: ['kotak', 'kubah', 'kapsul', 'segi'] as const,

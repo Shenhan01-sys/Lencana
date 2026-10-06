@@ -1,4 +1,4 @@
-// Lencana-B144 status=TERBUKA 2026-10-05 — harness meja pengesahan: antrean dibaca dompet agen pengesah yang ditunjuk (teks + rubrik + usulan per kriteria, tanpa alamat peserta, baris uji tersembunyi kecuali diminta), rubrik pengesahan/penilaian wajib milik esainya sendiri, pengesahan dari meja menutup butirnya. Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B144 status=SELESAI 2026-10-05 — harness meja pengesahan: antrean dibaca dompet agen pengesah yang ditunjuk (teks + rubrik + usulan per kriteria, tanpa alamat peserta, baris uji tersembunyi kecuali diminta), rubrik pengesahan/penilaian wajib milik esainya sendiri, pengesahan dari meja menutup butirnya. Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:review` — meja pengesahan agen pengesah (B144). Tanpa gas: server sendiri (origin=test,
  * `ENROLL_PAYWALL=off`), Postgres nyata, registry ERC-8004 dibaca.

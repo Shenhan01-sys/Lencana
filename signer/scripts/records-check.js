@@ -1,4 +1,4 @@
-// Lencana-B124 status=TERBUKA 2026-10-02 — harness rekaman milik peserta: POST /me/records hanya menjawab pemilik alamat (tanda tangan + nonce sekali-pakai, pesan khusus "lencana-records"), proyeksi tanpa teks esai, peserta lain tidak melihat baris peserta ini. Buktikan ulang: npm run verify:records. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B124 status=SELESAI 2026-10-02 — harness rekaman milik peserta: POST /me/records hanya menjawab pemilik alamat (tanda tangan + nonce sekali-pakai, pesan khusus "lencana-records"), proyeksi tanpa teks esai, peserta lain tidak melihat baris peserta ini. Buktikan ulang: npm run verify:records. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:records` — rekaman belajar (nilai, usaha, progres) adalah data pribadi: dashboard peserta
  * membacanya lewat `POST /me/records`, dan rute itu hanya menjawab pemilik alamat (B124, RF7 langkah A2).

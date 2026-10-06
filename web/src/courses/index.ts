@@ -16,7 +16,7 @@ import { menulisLaporan } from './menulis-laporan'
 import { membacaBscscan } from './membaca-bscscan'
 import { tokenIzin } from './token-izin'
 
-// Lencana-B127 status=TERBUKA 2026-10-02 — lima kelas singkat (tiga non-teknis berbobot praktik 0, dua teknis berpraktik chain) masuk katalog dan halaman Kursus. Buktikan ulang: cd web && npm run probe, lalu cd ../signer && npm run verify:quizkeys && npm run verify:paywall. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B127 status=SELESAI 2026-10-02 — lima kelas singkat (tiga non-teknis berbobot praktik 0, dua teknis berpraktik chain) masuk katalog dan halaman Kursus. Buktikan ulang: cd web && npm run probe, lalu cd ../signer && npm run verify:quizkeys && npm run verify:paywall. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 export const COURSES: Course[] = [
   web3Dasar, web3Lanjut, literasiKeuangan, keamananAkun, menulisLaporan, membacaBscscan, tokenIzin, ujiBayar,
 ]

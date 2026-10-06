@@ -30,13 +30,13 @@ import { renderCatalog } from './catalog'
 import { renderCredentials as renderCredentialsPage } from './credentials'
 import { closeCertificate } from './certificate-view'
 
-// Lencana-B124 status=TERBUKA 2026-10-02 — area internal peserta: sidebar (Ringkasan · Kelas saya · Nilai & tugas · Kredensial saya · Akun), onboarding login pertama (tiga peran, dua berlabel segera), data dari POST /me/records bertanda tangan. Buktikan ulang: cd web && npm run probe, lalu uji peramban T44. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B124 status=SELESAI 2026-10-02 — area internal peserta: sidebar (Ringkasan · Kelas saya · Nilai & tugas · Kredensial saya · Akun), onboarding login pertama (tiga peran, dua berlabel segera), data dari POST /me/records bertanda tangan. Buktikan ulang: cd web && npm run probe, lalu uji peramban T44. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// Lencana-B126 status=TERBUKA 2026-10-02 — Dompet menggantikan Pembayaran (saldo dari chain + koin uji + riwayat), Nilai & tugas bergrafik (grades.ts), kerangka isi + tahap muat sungguhan menggantikan teks memuat, kelas uji bertanda di Kursus lain. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B126 status=SELESAI 2026-10-02 — Dompet menggantikan Pembayaran (saldo dari chain + koin uji + riwayat), Nilai & tugas bergrafik (grades.ts), kerangka isi + tahap muat sungguhan menggantikan teks memuat, kelas uji bertanda di Kursus lain. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// Lencana-B127 status=TERBUKA 2026-10-02 — sidebar Kursus (#/app/courses, pratinjau #/app/courses/<id>) dan Ringkasan baru (overview.ts); label pendek di tab ponsel karena menunya kini tujuh. Buktikan ulang: cd web && npm run build, lalu uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B127 status=SELESAI 2026-10-02 — sidebar Kursus (#/app/courses, pratinjau #/app/courses/<id>) dan Ringkasan baru (overview.ts); label pendek di tab ponsel karena menunya kini tujuh. Buktikan ulang: cd web && npm run build, lalu uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
-// Lencana-B128 status=TERBUKA 2026-10-02 — kursi akun dibaca dari fakta lewat POST /me/roles (kunci penerbit, keanggotaan bertanda tangan penerbit, ownerOf ERC-8004): kartu "Kursi di akun ini" di Akun dan kursi onboarding "Kursimu"/"Belum"/"Tak terbaca". Buktikan ulang: cd signer && npm run verify:roles, lalu uji peramban T51. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B128 status=SELESAI 2026-10-02 — kursi akun dibaca dari fakta lewat POST /me/roles (kunci penerbit, keanggotaan bertanda tangan penerbit, ownerOf ERC-8004): kartu "Kursi di akun ini" di Akun dan kursi onboarding "Kursimu"/"Belum"/"Tak terbaca". Buktikan ulang: cd signer && npm run verify:roles, lalu uji peramban T51. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 type Lang = 'en' | 'id'
 type Section = 'overview' | 'courses' | 'classes' | 'grades' | 'credentials' | 'wallet' | 'account' | 'welcome'
@@ -219,7 +219,7 @@ export function renderApp (routeHash: string): HTMLElement {
   // B129: kursi Penerbit punya cangkangnya sendiri (`#/app/pub…`, `pages/publisher.ts`).
   if (/^#\/?app\/pub(\/|$)/.test(routeHash)) return renderPublisherApp(lang, routeHash)
   // B130: kursi Agent Owner juga punya cangkangnya sendiri (`#/app/owner`, `pages/owner.ts`).
-  if (/^#\/?app\/owner(\/|$)/.test(routeHash)) return renderOwnerApp(lang)
+  if (/^#\/?app\/owner(\/|$)/.test(routeHash)) return renderOwnerApp(lang, routeHash)
   const section = sectionOf(routeHash)
 
   if (section === 'welcome') return renderWelcome(lang, addr)
@@ -328,7 +328,7 @@ function renderClasses (lang: Lang, courses: MyCourseRecord[]): HTMLElement {
   return wrap
 }
 
-function renderAccount (lang: Lang, addr: string | null): HTMLElement {
+export function renderAccount (lang: Lang, addr: string | null): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const email = snapshot().identity?.email
   const copyBtn = h('button', { type: 'button', class: 'app-btn small' }, T('copy')) as HTMLButtonElement

@@ -18,6 +18,7 @@
 import '../lms.css'
 import './class.css'
 import { h } from '../lib/ui'
+import { backTarget } from '../back-target'
 import { findCourse, findLesson } from '../courses/index'
 import type { Course, Lesson, Module } from '../content'
 import { manifestOf, rubricHashOf, shortHash } from '../manifest'
@@ -139,6 +140,7 @@ function renderAuthGate (c: Course): HTMLElement {
 
 function renderTopBar (c: Course): HTMLElement {
   const t = tr()
+  const back = backTarget(getSavedLanguage() === 'en' ? 'en' : 'id', t.catalogTitle) // B124: peserta yang masuk kembali ke dasbor, tamu ke katalog
   const addr = learnerAddress()
   const short = addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : t.topbarGuest
   const remote = serverSummaryFor(c.id)
@@ -150,9 +152,9 @@ function renderTopBar (c: Course): HTMLElement {
   // di desktop teksnya sama persis dengan sebelumnya.
   return h('header', { class: 'class-topbar' },
     h('div', { class: 'lms-topbar-left' },
-      h('a', { href: '#catalog', class: 'class-topbar-nav class-topbar-back', 'aria-label': t.catalogTitle },
+      h('a', { href: back.href, class: 'class-topbar-nav class-topbar-back', 'aria-label': back.label },
         h('span', { 'aria-hidden': 'true' }, '←'),
-        h('span', { class: 'class-topbar-back-label' }, ` ${t.catalogTitle}`),
+        h('span', { class: 'class-topbar-back-label' }, ` ${back.label}`),
       ),
       h('span', { class: 'lms-topbar-sep' }, '/'),
       h('a', { href: classLink(c.id), class: 'class-topbar-title' }, c.title),

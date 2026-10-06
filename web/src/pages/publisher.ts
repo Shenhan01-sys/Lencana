@@ -13,7 +13,7 @@
  * sendiri, fakta agen dibaca dari registry ERC-8004 lebih dulu. Terbit/cabut kredensial tidak ada di sini (tetap kunci
  * penerbit, CLI).
  */
-// Lencana-B129 status=TERBUKA 2026-10-02 — dasbor Penerbit #/app/pub (Ringkasan · Kursus · Peserta · Esai · Agen · Pendapatan) dari POST /publisher/overview, pemilih kursi, dan aksi anggota sewa agen penilai / tunjuk agen pengesah dengan fakta agen dari registry lebih dulu. Buktikan ulang: cd signer && npm run verify:publisher, lalu uji peramban T53. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B129 status=SELESAI 2026-10-02 — dasbor Penerbit #/app/pub (Ringkasan · Kursus · Peserta · Esai · Agen · Pendapatan) dari POST /publisher/overview, pemilih kursi, dan aksi anggota sewa agen penilai / tunjuk agen pengesah dengan fakta agen dari registry lebih dulu. Buktikan ulang: cd signer && npm run verify:publisher, lalu uji peramban T53. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './dashboard.css'
 import './dash-viz.css'
 import './dash-catalog.css'
@@ -22,8 +22,8 @@ import { h } from '../lib/ui'
 import { findCourse } from '../courses/index'
 import type { Course } from '../content'
 import {
-  readPublisherOverview, readAgentRates, memberHireAgent, memberAppointReviewer, learnerAddress,
-  type PublisherOverview, type AgentRates,
+  readPublisherOverview, readAgentRates, memberHireAgent, memberAppointReviewer, learnerAddress, decideMemberRequest,
+  type PublisherOverview, type AgentRates, type MemberPerms,
 } from '../learning'
 import { formatLdc, PAY_TOKEN_SYMBOL } from '../pricing'
 import { levelLabel } from '../lesson-views'
@@ -37,7 +37,7 @@ import { mountSeatSwitch, applyBox, navIcon, guardSeat } from './seats'
 import { agentMarketView } from './agent-market'
 
 type Lang = 'en' | 'id'
-type PubSection = 'overview' | 'courses' | 'author' | 'learners' | 'essays' | 'agents' | 'revenue'
+type PubSection = 'overview' | 'courses' | 'author' | 'learners' | 'essays' | 'agents' | 'revenue' | 'account'
 type O = PublisherOverview
 
 const COPY = {
@@ -86,7 +86,39 @@ const COPY = {
   contract: { en: 'contract', id: 'kontrak' },
   dueCharges: { en: 'Agent charges due', id: 'Tagihan agen jatuh tempo' },
   charges: { en: 'charges', id: 'tagihan' },
+  account: { en: 'Account', id: 'Akun' },
   pipeline: { en: 'Essay pipeline', id: 'Alur esai' },
+  pipeTotal: { en: 'essays in total', id: 'esai seluruhnya' },
+  pipeOr: { en: 'or', id: 'atau' },
+  pipeBar: { en: 'Share of essays per stage', id: 'Porsi esai per tahap' },
+  pipeExtra: { en: 'Also counted', id: 'Termasuk' },
+  // B129 (6 Okt): pengajuan anggota terlihat dan bisa diputuskan dari dasbor oleh pemegang kunci penerbit.
+  reqTitle: { en: 'Membership requests', id: 'Pengajuan anggota' },
+  reqNone: { en: 'No requests waiting.', id: 'Tidak ada pengajuan yang menunggu.' },
+  reqHow: {
+    en: 'Accounts apply from Account → Your seats → Publisher. A request gives no rights; only the publisher key can approve it.',
+    id: 'Akun mengajukan dari Akun → Kursimu → Penerbit. Pengajuan tidak memberi wewenang; hanya kunci penerbit yang bisa menyetujuinya.',
+  },
+  reqKeyHint: {
+    en: 'You are signed in with the publisher key, so you decide here. Your signature is the decision.',
+    id: 'Kamu masuk dengan kunci penerbit, jadi keputusan ada di sini. Tanda tanganmu adalah keputusannya.',
+  },
+  reqMemberHint: {
+    en: 'Only the publisher key decides. Sign in with that key to approve here, or run `npm run grant:member -- <address>` from signer/.',
+    id: 'Hanya kunci penerbit yang memutuskan. Masuk dengan kunci itu untuk menyetujui di sini, atau jalankan `npm run grant:member -- <alamat>` dari signer/.',
+  },
+  reqWaiting: { en: 'waiting', id: 'menunggu' },
+  reqFrom: { en: 'applied', id: 'mengajukan' },
+  approve: { en: 'Approve', id: 'Setujui' },
+  reject: { en: 'Reject', id: 'Tolak' },
+  approveTitle: { en: 'Approve membership', id: 'Setujui keanggotaan' },
+  approveBody: { en: 'Choose what this member may do. You sign the grant with the publisher key; issuing and revoking credentials is never delegated.', id: 'Pilih apa yang boleh dilakukan anggota ini. Kamu menandatangani hibahnya dengan kunci penerbit; menerbitkan dan mencabut kredensial tidak pernah didelegasikan.' },
+  permPublish: { en: 'decide drafts and archive courses', id: 'memutuskan draf dan mengarsipkan kursus' },
+  signApprove: { en: 'Sign and approve', id: 'Tandatangani & setujui' },
+  cancel: { en: 'Cancel', id: 'Batal' },
+  decidedGrant: { en: 'Approved — the account is now a member.', id: 'Disetujui — akun itu kini anggota.' },
+  decidedReject: { en: 'Rejected — the account may apply again.', id: 'Ditolak — akun itu boleh mengajukan lagi.' },
+  members: { en: 'Members', id: 'Anggota' },
   pipeNote: { en: 'A proposed score counts only after a reviewer agent appointed by the publisher approves or adjusts it. Essay texts are not shown here.', id: 'Usulan nilai baru berlaku sesudah agen pengesah yang ditunjuk penerbit mengesahkan atau mengubahnya. Teks karangan tidak ditampilkan di sini.' },
   pJudge: { en: 'Submitted', id: 'Diserahkan' },
   pJudgeSub: { en: 'awaiting a grade', id: 'menunggu dinilai' },
@@ -197,6 +229,8 @@ const NAV: { id: PubSection, href: string, icon: string }[] = [
   { id: 'essays', href: '#/app/pub/essays', icon: 'M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z' },
   { id: 'agents', href: '#/app/pub/agents', icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm3 5h4v4h-4z' },
   { id: 'revenue', href: '#/app/pub/revenue', icon: 'M3 17l6-6 4 4 8-8M14 7h7v7' },
+  // B129 (6 Okt): halaman Akun juga ada di cangkang Penerbit (builder: "gaada account page") — isinya `renderAccount` dasbor peserta.
+  { id: 'account', href: '#/app/pub/account', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0' },
 ]
 
 const SHORT: Record<PubSection, Record<Lang, string>> = {
@@ -207,6 +241,7 @@ const SHORT: Record<PubSection, Record<Lang, string>> = {
   essays: { en: 'Essays', id: 'Esai' },
   agents: { en: 'Agents', id: 'Agen' },
   revenue: { en: 'Revenue', id: 'Uang' },
+  account: { en: 'Account', id: 'Akun' },
 }
 
 const SCAN = 'https://testnet.bscscan.com'
@@ -217,7 +252,7 @@ const enter = (i: number) => ({ '--i': String(i) }) as Partial<CSSStyleDeclarati
 
 function sectionOf (routeHash: string): PubSection {
   const seg = routeHash.replace(/^#\/?/, '').split('/')[2] ?? ''
-  return (['courses', 'author', 'learners', 'essays', 'agents', 'revenue'] as const).find((s) => s === seg) ?? 'overview'
+  return (['courses', 'author', 'learners', 'essays', 'agents', 'revenue', 'account'] as const).find((s) => s === seg) ?? 'overview'
 }
 
 /* ------------------------------------------------------------------ data: satu bacaan per muat halaman */
@@ -275,6 +310,12 @@ export function renderPublisherApp (lang: Lang, routeHash: string): HTMLElement 
       }
       // B133: "Susun kursus" membaca drafnya sendiri (POST /publisher/drafts), bukan ringkasan dasbor.
       if (section === 'author') { body.replaceChildren(renderAuthoring(lang)); return }
+      // B129 (6 Okt): halaman Akun memakai tampilan dasbor peserta; impor dinamis supaya tidak ada siklus impor statis dashboard ↔ publisher.
+      if (section === 'account') {
+        head.remove() // `renderAccount` membawa kepalanya sendiri
+        void import('./dashboard').then((m) => { if (body.isConnected) body.replaceChildren(m.renderAccount(lang, learnerAddress())) })
+        return
+      }
       void overview(fresh, (i) => progress.set(i)).then((r) => {
         if (!body.isConnected) return
         if (!r.ok || !r.data) {
@@ -322,7 +363,7 @@ function renderSection (lang: Lang, section: PubSection, o: O, reload: () => voi
     case 'essays': return renderEssays(lang, o)
     case 'agents': return renderAgents(lang, o, reload)
     case 'revenue': return renderRevenue(lang, o)
-    default: return renderOverview(lang, o)
+    default: return renderOverview(lang, o, reload)
   }
 }
 
@@ -360,22 +401,39 @@ function moneyCard (lang: Lang, o: O, i: number): HTMLElement {
 function pipelineCard (lang: Lang, o: O, i: number): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const p = o.essays.pipeline
-  const node = (n: number, label: string, sub: string, cls: string, href?: string) => {
-    const inner = [h('span', { class: 'pb-node-n' }, odometer(String(n), { from: '0' })), h('strong', null, label), h('small', null, sub)]
-    return href && n > 0 ? h('a', { class: `pb-node ${cls}`, href }, ...inner) : h('div', { class: `pb-node ${cls}` }, ...inner)
+  // B129 (6 Okt, builder: "Essay pipeline jelek, AI slop"): stepper empat tahap sama lebar dalam satu kartu penuh; angka besar solid, satu baris sublabel,
+  // keterangan tambahan (di bawah syarat mekanis, dinilai langsung kunci penerbit) pindah ke baris catatan; tahap yang menunggu disorot.
+  const judge = p.awaitingJudge + p.insufficient
+  const done = p.approved + p.adjusted + p.graded
+  const total = judge + p.awaitingReview + done + p.rejected
+  const stages: { n: number, label: string, sub: string, cls: string, href?: string }[] = [
+    { n: judge, label: T('pJudge'), sub: T('pJudgeSub'), cls: 'judge' },
+    { n: p.awaitingReview, label: T('pReview'), sub: T('pReviewSub'), cls: p.awaitingReview ? 'review hot' : 'review', href: '#/app/pub/essays' },
+    { n: done, label: T('pDone'), sub: T('pDoneSub'), cls: 'done' },
+    { n: p.rejected, label: T('pRejected'), sub: T('pRejectedSub'), cls: 'rejected' },
+  ]
+  const stage = (s: (typeof stages)[number], k: number) => {
+    const inner = [
+      h('span', { class: 'pb-stage-top' }, h('span', { class: 'pb-stage-step', 'aria-hidden': 'true' }, String(k + 1)), h('strong', null, s.label)),
+      h('span', { class: 'pb-stage-n' }, odometer(String(s.n), { from: '0' })),
+      h('small', null, s.sub),
+    ]
+    return h('li', { class: `pb-stage ${s.cls}` }, s.href && s.n > 0 ? h('a', { class: 'pb-stage-in', href: s.href }, ...inner) : h('div', { class: 'pb-stage-in' }, ...inner))
   }
-  const arrow = () => h('span', { class: 'pb-arrow', 'aria-hidden': 'true' })
+  const sep = (text?: string) => h('li', { class: `pb-sep${text ? ' or' : ''}`, 'aria-hidden': 'true' }, text ?? '')
+  const extras: string[] = []
+  if (p.insufficient) extras.push(`${p.insufficient} ${T('pInsufficient')}`)
+  if (p.graded) extras.push(`${p.graded} ${T('pGraded')}`)
+  const bar = total > 0
+    ? h('div', { class: 'pb-flowbar', role: 'img', 'aria-label': `${T('pipeBar')}: ${stages.map((s) => `${s.label} ${s.n}`).join(' · ')}` },
+      ...stages.filter((s) => s.n > 0).map((s) => h('span', { class: `seg ${s.cls.split(' ')[0]}`, style: { width: `${(s.n / total) * 100}%` } })))
+    : null
   return h('section', { class: 'app-card ov-card lc-enter pb-pipe', style: enter(i) },
-    h('h2', null, T('pipeline')),
-    h('div', { class: 'pb-nodes' },
-      node(p.awaitingJudge + p.insufficient, T('pJudge'), p.insufficient ? `${T('pJudgeSub')} · ${p.insufficient} ${T('pInsufficient')}` : T('pJudgeSub'), 'judge'),
-      arrow(),
-      node(p.awaitingReview, T('pReview'), T('pReviewSub'), p.awaitingReview ? 'review hot' : 'review', '#/app/pub/essays'),
-      arrow(),
-      h('div', { class: 'pb-fork' },
-        node(p.approved + p.adjusted + p.graded, T('pDone'), p.graded ? `${T('pDoneSub')} · ${p.graded} ${T('pGraded')}` : T('pDoneSub'), 'done'),
-        node(p.rejected, T('pRejected'), T('pRejectedSub'), 'rejected'))),
-    h('p', { class: 'app-muted ov-small' }, T('pipeNote')))
+    h('div', { class: 'pb-pipe-head' }, h('h2', null, T('pipeline')), h('span', { class: 'pb-pipe-total' }, `${total} ${T('pipeTotal')}`)),
+    h('ol', { class: 'pb-flow' }, stage(stages[0]!, 0), sep(), stage(stages[1]!, 1), sep(), stage(stages[2]!, 2), sep(T('pipeOr')), stage(stages[3]!, 3)),
+    bar,
+    extras.length ? h('p', { class: 'pb-flow-extra' }, `${T('pipeExtra')}: `, ...extras.map((x) => h('span', { class: 'pb-flow-chip' }, x))) : null,
+    h('p', { class: 'pb-flow-note' }, T('pipeNote')))
 }
 
 function courseOf (id: string | null): Course | undefined { return id ? findCourse(id) : undefined }
@@ -385,7 +443,7 @@ function agentLink (agentId: string): HTMLElement {
 }
 
 /* ------------------------------------------------------------------ Ringkasan */
-function renderOverview (lang: Lang, o: O): HTMLElement {
+function renderOverview (lang: Lang, o: O, reload: () => void): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const t = o.totals
   const wrap = h('div', { class: 'app-stack ov pb' })
@@ -394,7 +452,9 @@ function renderOverview (lang: Lang, o: O): HTMLElement {
     tile(String(t.learners), T('tLearners'), 1, { href: '#/app/pub/learners' }),
     tile(t.net === null ? '—' : formatLdc(BigInt(t.net)), `${T('tNet')} · ${PAY_TOKEN_SYMBOL}`, 2, { coinEl: coin(22), href: '#/app/pub/revenue' }),
     tile(String(t.essaysAwaitingReview), T('tAwaiting'), 3, { href: '#/app/pub/essays' })))
-  wrap.appendChild(h('div', { class: 'ov-grid' }, moneyCard(lang, o, 1), pipelineCard(lang, o, 2)))
+  // B129 (6 Okt): alur esai satu kartu penuh di bawah ubin; uang dan tim (dengan pengajuan anggota) berdampingan.
+  wrap.appendChild(pipelineCard(lang, o, 1))
+  wrap.appendChild(h('div', { class: 'ov-grid pb-duo' }, moneyCard(lang, o, 2), teamCard(lang, o, 3, reload)))
 
   // Per kursus: satu baris tiap kursus — uang, peserta, esai yang menunggu, dan agennya.
   const rows = o.courses.map((c) => {
@@ -415,9 +475,51 @@ function renderOverview (lang: Lang, o: O): HTMLElement {
       h('thead', null, h('tr', null, ...[T('course'), T('price'), T('enrolled'), T('gross'), T('net'), T('waiting'), T('agentsCol')].map((x, k) => h('th', { class: k >= 1 && k <= 5 ? 'num' : '' }, x)))),
       h('tbody', null, ...rows)))))
 
-  // Tim: siapa saja anggota + pengajuan yang menunggu kunci penerbit.
+  return wrap
+}
+
+/* ------------------------------------------------------------------ Tim + pengajuan anggota */
+// Catatan B129 (6 Okt malam, bukan penanda): pengajuan anggota terlihat di dasbor Penerbit: daftar yang menunggu, tombol Setujui/Tolak untuk pemegang kunci penerbit (tanda tangan kuncinya = keputusan), keterangan + perintah CLI untuk yang lain. Buktikan ulang: cd signer && npm run verify:publisher dan tangkapan layar T95.
+function teamCard (lang: Lang, o: O, i: number, reload: () => void): HTMLElement {
+  const T = (k: keyof typeof COPY) => COPY[k][lang]
   const me = (learnerAddress() ?? '').toLowerCase()
-  const team = h('section', { class: 'app-card lc-enter pb-team', style: enter(4) }, h('h2', null, T('team')))
+  const isKey = o.seat.via === 'issuer'
+  const when = (iso: string) => new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium' })
+  const team = h('section', { class: 'app-card lc-enter pb-team', style: enter(i) }, h('h2', null, T('team')))
+
+  // ---- pengajuan yang menunggu
+  const reqs = o.team.requests ?? []
+  const box = h('div', { class: 'pb-reqs' }, h('h3', null, `${T('reqTitle')} `, h('span', { class: `pb-count${o.team.pendingRequests ? ' hot' : ''}` }, String(o.team.pendingRequests))))
+  if (!o.team.pendingRequests) box.appendChild(h('p', { class: 'pb-reqs-none' }, T('reqNone')))
+  else if (isKey && reqs.length) {
+    box.appendChild(h('ul', { class: 'pb-reqlist' }, ...reqs.map((r) => {
+      const status = h('span', { class: 'seat-apply-status', role: 'status' })
+      const approve = h('button', { type: 'button', class: 'app-btn small primary', 'data-approve': '' }, T('approve')) as HTMLButtonElement
+      const reject = h('button', { type: 'button', class: 'app-btn small', 'data-reject': '' }, T('reject')) as HTMLButtonElement
+      approve.addEventListener('click', () => openApprove(lang, r.address, (msg) => { status.className = 'seat-apply-status ok'; status.textContent = msg; setTimeout(reload, 900) }))
+      reject.addEventListener('click', () => {
+        approve.disabled = true; reject.disabled = true
+        status.className = 'seat-apply-status'; status.textContent = T('signing')
+        void decideMemberRequest(r.address, 'reject').then((out) => {
+          if (!out.ok) { approve.disabled = false; reject.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = out.why ?? ''; return }
+          status.className = 'seat-apply-status ok'; status.textContent = T('decidedReject')
+          setTimeout(reload, 900)
+        })
+      })
+      return h('li', { class: 'pb-req' },
+        h('div', { class: 'pb-req-who' }, h('code', { title: r.address }, short(r.address)), h('small', null, `${T('reqFrom')} ${when(r.at)}`)),
+        r.note ? h('p', { class: 'pb-req-note' }, r.note) : null,
+        h('div', { class: 'pb-req-act' }, approve, reject, status))
+    })))
+    box.appendChild(h('p', { class: 'pb-reqs-hint' }, T('reqKeyHint')))
+  } else {
+    box.appendChild(h('p', { class: 'pb-reqs-hint' }, `${o.team.pendingRequests} ${T('pending')}. ${T('reqMemberHint')}`))
+  }
+  box.appendChild(h('p', { class: 'pb-reqs-hint' }, T('reqHow')))
+  team.appendChild(box)
+
+  // ---- anggota
+  team.appendChild(h('h3', { class: 'pb-members-title' }, T('members')))
   if (!o.team.members.length) team.appendChild(h('p', { class: 'app-muted' }, T('noMembers')))
   else {
     team.appendChild(h('ul', { class: 'pb-members' }, ...o.team.members.map((m) => h('li', null,
@@ -425,9 +527,46 @@ function renderOverview (lang: Lang, o: O): HTMLElement {
       h('span', { class: `pb-right ${m.canHire ? 'on' : 'off'}` }, T('canHire')),
       h('span', { class: `pb-right ${m.canAppoint ? 'on' : 'off'}` }, T('canAppoint'))))))
   }
-  team.appendChild(h('p', { class: 'app-muted ov-small' }, `${o.team.pendingRequests} ${T('pending')}. ${T('teamNote')}`))
-  wrap.appendChild(team)
-  return wrap
+  team.appendChild(h('p', { class: 'app-muted ov-small' }, T('teamNote')))
+  return team
+}
+
+/** Dialog "Setujui keanggotaan" (B129): memilih wewenang lalu menandatangani hibah dengan kunci penerbit. */
+function openApprove (lang: Lang, applicant: string, done: (msg: string) => void): void {
+  const T = (k: keyof typeof COPY) => COPY[k][lang]
+  const box = (key: keyof MemberPerms, label: string, on: boolean) => {
+    const c = h('input', { type: 'checkbox', checked: on, 'data-perm': key }) as HTMLInputElement
+    return { c, el: h('label', { class: 'pb-perm' }, c, h('span', null, label)) }
+  }
+  const hire = box('hire', T('canHire'), true)
+  const appoint = box('appoint', T('canAppoint'), true)
+  const author = box('author', T('canAuthor'), false)
+  const publish = box('publish', T('permPublish'), false)
+  const status = h('p', { class: 'seat-apply-status', role: 'status' })
+  const go = h('button', { type: 'button', class: 'app-btn primary', 'data-sign': '' }, T('signApprove')) as HTMLButtonElement
+  const cancel = h('button', { type: 'button', class: 'app-btn' }, T('cancel')) as HTMLButtonElement
+  const dlg = h('dialog', { class: 'pb-dlg', 'aria-labelledby': 'pb-dlg-t' },
+    h('div', { class: 'pb-dlg-f' },
+      h('h2', { id: 'pb-dlg-t' }, T('approveTitle')),
+      h('p', { class: 'pb-dlg-who' }, h('code', null, applicant)),
+      h('p', { class: 'pb-dlg-n' }, T('approveBody')),
+      h('div', { class: 'pb-perms' }, hire.el, appoint.el, author.el, publish.el),
+      status,
+      h('div', { class: 'pb-dlg-act' }, cancel, go))) as HTMLDialogElement
+  const close = () => { dlg.close(); dlg.remove() }
+  cancel.addEventListener('click', close)
+  dlg.addEventListener('close', () => dlg.remove())
+  go.addEventListener('click', () => {
+    go.disabled = true; cancel.disabled = true
+    status.className = 'seat-apply-status'; status.textContent = T('signing')
+    void decideMemberRequest(applicant, 'grant', { hire: hire.c.checked, appoint: appoint.c.checked, author: author.c.checked, publish: publish.c.checked }).then((out) => {
+      if (!out.ok) { go.disabled = false; cancel.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = out.why ?? ''; return }
+      close()
+      done(T('decidedGrant'))
+    })
+  })
+  document.body.appendChild(dlg)
+  if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '')
 }
 
 /* ------------------------------------------------------------------ Kursus */

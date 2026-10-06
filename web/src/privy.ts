@@ -17,7 +17,7 @@
  * App ID bukan rahasia (ia dikirim ke Privy dari setiap browser); app secret TIDAK PERNAH ada di sini.
  */
 
-// Lencana-B82 status=TERBUKA 2026-10-01 — klien login Privy: OTP email, dompet tertanam dibuat bila belum ada, penanda tangan EIP-1193 untuk personal_sign, sesi dipulihkan saat halaman dibuka; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B82 status=SELESAI 2026-10-01 — klien login Privy: OTP email, dompet tertanam dibuat bila belum ada, penanda tangan EIP-1193 untuk personal_sign, sesi dipulihkan saat halaman dibuka; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { stringToHex } from 'viem'
 import type Privy from '@privy-io/js-sdk-core'
 
@@ -131,7 +131,7 @@ export async function privyGoogleFinish (code: string, state: string): Promise<P
   return attachWallet(session.user as PrivyUser)
 }
 
-// Lencana-B134 status=TERBUKA 2026-10-03 — login email/Google tidak lagi dikirim di atas sesi Privy akun lain: SDK mengirim permintaan login DENGAN token yang tersimpan (fetchForLogin → fetch terautentikasi), sehingga Privy memperlakukannya sebagai "tautkan ke akun yang sedang masuk" — gagal "User already has one email account linked", atau lebih buruk menautkan email/Google seseorang ke akun orang lain; sesi lama dibuang dulu, dan Keluar selalu membuang sesi Privy walau SDK belum dimuat di tab itu. Buktikan ulang: npm run verify:privy (di signer/), lalu login email kedua di peramban yang sama sesudah akun pertama keluar. JANGAN dibalik/diulang tanpa membuka kembali baris B134 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B134 status=SELESAI 2026-10-03 — login email/Google tidak lagi dikirim di atas sesi Privy akun lain: SDK mengirim permintaan login DENGAN token yang tersimpan (fetchForLogin → fetch terautentikasi), sehingga Privy memperlakukannya sebagai "tautkan ke akun yang sedang masuk" — gagal "User already has one email account linked", atau lebih buruk menautkan email/Google seseorang ke akun orang lain; sesi lama dibuang dulu, dan Keluar selalu membuang sesi Privy walau SDK belum dimuat di tab itu. Buktikan ulang: npm run verify:privy (di signer/), lalu login email kedua di peramban yang sama sesudah akun pertama keluar. JANGAN dibalik/diulang tanpa membuka kembali baris B134 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 /** User sesi Privy yang tersimpan di peramban ini, atau null. Tanpa token tidak ada panggilan jaringan. */
 async function sessionUser (privy: Privy): Promise<PrivyUser | null> {

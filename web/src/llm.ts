@@ -20,7 +20,7 @@
  * `response_format` di sebagian provider) dicoba ulang tanpa parameter itu — dan yang BENAR-BENAR terpakai dilaporkan
  * (`temperature` null bila dibuang), supaya penilaian tidak mengklaim "temperature 0" yang tidak terjadi.
  */
-// Lencana-B135 status=TERBUKA 2026-10-03 — adaptor tujuh provider LLM untuk otak agen (daftar model dari endpoint provider, chat JSON, coba ulang tanpa parameter yang ditolak dan melaporkan yang terpakai), dipakai di peramban pemilik; kunci tidak pernah ke server. Buktikan ulang: cd signer && npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — adaptor tujuh provider LLM untuk otak agen (daftar model dari endpoint provider, chat JSON, coba ulang tanpa parameter yang ditolak dan melaporkan yang terpakai), dipakai di peramban pemilik; kunci tidak pernah ke server. Buktikan ulang: cd signer && npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { Essay } from './content'
 import { JUDGE_SYSTEM, judgeUserContent, scoresFromModel } from './judge-prompt'
 

@@ -50,3 +50,7 @@ updated: 2026-10-03
 - Lesson praktik tidak disusun dari halaman.
 - Menerbitkan masih CLI, belum tombol untuk pemegang kunci.
 - Kursus terbit tidak bisa ditarik dari halaman.
+
+## Pembaruan 6 Okt malam (catatan builder)
+
+Label "N masalah" kini tombol peringatan solid yang membuka dialog modal (tidak melebar di bilah); T95 langkah 9.

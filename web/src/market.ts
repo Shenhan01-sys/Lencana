@@ -9,7 +9,7 @@
  *   tunjuk pengesah hak `appoint=1` · agen layak · bukan milik/dioperasikan penunjuk · bukan penilai di kursus itu, dan pemiliknya
  *                  bukan pemilik agen penilai di sana (B120)
  */
-// Lencana-B138 status=TERBUKA 2026-10-03 — bentuk data bursa agen dan aturan konflik sewa/tunjuk (B120/B129) yang dihitung halaman sebelum tombol ditekan; server tetap memutuskan. Buktikan ulang: cd signer && npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B138 status=SELESAI 2026-10-03 — bentuk data bursa agen dan aturan konflik sewa/tunjuk (B120/B129) yang dihitung halaman sebelum tombol ditekan; server tetap memutuskan. Buktikan ulang: cd signer && npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { Avatar } from './robot'
 
 export type MarketAgent = {

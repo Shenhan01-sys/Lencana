@@ -1,6 +1,6 @@
 -- 0014_member_requests.sql — B129 (D64): pengajuan anggota penerbit, langkah C2 RF7.
 --
--- Lencana-B129 status=TERBUKA 2026-10-02 — pengajuan anggota penerbit: akun mengajukan dengan tanda tangannya sendiri, pengajuan tercatat dengan statusnya, dan hanya kunci penerbit yang menyetujui (lewat hibah keanggotaan) atau menolaknya; pengajuan tidak pernah memberi wewenang apa pun. Buktikan ulang: npm run verify:publisher (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B129 status=SELESAI 2026-10-02 — pengajuan anggota penerbit: akun mengajukan dengan tanda tangannya sendiri, pengajuan tercatat dengan statusnya, dan hanya kunci penerbit yang menyetujui (lewat hibah keanggotaan) atau menolaknya; pengajuan tidak pernah memberi wewenang apa pun. Buktikan ulang: npm run verify:publisher (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Sampai B128 akun baru tidak punya jalan apa pun menuju kursi Penerbit: keanggotaan hanya lahir dari CLI pemegang kunci
 -- penerbit, dan pemegang kunci tidak tahu siapa yang ingin bergabung. Builder memilih (2 Okt, D64): "ajukan → disetujui".

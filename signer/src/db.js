@@ -276,7 +276,7 @@ export async function storeAttempt ({ learner, courseId, lessonKey = '-', kind, 
 
 /* ------------------------------------------------------------------ bukti praktik (B121) */
 
-// Lencana-B121 status=TERBUKA 2026-10-01 — core: kunci bukti praktik diklaim sebelum usaha disimpan, diikat sesudahnya, dilepas kalau penyimpanan gagal; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B121 status=SELESAI 2026-10-01 — core: kunci bukti praktik diklaim sebelum usaha disimpan, diikat sesudahnya, dilepas kalau penyimpanan gagal; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 /**
  * Mengklaim satu bukti praktik SEBELUM usahanya disimpan (migrasi 0011). `proof_key` unik, jadi
@@ -336,7 +336,7 @@ export async function freeTestProofKey (key) {
 
 /* ------------------------------------------------------------------ akun login peserta (B82, D57) */
 
-// Lencana-B82 status=TERBUKA 2026-10-01 — alamat peserta diikat ke akun Privy hanya oleh pemanggil yang sudah memverifikasi token login dan kepemilikan dompet tertanam (src/privy.js); yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B82 status=SELESAI 2026-10-01 — alamat peserta diikat ke akun Privy hanya oleh pemanggil yang sudah memverifikasi token login dan kepemilikan dompet tertanam (src/privy.js); yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 /**
  * Mengikat satu alamat peserta ke akun login (migrasi 0012). Pemanggil WAJIB sudah membuktikan dua hal
@@ -768,7 +768,7 @@ export async function addReviewer ({ courseId, reviewer, issuer, signer = issuer
 }
 
 /* ------------------------------------------------------------------ anggota penerbit (B128, D63) */
-// Lencana-B128 status=TERBUKA 2026-10-02 — hibah dan cabut keanggotaan penerbit hanya dari pesan bertanda tangan kunci penerbit yang menyebut alamat anggota dan wewenangnya; peran dibaca lewat POST /me/roles. Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B128 status=SELESAI 2026-10-02 — hibah dan cabut keanggotaan penerbit hanya dari pesan bertanda tangan kunci penerbit yang menyebut alamat anggota dan wewenangnya; peran dibaca lewat POST /me/roles. Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 /**
  * Penerbit memberi keanggotaan ke satu akun (opsi 2 builder, 2 Okt): anggota memantau dashboard penerbit dan — kalau
@@ -841,7 +841,7 @@ export async function membershipsOf (address) {
 }
 
 /* ------------------------------------------------------------------ pengajuan anggota (B129, D64) */
-// Lencana-B129 status=TERBUKA 2026-10-02 — pengajuan anggota penerbit: ditandatangani akun pengaju, satu yang menunggu per (penerbit, pengaju), disetujui hanya oleh hibah kunci penerbit dan ditolak hanya oleh pesan tolak kunci penerbit; pengajuan sendiri tidak memberi wewenang. Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B129 status=SELESAI 2026-10-02 — pengajuan anggota penerbit: ditandatangani akun pengaju, satu yang menunggu per (penerbit, pengaju), disetujui hanya oleh hibah kunci penerbit dan ditolak hanya oleh pesan tolak kunci penerbit; pengajuan sendiri tidak memberi wewenang. Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 const projectRequest = (r) => (r
   ? { id: Number(r.id), status: r.status, note: r.note ?? null, createdAt: r.created_at, decidedAt: r.decided_at ?? null }
@@ -917,7 +917,7 @@ export async function rejectRequest ({ issuer, applicant, message, signature }) 
 }
 
 /* ------------------------------------------------------------------ peran akun (B131, D66) */
-// Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata = satu peran: pilihan bertanda tangan akun (`lencana-role role=…`), sekali, tidak bisa diganti; memilih Penerbit sekaligus mengajukan keanggotaan; akun dev (dummy builder) hanya ditulis CLI platform. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B131 status=SELESAI 2026-10-03 — satu akun nyata = satu peran: pilihan bertanda tangan akun (`lencana-role role=…`), sekali, tidak bisa diganti; memilih Penerbit sekaligus mengajukan keanggotaan; akun dev (dummy builder) hanya ditulis CLI platform. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 export const ACCOUNT_ROLES = Object.freeze(['learner', 'publisher', 'owner'])
 
@@ -1019,7 +1019,7 @@ export async function devAccounts () {
 }
 
 /* ------------------------------------------------------------------ draf kursus (B133, D67) */
-// Lencana-B133 status=TERBUKA 2026-10-03 — draf kursus: disimpan dan diajukan penyusun (anggota berhak susun) dengan tanda tangannya atas hash isi, diterbitkan atau ditolak hanya oleh kunci penerbit; kunci kuis draf tidak pernah keluar lewat rute publik. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — draf kursus: disimpan dan diajukan penyusun (anggota berhak susun) dengan tanda tangannya atas hash isi, diterbitkan atau ditolak hanya oleh kunci penerbit; kunci kuis draf tidak pernah keluar lewat rute publik. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 const DRAFT_COLS = 'id,issuer,author,course_id,content,price_units,content_hash,status,problems,submitted_at,rubric_hash,manifest_hash,published_at,decided_note,decided_at,created_at,updated_at,origin,supersedes,version,archived_at'
 
@@ -1336,7 +1336,7 @@ export async function knownAgentIds () {
 }
 
 /* ------------------------------------------------------------------ Agent Owner (B130, D65) */
-// Lencana-B130 status=TERBUKA 2026-10-02 — jejak agen yang dicetak platform (platform_agents) dan bahan dasbor Agent Owner: sewa, penunjukan, aktivitas, dan tagihan per agen — kepemilikan selalu dari ownerOf di chain, bukan dari tabel. Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B130 status=SELESAI 2026-10-02 — jejak agen yang dicetak platform (platform_agents) dan bahan dasbor Agent Owner: sewa, penunjukan, aktivitas, dan tagihan per agen — kepemilikan selalu dari ownerOf di chain, bukan dari tabel. Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 /** Catat satu agen yang dicetak platform (`npm run agent:mint`); idempoten per agentId. */
 export async function recordPlatformAgent ({ agentId, registry, role, mintedBy, registerTx, ownerTo = null, transferTx = null, gasTx = null }) {
@@ -1378,7 +1378,7 @@ export async function ownerRecords (agentIds) {
 }
 
 /* ------------------------------------------------------------------ otak agen (B135, D69) */
-// Lencana-B135 status=TERBUKA 2026-10-03 — catatan otak agen (provider + model + kalibrasi, bertanda tangan pemilik, tanpa API key) dan sewa per agen untuk antrean esai dompet agen. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — catatan otak agen (provider + model + kalibrasi, bertanda tangan pemilik, tanpa API key) dan sewa per agen untuk antrean esai dompet agen. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 /** Otak yang tercatat untuk agen-agen ini — tanpa pesan + tanda tangan (yang itu hanya untuk audit di tabel). */
 export async function agentBrains (agentIds) {
@@ -1400,7 +1400,7 @@ export async function saveAgentBrain ({ agentId, owner, provider, model, calibra
 }
 
 /* ------------------------------------------------------------------ bursa agen (B138, D70) */
-// Lencana-B138 status=TERBUKA 2026-10-03 — bahan bursa agen: tempat bekerja, jumlah aktivitas, keputusan pengesah atas usulan agen, peran templat registrasi, otak tercatat — tanpa teks esai, alamat peserta, alamat penyewa, atau tanda tangan. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B138 status=SELESAI 2026-10-03 — bahan bursa agen: tempat bekerja, jumlah aktivitas, keputusan pengesah atas usulan agen, peran templat registrasi, otak tercatat — tanpa teks esai, alamat peserta, alamat penyewa, atau tanda tangan. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** Bahan bursa agen untuk agen-agen yang dikenal platform. Kepemilikan, dompet, dan tarif tetap dibaca dari chain. */
 export async function marketRecords (agentIds) {
   if (!agentIds?.length) return { hires: [], reviewers: [], graded: [], reviews: [], verdicts: [], minted: [], brains: [] }
@@ -1499,7 +1499,7 @@ export async function reviewEssay ({ attemptId, courseId, lessonKey, reviewer, d
   }
   const holder = await enrollmentOf(attempt.enrollment_id)
   if (!holder) return { ok: false, why: `enrollment row ${attempt.enrollment_id} missing — this attempt is orphaned` }
-  // Lencana-B144 status=TERBUKA 2026-10-05 — rubrik + nilai lulus pengesahan harus milik esai itu sendiri: kursus dan lesson di permintaan wajib sama dengan milik usahanya (dulu rubrik kursus lain bisa dipakai menyesuaikan esai kursus ini). Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B144 status=SELESAI 2026-10-05 — rubrik + nilai lulus pengesahan harus milik esai itu sendiri: kursus dan lesson di permintaan wajib sama dengan milik usahanya (dulu rubrik kursus lain bisa dipakai menyesuaikan esai kursus ini). Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   if (holder.course_id !== courseId || attempt.lesson_key !== lessonKey) {
     return { ok: false, why: `attempt ${attempt.id} belongs to ${holder.course_id} / ${attempt.lesson_key}, not ${courseId} / ${lessonKey} — the rubric must be the essay's own` }
   }

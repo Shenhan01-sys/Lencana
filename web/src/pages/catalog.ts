@@ -7,7 +7,7 @@
  * belajar, untuk siapa, silabus, bobot, ambang, rubricHash — lalu panel bayar yang sama dengan halaman kursus (B125).
  * Semua angka dihitung dari data kursus dan manifest penerbit; status "terdaftar" dari rekaman penerbit.
  */
-// Lencana-B127 status=TERBUKA 2026-10-02 — halaman Kursus: cari (judul, ringkasan, topik, isi lesson), saring tingkat/topik/status, urutkan, kartu lencana, pratinjau metadata + bayar & daftar di panel samping. Buktikan ulang: cd web && npm run build, lalu uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B127 status=SELESAI 2026-10-02 — halaman Kursus: cari (judul, ringkasan, topik, isi lesson), saring tingkat/topik/status, urutkan, kartu lencana, pratinjau metadata + bayar & daftar di panel samping. Buktikan ulang: cd web && npm run build, lalu uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './dash-catalog.css'
 import { h } from '../lib/ui'
 import { COURSES } from '../courses/index'

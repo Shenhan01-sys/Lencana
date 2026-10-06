@@ -259,7 +259,7 @@ async function main() {
     check(`  tanpa bukti -> menolak, BUKAN nol`, none.verdict === 'BELUM_LENGKAP' && none.total === null, String(none.total))
   }
 
-  // Lencana-B127 status=TERBUKA 2026-10-02 — komponen berbobot 0 tidak menahan keputusan, dan audit menolak bobot tanpa lesson jenisnya (dua arah). Buktikan ulang: cd web && npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B127 status=SELESAI 2026-10-02 — komponen berbobot 0 tidak menahan keputusan, dan audit menolak bobot tanpa lesson jenisnya (dua arah). Buktikan ulang: cd web && npm run probe. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   const { auditCourse } = await import('../src/content')
   const zeroWeight = COURSES.filter((c) => c.weights.praktik === 0)
   check(`B127: katalog memuat kursus tanpa praktik di chain (bobot praktik 0): ${zeroWeight.length}`, zeroWeight.length >= 1, zeroWeight.map((c) => c.id).join(', '))

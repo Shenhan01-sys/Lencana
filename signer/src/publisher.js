@@ -8,12 +8,17 @@
  * karangan peserta.
  */
 
-// Lencana-B129 status=TERBUKA 2026-10-02 — dasbor penerbit dihitung dari baris yang bisa ditelusuri (orders lunas + platformBps dari chain, alur esai, agen dan tagihannya), tanpa teks esai; baris harness disaring kecuali diminta. Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B129 status=SELESAI 2026-10-02 — dasbor penerbit dihitung dari baris yang bisa ditelusuri (orders lunas + platformBps dari chain, alur esai, agen dan tagihannya), tanpa teks esai; baris harness disaring kecuali diminta. Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, http, parseAbi } from 'viem'
 
 const splitAbi = parseAbi(['function platformBps() view returns (uint16)'])
 const same = (a, b) => String(a ?? '').toLowerCase() === String(b ?? '').toLowerCase()
 const units = (x) => { try { return BigInt(String(x ?? '0').split('.')[0]) } catch { return 0n } }
+/** Catatan pengajuan untuk ditampilkan: tanpa karakter kontrol, spasi dirapatkan, maksimum 280 karakter; kosong → null. */
+export const cleanNote = (n) => {
+  const t = String(n ?? '').replace(/[\x00-\x1f\x7f-\x9f]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 280)
+  return t || null
+}
 
 /** Potongan platform yang berlaku hari ini, dibaca dari `SettlementSplit` — null kalau chain tidak terbaca. */
 export async function readPlatformBps (rpcUrl, split) {
@@ -42,7 +47,7 @@ function essayStatus (attempt, submission, review) {
  * @param priceOf    harga kursus dalam satuan terkecil token (`web/src/pricing.ts`), null = gratis
  * @param records    hasil `publisherRecords`
  */
-export function overview ({ issuer, seat, manifests, priceOf, records, platformBps, split: splitAddress = null, token, members, pending, includeTest, courseMeta = () => null }) {
+export function overview ({ issuer, seat, manifests, priceOf, records, platformBps, split: splitAddress = null, token, members, pending, requests = [], includeTest, courseMeta = () => null }) {
   const byEnrollment = new Map(records.enrollments.map((e) => [e.id, e]))
   const paidOrders = records.orders.filter((o) => o.state === 'paid' && same(o.asset, token.address))
   const orderByEnrollment = new Map(paidOrders.map((o) => [o.enrollment_id, o]))
@@ -152,6 +157,9 @@ export function overview ({ issuer, seat, manifests, priceOf, records, platformB
     team: {
       members: members.map((m) => ({ member: m.member, canHire: m.can_hire === true, canAppoint: m.can_appoint === true, canAuthor: m.can_author === true, canPublish: m.can_publish === true, since: m.granted_at })),
       pendingRequests: pending,
+      // B129 (6 Okt): daftar pengajuan yang menunggu HANYA untuk pemegang kunci penerbit (yang memutuskan); anggota hanya menerima jumlahnya.
+      // Catatan pemohon adalah teks bebas dari akun lain: karakter kontrol dibuang, spasi dirapatkan, dipotong 280. Pesan + tanda tangan tidak ikut.
+      requests: seat.via === 'issuer' ? requests.map((r) => ({ address: r.applicant, note: cleanNote(r.note), at: r.created_at })) : [],
     },
   }
 }

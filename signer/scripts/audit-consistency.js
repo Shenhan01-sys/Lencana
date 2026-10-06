@@ -398,33 +398,33 @@ async function collect () {
         'npm run verify:edge': 'edge', 'npm run probe': 'webProbe', 'npm run check:samples': 'samples',
         'npm run check:spec': 'spec', 'npm run probe:cold': 'coldProbe', 'npm run check:labels': 'labels',
         'npm run check:identity': 'identity', 'forge test': 'forgeOffline',
-        // Lencana-B82 status=TERBUKA 2026-10-01 — baris README `verify:privy` diadili terhadap numbers.json sejak hari ia ditulis. (Ditemukan sambil menambahkannya: baris verify:quizkeys/praktik/relay/deposit/agent/agents di README punya metrik di numbers.json tapi tidak ada di peta ini — dicatat di T41, belum dikerjakan.) Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B82 status=SELESAI 2026-10-01 — baris README `verify:privy` diadili terhadap numbers.json sejak hari ia ditulis. (Ditemukan sambil menambahkannya: baris verify:quizkeys/praktik/relay/deposit/agent/agents di README punya metrik di numbers.json tapi tidak ada di peta ini — dicatat di T41, belum dikerjakan.) Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:privy': 'privy',
         // 2 Okt: baris README `verify:records` (B124) dan `verify:paywall` (B125) — temuan B128 — ditulis dan langsung diadili.
         'npm run verify:records': 'records', 'npm run verify:paywall': 'paywall',
-        // Lencana-B128 status=TERBUKA 2026-10-02 — baris README `verify:roles` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B128 status=SELESAI 2026-10-02 — baris README `verify:roles` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:roles': 'roles',
-        // Lencana-B129 status=TERBUKA 2026-10-02 — baris README `verify:publisher` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B129 status=SELESAI 2026-10-02 — baris README `verify:publisher` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:publisher': 'publisher',
-        // Lencana-B130 status=TERBUKA 2026-10-02 — baris README `verify:owner` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B130 status=SELESAI 2026-10-02 — baris README `verify:owner` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:owner': 'owner',
-        // Lencana-B131 status=TERBUKA 2026-10-03 — baris README `verify:account` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B131 status=SELESAI 2026-10-03 — baris README `verify:account` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:account': 'account',
-        // Lencana-B133 status=TERBUKA 2026-10-03 — baris README `verify:authoring` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B133 status=SELESAI 2026-10-03 — baris README `verify:authoring` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:authoring': 'authoring',
-        // Lencana-B132 status=TERBUKA 2026-10-03 — baris README `verify:studio` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B132 status=SELESAI 2026-10-03 — baris README `verify:studio` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:studio': 'studio',
-        // Lencana-B135 status=TERBUKA 2026-10-03 — baris README `verify:brain` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B135 status=SELESAI 2026-10-03 — baris README `verify:brain` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:brain': 'brain',
-        // Lencana-B138 status=TERBUKA 2026-10-03 — baris README `verify:market` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B138 status=SELESAI 2026-10-03 — baris README `verify:market` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:market': 'market',
         // Lencana-B136 status=SELESAI 2026-10-03 — baris README `verify:history` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B136 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:history': 'history',
-        // Lencana-B140 status=TERBUKA 2026-10-04 — baris README `verify:manage` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B140 status=SELESAI 2026-10-04 — baris README `verify:manage` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:manage': 'manage',
         // Lencana-B148 status=SELESAI 2026-10-05 — baris README `check:contexts` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B148 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run check:contexts': 'contexts',
-        // Lencana-B144 status=TERBUKA 2026-10-05 — baris README `verify:review` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+        // Lencana-B144 status=SELESAI 2026-10-05 — baris README `verify:review` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:review': 'review',
         // Lencana-B155 status=SELESAI 2026-10-05— baris README `verify:limits` diadili terhadap numbers.json sejak hari ia ditulis. Buktikan ulang: npm run audit. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
         'npm run verify:limits': 'limits',

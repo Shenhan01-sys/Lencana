@@ -1,6 +1,6 @@
 -- 0011_praktik_proofs.sql — B121: slot praktik dinilai dari chain, bukan dari laporan peserta.
 --
--- Lencana-B121 status=TERBUKA 2026-10-01 — bagian core: bukti praktik yang dibaca ulang server dari chain 97 disimpan di sini, satu kunci bukti hanya bisa dipakai satu kali; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B121 status=SELESAI 2026-10-01 — bagian core: bukti praktik yang dibaca ulang server dari chain 97 disimpan di sini, satu kunci bukti hanya bisa dipakai satu kali; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Sampai 1 Okt satu-satunya jalan masuk usaha praktik adalah POST /attempts, yang menerima ANGKA
 -- kiriman peserta. Sejak B121 usaha praktik hanya lahir dari POST /praktik: peserta mengirim apa

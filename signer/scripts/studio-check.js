@@ -1,4 +1,4 @@
-// Lencana-B132 status=TERBUKA 2026-10-03 — harness bengkel agen: suku cadang robot dan validasi rupa, SVG deterministik dan kecil, templat registrasi yang menunjuk balik, klaim agen swalayan yang hanya percaya struk di chain, gas hanya untuk Agent Owner yang berhak, rupa terbaca di dasbor. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B132 status=SELESAI 2026-10-03 — harness bengkel agen: suku cadang robot dan validasi rupa, SVG deterministik dan kecil, templat registrasi yang menunjuk balik, klaim agen swalayan yang hanya percaya struk di chain, gas hanya untuk Agent Owner yang berhak, rupa terbaca di dasbor. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:studio` — robot penilai rakitan (B132, D68). Tanpa gas: pendaftaran sungguhan di chain dibuktikan sekali di
  * uji peramban T61, bukan di setiap baterai.

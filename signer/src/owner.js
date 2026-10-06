@@ -9,7 +9,7 @@
  * mengosongkan `agentWallet` saat pemindahan, dan pemilik mengisinya lagi dengan dompet akunnya sendiri. Dasbor
  * melaporkan keadaan itu apa adanya: dompet kosong = belum bisa disewa, dengan alasannya.
  */
-// Lencana-B130 status=TERBUKA 2026-10-02 — dasbor Agent Owner dihitung dari identitas di registry + baris sewa/penunjukan/aktivitas/tagihan, dengan alasan layak-sewa yang sama dengan rute sewa; dompet agen kosong sesudah pemindahan dilaporkan, bukan disembunyikan. Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B130 status=SELESAI 2026-10-02 — dasbor Agent Owner dihitung dari identitas di registry + baris sewa/penunjukan/aktivitas/tagihan, dengan alasan layak-sewa yang sama dengan rute sewa; dompet agen kosong sesudah pemindahan dilaporkan, bukan disembunyikan. Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, createWalletClient, http, parseEther, parseAbi, parseAbiItem, decodeEventLog } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { rateCard, LADDER } from './pricing.js'
@@ -43,7 +43,7 @@ export async function sendGasDrip ({ rpcUrl, pk, to, value = GAS_DRIP }) {
 }
 const units = (x) => { try { return BigInt(String(x ?? '0').split('.')[0]) } catch { return 0n } }
 
-// Lencana-B132 status=TERBUKA 2026-10-03 — agen yang didaftarkan pemiliknya sendiri dikenal platform hanya sesudah struk transaksinya dibaca dari chain: register() ke registry ERC-8004, event Registered menyebut agentId itu dengan pemilik = akun, dan ownerOf sekarang masih akun itu. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B132 status=SELESAI 2026-10-03 — agen yang didaftarkan pemiliknya sendiri dikenal platform hanya sesudah struk transaksinya dibaca dari chain: register() ke registry ERC-8004, event Registered menyebut agentId itu dengan pemilik = akun, dan ownerOf sekarang masih akun itu. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 const REGISTERED = parseAbiItem('event Registered(uint256 indexed agentId, string agentURI, address indexed owner)')
 /**
  * Bukti bahwa `owner` mendaftarkan `agentId` sendiri lewat `txHash`: struk sukses, ditujukan ke registry, memuat event

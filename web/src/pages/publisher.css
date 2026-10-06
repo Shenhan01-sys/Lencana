@@ -21,38 +21,88 @@
 .app-shell .pb-money .ch-stack figcaption { font-size: 16px; }
 .app-shell .pb-money a { color: #f0b90b; font-family: var(--font-mono, ui-monospace, monospace); text-decoration: none; }
 .app-shell .pb-money a:hover { text-decoration: underline; }
-.app-shell .pb-due { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1px dashed rgba(255, 159, 67, 0.4); border-radius: 12px; color: #d9d8cd; font-size: 13.5px; }
-.app-shell .pb-due-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #ff9f43; }
-.app-shell .pb-due b { color: #ff9f43; }
+.app-shell .pb-due { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1px solid #2b313a; border-radius: 12px; background: #1e2329; color: #eaecef; font-size: 13.5px; }
+.app-shell .pb-due-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #ff9f1a; }
+.app-shell .pb-due b { color: #ff9f1a; }
 
-/* ---------------------------------------------------------------- alur esai: stasiun bersambung */
-.app-shell .pb-nodes { display: flex; align-items: stretch; gap: 0; }
-.app-shell .pb-node {
-  flex: 1 1 0;
-  display: grid;
-  align-content: start;
-  gap: 3px;
-  min-width: 0;
-  padding: 14px 12px;
-  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.025);
-  color: inherit;
-  text-decoration: none;
-}
-.app-shell a.pb-node:hover { border-color: rgba(240, 185, 11, 0.5); }
-.app-shell .pb-node-n { color: #f4f1ea; font: 800 26px/1 var(--font-mono, ui-monospace, monospace); }
-.app-shell .pb-node strong { font-size: 13.5px; }
-.app-shell .pb-node small { color: var(--text-secondary, #a9b0ba); font-size: 12px; line-height: 1.35; }
-.app-shell .pb-node.hot { border-color: rgba(240, 185, 11, 0.6); background: rgba(240, 185, 11, 0.08); box-shadow: 0 0 0 4px rgba(240, 185, 11, 0.06); }
-.app-shell .pb-node.hot .pb-node-n { color: #f0b90b; }
-.app-shell .pb-node.done .pb-node-n { color: #37d67a; }
-.app-shell .pb-node.rejected .pb-node-n { color: #ff6b6b; }
-.app-shell .pb-arrow { flex: 0 0 22px; align-self: center; height: 2px; margin: 0 2px; background: linear-gradient(90deg, rgba(240, 185, 11, 0.15), rgba(240, 185, 11, 0.7)); position: relative; }
-.app-shell .pb-arrow::after { content: ''; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-left-color: rgba(240, 185, 11, 0.8); border-right: 0; }
-.app-shell .pb-fork { flex: 1 1 0; display: grid; gap: 8px; min-width: 0; }
-.app-shell .pb-fork .pb-node { padding: 10px 12px; }
-.app-shell .pb-fork .pb-node-n { font-size: 20px; }
+/* ---------------------------------------------------------------- alur esai: stepper empat tahap (B129, 6 Okt) */
+/* Kartu penuh, latar solid, tanpa gradient/glow/rgba tembus. Palet: kartu #181a20, tahap #1e2329, garis #2b313a, teks #eaecef / #b7bdc6,
+   emas #f0b90b (menunggu), hijau #0ecb81 (final), merah #f6465d (ditolak). */
+.app-shell .pb-pipe { gap: 18px; background: #181a20; border: 1px solid #2b313a; }
+.app-shell .pb-pipe-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.app-shell .pb-pipe-head h2 { margin: 0; }
+.app-shell .pb-pipe-total { color: #b7bdc6; font: 600 13px var(--font-mono, ui-monospace, monospace); }
+.app-shell .pb-flow { display: flex; align-items: stretch; gap: 0; margin: 0; padding: 0; list-style: none; }
+.app-shell .pb-stage { flex: 1 1 0; min-width: 0; display: flex; }
+.app-shell .pb-stage-in { flex: 1; display: grid; align-content: start; gap: 8px; min-width: 0; padding: 16px 18px; border: 1px solid #2b313a; border-radius: 12px; background: #1e2329; color: #eaecef; text-decoration: none; }
+.app-shell a.pb-stage-in:hover { border-color: #f0b90b; }
+.app-shell .pb-stage-top { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.app-shell .pb-stage-step { flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #2b313a; color: #eaecef; font: 700 12px var(--font-mono, ui-monospace, monospace); }
+.app-shell .pb-stage-top strong { font-size: 14px; font-weight: 650; color: #eaecef; overflow-wrap: anywhere; }
+.app-shell .pb-stage-n { color: #eaecef; font: 800 38px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: -0.02em; }
+.app-shell .pb-stage small { color: #b7bdc6; font-size: 12.5px; line-height: 1.35; }
+.app-shell .pb-stage.hot .pb-stage-in { border: 2px solid #f0b90b; padding: 15px 17px; }
+.app-shell .pb-stage.hot .pb-stage-n { color: #f0b90b; }
+.app-shell .pb-stage.hot .pb-stage-step { background: #f0b90b; color: #14110a; }
+.app-shell .pb-stage.done .pb-stage-n { color: #0ecb81; }
+.app-shell .pb-stage.rejected .pb-stage-n { color: #f6465d; }
+/* penghubung: garis solid + kepala panah; "atau" di antara hasil akhir */
+.app-shell .pb-sep { flex: 0 0 44px; position: relative; align-self: center; height: 2px; margin: 0; background: #848e9c; font-size: 0; }
+.app-shell .pb-sep::after { content: ''; position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 8px solid #848e9c; border-right: 0; }
+.app-shell .pb-sep.or { flex-basis: 56px; background: transparent; }
+.app-shell .pb-sep.or { display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #b7bdc6; text-transform: uppercase; letter-spacing: 0.06em; }
+.app-shell .pb-sep.or::after { display: none; }
+/* porsi tiap tahap (bentuk, bukan hiasan) */
+.app-shell .pb-flowbar { display: flex; height: 10px; overflow: hidden; border-radius: 5px; background: #2b313a; }
+.app-shell .pb-flowbar .seg { height: 100%; }
+.app-shell .pb-flowbar .seg.judge { background: #848e9c; }
+.app-shell .pb-flowbar .seg.review { background: #f0b90b; }
+.app-shell .pb-flowbar .seg.done { background: #0ecb81; }
+.app-shell .pb-flowbar .seg.rejected { background: #f6465d; }
+.app-shell .pb-flow-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; color: #b7bdc6; font-size: 12.5px; max-width: none; }
+.app-shell .pb-flow-chip { padding: 3px 10px; border: 1px solid #2b313a; border-radius: 999px; background: #1e2329; color: #eaecef; font-size: 12px; }
+.app-shell .pb-flow-note { margin: 0; max-width: none; color: #b7bdc6; font-size: 13px; line-height: 1.5; }
+
+/* ---------------------------------------------------------------- uang + tim berdampingan */
+.app-shell .pb-duo { align-items: start; }
+.app-shell .pb-team { gap: 14px; background: #181a20; border: 1px solid #2b313a; }
+.app-shell .pb-team h3 { margin: 0; font-size: 15px; font-weight: 650; color: #eaecef; }
+.app-shell .pb-reqs { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid #2b313a; border-radius: 12px; background: #1e2329; }
+.app-shell .pb-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: #2b313a; color: #eaecef; font: 700 12px var(--font-mono, ui-monospace, monospace); }
+.app-shell .pb-count.hot { background: #f0b90b; color: #14110a; }
+.app-shell .pb-reqs-none, .app-shell .pb-reqs-hint { margin: 0; max-width: none; color: #b7bdc6; font-size: 13px; line-height: 1.5; }
+.app-shell .pb-reqlist { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.app-shell .pb-req { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #2b313a; border-radius: 10px; background: #181a20; }
+.app-shell .pb-req-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.app-shell .pb-req-who code { color: #eaecef; font: 700 13px var(--font-mono, ui-monospace, monospace); }
+.app-shell .pb-req-who small { color: #b7bdc6; font-size: 12px; }
+.app-shell .pb-req-note { margin: 0; max-width: none; color: #eaecef; font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.app-shell .pb-req-act { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.app-shell .pb-members-title { margin-top: 2px; }
+.app-shell .pb-members li { padding: 8px 0; border-bottom: 1px solid #2b313a; }
+.app-shell .pb-members li:last-child { border-bottom: 0; }
+
+/* dialog Setujui keanggotaan */
+.pb-dlg { width: min(520px, calc(100vw - 32px)); padding: 0; border: 1px solid #2b313a; border-radius: 16px; background: #181a20; color: #eaecef; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6); }
+.pb-dlg::backdrop { background: rgba(5, 7, 10, 0.72); }
+.pb-dlg-f { display: grid; gap: 14px; padding: 22px; }
+.pb-dlg-f h2 { margin: 0; font-size: 18px; color: #eaecef; }
+.pb-dlg-who { margin: 0; max-width: none; }
+.pb-dlg-who code { display: block; padding: 8px 10px; border-radius: 8px; background: #1e2329; border: 1px solid #2b313a; color: #eaecef; font: 600 12.5px var(--font-mono, ui-monospace, monospace); overflow-wrap: anywhere; }
+.pb-dlg-n { margin: 0; max-width: none; color: #b7bdc6; font-size: 13.5px; line-height: 1.5; }
+.pb-perms { display: grid; gap: 8px; }
+.pb-perm { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #2b313a; border-radius: 10px; background: #1e2329; color: #eaecef; font-size: 14px; cursor: pointer; }
+.pb-perm input { accent-color: #f0b90b; width: 16px; height: 16px; }
+.pb-dlg-act { display: flex; justify-content: flex-end; gap: 10px; }
+/* dialog hidup di <body>, di luar `.app-shell`: tombolnya perlu gaya sendiri */
+.pb-dlg .app-btn { padding: 9px 18px; border: 1px solid #2b313a; border-radius: 10px; background: #1e2329; color: #eaecef; font: 600 14px var(--font-sans, inherit); cursor: pointer; }
+.pb-dlg .app-btn:hover:not(:disabled) { border-color: #f0b90b; }
+.pb-dlg .app-btn.primary { border-color: #f0b90b; background: #f0b90b; color: #14110a; }
+.pb-dlg .app-btn:disabled { opacity: 0.6; cursor: progress; }
+.pb-dlg .app-btn:focus-visible, .pb-perm input:focus-visible { outline: 2px solid #f0b90b; outline-offset: 2px; }
+.pb-dlg .seat-apply-status { margin: 0; min-height: 1.2em; font-size: 13px; color: #b7bdc6; }
+.pb-dlg .seat-apply-status.bad { color: #f6465d; }
+.pb-dlg .seat-apply-status.ok { color: #0ecb81; }
 
 /* ---------------------------------------------------------------- tabel */
 .app-shell .pb-table td { vertical-align: middle; }
@@ -149,10 +199,10 @@
 
 @media (max-width: 860px) {
   .app-shell .pb-read { margin-left: 0; }
-  .app-shell .pb-nodes { flex-direction: column; }
-  .app-shell .pb-arrow { flex: 0 0 18px; width: 2px; height: 18px; margin: 2px auto; background: linear-gradient(180deg, rgba(240, 185, 11, 0.15), rgba(240, 185, 11, 0.7)); }
-  .app-shell .pb-arrow::after { right: -4px; top: auto; bottom: -1px; border: 5px solid transparent; border-top-color: rgba(240, 185, 11, 0.8); border-bottom: 0; }
-  .app-shell .pb-fork { grid-template-columns: 1fr 1fr; }
+  /* alur esai: 2 x 2 di tablet/HP besar, satu kolom di HP kecil; penghubung disembunyikan (nomor tahap tetap terbaca) */
+  .app-shell .pb-flow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .app-shell .pb-sep { display: none !important; }
+  .app-shell .pb-stage-n { font-size: 32px; }
   .app-shell .pb-courses { grid-template-columns: 1fr; }
   .app-shell .pb-facts { grid-template-columns: 1fr 1fr; }
   .app-shell .pb-form { grid-template-columns: 1fr; }
@@ -165,4 +215,9 @@
   .app-shell .pb-table td:first-child { grid-column: 1 / -1; font-weight: 600; }
   .app-shell .pb-table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 3px; color: var(--text-secondary, #a9b0ba); font: 600 10.5px var(--font-sans, inherit); letter-spacing: 0.08em; text-transform: uppercase; }
   .app-shell .pb-table td:first-child::before { display: none; }
+}
+
+@media (max-width: 480px) {
+  .app-shell .pb-flow { grid-template-columns: 1fr; }
+  .app-shell .pb-req-act .app-btn { flex: 1 1 auto; }
 }

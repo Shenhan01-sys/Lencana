@@ -10,11 +10,12 @@
  * Aksi pemilik ditandatangani dan DIBAYAR GASNYA oleh dompet akun ini sendiri: verifikasi dompet agen
  * (`setAgentWallet`) dan ubah tarif (`setMetadata`). Gas testnet bisa diminta dari platform bila menipis.
  */
-// Lencana-B130 status=TERBUKA 2026-10-02 — dasbor Agent Owner #/app/owner: kartu identitas, slot dompet agen (verifikasi oleh pemilik: EIP-712 + setAgentWallet dari dompet akunnya), tangga tarif + ubah tarif (setMetadata), sewa/aktivitas/tagihan, gas testnet. Buktikan ulang: cd signer && npm run verify:owner, lalu uji peramban T55. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B130 status=SELESAI 2026-10-02 — dasbor Agent Owner #/app/owner: kartu identitas, slot dompet agen (verifikasi oleh pemilik: EIP-712 + setAgentWallet dari dompet akunnya), tangga tarif + ubah tarif (setMetadata), sewa/aktivitas/tagihan, gas testnet. Buktikan ulang: cd signer && npm run verify:owner, lalu uji peramban T55. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './dashboard.css'
 import './dash-viz.css'
 import './publisher.css'
 import './owner.css'
+import './owner-solid.css'
 import { formatEther } from 'viem'
 import { h } from '../lib/ui'
 import { findCourse } from '../courses/index'
@@ -38,6 +39,11 @@ const COPY = {
   kicker: { en: 'AGENT OWNER · ERC-8004 · BNB TESTNET', id: 'AGENT OWNER · ERC-8004 · BNB TESTNET' },
   sub: { en: 'Read from the ERC-8004 registry (ownerOf, agent wallet, tariff) and the publisher’s records.', id: 'Dibaca dari registry ERC-8004 (ownerOf, dompet agen, tarif) dan rekaman penerbit.' },
   nav: { en: 'Agent Owner dashboard', id: 'Dasbor Agent Owner' },
+  account: { en: 'Account', id: 'Akun' },
+  tabSummary: { en: 'Overview', id: 'Ringkasan' },
+  tabLook: { en: 'Look', id: 'Rupa agen' },
+  tabBrain: { en: 'Brain & queue', id: 'Otak & antrean' },
+  tabRates: { en: 'Rates & work', id: 'Tarif & pekerjaan' },
   agents: { en: 'My agents', id: 'Agen saya' },
   stepSign: { en: 'Signing the request', id: 'Menandatangani permintaan' },
   stepRead: { en: 'Reading the registry and the publisher’s records', id: 'Membaca registry dan rekaman penerbit' },
@@ -120,7 +126,11 @@ const txLink = (hash: string | null, label: string) => (hash ? h('a', { href: `$
 
 let memo: { addr: string, data: OwnerOverview } | null = null
 
-export function renderOwnerApp (lang: Lang): HTMLElement {
+// Dasbor Agent Owner dirapikan 6 Okt (catatan B130, bukan penanda) (builder 6 Okt malam): empat tab (Ringkasan, Rupa agen, Otak & antrean, Tarif & pekerjaan) menggantikan satu kolom panjang, warna solid tanpa gradient/transparan (`owner-solid.css`), dan halaman Akun (`#/app/owner/account`) yang memakai `renderAccount` yang sama dengan dasbor peserta. Buktikan ulang: uji peramban T96.
+let ownerTab = 'summary'
+
+export function renderOwnerApp (lang: Lang, routeHash = '#/app/owner'): HTMLElement {
+  const onAccount = /^#\/?app\/owner\/account/.test(routeHash)
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const main = h('main', { class: 'dash-main ow-main' })
   const sideSlot = h('div', { class: 'seat-slot side' })
@@ -128,12 +138,20 @@ export function renderOwnerApp (lang: Lang): HTMLElement {
   const shell = h('div', { class: 'app-shell ow-shell' },
     h('nav', { class: 'app-side', 'aria-label': T('nav') },
       sideSlot,
-      h('a', { href: '#/app/owner', class: 'active', 'aria-current': 'page' },
+      h('a', { href: '#/app/owner', class: onAccount ? '' : 'active', ...(onAccount ? {} : { 'aria-current': 'page' }) },
         navIcon('M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm3 5h4v4h-4z'),
-        h('span', { class: 'nav-full' }, T('agents')), h('span', { class: 'nav-short', 'aria-hidden': 'true' }, T('agents')))),
+        h('span', { class: 'nav-full' }, T('agents')), h('span', { class: 'nav-short', 'aria-hidden': 'true' }, T('agents'))),
+      h('a', { href: '#/app/owner/account', class: onAccount ? 'active' : '', ...(onAccount ? { 'aria-current': 'page' } : {}) },
+        navIcon('M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-8 9a8 8 0 0 1 16 0'),
+        h('span', { class: 'nav-full' }, T('account')), h('span', { class: 'nav-short', 'aria-hidden': 'true' }, T('account')))),
     main)
   main.appendChild(topSlot)
   mountSeatSwitch(lang, 'owner', [sideSlot, topSlot])
+  if (onAccount) {
+    // Halaman Akun: komponen yang sama dengan dasbor peserta (dimuat dinamis supaya tidak ada siklus impor dashboard ↔ owner).
+    void import('./dashboard').then((m) => { main.appendChild(m.renderAccount(lang, learnerAddress())) })
+    return shell
+  }
   const head = h('header', { class: 'app-head' }, h('span', { class: 'app-kicker' }, T('kicker')), h('h1', null, T('title')), h('p', { class: 'app-muted' }, T('sub')))
   const body = h('div', { class: 'app-body' })
   main.append(head, body)
@@ -195,15 +213,50 @@ function renderAgents (lang: Lang, o: OwnerOverview, reload: () => void): HTMLEl
   // B135: otaknya (provider + model + kalibrasi + antrean esai) tepat di bawah robotnya.
   // B144: agen yang ditunjuk sebagai pengesah mendapat meja pengesahannya di bawah otaknya.
   o.agents.forEach((a, i) => {
-    wrap.appendChild(agentWorkshop(lang, o, a, reload))
-    wrap.appendChild(agentBrain(lang, o, a, reload))
-    if (a.appointments.length) wrap.appendChild(reviewDesk(lang, o, a))
-    wrap.appendChild(agentBlock(lang, o, a, i + 1, reload))
+    const blk = agentBlock(lang, o, a, i + 1, reload)
+    wrap.appendChild(ownerTabs(lang, [
+      ['summary', T('tabSummary'), [blk.summary]],
+      ['look', T('tabLook'), [agentWorkshop(lang, o, a, reload)]],
+      ['brain', T('tabBrain'), [agentBrain(lang, o, a, reload), ...(a.appointments.length ? [reviewDesk(lang, o, a)] : [])]],
+      ['rates', T('tabRates'), [blk.rates]],
+    ]))
   })
   return wrap
 }
 
-function agentBlock (lang: Lang, o: OwnerOverview, a: OwnerAgent, i: number, reload: () => void): HTMLElement {
+/** Tab per agen: satu panel tampil, sisanya `hidden`; pilihan bertahan antar muat ulang (variabel modul). Semua panel tetap ada di DOM supaya keadaan formulir tidak hilang saat berpindah tab. */
+function ownerTabs (lang: Lang, defs: Array<[string, string, HTMLElement[]]>): HTMLElement {
+  const bar = h('div', { class: 'ow-tabs', role: 'tablist', 'aria-label': COPY.nav[lang] })
+  const panels = h('div', { class: 'ow-panels' })
+  const ids = defs.map((d) => d[0])
+  if (!ids.includes(ownerTab)) ownerTab = ids[0]!
+  const buttons: HTMLButtonElement[] = []
+  const panelEls: HTMLElement[] = []
+  const select = (id: string, focus = false) => {
+    ownerTab = id
+    defs.forEach(([k], j) => {
+      const on = k === id
+      buttons[j]!.setAttribute('aria-selected', String(on)); buttons[j]!.tabIndex = on ? 0 : -1; buttons[j]!.classList.toggle('on', on)
+      panelEls[j]!.hidden = !on
+    })
+    if (focus) buttons[ids.indexOf(id)]?.focus()
+  }
+  defs.forEach(([k, label, nodes], j) => {
+    const btn = h('button', { type: 'button', class: 'ow-tab', role: 'tab', id: `ow-tab-${k}`, 'aria-controls': `ow-panel-${k}`, 'data-tab': k }, label) as HTMLButtonElement
+    btn.addEventListener('click', () => select(k))
+    btn.addEventListener('keydown', (ev) => {
+      const d = ev.key === 'ArrowRight' ? 1 : ev.key === 'ArrowLeft' ? -1 : 0
+      if (d) { ev.preventDefault(); select(ids[(j + d + ids.length) % ids.length]!, true) }
+    })
+    buttons.push(btn); bar.appendChild(btn)
+    const panel = h('div', { class: 'ow-panel app-stack', role: 'tabpanel', id: `ow-panel-${k}`, 'aria-labelledby': `ow-tab-${k}` }, ...nodes)
+    panelEls.push(panel); panels.appendChild(panel)
+  })
+  select(ownerTab)
+  return h('div', { class: 'ow-tabbed' }, bar, panels)
+}
+
+function agentBlock (lang: Lang, o: OwnerOverview, a: OwnerAgent, i: number, reload: () => void): { summary: HTMLElement, rates: HTMLElement } {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const registry = a.registry.split(':').pop() ?? ''
 
@@ -328,8 +381,10 @@ function agentBlock (lang: Lang, o: OwnerOverview, a: OwnerAgent, i: number, rel
         h('td', null, txLink(c.tx, 'tx') ?? '—')))))))
   }
 
-  return h('div', { class: 'ow-agent' },
-    h('div', { class: 'ow-hero' }, card, wallet),
-    h('div', { class: 'ov-grid' }, ladder, work),
-    h('div', { class: 'ov-grid' }, activity, money))
+  return {
+    summary: h('div', { class: 'ow-agent' },
+      h('div', { class: 'ow-hero' }, card, wallet),
+      h('div', { class: 'ov-grid' }, activity, money)),
+    rates: h('div', { class: 'ow-agent' }, h('div', { class: 'ov-grid' }, ladder, work)),
+  }
 }

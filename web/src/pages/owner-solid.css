@@ -1,0 +1,144 @@
+/* owner-solid.css — dasbor Agent Owner dirapikan (B130, builder 6 Okt malam: "warnanya pudar, tata letak acak-acakan, terlihat AI slop").
+   Aturan: SATU sistem kartu (latar solid #181a20, tepi 1px #2b313a, sudut 14px), tanpa gradient, tanpa glow, tanpa latar transparan,
+   label terbaca (#cfd4dc), status = chip solid. Dimuat setelah owner.css / agent-workshop.css / agent-brain.css dan menimpanya di dalam `.ow-shell`. */
+
+.ow-shell {
+  --o-card: #181a20;
+  --o-inset: #1e2329;
+  --o-line: #2b313a;
+  --o-line-strong: #3a414c;
+  --o-text: #eaecef;
+  --o-sub: #b7bdc6;
+  --o-gold: #f0b90b;
+  --o-green: #0ecb81;
+  --o-red: #f6465d;
+  --o-amber: #ff9f1a;
+}
+
+/* ---------------------------------------------------------------- tab */
+.ow-shell .ow-tabbed { display: grid; gap: 16px; }
+.ow-shell .ow-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid var(--o-line); border-radius: 12px; background: var(--o-card); width: fit-content; max-width: 100%; }
+.ow-shell .ow-tab { padding: 8px 16px; border: 0; border-radius: 9px; background: transparent; color: var(--o-sub); font: 600 14px var(--font-sans, inherit); cursor: pointer; }
+.ow-shell .ow-tab:hover { color: var(--o-text); background: var(--o-inset); }
+.ow-shell .ow-tab.on { background: var(--o-gold); color: #14110a; }
+.ow-shell .ow-tab:focus-visible { outline: 2px solid var(--o-text); outline-offset: 2px; }
+.ow-shell .ow-panel[hidden] { display: none; }
+.ow-shell .ow-panel { gap: 16px; }
+
+/* ---------------------------------------------------------------- kartu: satu sistem */
+.ow-shell .ws, .ow-shell .ab, .ow-shell .ow-id, .ow-shell .app-card, .ow-shell .ow-gas {
+  background: var(--o-card); border: 1px solid var(--o-line); border-radius: 14px; box-shadow: none;
+}
+.ow-shell .ws, .ow-shell .ab { padding: 22px; gap: 18px; }
+.ow-shell .ws-head h2, .ow-shell .ab-head h2, .ow-shell .app-card h2 { margin: 0; color: var(--o-text); font-size: 18px; font-weight: 700; }
+.ow-shell .ws-head p, .ow-shell .ab-head p, .ow-shell .app-muted, .ow-shell .ab-muted, .ow-shell .ws-note { color: var(--o-sub); }
+.ow-shell .ws-panel, .ow-shell .ab-config, .ow-shell .ab-gauge, .ow-shell .ab-keysaved, .ow-shell .ow-counts div, .ow-shell .ow-money > div {
+  background: var(--o-inset); border: 1px solid var(--o-line); border-radius: 12px;
+}
+.ow-shell .ws-panel, .ow-shell .ab-config { padding: 16px; }
+.ow-shell .ab-label, .ow-shell .ws-label { color: #cfd4dc; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; }
+.ow-shell .ws-stage { background: var(--o-inset); border: 1px solid var(--o-line); border-radius: 12px; }
+.ow-shell .ws-val { background: var(--o-card); border: 1px solid var(--o-line); color: var(--o-text); }
+.ow-shell .ws-arrow { background: var(--o-card); border-color: var(--o-line-strong); color: var(--o-gold); }
+.ow-shell .ws-arrow:hover:not(:disabled) { border-color: var(--o-gold); }
+.ow-shell .ws-dirty { border: 1px solid var(--o-gold); background: var(--o-inset); color: var(--o-gold); }
+.ow-shell .ws-legend { color: var(--o-sub); }
+.ow-shell .ws-legend li.on::before { box-shadow: none; }
+.ow-shell .ws-name, .ow-shell .ab-input { background: var(--o-card); border: 1px solid var(--o-line-strong); color: var(--o-text); }
+.ow-shell .ws-name:focus, .ow-shell .ab-input:focus { border-color: var(--o-gold); }
+
+/* ---------------------------------------------------------------- status = chip solid */
+.ow-shell .ab-pill, .ow-shell .ow-hire, .ow-shell .gr-chip { padding: 3px 11px; border-radius: 999px; font-weight: 700; }
+.ow-shell .ab-pill.ok, .ow-shell .ow-hire.ok, .ow-shell .gr-chip.ok { background: var(--o-green); color: #0b0e11; }
+.ow-shell .ab-pill.wait, .ow-shell .ow-hire.wait, .ow-shell .gr-chip.wait { background: var(--o-amber); color: #1e2026; }
+.ow-shell .ab-muted.bad, .ow-shell .ab-warn, .ow-shell .ow-stale, .ow-shell .ow-gas em { color: var(--o-amber); }
+
+/* ---------------------------------------------------------------- otak terpasang (dulu "soket"): kotak status solid */
+.ow-shell .ab-socket { background: var(--o-inset); border: 1px solid var(--o-line-strong); border-radius: 12px; }
+.ow-shell .ab-socket strong { color: var(--o-text); }
+.ow-shell .ab-socket small { color: var(--o-sub); }
+.ow-shell .ab-socket.on { border: 2px solid var(--o-green); background: var(--o-inset); }
+.ow-shell .ab-socket.old { border: 2px solid var(--o-amber); }
+.ow-shell .ab-led { background: #5b6370; box-shadow: none; }
+.ow-shell .ab-socket.on .ab-led { background: var(--o-green); box-shadow: none; animation: none; }
+
+/* ---------------------------------------------------------------- langkah, provider, kunci, model */
+.ow-shell .ab-num { background: var(--o-gold); color: #14110a; }
+.ow-shell .ab-rack { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 8px; padding-top: 0; }
+.ow-shell .ab-chip { min-height: 48px; padding: 10px 12px; clip-path: none; border: 1px solid var(--o-line-strong); border-radius: 10px; background: var(--o-card); color: var(--o-text); transform: none; box-shadow: none; align-content: center; }
+.ow-shell .ab-chip-pins { display: none; }
+.ow-shell .ab-chip:hover:not(:disabled) { border-color: var(--o-gold); }
+.ow-shell .ab-chip.on { transform: none; border: 2px solid var(--o-gold); background: var(--o-inset); box-shadow: none; padding: 9px 11px; }
+.ow-shell .ab-chip.live::after { top: 8px; right: 8px; box-shadow: none; background: var(--o-green); }
+.ow-shell .ab-keyring { grid-template-columns: minmax(0, 1fr); }
+.ow-shell .ab-keytag { display: none; }
+.ow-shell .ab-keysaved { margin-top: 0; }
+.ow-shell .ab-keysaved-name { color: var(--o-text); }
+.ow-shell .ab-keysaved-mask { background: var(--o-card); color: var(--o-gold); border: 1px solid var(--o-line); }
+.ow-shell .ab-keysaved-where.ok, .ow-shell .ab-keynote { color: var(--o-green); }
+.ow-shell .ab-keysaved-where.warn, .ow-shell .ab-link { color: var(--o-amber); }
+.ow-shell .ab-link.quiet, .ow-shell .ab-keyshared, .ow-shell .ab-check { color: var(--o-sub); }
+.ow-shell .ab-getkey { color: var(--o-gold); }
+.ow-shell .ab-models { border: 1px solid var(--o-line); background: var(--o-card); }
+.ow-shell .ab-model { color: var(--o-text); border-bottom: 1px solid var(--o-line); }
+.ow-shell .ab-model small { color: var(--o-sub); }
+.ow-shell .ab-model:hover { background: var(--o-inset); }
+.ow-shell .ab-model.on { background: var(--o-inset); box-shadow: inset 4px 0 0 var(--o-gold); }
+.ow-shell .ab-verdict.ok strong { color: var(--o-green); }
+.ow-shell .ab-verdict.bad, .ow-shell .ab-verdict.bad strong { color: var(--o-red); }
+
+/* antrean esai */
+.ow-shell .ab-queue { border-top: 1px solid var(--o-line); }
+.ow-shell .ab-paper { background: var(--o-inset); border: 1px solid var(--o-line); border-left: 4px solid var(--o-gold); border-radius: 10px; }
+.ow-shell .ab-paper-top small, .ow-shell .ab-total small, .ow-shell .ab-task summary { color: var(--o-sub); }
+.ow-shell .ab-task p, .ow-shell .ab-task li, .ow-shell .ab-crit li { color: var(--o-text); }
+.ow-shell .ab-ruler { background: var(--o-card); border: 1px solid var(--o-line); }
+.ow-shell .ab-seg { border-right-color: var(--o-card); }
+.ow-shell .ab-seg i { background: var(--o-gold); }
+.ow-shell .ab-ruler::after { background: var(--o-green); box-shadow: none; }
+.ow-shell .ab-total b.ok { color: var(--o-green); }
+.ow-shell .ab-total b.bad { color: var(--o-red); }
+
+/* ---------------------------------------------------------------- identitas, dompet, tarif, angka */
+.ow-shell .ow-id { background: var(--o-card); border: 1px solid var(--o-line); box-shadow: none; padding: 22px; }
+.ow-shell .ow-id-desc { color: var(--o-sub); }
+.ow-shell .ow-id-facts { color: var(--o-text); }
+.ow-shell .ow-id-facts li.ok::before { color: var(--o-green); }
+.ow-shell .ow-id-facts li.bad { color: var(--o-red); }
+.ow-shell .ow-slot { background: var(--o-inset); border: 1px solid var(--o-line-strong); border-radius: 12px; }
+.ow-shell .ow-slot code { color: var(--o-text); }
+.ow-shell .ow-slot-key { color: var(--o-amber); }
+.ow-shell .ow-wallet.owner .ow-slot { border: 2px solid var(--o-green); background: var(--o-inset); }
+.ow-shell .ow-wallet.owner .ow-slot-key { color: var(--o-green); }
+.ow-shell .ow-wallet:not(.owner):not(.other) .ow-slot { border: 2px solid var(--o-amber); }
+.ow-shell .ow-wallet.other .ow-slot { border: 1px solid var(--o-line-strong); background: var(--o-inset); }
+.ow-shell .ow-step-bar { background: var(--o-gold); box-shadow: none; }
+.ow-shell .ow-step-amt { color: var(--o-text); }
+.ow-shell .ow-step-used { background: var(--o-green); color: #0b0e11; }
+.ow-shell .ow-steps small, .ow-shell .ow-counts div > span, .ow-shell .ow-money > div > span { color: var(--o-sub); }
+.ow-shell .ow-money .paid b { color: var(--o-green); }
+.ow-shell .ow-money .due b { color: var(--o-amber); }
+.ow-shell .ow-gas { background: var(--o-card); }
+.ow-shell .ow-gas b { color: var(--o-text); }
+
+/* kartu pekerjaan dan tabel di panel tarif */
+.ow-shell .pb-idcard { background: var(--o-inset); border: 1px solid var(--o-line); border-radius: 10px; }
+.ow-shell .app-tag { background: var(--o-card); border: 1px solid var(--o-line-strong); color: var(--o-text); }
+
+/* tata letak: dua kolom rata, tanpa lebar acak */
+.ow-shell .ow-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.ow-shell .ov-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+@media (max-width: 860px) {
+  .ow-shell .ow-hero, .ow-shell .ov-grid { grid-template-columns: 1fr; }
+  .ow-shell .ws, .ow-shell .ab { padding: 16px; }
+  .ow-shell .ow-tabs { width: 100%; }
+  .ow-shell .ow-tab { flex: 1 1 auto; padding: 8px 10px; font-size: 13px; }
+}
+
+/* ---------------------------------------------------------------- tombol: solid, termasuk yang nonaktif (bukan emas pudar) */
+.ow-shell .app-btn { background: var(--o-line); border: 1px solid var(--o-line-strong); color: var(--o-text); opacity: 1; }
+.ow-shell .app-btn:hover:not(:disabled) { background: var(--o-line-strong); }
+.ow-shell .app-btn.primary { background: var(--o-gold); border-color: var(--o-gold); color: #14110a; }
+.ow-shell .app-btn.primary:hover:not(:disabled) { background: #ffd23d; border-color: #ffd23d; }
+.ow-shell .app-btn:disabled { background: var(--o-line); border-color: var(--o-line); color: #848e9c; cursor: not-allowed; opacity: 1; }
+.ow-shell .app-btn.danger { background: var(--o-red); border-color: var(--o-red); color: #1e2026; }

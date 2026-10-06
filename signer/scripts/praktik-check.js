@@ -1,4 +1,4 @@
-// Lencana-B121 status=TERBUKA 2026-10-01 — harness slot praktik: /attempts menolak skor kuis/esai/praktik peserta, POST /praktik membaca ulang chain 97 untuk empat jenis bukti, kunci bukti sekali pakai, dan bukti itu mengisi slot praktik di fromAttempts; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B121 status=SELESAI 2026-10-01 — harness slot praktik: /attempts menolak skor kuis/esai/praktik peserta, POST /praktik membaca ulang chain 97 untuk empat jenis bukti, kunci bukti sekali pakai, dan bukti itu mengisi slot praktik di fromAttempts; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:praktik` — B121: slot praktik dinilai dari chain, bukan dari laporan peserta.
  *

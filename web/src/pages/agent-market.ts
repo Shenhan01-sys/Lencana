@@ -13,7 +13,7 @@
  * Sewa / tunjuk dari lapak: pilih kursus (kursus yang terhalang aturan ditandai alasannya), tanda tangan dari akunmu.
  * Aturan konflik di halaman = `web/src/market.ts`; yang memutuskan tetap server.
  */
-// Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen di dasbor Penerbit: tim agen per kursus, etalase robot agen (harga, otak, rekam jejak, status, tempat bekerja), saring/urut/cari, sewa/tunjuk dari lapak dengan alasan konflik sebelum tombol ditekan. Buktikan ulang: cd signer && npm run verify:market, lalu uji peramban T65. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B138 status=SELESAI 2026-10-03 — bursa agen di dasbor Penerbit: tim agen per kursus, etalase robot agen (harga, otak, rekam jejak, status, tempat bekerja), saring/urut/cari, sewa/tunjuk dari lapak dengan alasan konflik sebelum tombol ditekan. Buktikan ulang: cd signer && npm run verify:market, lalu uji peramban T65. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './agent-market.css'
 import { h } from '../lib/ui'
 import { findCourse } from '../courses/index'

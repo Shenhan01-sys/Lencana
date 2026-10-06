@@ -74,7 +74,7 @@ export function computeScore (m: CourseManifest, ev: Evidence): Score {
   const missing: string[] = []
   const rubricHash = rubricHashOf(m)
 
-  // Lencana-B127 status=TERBUKA 2026-10-02 — komponen berbobot 0 tidak dinilai rubrik penerbit, jadi ketiadaan buktinya bukan "belum lengkap" (kursus non-teknis tanpa praktik di chain); bobot >0 tanpa lesson jenisnya ditolak auditCourse. Buktikan ulang: cd web && npm run probe && npm run rubric. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B127 status=SELESAI 2026-10-02 — komponen berbobot 0 tidak dinilai rubrik penerbit, jadi ketiadaan buktinya bukan "belum lengkap" (kursus non-teknis tanpa praktik di chain); bobot >0 tanpa lesson jenisnya ditolak auditCourse. Buktikan ulang: cd web && npm run probe && npm run rubric. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   // Bobot 0 = penerbit memutuskan komponen itu tidak ikut menilai. Menuntut buktinya membuat kursus tanpa praktik di
   // chain tidak pernah bisa lulus; nilai yang diberikan tetap diperiksa rentangnya.
   const need = quizCount(m)

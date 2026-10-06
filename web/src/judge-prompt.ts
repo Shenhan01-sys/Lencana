@@ -10,7 +10,7 @@
  * Isi prompt TIDAK berubah dari versi 24 Sep di `judge.js` (dipindah, bukan ditulis ulang): kontrol negatif
  * `judge-check` dan pengukuran variansnya berlaku untuk teks ini.
  */
-// Lencana-B135 status=TERBUKA 2026-10-03 — prompt penilai rubrik satu sumber untuk jalur kunci penerbit (judge.js) dan otak agen di peramban; pengurai JSON longgar dan pembaca nilai per kriteria yang menolak kriteria hilang. Buktikan ulang: cd signer && npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — prompt penilai rubrik satu sumber untuk jalur kunci penerbit (judge.js) dan otak agen di peramban; pengurai JSON longgar dan pembaca nilai per kriteria yang menolak kriteria hilang. Buktikan ulang: cd signer && npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { Essay } from './content'
 
 export const JUDGE_SYSTEM = [

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Lencana-B154 status=TERBUKA 2026-10-05 — start signer di Railway: kunci daftar status khusus cloud (AGENT_KEY_JSON_B64) ditulis ke signer/.keys/<AGENT_SLUG>.json saat start, lalu variabelnya dibuang dari lingkungan server; image tidak pernah memuat kunci. Buktikan ulang: /catalog/published + /healthz 200 dari domain Railway (vault B154). JANGAN dibalik/diulang tanpa membuka kembali baris B154 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+# Lencana-B154 status=SELESAI 2026-10-05 — start signer di Railway: kunci daftar status khusus cloud (AGENT_KEY_JSON_B64) ditulis ke signer/.keys/<AGENT_SLUG>.json saat start, lalu variabelnya dibuang dari lingkungan server; image tidak pernah memuat kunci. Buktikan ulang: /catalog/published + /healthz 200 dari domain Railway (vault B154). JANGAN dibalik/diulang tanpa membuka kembali baris B154 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 set -eu
 cd "$(dirname "$0")/.."
 

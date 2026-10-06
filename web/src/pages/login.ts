@@ -14,7 +14,7 @@ import { h } from '../lib/ui'
 import { getSavedLanguage } from '../i18n'
 import { finishGoogleLogin, loginMethods, sendPrivyCode, connectPrivyLearner, startGoogleLogin } from '../learning'
 
-// Lencana-B123 status=TERBUKA 2026-10-02 — dialog masuk satu pintu: akun lewat login (Google bila aktif di app, email + kode), tanpa kata Privy di halaman, tanpa kunci perangkat/dompet ekstensi/Demo Learner; sesi peserta = penanda akun. Buktikan ulang: cd web && npm run probe, lalu uji peramban tamu vs login (T43). JANGAN dibalik/diulang tanpa membuka kembali baris B123 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B123 status=SELESAI 2026-10-02 — dialog masuk satu pintu: akun lewat login (Google bila aktif di app, email + kode), tanpa kata Privy di halaman, tanpa kunci perangkat/dompet ekstensi/Demo Learner; sesi peserta = penanda akun. Buktikan ulang: cd web && npm run probe, lalu uji peramban tamu vs login (T43). JANGAN dibalik/diulang tanpa membuka kembali baris B123 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 type Lang = 'en' | 'id'
 const COPY = {

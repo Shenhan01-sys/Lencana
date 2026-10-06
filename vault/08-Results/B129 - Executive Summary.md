@@ -45,3 +45,7 @@ baru dan tidak punya jalan apa pun ke kursi itu. Keduanya celah produk, bukan ke
 
 Login sungguhan (AC-B129#9). Pembayaran tagihan agen dari halaman (tetap kunci penerbit). C3: dasbor Agent Owner + agen ERC-8004
 baru untuk akun builder — menunggu acc. Tabel bukti README belum memuat `verify:records` dan `verify:paywall` (temuan B128, tetap).
+
+## Pembaruan 6 Okt malam (catatan builder)
+
+Alur esai dirombak (stepper empat tahap, kartu penuh lebar, warna solid); pengajuan anggota kini terlihat (daftar di kartu Tim; kunci penerbit bisa Setujui/Tolak dari halaman, yang lain melihat jumlah + perintah `grant:member`); item Akun di sidebar; `verify:publisher` 67/0; T95 langkah 12–17. **Siapa yang acc:** kunci penerbit untuk anggota penerbit; pengajuan Agent Owner tidak ada (peran dipilih sendiri). Belum: signer Railway dengan `team.requests` menunggu dorongan.

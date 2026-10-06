@@ -1,4 +1,4 @@
-// Lencana-B133 status=TERBUKA 2026-10-03 — harness penyusunan kursus: hak susun dari hibah kunci penerbit, simpan/ajukan bertanda tangan atas hash isi, audit draf, terbit/tolak hanya kunci penerbit, kursus terbit masuk katalog server tanpa kunci kuis dan bisa didaftari serta dikerjakan. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — harness penyusunan kursus: hak susun dari hibah kunci penerbit, simpan/ajukan bertanda tangan atas hash isi, audit draf, terbit/tolak hanya kunci penerbit, kursus terbit masuk katalog server tanpa kunci kuis dan bisa didaftari serta dikerjakan. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:authoring` — Penerbit menyusun kursus baru (B133, D67: "anggota menyusun, kunci penerbit menerbitkan").
  *

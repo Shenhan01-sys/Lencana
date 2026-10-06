@@ -8,7 +8,7 @@
  * Cache 60 detik (membaca registry = 4 panggilan RPC per agen), dengan satu permintaan baca yang sedang berjalan dipakai
  * bersama; dibatalkan saat sewa, penunjukan, otak, atau klaim agen berubah lewat rute signer ini.
  */
-// Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen: entri per agen (fakta registry saat itu + otak tercatat + angka gabungan; tanpa teks esai/alamat peserta/tanda tangan), cache 60 detik dengan permintaan bersama dan pembatalan saat sewa/tunjuk/otak/klaim berubah. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B138 status=SELESAI 2026-10-03 — bursa agen: entri per agen (fakta registry saat itu + otak tercatat + angka gabungan; tanpa teks esai/alamat peserta/tanda tangan), cache 60 detik dengan permintaan bersama dan pembatalan saat sewa/tunjuk/otak/klaim berubah. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, http } from 'viem'
 
 import { readAgent } from './erc8004.js'

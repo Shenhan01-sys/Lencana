@@ -30,7 +30,7 @@ const ownerAbi = [
   },
 ] as const
 
-// Lencana-B132 status=TERBUKA 2026-10-03 — transaksi pemilik untuk robot agen: setAgentURI (berkas registrasi dengan nama + rupa) dan register() untuk agen yang didaftarkan sendiri; agentId dibaca dari event Registered di struk. Buktikan ulang: uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B132 status=SELESAI 2026-10-03 — transaksi pemilik untuk robot agen: setAgentURI (berkas registrasi dengan nama + rupa) dan register() untuk agen yang didaftarkan sendiri; agentId dibaca dari event Registered di struk. Buktikan ulang: uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 export function setAgentUriData (agentId: string, uri: string): Hex {
   return encodeFunctionData({ abi: ownerAbi, functionName: 'setAgentURI', args: [BigInt(agentId), uri] })
 }

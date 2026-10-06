@@ -46,3 +46,7 @@ updated: 2026-10-03
 Login sungguhan builder: akun dummy 1 dan 2 berpindah kursi, dan akun email baru memilih satu peran (AC-B131#7). Akun Privy ketiga
 `0x5d93…80C2` (login 2 Okt) belum ditandai dev. Akun Agent Owner yang baru memilih belum bisa mencetak agennya sendiri: itu B132.
 Penerbit belum bisa menyusun kursus: itu B133.
+
+## Pembaruan 6 Okt malam (catatan builder)
+
+Builder 6 Okt malam: "B131 betul" — akun hansgunawan775@gmail.com memegang dua peran karena akun dev. Ditutup.

@@ -1,4 +1,4 @@
-// Lencana-B82 status=TERBUKA 2026-10-01 — harness login Privy: konfigurasi app dibaca dengan app secret, token palsu ditolak (lib + HTTP), saringan dompet tertanam, ikatan alamat ↔ akun atomik dan tidak bisa ditimpa, RLS, bundel web (SDK di chunk lambat, secret tidak ada); yang belum: jalur positif dengan kode email sungguhan — uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B82 status=SELESAI 2026-10-01 — harness login Privy: konfigurasi app dibaca dengan app secret, token palsu ditolak (lib + HTTP), saringan dompet tertanam, ikatan alamat ↔ akun atomik dan tidak bisa ditimpa, RLS, bundel web (SDK di chunk lambat, secret tidak ada); yang belum: jalur positif dengan kode email sungguhan — uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:privy` — B82 (D57): login peserta lewat Privy.
  *

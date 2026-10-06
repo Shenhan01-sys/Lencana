@@ -5,7 +5,7 @@
  * masuk (koinnya jatuh ke tempatnya), turun sesudah membayar. Saldo dibaca dari chain; pembayaran dari rekaman
  * penerbit (`orders`). Batang "ke mana koinmu pergi" menyusun keduanya: tiap kelas yang dibayar + saldo yang tersisa.
  */
-// Lencana-B126 status=TERBUKA 2026-10-02 — Dompet: saldo dari chain (koin + angka bergulir), tombol koin uji dengan jeda 24 jam yang terbaca, batang ke mana koin pergi (order lunas + saldo), riwayat pembayaran. Buktikan ulang: uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B126 status=SELESAI 2026-10-02 — Dompet: saldo dari chain (koin + angka bergulir), tombol koin uji dengan jeda 24 jam yang terbaca, batang ke mana koin pergi (order lunas + saldo), riwayat pembayaran. Buktikan ulang: uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { h } from '../lib/ui'
 import { coin } from '../lib/coin'
 import { odometer, setOdometer } from '../lib/odometer'

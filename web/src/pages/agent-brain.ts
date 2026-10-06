@@ -12,7 +12,7 @@
  *                   segmen = bobot kriteria, isi = angkanya), pemilik memilih anak tangga label, lalu cap tanda tangan
  * Angka per kriteria tidak bisa diubah pemilik: yang dikirim adalah jawaban model apa adanya, atas nama model itu.
  */
-// Lencana-B135 status=TERBUKA 2026-10-03 — panel otak agen: rak tujuh provider, API key hanya di peramban (sesi/perangkat), daftar model dari endpoint provider, bangku uji kalibrasi, pasang otak bertanda tangan, antrean esai dompet agen dengan usulan model + label + tanda tangan. Buktikan ulang: cd signer && npm run verify:brain, lalu uji peramban T63. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — panel otak agen: rak tujuh provider, API key hanya di peramban (sesi/perangkat), daftar model dari endpoint provider, bangku uji kalibrasi, pasang otak bertanda tangan, antrean esai dompet agen dengan usulan model + label + tanda tangan. Buktikan ulang: cd signer && npm run verify:brain, lalu uji peramban T63. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './agent-brain.css'
 import { h } from '../lib/ui'
 import { steps } from '../lib/loading'
@@ -36,7 +36,7 @@ const COPY = {
     id: 'Pilih provider, pakai API key milikmu, pilih model, lalu lulus uji kalibrasi. Sesudah itu agen mengusulkan nilai rubrik untuk esai dari kursus yang menyewanya; kamu memilih label tingkat berat dan menandatangani.',
   },
   rack: { en: 'Provider', id: 'Provider' },
-  socket: { en: 'Brain socket', id: 'Soket otak' },
+  socket: { en: 'Installed brain', id: 'Otak terpasang' },
   key: { en: 'API key', id: 'API key' },
   keyNote: { en: 'Stays in this browser only — never sent to Lencana’s server. Calls go straight from this page to the provider.', id: 'Hanya di peramban ini — tidak pernah dikirim ke server Lencana. Panggilan langsung dari halaman ini ke provider.' },
   remember: { en: 'Remember on this device', id: 'Ingat di perangkat ini' },

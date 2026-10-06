@@ -5,7 +5,7 @@
  * Kursi dibaca dari penerbit (`POST /me/roles`, bertanda tangan) dan berubah hanya kalau kunci penerbit memutuskan atau
  * NFT agen berpindah tangan — jadi dibaca sekali per muat halaman dan dipakai bersama; "Periksa ulang" membaca segar.
  */
-// Lencana-B129 status=TERBUKA 2026-10-02 — pemilih kursi Peserta/Penerbit untuk pemegang kursi Penerbit, dan kotak pengajuan anggota (ajukan → menunggu → disetujui/ditolak kunci penerbit) di Akun, onboarding, dan dasbor penerbit. Buktikan ulang: cd signer && npm run verify:publisher, lalu uji peramban T53. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B129 status=SELESAI 2026-10-02 — pemilih kursi Peserta/Penerbit untuk pemegang kursi Penerbit, dan kotak pengajuan anggota (ajukan → menunggu → disetujui/ditolak kunci penerbit) di Akun, onboarding, dan dasbor penerbit. Buktikan ulang: cd signer && npm run verify:publisher, lalu uji peramban T53. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './seats.css'
 import { h } from '../lib/ui'
 import { learnerAddress, readMyRoles, requestPublisherMembership, type MyRoles } from '../learning'
@@ -70,7 +70,7 @@ const when = (lang: Lang, iso: string | null) => (iso ? new Date(iso).toLocaleSt
 
 export type SeatId = 'learner' | 'publisher' | 'owner'
 
-// Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata satu peran (D66): pemilih kursi hanya untuk akun dev (dummy builder); akun lain diarahkan ke dasbor perannya, dan kotak pengajuan memperingatkan bahwa mengajukan = memilih peran Penerbit. Buktikan ulang: cd signer && npm run verify:account, lalu uji peramban T57. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B131 status=SELESAI 2026-10-03 — satu akun nyata satu peran (D66): pemilih kursi hanya untuk akun dev (dummy builder); akun lain diarahkan ke dasbor perannya, dan kotak pengajuan memperingatkan bahwa mengajukan = memilih peran Penerbit. Buktikan ulang: cd signer && npm run verify:account, lalu uji peramban T57. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 
 /**
  * Kursi yang dipegang akun, dari jawaban `/me/roles`. Sejak B131 (D66) hanya akun dev yang memegang lebih dari satu kursi;

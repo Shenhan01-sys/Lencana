@@ -62,6 +62,20 @@
 .au-bar .seat-apply-status { flex: 1 1 100%; }
 .au-bar .seat-apply-status:empty { display: none; }
 .au-dirty { color: var(--bnb-gold, #f0b90b); font-size: 12.5px; }
+/* B133: label masalah = tombol peringatan solid + dialog (tidak lagi <details> yang melebar di bilah) */
+.au-warn { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border: 0; border-radius: 10px; background: #ff9f1a; color: #1e2026; font: 700 13px var(--font-sans, inherit); cursor: pointer; }
+.au-warn:hover { background: #ffb347; }
+.au-warn:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+.au-dlg { width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 1px solid #2b313a; border-radius: 16px; background: #181a20; color: #eaecef; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6); }
+.au-dlg::backdrop { background: rgba(5, 7, 10, 0.72); }
+.au-dlg-f { display: grid; gap: 12px; padding: 20px 22px; max-height: calc(100vh - 48px); overflow: auto; }
+.au-dlg-f h2 { margin: 0; font-size: 18px; color: #ff9f1a; }
+.au-dlg-n { margin: 0; max-width: none; font-size: 13.5px; color: #b7bdc6; }
+.au-dlg-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.au-dlg-list li { display: grid; gap: 2px; padding: 9px 12px; border: 1px solid #2b313a; border-radius: 10px; background: #1e2329; font-size: 13.5px; }
+.au-dlg-list code { font: 600 11.5px var(--font-mono, ui-monospace, monospace); color: #ff9f1a; }
+.au-dlg-act { display: flex; justify-content: flex-end; }
+
 .au-problems summary { cursor: pointer; list-style: none; }
 .au-problems ul { margin: 8px 0 0; padding-left: 18px; max-height: 180px; overflow: auto; font-size: 12.5px; color: var(--text-sub, #b7bdc6); }
 .au-problems code { font-size: 11px; color: var(--text-muted, #848e9c); }
@@ -170,3 +184,7 @@
   .au-spine { border-right: 0; border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.08)); }
   .au-bar-act { margin-left: 0; }
 }
+.au-dlg .app-btn { padding: 8px 20px; border: 0; border-radius: 10px; background: #f0b90b; color: #14110a; font: 700 14px var(--font-sans, inherit); cursor: pointer; }
+.au-dlg .app-btn:hover { background: #ffd23d; }
+.au-dlg .app-btn:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+.au-dlg-list li span { font-weight: 500; color: #eaecef; }

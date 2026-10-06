@@ -1,6 +1,6 @@
 -- 0015_platform_agents.sql — B130 (D65): agen ERC-8004 yang dicetak platform untuk akun Agent Owner, langkah C3 RF7.
 --
--- Lencana-B130 status=TERBUKA 2026-10-02 — platform mencetak identitas agen di IdentityRegistry BNB, menulis berkas registrasi dan tarif, memindahkan NFT-nya ke akun Agent Owner, dan mengisi gas akun itu; tabel ini mencatat jejak transaksinya supaya platform tahu agen mana yang ia cetak. Kepemilikan tetap dibaca dari ownerOf di chain, bukan dari tabel ini. Buktikan ulang: npm run verify:owner (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B130 status=SELESAI 2026-10-02 — platform mencetak identitas agen di IdentityRegistry BNB, menulis berkas registrasi dan tarif, memindahkan NFT-nya ke akun Agent Owner, dan mengisi gas akun itu; tabel ini mencatat jejak transaksinya supaya platform tahu agen mana yang ia cetak. Kepemilikan tetap dibaca dari ownerOf di chain, bukan dari tabel ini. Buktikan ulang: npm run verify:owner (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Kenapa tabel ini perlu: registry ERC-8004 tidak bisa ditanya "agen milik siapa saja", jadi kursi Agent Owner (B128)
 -- hanya terbaca untuk agen yang DIKENAL platform (manifest + sewa + penunjukan). Agen yang baru dicetak untuk sebuah akun

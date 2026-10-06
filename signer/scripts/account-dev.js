@@ -8,7 +8,7 @@
  *
  * Tanpa `--apply` hanya rencana. `--off` melepas tanda dev; pilihan peran yang sudah ditandatangani akun itu tetap ada.
  */
-// Lencana-B131 status=TERBUKA 2026-10-03 — akun dev (dummy builder) ditandai lewat CLI platform saja; akun lain satu peran. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B131 status=SELESAI 2026-10-03 — akun dev (dummy builder) ditandai lewat CLI platform saja; akun lain satu peran. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { getAddress, isAddress } from 'viem'
 import { loadFileEnvReport } from '../src/env.js'
 import { setDevAccount, accountRoleRow, devAccounts, dbConfigured, dbMissingReason } from '../src/db.js'

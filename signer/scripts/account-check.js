@@ -1,4 +1,4 @@
-// Lencana-B131 status=TERBUKA 2026-10-03 — harness satu akun satu peran: POST /me/role memilih sekali (bertanda tangan, tidak bisa diganti), rute peserta / penerbit / Agent Owner menolak akun berperan lain, peran lama diturunkan dari rekaman dan fakta, akun dev memegang semua kursi menurut fakta. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B131 status=SELESAI 2026-10-03 — harness satu akun satu peran: POST /me/role memilih sekali (bertanda tangan, tidak bisa diganti), rute peserta / penerbit / Agent Owner menolak akun berperan lain, peran lama diturunkan dari rekaman dan fakta, akun dev memegang semua kursi menurut fakta. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:account` — satu akun nyata = satu peran (B131, D66; pilihan builder 3 Okt "pilih sekali saat onboarding").
  *

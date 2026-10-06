@@ -45,3 +45,7 @@ diuji; kalau `eth_signTransaction` ditolak, halaman jatuh ke `eth_sendTransactio
 karena dompet tertanam menandatangani EIP-1559 dengan fee 0; sesudah fee EIP-1559 dikirim eksplisit, `setAgentWallet` `0xfd0486d2…`
 berhasil dan `agentWallet` #2547 = akun 2.)* Yang tersisa: akun 1 menyewa #2547 dari dasbor penerbit. Agen milik akun belum menilai apa pun: penilaian
 agen ditandatangani dompet agen dan belum ada layar untuk itu.
+
+## Pembaruan 6 Okt malam (catatan builder)
+
+Dasbor dirapikan: empat tab, kartu solid tanpa gradient (`owner-solid.css`), tombol nonaktif solid, "Soket otak" → "Otak terpasang", halaman Akun `#/app/owner/account`; T95 langkah 4–8, 10.

@@ -1,4 +1,4 @@
-// Lencana-B126 status=TERBUKA 2026-10-02 — kunci jawaban kuis uji-bayar-2026: hanya diimpor web/src/manifest-keys.ts (server dan skrip Node); bundel browser tidak boleh memuatnya — dijaga pemindaian bundel di npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B126 status=SELESAI 2026-10-02 — kunci jawaban kuis uji-bayar-2026: hanya diimpor web/src/manifest-keys.ts (server dan skrip Node); bundel browser tidak boleh memuatnya — dijaga pemindaian bundel di npm run verify:quizkeys (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * Kunci jawaban kuis `uji-bayar-2026` (B126, 2 Okt). Sama dengan kursus lain sejak B80: berkas kursus diimpor halaman
  * belajar, jadi kuncinya hidup di sini dan hanya `manifest-keys.ts` yang mengimpornya.

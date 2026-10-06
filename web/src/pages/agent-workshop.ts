@@ -11,7 +11,7 @@
  * Panel bengkel: ‹ › per suku cadang, warna, nama; "Simpan rupa ke BNB Chain" = `setAgentURI` dari dompet pemilik.
  * Akun Agent Owner tanpa agen merakit robot dulu lalu mendaftarkannya sendiri (`register()` → klaim → rupa → tarif).
  */
-// Lencana-B132 status=TERBUKA 2026-10-03 — bengkel agen: panggung robot dengan data agen di bentuknya, panel rakit (kepala/mata/badan/alat/warna/nama) yang disimpan ke berkas registrasi ERC-8004 dari dompet pemilik, dan pendaftaran agen pertama oleh akun Agent Owner sendiri. Buktikan ulang: cd signer && npm run verify:studio, lalu uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B132 status=SELESAI 2026-10-03 — bengkel agen: panggung robot dengan data agen di bentuknya, panel rakit (kepala/mata/badan/alat/warna/nama) yang disimpan ke berkas registrasi ERC-8004 dari dompet pemilik, dan pendaftaran agen pertama oleh akun Agent Owner sendiri. Buktikan ulang: cd signer && npm run verify:studio, lalu uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './agent-workshop.css'
 import { h } from '../lib/ui'
 import { steps } from '../lib/loading'

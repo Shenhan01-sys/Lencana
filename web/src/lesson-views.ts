@@ -114,7 +114,7 @@ export function serverLine (courseId: string): string {
       <p class="muted">Peramban ini pernah masuk dengan email; dompet tertanamnya sedang disambungkan lagi.</p></aside>`
   }
   if (!addr) {
-    // Lencana-B82 status=TERBUKA 2026-10-01 — kotak identitas: tombol "Masuk" membuka dialog masuk (pages/login.ts), yang memakai alur sungguhan learning.ts (Google bila aktif, atau kode dari kotak masuk → dompet tertanam yang sama di perangkat mana pun); sejak D59 kunci perangkat dan dompet ekstensi tidak lagi ditawarkan. Yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+    // Lencana-B82 status=SELESAI 2026-10-01 — kotak identitas: tombol "Masuk" membuka dialog masuk (pages/login.ts), yang memakai alur sungguhan learning.ts (Google bila aktif, atau kode dari kotak masuk → dompet tertanam yang sama di perangkat mana pun); sejak D59 kunci perangkat dan dompet ekstensi tidak lagi ditawarkan. Yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
     return `<aside class="note learn-id">
       <strong>Masuk untuk menyimpan rekaman belajar</strong>
       <p>Jawaban, progres, dan bukti belajarmu tercatat di penerbit atas nama akunmu.</p>

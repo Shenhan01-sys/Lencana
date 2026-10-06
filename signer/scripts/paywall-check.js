@@ -1,4 +1,4 @@
-// Lencana-B125 status=TERBUKA 2026-10-02 — harness bayar dulu baru masuk kelas: 402 + syarat x402 dari harga satu sumber, penolakan sebelum gas keluar (termasuk tanda tangan peserta sebelum settlement), enrollment lama tetap jalan, faucet terbatas; --live: koin uji, settlement + pembagian sungguhan, orders = paid, kelas terbuka, tanpa tagihan kedua. Buktikan ulang: npm run verify:paywall (dan --live). JANGAN dibalik/diulang tanpa membuka kembali baris B125 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B125 status=SELESAI 2026-10-02 — harness bayar dulu baru masuk kelas: 402 + syarat x402 dari harga satu sumber, penolakan sebelum gas keluar (termasuk tanda tangan peserta sebelum settlement), enrollment lama tetap jalan, faucet terbatas; --live: koin uji, settlement + pembagian sungguhan, orders = paid, kelas terbuka, tanpa tagihan kedua. Buktikan ulang: npm run verify:paywall (dan --live). JANGAN dibalik/diulang tanpa membuka kembali baris B125 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:paywall` — B125, RF7 langkah B: kursus berbayar hanya bisa diikuti sesudah lunas.
  *

@@ -114,7 +114,7 @@ export async function hire (cfg, body, knownCourse, actor = null) {
   if (!actor && !same(body?.publisher, cfg.publisher)) return fail(401, `agents are hired by the configured publisher (${cfg.publisher})`)
   const f = await agentFacts(cfg, body?.agentId)
   if (!f.ok) return f
-  // Lencana-B129 status=TERBUKA 2026-10-02 — anggota penerbit menyewa dan menunjuk agen dengan tanda tangannya sendiri, tetapi tidak agen yang ia miliki atau operasikan (ia akan membayar dirinya dari uang penerbit). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B129 status=SELESAI 2026-10-02 — anggota penerbit menyewa dan menunjuk agen dengan tanda tangannya sendiri, tetapi tidak agen yang ia miliki atau operasikan (ia akan membayar dirinya dari uang penerbit). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   if (actor && (same(f.agent.owner, actor) || same(f.agent.wallet, actor))) {
     return fail(422, `agent ${f.agent.agentId} is owned or operated by the member hiring it — a member cannot hire their own agent with the publisher's money`)
   }
@@ -148,7 +148,7 @@ export async function agentJudge (cfg, body, found) {
   const f = await agentFacts(cfg, body.agentId)
   if (!f.ok) return f
   if (!same(f.agent.wallet, hireRow.agent_wallet)) return fail(409, `agent ${body.agentId} changed its agentWallet since it was hired — the publisher must hire it again`)
-  // Lencana-B135 status=TERBUKA 2026-10-03 — agen yang otaknya tercatat menilai atas nama model itu: judgeModel wajib sama dengan provider/model yang lolos kalibrasi, dan otak catatan pemilik lama tidak berlaku. Diperiksa sebelum nonce dipakai. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B135 status=SELESAI 2026-10-03 — agen yang otaknya tercatat menilai atas nama model itu: judgeModel wajib sama dengan provider/model yang lolos kalibrasi, dan otak catatan pemilik lama tidak berlaku. Diperiksa sebelum nonce dipakai. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   // Agen TANPA catatan otak tetap diterima seperti B119 (harness #2534 menilai dengan angka tetap) — mewajibkan otak = mode
   // otomatis penuh, backlog berikutnya (D69).
   const [brain] = await agentBrains([f.agent.agentId])

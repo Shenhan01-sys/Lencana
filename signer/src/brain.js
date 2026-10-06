@@ -12,7 +12,7 @@
  * (`web/src/llm.ts`), jadi angka kalibrasi adalah LAPORAN pemilik yang ia tandatangani. Server memeriksa aturannya
  * (`judgeCalibration`, sama dengan `npm run judge`) — ia tidak bisa mengulang panggilan modelnya, dan tidak mengaku bisa.
  */
-// Lencana-B135 status=TERBUKA 2026-10-03 — rute otak agen: pemilik (ownerOf) mencatat provider + model + kalibrasi yang lolos aturan judge-check, dompet agen membaca antrean esai dari kursus yang menyewanya (tanpa esai milik operatornya sendiri); kunci LLM tidak pernah lewat server. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — rute otak agen: pemilik (ownerOf) mencatat provider + model + kalibrasi yang lolos aturan judge-check, dompet agen membaca antrean esai dari kursus yang menyewanya (tanpa esai milik operatornya sendiri); kunci LLM tidak pernah lewat server. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { getAddress } from 'viem'
 
 import { isProvider, PROVIDER_IDS } from '../../web/src/llm.ts'

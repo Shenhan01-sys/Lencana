@@ -50,14 +50,14 @@ import {
   learnerRecords as dbLearnerRecords,
   enrollPaid as dbEnrollPaid, recentFaucetGrant as dbRecentFaucet, forgetNonce as dbForgetNonce,
 } from './db.js'
-// Lencana-B125 status=TERBUKA 2026-10-02 — bayar dulu baru masuk kelas: harga dari web/src/pricing.ts, POST /enroll kursus berbayar menjawab 402 + syarat x402, settlement + SettlementSplit sebelum enrollment, orders = paid; POST /faucet koin uji sekali per alamat per jendela; ENROLL_PAYWALL=off hanya untuk server harness. Buktikan ulang: npm run verify:paywall (dan --live). JANGAN dibalik/diulang tanpa membuka kembali baris B125 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B125 status=SELESAI 2026-10-02 — bayar dulu baru masuk kelas: harga dari web/src/pricing.ts, POST /enroll kursus berbayar menjawab 402 + syarat x402, settlement + SettlementSplit sebelum enrollment, orders = paid; POST /faucet koin uji sekali per alamat per jendela; ENROLL_PAYWALL=off hanya untuk server harness. Buktikan ulang: npm run verify:paywall (dan --live). JANGAN dibalik/diulang tanpa membuka kembali baris B125 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { priceOf, FAUCET_AMOUNT, FAUCET_COOLDOWN_HOURS, PAY_TOKEN_SYMBOL, PAY_TOKEN_DECIMALS } from '../../web/src/pricing.ts'
 import { mintTestCoins } from './faucet.js'
 import { mintArtifact, ARTIFACT_LAYER_97, CREDENTIAL_HOST_DEFAULT } from './mint-artifact.js'
 import { essayLesson, gradeQuiz } from './quiz.js'
-// Lencana-B121 status=TERBUKA 2026-10-01 — core: POST /praktik membaca ulang chain 97 sebelum usaha praktik tersimpan, dan POST /attempts menolak skor kuis/esai/praktik kiriman peserta; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B121 status=SELESAI 2026-10-01 — core: POST /praktik membaca ulang chain 97 sebelum usaha praktik tersimpan, dan POST /attempts menolak skor kuis/esai/praktik kiriman peserta; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { praktikLesson, checkPraktik } from './praktik.js'
-// Lencana-B82 status=TERBUKA 2026-10-01 — rute POST /auth/privy: ikatan alamat peserta ke akun login Privy sesudah token dan kepemilikan dompet tertanam diverifikasi dengan app secret; yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B82 status=SELESAI 2026-10-01 — rute POST /auth/privy: ikatan alamat peserta ke akun login Privy sesudah token dan kepemilikan dompet tertanam diverifikasi dengan app secret; yang belum: uji dua peramban oleh builder. Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { privyConfigured, linkPrivyLearner } from './privy.js'
 import {
   findEnrollment as dbFindEnrollment, claimPraktikProof as dbClaimPraktikProof,
@@ -81,7 +81,7 @@ import {
   rates as agentRates, hire as agentHireRoute, agentJudge, appointReviewerAgent, chargeReview,
   payCharge as payAgentCharge, getCharge as getAgentCharge,
 } from './agents.js'
-// Lencana-B128 status=TERBUKA 2026-10-02 — peran akun: POST /me/roles (peserta; penerbit lewat alamat penerbit atau keanggotaan bertanda tangan penerbit; Agent Owner lewat ownerOf di registry ERC-8004) dan POST /publisher/members (hibah/cabut bertanda tangan kunci penerbit). Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B128 status=SELESAI 2026-10-02 — peran akun: POST /me/roles (peserta; penerbit lewat alamat penerbit atau keanggotaan bertanda tangan penerbit; Agent Owner lewat ownerOf di registry ERC-8004) dan POST /publisher/members (hibah/cabut bertanda tangan kunci penerbit). Buktikan ulang: npm run verify:roles. JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { getAddress, isAddress } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { randomBytes } from 'node:crypto'
@@ -91,27 +91,27 @@ import {
   requestMembership as dbRequestMembership, latestRequest as dbLatestRequest, pendingRequests as dbPendingRequests, rejectRequest as dbRejectRequest,
   publisherRecords as dbPublisherRecords, membersOf as dbMembersOf,
 } from './db.js'
-// Lencana-B129 status=TERBUKA 2026-10-02 — kursi Penerbit end-to-end: POST /me/member-request (pengajuan bertanda tangan akun), POST /publisher/overview (dasbor untuk penerbit + anggota aktif), POST /publisher/agents/hire dan POST /publisher/reviewers (aksi anggota dengan tanda tangannya sendiri bila hibahnya menyatakan hire=1 / appoint=1). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B129 status=SELESAI 2026-10-02 — kursi Penerbit end-to-end: POST /me/member-request (pengajuan bertanda tangan akun), POST /publisher/overview (dasbor untuk penerbit + anggota aktif), POST /publisher/agents/hire dan POST /publisher/reviewers (aksi anggota dengan tanda tangannya sendiri bila hibahnya menyatakan hire=1 / appoint=1). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { overview as publisherOverview, readPlatformBps } from './publisher.js'
-// Lencana-B130 status=TERBUKA 2026-10-02 — kursi Agent Owner end-to-end: POST /owner/overview (dasbor untuk alamat yang ownerOf-nya memegang agen yang dikenal platform) dan POST /owner/gas (platform mengisi gas pemilik agen yang ia cetak, hanya bila saldonya menipis). Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B130 status=SELESAI 2026-10-02 — kursi Agent Owner end-to-end: POST /owner/overview (dasbor untuk alamat yang ownerOf-nya memegang agen yang dikenal platform) dan POST /owner/gas (platform mengisi gas pemilik agen yang ia cetak, hanya bila saldonya menipis). Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { ownerOverview, nativeBalance, sendGasDrip, GAS_LOW, GAS_DRIP } from './owner.js'
 import { ownedAgentFacts } from './agents.js'
 // B155: batas pemberian dari dompet deployer (per IP + kuota harian) — server ini publik sejak B154.
 import { limitsFromEnv, clientIp } from './limits.js'
 import { ownerRecords as dbOwnerRecords, platformAgents as dbPlatformAgents, platformAgentIds as dbPlatformAgentIds } from './db.js'
-// Lencana-B131 status=TERBUKA 2026-10-03 — satu akun nyata = satu peran (D66): POST /me/role (pilih sekali, bertanda tangan), /me/roles mengembalikan peran efektif, rute peserta/penerbit/Agent Owner menolak akun berperan lain kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B131 status=SELESAI 2026-10-03 — satu akun nyata = satu peran (D66): POST /me/role (pilih sekali, bertanda tangan), /me/roles mengembalikan peran efektif, rute peserta/penerbit/Agent Owner menolak akun berperan lain kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { accountOf, roleRefusal } from './account.js'
 import { chooseRole as dbChooseRole, recordRole as dbRecordRole } from './db.js'
-// Lencana-B133 status=TERBUKA 2026-10-03 — Penerbit menyusun kursus: POST /publisher/drafts (daftar), /publisher/drafts/save dan /publisher/drafts/submit (anggota berhak susun, tanda tangan atas hash isi); kursus yang diterbitkan kunci penerbit digabung ke katalog proses ini (GET /catalog/published tanpa kunci). Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — Penerbit menyusun kursus: POST /publisher/drafts (daftar), /publisher/drafts/save dan /publisher/drafts/submit (anggota berhak susun, tanda tangan atas hash isi); kursus yang diterbitkan kunci penerbit digabung ke katalog proses ini (GET /catalog/published tanpa kunci). Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { refreshCatalog, publishedCatalog, courseArchived, dbCourseMeta } from './catalog.js'
-// Lencana-B132 status=TERBUKA 2026-10-03 — robot agen: templat registrasi publik, klaim agen yang didaftarkan pemiliknya sendiri (struk dibaca dari chain), gas untuk akun Agent Owner yang belum punya agen. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B132 status=SELESAI 2026-10-03 — robot agen: templat registrasi publik, klaim agen yang didaftarkan pemiliknya sendiri (struk dibaca dari chain), gas untuk akun Agent Owner yang belum punya agen. Buktikan ulang: npm run verify:studio. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { registrationFile, ERC8004 } from './erc8004.js'
 import { verifySelfRegistration } from './owner.js'
-// Lencana-B135 status=TERBUKA 2026-10-03 — otak agen semi-otomatis: POST /owner/agents/brain (pemilik mencatat provider + model + kalibrasi, tanpa API key) dan POST /owner/agents/queue (dompet agen membaca esai dari kursus yang menyewanya); dasbor pemilik memuat otaknya. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — otak agen semi-otomatis: POST /owner/agents/brain (pemilik mencatat provider + model + kalibrasi, tanpa API key) dan POST /owner/agents/queue (dompet agen membaca esai dari kursus yang menyewanya); dasbor pemilik memuat otaknya. Buktikan ulang: npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { parseBrainMessage, BRAIN_HINT, QUEUE_RE, QUEUE_HINT, recordBrain, agentQueue } from './brain.js'
 import { REVIEW_QUEUE_RE, REVIEW_QUEUE_HINT, reviewQueue } from './review.js'
 import { agentBrains as dbAgentBrains } from './db.js'
-// Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen: GET /agents/market (agen yang dikenal platform dengan fakta registry, otak, angka gabungan; cache 60 detik), dibatalkan oleh sewa, penunjukan, otak, dan klaim agen. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B138 status=SELESAI 2026-10-03 — bursa agen: GET /agents/market (agen yang dikenal platform dengan fakta registry, otak, angka gabungan; cache 60 detik), dibatalkan oleh sewa, penunjukan, otak, dan klaim agen. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { agentMarket, invalidateMarket } from './market.js'
 import { recordPlatformAgent as dbRecordPlatformAgent } from './db.js'
 import { prepareDraft, publishPlan } from './drafts.js'
@@ -670,7 +670,7 @@ const server = createServer(async (req, res) => {
         if (!out.ok) return send(res, ({ auth: 401, conflict: 409 })[out.kind] ?? 400, jsonBody({ error: out.why }))
         return send(res, 201, jsonBody({ role: out.role, chosenAt: out.chosenAt, request: out.request, account: await accountCheap(body.learner) }))
       }
-      // Lencana-B124 status=TERBUKA 2026-10-02 — rute POST /me/records: rekaman belajar milik peserta (enrollment, ringkasan, usaha dinilai) untuk dashboard; hanya pemilik alamat (tanda tangan + nonce, pesan khusus), tanpa teks esai. Buktikan ulang: npm run verify:records. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+      // Lencana-B124 status=SELESAI 2026-10-02 — rute POST /me/records: rekaman belajar milik peserta (enrollment, ringkasan, usaha dinilai) untuk dashboard; hanya pemilik alamat (tanda tangan + nonce, pesan khusus), tanpa teks esai. Buktikan ulang: npm run verify:records. JANGAN dibalik/diulang tanpa membuka kembali baris B124 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
       if (path === '/faucet') {
         // B125: koin uji LDC-demo (testnet) ke dompet peserta; platform membayar gas. Sekali per alamat per jendela waktu,
         // dicatat lewat nonce bertanda tangan — bukan memori proses yang hilang saat server dinyalakan ulang.
@@ -796,16 +796,16 @@ const server = createServer(async (req, res) => {
         if (!seat) return send(res, 403, jsonBody({ error: 'this account holds no publisher seat — apply for membership first' }))
         const manifests = MANIFESTS.filter((m) => !m.issuer.eoa || String(m.issuer.eoa).toLowerCase() === PAY_PAYEE.toLowerCase())
         const includeTest = body.includeTest === true
-        const [records, platformBps, members, pending] = await Promise.all([
+        const [records, platformBps, members, requests] = await Promise.all([
           dbPublisherRecords({ courseIds: manifests.map((m) => m.course.id), includeTest }),
           readPlatformBps(RPC_URL, PAY_SPLIT),
           dbMembersOf(PAY_PAYEE),
-          dbPendingRequests(PAY_PAYEE).then((r) => r.length),
+          dbPendingRequests(PAY_PAYEE),
         ])
         return send(res, 200, jsonBody(publisherOverview({
           issuer: { address: getAddress(PAY_PAYEE), slug: MANIFESTS[0]?.issuer.slug ?? null, name: MANIFESTS[0]?.issuer.name ?? null },
           seat: { via: seat.via, canHire: seat.canHire, canAppoint: seat.canAppoint, canAuthor: seat.canAuthor === true, canPublish: seat.canPublish === true, since: seat.since },
-          manifests, priceOf, records, platformBps, members, pending, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null, courseMeta: dbCourseMeta,
+          manifests, priceOf, records, platformBps, members, pending: requests.length, requests, includeTest, split: PAY_SPLIT ? getAddress(PAY_SPLIT) : null, courseMeta: dbCourseMeta,
           token: { address: PAY_TOKEN ? getAddress(PAY_TOKEN) : null, symbol: PAY_TOKEN_SYMBOL, decimals: PAY_TOKEN_DECIMALS },
         })))
       }

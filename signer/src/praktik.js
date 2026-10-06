@@ -21,7 +21,7 @@
  * transaksi/dompet dipakai dua kali, bukan mencegah orang berbagi kunci.
  */
 
-// Lencana-B121 status=TERBUKA 2026-10-01 — core: pemeriksa bukti praktik (balance, tx-receipt, eth-call, allowance) yang membaca ulang chain 97; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B121 status=SELESAI 2026-10-01 — core: pemeriksa bukti praktik (balance, tx-receipt, eth-call, allowance) yang membaca ulang chain 97; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import {
   createPublicClient, http, getAddress, isAddress, parseEther, parseAbi, parseAbiParameters,
   encodeAbiParameters, toFunctionSelector, concatHex,

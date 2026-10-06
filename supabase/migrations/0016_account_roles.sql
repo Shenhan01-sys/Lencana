@@ -1,6 +1,6 @@
 -- 0016_account_roles.sql — B131 (D66): satu akun nyata = satu peran; pemilih kursi hanya untuk akun dummy builder.
 --
--- Lencana-B131 status=TERBUKA 2026-10-03 — peran akun dipilih sekali (Peserta / Penerbit / Agent Owner), ditandatangani akun itu, tidak bisa diganti; baris dev=true (ditulis CLI platform) menandai akun dummy builder yang boleh memegang semua kursi menurut fakta. Buktikan ulang: npm run verify:account (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B131 status=SELESAI 2026-10-03 — peran akun dipilih sekali (Peserta / Penerbit / Agent Owner), ditandatangani akun itu, tidak bisa diganti; baris dev=true (ditulis CLI platform) menandai akun dummy builder yang boleh memegang semua kursi menurut fakta. Buktikan ulang: npm run verify:account (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Pilihan builder 3 Okt: "Pilih sekali saat onboarding". Peran efektif sebuah akun dibaca server (`signer/src/server.js`
 -- `accountOf`), urutannya:

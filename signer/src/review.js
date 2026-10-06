@@ -11,7 +11,7 @@
  * final=… label=… nonce=…`), jadi tidak ada aturan pengesahan baru di sini — hanya daftar yang menyaring lebih dulu esai
  * yang akan ditolak rute itu.
  */
-// Lencana-B144 status=TERBUKA 2026-10-05 — antrean pengesahan dibaca dompet agen pengesah yang ditunjuk penerbit: esai berusulan yang belum disahkan, teks + rubrik + usulan per kriteria, tanpa alamat peserta; esai yang akan ditolak rute pengesahan tidak ikut. Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B144 status=SELESAI 2026-10-05 — antrean pengesahan dibaca dompet agen pengesah yang ditunjuk penerbit: esai berusulan yang belum disahkan, teks + rubrik + usulan per kriteria, tanpa alamat peserta; esai yang akan ditolak rute pengesahan tidak ikut. Buktikan ulang: npm run verify:review. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { getAddress } from 'viem'
 
 import { agentFacts } from './agents.js'

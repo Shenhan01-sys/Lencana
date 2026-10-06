@@ -201,7 +201,7 @@ export function evidenceFromAttempts (manifest, attempts) {
   }
 
   // — praktik: rubrik hanya bertanya ada/tidaknya bukti yang dinilai.
-  // Lencana-B121 status=TERBUKA 2026-10-01 — praktik hanya dihitung kalau dinilai CHAIN (komponen graded_by='chain', lahir dari POST /praktik); usaha praktik laporan peserta dari jalur lama /attempts tidak lagi membuat slot terisi. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B121 status=SELESAI 2026-10-01 — praktik hanya dihitung kalau dinilai CHAIN (komponen graded_by='chain', lahir dari POST /praktik); usaha praktik laporan peserta dari jalur lama /attempts tidak lagi membuat slot terisi. Buktikan ulang: npm run verify:attempts. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   const praktikRows = rows.filter((a) => a.kind === 'praktik')
   const chainChecked = praktikRows.filter((a) => (a.attempt_components ?? []).some((c) => c?.graded_by === 'chain'))
   const selfReported = praktikRows.filter((a) => !chainChecked.includes(a) && String(a.verdict ?? 'incomplete') !== 'incomplete')

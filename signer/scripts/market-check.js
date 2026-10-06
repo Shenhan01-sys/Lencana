@@ -1,4 +1,4 @@
-// Lencana-B138 status=TERBUKA 2026-10-03 — harness bursa agen: aturan konflik halaman = aturan server (B120/B129), entri bursa tanpa data peserta, rute GET /agents/market + cache + pembatalan sesudah sewa. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B138 status=SELESAI 2026-10-03 — harness bursa agen: aturan konflik halaman = aturan server (B120/B129), entri bursa tanpa data peserta, rute GET /agents/market + cache + pembatalan sesudah sewa. Buktikan ulang: npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:market` — bursa agen di dasbor Penerbit (B138, D70). Tanpa gas, tanpa kunci LLM.
  *

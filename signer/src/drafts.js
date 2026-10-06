@@ -7,7 +7,7 @@
  *   publishPlan    dari draf tersimpan: audit ulang, `rubricHash` (aturan penilaian, ikut ditandatangani kunci penerbit)
  *                  dan `manifestHash` (isi + waktu terbit)
  */
-// Lencana-B133 status=TERBUKA 2026-10-03 — draf disiapkan (normalisasi + hash + audit) dan direncanakan terbit (rubricHash + manifestHash dari isi + kunci tersimpan) dengan satu kode untuk rute, CLI, dan harness. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — draf disiapkan (normalisasi + hash + audit) dan direncanakan terbit (rubricHash + manifestHash dari isi + kunci tersimpan) dengan satu kode untuk rute, CLI, dan harness. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { normalizeDraft, draftHash, auditDraft, versionProblems, versionedId } from '../../web/src/authoring.ts'
 import { rubricHashOf, manifestHashOf } from '../../web/src/manifest-keys.ts'
 import { fileCourseIds, draftManifests, isoSeconds } from './catalog.js'

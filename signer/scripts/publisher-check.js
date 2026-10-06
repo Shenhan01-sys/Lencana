@@ -1,4 +1,4 @@
-// Lencana-B129 status=TERBUKA 2026-10-02 — harness kursi Penerbit: pengajuan anggota (ajukan → disetujui/ditolak hanya oleh kunci penerbit), dasbor POST /publisher/overview (hanya pemegang kursi, angka dari baris yang bisa ditelusuri, tanpa teks esai), dan aksi anggota (sewa agen penilai / tunjuk agen pengesah dengan tanda tangannya sendiri, sesuai wewenang, tidak untuk agen miliknya). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B129 status=SELESAI 2026-10-02 — harness kursi Penerbit: pengajuan anggota (ajukan → disetujui/ditolak hanya oleh kunci penerbit), dasbor POST /publisher/overview (hanya pemegang kursi, angka dari baris yang bisa ditelusuri, tanpa teks esai), dan aksi anggota (sewa agen penilai / tunjuk agen pengesah dengan tanda tangannya sendiri, sesuai wewenang, tidak untuk agen miliknya). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * `npm run verify:publisher` — kursi Penerbit end-to-end (B129, RF7 langkah C2, D64), terhadap server sendiri
  * (origin=test). Kursus aksi agen = kelas uji `uji-bayar-2026` (unlisted), supaya sewa/penunjukan demo di
@@ -184,6 +184,34 @@ try {
   check('nilai langsung kunci penerbit tidak masuk "menunggu pengesahan"', (ovAll.essays?.recent ?? []).filter((e) => e.status === 'graded').every((e) => e.proposedBy === null), json((ovAll.essays?.recent ?? []).filter((e) => e.status === 'graded')))
   check('tidak ada teks esai, kunci jawaban, atau tanda tangan di jawaban', !/"body"|"answer"|"signature"|"message"/.test(ov.text), ov.text.slice(0, 120))
   check('tim: anggota ini tercantum dengan wewenangnya', (o.team?.members ?? []).some((m) => same(m.member, applicant.address) && m.canHire && m.canAppoint), json(o.team))
+
+  // B129 (6 Okt): daftar pengajuan di dasbor — hanya pemegang kunci penerbit yang menerimanya; keputusan tetap hanya tanda tangan kunci itu,
+  // dengan bentuk pesan yang sama dengan yang dibentuk dasbor (`web/src/learning.ts` decideMemberRequest).
+  console.log('\n— B2. daftar pengajuan anggota di dasbor: hanya kunci penerbit, catatan disaring, keputusan hanya kunci penerbit')
+  const pend1 = privateKeyToAccount(generatePrivateKey())
+  testMembers.push(pend1.address)
+  const ap1 = await apply(pend1, '  Staf\tbaru\n\u0007 (harness)  ')
+  check('pengajuan dengan catatan berkarakter kontrol diterima → 201 pending', ap1.status === 201 && ap1.body?.request?.status === 'pending', ap1.text.slice(0, 200))
+  const ovKey = await overview(publisher)
+  const reqList = ovKey.body?.team?.requests ?? []
+  const mine = reqList.find((r) => same(r.address, pend1.address))
+  check('kunci penerbit → 200, team.requests memuat pengajuan ini dan jumlahnya ≥ 1', ovKey.status === 200 && ovKey.body?.team?.pendingRequests >= 1 && Boolean(mine), ovKey.text.slice(0, 200))
+  check('catatan disaring: karakter kontrol dibuang, spasi dirapatkan', mine?.note === 'Staf baru (harness)', json(mine))
+  check('item pengajuan hanya {address, note, at}; tidak ada pesan atau tanda tangan di jawaban', Object.keys(mine ?? {}).sort().join() === 'address,at,note' && !/"signature"|"message"/.test(ovKey.text), json(Object.keys(mine ?? {})))
+  const ovMember = (await overview(applicant)).body ?? {}
+  check('anggota: hanya jumlah pengajuan, daftar kosong (kunci penerbit yang memutuskan, bukan anggota)', ovMember.team?.pendingRequests >= 1 && Array.isArray(ovMember.team?.requests) && ovMember.team.requests.length === 0, json(ovMember.team))
+  const byMember = await decide('grant', pend1.address, { hire: true, signer: applicant })
+  check('anggota tidak bisa menyetujui pengajuan (tanda tangan anggota atas nama penerbit) → 401', byMember.status === 401, byMember.text.slice(0, 160))
+  const rejByMember = await decide('reject', pend1.address, { signer: applicant })
+  check('anggota tidak bisa menolak pengajuan → 401', rejByMember.status === 401, rejByMember.text.slice(0, 160))
+  const stillPending = (await overview(publisher)).body?.team?.requests ?? []
+  check('pengajuan tetap menunggu sesudah dua percobaan yang ditolak', stillPending.some((r) => same(r.address, pend1.address)), json(stillPending.map((r) => r.address)))
+  const grantMsg = `lencana-member grant member=${pend1.address.toLowerCase()} hire=1 appoint=0 author=1 publish=1 nonce=${nonce()}`
+  const gFull = await call('/publisher/members', { issuer: publisher.address, member: pend1.address, canHire: true, canAppoint: false, canAuthor: true, canPublish: true, ...await signed(publisher, grantMsg) })
+  check('hibah bentuk pesan dasbor (hire + author + publish, tanpa appoint) oleh kunci penerbit → 200 dan menutup pengajuan', gFull.status === 200 && gFull.body?.approvedRequest === ap1.body?.request?.id && gFull.body?.canAuthor === true && gFull.body?.canPublish === true, gFull.text.slice(0, 200))
+  const ovAfter = (await overview(publisher)).body ?? {}
+  check('sesudah disetujui: tidak lagi di team.requests dan tercatat anggota dengan wewenangnya', !(ovAfter.team?.requests ?? []).some((r) => same(r.address, pend1.address))
+    && (ovAfter.team?.members ?? []).some((m) => same(m.member, pend1.address) && m.canHire && !m.canAppoint && m.canAuthor && m.canPublish), json(ovAfter.team))
 
   console.log(`\n— C. POST /publisher/agents/hire: anggota menyewa agen penilai untuk ${COURSE}`)
   // Prasyarat yang benar-benar dipakai harness: agen yang AKAN ia sewa (#GRADER_ID) dan tunjuk (#REVIEWER_ID) belum menempel di kursus ini

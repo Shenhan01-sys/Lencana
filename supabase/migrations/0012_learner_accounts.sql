@@ -1,6 +1,6 @@
 -- 0012_learner_accounts.sql — B82: login peserta lewat Privy (keputusan builder D57, 1 Okt).
 --
--- Lencana-B82 status=TERBUKA 2026-10-01 — pengikat alamat peserta ke akun login (Privy): server menulis baris ini hanya sesudah token login diverifikasi dengan app secret DAN alamatnya terbukti dompet tertanam milik user itu; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B82 status=SELESAI 2026-10-01 — pengikat alamat peserta ke akun login (Privy): server menulis baris ini hanya sesudah token login diverifikasi dengan app secret DAN alamatnya terbukti dompet tertanam milik user itu; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Sampai 1 Okt identitas peserta adalah kunci penanda tangan saja: kunci perangkat (hangus bersama tab)
 -- atau dompet ekstensi. Login Privy memberi peserta dompet tertanam yang SAMA di perangkat mana pun,

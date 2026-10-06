@@ -1,6 +1,6 @@
 -- 0017_course_drafts.sql — B133 (D67): Penerbit menyusun kursus baru dari halaman.
 --
--- Lencana-B133 status=TERBUKA 2026-10-03 — anggota penerbit berhak "susun" (hibah author=1) menyusun draf kursus di halaman, kunci penerbit menerbitkan dengan pesan bertanda tangan; kursus terbit digabung ke katalog server dan halaman. Buktikan ulang: npm run verify:authoring (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B133 status=SELESAI 2026-10-03 — anggota penerbit berhak "susun" (hibah author=1) menyusun draf kursus di halaman, kunci penerbit menerbitkan dengan pesan bertanda tangan; kursus terbit digabung ke katalog server dan halaman. Buktikan ulang: npm run verify:authoring (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Pilihan builder 3 Okt: "Anggota menyusun, kunci penerbit menerbitkan". Alur satu draf:
 --   draft      disimpan penyusun (pesan `lencana-draft save … hash=<keccak isi>` bertanda tangan akunnya)

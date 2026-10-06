@@ -10,7 +10,7 @@
  * menyapu (teknik `ShinyText` React Bits: gradien 200% + `background-position` bergerak). `steps` menampilkan tahap
  * yang benar-benar terjadi (mis. tanda tangan → membaca penerbit), bukan persentase karangan.
  */
-// Lencana-B126 status=TERBUKA 2026-10-02 — pita pemuatan global (membungkus window.fetch: penerbit, RPC chain, login) + kerangka isi berkilau + tahap muat yang sungguhan; dipakai dashboard, detail kursus, dan saldo navbar. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B126 status=SELESAI 2026-10-02 — pita pemuatan global (membungkus window.fetch: penerbit, RPC chain, login) + kerangka isi berkilau + tahap muat yang sungguhan; dipakai dashboard, detail kursus, dan saldo navbar. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './loading.css'
 import { h } from './ui'
 

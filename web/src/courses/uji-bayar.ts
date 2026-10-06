@@ -11,7 +11,7 @@
  * di dashboard peserta dengan tanda "uji".
  */
 
-// Lencana-B126 status=TERBUKA 2026-10-02 — kelas uji berbayar (5 LDC-demo) untuk menguji bayar → kelas → dinilai dengan akun sungguhan; tidak tampil di katalog publik. Buktikan ulang: cd web && npm run probe, lalu cd ../signer && npm run verify:quizkeys && npm run verify:paywall. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B126 status=SELESAI 2026-10-02 — kelas uji berbayar (5 LDC-demo) untuk menguji bayar → kelas → dinilai dengan akun sungguhan; tidak tampil di katalog publik. Buktikan ulang: cd web && npm run probe, lalu cd ../signer && npm run verify:quizkeys && npm run verify:paywall. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { Course } from '../content'
 
 export const UJI_BAYAR_ID = 'uji-bayar-2026'

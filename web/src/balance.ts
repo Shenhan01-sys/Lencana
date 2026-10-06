@@ -4,7 +4,7 @@
  * halaman. Bacaan disimpan 20 detik per alamat supaya pindah halaman tidak mengulang RPC; sesudah koin uji masuk
  * atau pembayaran lunas, `balanceChanged` memaksa bacaan baru dan semua tampilan ikut bergulir.
  */
-// Lencana-B126 status=TERBUKA 2026-10-02 — saldo koin uji dibaca dari chain untuk chip navbar, panel bayar, dan Dompet di dashboard; berubah (bergulir) sesudah koin uji masuk atau pembayaran lunas. Buktikan ulang: uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B126 status=SELESAI 2026-10-02 — saldo koin uji dibaca dari chain untuk chip navbar, panel bayar, dan Dompet di dashboard; berubah (bergulir) sesudah koin uji masuk atau pembayaran lunas. Buktikan ulang: uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { learnerAddress, tokenBalance } from './learning'
 import { PAY_TOKEN_ADDRESS, formatLdc } from './pricing'
 import { coin } from './lib/coin'

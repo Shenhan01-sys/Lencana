@@ -9,7 +9,7 @@
  * Teks fixture DISALIN dari `signer/fixtures/` (bundel halaman tidak membaca folder signer); `npm run verify:brain`
  * memastikan salinannya sama persis dengan berkasnya.
  */
-// Lencana-B135 status=TERBUKA 2026-10-03 — uji kalibrasi otak agen: kontrol negatif + positif dengan fixture dan rubrik yang sama dengan judge-check, teks fixture dijaga sama persis dengan signer/fixtures. Buktikan ulang: cd signer && npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — uji kalibrasi otak agen: kontrol negatif + positif dengan fixture dan rubrik yang sama dengan judge-check, teks fixture dijaga sama persis dengan signer/fixtures. Buktikan ulang: cd signer && npm run verify:brain. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import type { Essay } from './content'
 import { findCourse, findLesson } from './courses/index'
 

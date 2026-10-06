@@ -6,7 +6,7 @@
  * rute pertama digambar. Kursus berkas tidak pernah ditimpa. Kalau penerbit tidak menjawab, halaman tetap jalan dengan
  * kursus berkas saja.
  */
-// Lencana-B133 status=TERBUKA 2026-10-03 — katalog halaman memuat kursus yang terbit dari halaman (GET /catalog/published, tanpa kunci) ke array katalog, manifest publik, dan harga yang sama dengan kursus berkas. Buktikan ulang: uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — katalog halaman memuat kursus yang terbit dari halaman (GET /catalog/published, tanpa kunci) ke array katalog, manifest publik, dan harga yang sama dengan kursus berkas. Buktikan ulang: uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { COURSES, LISTED_COURSES } from './courses/index'
 import { MANIFESTS } from './manifest'
 import { COURSE_PRICES } from './pricing'

@@ -1,6 +1,6 @@
 -- 0013_publisher_members.sql — B128 (D63): anggota penerbit, langkah C1 RF7.
 --
--- Lencana-B128 status=TERBUKA 2026-10-02 — keanggotaan penerbit: kunci penerbit memberi satu akun hak memantau dashboard penerbit dan, bila dinyatakan, menyewa agen dan menunjuk agen pengesah atas namanya; terbit/cabut tidak pernah didelegasikan lewat tabel ini. Buktikan ulang: npm run verify:roles (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B128 status=SELESAI 2026-10-02 — keanggotaan penerbit: kunci penerbit memberi satu akun hak memantau dashboard penerbit dan, bila dinyatakan, menyewa agen dan menunjuk agen pengesah atas namanya; terbit/cabut tidak pernah didelegasikan lewat tabel ini. Buktikan ulang: npm run verify:roles (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B128 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Sampai B128 penerbit = satu alamat (`ISSUER_ADDRESS`) dan setiap aksinya berjalan lewat CLI di mesin yang memegang
 -- kuncinya. Builder memilih (2 Okt, opsi 2): akun login bisa menjadi ANGGOTA penerbit yang memantau dan — kalau kunci

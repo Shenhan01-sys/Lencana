@@ -37,3 +37,7 @@ updated: 2026-10-02
 
 Login sungguhan sampai dashboard (AC-B124#9); harga + bayar sebelum enrollment (langkah B); dashboard Penerbit dan Agent Owner
 (langkah C). Temuan privasi `GET /progress` dicatat di AC-B124.
+
+## Pembaruan 6 Okt malam (catatan builder)
+
+Tombol kembali di detail kursus dan topbar kelas kini menuju `#/app` bagi yang sudah masuk (tamu tetap ke katalog) — `web/src/back-target.ts`; T95 langkah 1–3. Ditutup bersama butir lain atas catatan builder.

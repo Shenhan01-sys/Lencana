@@ -17,7 +17,7 @@
  * dicetak, tidak pernah dikirim ke klien, dan tidak boleh ditaruh di bawah nama `VITE_*`.
  */
 
-// Lencana-B82 status=TERBUKA 2026-10-01 — verifikasi login Privy di server: token diverifikasi dengan app secret, kepemilikan dompet tertanam dibaca ulang dari API Privy, baru alamat diikat; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B82 status=SELESAI 2026-10-01 — verifikasi login Privy di server: token diverifikasi dengan app secret, kepemilikan dompet tertanam dibaca ulang dari API Privy, baru alamat diikat; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy. JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { getAddress, isAddress } from 'viem'
 import { PrivyClient } from '@privy-io/node'
 

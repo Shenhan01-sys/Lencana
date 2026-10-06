@@ -6,7 +6,7 @@
  * (resume), daftar yang perlu dikerjakan (to-do), dan linimasa kegiatan. Ditambah dua hal khas Lencana: jarak ke ambang
  * kredensial (perkiraan `computeScore` penerbit) dan saldo koin dari chain. Semua angka dari rekaman penerbit dan chain.
  */
-// Lencana-B127 status=TERBUKA 2026-10-02 — Ringkasan: ubin + saldo, lanjutkan belajar (cincin + lesson berikutnya), perlu perhatianmu (kuis di bawah ambang, esai, kelas belum dimulai), menuju kredensial (perkiraan vs ambang), aktivitas terbaru, kursus untukmu. Buktikan ulang: uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B127 status=SELESAI 2026-10-02 — Ringkasan: ubin + saldo, lanjutkan belajar (cincin + lesson berikutnya), perlu perhatianmu (kuis di bawah ambang, esai, kelas belum dimulai), menuju kredensial (perkiraan vs ambang), aktivitas terbaru, kursus untukmu. Buktikan ulang: uji peramban T49. JANGAN dibalik/diulang tanpa membuka kembali baris B127 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './dash-catalog.css'
 import { h } from '../lib/ui'
 import { COURSES, LISTED_COURSES, findCourse } from '../courses/index'

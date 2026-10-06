@@ -13,7 +13,7 @@
  *   7. selain itu                         → role null: belum berperan, boleh memilih.
  * Rekaman (4) mendahului fakta (5, 6): akun yang sudah belajar tetap Peserta walau seseorang memindahkan NFT agen ke dompetnya.
  */
-// Lencana-B131 status=TERBUKA 2026-10-03 — peran efektif akun dari pilihan bertanda tangan, rekaman, dan fakta; aksi peran lain ditolak kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B131 status=SELESAI 2026-10-03 — peran efektif akun dari pilihan bertanda tangan, rekaman, dan fakta; aksi peran lain ditolak kecuali akun dev. Buktikan ulang: npm run verify:account. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { getAddress } from 'viem'
 import { accountRoleRow, hasEnrollment, membershipsOf } from './db.js'
 

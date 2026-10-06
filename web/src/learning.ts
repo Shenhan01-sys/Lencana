@@ -52,7 +52,7 @@ import { normalizeDraft, draftHash } from './authoring'
 import { robotSvg, withAvatar, cleanName, parseAvatar, NAME_MAX, type Avatar } from './robot'
 import type { AgentMarket } from './market'
 
-// Lencana-B154 status=TERBUKA 2026-10-05 — build produksi yang dibuka dari host publik (Vercel, HP) memakai signer cloud di Railway, bukan 127.0.0.1; endpoint hanya disimpan bila berbeda dari default, dan kunci lama yang berisi default 127.0.0.1 tersimpan diam-diam tidak dibaca lagi. Buktikan ulang: uji peramban build produksi → signer cloud (vault B154). JANGAN dibalik/diulang tanpa membuka kembali baris B154 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B154 status=SELESAI 2026-10-05 — build produksi yang dibuka dari host publik (Vercel, HP) memakai signer cloud di Railway, bukan 127.0.0.1; endpoint hanya disimpan bila berbeda dari default, dan kunci lama yang berisi default 127.0.0.1 tersimpan diam-diam tidak dibaca lagi. Buktikan ulang: uji peramban build produksi → signer cloud (vault B154). JANGAN dibalik/diulang tanpa membuka kembali baris B154 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * Endpoint pilihan pengguna. `-v2` (B154): kunci lama `lencana-signer-url` hampir selalu berisi default `127.0.0.1:8787` yang
  * tersimpan diam-diam — `setEndpoint` dulu menyimpan isi kolom endpoint setiap kali tombol sinkron ditekan — dan di HP alamat
@@ -271,7 +271,7 @@ export function forgetLearner (): void {
 
 // ------------------------------------------------------------------ login email (Privy, B82/D57)
 
-// Lencana-B82 status=TERBUKA 2026-10-01 — identitas ketiga peserta: login email Privy → dompet tertanam yang sama di perangkat mana pun; tanda tangan tetap per permintaan, ikatan alamat ↔ akun dicatat penerbit lewat POST /auth/privy; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B82 status=SELESAI 2026-10-01 — identitas ketiga peserta: login email Privy → dompet tertanam yang sama di perangkat mana pun; tanda tangan tetap per permintaan, ikatan alamat ↔ akun dicatat penerbit lewat POST /auth/privy; yang belum: uji dua peramban oleh builder (alamat sama sesudah login ulang). Buktikan ulang: npm run verify:privy (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B82 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 export function hasPrivyMark (): boolean { return readLocal(PRIVY_MARK) === '1' }
 
 function adoptPrivy (id: PrivyIdentity): LearnerIdentity {
@@ -567,7 +567,7 @@ export async function readMyRoles (): Promise<{ ok: boolean, why?: string, roles
   }
 }
 
-// Lencana-B131 status=TERBUKA 2026-10-03 — akun memilih perannya sekali (pesan lencana-role bertanda tangan akun, POST /me/role); memilih Penerbit sekaligus mengajukan keanggotaan. Buktikan ulang: cd signer && npm run verify:account, lalu uji peramban T57. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B131 status=SELESAI 2026-10-03 — akun memilih perannya sekali (pesan lencana-role bertanda tangan akun, POST /me/role); memilih Penerbit sekaligus mengajukan keanggotaan. Buktikan ulang: cd signer && npm run verify:account, lalu uji peramban T57. JANGAN dibalik/diulang tanpa membuka kembali baris B131 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * B131 (D66): pilih peran akun ini — sekali, tidak bisa diganti. Pesan menyebut perannya; untuk Penerbit juga penerbitnya,
  * karena memilih Penerbit adalah mengajukan keanggotaan ke penerbit itu (kursinya tetap lahir dari persetujuan kunci penerbit).
@@ -586,7 +586,7 @@ export async function chooseMyRole (role: 'learner' | 'publisher' | 'owner', opt
   return { ok: true, request: (r.json?.request as MemberRequest | null | undefined) ?? undefined }
 }
 
-// Lencana-B133 status=TERBUKA 2026-10-03 — penyusunan kursus dari halaman: daftar draf, simpan (tanda tangan atas hash isi yang dihitung dengan modul skema yang sama dengan server), ajukan; katalog kursus terbit dibaca tanpa kunci. Buktikan ulang: cd signer && npm run verify:authoring, lalu uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — penyusunan kursus dari halaman: daftar draf, simpan (tanda tangan atas hash isi yang dihitung dengan modul skema yang sama dengan server), ajukan; katalog kursus terbit dibaca tanpa kunci. Buktikan ulang: cd signer && npm run verify:authoring, lalu uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** Satu draf kursus (B133). `keys` hanya ada untuk draf milik akun ini. */
 export type CourseDraft = {
   id: number, issuer: string, author: string, courseId: string, status: 'draft' | 'submitted' | 'published' | 'rejected' | 'superseded',
@@ -616,7 +616,7 @@ export async function readCourseDrafts (includeTest = false): Promise<{ ok: bool
   }
 }
 
-// Lencana-B140 status=TERBUKA 2026-10-04 — kelola kursus dari halaman (D72): versi baru dari kursus terbit, hapus draf yang belum diajukan, terbitkan/tolak dan arsipkan/pulihkan lewat permintaan bertanda tangan anggota publish=1 (server menandatangani keputusan dengan kunci penerbit). Buktikan ulang: cd signer && npm run verify:manage, lalu uji peramban T70. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B140 status=SELESAI 2026-10-04 — kelola kursus dari halaman (D72): versi baru dari kursus terbit, hapus draf yang belum diajukan, terbitkan/tolak dan arsipkan/pulihkan lewat permintaan bertanda tangan anggota publish=1 (server menandatangani keputusan dengan kunci penerbit). Buktikan ulang: cd signer && npm run verify:manage, lalu uji peramban T70. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 type ManageOut = { ok: boolean, why?: string, status?: number, json?: Record<string, unknown> | null }
 async function manageCall (path: string, message: string, body: Record<string, unknown>): Promise<ManageOut> {
   const addr = learnerAddress()
@@ -697,6 +697,29 @@ export async function requestPublisherMembership (issuer: string, note?: string)
   return { ok: true, request }
 }
 
+/**
+ * B129 (6 Okt): keputusan atas pengajuan anggota, ditandatangani KUNCI PENERBIT — akun yang masuk harus kunci itu. Tanpa itu server menjawab 401
+ * ("memberships are granted by the configured publisher"). Pesan sama dengan CLI `npm run grant:member`: menyebut anggota dan wewenangnya.
+ */
+export type MemberPerms = { hire: boolean, appoint: boolean, author: boolean, publish: boolean }
+export async function decideMemberRequest (applicant: string, decision: 'grant' | 'reject', perms?: MemberPerms): Promise<{ ok: boolean, why?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const who = applicant.toLowerCase()
+  const p = perms ?? { hire: false, appoint: false, author: false, publish: false }
+  const message = decision === 'grant'
+    ? `lencana-member grant member=${who} hire=${p.hire ? 1 : 0} appoint=${p.appoint ? 1 : 0}${p.author ? ' author=1' : ''}${p.publish ? ' publish=1' : ''} nonce=${newNonce()}`
+    : `lencana-member reject member=${who} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const body = decision === 'grant'
+    ? { issuer: addr, member: applicant, canHire: p.hire, canAppoint: p.appoint, canAuthor: p.author, canPublish: p.publish, message, signature: s.signature }
+    : { issuer: addr, member: applicant, reject: true, message, signature: s.signature }
+  const r = await call('/publisher/members', { method: 'POST', body })
+  if (r.status !== 200) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true }
+}
+
 /** Bentuk jawaban `POST /publisher/overview` (B129). Jumlah uang dalam satuan terkecil token, sebagai string. */
 export type PublisherOverview = {
   issuer: PublisherRef
@@ -736,7 +759,12 @@ export type PublisherOverview = {
     charges: { id: number, attemptId: number, activity: string, agentId: string, label: string | null, amount: string, status: string, tx: string | null, at: string }[]
   }
   revenue: { orders: { courseId: string | null, learner: string | null, amount: string, platform: string | null, net: string | null, tx: string | null, at: string }[] }
-  team: { members: { member: string, canHire: boolean, canAppoint: boolean, since: string }[], pendingRequests: number }
+  team: {
+    members: { member: string, canHire: boolean, canAppoint: boolean, since: string }[]
+    pendingRequests: number
+    /** B129 (6 Okt): pengajuan yang menunggu — hanya diisi untuk pemegang kunci penerbit (anggota menerima daftar kosong dan hanya jumlahnya). */
+    requests?: { address: string, note: string | null, at: string }[]
+  }
 }
 
 /** B129: dasbor penerbit — hanya untuk pemegang kursi Penerbit; ditandatangani dengan pesan khusus `lencana-publisher`. */
@@ -925,7 +953,7 @@ export type OwnerOverview = {
   agents: OwnerAgent[]
 }
 
-// Lencana-B138 status=TERBUKA 2026-10-03 — bursa agen untuk dasbor Penerbit: GET /agents/market (baca saja, tanpa tanda tangan). Buktikan ulang: cd signer && npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B138 status=SELESAI 2026-10-03 — bursa agen untuk dasbor Penerbit: GET /agents/market (baca saja, tanpa tanda tangan). Buktikan ulang: cd signer && npm run verify:market. JANGAN dibalik/diulang tanpa membuka kembali baris B138 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** B138: etalase agen yang dikenal platform — fakta registry saat itu + otak + angka gabungan (tanpa data peserta). */
 export async function readAgentMarket (): Promise<{ ok: boolean, why?: string, data?: AgentMarket }> {
   const r = await call('/agents/market', { timeoutMs: 40_000 })
@@ -958,7 +986,7 @@ export async function requestOwnerGas (): Promise<{ ok: boolean, why?: string, t
   return r.status === 200 ? { ok: true, tx: r.json?.tx as string } : { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
 }
 
-// Lencana-B135 status=TERBUKA 2026-10-03 — otak agen dari peramban pemilik: catat provider + model + kalibrasi (pesan bertanda tangan, tanpa API key), baca antrean esai sebagai dompet agen, kirim penilaian bertanda tangan dengan nama model dan temperature yang benar-benar terpakai. Buktikan ulang: cd signer && npm run verify:brain, lalu uji peramban T63. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B135 status=SELESAI 2026-10-03 — otak agen dari peramban pemilik: catat provider + model + kalibrasi (pesan bertanda tangan, tanpa API key), baca antrean esai sebagai dompet agen, kirim penilaian bertanda tangan dengan nama model dan temperature yang benar-benar terpakai. Buktikan ulang: cd signer && npm run verify:brain, lalu uji peramban T63. JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** B135: pemilik mencatat otak agennya. Server memeriksa ownerOf + aturan kalibrasi; kunci LLM TIDAK ikut dikirim. */
 export async function saveAgentBrain (agentId: string, provider: string, model: string, cal: { substantive: number, hollow: number, temperature: 0 | null }): Promise<{ ok: boolean, why?: string, reasons?: string[], brain?: AgentBrainInfo }> {
   const addr = learnerAddress()
@@ -1005,7 +1033,7 @@ export async function submitAgentJudgement (agentId: string, item: QueueItem, sc
   return { ok: true, score: Number(r.json.score), verdict: String(r.json.verdict ?? ''), charge: charge ? { amount: String(charge.amount ?? '0'), status: String(charge.status ?? '') } : null }
 }
 
-// Lencana-B144 status=TERBUKA 2026-10-05 — meja pengesahan dari peramban pemilik: antrean pengesahan dibaca sebagai dompet agen pengesah, keputusan (setujui / sesuaikan / tolak) + label ditandatangani dan dikirim ke POST /essay/review dengan kursus + lesson esai itu sendiri. Buktikan ulang: cd signer && npm run verify:review, lalu uji peramban meja pengesahan. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B144 status=SELESAI 2026-10-05 — meja pengesahan dari peramban pemilik: antrean pengesahan dibaca sebagai dompet agen pengesah, keputusan (setujui / sesuaikan / tolak) + label ditandatangani dan dikirim ke POST /essay/review dengan kursus + lesson esai itu sendiri. Buktikan ulang: cd signer && npm run verify:review, lalu uji peramban meja pengesahan. JANGAN dibalik/diulang tanpa membuka kembali baris B144 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** B144: satu esai di meja pengesahan — teks + rubrik + usulan per kriteria dari penilai; alamat peserta tidak ikut. */
 export type ReviewItem = Omit<QueueItem, 'awaitingSince'> & {
   judgedAt: string | null
@@ -1155,7 +1183,7 @@ export async function setAgentTariff (agentId: string, token: string, amount: bi
   return minedOk(sent.hash)
 }
 
-// Lencana-B132 status=TERBUKA 2026-10-03 — robot agen: pemilik menyimpan nama + rupa robot ke berkas registrasi ERC-8004 agennya (templat dari penerbit yang menunjuk balik + avatar + gambar SVG, setAgentURI dari dompetnya), dan akun Agent Owner tanpa agen mendaftarkan agennya sendiri (gas → register → klaim → rupa → tarif). Buktikan ulang: cd signer && npm run verify:studio, lalu uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B132 status=SELESAI 2026-10-03 — robot agen: pemilik menyimpan nama + rupa robot ke berkas registrasi ERC-8004 agennya (templat dari penerbit yang menunjuk balik + avatar + gambar SVG, setAgentURI dari dompetnya), dan akun Agent Owner tanpa agen mendaftarkan agennya sendiri (gas → register → klaim → rupa → tarif). Buktikan ulang: cd signer && npm run verify:studio, lalu uji peramban T61. JANGAN dibalik/diulang tanpa membuka kembali baris B132 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** UTF-8 → base64 (nama agen boleh berhuruf non-ASCII). */
 function base64Utf8 (s: string): string {
   const bytes = new TextEncoder().encode(s)

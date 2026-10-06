@@ -12,7 +12,7 @@
  *
  * Modul ini TIDAK mengimpor kunci kursus berkas mana pun — aman untuk bundel browser.
  */
-// Lencana-B133 status=TERBUKA 2026-10-03 — skema draf kursus yang sama untuk halaman dan server: normalisasi, hash isi yang ditandatangani penyusun, audit (auditCourse + batas editor + kelengkapan kunci), dan manifest berkunci untuk hash kebijakan. Buktikan ulang: cd signer && npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — skema draf kursus yang sama untuk halaman dan server: normalisasi, hash isi yang ditandatangani penyusun, audit (auditCourse + batas editor + kelengkapan kunci), dan manifest berkunci untuk hash kebijakan. Buktikan ulang: cd signer && npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { keccak256, toBytes, type Hex } from 'viem'
 import { auditCourse, type Block, type Course, type Lesson, type Problem, type QuizKeys } from './content'
 import { MANIFEST_SCHEMA, rubricHashOf, type CourseManifest } from './manifest'
@@ -190,7 +190,7 @@ export function keyedCourse (course: Course, keys: QuizKeys): Course {
   }
 }
 
-// Lencana-B140 status=TERBUKA 2026-10-04 — aturan versi baru satu sumber untuk server dan editor (D72): aturan nilai tetap → id sama (versi baru menggantikan di tempat), aturan nilai berubah → id wajib baru; aturan dibandingkan dengan id yang disamakan karena canonicalPolicy ikut menghitung id kursus. Buktikan ulang: cd signer && npm run verify:manage. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B140 status=SELESAI 2026-10-04 — aturan versi baru satu sumber untuk server dan editor (D72): aturan nilai tetap → id sama (versi baru menggantikan di tempat), aturan nilai berubah → id wajib baru; aturan dibandingkan dengan id yang disamakan karena canonicalPolicy ikut menghitung id kursus. Buktikan ulang: cd signer && npm run verify:manage. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /** Versi terbit yang digantikan sebuah draf versi baru, dalam bentuk yang sama di server dan halaman. */
 export type VersionBase = { courseId: string, rubricHash: string | null, version: number }
 

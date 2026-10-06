@@ -10,7 +10,7 @@
  * disahkan manusia (atau dinilai tanpa model), praktik hanya kalau dinilai chain (`chainChecked`, B121). Angka resmi
  * tetap angka penerbit saat menerbitkan; halaman ini menyebutnya "perkiraan".
  */
-// Lencana-B126 status=TERBUKA 2026-10-02 — Nilai & tugas: cincin progres, timbangan kelulusan (computeScore atas bukti dengan aturan fromAttempts), batang skor kuis, tabel ringkas per tugas, riwayat dilipat. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B126 status=SELESAI 2026-10-02 — Nilai & tugas: cincin progres, timbangan kelulusan (computeScore atas bukti dengan aturan fromAttempts), batang skor kuis, tabel ringkas per tugas, riwayat dilipat. Buktikan ulang: cd web && npm run build, lalu uji peramban T48. JANGAN dibalik/diulang tanpa membuka kembali baris B126 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { h } from '../lib/ui'
 import { findCourse } from '../courses/index'
 import type { Course, Lesson } from '../content'

@@ -11,7 +11,7 @@
  * masalah yang akan dilaporkan server, dan hash yang ditandatangani akun adalah hash yang dihitung server. Kunci kuis diketik
  * di sini, dikirim hanya ke server, dan tidak pernah keluar lewat katalog publik.
  */
-// Lencana-B133 status=TERBUKA 2026-10-03 — editor kursus di dasbor Penerbit: lajur draf/diajukan/terbit, tulang silabus dengan pin masalah audit, batang bobot, simpan dan ajukan bertanda tangan, pratinjau lesson. Buktikan ulang: cd signer && npm run verify:authoring, lalu uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — editor kursus di dasbor Penerbit: lajur draf/diajukan/terbit, tulang silabus dengan pin masalah audit, batang bobot, simpan dan ajukan bertanda tangan, pratinjau lesson. Buktikan ulang: cd signer && npm run verify:authoring, lalu uji peramban T59. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import './authoring-view.css'
 import { h } from '../lib/ui'
 import { skeleton, steps } from '../lib/loading'
@@ -91,6 +91,7 @@ const COPY = {
   retry: { en: 'Try again', id: 'Coba lagi' },
   lessons: { en: 'lessons', id: 'lesson' },
   problems: { en: 'problems', id: 'masalah' },
+  problemsNote: { en: 'Fix these before submitting — the same audit the server runs.', id: 'Perbaiki ini sebelum diajukan — audit yang sama dengan server.' },
   clean: { en: 'ready to submit', id: 'siap diajukan' },
   readOnly: { en: 'Read only — only its author can edit a draft, and only while it is a draft.', id: 'Hanya baca — draf hanya bisa disunting penyusunnya, dan hanya selama masih draf.' },
   course: { en: 'Course', id: 'Kursus' },
@@ -448,9 +449,25 @@ export function renderAuthoring (lang: Lang): HTMLElement {
 
     const drawBar = (p: Problem[]) => {
       const status = h('p', { class: 'seat-apply-status', role: 'status' })
+      // B133 (builder 6 Okt malam): label "N masalah" berupa tombol peringatan yang membuka dialog — daftarnya tidak lagi melebar di dalam
+      // kontainer bilah. Dialog dibangun dari `p` saat diklik (draf tidak bisa disunting selagi dialog modal terbuka).
+      const openProblems = () => {
+        const dlg = h('dialog', { class: 'au-dlg', 'aria-labelledby': 'au-dlg-t' },
+          h('div', { class: 'au-dlg-f' },
+            h('h2', { id: 'au-dlg-t' }, `⚠ ${p.length} ${T('problems')}`),
+            h('p', { class: 'au-dlg-n' }, T('problemsNote')),
+            h('ul', { class: 'au-dlg-list' }, ...p.slice(0, 60).map((x) => h('li', null, h('code', null, x.where), h('span', null, x.what)))),
+            p.length > 60 ? h('p', { class: 'au-dlg-n' }, `+${p.length - 60} ${T('problems')}`) : null,
+            h('div', { class: 'au-dlg-act' }, h('button', { type: 'button', class: 'app-btn primary', 'data-close': '' }, T('close'))))) as HTMLDialogElement
+        const done = () => { dlg.close(); dlg.remove() }
+        dlg.querySelector('[data-close]')?.addEventListener('click', done)
+        dlg.addEventListener('close', () => dlg.remove())
+        dlg.addEventListener('click', (ev) => { if (ev.target === dlg) done() }) // klik di latar menutup
+        document.body.appendChild(dlg)
+        if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '')
+      }
       const list = p.length
-        ? h('details', { class: 'au-problems' }, h('summary', null, h('span', { class: 'au-pin' }, `${p.length} ${T('problems')}`)),
-          h('ul', null, ...p.slice(0, 30).map((x) => h('li', null, h('code', null, x.where), ` ${x.what}`))))
+        ? h('button', { type: 'button', class: 'au-warn', 'data-warn': '', 'aria-haspopup': 'dialog', onClick: openProblems }, h('span', { 'aria-hidden': 'true' }, '⚠'), `${p.length} ${T('problems')}`)
         : h('span', { class: 'au-ok' }, T('allClear'))
       const saveBtn = h('button', { type: 'button', class: 'app-btn primary' }, T('save')) as HTMLButtonElement
       const submitBtn = h('button', { type: 'button', class: 'app-btn' }, T('submit')) as HTMLButtonElement

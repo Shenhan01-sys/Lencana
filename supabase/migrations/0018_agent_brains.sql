@@ -1,6 +1,6 @@
 -- 0018_agent_brains.sql — B135 (D69): otak agen milik akun, semi-otomatis.
 --
--- Lencana-B135 status=TERBUKA 2026-10-03 — catatan otak agen (provider + model + hasil uji kalibrasi) bertanda tangan pemilik agen menurut ownerOf; tanpa API key — kunci hanya hidup di peramban pemilik. Buktikan ulang: npm run verify:brain (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+-- Lencana-B135 status=SELESAI 2026-10-03 — catatan otak agen (provider + model + hasil uji kalibrasi) bertanda tangan pemilik agen menurut ownerOf; tanpa API key — kunci hanya hidup di peramban pemilik. Buktikan ulang: npm run verify:brain (di signer/). JANGAN dibalik/diulang tanpa membuka kembali baris B135 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 --
 -- Pilihan builder 3 Okt: tujuh provider (OpenAI, Anthropic, Qwen, xKiro, Groq, GLM, DeepSeek), model dari endpoint provider,
 -- "Bertahap: semi-otomatis dulu". Satu baris per agen; pemilik boleh menggantinya kapan saja (pesan baru, nonce baru).

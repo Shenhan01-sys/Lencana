@@ -20,6 +20,7 @@ import { odometer, setOdometer } from '../lib/odometer'
 import { skeleton } from '../lib/loading'
 import { classLink, kindLabel, levelLabel } from '../lesson-views'
 import { openLogin } from './login'
+import { backTarget } from '../back-target'
 
 type Lang = 'en' | 'id'
 const COPY = {
@@ -150,10 +151,13 @@ export function renderCourseDetail (courseId: string): HTMLElement {
   const lang: Lang = getSavedLanguage() === 'en' ? 'en' : 'id'
   const T = (k: keyof typeof COPY): string => COPY[k][lang]
   const course = findCourse(courseId)
+  // B124: peserta yang masuk kembali ke dasbor (`#/app`), tamu ke katalog publik.
+  const back = backTarget(lang, T('back'))
+  const backLabel = back.href === '#/app' ? back.label : T('back')
   if (!course) {
     return h('div', { class: 'course-detail' },
       h('p', { class: 'cd-empty' }, T('notFound')),
-      h('a', { class: 'cd-link', href: '#catalog' }, `← ${T('back')}`))
+      h('a', { class: 'cd-link', href: back.href }, `← ${backLabel}`))
   }
   const manifest = manifestOf(course.id)
   const lessons = course.modules.flatMap((m) => m.lessons)
@@ -167,7 +171,7 @@ export function renderCourseDetail (courseId: string): HTMLElement {
     h('strong', null, `${formatLdc(price)} ${PAY_TOKEN_SYMBOL}`),
     h('small', null, T('coinNote')),
   )
-  // Lencana-B140 status=TERBUKA 2026-10-04 — kursus yang diarsipkan (D72) tidak menawarkan pendaftaran: pemberitahuan menggantikan tombol, peserta yang sudah terdaftar tetap mendapat tautan kelasnya; server juga menolak enroll baru (409). Buktikan ulang: cd signer && npm run verify:manage, lalu uji peramban T70. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+  // Lencana-B140 status=SELESAI 2026-10-04 — kursus yang diarsipkan (D72) tidak menawarkan pendaftaran: pemberitahuan menggantikan tombol, peserta yang sudah terdaftar tetap mendapat tautan kelasnya; server juga menolak enroll baru (409). Buktikan ulang: cd signer && npm run verify:manage, lalu uji peramban T70. JANGAN dibalik/diulang tanpa membuka kembali baris B140 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   const archived = ARCHIVED_COURSES.has(course.id)
   const archivedBox = (): HTMLElement => {
     const box = h('div', { class: 'cd-archived' }, h('p', { class: 'cd-pay-status' }, T('archived')))
@@ -192,7 +196,7 @@ export function renderCourseDetail (courseId: string): HTMLElement {
     }, price === null ? T('enroll') : `${T('enroll')} · ${formatLdc(price)} ${PAY_TOKEN_SYMBOL}`)
 
   return h('div', { class: 'course-detail' },
-    h('a', { class: 'cd-link', href: '#catalog' }, `← ${T('back')}`),
+    h('a', { class: 'cd-link', href: back.href }, `← ${backLabel}`),
     h('header', { class: 'cd-hero' },
       h('div', { class: 'cd-hero-text' },
         h('span', { class: 'cd-level' }, levelLabel(course.level, lang)),

@@ -9,7 +9,7 @@
  *
  * Tanpa `--apply` hanya rencana — tidak ada yang ditandatangani atau ditulis.
  */
-// Lencana-B133 status=TERBUKA 2026-10-03 — penerbitan draf kursus hanya oleh kunci penerbit: audit ulang dari isi tersimpan, rubricHash + manifestHash dihitung di sini dan ikut ditandatangani. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — penerbitan draf kursus hanya oleh kunci penerbit: audit ulang dari isi tersimpan, rubricHash + manifestHash dihitung di sini dan ikut ditandatangani. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { randomBytes } from 'node:crypto'
 import { privateKeyToAccount } from 'viem/accounts'
 import { loadFileEnvReport } from '../src/env.js'

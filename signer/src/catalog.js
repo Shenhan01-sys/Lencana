@@ -9,7 +9,7 @@
  * Penjaga: kursus database tidak pernah menimpa kursus berkas dengan id yang sama, dan `rubricHash` dihitung ulang dari isi
  * + kunci yang tersimpan; kalau beda dari yang ditandatangani kunci penerbit saat terbit, kursus itu TIDAK dimuat.
  */
-// Lencana-B133 status=TERBUKA 2026-10-03 — draf kursus yang terbit digabung ke katalog server (manifest berkunci, manifest publik, harga) dengan rubricHash dihitung ulang dan dicocokkan dengan yang ditandatangani kunci penerbit; kursus berkas tidak pernah ditimpa. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B133 status=SELESAI 2026-10-03 — draf kursus yang terbit digabung ke katalog server (manifest berkunci, manifest publik, harga) dengan rubricHash dihitung ulang dan dicocokkan dengan yang ditandatangani kunci penerbit; kursus berkas tidak pernah ditimpa. Buktikan ulang: npm run verify:authoring. JANGAN dibalik/diulang tanpa membuka kembali baris B133 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { MANIFESTS, PUBLIC_MANIFESTS, MANIFEST_SCHEMA, rubricHashOf } from '../../web/src/manifest-keys.ts'
 import { COURSE_PRICES } from '../../web/src/pricing.ts'
 import { keyedCourse } from '../../web/src/authoring.ts'

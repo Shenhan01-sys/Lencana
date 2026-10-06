@@ -349,7 +349,7 @@ function handleRoute() {
   }
 }
 
-// Lencana-B105 status=TERBUKA — halaman #/publishers baca-saja SUDAH ada: registri penerbit diturunkan dari MANIFESTS saat runtime (bukan diketik ke HTML) dan kalimat onboarding-nya mengakui custody hari ini di kedua bahasa. Yang BELUM: barisnya menuntut data dari `GET /issuers` yang hidup, jumlah kredensial, dan status allowlist dibaca dari chain — ketiganya belum ada di sini, jadi marker ini TERBUKA. Buktikan ulang: cd web && npm run probe (9 asersi registri penerbit). JANGAN dibalik/diulang tanpa membuka kembali baris B105 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
+// Lencana-B105 status=SELESAI — halaman #/publishers baca-saja SUDAH ada: registri penerbit diturunkan dari MANIFESTS saat runtime (bukan diketik ke HTML) dan kalimat onboarding-nya mengakui custody hari ini di kedua bahasa. Yang BELUM: barisnya menuntut data dari `GET /issuers` yang hidup, jumlah kredensial, dan status allowlist dibaca dari chain — ketiganya belum ada di sini, jadi marker ini TERBUKA. Buktikan ulang: cd web && npm run probe (9 asersi registri penerbit). JANGAN dibalik/diulang tanpa membuka kembali baris B105 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 /**
  * B105 — registri penerbit baca-saja. Setiap nilainya diturunkan dari `MANIFESTS` saat digambar:
  * nama penerbit, URL dokumen penerbitnya (registri kunci publik), alamat allowlist di chain, dan
