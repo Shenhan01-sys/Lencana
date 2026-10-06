@@ -27,7 +27,7 @@ Pertanyaan builder 5 Okt malam: bagaimana membuktikan bahwa itu NFT dan terikat 
 |---|---|---|
 | bukti artefak di UI | "NFT soulbound · N lapis" tanpa bukti | kontrak, token, pemilik = akun ✓, locked ✓, ERC-5192 ✓, tautan penjelajah, perintah `cast` (T91 langkah 1) |
 | "gagal baca" vs "belum dicetak" vs "bukan milikmu" | — | tiga keadaan berbeda (T91 langkah 3, 4; `probe`) |
-| pratinjau tautan LinkedIn | generik (SPA tanpa tag `og:*`) | per sertifikat: judul, deskripsi, gambar kartu (kode + fungsi diuji lokal; **LIVE belum**) |
+| pratinjau tautan LinkedIn | generik (SPA tanpa tag `og:*`) | per sertifikat: judul, deskripsi, gambar kartu (**LIVE 6 Okt:** `/s/<hash>` 200 + tag OG, `card.png` PNG 1200 × 630 di produksi) |
 | tambah ke profil LinkedIn | manual | URL terisi dari sertifikat, label "(demo)" untuk penerbit demo |
 | draf teks post | tidak ada | Indonesia/Inggris, tanpa frasa terlarang, NFT hanya bila ada |
 | `probe` | 212/0 | **232/0** (+20: 12 murni + bundel + fungsi lokal + 3 bukti NFT dari chain 97) |
@@ -35,11 +35,11 @@ Pertanyaan builder 5 Okt malam: bagaimana membuktikan bahwa itu NFT dan terikat 
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — belum didorong; AC-B168#17 OPEN. Tahap 3 dipecah dan dikerjakan sesudahnya (6 Okt, di kode): [[08-Results/B169 - Executive Summary]] (cetak artefak NFT dari app) dan [[08-Results/B170 - Executive Summary]] (bukti kepemilikan).
+**SELESAI · LIVE** — didorong `f312539..b77ba40` 6 Okt; AC-B168#17 PASS (pratinjau di LinkedIn sungguhan belum dilihat). Tahap 3 dipecah dan dikerjakan sesudahnya (6 Okt, di kode): [[08-Results/B169 - Executive Summary]] (cetak artefak NFT dari app) dan [[08-Results/B170 - Executive Summary]] (bukti kepemilikan).
 
 ## 4. Risiko tersisa
 
-- **Fungsi Vercel belum berjalan di runtime Vercel**: diuji lokal dengan bundel yang sama dengan yang dideploy. Yang baru terbukti saat LIVE: pemasangan `api/` lewat `installCommand`, pelacakan font, dan perutean `/s/*`. Bila perenderan gagal, kartu dialihkan ke `hero.jpg`; bila fungsi tidak terpasang, hanya `/s/*` yang 404 (app tidak terpengaruh).
+- ~~**Fungsi Vercel belum berjalan di runtime Vercel**~~ **Terbukti 6 Okt di produksi:** pemasangan `api/` lewat `installCommand`, pelacakan font (Outfit tampil di kartu), dan perutean `/s/*` jalan. Bila perenderan gagal, kartu dialihkan ke `hero.jpg`; bila fungsi tidak terpasang, hanya `/s/*` yang 404 (app tidak terpengaruh).
 - Pratinjau di LinkedIn sungguhan dan URL tambah-ke-profil terhadap akun LinkedIn belum diuji (format dari dokumentasi/sumber publik).
 - Halaman bagikan hanya ada untuk kredensial yang dokumennya tersaji di host tepi.
 - Penerbit B153 fiktif di jaringan uji: draf dan entri profil menyebutnya; pengguna yang menghapus catatan itu menanggung klaimnya sendiri.

@@ -32,8 +32,10 @@ dijawab di chat dan dikerjakan atas "gas": gambar pratinjau **per sertifikat**, 
 | AC-B168#14 | Esc menutup dialog bagikan lebih dulu, bukan penampil | **PASS** | T91 langkah 2 (Esc 1: dialog tertutup, hash tetap, fokus kembali ke tombol; Esc 2: kembali ke daftar) |
 | AC-B168#15 | kontrak, database, signer, `CERT_ADDRESS` tidak disentuh | **PASS** | `git status`: `web/`, `api/`, `vercel.json`, vault |
 | AC-B168#16 | gerbang | **PASS** (kecuali baterai) | `tsc` 0, `probe` **232 / 0** (212 + 20), `build` 0, `audit` bersih 12/0, `check:labels` 8/0; baterai di Summary |
-| AC-B168#17 | **LIVE:** `/s/<hash>` dan `/s/<hash>/card.png` di produksi menjawab 200 dengan tag OG dan PNG; perayap LinkedIn membaca pratinjau; tombol di app jalan | **OPEN** — menunggu dorongan atas kata builder | — |
+| AC-B168#17 | **LIVE:** `/s/<hash>` dan `/s/<hash>/card.png` di produksi menjawab 200 dengan tag OG dan PNG; perayap LinkedIn membaca pratinjau; tombol di app jalan | **PASS** — didorong `f312539..b77ba40` 6 Okt; produksi: `/s/<hash B153>` 200 HTML + tag OG (`og:title`, `og:description`, `og:image` = `…/s/<hash>/card.png`, `twitter:card=summary_large_image`, `noindex`); `card.png` 200 `image/png` 1200 × 630, 181 KB, font tampil; bundel produksi memuat panel dan kotak baru. **Belum:** pratinjau di LinkedIn sungguhan dan URL tambah-ke-profil terhadap akun LinkedIn | curl + Chrome 6 Okt |
 
 **Batas klaim:** "pratinjau LinkedIn" belum dilihat di LinkedIn sungguhan (hanya format tag dan gambar yang diperiksa terhadap spesifikasi publik); URL tambah-ke-profil mengikuti parameter yang didokumentasikan publik dan tidak
 diuji ke akun LinkedIn. Fungsi Vercel diuji lokal dengan bundel yang sama persis dengan yang dideploy, **bukan** di runtime Vercel — pemasangan dependensi `api/` lewat `installCommand` dan pelacakan berkas font oleh Vercel baru terbukti
 saat LIVE. Dokumen di host tepi menentukan apa yang tampil: kredensial yang belum diterbitkan ke tepi tidak punya halaman bagikan (404). Artefak NFT tidak otomatis ada untuk setiap kredensial (B169).
+
+**Pembaruan 6 Okt (LIVE):** fungsi Vercel terbukti berjalan di runtime Vercel — pemasangan dependensi `api/` lewat `installCommand`, pelacakan berkas font (Outfit tampil di kartu), dan perutean `/s/*`. Yang tetap terbuka: pratinjau di LinkedIn sungguhan.

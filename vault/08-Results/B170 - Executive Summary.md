@@ -35,7 +35,7 @@ Keputusan builder 6 Okt: tahap 3 **ya**.
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE.** AC-B170#14 (VALID dengan akun nyata di produksi) OPEN.
+**SELESAI · LIVE** — didorong `f312539..b77ba40` 6 Okt; di produksi pemeriksa menjawab NOT_OWNER terhadap chain 97 sungguhan, tautan `?own=` langsung memeriksa, nol galat (AC-B170#15). AC-B170#14 (VALID dengan akun nyata di produksi) OPEN.
 
 ## 4. Risiko tersisa
 

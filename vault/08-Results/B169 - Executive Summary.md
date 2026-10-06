@@ -36,7 +36,7 @@ Keputusan builder 6 Okt: tahap 3 **ya**. Sebelum ini artefak NFT soulbound hanya
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE.** Belum didorong; AC-B169#15 (cetak sungguhan di chain 97 lewat `verify:mint:live`) dan #16 (LIVE) OPEN.
+**SELESAI · signer LIVE** — didorong `f312539..b77ba40` 6 Okt (deploy-signer sukses); di produksi `/healthz` memuat kuota `mint` dan penolakan bertanda tangan terbukti tanpa gas (409 `already` untuk B153, 404, 403). AC-B169#15 (cetak sungguhan `verify:mint:live`) dan #17 (builder mencetak dari akunnya) OPEN.
 
 ## 4. Risiko tersisa
 
