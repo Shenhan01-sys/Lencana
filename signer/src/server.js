@@ -90,9 +90,10 @@ import {
   grantMember as dbGrantMember, revokeMember as dbRevokeMember, membershipsOf as dbMembershipsOf, knownAgentIds as dbKnownAgentIds,
   requestMembership as dbRequestMembership, latestRequest as dbLatestRequest, pendingRequests as dbPendingRequests, rejectRequest as dbRejectRequest,
   publisherRecords as dbPublisherRecords, membersOf as dbMembersOf,
+  adminGrantMember as dbAdminGrant, adminRevokeMember as dbAdminRevoke, adminRejectRequest as dbAdminReject,
 } from './db.js'
 // Lencana-B129 status=SELESAI 2026-10-02 — kursi Penerbit end-to-end: POST /me/member-request (pengajuan bertanda tangan akun), POST /publisher/overview (dasbor untuk penerbit + anggota aktif), POST /publisher/agents/hire dan POST /publisher/reviewers (aksi anggota dengan tanda tangannya sendiri bila hibahnya menyatakan hire=1 / appoint=1). Buktikan ulang: npm run verify:publisher. JANGAN dibalik/diulang tanpa membuka kembali baris B129 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
-import { overview as publisherOverview, readPlatformBps } from './publisher.js'
+import { overview as publisherOverview, readPlatformBps, cleanNote } from './publisher.js'
 // Lencana-B130 status=SELESAI 2026-10-02 — kursi Agent Owner end-to-end: POST /owner/overview (dasbor untuk alamat yang ownerOf-nya memegang agen yang dikenal platform) dan POST /owner/gas (platform mengisi gas pemilik agen yang ia cetak, hanya bila saldonya menipis). Buktikan ulang: npm run verify:owner. JANGAN dibalik/diulang tanpa membuka kembali baris B130 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { ownerOverview, nativeBalance, sendGasDrip, GAS_LOW, GAS_DRIP } from './owner.js'
 import { ownedAgentFacts } from './agents.js'
@@ -155,6 +156,9 @@ const LIMITS = limitsFromEnv()
 // B169: instance artefak yang dicetak lewat POST /me/mint. Di chain 97 bawaannya lapis D42/D43; di chain lain harus diisi eksplisit (tidak ada tebakan).
 const ARTIFACT_LAYER = process.env.ARTIFACT_LAYER_ADDRESS ?? (CHAIN_ID === 97 ? ARTIFACT_LAYER_97 : null)
 const CREDENTIAL_HOST = process.env.CREDENTIAL_HOST ?? CREDENTIAL_HOST_DEFAULT
+// Admin Lencana (6 Okt malam): alamat yang boleh memutuskan keanggotaan penerbit selain kunci penerbit (`POST /admin/*`). Kosong = tidak ada admin; daftar hanya dari lingkungan server.
+const ADMINS = new Set(String(process.env.ADMIN_ADDRESSES ?? '').split(',').map((a) => a.trim().toLowerCase()).filter((a) => /^0x[0-9a-f]{40}$/.test(a)))
+const isAdmin = (a) => typeof a === 'string' && ADMINS.has(a.toLowerCase())
 const DEPLOYER_ADDRESS = process.env.DEPLOYER_PRIVATE_KEY ? privateKeyToAccount(process.env.DEPLOYER_PRIVATE_KEY).address : null
 
 // Setoran tenggat (B90). Premi yang hangus mengalir ke PENERBIT, sama seperti bayaran verifikasi.
@@ -319,7 +323,7 @@ async function rolesOf (address) {
   // B131 (D66): `roles` tetap fakta mentah (B128); `account` = peran efektif — satu peran untuk akun nyata, semua kursi
   // menurut fakta hanya untuk akun dev. Halaman menampilkan kursi dari `account`, bukan dari `roles`.
   const account = await accountOf(addr, { issuer: PAY_PAYEE ?? null, ownsAgent: async () => agents.length > 0 })
-  return { address: addr, roles: { learner: true, publisher, agentOwner: agents.length ? { agents } : null }, account, publisherRequest: request, publisherIssuer }
+  return { address: addr, roles: { learner: true, publisher, agentOwner: agents.length ? { agents } : null }, account, publisherRequest: request, publisherIssuer, admin: isAdmin(addr) }
 }
 
 /** Peran efektif tanpa bacaan chain — untuk penjaga rute yang dipanggil sering (B131). */
@@ -620,7 +624,7 @@ const server = createServer(async (req, res) => {
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
-      || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/mint' || path === '/me/roles' || path === '/publisher/members'
+      || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/mint' || path === '/admin/overview' || path === '/admin/members' || path === '/me/roles' || path === '/publisher/members'
       || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
       || path === '/owner/overview' || path === '/owner/gas' || path === '/owner/agents/claim' || path === '/me/role'
       || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit'
@@ -765,6 +769,50 @@ const server = createServer(async (req, res) => {
         if (!out.ok) return send(res, out.kind === 'auth' ? 401 : 400, jsonBody({ error: out.why }))
         const { ok, kind, ...granted } = out
         return send(res, 200, jsonBody(granted))
+      }
+      if (path === '/admin/overview' || path === '/admin/members') {
+        // Admin Lencana (6 Okt malam, keputusan builder): keanggotaan penerbit diputuskan admin (alamat di ADMIN_ADDRESSES), bukan hanya kunci penerbit.
+        // Urutan: penerbit ada → bentuk alamat → admin? (403, sebelum tanda tangan dipakai) → bentuk pesan → tanda tangan + nonce → tindakan.
+        if (!PAY_PAYEE) return send(res, 503, jsonBody({ error: 'ISSUER_ADDRESS not set — there is no publisher to decide for' }))
+        if (typeof body.admin !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(body.admin)) return send(res, 400, jsonBody({ error: 'invalid admin address' }))
+        if (!isAdmin(body.admin)) return send(res, 403, jsonBody({ error: 'this account is not a Lencana admin' }))
+        const isOverview = path === '/admin/overview'
+        let want
+        if (isOverview) want = 'lencana-admin overview'
+        else {
+          if (!isAddress(String(body.member ?? ''))) return send(res, 400, jsonBody({ error: 'member must be a 20-byte address' }))
+          const member = String(body.member).toLowerCase()
+          if (body.action === 'grant') want = `lencana-admin grant member=${member} hire=${body.hire === true ? 1 : 0} appoint=${body.appoint === true ? 1 : 0} author=${body.author === true ? 1 : 0} publish=${body.publish === true ? 1 : 0}`
+          else if (body.action === 'reject' || body.action === 'revoke') want = `lencana-admin ${body.action} member=${member}`
+          else return send(res, 400, jsonBody({ error: 'action must be "grant", "reject" or "revoke"' }))
+        }
+        if (typeof body.message !== 'string' || !new RegExp(`^${want} nonce=[0-9a-f]{12,}$`).test(body.message)) {
+          return send(res, 400, jsonBody({ error: `message must be "${want} nonce=<hex>"` }))
+        }
+        const auth = await dbAuthorize({ learner: body.admin, message: body.message, signature: body.signature, scope: 'admin' })
+        if (!auth.ok) return send(res, 401, jsonBody({ error: auth.why }))
+        if (isOverview) {
+          const [requests, members] = await Promise.all([dbPendingRequests(PAY_PAYEE), dbMembersOf(PAY_PAYEE)])
+          return send(res, 200, jsonBody({
+            issuer: getAddress(PAY_PAYEE),
+            publisherName: MANIFESTS[0]?.issuer.name ?? null,
+            requests: requests.map((r) => ({ id: Number(r.id), address: r.applicant, note: cleanNote(r.note), at: r.created_at })),
+            members: members.map((m) => ({ member: m.member, canHire: m.can_hire === true, canAppoint: m.can_appoint === true, canAuthor: m.can_author === true, canPublish: m.can_publish === true, since: m.granted_at })),
+          }))
+        }
+        if (body.action === 'grant') {
+          // Satu akun satu peran (B131): hibah hanya untuk akun yang berperan Penerbit atau belum berperan (atau akun dev).
+          const refused = roleRefusal(await accountFull(body.member), 'publisher')
+          if (refused) return send(res, 409, jsonBody({ error: `membership not granted: ${refused}` }))
+        }
+        const out = body.action === 'grant'
+          ? await dbAdminGrant({ issuer: PAY_PAYEE, member: body.member, canHire: body.hire === true, canAppoint: body.appoint === true, canAuthor: body.author === true, canPublish: body.publish === true, message: body.message, signature: body.signature })
+          : body.action === 'reject'
+            ? await dbAdminReject({ issuer: PAY_PAYEE, applicant: body.member, message: body.message, signature: body.signature })
+            : await dbAdminRevoke({ issuer: PAY_PAYEE, member: body.member, message: body.message, signature: body.signature })
+        if (!out.ok) return send(res, 400, jsonBody({ error: out.why }))
+        const { ok, kind, ...done } = out
+        return send(res, 200, jsonBody(done))
       }
       if (path === '/me/member-request') {
         // B129: akun mengajukan diri dengan tanda tangannya sendiri; pengajuan tidak memberi wewenang apa pun.
@@ -1581,6 +1629,7 @@ const server = createServer(async (req, res) => {
           ? { address: DEPLOYER_ADDRESS, balanceWei: await nativeBalance(RPC_URL, DEPLOYER_ADDRESS).then(String).catch(() => null) }
           : null,
         limits: { faucet: LIMITS.faucet.snapshot(), gas: LIMITS.gas.snapshot(), mint: LIMITS.mint.snapshot() },
+        admins: ADMINS.size, // hanya jumlah; alamat admin tidak dilaporkan
       })
     }
     return send(res, 404, {

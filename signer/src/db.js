@@ -794,6 +794,11 @@ export async function grantMember ({ issuer, member, canHire, canAppoint, canAut
   }
   const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'member' })
   if (!auth.ok) return auth
+  return writeGrant({ issuer, member, canHire, canAppoint, canAuthor, canPublish, message, signature })
+}
+
+/** Tulis hibah keanggotaan + tutup pengajuan akun itu. Dipakai hibah kunci penerbit (`grantMember`) dan hibah admin Lencana (`adminGrantMember`); otorisasi dilakukan pemanggil. */
+async function writeGrant ({ issuer, member, canHire, canAppoint, canAuthor, canPublish, message, signature }) {
   await rest('publisher_members', {
     method: 'POST', prefer: 'resolution=merge-duplicates,return=minimal',
     body: [{
@@ -823,6 +828,10 @@ export async function revokeMember ({ issuer, member, message, signature }) {
   }
   const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'member' })
   if (!auth.ok) return auth
+  return writeRevoke({ issuer, member, message, signature })
+}
+
+async function writeRevoke ({ issuer, member, message, signature }) {
   const rows = await rest('publisher_members', {
     method: 'PATCH', prefer: 'return=representation',
     query: `?issuer=eq.${getAddress(issuer)}&member=eq.${getAddress(member)}&revoked_at=is.null`,
@@ -907,6 +916,10 @@ export async function rejectRequest ({ issuer, applicant, message, signature }) 
   }
   const auth = await authorizeSigner({ signer: issuer, message, signature, scope: 'member' })
   if (!auth.ok) return auth
+  return writeReject({ issuer, applicant, message, signature })
+}
+
+async function writeReject ({ issuer, applicant, message, signature }) {
   const rows = await rest('member_requests', {
     method: 'PATCH', prefer: 'return=representation',
     query: `?issuer=eq.${getAddress(issuer)}&applicant=eq.${getAddress(applicant)}&status=eq.pending`,
@@ -914,6 +927,28 @@ export async function rejectRequest ({ issuer, applicant, message, signature }) 
   })
   if (!rows?.length) return { ok: false, kind: 'input', why: 'no pending request from this account' }
   return { ok: true, request: projectRequest(rows[0]) }
+}
+
+/* ------------------------------------------------------------------ admin Lencana (6 Okt malam) */
+// Admin Lencana (catatan B129, 6 Okt malam, bukan penanda): keputusan keanggotaan penerbit bisa diambil admin Lencana (alamat di `ADMIN_ADDRESSES`) selain kunci penerbit: pesan `lencana-admin …` bertanda tangan admin; tulisan ke tabel sama dengan hibah kunci penerbit. Buktikan ulang: cd signer && npm run verify:publisher (grup B3)
+
+const isAddr = (a) => typeof a === 'string' && /^0x[0-9a-fA-F]{40}$/.test(a)
+
+/** Hibah atas keputusan admin. Otorisasi (alamat admin + tanda tangan + nonce) sudah dilakukan rute; di sini hanya bentuk dan tulisan. */
+export async function adminGrantMember ({ issuer, member, canHire, canAppoint, canAuthor = false, canPublish = false, message, signature }) {
+  if (!isAddr(member)) return { ok: false, kind: 'input', why: 'member must be a 20-byte address' }
+  if (member.toLowerCase() === String(issuer).toLowerCase()) return { ok: false, kind: 'input', why: 'the publisher address is the publisher itself — membership is for other accounts' }
+  return writeGrant({ issuer, member, canHire, canAppoint, canAuthor, canPublish, message, signature })
+}
+
+export async function adminRevokeMember ({ issuer, member, message, signature }) {
+  if (!isAddr(member)) return { ok: false, kind: 'input', why: 'member must be a 20-byte address' }
+  return writeRevoke({ issuer, member, message, signature })
+}
+
+export async function adminRejectRequest ({ issuer, applicant, message, signature }) {
+  if (!isAddr(applicant)) return { ok: false, kind: 'input', why: 'applicant must be a 20-byte address' }
+  return writeReject({ issuer, applicant, message, signature })
 }
 
 /* ------------------------------------------------------------------ peran akun (B131, D66) */

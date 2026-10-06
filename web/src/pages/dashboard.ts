@@ -18,6 +18,7 @@ import { chooseMyRole, forgetLearner, learnerAddress, readMyRecords, snapshot, t
 import { seats, mountSeatSwitch, applyBox, navIcon, guardSeat, homeOf } from './seats'
 import { renderPublisherApp } from './publisher'
 import { renderOwnerApp } from './owner'
+import { renderAdminApp } from './admin'
 import { formatLdc, PAY_TOKEN_ADDRESS, PAY_TOKEN_SYMBOL } from '../pricing'
 import { classLink, levelLabel } from '../lesson-views'
 import { ROLES } from './flow3d-data'
@@ -81,6 +82,9 @@ const COPY = {
   publisherRole: { en: 'Monitor your institution’s courses, learners and revenue; hire grading agents and appoint reviewer agents in its name. Requirement: apply here — the institution’s publisher key approves it with a signed message.', id: 'Pantau kursus, peserta, dan pendapatan lembagamu; sewa agen penilai dan tunjuk agen pengesah atas namanya. Syarat: ajukan dari sini — kunci penerbit lembaga yang menyetujuinya lewat pesan bertanda tangan.' },
   ownerRole: { en: 'Rent out your ERC-8004 grading agent to publishers. Requirement: the agent’s identity NFT is owned by this account’s wallet (ownerOf in the registry).', id: 'Sewakan agen penilai ERC-8004 milikmu ke penerbit. Syarat: NFT identitas agen itu dimiliki dompet akun ini (ownerOf di registry).' },
   seatsTitle: { en: 'Seats on this account', id: 'Kursi di akun ini' },
+  adminName: { en: 'Lencana admin', id: 'Admin Lencana' },
+  adminHeld: { en: 'This account is a Lencana admin: it decides publisher membership requests.', id: 'Akun ini admin Lencana: ia memutuskan pengajuan anggota penerbit.' },
+  openAdmin: { en: 'Open admin page', id: 'Buka halaman Admin' },
   unread: { en: 'Unread', id: 'Tak terbaca' },
   seatsSource: {
     en: 'The role is chosen once and signed by your account; the seat still needs its facts: the publisher key and the memberships it signed, and ownerOf in the ERC-8004 registry on chain 97.',
@@ -220,6 +224,8 @@ export function renderApp (routeHash: string): HTMLElement {
   if (/^#\/?app\/pub(\/|$)/.test(routeHash)) return renderPublisherApp(lang, routeHash)
   // B130: kursi Agent Owner juga punya cangkangnya sendiri (`#/app/owner`, `pages/owner.ts`).
   if (/^#\/?app\/owner(\/|$)/.test(routeHash)) return renderOwnerApp(lang, routeHash)
+  // Admin Lencana (6 Okt malam): persetujuan keanggotaan penerbit oleh admin sementara (`#/app/admin`, `pages/admin.ts`).
+  if (/^#\/?app\/admin(\/|$)/.test(routeHash)) return renderAdminApp(lang, routeHash)
   const section = sectionOf(routeHash)
 
   if (section === 'welcome') return renderWelcome(lang, addr)
@@ -373,7 +379,17 @@ function renderSeats (lang: Lang): HTMLElement {
   )
 }
 
+/** Baris kursi + (bila akun ini admin Lencana) baris Admin di depan. */
 function seatRows (lang: Lang, r: MyRoles, onChange: () => void): HTMLElement[] {
+  const base = seatRowsBase(lang, r, onChange)
+  if (!r.admin) return base
+  const T = (k: keyof typeof COPY) => COPY[k][lang]
+  return [h('div', { class: 'role-row held' },
+    h('div', { class: 'role-name' }, h('strong', null, T('adminName')), h('span', { class: 'role-state on' }, T('held'))),
+    h('div', { class: 'role-body' }, h('p', null, T('adminHeld')), h('a', { class: 'app-btn small primary', href: '#/app/admin' }, T('openAdmin')))), ...base]
+}
+
+function seatRowsBase (lang: Lang, r: MyRoles, onChange: () => void): HTMLElement[] {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const when = (iso: string) => new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium' })
   const row = (name: string, held: boolean, ...body: (HTMLElement | null)[]) => h('div', { class: `role-row${held ? ' held' : ''}` },

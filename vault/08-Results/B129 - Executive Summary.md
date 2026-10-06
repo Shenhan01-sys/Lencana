@@ -49,3 +49,7 @@ baru untuk akun builder — menunggu acc. Tabel bukti README belum memuat `verif
 ## Pembaruan 6 Okt malam (catatan builder)
 
 Alur esai dirombak (stepper empat tahap, kartu penuh lebar, warna solid); pengajuan anggota kini terlihat (daftar di kartu Tim; kunci penerbit bisa Setujui/Tolak dari halaman, yang lain melihat jumlah + perintah `grant:member`); item Akun di sidebar; `verify:publisher` 67/0; T95 langkah 12–17. **Siapa yang acc:** kunci penerbit untuk anggota penerbit; pengajuan Agent Owner tidak ada (peran dipilih sendiri). Belum: signer Railway dengan `team.requests` menunggu dorongan.
+
+## Pembaruan 6 Okt malam (D76: admin Lencana)
+
+Builder bertanya siapa yang menyetujui pengajuan penerbit dan memutuskan: **admin Lencana**, sementara akun builder shenhan604. Daftar admin = variabel `ADMIN_ADDRESSES` di server (Railway); rute `POST /admin/overview` dan `POST /admin/members` (grant / reject / revoke) dengan pesan bertanda tangan `lencana-admin …`; halaman `#/app/admin` dan baris "Admin Lencana" di Akun; kartu Tim di dasbor Penerbit kini hanya membaca. `verify:publisher` 83/0 dengan uji negatif (admin dipaksa benar → merah). Produksi: variabel sudah terpasang, kode menunggu dorongan builder (AC-B129#14). Batas: satu admin sementara, tanpa tabel admin atau pemulihan.

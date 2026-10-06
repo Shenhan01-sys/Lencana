@@ -541,7 +541,7 @@ export type AccountRole = {
   canChoose: boolean
   chosenAt: string | null
 }
-export type MyRoles = { address: string, publisher: PublisherSeat | null, agents: OwnedAgent[], request: MemberRequest | null, issuer: PublisherRef | null, account: AccountRole }
+export type MyRoles = { address: string, publisher: PublisherSeat | null, agents: OwnedAgent[], request: MemberRequest | null, issuer: PublisherRef | null, account: AccountRole, admin: boolean }
 
 /**
  * Kursi akun ini (B128, RF7 langkah C1), dibaca penerbit dari fakta: kunci penerbit, keanggotaan bertanda tangan kunci
@@ -563,6 +563,7 @@ export async function readMyRoles (): Promise<{ ok: boolean, why?: string, roles
       address: String(r.json.address ?? addr), publisher: roles.publisher ?? null, agents: roles.agentOwner?.agents ?? [],
       request: (r.json.publisherRequest as MemberRequest | null | undefined) ?? null, issuer: (r.json.publisherIssuer as PublisherRef | null | undefined) ?? null,
       account: (r.json.account as AccountRole | undefined) ?? { role: null, via: null, dev: false, canChoose: false, chosenAt: null },
+      admin: r.json.admin === true,
     },
   }
 }
@@ -698,24 +699,40 @@ export async function requestPublisherMembership (issuer: string, note?: string)
 }
 
 /**
- * B129 (6 Okt): keputusan atas pengajuan anggota, ditandatangani KUNCI PENERBIT — akun yang masuk harus kunci itu. Tanpa itu server menjawab 401
- * ("memberships are granted by the configured publisher"). Pesan sama dengan CLI `npm run grant:member`: menyebut anggota dan wewenangnya.
+ * Admin Lencana (6 Okt malam, keputusan builder): keanggotaan penerbit diputuskan admin — alamat di `ADMIN_ADDRESSES` di server — bukan kunci penerbit.
+ * Pesan `lencana-admin …` ditandatangani akun admin yang sedang masuk; server memeriksa alamat admin SEBELUM memakai tanda tangan.
  */
 export type MemberPerms = { hire: boolean, appoint: boolean, author: boolean, publish: boolean }
-export async function decideMemberRequest (applicant: string, decision: 'grant' | 'reject', perms?: MemberPerms): Promise<{ ok: boolean, why?: string }> {
+export type AdminOverview = {
+  issuer: string
+  publisherName: string | null
+  requests: Array<{ id: number, address: string, note: string | null, at: string }>
+  members: Array<{ member: string, canHire: boolean, canAppoint: boolean, canAuthor: boolean, canPublish: boolean, since: string | null }>
+}
+
+export async function readAdminOverview (): Promise<{ ok: boolean, status?: number, why?: string, data?: AdminOverview }> {
   const addr = learnerAddress()
   if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
-  const who = applicant.toLowerCase()
-  const p = perms ?? { hire: false, appoint: false, author: false, publish: false }
-  const message = decision === 'grant'
-    ? `lencana-member grant member=${who} hire=${p.hire ? 1 : 0} appoint=${p.appoint ? 1 : 0}${p.author ? ' author=1' : ''}${p.publish ? ' publish=1' : ''} nonce=${newNonce()}`
-    : `lencana-member reject member=${who} nonce=${newNonce()}`
+  const message = `lencana-admin overview nonce=${newNonce()}`
   const s = await signMessage(message)
   if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
-  const body = decision === 'grant'
-    ? { issuer: addr, member: applicant, canHire: p.hire, canAppoint: p.appoint, canAuthor: p.author, canPublish: p.publish, message, signature: s.signature }
-    : { issuer: addr, member: applicant, reject: true, message, signature: s.signature }
-  const r = await call('/publisher/members', { method: 'POST', body })
+  const r = await call('/admin/overview', { method: 'POST', body: { admin: addr, message, signature: s.signature } })
+  if (r.status !== 200 || !r.json) return { ok: false, status: r.status, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
+  return { ok: true, status: 200, data: r.json as unknown as AdminOverview }
+}
+
+export async function adminDecide (action: 'grant' | 'reject' | 'revoke', member: string, perms?: MemberPerms): Promise<{ ok: boolean, why?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const who = member.toLowerCase()
+  const p = perms ?? { hire: false, appoint: false, author: false, publish: false }
+  const message = action === 'grant'
+    ? `lencana-admin grant member=${who} hire=${p.hire ? 1 : 0} appoint=${p.appoint ? 1 : 0} author=${p.author ? 1 : 0} publish=${p.publish ? 1 : 0} nonce=${newNonce()}`
+    : `lencana-admin ${action} member=${who} nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const body = { admin: addr, action, member, ...(action === 'grant' ? { hire: p.hire, appoint: p.appoint, author: p.author, publish: p.publish } : {}), message, signature: s.signature }
+  const r = await call('/admin/members', { method: 'POST', body })
   if (r.status !== 200) return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}` }
   return { ok: true }
 }

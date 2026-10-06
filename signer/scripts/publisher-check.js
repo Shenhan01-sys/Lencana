@@ -50,12 +50,15 @@ const reviewerOwner = privateKeyToAccount(env.REVIEWER_OWNER_PRIVATE_KEY)
 const applicant = privateKeyToAccount(generatePrivateKey()) // mengajukan, ditolak, mengajukan lagi, lalu disetujui (hire+appoint)
 const appointOnly = privateKeyToAccount(generatePrivateKey()) // anggota tanpa wewenang sewa
 const stranger = privateKeyToAccount(generatePrivateKey()) // bukan anggota
-const testMembers = [applicant.address, appointOnly.address, graderOwner.address, reviewerOwner.address]
+const adminAcct = privateKeyToAccount(generatePrivateKey()) // admin Lencana (ADMIN_ADDRESSES di server uji)
+const adminApplicant = privateKeyToAccount(generatePrivateKey()) // diajukan lalu disetujui admin, lalu dicabut admin
+const adminRejected = privateKeyToAccount(generatePrivateKey()) // diajukan lalu ditolak admin
+const testMembers = [applicant.address, appointOnly.address, graderOwner.address, reviewerOwner.address, adminApplicant.address, adminRejected.address]
 
 const PORT = Number(env.PUBLISHER_PROBE_PORT ?? await freePort(8963))
 const BASE = `http://127.0.0.1:${PORT}`
 const child = spawn('npm', ['run', 'serve'], {
-  cwd: SIGNER, env: { ...env, PORT: String(PORT), HOST: '127.0.0.1', BASE_URL: BASE, LANCENA_ORIGIN: 'test', ENROLL_PAYWALL: 'off' }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
+  cwd: SIGNER, env: { ...env, PORT: String(PORT), HOST: '127.0.0.1', BASE_URL: BASE, LANCENA_ORIGIN: 'test', ENROLL_PAYWALL: 'off', ADMIN_ADDRESSES: adminAcct.address }, stdio: ['ignore', 'pipe', 'pipe'], shell: true,
 })
 let errBuf = ''
 child.stdout.on('data', () => {})
@@ -255,6 +258,54 @@ try {
   check('dasbor: pengesah tercatat atas nama anggota (byMember)', (ovR.agents?.reviewers ?? []).some((x) => x.courseId === COURSE && x.agentId === REVIEWER_ID && x.byMember), json(ovR.agents?.reviewers))
   const cRow = (ovR.courses ?? []).find((c) => c.id === COURSE) ?? {}
   check(`baris kursus ${COURSE}: penilai #${GRADER_ID} + pengesah agen #${REVIEWER_ID}`, cRow.graders?.includes(GRADER_ID) && cRow.reviewers?.includes(`agent:${REVIEWER_ID}`), json({ g: cRow.graders, r: cRow.reviewers }))
+
+  // ---------------------------------------------------------------- G. admin Lencana (6 Okt malam)
+  console.log('\n— G. admin Lencana: keanggotaan penerbit diputuskan alamat di ADMIN_ADDRESSES (selain kunci penerbit)')
+  {
+  const adminCall = async (path, account, message, extra = {}) => call(path, { admin: account.address, ...extra, ...await signed(account, message) })
+  const overviewMsg = () => `lencana-admin overview nonce=${nonce()}`
+  const notAdmin = await adminCall('/admin/overview', stranger, overviewMsg())
+  check('akun bukan admin → 403 sebelum tanda tangan dipakai', notAdmin.status === 403 && /not a Lencana admin/.test(notAdmin.body?.error ?? ''), notAdmin.text.slice(0, 160))
+  const wrongPurpose = await adminCall('/admin/overview', adminAcct, `lencana-roles nonce=${nonce()}`)
+  check('tanda tangan admin untuk keperluan lain (roles) → 400, tidak bisa dipakai di rute admin', wrongPurpose.status === 400, wrongPurpose.text.slice(0, 160))
+  const forgedAdmin = await call('/admin/overview', { admin: adminAcct.address, ...await signed(stranger, overviewMsg()) })
+  check('tanda tangan kunci lain atas alamat admin → 401', forgedAdmin.status === 401, forgedAdmin.text.slice(0, 160))
+  const ap1 = await apply(adminApplicant, 'lamaran uji admin\u0007 dengan   spasi')
+  const ap2 = await apply(adminRejected, null)
+  check('dua akun mengajukan menjadi anggota (201)', ap1.status === 201 && ap2.status === 201, `${ap1.status}/${ap2.status} ${ap1.text.slice(0, 100)}`)
+  const ovMsg = overviewMsg()
+  const ov = await adminCall('/admin/overview', adminAcct, ovMsg)
+  const reqs = ov.body?.requests ?? []
+  check('admin → 200: daftar pengajuan memuat kedua pemohon, penerbit = alamat kunci penerbit', ov.status === 200 && same(ov.body?.issuer, publisher.address) && reqs.some((r) => same(r.address, adminApplicant.address)) && reqs.some((r) => same(r.address, adminRejected.address)), ov.text.slice(0, 200))
+  const first = reqs.find((r) => same(r.address, adminApplicant.address))
+  check('catatan pemohon disaring (karakter kontrol dibuang, spasi dirapatkan) dan item hanya {id, address, note, at}', first?.note === 'lamaran uji admin dengan spasi' && JSON.stringify(Object.keys(first ?? {}).sort()) === JSON.stringify(['address', 'at', 'id', 'note']), JSON.stringify(first))
+  const replay = await adminCall('/admin/overview', adminAcct, ovMsg)
+  check('pesan + tanda tangan yang sama dipakai lagi → 401 (nonce sekali-pakai)', replay.status === 401, replay.text.slice(0, 120))
+  const rejectBody = { member: adminRejected.address, action: 'reject' }
+  const strangerDecides = await adminCall('/admin/members', stranger, `lencana-admin reject member=${adminRejected.address.toLowerCase()} nonce=${nonce()}`, rejectBody)
+  check('akun bukan admin menolak pengajuan → 403 (kunci penerbit bukan satu-satunya jalan, tetapi bukan sembarang akun)', strangerDecides.status === 403, strangerDecides.text.slice(0, 140))
+  const rej = await adminCall('/admin/members', adminAcct, `lencana-admin reject member=${adminRejected.address.toLowerCase()} nonce=${nonce()}`, rejectBody)
+  const rejRoles = await roles(adminRejected)
+  check('admin menolak → 200 dan status pengajuan akun itu "rejected"', rej.status === 200 && rejRoles.body?.publisherRequest?.status === 'rejected', `${rej.status} ${rej.text.slice(0, 100)} / ${JSON.stringify(rejRoles.body?.publisherRequest)}`)
+  const mismatch = await adminCall('/admin/members', adminAcct, `lencana-admin grant member=${adminApplicant.address.toLowerCase()} hire=0 appoint=0 author=0 publish=0 nonce=${nonce()}`, { member: adminApplicant.address, action: 'grant', hire: true })
+  check('pesan hibah tidak sama dengan wewenang yang dikirim (hire=1 dikirim, pesan hire=0) → 400', mismatch.status === 400, mismatch.text.slice(0, 160))
+  const grant = await adminCall('/admin/members', adminAcct, `lencana-admin grant member=${adminApplicant.address.toLowerCase()} hire=1 appoint=0 author=0 publish=0 nonce=${nonce()}`, { member: adminApplicant.address, action: 'grant', hire: true })
+  const rolesAfter = await roles(adminApplicant)
+  check('admin menyetujui → 200; akun itu kini anggota penerbit dengan wewenang sewa saja, pengajuan tertutup', grant.status === 200 && rolesAfter.body?.roles?.publisher?.via === 'member' && rolesAfter.body?.roles?.publisher?.canHire === true && rolesAfter.body?.roles?.publisher?.canAppoint === false && rolesAfter.body?.publisherRequest === null,
+    `${grant.status} ${grant.text.slice(0, 100)} / ${JSON.stringify(rolesAfter.body?.roles?.publisher)}`)
+  const members = await adminCall('/admin/overview', adminAcct, overviewMsg())
+  check('daftar anggota di overview admin memuat anggota baru; pengajuan tidak lagi menunggu', (members.body?.members ?? []).some((m) => same(m.member, adminApplicant.address) && m.canHire === true) && !(members.body?.requests ?? []).some((r) => same(r.address, adminApplicant.address)), members.text.slice(0, 200))
+  const revoke = await adminCall('/admin/members', adminAcct, `lencana-admin revoke member=${adminApplicant.address.toLowerCase()} nonce=${nonce()}`, { member: adminApplicant.address, action: 'revoke' })
+  const rolesRevoked = await roles(adminApplicant)
+  check('admin mencabut → 200; akun itu bukan anggota lagi', revoke.status === 200 && !rolesRevoked.body?.roles?.publisher, `${revoke.status} ${revoke.text.slice(0, 100)} / ${JSON.stringify(rolesRevoked.body?.roles?.publisher)}`)
+  const badAction = await adminCall('/admin/members', adminAcct, `lencana-admin delete member=${adminApplicant.address.toLowerCase()} nonce=${nonce()}`, { member: adminApplicant.address, action: 'delete' })
+  check('tindakan di luar grant/reject/revoke → 400', badAction.status === 400, badAction.text.slice(0, 120))
+  const adminRoles = await roles(adminAcct)
+  const strangerRoles = await roles(stranger)
+  check('/me/roles: admin ditandai untuk alamat admin, tidak untuk akun lain', adminRoles.body?.admin === true && strangerRoles.body?.admin === false, `${adminRoles.body?.admin} / ${strangerRoles.body?.admin}`)
+  const hz = await call('/healthz')
+  check('/healthz melaporkan jumlah admin (1), bukan alamatnya', hz.body?.admins === 1 && !hz.text.toLowerCase().includes(adminAcct.address.toLowerCase().slice(2)), `${hz.body?.admins}`)
+  }
 } catch (e) {
   check('lapis HTTP selesai tanpa pengecualian', false, String(e?.stack ?? e).slice(0, 300))
 } finally {

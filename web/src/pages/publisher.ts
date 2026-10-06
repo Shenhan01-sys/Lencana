@@ -22,8 +22,8 @@ import { h } from '../lib/ui'
 import { findCourse } from '../courses/index'
 import type { Course } from '../content'
 import {
-  readPublisherOverview, readAgentRates, memberHireAgent, memberAppointReviewer, learnerAddress, decideMemberRequest,
-  type PublisherOverview, type AgentRates, type MemberPerms,
+  readPublisherOverview, readAgentRates, memberHireAgent, memberAppointReviewer, learnerAddress,
+  type PublisherOverview, type AgentRates,
 } from '../learning'
 import { formatLdc, PAY_TOKEN_SYMBOL } from '../pricing'
 import { levelLabel } from '../lesson-views'
@@ -95,6 +95,8 @@ const COPY = {
   // B129 (6 Okt): pengajuan anggota terlihat dan bisa diputuskan dari dasbor oleh pemegang kunci penerbit.
   reqTitle: { en: 'Membership requests', id: 'Pengajuan anggota' },
   reqNone: { en: 'No requests waiting.', id: 'Tidak ada pengajuan yang menunggu.' },
+  adminDecides: { en: 'A Lencana admin decides these requests (Admin page). Applying gives no rights by itself.', id: 'Pengajuan diputuskan oleh admin Lencana (halaman Admin). Mengajukan saja tidak memberi wewenang.' },
+  teamNoteAdmin: { en: 'Members are approved by a Lencana admin; issuing and revoking credentials stays with the publisher key.', id: 'Anggota disetujui admin Lencana; menerbitkan dan mencabut kredensial tetap pada kunci penerbit.' },
   reqHow: {
     en: 'Accounts apply from Account → Your seats → Publisher. A request gives no rights; only the publisher key can approve it.',
     id: 'Akun mengajukan dari Akun → Kursimu → Penerbit. Pengajuan tidak memberi wewenang; hanya kunci penerbit yang bisa menyetujuinya.',
@@ -363,7 +365,7 @@ function renderSection (lang: Lang, section: PubSection, o: O, reload: () => voi
     case 'essays': return renderEssays(lang, o)
     case 'agents': return renderAgents(lang, o, reload)
     case 'revenue': return renderRevenue(lang, o)
-    default: return renderOverview(lang, o, reload)
+    default: return renderOverview(lang, o)
   }
 }
 
@@ -443,7 +445,7 @@ function agentLink (agentId: string): HTMLElement {
 }
 
 /* ------------------------------------------------------------------ Ringkasan */
-function renderOverview (lang: Lang, o: O, reload: () => void): HTMLElement {
+function renderOverview (lang: Lang, o: O): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const t = o.totals
   const wrap = h('div', { class: 'app-stack ov pb' })
@@ -454,7 +456,7 @@ function renderOverview (lang: Lang, o: O, reload: () => void): HTMLElement {
     tile(String(t.essaysAwaitingReview), T('tAwaiting'), 3, { href: '#/app/pub/essays' })))
   // B129 (6 Okt): alur esai satu kartu penuh di bawah ubin; uang dan tim (dengan pengajuan anggota) berdampingan.
   wrap.appendChild(pipelineCard(lang, o, 1))
-  wrap.appendChild(h('div', { class: 'ov-grid pb-duo' }, moneyCard(lang, o, 2), teamCard(lang, o, 3, reload)))
+  wrap.appendChild(h('div', { class: 'ov-grid pb-duo' }, moneyCard(lang, o, 2), teamCard(lang, o, 3)))
 
   // Per kursus: satu baris tiap kursus — uang, peserta, esai yang menunggu, dan agennya.
   const rows = o.courses.map((c) => {
@@ -479,43 +481,16 @@ function renderOverview (lang: Lang, o: O, reload: () => void): HTMLElement {
 }
 
 /* ------------------------------------------------------------------ Tim + pengajuan anggota */
-// Catatan B129 (6 Okt malam, bukan penanda): pengajuan anggota terlihat di dasbor Penerbit: daftar yang menunggu, tombol Setujui/Tolak untuk pemegang kunci penerbit (tanda tangan kuncinya = keputusan), keterangan + perintah CLI untuk yang lain. Buktikan ulang: cd signer && npm run verify:publisher dan tangkapan layar T95.
-function teamCard (lang: Lang, o: O, i: number, reload: () => void): HTMLElement {
+// Catatan B129 (6 Okt malam, bukan penanda): pengajuan anggota terlihat di dasbor Penerbit sebagai jumlah; keputusannya di tangan admin Lencana (halaman Admin `#/app/admin`), bukan tombol di sini.
+function teamCard (lang: Lang, o: O, i: number): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const me = (learnerAddress() ?? '').toLowerCase()
-  const isKey = o.seat.via === 'issuer'
-  const when = (iso: string) => new Date(iso).toLocaleDateString(lang === 'en' ? 'en-GB' : 'id-ID', { dateStyle: 'medium' })
   const team = h('section', { class: 'app-card lc-enter pb-team', style: enter(i) }, h('h2', null, T('team')))
 
-  // ---- pengajuan yang menunggu
-  const reqs = o.team.requests ?? []
+  // ---- pengajuan yang menunggu: jumlah + siapa yang memutuskan
   const box = h('div', { class: 'pb-reqs' }, h('h3', null, `${T('reqTitle')} `, h('span', { class: `pb-count${o.team.pendingRequests ? ' hot' : ''}` }, String(o.team.pendingRequests))))
-  if (!o.team.pendingRequests) box.appendChild(h('p', { class: 'pb-reqs-none' }, T('reqNone')))
-  else if (isKey && reqs.length) {
-    box.appendChild(h('ul', { class: 'pb-reqlist' }, ...reqs.map((r) => {
-      const status = h('span', { class: 'seat-apply-status', role: 'status' })
-      const approve = h('button', { type: 'button', class: 'app-btn small primary', 'data-approve': '' }, T('approve')) as HTMLButtonElement
-      const reject = h('button', { type: 'button', class: 'app-btn small', 'data-reject': '' }, T('reject')) as HTMLButtonElement
-      approve.addEventListener('click', () => openApprove(lang, r.address, (msg) => { status.className = 'seat-apply-status ok'; status.textContent = msg; setTimeout(reload, 900) }))
-      reject.addEventListener('click', () => {
-        approve.disabled = true; reject.disabled = true
-        status.className = 'seat-apply-status'; status.textContent = T('signing')
-        void decideMemberRequest(r.address, 'reject').then((out) => {
-          if (!out.ok) { approve.disabled = false; reject.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = out.why ?? ''; return }
-          status.className = 'seat-apply-status ok'; status.textContent = T('decidedReject')
-          setTimeout(reload, 900)
-        })
-      })
-      return h('li', { class: 'pb-req' },
-        h('div', { class: 'pb-req-who' }, h('code', { title: r.address }, short(r.address)), h('small', null, `${T('reqFrom')} ${when(r.at)}`)),
-        r.note ? h('p', { class: 'pb-req-note' }, r.note) : null,
-        h('div', { class: 'pb-req-act' }, approve, reject, status))
-    })))
-    box.appendChild(h('p', { class: 'pb-reqs-hint' }, T('reqKeyHint')))
-  } else {
-    box.appendChild(h('p', { class: 'pb-reqs-hint' }, `${o.team.pendingRequests} ${T('pending')}. ${T('reqMemberHint')}`))
-  }
-  box.appendChild(h('p', { class: 'pb-reqs-hint' }, T('reqHow')))
+  box.appendChild(h('p', { class: o.team.pendingRequests ? 'pb-reqs-hint' : 'pb-reqs-none' }, o.team.pendingRequests ? `${o.team.pendingRequests} ${T('pending')}.` : T('reqNone')))
+  box.appendChild(h('p', { class: 'pb-reqs-hint' }, T('adminDecides')))
   team.appendChild(box)
 
   // ---- anggota
@@ -527,46 +502,8 @@ function teamCard (lang: Lang, o: O, i: number, reload: () => void): HTMLElement
       h('span', { class: `pb-right ${m.canHire ? 'on' : 'off'}` }, T('canHire')),
       h('span', { class: `pb-right ${m.canAppoint ? 'on' : 'off'}` }, T('canAppoint'))))))
   }
-  team.appendChild(h('p', { class: 'app-muted ov-small' }, T('teamNote')))
+  team.appendChild(h('p', { class: 'app-muted ov-small' }, T('teamNoteAdmin')))
   return team
-}
-
-/** Dialog "Setujui keanggotaan" (B129): memilih wewenang lalu menandatangani hibah dengan kunci penerbit. */
-function openApprove (lang: Lang, applicant: string, done: (msg: string) => void): void {
-  const T = (k: keyof typeof COPY) => COPY[k][lang]
-  const box = (key: keyof MemberPerms, label: string, on: boolean) => {
-    const c = h('input', { type: 'checkbox', checked: on, 'data-perm': key }) as HTMLInputElement
-    return { c, el: h('label', { class: 'pb-perm' }, c, h('span', null, label)) }
-  }
-  const hire = box('hire', T('canHire'), true)
-  const appoint = box('appoint', T('canAppoint'), true)
-  const author = box('author', T('canAuthor'), false)
-  const publish = box('publish', T('permPublish'), false)
-  const status = h('p', { class: 'seat-apply-status', role: 'status' })
-  const go = h('button', { type: 'button', class: 'app-btn primary', 'data-sign': '' }, T('signApprove')) as HTMLButtonElement
-  const cancel = h('button', { type: 'button', class: 'app-btn' }, T('cancel')) as HTMLButtonElement
-  const dlg = h('dialog', { class: 'pb-dlg', 'aria-labelledby': 'pb-dlg-t' },
-    h('div', { class: 'pb-dlg-f' },
-      h('h2', { id: 'pb-dlg-t' }, T('approveTitle')),
-      h('p', { class: 'pb-dlg-who' }, h('code', null, applicant)),
-      h('p', { class: 'pb-dlg-n' }, T('approveBody')),
-      h('div', { class: 'pb-perms' }, hire.el, appoint.el, author.el, publish.el),
-      status,
-      h('div', { class: 'pb-dlg-act' }, cancel, go))) as HTMLDialogElement
-  const close = () => { dlg.close(); dlg.remove() }
-  cancel.addEventListener('click', close)
-  dlg.addEventListener('close', () => dlg.remove())
-  go.addEventListener('click', () => {
-    go.disabled = true; cancel.disabled = true
-    status.className = 'seat-apply-status'; status.textContent = T('signing')
-    void decideMemberRequest(applicant, 'grant', { hire: hire.c.checked, appoint: appoint.c.checked, author: author.c.checked, publish: publish.c.checked }).then((out) => {
-      if (!out.ok) { go.disabled = false; cancel.disabled = false; status.className = 'seat-apply-status bad'; status.textContent = out.why ?? ''; return }
-      close()
-      done(T('decidedGrant'))
-    })
-  })
-  document.body.appendChild(dlg)
-  if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '')
 }
 
 /* ------------------------------------------------------------------ Kursus */

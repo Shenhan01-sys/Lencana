@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-06
 command: server dev Vite sementara di 127.0.0.1:5174 (dimatikan sesudah uji); Chrome 154 tanpa kepala lewat `puppeteer-core`; identitas uji lewat server kunci sekali-pakai 127.0.0.1:8999 (kunci tidak pernah dicetak): R_owner (pemilik agen #2548) untuk dasbor Agent Owner, kunci penerbit untuk editor kursus; signer produksi di Railway (data nyata, hanya dibaca kecuali yang disebut)
 measured: 2026-10-06
-result: CATATAN BUILDER 6 OKT MALAM TERUJI — tombol back detail kursus dan kelas → #/app bagi yang masuk (tamu tetap #catalog); dasbor Agent Owner: 4 tab (satu panel tampil, panah kiri/kanan bekerja), halaman Akun (#/app/owner/account), kartu solid tanpa gradient (rgb 24,26,32), tombol nonaktif solid; editor kursus: "⚠ 8 masalah" tombol solid → dialog modal (tinggi bilah 65 → 65, tutup lewat Esc dan tombol); nol galat konsol
+result: CATATAN BUILDER 6 OKT MALAM TERUJI — tombol back detail kursus dan kelas → #/app bagi yang masuk (tamu tetap #catalog); dasbor Agent Owner: 4 tab (satu panel tampil, panah kiri/kanan bekerja), halaman Akun (#/app/owner/account), kartu solid tanpa gradient (rgb 24,26,32), tombol nonaktif solid; editor kursus: "⚠ 8 masalah" tombol solid → dialog modal (tinggi bilah 65 → 65, tutup lewat Esc dan tombol); nol galat konsol; admin Lencana (D76) `#/app/admin`: setujui/tolak/cabut bertanda tangan, bukan-admin 403, `verify:publisher` 83/0 + uji negatif
 ---
 
 # T95 - Uji peramban perbaikan catatan builder 6 Okt malam (B124, B129, B130, B133)
@@ -59,3 +59,25 @@ Identitas: kunci penerbit lewat server kunci sekali-pakai (port 8998); overview 
 Tangkapan layar (alat sesi): `pub-new`, `pub-req-duo`, `pub-req-dialog`, `pub-flow-hp`, `pub-team-hp`, `pub-akun`.
 
 **Batas:** daftar pengajuan dan tombol Setujui/Tolak baru berfungsi di produksi sesudah signer baru dideploy (dorongan); persetujuan dengan kunci penerbit sungguhan belum diuji di produksi; pengajuan uji dibuat dengan kunci acak dan baris `origin=test` dibersihkan (`cleanup` sisa 0 sesudahnya).
+
+## Bagian B129 (pembaruan) — admin Lencana `#/app/admin` (D76)
+
+*Langkah 13–15 dan 17 di atas memotret tombol Setujui/Tolak versi kunci penerbit; tombol itu dicabut dari dasbor Penerbit oleh D76 dan digantikan langkah 18–26.*
+
+Builder: keputusan atas pengajuan dipindah ke admin Lencana, akun sementara shenhan604. Uji lokal: signer lokal `127.0.0.1:8787` dengan `ADMIN_ADDRESSES` = dompet uji, server kunci sekali-pakai untuk identitas admin dan akun bukan-admin, Chrome 154 headless via `puppeteer-core`. Data uji `origin=test`, dibersihkan sesudahnya (`cleanup` sisa 0).
+
+| # | langkah | hasil |
+|---|---|---|
+| 18 | akun admin membuka `#/app/admin` | bilah admin (alamat), kartu "Pengajuan menunggu" dengan jumlah, dua pemohon uji (alamat, catatan, tanggal), kartu "Anggota penerbit" |
+| 19 | Setujui pemohon pertama | dialog izin (hire / appoint / author / publish); hanya `hire` dicentang → pesan `lencana-admin grant member=… hire=1 appoint=0 author=0 publish=0 nonce=…` → 200; pemohon pindah ke daftar anggota dengan wewenang sewa saja |
+| 20 | Tolak pemohon kedua | `lencana-admin reject member=… nonce=…` → 200; pengajuan hilang dari antrean |
+| 21 | Cabut anggota baru | `lencana-admin revoke member=… nonce=…` → 200; akun itu bukan anggota lagi |
+| 22 | akun bukan admin membuka `#/app/admin` | pesan ditolak (kode 403 dari server), tanpa daftar; tidak ada tombol aksi |
+| 23 | halaman Akun akun admin | baris "Admin Lencana" + tombol "Buka halaman Admin" di depan kursi lain; akun bukan admin tidak punya baris itu |
+| 24 | dasbor Penerbit `#/app/pub`, kartu Tim | jumlah pengajuan + "diputuskan admin Lencana" + daftar anggota; **tidak ada** tombol Setujui/Tolak |
+| 25 | galat | `pageerror`: **0**; ponsel 390 px tanpa gulir samping |
+| 26 | harness `verify:publisher` | **83 / 0** (67 + grup G admin 16); **uji negatif:** `isAdmin` dipaksa selalu benar → 2 cek merah ("akun bukan admin → 403 sebelum tanda tangan dipakai", "akun bukan admin menolak pengajuan → 403"), dikembalikan → hijau; `cleanup` sisa `origin=test` 0 |
+
+Konfigurasi produksi: variabel Railway `ADMIN_ADDRESSES` diisi dompet tertanam akun builder (alamat bukan rahasia; dibaca lewat Privy API sekali, skrip dihapus). Dipasang dengan `--skip-deploys`: kode admin belum ada di signer yang berjalan, jadi variabel baru dipakai pada deploy dorongan berikutnya.
+
+**Batas:** persetujuan admin sungguhan di produksi belum diuji (menunggu dorongan; AC-B129#14 TERBUKA); uji lokal memakai dompet uji, bukan sesi Privy sungguhan akun builder; satu admin sementara tanpa pemulihan selain mengganti variabel.
