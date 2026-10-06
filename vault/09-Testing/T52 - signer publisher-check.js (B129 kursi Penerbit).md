@@ -1,10 +1,10 @@
 ---
 tags: [testing, "T52"]
 status: active
-updated: 2026-10-06
+updated: 2026-10-07
 command: npm run verify:publisher
 measured: 2026-10-03
-result: KURSI PENERBIT HIJAU — 89 pemeriksaan / 0 gagal (6 Okt malam: 67 sesudah Alur esai, +16 grup G admin Lencana D76, +6 admin-saja D77; uji negatif tiap grup merah lalu hijau; 3 Okt, sesudah B131 +4 pemeriksaan; 2 Okt, B129 53 / 0 — run pertama 51 / 0 hijau, +2 sesudah aturan "menunggu pengesahan" disamakan dengan view gerbang 0009)
+result: KURSI PENERBIT HIJAU — 97 pemeriksaan / 0 gagal (7 Okt, B172: +8 cek ringkasan/jejak/kesehatan di `/admin/overview`, uji negatif admin dipaksa benar → merah; 89 pada 6 Okt malam: 67 sesudah Alur esai, +16 grup G admin Lencana D76, +6 admin-saja D77; uji negatif tiap grup merah lalu hijau; 3 Okt, sesudah B131 +4 pemeriksaan; 2 Okt, B129 53 / 0 — run pertama 51 / 0 hijau, +2 sesudah aturan "menunggu pengesahan" disamakan dengan view gerbang 0009)
 ---
 
 > **5 Okt, koreksi prasyarat (Kelas Uji dipakai alur nyata):** baterai penuh 5 Okt siang menjadikan `verify:publisher` **merah 57 / 1** — satu-satunya
@@ -49,6 +49,7 @@ ulang sisanya.
 KURSI PENERBIT HIJAU — 51 pemeriksaan, 0 gagal          (B129, run pertama, 2 Okt)
 KURSI PENERBIT HIJAU — 53 pemeriksaan, 0 gagal          (sesudah aturan "menunggu pengesahan" = view gerbang 0009)
 KURSI PENERBIT HIJAU — 89 pemeriksaan, 0 gagal          (6 Okt malam: grup G admin Lencana D76 + admin-saja D77; run penuh ke-9)
+KURSI PENERBIT HIJAU — 97 pemeriksaan, 0 gagal          (7 Okt: +8 cek B172; run penuh ke-11)
 ```
 
 **Kenapa ada dua pemeriksaan tambahan.** Uji peramban [[09-Testing/T53 - Uji peramban dasbor penerbit (B129)]] memperlihatkan

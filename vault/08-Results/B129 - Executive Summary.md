@@ -1,7 +1,7 @@
 ---
 tags: [results, executive-summary, B129]
 status: active
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 # B129 - Executive Summary — kursi Penerbit end-to-end (RF7 langkah C2)
@@ -52,4 +52,4 @@ Alur esai dirombak (stepper empat tahap, kartu penuh lebar, warna solid); pengaj
 
 ## Pembaruan 6 Okt malam (D76: admin Lencana)
 
-Builder bertanya siapa yang menyetujui pengajuan penerbit dan memutuskan: **admin Lencana**, sementara akun builder shenhan604. Daftar admin = variabel `ADMIN_ADDRESSES` di server (Railway); rute `POST /admin/overview` dan `POST /admin/members` (grant / reject / revoke) dengan pesan bertanda tangan `lencana-admin …`; halaman `#/app/admin` dan baris "Admin Lencana" di Akun; kartu Tim di dasbor Penerbit kini hanya membaca. `verify:publisher` 89/0 dengan uji negatif (admin dipaksa benar → merah). Produksi: variabel terpasang dan kode LIVE sejak dorongan `483f083` (`/healthz` admins 1); tersisa login sungguhan builder (AC-B129#14). Batas: satu admin sementara, tanpa tabel admin atau pemulihan.
+Builder bertanya siapa yang menyetujui pengajuan penerbit dan memutuskan: **admin Lencana**, sementara akun builder shenhan604. Daftar admin = variabel `ADMIN_ADDRESSES` di server (Railway); rute `POST /admin/overview` dan `POST /admin/members` (grant / reject / revoke) dengan pesan bertanda tangan `lencana-admin …`; halaman `#/app/admin` dan baris "Admin Lencana" di Akun; kartu Tim di dasbor Penerbit kini hanya membaca. `verify:publisher` 97/0 (89 sebelum B172) dengan uji negatif (admin dipaksa benar → merah). Produksi: variabel terpasang dan kode LIVE sejak dorongan `483f083` (`/healthz` admins 1); tersisa login sungguhan builder (AC-B129#14). Batas: satu admin sementara, tanpa tabel admin atau pemulihan.
