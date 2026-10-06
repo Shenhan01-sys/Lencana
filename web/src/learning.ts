@@ -43,6 +43,7 @@
 // Lencana-B58 status=SELESAI 2026-09-29 — Ini yang menentukan urutan kerja front-end. Kalau FE dibangun lebih dulu, FE menyimpan state yang tidak dimiliki core — dan di produk yang menjual "bukti tidak bisa dik Buktikan ulang: npm run verify:attempts:live. JANGAN dibalik/diulang tanpa membuka kembali baris B58 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { createPublicClient, http, stringToHex, type Hex } from 'viem'
 import { defaultEndpoint } from './verify'
+import { parseStatement } from './ownership'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import type { PrivyIdentity } from './privy'
 import type { Course, Problem, QuizKeys } from './content'
@@ -1328,6 +1329,32 @@ export async function claimTestCoins (): Promise<{ ok: boolean, why?: string, tx
   const r = await call('/faucet', { method: 'POST', body: { learner: addr, message, signature: s.signature }, timeoutMs: 120_000 })
   if (r.status === 200) return { ok: true, tx: String(r.json?.tx ?? ''), balance: BigInt(String(r.json?.balance ?? '0')) }
   return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}`, lastAt: r.json?.lastAt as string | undefined }
+}
+
+// Lencana-B169 status=SELESAI 2026-10-06 — peserta meminta artefak NFT soulbound dari panel bukti: satu tanda tangan, platform mencetak ke dompet akunnya dan membayar gas jaringan uji. Buktikan ulang: cd signer && npm run verify:mint
+export type MintArtifactResult = { ok: true, cert: string, tokenId: string, tx: string } | { ok: false, why: string, kind?: string, tokenId?: string }
+
+/** Minta penerbit mencetak artefak NFT soulbound untuk SATU kredensial milik akun ini (B169). Kontrak yang memutuskan boleh/tidaknya; penolakan membawa `kind`. */
+export async function requestArtifactMint (hash: string): Promise<MintArtifactResult> {
+  const addr = learnerAddress()
+  if (!addr) return { ok: false, why: 'Belum ada akun yang masuk.' }
+  const message = `lencana-mint nonce=${newNonce()}`
+  const s = await signMessage(message)
+  if (!s.signature) return { ok: false, why: s.why ?? 'tidak bisa menandatangani' }
+  const r = await call('/me/mint', { method: 'POST', body: { learner: addr, hash, message, signature: s.signature }, timeoutMs: 120_000 })
+  if (r.status === 200) return { ok: true, cert: String(r.json?.cert ?? ''), tokenId: String(r.json?.tokenId ?? ''), tx: String(r.json?.tx ?? '') }
+  return { ok: false, why: (r.json?.error as string) ?? r.why ?? `penerbit menjawab ${r.status}`, kind: r.json?.kind as string | undefined, tokenId: r.json?.tokenId as string | undefined }
+}
+
+// Lencana-B170 status=SELESAI 2026-10-06 — bukti kepemilikan artefak: pemegang akun menandatangani pernyataan baku dengan dompetnya; yang diterima hanya pernyataan yang sah dan menyebut dompet akun ini (bukan penanda tangan pesan sembarang). Buktikan ulang: cd web && npx tsx scripts/probe.ts
+/** Tandatangani pernyataan kepemilikan (B170). Menolak teks yang bukan pernyataan baku, atau yang menyebut dompet selain milik akun yang masuk. */
+export async function signOwnershipStatement (statement: string): Promise<{ signature?: string, why?: string }> {
+  const addr = learnerAddress()
+  if (!addr) return { why: 'Belum ada akun yang masuk.' }
+  const parsed = parseStatement(statement)
+  if (!parsed.ok) return { why: parsed.why }
+  if (parsed.fields.wallet.toLowerCase() !== addr.toLowerCase()) return { why: 'Pernyataan ini menyebut dompet lain, bukan dompet akun yang sedang masuk.' }
+  return signMessage(statement)
 }
 
 function normalizeSummary (j: Record<string, unknown>): ServerSummary {

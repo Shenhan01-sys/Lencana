@@ -77,11 +77,14 @@ const intEnv = (name, fallback) => {
   return Number.isInteger(v) && v >= 0 ? v : fallback
 }
 
-/** Batas bawaan (bisa diubah lewat lingkungan): faucet 3/IP + 200/hari, gas 2/IP + 30/hari (`GAS_DRIP` 0,001 tBNB → ≤ 0,03/hari). */
+/** Batas bawaan (bisa diubah lewat lingkungan): faucet 3/IP + 200/hari, gas 2/IP + 30/hari (`GAS_DRIP` 0,001 tBNB → ≤ 0,03/hari), cetak artefak 5/IP + 60/hari (B169). */
 export function limitsFromEnv () {
   return {
     faucet: createLimiter({ perIp: intEnv('FAUCET_PER_IP_DAY', 3), perDay: intEnv('FAUCET_GLOBAL_DAY', 200) }),
     gas: createLimiter({ perIp: intEnv('GAS_PER_IP_DAY', 2), perDay: intEnv('GAS_GLOBAL_DAY', 30) }),
+    // B169: cetak artefak NFT dari app — gasnya dibayar platform. Kontrak sudah menolak cetak ganda per kredensial; batas ini untuk
+    // akun-akun baru yang memegang kredensial sungguhan dan meminta serentak.
+    mint: createLimiter({ perIp: intEnv('MINT_PER_IP_DAY', 5), perDay: intEnv('MINT_GLOBAL_DAY', 60) }),
   }
 }
 

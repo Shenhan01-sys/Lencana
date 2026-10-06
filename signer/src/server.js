@@ -53,6 +53,7 @@ import {
 // Lencana-B125 status=TERBUKA 2026-10-02 — bayar dulu baru masuk kelas: harga dari web/src/pricing.ts, POST /enroll kursus berbayar menjawab 402 + syarat x402, settlement + SettlementSplit sebelum enrollment, orders = paid; POST /faucet koin uji sekali per alamat per jendela; ENROLL_PAYWALL=off hanya untuk server harness. Buktikan ulang: npm run verify:paywall (dan --live). JANGAN dibalik/diulang tanpa membuka kembali baris B125 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { priceOf, FAUCET_AMOUNT, FAUCET_COOLDOWN_HOURS, PAY_TOKEN_SYMBOL, PAY_TOKEN_DECIMALS } from '../../web/src/pricing.ts'
 import { mintTestCoins } from './faucet.js'
+import { mintArtifact, ARTIFACT_LAYER_97, CREDENTIAL_HOST_DEFAULT } from './mint-artifact.js'
 import { essayLesson, gradeQuiz } from './quiz.js'
 // Lencana-B121 status=TERBUKA 2026-10-01 — core: POST /praktik membaca ulang chain 97 sebelum usaha praktik tersimpan, dan POST /attempts menolak skor kuis/esai/praktik kiriman peserta; yang belum: halaman belajar memanggil POST /praktik (fase FE). Buktikan ulang: npm run verify:praktik. JANGAN dibalik/diulang tanpa membuka kembali baris B121 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
 import { praktikLesson, checkPraktik } from './praktik.js'
@@ -151,6 +152,9 @@ const PAYWALL = process.env.ENROLL_PAYWALL !== 'off'
 const TIMEOUT_SECONDS = Number(process.env.X402_TIMEOUT ?? 600)
 // B155: kuota faucet + gas (memori proses; satu instance) dan dompet yang membayarnya, supaya saldonya terlihat di /healthz.
 const LIMITS = limitsFromEnv()
+// B169: instance artefak yang dicetak lewat POST /me/mint. Di chain 97 bawaannya lapis D42/D43; di chain lain harus diisi eksplisit (tidak ada tebakan).
+const ARTIFACT_LAYER = process.env.ARTIFACT_LAYER_ADDRESS ?? (CHAIN_ID === 97 ? ARTIFACT_LAYER_97 : null)
+const CREDENTIAL_HOST = process.env.CREDENTIAL_HOST ?? CREDENTIAL_HOST_DEFAULT
 const DEPLOYER_ADDRESS = process.env.DEPLOYER_PRIVATE_KEY ? privateKeyToAccount(process.env.DEPLOYER_PRIVATE_KEY).address : null
 
 // Setoran tenggat (B90). Premi yang hangus mengalir ke PENERBIT, sama seperti bayaran verifikasi.
@@ -330,7 +334,7 @@ async function accountFull (address) {
 }
 
 // B131: rute yang hanya untuk peran Peserta. Akun Penerbit / Agent Owner (bukan dev) ditolak sebelum tanda tangannya dipakai.
-const LEARNER_ROUTES = new Set(['/enroll', '/progress', '/grade', '/essay', '/praktik', '/faucet'])
+const LEARNER_ROUTES = new Set(['/enroll', '/progress', '/grade', '/essay', '/praktik', '/faucet', '/me/mint'])
 
 /** Kursi Penerbit satu alamat: pemegang kunci penerbit (`issuer`) atau anggota aktif (`member`), atau null. */
 async function publisherSeat (address) {
@@ -616,7 +620,7 @@ const server = createServer(async (req, res) => {
     //  - `attempt_hash` dihitung dari rekaman di DB (lihat db.js), tidak pernah diterima dari klien.
     if (path === '/enroll' || path === '/attempts' || path === '/progress' || path === '/grade' || path === '/praktik'
       || path === '/essay' || path === '/essay/judgement' || path === '/essay/reviewers' || path === '/essay/review'
-      || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/roles' || path === '/publisher/members'
+      || path === '/auth/privy' || path === '/me/records' || path === '/faucet' || path === '/me/mint' || path === '/me/roles' || path === '/publisher/members'
       || path === '/me/member-request' || path === '/publisher/overview' || path === '/publisher/agents/hire' || path === '/publisher/reviewers'
       || path === '/owner/overview' || path === '/owner/gas' || path === '/owner/agents/claim' || path === '/me/role'
       || path === '/publisher/drafts' || path === '/publisher/drafts/save' || path === '/publisher/drafts/submit'
@@ -693,6 +697,32 @@ const server = createServer(async (req, res) => {
           if (nonce) await dbForgetNonce(nonce).catch(() => {})
           return send(res, 502, jsonBody({ error: `mint failed: ${String(err.message ?? err).split('\n')[0].slice(0, 160)}` }))
         }
+      }
+      if (path === '/me/mint') {
+        // B169: peserta meminta artefak NFT soulbound untuk SATU kredensial miliknya. Tanda tangan hanya membuktikan siapa yang
+        // meminta; boleh/tidaknya diputuskan kontrak (`mint` menolak yang bukan pemegang, dicabut, sudah punya artefak, dst.) lewat
+        // simulasi di `mintArtifact`. Platform membayar gasnya, jadi urutannya sama dengan /faucet: batas dulu, tanda tangan sesudahnya.
+        if (typeof body.message !== 'string' || !/^lencana-mint nonce=[0-9a-f]{12,}$/.test(body.message)) {
+          return send(res, 400, jsonBody({ error: 'message must be "lencana-mint nonce=<hex>"' }))
+        }
+        if (typeof body.learner !== 'string' || !/^0x[0-9a-fA-F]{40}$/.test(body.learner)) return send(res, 400, jsonBody({ error: 'invalid learner address' }))
+        if (typeof body.hash !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(body.hash)) return send(res, 400, jsonBody({ error: 'hash must be 0x + 64 hex (the credential hash)' }))
+        if (!ARTIFACT_LAYER || !RPC_URL || !process.env.DEPLOYER_PRIVATE_KEY) return send(res, 503, jsonBody({ error: 'artefact minting is not configured on this server' }))
+        const slot = LIMITS.mint.take(clientIp(req))
+        if (!slot.ok) return send(res, 429, jsonBody({ error: `artefact minting ${slot.reason}`, retryAt: slot.retryAt }))
+        const auth = await dbAuthorize({ learner: body.learner, message: body.message, signature: body.signature, scope: 'mint' })
+        if (!auth.ok) { slot.release(); return send(res, 401, jsonBody({ error: auth.why })) }
+        const minted = await mintArtifact({
+          rpcUrl: RPC_URL, minterPk: process.env.DEPLOYER_PRIVATE_KEY, cert: ARTIFACT_LAYER, learner: body.learner, hash: body.hash, host: CREDENTIAL_HOST,
+        })
+        if (!minted.ok) {
+          // Ditolak/gagal = tidak ada gas terpakai dan tanda tangannya boleh dipakai lagi; slot dikembalikan.
+          slot.release()
+          const nonce = /nonce=([0-9a-f]{12,})/.exec(body.message)?.[1]
+          if (nonce) await dbForgetNonce(nonce).catch(() => {})
+          return send(res, minted.status, jsonBody({ error: minted.why, kind: minted.kind, ...(minted.tokenId ? { tokenId: minted.tokenId, cert: ARTIFACT_LAYER } : {}) }))
+        }
+        return send(res, 200, jsonBody({ minted: true, cert: minted.cert, tokenId: minted.tokenId, owner: minted.owner, locked: minted.locked, tx: minted.tx }))
       }
       if (path === '/me/records') {
         // Pesan harus menyebut keperluannya: tanda tangan untuk enroll/kuis tidak boleh dipakai ulang untuk membaca nilai.
@@ -1550,7 +1580,7 @@ const server = createServer(async (req, res) => {
         deployer: DEPLOYER_ADDRESS
           ? { address: DEPLOYER_ADDRESS, balanceWei: await nativeBalance(RPC_URL, DEPLOYER_ADDRESS).then(String).catch(() => null) }
           : null,
-        limits: { faucet: LIMITS.faucet.snapshot(), gas: LIMITS.gas.snapshot() },
+        limits: { faucet: LIMITS.faucet.snapshot(), gas: LIMITS.gas.snapshot(), mint: LIMITS.mint.snapshot() },
       })
     }
     return send(res, 404, {

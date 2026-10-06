@@ -67,5 +67,7 @@ command that produced its number.
   `web/src/main.ts:1157-1160` **and** the call at `:1180`; leaving the call in place keeps
   `#/…` routes swallowing keystrokes into an invisible mount.
 
+> **6 Okt (B170) — dua tambahan di berkas milik maintainer, hanya menambah:** `web/index.html` +1 `<section id="ownership-check">` (di bawah `main#out`, sebelum "Deeper inspection tools") dan `web/src/main.ts` +1 import +1 panggilan `mountOwnershipCheck(currentLang)` di akhir `updateStaticText()`. Kontraknya seperti `lms-mount`: elemen hilang → fungsi diam, verifier tidak terganggu. Bila halaman verifikasi dirancang ulang, pasang ulang kedua baris ini → [[08-Results/B170 - Executive Summary]].
+
 **Related:** [[FE1 - Verifier page and verify.ts]] · [[FE2 - Learning surface router]] ·
 [[FE6 - Quirks and open defects]] · [[00-Overview/01 - Briefing]] · [[Conventions]] · [[AGENTS]]

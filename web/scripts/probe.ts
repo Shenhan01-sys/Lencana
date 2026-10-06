@@ -1164,6 +1164,118 @@ async function main() {
     }
   }
 
+  // --- 12. bukti kepemilikan artefak NFT (B170) ----------------------------------------
+  // Lencana-B170 status=SELESAI 2026-10-06 — probe mengadili pernyataan kepemilikan: bentuk baku, pemulihan penandatangan, urutan putusan, kontrak karangan ditolak, dan bacaan chain 97 sungguhan (ownerOf/credentialOf/locked). Buktikan ulang: cd web && npx tsx scripts/probe.ts
+  {
+    console.log('\n--bukti kepemilikan artefak NFT (B170)--')
+    const OW = await import('../src/ownership')
+    const { privateKeyToAccount, generatePrivateKey } = await import('viem/accounts')
+    const H153 = '0xb9fb06e50c96c7dc4164c7b5d381ae1ca686143edad0b99f3b8882ef96430c31' as const
+    const L153 = '0x12f6F95E5b041ea9Af2f1e0Fed55066a775a11DF' as const
+    const LAYER_A = CERT_LAYERS_97[0]!
+    const acct = privateKeyToAccount(generatePrivateKey())
+    const other = privateKeyToAccount(generatePrivateKey())
+    const NOW = Date.parse('2026-10-06T12:00:00Z')
+    const fields = { wallet: acct.address, contract: LAYER_A, tokenId: String(BigInt(H153)), credential: H153, chainId: 97, issuedAt: '2026-10-06T10:20:30Z' } as const
+    const st = OW.ownershipStatement(fields)
+    const lines = st.split('\n')
+    check('pernyataan baku: 9 baris, header + kalimat, alamat bercek, hash huruf kecil, waktu UTC tanpa milidetik',
+      lines.length === 9 && lines[0] === OW.STATEMENT_HEADER && lines[2] === '' && lines[3] === `dompet: ${acct.address}` && lines[6] === `kredensial: ${H153}` && lines[8] === 'waktu: 2026-10-06T10:20:30Z' && OW.stampOf(Date.parse('2026-10-06T10:20:30.987Z')) === '2026-10-06T10:20:30Z', st)
+    const pr = OW.parseStatement(st)
+    check('parseStatement membaca ulang pernyataan baku menjadi bidang yang sama (pulang-pergi)', pr.ok && JSON.stringify(pr.fields) === JSON.stringify({ ...fields }), JSON.stringify(pr))
+    const bad: Array<[string, string]> = [
+      ['header lain', st.replace(OW.STATEMENT_HEADER, 'Pernyataan lain')],
+      ['baris waktu hilang', lines.slice(0, 8).join('\n')],
+      ['urutan baris tertukar', [...lines.slice(0, 4), lines[5]!, lines[4]!, ...lines.slice(6)].join('\n')],
+      ['token bukan bilangan bulat', st.replace(/token: \d+/, 'token: 1e5')],
+      ['hash pendek', st.replace(H153, '0x1234')],
+      ['waktu bukan ISO', st.replace('2026-10-06T10:20:30Z', '6 Oktober 2026')],
+      ['alamat huruf kecil (tulisan lain dari yang baku)', st.replace(acct.address, acct.address.toLowerCase())],
+      ['baris tambahan di akhir', `${st}\ncatatan: dititipkan`],
+      ['alamat bukan alamat', st.replace(acct.address, '0xZZ')],
+    ]
+    const badRes = bad.map(([n, t]) => [n, OW.parseStatement(t)] as const)
+    check('parseStatement menolak 9 bentuk rusak/tidak baku (tidak ada yang lolos)', badRes.every(([, r]) => !r.ok), JSON.stringify(badRes.filter(([, r]) => r.ok).map(([n]) => n)))
+    const sig = await acct.signMessage({ message: st })
+    const blk = OW.ownershipBlock(st, sig)
+    const pb = OW.parseBlock(blk)
+    check('blok = pernyataan + baris tanda tangan; parseBlock memisahkannya persis (juga dengan CRLF dan spasi di ujung)',
+      pb.ok && pb.statement === st && pb.signature === sig && (() => { const c = OW.parseBlock(blk.replace(/\n/g, '\r\n') + '  \r\n'); return c.ok && c.statement === st })(), JSON.stringify(pb).slice(0, 160))
+    check('parseBlock menolak blok tanpa tanda tangan / tanda tangan terlalu pendek', !OW.parseBlock(st).ok && !OW.parseBlock(`${st}\n\ntanda tangan: 0x1234`).ok)
+
+    type Over = { owner?: string, credential?: string, throwWith?: Error, chainId?: number }
+    const mkReader = (over: Over = {}) => {
+      const calls = { read: 0 }
+      const reader: import('../src/ownership').OwnershipReader = {
+        chainId: over.chainId ?? 97, rpcUrl: 'https://rpc.invalid', known: (c) => c.toLowerCase() === LAYER_A.toLowerCase(),
+        async read () {
+          calls.read++
+          if (over.throwWith) throw over.throwWith
+          return { owner: (over.owner ?? acct.address) as `0x${string}`, credential: (over.credential ?? H153) as `0x${string}`, locked: true }
+        },
+      }
+      return { reader, calls }
+    }
+    const okR = mkReader()
+    const valid = await OW.checkOwnership(blk, okR.reader, NOW)
+    check('VALID: penandatangan = dompet yang dinyatakan = ownerOf di chain, token memang milik kredensial itu (usia 5970 detik)',
+      valid.verdict === 'VALID' && valid.signer === acct.address && valid.owner === acct.address && valid.locked === true && valid.ageSeconds === 5970 && valid.future === false, JSON.stringify(valid))
+
+    const readsAfterValid = okR.calls.read
+    const tampered = await OW.checkOwnership(OW.ownershipBlock(st.replace(/token: \d+/, 'token: 5'), sig), okR.reader, NOW)
+    check('teks diubah sesudah ditandatangani (token 5) → SIGNER_MISMATCH, bukan VALID', tampered.verdict === 'SIGNER_MISMATCH', JSON.stringify(tampered))
+    const forged = await OW.checkOwnership(OW.ownershipBlock(st, await other.signMessage({ message: st })), okR.reader, NOW)
+    check('tanda tangan dompet LAIN atas pernyataan yang menyebut dompet ini → SIGNER_MISMATCH', forged.verdict === 'SIGNER_MISMATCH' && forged.signer === other.address, JSON.stringify(forged))
+    const junk = await OW.checkOwnership(OW.ownershipBlock(st, `0x${'11'.repeat(64)}1b`), okR.reader, NOW)
+    check('tanda tangan sampah berbentuk benar tidak pernah VALID (BAD_SIGNATURE atau SIGNER_MISMATCH)', junk.verdict === 'BAD_SIGNATURE' || junk.verdict === 'SIGNER_MISMATCH', JSON.stringify(junk))
+    check('urutan putusan: kegagalan sebelum pembacaan chain TIDAK menyentuh chain (pembacaan tetap 1 sesudah tiga tolakan)', okR.calls.read === readsAfterValid, `pembacaan: ${okR.calls.read}`)
+
+    const oc = mkReader({ chainId: 56 })
+    const ocRes = await OW.checkOwnership(blk, oc.reader, NOW)
+    check('pernyataan rantai 97 diperiksa di pemeriksa rantai 56 → OTHER_CHAIN, tanpa membaca chain', ocRes.verdict === 'OTHER_CHAIN' && oc.calls.read === 0, JSON.stringify(ocRes))
+    const stFake = OW.ownershipStatement({ ...fields, contract: '0x00000000000000000000000000000000DeaDBeef' })
+    const uk = mkReader()
+    const ukRes = await OW.checkOwnership(OW.ownershipBlock(stFake, await acct.signMessage({ message: stFake })), uk.reader, NOW)
+    check('kontrak karangan yang "menjawab" sesuka hati → UNKNOWN_CONTRACT (tidak pernah VALID), tanpa membaca chain', ukRes.verdict === 'UNKNOWN_CONTRACT' && uk.calls.read === 0, JSON.stringify(ukRes))
+    const rev = await OW.checkOwnership(blk, mkReader({ throwWith: new OW.OwnershipReadError(true, 'revert') }).reader, NOW)
+    const net = await OW.checkOwnership(blk, mkReader({ throwWith: new OW.OwnershipReadError(false, 'fetch failed') }).reader, NOW)
+    check('chain menjawab "tidak ada" → NO_TOKEN; jaringan mati → UNREADABLE (dua hal berbeda, bukan satu "gagal")', rev.verdict === 'NO_TOKEN' && net.verdict === 'UNREADABLE' && /fetch failed/.test(net.why), `${rev.verdict} / ${net.verdict}`)
+    const hm = await OW.checkOwnership(blk, mkReader({ credential: '0x' + 'cd'.repeat(32) }).reader, NOW)
+    check('token ada tetapi terikat ke kredensial lain → HASH_MISMATCH', hm.verdict === 'HASH_MISMATCH', JSON.stringify(hm))
+    const no = await OW.checkOwnership(blk, mkReader({ owner: other.address }).reader, NOW)
+    check('pemilik token di chain bukan penandatangan → NOT_OWNER dan pemilik sebenarnya dilaporkan', no.verdict === 'NOT_OWNER' && no.owner === other.address, JSON.stringify(no))
+    const fut = await OW.checkOwnership(blk, okR.reader, Date.parse('2026-10-06T09:00:00Z'))
+    check('waktu pernyataan 1 jam 20 menit di depan jam pemeriksa → tetap VALID menurut chain, tetapi future = true (peringatan)', fut.verdict === 'VALID' && fut.future === true && (fut.ageSeconds ?? 0) < 0, JSON.stringify(fut))
+    const cast = OW.ownershipCast(pr.ok ? pr.fields : fields, st, sig, 'https://rpc.invalid')
+    const q = /\$'((?:[^'\\]|\\.)*)'/.exec(cast[0]!)
+    check('perintah cast: verify memakai pesan berkutip $\'…\' yang bila diuraikan = pernyataan persis; ownerOf + credentialOf ikut dicetak',
+      cast.length === 3 && cast[0]!.startsWith(`cast wallet verify --address ${acct.address} `) && cast[0]!.endsWith(sig) && !!q && q[1]!.replace(/\\n/g, '\n').replace(/\\'/g, "'").replace(/\\\\/g, '\\') === st && /ownerOf\(uint256\)\(address\)/.test(cast[1]!) && /credentialOf\(uint256\)\(bytes32\)/.test(cast[2]!), cast[0]!.slice(0, 120))
+
+    const epPub = ep.chainId === 97 && ep.resolver.toLowerCase() === defaultEndpoint().resolver.toLowerCase()
+    if (!epPub) skipped.push('B170 bacaan chain sungguhan (hanya ada di deployment publik chain 97)')
+    else {
+      const real = OW.chainReader()
+      const sB153 = OW.ownershipStatement({ ...fields, wallet: other.address })
+      const r1 = await OW.checkOwnership(OW.ownershipBlock(sB153, await other.signMessage({ message: sB153 })), real)
+      check('chain 97 sungguhan: dompet acak mengaku memegang artefak B153 → NOT_OWNER; pemilik yang dilaporkan = akun B153 (ownerOf), locked = true, credentialOf cocok',
+        r1.verdict === 'NOT_OWNER' && r1.owner?.toLowerCase() === L153.toLowerCase() && r1.locked === true, JSON.stringify(r1))
+      const sBadHash = OW.ownershipStatement({ ...fields, wallet: other.address, credential: `0x${'ab'.repeat(32)}` })
+      const r2 = await OW.checkOwnership(OW.ownershipBlock(sBadHash, await other.signMessage({ message: sBadHash })), real)
+      check('chain 97 sungguhan: token B153 dengan kredensial yang salah → HASH_MISMATCH (credentialOf dibaca dari chain)', r2.verdict === 'HASH_MISMATCH', JSON.stringify(r2))
+      const sNone = OW.ownershipStatement({ ...fields, wallet: other.address, tokenId: '12345' })
+      const r3 = await OW.checkOwnership(OW.ownershipBlock(sNone, await other.signMessage({ message: sNone })), real)
+      check('chain 97 sungguhan: token yang tidak pernah dicetak → NO_TOKEN (revert terbaca sebagai "tidak ada", bukan jaringan mati)', r3.verdict === 'NO_TOKEN', JSON.stringify(r3))
+      const g = globalThis as unknown as { localStorage?: unknown }
+      const had = g.localStorage
+      g.localStorage = { getItem: () => JSON.stringify({ ...defaultEndpoint(), rpcUrl: 'http://127.0.0.1:9' }), setItem () {}, removeItem () {} }
+      try {
+        const dead = OW.chainReader()
+        const r4 = await OW.checkOwnership(OW.ownershipBlock(sB153, await other.signMessage({ message: sB153 })), dead)
+        check('RPC mati (127.0.0.1:9) → UNREADABLE, bukan NO_TOKEN dan bukan NOT_OWNER', r4.verdict === 'UNREADABLE', JSON.stringify(r4))
+      } finally { if (had === undefined) delete g.localStorage; else g.localStorage = had }
+    }
+  }
+
   // Diagnosa: tanpa blok ini, probe hanya melaporkan "panggilan X gagal" dan kita tetap
   // buta terhadap SEBABNYA — yang membuat probe tidak lebih berguna dari menebak.
   const anyFail = [r0, ...(demo ? [demo] : [])].flatMap((r) => r.readLog).filter((l) => !l.ok)

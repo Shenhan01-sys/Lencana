@@ -30,6 +30,8 @@
     "verify:manage": "tsx scripts/manage-check.js",
     "verify:review": "tsx scripts/review-check.js",
     "verify:limits": "node scripts/limits-check.js",
+    "verify:mint": "tsx scripts/mint-check.js",
+    "verify:mint:live": "tsx scripts/mint-check.js --live",
     "verify:studio": "tsx scripts/studio-check.js",
     "verify:brain": "tsx scripts/brain-check.js",
     "verify:brain:live": "tsx scripts/brain-check.js --live",

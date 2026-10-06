@@ -310,6 +310,15 @@ body.cert-open{overflow:hidden}
 .cert-proof-links .cert-btn{text-decoration:none;color:#eaecef}
 .cert-proof-cast summary{cursor:pointer;color:#f0b90b;font-size:13.5px}
 .cert-proof-cast pre{margin:10px 0;padding:12px;border-radius:10px;background:#0b0e11;overflow:auto;font-size:12.5px;line-height:1.5}
+.cert-mint{display:grid;gap:10px;padding:16px 18px;border:1px dashed #3a414c;border-radius:14px;background:#181a20}
+.cert-mint h3{margin:0;font-size:16px;font-weight:650}
+.cert-own{padding:12px 14px;border:1px dashed #3a414c;border-radius:12px}
+.cert-own>summary{cursor:pointer;color:#f0b90b;font-size:14px;font-weight:600}
+.cert-own[open]>summary{margin-bottom:4px}
+.cert-own-out{display:grid;gap:10px}
+.cert-own-out[hidden]{display:none}
+.cert-own-area{min-height:200px;resize:vertical;font:12.5px/1.5 var(--font-mono,ui-monospace,monospace)}
+.cert-own-note{font-size:13px}
 @media (max-width:640px){.cert-proof-dl div{grid-template-columns:1fr}.cert-proof{margin:14px 12px 0;padding:16px}}
 
 /* ---------- B168: dialog Bagikan ke LinkedIn ---------- */

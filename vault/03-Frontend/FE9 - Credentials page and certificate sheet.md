@@ -24,6 +24,9 @@ Bagian `#/app/credentials` di dasbor peserta. Sebelum B165 ia tabel hash; sesuda
 | `web/src/pages/certificate-view.ts` | penampil lembar: `openCertificate`, `closeCertificate`, `certificateHashOf` | lapisan anak langsung `<body>` |
 | `web/src/pages/certificate.css` | CSS lembar (disalin skrip dari S3, `.sheet` → `.cert-sheet`) + lapisan, bilah, dialog, cetak | selalu gelap |
 | `web/src/pages/credentials.css` | kartu daftar | |
+| `web/src/pages/certificate-extras.ts` | panel **Bukti on-chain** (B168), kotak **Cetak artefak NFT** (B169, `mintBox`), kotak **Bukti kepemilikan** per kartu (B170, `ownershipBox`), dialog Bagikan ke LinkedIn (B168) | `layers` dibagi dengan dialog bagikan dan diganti di tempat sesudah cetak; DOM saja, logikanya di `share.ts`/`ownership.ts` |
+| `web/src/ownership.ts` | MURNI: pernyataan kepemilikan baku, blok, `checkOwnership` (10 putusan), `chainReader`, `ownershipCast`, `ownershipLink` (B170) | diuji `probe` (21 pemeriksaan, termasuk chain 97 sungguhan) |
+| `web/src/pages/ownership-check.ts` + `ownership.css` | bagian **Periksa bukti kepemilikan** di halaman verifikasi publik (`#ownership-check`) (B170) | dipanggil `main.ts` di `updateStaticText`; tidak menggambar ulang bila bahasa sama |
 | `web/src/config.ts` | `CREDENTIAL_HOST`, `APP_HOST` (dipindah dari `main.ts`) | `main.ts` mengekspor ulang |
 
 ## Alur
@@ -50,6 +53,8 @@ flowchart LR
 - **Label SVG dari dokumen:** kunci bobot disaring `[A-Za-z0-9_-]{1,24}` dan di-escape sebelum masuk ke SVG.
 - **Selalu gelap:** tanpa tema terang dan tanpa tombol tema (sejak B166 juga tidak ada lagi varian terang otomatis di sistem terang: `color-scheme: dark` di `:root`). Cetak/PDF bawaannya gelap yang sama (kaca diganti isi padat karena `backdrop-filter` tidak ikut tercetak).
 - **Latar cetak (B167):** dialog cetak punya pilihan "Gelap — seperti di layar" (bawaan) atau "Terang — hemat tinta", tersimpan per alamat (`lencana.sertifikat.latar:<alamat>`). Hanya berlaku di `@media print` lewat `data-paper="terang"` pada lembar dan lapisan; di layar lembar tetap gelap. Tokennya token terang S3 (kontras emas/abu yang gagal sudah dikoreksi di sana); kontras terukur dari piksel render: 0 gagal dari 38 teks di kedua latar.
+- **Cetak artefak (B169):** kotak "Cetak artefak NFT" hanya bila **tidak ada** lapis yang memegang artefak **dan tidak ada** lapis yang gagal dibaca — "gagal baca" bukan "belum dicetak". Satu tanda tangan (`requestArtifactMint` → `POST /me/mint`); kontrak yang memutuskan boleh/tidaknya, jadi penolakan (bukan milikmu, dicabut, kedaluwarsa, penerbit didelisting) tampil apa adanya dan tombol hidup lagi; `409 already` membuat panel membaca ulang. Sesudah sukses `layers` diganti di tempat sehingga draf LinkedIn menyebut NFT.
+- **Bukti kepemilikan (B170):** kotak hanya di kartu yang pemiliknya memang dompet akun (`ownerIsAccount`). `signOwnershipStatement` (`learning.ts`) menandatangani **hanya** pernyataan baku yang menyebut dompet akun yang masuk — bukan penanda tangan pesan sembarang. Pernyataan dibentuk `ownershipStatement`; pemeriksa menolak teks yang bila dibentuk ulang dari bidangnya tidak sama persis. Catatan batas (bukan identitas dunia nyata, potret saat diperiksa) ikut di kotak dan di pemeriksa.
 
 ## Hal yang mudah salah
 

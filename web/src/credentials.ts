@@ -155,6 +155,8 @@ export type NftProof = {
   failed: Address[]
   rpcUrl: string
   testnet: boolean
+  /** B170: rantai yang dibaca (masuk ke pernyataan kepemilikan). */
+  chainId: number
 }
 
 /**
@@ -178,5 +180,11 @@ export async function loadNftProof (layers: CertLayer[], account: string): Promi
       locked, erc5192, readOk: owner !== null && locked !== null && erc5192 !== null,
     }
   }))
-  return { held, failed: layers.filter((l) => !l.readOk).map((l) => l.address), rpcUrl: ep.rpcUrl, testnet: ep.chainId === 97 }
+  return { held, failed: layers.filter((l) => !l.readOk).map((l) => l.address), rpcUrl: ep.rpcUrl, testnet: ep.chainId === 97, chainId: ep.chainId }
+}
+
+/** B169: baca ulang lapis artefak satu kredensial (sesudah artefaknya dicetak dari app), dengan titik akhir yang sama dengan `loadCertificate`. */
+export async function loadLayers (hash: string): Promise<CertLayer[]> {
+  const ep = loadEndpoint()
+  return artefactLayersOf(hash as Hex, ep, makeClient(ep))
 }

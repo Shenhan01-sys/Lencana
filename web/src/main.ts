@@ -239,6 +239,7 @@ function disconnectWallet() {
 
 import { mountNewApp } from './new-app'
 import { setHeroCredential } from './pages/landing'
+import { mountOwnershipCheck } from './pages/ownership-check'
 
 function handleRoute() {
   const rawHash = window.location.hash || '#/'
@@ -537,6 +538,9 @@ function updateStaticText() {
     btnId.classList.toggle('active', currentLang === 'id')
     btnId.setAttribute('aria-pressed', String(currentLang === 'id'))
   }
+
+  // B170: pemeriksa bukti kepemilikan (bagian di bawah verifier) mengikuti bahasa; tanpa elemennya fungsi ini diam.
+  mountOwnershipCheck(currentLang)
 }
 
 function setLanguage(lang: Lang) {

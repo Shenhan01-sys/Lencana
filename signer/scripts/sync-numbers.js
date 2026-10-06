@@ -146,6 +146,8 @@ const HARNESS = [
   { id: 'review', label: 'verify:review (meja pengesahan: antrean dompet pengesah, rubrik milik esainya)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:review']], re: /MEJA PENGESAHAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
   // Lencana-B155 status=SELESAI 2026-10-05 — verify:limits ikut baterai murah (tanpa gas): batas faucet + gas per IP dan kuota harian, IP klien hanya dari proxy tepercaya, /faucet ditolak sebelum tanda tangan dipakai. Buktikan ulang: npm run sync:numbers. JANGAN dibalik/diulang tanpa membuka kembali baris B155 di app/vault/07-Backlog/03 - Findings and Tasks 2026-09-26.md.
   { id: 'limits', label: 'verify:limits (batas faucet + gas per IP dan kuota harian, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:limits']], re: /BATAS PEMBERIAN (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
+  // Lencana-B169 status=SELESAI 2026-10-06 — verify:mint ikut baterai murah (tanpa gas): POST /me/mint (cetak artefak NFT atas permintaan pemegang kredensial), aturan kontrak dibaca lewat eth_call sebagai platform, nonce tidak terbakar saat ditolak. `--live` (menerbitkan kredensial + gas) TIDAK ikut. Buktikan ulang: npm run sync:numbers
+  { id: 'mint', label: 'verify:mint (cetak artefak NFT atas permintaan peserta, tanpa gas)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:mint']], re: /CETAK ARTEFAK (?:HIJAU|MERAH) — (\d+) pemeriksaan, (\d+) gagal/ },
 ]
 if (EXPENSIVE) {
   HARNESS.push({ id: 'attemptsLive', label: 'verify:attempts:live (rantai + gas testnet)', cwd: SIGNER, cmd: ['npm', ['run', 'verify:attempts:live']], re: /^(\d+) pemeriksaan \/ (\d+) gagal/m })
@@ -301,6 +303,8 @@ const DOC_CLAIMS = [
   { file: 'Quick-Reference.md', metric: 'review', want: (m) => new RegExp(`MEJA PENGESAHAN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:review di QR' },
   { file: '09-Testing/T82 - signer limits-check.js (B155 batas pemberian).md', metric: 'limits', want: (m) => `BATAS PEMBERIAN HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T82 (batas pemberian)' },
   { file: 'Quick-Reference.md', metric: 'limits', want: (m) => new RegExp(`BATAS PEMBERIAN HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:limits di QR' },
+  { file: '09-Testing/T92 - signer mint-check.js (B169 cetak artefak NFT dari app).md', metric: 'mint', want: (m) => `CETAK ARTEFAK HIJAU — ${m.pass} pemeriksaan / ${m.fail} gagal`, note: 'front matter T92 (cetak artefak NFT)' },
+  { file: 'Quick-Reference.md', metric: 'mint', want: (m) => new RegExp(`CETAK ARTEFAK HIJAU — ${m.pass}( pemeriksaan)?, ${m.fail} gagal`), note: 'baris verify:mint di QR' },
   { file: '10-Contributors/Claims-Cheat-Sheet.md', metric: 'webProbe', want: (m) => `probe web **${m.pass}/${m.fail}**`, note: 'baris ringkasan harness (probe web)' },
 ]
 

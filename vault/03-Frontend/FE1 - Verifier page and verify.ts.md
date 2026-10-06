@@ -72,6 +72,7 @@ testable and being inferred from how it renders. The page prints the verdict, ev
 - What this path does **not** do: hold a key, broadcast a transaction, or grade anything. It reads.
   `verifyFromNode()` (`web/src/verify.ts:777`) exists only so a script can call `verify()` without a
   browser; it is the same function, not a second implementation.
+- **6 Okt (B170) — bagian "Periksa bukti kepemilikan"** di bawah hasil verifier (sebelum matriks spesifikasi): `<section id="ownership-check">` kosong di `index.html`, diisi `web/src/pages/ownership-check.ts` lewat satu panggilan di `updateStaticText`. Tambahan murni — `input/go/out/status/banner` dan `?q=` tidak disentuh; bila elemennya hilang, fungsi diam. Pemeriksaan: pulihkan penandatangan dari blok pernyataan lalu bandingkan dengan `ownerOf`/`credentialOf`/`locked` dari chain (`web/src/ownership.ts`); tautan `?own=<blok>` mengisi dan langsung memeriksa → [[08-Results/B170 - Executive Summary]], [[09-Testing/T93 - Uji peramban cetak artefak dan bukti kepemilikan (B169 dan B170)]].
 
 **Related:** [[FE2 - Learning surface router]] · [[FE4 - Mount contract with the maintainer]] ·
 [[FE6 - Quirks and open defects]] · [[02-Contracts/01 - Contracts]] ·

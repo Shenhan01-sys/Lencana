@@ -35,7 +35,7 @@ Pertanyaan builder 5 Okt malam: bagaimana membuktikan bahwa itu NFT dan terikat 
 
 ## 3. Status
 
-**SELESAI di kode, belum LIVE** — belum didorong; AC-B168#17 OPEN. Tahap 3 dipecah: B169 (cetak artefak NFT dari app) dan B170 (bukti kepemilikan) dikerjakan berurutan sesudah ini.
+**SELESAI di kode, belum LIVE** — belum didorong; AC-B168#17 OPEN. Tahap 3 dipecah dan dikerjakan sesudahnya (6 Okt, di kode): [[08-Results/B169 - Executive Summary]] (cetak artefak NFT dari app) dan [[08-Results/B170 - Executive Summary]] (bukti kepemilikan).
 
 ## 4. Risiko tersisa
 

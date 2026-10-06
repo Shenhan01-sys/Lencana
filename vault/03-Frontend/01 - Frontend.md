@@ -45,7 +45,7 @@ dasbor Agent Owner (`web/src/pages/dashboard.ts`, `publisher.ts`, `owner.ts`) di
 - [[FE7 - Merge cabang FE 1 Okt]] — merge `dex/lencana-fe-integration` (selesai, lokal) dan kenapa `dex/lencana-ui` ditahan (kunci kuis, bukti praktik, penilaian browser, B116)
 - [[FE8 - Business flow 3D (brief)]] — alur bisnis 3D di landing (Peserta · Penerbit · Agent Owner), menggantikan bagian tiga langkah; brief yang di-acc, koreksinya, dan hasil uji peramban 2 Okt
 - [[FE10 - Halaman bagikan dan kartu OG (fungsi Vercel)]] — `/s/<hash>` (tag Open Graph untuk perayap LinkedIn + pengalihan ke verifier) dan `/s/<hash>/card.png` (PNG 1200 × 630 per sertifikat) lewat fungsi Vercel; bundel yang dicommit, kenapa bukan Worker tepi, dan jebakannya (B168)
-- [[FE9 - Credentials page and certificate sheet]] — `#/app/credentials` berupa kartu dan `#/app/credentials/<hash>` = lembar sertifikat (desain S3, data dari dokumen kredensial, alamat atau nama sebelum cetak, selalu gelap); peta berkas, aturan yang dijaga, dan jebakan CSS global (B165)
+- [[FE9 - Credentials page and certificate sheet]] — `#/app/credentials` berupa kartu dan `#/app/credentials/<hash>` = lembar sertifikat (desain S3, data dari dokumen kredensial, alamat atau nama sebelum cetak, selalu gelap); peta berkas, aturan yang dijaga, dan jebakan CSS global (B165); sejak 6 Okt juga panel bukti on-chain, kotak cetak artefak (B169), dan bukti kepemilikan (B170; pemeriksanya di halaman verifikasi, lihat FE1 dan FE4)
 
 ## Reproduce
 

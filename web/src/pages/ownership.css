@@ -1,0 +1,41 @@
+/* B170 — bagian "Periksa bukti kepemilikan" di halaman verifikasi (#ownership-check). Hanya memakai token yang sudah ada di style.css. */
+#ownership-check:empty { display: none; }
+#ownership-check { margin: 40px 0 8px; }
+.own-card { display: grid; gap: 14px; padding: 24px; border: 1px solid var(--border-subtle, #2b313a); border-radius: 18px; background: var(--bg-card, #181a20); color: var(--text-main, #eaecef); }
+.own-card h2 { margin: 0; font-size: 22px; font-weight: 650; }
+.own-card h3 { margin: 0; font-size: 17px; font-weight: 650; }
+.own-card p { margin: 0; max-width: none; line-height: 1.55; }
+.own-lead { color: var(--text-sub, #b7bdc6); }
+.own-muted { color: var(--text-muted, #848e9c); font-size: 13.5px; }
+.own-label { font-size: 13px; color: var(--text-muted, #848e9c); }
+.own-area { width: 100%; box-sizing: border-box; min-height: 190px; resize: vertical; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border-subtle, #2b313a); background: var(--bg-input, #1e2329); color: var(--text-main, #eaecef); font: 12.5px/1.5 var(--font-mono, ui-monospace, monospace); }
+.own-area:focus-visible { outline: 2px solid var(--border-focus, #f0b90b); outline-offset: 1px; }
+.own-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.own-btn { padding: 9px 18px; border-radius: 10px; border: 1px solid var(--border-subtle, #2b313a); background: transparent; color: var(--text-main, #eaecef); font: 600 14px var(--font-sans, inherit); cursor: pointer; }
+.own-btn:hover:not(:disabled) { border-color: var(--border-focus, #f0b90b); }
+.own-btn:disabled { opacity: .6; cursor: progress; }
+.own-btn-pri { background: #f0b90b; border-color: #f0b90b; color: #1e2026; }
+.own-btn:focus-visible { outline: 2px solid var(--border-focus, #f0b90b); outline-offset: 2px; }
+.own-result { display: grid; gap: 10px; padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-subtle, #2b313a); background: var(--bg-input, #1e2329); }
+.own-result.is-ok { border-color: rgba(14, 203, 129, .5); background: rgba(14, 203, 129, .07); }
+.own-result.is-ok h3 { color: #0ecb81; }
+.own-result.is-bad { border-color: rgba(246, 70, 93, .5); background: rgba(246, 70, 93, .07); }
+.own-result.is-bad h3 { color: #f6465d; }
+.own-result.is-warn { border-color: rgba(240, 185, 11, .5); background: rgba(240, 185, 11, .07); }
+.own-result.is-warn h3 { color: #f0b90b; }
+.own-why { color: var(--text-sub, #b7bdc6); }
+.own-ok { color: #0ecb81; }
+.own-bad { color: #f6465d; }
+.own-dl { display: grid; gap: 8px; margin: 0; }
+.own-dl div { display: grid; grid-template-columns: minmax(170px, 230px) 1fr; gap: 4px 16px; align-items: baseline; }
+.own-dl dt { margin: 0; color: var(--text-muted, #848e9c); font-size: 13px; }
+.own-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
+.own-card code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12.5px; }
+.own-wrap { word-break: break-all; }
+.own-card a { color: #f0b90b; }
+.own-cast summary { cursor: pointer; color: #f0b90b; font-size: 13.5px; }
+.own-cast pre { margin: 10px 0 0; padding: 12px; border-radius: 10px; background: #0b0e11; overflow: auto; font-size: 12.5px; line-height: 1.5; }
+@media (max-width: 640px) {
+  .own-card { padding: 18px; }
+  .own-dl div { grid-template-columns: 1fr; }
+}
