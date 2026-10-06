@@ -19,7 +19,7 @@ Keputusan builder 6 Okt: tahap 3 **ya**. Sebelum ini artefak NFT soulbound hanya
   `CredentialExpired`, `IssuerDelisted`, `LessonLevelNotMintable`). Satu instance dicetak: lapis D42/D43 `0xc338AF7F…`; `URI` = dokumen di host tepi (sama dengan B153). Batas baru `LIMITS.mint` (5/IP + 60/hari, env `MINT_PER_IP_DAY`/`MINT_GLOBAL_DAY`) di `limits.js` dan `/healthz`.
   Penolakan melepas slot dan **membebaskan nonce** (tanda tangan yang sama bisa dipakai lagi).
 - **App:** panel Bukti on-chain (B168) menampilkan kotak **Cetak artefak NFT** bila tidak ada lapis yang memegang artefak dan tidak ada yang gagal dibaca (`requestArtifactMint` di `learning.ts`, `loadLayers` di `credentials.ts`); sesudah sukses panel membaca ulang dari chain dan draf LinkedIn ikut menyebut NFT.
-- **Harness:** `npm run verify:mint` (43 pemeriksaan, tanpa gas; ikut baterai) dan `verify:mint:live` (bagian D, belum dijalankan).
+- **Harness:** `npm run verify:mint` (43 pemeriksaan, tanpa gas; ikut baterai) dan `verify:mint:live` (bagian D; dijalankan 6 Okt: **50 / 0**, cetak sungguhan di chain 97).
 - **Tidak** disentuh: kontrak, database (skema), env Railway (tidak ada variabel baru).
 
 ## 2. Hasil vs KPI
@@ -36,11 +36,11 @@ Keputusan builder 6 Okt: tahap 3 **ya**. Sebelum ini artefak NFT soulbound hanya
 
 ## 3. Status
 
-**SELESAI · signer LIVE** — didorong `f312539..b77ba40` 6 Okt (deploy-signer sukses); di produksi `/healthz` memuat kuota `mint` dan penolakan bertanda tangan terbukti tanpa gas (409 `already` untuk B153, 404, 403). AC-B169#15 (cetak sungguhan `verify:mint:live`) dan #17 (builder mencetak dari akunnya) OPEN.
+**SELESAI · signer LIVE** — didorong `f312539..b77ba40` 6 Okt (deploy-signer sukses); di produksi `/healthz` memuat kuota `mint` dan penolakan bertanda tangan terbukti tanpa gas (409 `already` untuk B153, 404, 403). AC-B169#15 (cetak sungguhan `verify:mint:live`) PASS 6 Okt; #17 (builder mencetak dari akunnya di peramban) OPEN.
 
 ## 4. Risiko tersisa
 
-- Jalur sukses terbukti dengan klien tiruan; **transaksi cetak sungguhan lewat rute baru belum pernah dijalankan** (AC#15, menunggu acc builder: `verify:mint:live` menerbitkan satu kredensial uji dan perlu `publish:edge`).
+- ~~Transaksi cetak sungguhan lewat rute baru belum pernah dijalankan~~ **Dijalankan 6 Okt (`verify:mint:live` 50 / 0, AC#15 PASS):** peserta `0xf206f75d…0D02` (kunci baru), kredensial `0xa09db9dc…e856a`, token = `uint256(hash)` `72648733…6074`; `POST /me/mint` → 200, `ownerOf` = kunci peserta (bukan platform), `locked` true, `tokenURI` memuat hash dan alamat dokumen, permintaan kedua 409 `already`, `/healthz` tepat 1 pemberian. **Dicek ulang dengan `cast` di luar harness:** `tokenOfCredential`, `ownerOf` = `0xf206f75d…0D02`, `locked` true, `balanceOf` 1. **Efek samping:** satu kredensial uji baru (attestation + anchor, gas platform) di chain 97 dan `.store` lokal; dokumennya belum diterbitkan ke tepi, jadi tepi menjawab 404 untuk hash itu sampai `publish:edge` dijalankan (keluar ke Cloudflare — menunggu acc builder).
 - Satu-satunya kredensial akun builder (B153) sudah punya artefak di lapis A, jadi tombolnya tidak muncul di sana; mencoba LIVE perlu kredensial baru yang belum dicetak.
 - Dua permintaan serentak untuk kredensial yang sama: yang kedua gagal di chain dan platform membayar gas transaksi gagal itu (kecil). Transaksi platform serentak (faucet, gas, cetak) berbagi satu kunci → nonce bisa bentrok, satu permintaan 502, peserta mencoba lagi.
 - Permintaan gagal dengan kunci baru tidak memakan kuota (sama dengan `/faucet`); yang tersisa adalah beban RPC/database.
