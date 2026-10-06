@@ -1,0 +1,82 @@
+/* admin-pipeline.css — pipeline gaya n8n di tab Ringkasan halaman Admin (B172). Acuan: References/Flow1WithN8N.md (kanvas titik-titik, node persegi bulat
+   dengan handle, konektor bezier, payload berjalan, loop ulang putus-putus jingga). Warna: palet Lencana (kartu #181a20, tepi #2b313a, emas #f0b90b, hijau #0ecb81, jingga #ff9f1a, merah #f6465d, abu #b7bdc6) — bukan palet acuan. */
+
+.adm-shell .adm-hero-head { display: grid; gap: 4px; }
+.adm-shell .adm-hero-head h2 { margin: 0; }
+.adm-shell .adm-hero-head p { margin: 0; }
+
+.adm-shell .pl-wrap { position: relative; width: 100%; overflow: hidden; border: 1px solid var(--o-line, #2b313a); border-radius: 14px; background-color: #0f1216;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.07) 1.5px, transparent 1.5px); background-size: 24px 24px; }
+.adm-shell .pl-canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.adm-shell .pl-svg { position: absolute; inset: 0; pointer-events: none; }
+.adm-shell .pl-svg svg { display: block; }
+.adm-shell .pl-pos { position: absolute; width: 160px; display: flex; justify-content: center; }
+
+.adm-shell .pl-st { display: flex; flex-direction: column; align-items: center; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: center; cursor: pointer; border-radius: 14px; }
+.adm-shell .pl-st:focus-visible { outline: 2px solid #fff; outline-offset: 6px; }
+.adm-shell .pl-node, .pl-dlg .pl-node { position: relative; display: grid; place-items: center; width: 76px; height: 76px; border-radius: 12px; border: 1px solid currentColor; background: #181a20;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.pl-dlg .pl-node.small { width: 52px; height: 52px; flex: none; }
+.adm-shell .pl-st:hover .pl-node, .adm-shell .pl-st:focus-visible .pl-node { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45); }
+.adm-shell .pl-node.kind-trigger { border-radius: 12px 36px 36px 12px; }
+.adm-shell .pl-ic, .pl-dlg .pl-ic { display: grid; place-items: center; }
+.adm-shell .pl-node.tone-gold, .adm-shell .pl-link.tone-gold, .pl-dlg .pl-node.tone-gold, .pl-dlg-rows dd.tone-gold { color: #f0b90b; }
+.adm-shell .pl-node.tone-green, .adm-shell .pl-link.tone-green, .pl-dlg .pl-node.tone-green, .pl-dlg-rows dd.tone-green { color: #0ecb81; }
+.adm-shell .pl-node.tone-amber, .adm-shell .pl-link.tone-amber, .pl-dlg .pl-node.tone-amber, .pl-dlg-rows dd.tone-amber { color: #ff9f1a; }
+.adm-shell .pl-node.tone-rose, .adm-shell .pl-link.tone-rose, .pl-dlg .pl-node.tone-rose, .pl-dlg-rows dd.tone-rose { color: #f6465d; }
+.adm-shell .pl-node.tone-steel, .adm-shell .pl-link.tone-steel, .pl-dlg .pl-node.tone-steel, .pl-dlg-rows dd.tone-steel { color: #b7bdc6; }
+.adm-shell .pl-node.tone-gold, .pl-dlg .pl-node.tone-gold { box-shadow: 0 0 18px rgba(240, 185, 11, 0.14), inset 0 0 8px rgba(240, 185, 11, 0.05); }
+.adm-shell .pl-node.tone-green, .pl-dlg .pl-node.tone-green { box-shadow: 0 0 20px rgba(14, 203, 129, 0.2), inset 0 0 8px rgba(14, 203, 129, 0.05); }
+.adm-shell .pl-handle { position: absolute; top: 50%; width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 50%; background: #0f1216; transform: translateY(-50%); }
+.adm-shell .pl-handle.left { left: -6px; }
+.adm-shell .pl-handle.right { right: -6px; }
+.adm-shell .pl-pulse { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; animation: pl-pulse 1.8s ease-in-out infinite; }
+@keyframes pl-pulse { 50% { opacity: 0.35; transform: scale(0.8); } }
+
+.adm-shell .pl-details { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 160px; margin-top: 12px; }
+.adm-shell .pl-title { color: #f3f4f6; font-size: 13px; font-weight: 700; letter-spacing: 0.03em; line-height: 1.2; text-shadow: 0 0 6px #0f1216, 0 0 3px #0f1216, 0 0 2px #0f1216; }
+.adm-shell .pl-sub { color: #9ca3af; font: 500 11px/1.3 var(--font-mono, ui-monospace, monospace); text-shadow: 0 0 6px #0f1216, 0 0 3px #0f1216, 0 0 2px #0f1216; }
+.adm-shell .pl-chip { margin-top: 2px; padding: 2px 9px; border: 1px solid #2b313a; border-radius: 999px; background: #1e2329; color: rgba(255, 255, 255, 0.78); font-size: 10px; }
+.adm-shell .pl-bar { display: grid; gap: 3px; width: 120px; margin-top: 3px; }
+.adm-shell .pl-bar > span { display: block; height: 4px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 999px; background: rgba(0, 0, 0, 0.6); }
+.adm-shell .pl-bar-fill { height: 100%; background: #f0b90b; box-shadow: none; }
+.adm-shell .pl-bar small { color: rgba(255, 255, 255, 0.5); font: 500 9px var(--font-mono, ui-monospace, monospace); text-align: right; }
+.adm-shell .pl-loop { position: absolute; transform: translate(-50%, -50%); padding: 2px 10px; border: 1px solid rgba(255, 159, 26, 0.45); border-radius: 999px; background: #1a1c20; color: #ff9f1a; font: 500 11px var(--font-mono, ui-monospace, monospace); white-space: nowrap; }
+
+/* tata letak sempit: kolom vertikal, konektor bertitik yang bergerak */
+.adm-shell .pl-wrap.tall { padding: 14px 10px; overflow: visible; }
+.adm-shell .pl-col { display: grid; margin: 0; padding: 0; list-style: none; }
+.adm-shell .pl-row { display: grid; }
+.adm-shell .pl-row .pl-st { flex-direction: row; align-items: center; gap: 14px; padding: 4px; text-align: left; }
+.adm-shell .pl-row .pl-details { align-items: flex-start; width: auto; margin-top: 0; flex: 1; min-width: 0; }
+.adm-shell .pl-row .pl-sub { overflow-wrap: anywhere; }
+.adm-shell .pl-link { position: relative; display: flex; align-items: center; height: 44px; margin-left: 4px; color: #9ca3af; font: 500 11px var(--font-mono, ui-monospace, monospace); }
+.adm-shell .pl-link::before { content: ''; position: absolute; left: 37px; top: 0; bottom: 0; width: 2px; background: #6b7280; }
+.adm-shell .pl-link .pl-dot { position: absolute; left: 33px; top: 0; width: 10px; height: 10px; border-radius: 50%; background: currentColor; animation: pl-travel 2.2s linear infinite; }
+.adm-shell .pl-link span { margin-left: 62px; }
+@keyframes pl-travel { from { top: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } to { top: calc(100% - 10px); opacity: 0; } }
+.adm-shell .pl-loop.flat { position: static; width: fit-content; max-width: 100%; margin: 6px 0 6px 60px; transform: none; white-space: normal; }
+
+/* popup detail stasiun (di luar .adm-shell: dipasang di <body>; dasar kotak dari .adm-dlg di admin.css) */
+.pl-dlg { width: min(580px, calc(100vw - 32px)); }
+.pl-dlg-f { display: grid; gap: 14px; padding: 22px; max-height: min(86vh, 760px); overflow: auto; }
+.pl-dlg-head { display: flex; align-items: center; gap: 14px; }
+.pl-dlg-head h2 { margin: 0; font-size: 20px; letter-spacing: 0.02em; }
+.pl-dlg-step { display: block; color: #848e9c; font: 600 12px var(--font-mono, ui-monospace, monospace); }
+.pl-dlg-what { margin: 0; color: #cfd4dc; font-size: 14.5px; line-height: 1.6; }
+.pl-dlg-rows { display: grid; grid-template-columns: minmax(0, 1fr) auto; margin: 0; border: 1px solid #2b313a; border-radius: 12px; overflow: hidden; }
+.pl-dlg-rows dt, .pl-dlg-rows dd { margin: 0; padding: 9px 14px; border-bottom: 1px solid #2b313a; }
+.pl-dlg-rows dt:last-of-type, .pl-dlg-rows dd:last-of-type { border-bottom: 0; }
+.pl-dlg-rows dt { color: #b7bdc6; font-size: 13.5px; }
+.pl-dlg-rows dd { color: #eaecef; font: 700 13.5px var(--font-mono, ui-monospace, monospace); text-align: right; overflow-wrap: anywhere; }
+.pl-dlg-actors { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #848e9c; font-size: 12.5px; }
+.pl-dlg-actors .pl-actor { padding: 3px 10px; border: 1px solid #3a414c; border-radius: 999px; background: #1e2329; color: #eaecef; font-weight: 600; }
+.pl-dlg-src { margin: 0; color: #848e9c; font-size: 12.5px; line-height: 1.5; }
+.pl-dlg-src b { color: #b7bdc6; }
+.pl-dlg-act { justify-self: start; }
+.pl-dlg-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-shell .pl-pulse, .adm-shell .pl-link .pl-dot { animation: none; }
+  .adm-shell .pl-node { transition: none; }
+}

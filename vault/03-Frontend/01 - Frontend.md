@@ -33,7 +33,7 @@ Bilingual (`src/i18n.ts`, EN/ID, persisted). The rest of the routes (`#/`, `#/co
 [[FE4 - Mount contract with the maintainer]] before editing anything in this folder.
 *(Koreksi 3 Okt: sejak B123 (D59) `#/submit`, `#ai-evaluator`, dan `#/portfolio` — studio esai tiruan dan portofolio fiktif —
 bukan halaman lagi: `web/src/main.ts:1019` mengalihkannya ke `#/app` bersama `#/me` lama. Rute area internal, dasbor penerbit, dan
-dasbor Agent Owner (`web/src/pages/dashboard.ts`, `publisher.ts`, `owner.ts`; sejak 6 Okt malam juga halaman Admin Lencana `admin.ts` + `admin.css` + `admin-dash.css`, rute `#/app/admin`, D76; sejak B172 empat tab: Ringkasan · Persetujuan · Jejak · Kesehatan, D78) dibangun di core — lihat
+dasbor Agent Owner (`web/src/pages/dashboard.ts`, `publisher.ts`, `owner.ts`; sejak 6 Okt malam juga halaman Admin Lencana `admin.ts` + `admin.css` + `admin-dash.css`, rute `#/app/admin`, D76; sejak B172 empat tab: Ringkasan (pipeline gaya n8n: `admin-pipeline.ts`, `admin-stations.ts`, `admin-pipeline.css`) · Persetujuan · Jejak · Kesehatan, D78) dibangun di core — lihat
 [[08-Results/B124 - Executive Summary]], [[08-Results/B129 - Executive Summary]], [[08-Results/B130 - Executive Summary]].)*
 
 ## Parts

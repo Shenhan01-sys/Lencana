@@ -19,12 +19,14 @@
 import './owner-solid.css'
 import './admin.css'
 import './admin-dash.css'
+import './admin-pipeline.css'
 import { h } from '../lib/ui'
 import { adminDecide, learnerAddress, readAdminOverview, type AdminOverview, type AdminSummary, type AdminTrailEvent, type AdminHealth, type MemberPerms } from '../learning'
 import { skeleton } from '../lib/loading'
 import { formatLdc } from '../pricing'
 import { navIcon } from './seats'
-import { flowSvg, type FlowNode, type FlowLink, type Orient, type Tone } from './admin-flow'
+import { pipeline, openStationDialog } from './admin-pipeline'
+import { buildStations, ORDER } from './admin-stations'
 
 type Lang = 'en' | 'id'
 type Tab = 'summary' | 'approve' | 'trail' | 'health'
@@ -79,9 +81,7 @@ const COPY = {
   tHires: { en: 'Agent hires', id: 'Sewa agen' },
   tReviewers: { en: 'Reviewers appointed', id: 'Pengesah ditunjuk' },
   flowTitle: { en: 'Platform at a glance', id: 'Platform sekilas' },
-  flowPeople: { en: 'From enrollment to money', id: 'Dari pendaftaran sampai uang' },
-  flowEssays: { en: 'Essays', id: 'Esai' },
-  flowNote: { en: 'Ribbon thickness = how many. The money ribbons keep the proportion of paid enrollments: what each paid enrollment brought in, split between Lencana and the publisher.', id: 'Tebal pita = jumlahnya. Pita uang mengikuti proporsi pendaftaran berbayar: apa yang dibawa pendaftaran berbayar, terbagi antara Lencana dan penerbit.' },
+  flowSub: { en: 'The journey of one enrollment, from course to money. Click a station for its details.', id: 'Perjalanan satu pendaftaran, dari kursus sampai uang. Klik sebuah station untuk detailnya.' },
   pendingShort: { en: 'waiting', id: 'menunggu' },
   essaysAll: { en: 'essays', id: 'esai' },
   moneyIn: { en: 'in', id: 'masuk' },
@@ -330,9 +330,15 @@ function summaryPanel (lang: Lang, o: AdminOverview, goApprove: () => void): HTM
   if (!s) { root.appendChild(h('section', { class: 'app-card adm-card' }, h('h2', null, T('tabSummary')), h('p', { class: 'app-muted' }, T('partial')))); return root }
   const sym = s.money.token.symbol
   const num = (v: string) => formatLdc(BigInt(v))
-  const units = (v: string | null) => (v === null ? '—' : `${num(v)} ${sym}`)
 
-  // ---- strip angka: tipografi, bukan kotak
+  // ---- pipeline gaya n8n (acuan: References/Flow1WithN8N.md): tiap station bisa diklik → popup detail
+  const model = buildStations(lang, s, goApprove)
+  const flow = pipeline({
+    stations: model.stations, hops: model.hops, loop: model.loop, hint: model.hint,
+    open: (id) => openStationDialog({ id, order: [...ORDER], detailOf: model.detailOf, labels: model.labels }),
+  })
+
+  // ---- strip statistik di bawah pipeline (seperti acuan): tipografi, bukan kotak
   const kpi = (value: number | string, label: string, sub: string, hot = false) => {
     const v = h('strong', { class: 'adm-kpi-v' }, String(value))
     if (typeof value === 'number') ticker(v, value)
@@ -345,72 +351,11 @@ function summaryPanel (lang: Lang, o: AdminOverview, goApprove: () => void): HTM
     kpi(num(s.money.gross), T('tGross'), sym),
     kpi(s.agents.known, T('tAgents'), `${s.agents.hires} ${T('tHires').toLowerCase()} · ${s.agents.reviewers} ${T('tReviewers').toLowerCase()}`))
 
-  // ---- aliran peserta → uang
-  const enr = s.learners.enrollments, paid = s.learners.paid, free = s.learners.free
-  const peopleFlow = (): { nodes: FlowNode[], links: FlowLink[] } | null => {
-    if (enr <= 0) return null
-    const nodes: FlowNode[] = [
-      { id: 'enr', layer: 0, value: enr, label: `${enr} ${T('enrollSplit').toLowerCase()}`, tone: 'blue' },
-      { id: 'free', layer: 1, value: free, label: `${free} ${T('free')}`, tone: 'gray' },
-      { id: 'paid', layer: 1, value: paid, label: `${paid} ${T('paid')}`, tone: 'green' },
-    ]
-    const links: FlowLink[] = [{ from: 'enr', to: 'free', value: free }, { from: 'enr', to: 'paid', value: paid }]
-    if (paid > 0 && s.money.gross !== '0') {
-      nodes.push({ id: 'money', layer: 2, value: paid, label: `${num(s.money.gross)} ${sym}`, tone: 'gold' })
-      links.push({ from: 'paid', to: 'money', value: paid })
-      const bps = s.money.platformBps
-      if (bps !== null && s.money.platform !== null && s.money.net !== null) {
-        const f = bps / 10000
-        nodes.push({ id: 'lencana', layer: 3, value: paid * f, label: `${T('lencana')} ${num(s.money.platform)}`, tone: 'gold' },
-          { id: 'net', layer: 3, value: paid * (1 - f), label: `${T('net')} ${num(s.money.net)}`, tone: 'green' })
-        links.push({ from: 'money', to: 'lencana', value: paid * f }, { from: 'money', to: 'net', value: paid * (1 - f) })
-      }
-    }
-    return { nodes, links }
-  }
-
-  // ---- aliran esai
-  const pipelineTone: Record<string, Tone> = { awaitingJudge: 'gray', insufficient: 'slate', awaitingReview: 'gold', approved: 'green', adjusted: 'blue', rejected: 'red', graded: 'teal' }
-  const pipelineKey: Record<string, Key> = { awaitingJudge: 'awaitingJudge', insufficient: 'insufficient', awaitingReview: 'awaitingReview', approved: 'approved', adjusted: 'adjusted', rejected: 'rejected', graded: 'graded' }
-  const essayFlow = (): { nodes: FlowNode[], links: FlowLink[] } | null => {
-    const parts = Object.keys(pipelineKey).map((k) => ({ k, v: s.essays.pipeline[k] ?? 0 })).filter((x) => x.v > 0)
-    const total = parts.reduce((sum, x) => sum + x.v, 0)
-    if (!total) return null
-    return {
-      nodes: [{ id: 'all', layer: 0, value: total, label: `${total} ${T('essaysAll')}`, tone: 'blue' },
-        ...parts.map((x) => ({ id: x.k, layer: 1, value: x.v, label: `${x.v} ${T(pipelineKey[x.k]!).toLowerCase()}`, tone: pipelineTone[x.k]! }))],
-      links: parts.map((x) => ({ from: 'all', to: x.k, value: x.v })),
-    }
-  }
-
-  const mq = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(max-width: 720px)') : null
-  const figure = (title: string, empty: string, make: () => { nodes: FlowNode[], links: FlowLink[] } | null, dims: { h: [number, number], v: [number, number] }, name: string) => {
-    const box = h('div', { class: 'adm-flow-box', 'data-flow': name })
-    let drawn = false
-    const draw = () => {
-      // Hanya gambar pertama yang beranimasi; menggambar ulang karena lebar layar berubah tidak memutar ulang animasinya.
-      box.classList.toggle('redrawn', drawn)
-      drawn = true
-      const g = make()
-      if (!g) { box.replaceChildren(h('p', { class: 'app-muted' }, empty)); return }
-      const orient: Orient = mq?.matches ? 'v' : 'h'
-      const [along, cross] = dims[orient]
-      box.innerHTML = flowSvg({ nodes: g.nodes, links: g.links, orient, along, cross, label: `${title}: ${g.nodes.map((n) => n.label).join(', ')}` }).svg
-    }
-    draw()
-    mq?.addEventListener?.('change', () => { if (box.isConnected) draw() })
-    return h('figure', { class: 'adm-fig' }, h('figcaption', null, title), box)
-  }
-  const flows = h('div', { class: 'adm-flows' },
-    figure(T('flowPeople'), T('pipelineNone'), peopleFlow, { h: [640, 230], v: [430, 340] }, 'people'),
-    figure(T('flowEssays'), T('pipelineNone'), essayFlow, { h: [360, 230], v: [300, 340] }, 'essays'))
-
   root.appendChild(h('section', { class: 'app-card adm-card adm-hero' },
-    h('h2', null, T('flowTitle')),
+    h('div', { class: 'adm-hero-head' }, h('h2', null, T('flowTitle')), h('p', { class: 'app-muted' }, T('flowSub'))),
+    flow,
     strip,
-    flows,
-    s.money.chargesDue.count > 0 ? h('p', { class: 'adm-due' }, h('b', null, String(s.money.chargesDue.count)), ` ${T('feesDue')} · ${units(s.money.chargesDue.amount)}`) : null,
-    h('p', { class: 'app-muted adm-foot' }, T('flowNote'))))
+    h('p', { class: 'app-muted adm-foot' }, T('sumFoot'))))
   return root
 }
 
