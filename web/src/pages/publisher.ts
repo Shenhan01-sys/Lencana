@@ -18,6 +18,8 @@ import './dashboard.css'
 import './dash-viz.css'
 import './dash-catalog.css'
 import './publisher.css'
+import './essay-belt.css'
+import { essayBelt } from './essay-belt'
 import { h } from '../lib/ui'
 import { findCourse } from '../courses/index'
 import type { Course } from '../content'
@@ -403,37 +405,21 @@ function moneyCard (lang: Lang, o: O, i: number): HTMLElement {
 function pipelineCard (lang: Lang, o: O, i: number): HTMLElement {
   const T = (k: keyof typeof COPY) => COPY[k][lang]
   const p = o.essays.pipeline
-  // B129 (6 Okt, builder: "Essay pipeline jelek, AI slop"): stepper empat tahap sama lebar dalam satu kartu penuh; angka besar solid, satu baris sublabel,
-  // keterangan tambahan (di bawah syarat mekanis, dinilai langsung kunci penerbit) pindah ke baris catatan; tahap yang menunggu disorot.
+  // B174 (7 Okt, builder: "Essay pipeline tolong diperbagus UI-nya"): stepper B129 diganti sabuk benda (essay-belt.ts, bahasa visual sabuk Admin
+  // FE11 yang disetujui builder) — baki, robot pengusul, meja stempel, tong; jumlah benda = jumlah esai. Keterangan tambahan + catatan tetap.
   const judge = p.awaitingJudge + p.insufficient
   const done = p.approved + p.adjusted + p.graded
   const total = judge + p.awaitingReview + done + p.rejected
-  const stages: { n: number, label: string, sub: string, cls: string, href?: string }[] = [
-    { n: judge, label: T('pJudge'), sub: T('pJudgeSub'), cls: 'judge' },
-    { n: p.awaitingReview, label: T('pReview'), sub: T('pReviewSub'), cls: p.awaitingReview ? 'review hot' : 'review', href: '#/app/pub/essays' },
-    { n: done, label: T('pDone'), sub: T('pDoneSub'), cls: 'done' },
-    { n: p.rejected, label: T('pRejected'), sub: T('pRejectedSub'), cls: 'rejected' },
-  ]
-  const stage = (s: (typeof stages)[number], k: number) => {
-    const inner = [
-      h('span', { class: 'pb-stage-top' }, h('span', { class: 'pb-stage-step', 'aria-hidden': 'true' }, String(k + 1)), h('strong', null, s.label)),
-      h('span', { class: 'pb-stage-n' }, odometer(String(s.n), { from: '0' })),
-      h('small', null, s.sub),
-    ]
-    return h('li', { class: `pb-stage ${s.cls}` }, s.href && s.n > 0 ? h('a', { class: 'pb-stage-in', href: s.href }, ...inner) : h('div', { class: 'pb-stage-in' }, ...inner))
-  }
-  const sep = (text?: string) => h('li', { class: `pb-sep${text ? ' or' : ''}`, 'aria-hidden': 'true' }, text ?? '')
   const extras: string[] = []
   if (p.insufficient) extras.push(`${p.insufficient} ${T('pInsufficient')}`)
   if (p.graded) extras.push(`${p.graded} ${T('pGraded')}`)
-  const bar = total > 0
-    ? h('div', { class: 'pb-flowbar', role: 'img', 'aria-label': `${T('pipeBar')}: ${stages.map((s) => `${s.label} ${s.n}`).join(' · ')}` },
-      ...stages.filter((s) => s.n > 0).map((s) => h('span', { class: `seg ${s.cls.split(' ')[0]}`, style: { width: `${(s.n / total) * 100}%` } })))
-    : null
+  const belt = essayBelt(p, {
+    judge: T('pJudge'), judgeSub: T('pJudgeSub'), review: T('pReview'), reviewSub: T('pReviewSub'),
+    done: T('pDone'), doneSub: T('pDoneSub'), rejected: T('pRejected'), rejectedSub: T('pRejectedSub'), or: T('pipeOr'),
+  }, '#/app/pub/essays')
   return h('section', { class: 'app-card ov-card lc-enter pb-pipe', style: enter(i) },
     h('div', { class: 'pb-pipe-head' }, h('h2', null, T('pipeline')), h('span', { class: 'pb-pipe-total' }, `${total} ${T('pipeTotal')}`)),
-    h('ol', { class: 'pb-flow' }, stage(stages[0]!, 0), sep(), stage(stages[1]!, 1), sep(), stage(stages[2]!, 2), sep(T('pipeOr')), stage(stages[3]!, 3)),
-    bar,
+    belt,
     extras.length ? h('p', { class: 'pb-flow-extra' }, `${T('pipeExtra')}: `, ...extras.map((x) => h('span', { class: 'pb-flow-chip' }, x))) : null,
     h('p', { class: 'pb-flow-note' }, T('pipeNote')))
 }

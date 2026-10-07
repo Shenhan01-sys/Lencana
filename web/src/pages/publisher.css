@@ -25,40 +25,12 @@
 .app-shell .pb-due-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #ff9f1a; }
 .app-shell .pb-due b { color: #ff9f1a; }
 
-/* ---------------------------------------------------------------- alur esai: stepper empat tahap (B129, 6 Okt) */
-/* Kartu penuh, latar solid, tanpa gradient/glow/rgba tembus. Palet: kartu #181a20, tahap #1e2329, garis #2b313a, teks #eaecef / #b7bdc6,
-   emas #f0b90b (menunggu), hijau #0ecb81 (final), merah #f6465d (ditolak). */
+/* ---------------------------------------------------------------- alur esai: kartu (B129) + sabuk benda di essay-belt.css (B174, 7 Okt) */
+/* Stepper empat kartu B129 diganti sabuk benda; yang tersisa di sini hanya kartu, kepala, keterangan tambahan, dan catatan. */
 .app-shell .pb-pipe { gap: 18px; background: #181a20; border: 1px solid #2b313a; }
 .app-shell .pb-pipe-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
 .app-shell .pb-pipe-head h2 { margin: 0; }
 .app-shell .pb-pipe-total { color: #b7bdc6; font: 600 13px var(--font-mono, ui-monospace, monospace); }
-.app-shell .pb-flow { display: flex; align-items: stretch; gap: 0; margin: 0; padding: 0; list-style: none; }
-.app-shell .pb-stage { flex: 1 1 0; min-width: 0; display: flex; }
-.app-shell .pb-stage-in { flex: 1; display: grid; align-content: start; gap: 8px; min-width: 0; padding: 16px 18px; border: 1px solid #2b313a; border-radius: 12px; background: #1e2329; color: #eaecef; text-decoration: none; }
-.app-shell a.pb-stage-in:hover { border-color: #f0b90b; }
-.app-shell .pb-stage-top { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.app-shell .pb-stage-step { flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #2b313a; color: #eaecef; font: 700 12px var(--font-mono, ui-monospace, monospace); }
-.app-shell .pb-stage-top strong { font-size: 14px; font-weight: 650; color: #eaecef; overflow-wrap: anywhere; }
-.app-shell .pb-stage-n { color: #eaecef; font: 800 38px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: -0.02em; }
-.app-shell .pb-stage small { color: #b7bdc6; font-size: 12.5px; line-height: 1.35; }
-.app-shell .pb-stage.hot .pb-stage-in { border: 2px solid #f0b90b; padding: 15px 17px; }
-.app-shell .pb-stage.hot .pb-stage-n { color: #f0b90b; }
-.app-shell .pb-stage.hot .pb-stage-step { background: #f0b90b; color: #14110a; }
-.app-shell .pb-stage.done .pb-stage-n { color: #0ecb81; }
-.app-shell .pb-stage.rejected .pb-stage-n { color: #f6465d; }
-/* penghubung: garis solid + kepala panah; "atau" di antara hasil akhir */
-.app-shell .pb-sep { flex: 0 0 44px; position: relative; align-self: center; height: 2px; margin: 0; background: #848e9c; font-size: 0; }
-.app-shell .pb-sep::after { content: ''; position: absolute; right: -1px; top: -5px; border: 6px solid transparent; border-left: 8px solid #848e9c; border-right: 0; }
-.app-shell .pb-sep.or { flex-basis: 56px; background: transparent; }
-.app-shell .pb-sep.or { display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #b7bdc6; text-transform: uppercase; letter-spacing: 0.06em; }
-.app-shell .pb-sep.or::after { display: none; }
-/* porsi tiap tahap (bentuk, bukan hiasan) */
-.app-shell .pb-flowbar { display: flex; height: 10px; overflow: hidden; border-radius: 5px; background: #2b313a; }
-.app-shell .pb-flowbar .seg { height: 100%; }
-.app-shell .pb-flowbar .seg.judge { background: #848e9c; }
-.app-shell .pb-flowbar .seg.review { background: #f0b90b; }
-.app-shell .pb-flowbar .seg.done { background: #0ecb81; }
-.app-shell .pb-flowbar .seg.rejected { background: #f6465d; }
 .app-shell .pb-flow-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; color: #b7bdc6; font-size: 12.5px; max-width: none; }
 .app-shell .pb-flow-chip { padding: 3px 10px; border: 1px solid #2b313a; border-radius: 999px; background: #1e2329; color: #eaecef; font-size: 12px; }
 .app-shell .pb-flow-note { margin: 0; max-width: none; color: #b7bdc6; font-size: 13px; line-height: 1.5; }
@@ -199,10 +171,6 @@
 
 @media (max-width: 860px) {
   .app-shell .pb-read { margin-left: 0; }
-  /* alur esai: 2 x 2 di tablet/HP besar, satu kolom di HP kecil; penghubung disembunyikan (nomor tahap tetap terbaca) */
-  .app-shell .pb-flow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .app-shell .pb-sep { display: none !important; }
-  .app-shell .pb-stage-n { font-size: 32px; }
   .app-shell .pb-courses { grid-template-columns: 1fr; }
   .app-shell .pb-facts { grid-template-columns: 1fr 1fr; }
   .app-shell .pb-form { grid-template-columns: 1fr; }
@@ -218,6 +186,5 @@
 }
 
 @media (max-width: 480px) {
-  .app-shell .pb-flow { grid-template-columns: 1fr; }
   .app-shell .pb-req-act .app-btn { flex: 1 1 auto; }
 }
