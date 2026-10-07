@@ -1,6 +1,6 @@
 To close this gap, we built Lencana: a micro-course platform whose output is a credential that stands entirely on its own.
 
-Lencana is not the authority; the institution is. Every course ships with a manifest carrying the institution's grading criteria, weights, and passing marks, and the hash of that policy is written into every issued credential—so a grade cannot be quietly re-explained after the fact, not by the school and not by us. Quizzes are graded by the publisher's server; an AI grading agent's essay score is only a proposal until a second reviewer, appointed by the publisher, approves it.
+Lencana is not the authority; the institution is. Every course ships with a manifest carrying the institution's grading criteria, weights, and passing marks, and the hash of that policy is written into every issued credential, so a grade cannot be quietly re-explained after the fact, not by the school and not by us. Quizzes are graded by the publisher's server; an AI grading agent's essay score is only a proposal until a second reviewer, appointed by the publisher, approves it.
 
 On the issuance layer, the institution's own agent signs attestations through delegation on the BNB Attestation Service (BAS), a public EAS deployment we do not own. The issuer never needs gas money: Lencana broadcasts and pays for the transactions.
 

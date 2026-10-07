@@ -27,6 +27,7 @@ Chapters
 
 Honest labels: Lencana runs on BNB Chain testnet (chain 97). The publisher in the demo is fictional, and payments use a test token. The generic certificate, names and grades in the opening are illustrations.
 
+Built for the Indonesia Web3 Hackathon 2026 (Consumer Apps track), on BNB Chain.
 Made with Remotion. Voiceover and music generated with ElevenLabs.
 
 #BNBChain #OpenBadges #EdTech
