@@ -1,0 +1,26 @@
+=== CAPTION INSTAGRAM (tempel apa adanya) ===
+SHOW TIME. 🏅
+
+Lencana resmi masuk Indonesia Web3 Hackathon 2026 (Consumer Apps track) di BNB Chain 🚀
+
+Sertifikat itu cuma file. Siapa pun bisa edit nama atau nilainya, dan yang palsu kelihatan sama persis. Jadi kami bikin Lencana: kredensial belajar yang bisa dicek sendiri oleh siapa pun, tanpa harus percaya sama kami.
+
+Yang udah jalan sekarang:
+✅ Masuk cukup pakai email, dompetnya dibuatin otomatis
+✅ Bayar kursus cukup tanda tangan, tanpa biaya gas
+✅ Esai dinilai agen AI, tapi baru berlaku setelah reviewer kedua yang ditunjuk penerbit menyetujui
+✅ Kredensial ditandatangani penerbit dan dicatat di BNB Chain
+✅ Badge soulbound (ERC-5192): nggak bisa dijual, dipindah, atau dibakar
+✅ Verifikasi dari satu link, tanpa dompet, tanpa login
+✅ Lolos validator 1EdTech Open Badges 3.0 dengan 0 error
+
+Cek project-nya di gallery hackathon 👇
+https://indonesiaweb3hack.xyz/en/projects/proj_3b383cf48823e20042
+Coba langsung: lencana-psi.vercel.app
+(link juga ada di bio)
+
+Learn, test, and prove it. Live now on BNB Chain testnet.
+
+*Demo di testnet: penerbitnya fiktif dan pembayarannya pakai token uji.
+
+#Lencana #IndonesiaWeb3Hackathon #BNBChain #Web3Indonesia #EdTech #OpenBadges #SoulboundToken #AIAgents #BuildOnBNB
