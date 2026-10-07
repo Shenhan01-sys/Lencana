@@ -34,9 +34,12 @@ const offset = (m: Move, p: number, sign: 1 | -1): { tx: number, ty: number, s: 
  * One shot inside a scene, visible in [from, to) (local frames), with a whip/push in and out.
  * `enter: 'right'` = comes in from the right; `exit: 'left'` = leaves to the left (a camera pan).
  */
-export const Shot: React.FC<{ from: number, to: number, enter?: Move, exit?: Move, len?: number, children: React.ReactNode }> = ({ from, to, enter = 'fade', exit = 'fade', len = 10, children }) => {
+export const Shot: React.FC<{ from: number, to: number, enter?: Move, exit?: Move, len?: number, hard?: boolean, children: React.ReactNode }> = ({ from, to, enter = 'fade', exit = 'fade', len = 10, hard = false, children }) => {
   const frame = useCurrentFrame()
   if (frame < from - len || frame > to + len) return null
+  // hard: a true cut at the window edges where an `enter/exit: 'none'` side would otherwise linger `len` frames
+  // (draft 5: the coin shot showed over the certificate push-in for 10 frames before the match cut)
+  if (hard && ((enter === 'none' && frame < from) || (exit === 'none' && frame >= to))) return null
   const pin = interpolate(frame, [from - len, from], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.bezier(0.2, 0.8, 0.2, 1) })
   const pout = interpolate(frame, [to, to + len], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.bezier(0.8, 0, 0.8, 0.2) })
   const a = offset(enter, pin, 1)

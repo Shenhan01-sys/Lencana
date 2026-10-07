@@ -1,0 +1,8 @@
+{
+  "_": "B173 draft 5 — the certificate's own entrance motion, recorded frame-exact by `node scripts/capture.mjs --only certMotion` (public/captures/cert-motion.mp4 + .json). clip = where the sheet sat on the 1600×1000 page (CSS px), so focus.json boxes (page px) map into the sheet by subtracting clip.x / clip.y. Score count-up ends 1.95 s after play; pulse + flash 1.95–2.95 s; shine sweep from 1.03 s.",
+  "video": "captures/cert-motion.mp4",
+  "clip": { "x": 177, "y": 85, "width": 1245, "height": 881 },
+  "fps": 30,
+  "frames": 240,
+  "medal": { "x": 998, "y": 290, "r": 180 }
+}

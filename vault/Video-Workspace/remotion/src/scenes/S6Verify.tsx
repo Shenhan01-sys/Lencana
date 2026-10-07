@@ -5,7 +5,8 @@ import { Backdrop } from '../components/Backdrop'
 import { BrowserFrame, Focus } from '../components/BrowserFrame'
 import { Chip, Icon, Tag, usePop, useRamp } from '../components/Bits'
 import { FrameStage, FullBleed, Headline, Stage } from '../components/Stage'
-import { cue, f } from '../lib/time'
+import { cue, rel } from '../lib/time'
+import { box } from '../lib/focus'
 import { SceneShell, Shot, useScene } from './shell'
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const
@@ -15,11 +16,11 @@ const FR = { x: 640, y: 96, w: 1160 }
  *  And it passes the 1EdTech Open Badges 3.0 validator with zero errors." (validator re-run 7 Oct: VALID, 14 checks, 0/0) */
 export const S6Verify: React.FC = () => {
   const { frame, at, cutIn, cutOut } = useScene('s6')
-  const a = (sec: number) => at(f(sec))
+  const a = (sec: number) => at(rel('s6', sec)) // seconds after the scene's cut
   const tAnyone = at(cue('s6', 'Anyone')), tLink = at(cue('s6', 'link')), tNo1 = at(cue('s6', 'no')), tNo2 = at(cue('s6', 'no', 1))
   const tIf = at(cue('s6', 'If')), tRevoked = at(cue('s6', 'revoked,')), tEveryone = at(cue('s6', 'everyone'))
   const tPasses = at(cue('s6', 'passes')), tBadges = at(cue('s6', 'Badges')), tZero = at(cue('s6', 'zero'))
-  const B = { link: [cutIn, a(63.62)], slam: [a(63.62), a(65.85)], status: [a(65.85), a(68.62)], validator: [a(68.62), cutOut] }
+  const B = { link: [cutIn, a(2.952)], slam: [a(2.952), a(5.182)], status: [a(5.182), a(7.952)], validator: [a(7.952), cutOut] }
   const tShot = (s: number[]) => interpolate(frame, [s[0], s[1]], [0, 1], clamp)
 
   const typed = interpolate(frame, [B.link[0] + 4, tLink - 2], [0, 1], clamp)
@@ -54,14 +55,14 @@ export const S6Verify: React.FC = () => {
           <div style={{ position: 'absolute', inset: 0, transform: `rotateY(${flip * 180}deg)`, transformStyle: 'preserve-3d' }}>
             <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden' }}>
               <BrowserFrame src="captures/verify-valid.png" url={linkUrl} width={FR.w} x={FR.x} y={FR.y}>
-                <Focus x={250} y={84} w={1120} h={44} color={C.green} p={validRing} />
-                <Focus x={300} y={196} w={300} h={50} color={C.green} p={validRing} />
+                <Focus {...box('validChecks')} color={C.green} p={validRing} />
+                <Focus {...box('validVerdict')} color={C.green} p={validRing} />
               </BrowserFrame>
             </div>
             <div style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
               <BrowserFrame src="captures/verify-revoked.png" url="?q=0xdbd7c72f…5e42#/verify" width={FR.w} x={FR.x} y={FR.y} rim={C.red}>
-                <Focus x={250} y={84} w={1120} h={44} color={C.red} p={flip} />
-                <Focus x={300} y={196} w={520} h={50} color={C.red} p={flip} />
+                <Focus {...box('revokedChecks')} color={C.red} p={flip} />
+                <Focus {...box('revokedVerdict')} color={C.red} p={flip} />
               </BrowserFrame>
             </div>
           </div>

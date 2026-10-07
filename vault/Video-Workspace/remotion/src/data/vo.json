@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-07T00:53:36.407Z",
+  "generatedAt": "2026-10-07T02:30:21.811Z",
   "voice": {
     "name": "Sarah",
     "id": "EXAVITQu4vr4xnSDxMaL"
@@ -9,7 +9,7 @@
       "id": "s1",
       "file": "vo/s1.mp3",
       "model": "eleven_v4",
-      "durationSec": 3.76,
+      "durationSec": 13.12,
       "words": [
         {
           "text": "A",
@@ -19,7 +19,7 @@
         {
           "text": "certificate",
           "startMs": 160,
-          "endMs": 720
+          "endMs": 800
         },
         {
           "text": "is",
@@ -28,38 +28,143 @@
         },
         {
           "text": "just",
-          "startMs": 1120,
-          "endMs": 1280
+          "startMs": 1200,
+          "endMs": 1360
         },
         {
           "text": "a",
-          "startMs": 1360,
+          "startMs": 1400,
           "endMs": 1440
         },
         {
           "text": "file.",
           "startMs": 1520,
-          "endMs": 2320
+          "endMs": 2160
         },
         {
           "text": "Anyone",
-          "startMs": 2560,
-          "endMs": 2800
+          "startMs": 2320,
+          "endMs": 2720
         },
         {
           "text": "can",
-          "startMs": 2920,
-          "endMs": 3040
+          "startMs": 2800,
+          "endMs": 2880
         },
         {
           "text": "edit",
-          "startMs": 3160,
-          "endMs": 3280
+          "startMs": 2960,
+          "endMs": 3200
+        },
+        {
+          "text": "it",
+          "startMs": 3280,
+          "endMs": 3360
+        },
+        {
+          "text": "new",
+          "startMs": 3760,
+          "endMs": 3920
+        },
+        {
+          "text": "name,",
+          "startMs": 4000,
+          "endMs": 4480
+        },
+        {
+          "text": "higher",
+          "startMs": 4560,
+          "endMs": 4800
+        },
+        {
+          "text": "score.",
+          "startMs": 4880,
+          "endMs": 5360
+        },
+        {
+          "text": "The",
+          "startMs": 5760,
+          "endMs": 5840
+        },
+        {
+          "text": "fake",
+          "startMs": 5920,
+          "endMs": 6240
+        },
+        {
+          "text": "looks",
+          "startMs": 6320,
+          "endMs": 6560
+        },
+        {
+          "text": "real.",
+          "startMs": 6640,
+          "endMs": 7040
+        },
+        {
+          "text": "Checking",
+          "startMs": 7520,
+          "endMs": 8000
+        },
+        {
+          "text": "means",
+          "startMs": 8080,
+          "endMs": 8320
+        },
+        {
+          "text": "asking",
+          "startMs": 8400,
+          "endMs": 8800
+        },
+        {
+          "text": "the",
+          "startMs": 8840,
+          "endMs": 8880
+        },
+        {
+          "text": "issuer…",
+          "startMs": 9040,
+          "endMs": 9920
+        },
+        {
+          "text": "and",
+          "startMs": 10000,
+          "endMs": 10160
+        },
+        {
+          "text": "waiting.",
+          "startMs": 10240,
+          "endMs": 10960
+        },
+        {
+          "text": "So",
+          "startMs": 11200,
+          "endMs": 11360
+        },
+        {
+          "text": "most",
+          "startMs": 11600,
+          "endMs": 11760
+        },
+        {
+          "text": "people",
+          "startMs": 11840,
+          "endMs": 12080
+        },
+        {
+          "text": "just",
+          "startMs": 12160,
+          "endMs": 12320
+        },
+        {
+          "text": "trust",
+          "startMs": 12400,
+          "endMs": 12640
         },
         {
           "text": "it.",
-          "startMs": 3360,
-          "endMs": 3760
+          "startMs": 12720,
+          "endMs": 13120
         }
       ]
     },

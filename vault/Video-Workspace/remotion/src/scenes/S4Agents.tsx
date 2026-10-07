@@ -9,7 +9,8 @@ import { FrameStage, Headline } from '../components/Stage'
 import { PointSphere } from '../components/Sphere'
 import { TOKEN } from '../lib/objects'
 import belts from '../data/belt.json'
-import { cue, f } from '../lib/time'
+import { cue, rel } from '../lib/time'
+import { box } from '../lib/focus'
 import { Lift, SceneShell, Shot, useScene } from './shell'
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const
@@ -22,12 +23,12 @@ const K = FR.w / 1600
 export const S4Agents: React.FC = () => {
   const { frame, at, cutIn, cutOut } = useScene('s4')
   const { fps } = useVideoConfig()
-  const a = (sec: number) => at(f(sec))
+  const a = (sec: number) => at(rel('s4', sec)) // seconds after the scene's cut
   const tEssays = at(cue('s4', 'Essays')), tAgents = at(cue('s4', 'agents,')), tIdentity = at(cue('s4', 'on-chain'))
   const tProposes = at(cue('s4', 'proposes')), tScore = at(cue('s4', 'score'))
   const tSecond = at(cue('s4', 'second')), tAppointed = at(cue('s4', 'appointed')), tApproves = at(cue('s4', 'approves'))
   const tOwners = at(cue('s4', 'owners')), tModel = at(cue('s4', 'model')), tHired = at(cue('s4', 'hired'))
-  const B = { agent: [cutIn, a(32.6)], review: [a(32.6), a(39.95)], brain: [a(39.95), cutOut] }
+  const B = { agent: [cutIn, a(5.5)], review: [a(5.5), a(12.85)], brain: [a(12.85), cutOut] }
   const tShot = (s: number[]) => interpolate(frame, [s[0], s[1]], [0, 1], clamp)
 
   const fly = interpolate(frame, [tEssays - 2, tAgents + 4], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) })
@@ -71,10 +72,10 @@ export const S4Agents: React.FC = () => {
             <div style={{ position: 'absolute', left: crop.crop.x, top: crop.crop.y, width: crop.crop.width, height: crop.crop.height, overflow: 'hidden' }}>
               <Video src={staticFile('captures/essays-belt.mp4')} premountFor={fps} muted style={{ width: crop.crop.width, height: crop.crop.height }} />
             </div>
-            <Focus x={604} y={299} w={285} h={289} color={C.amber} p={proposeRing} r={18} />
-            <Focus x={888} y={299} w={285} h={289} color={C.green} p={doneRing} r={18} />
-            <Focus x={826} y={776} w={212} h={40} color={C.amber} p={proposalRing} />
-            <Focus x={319} y={764} w={1138} h={63} color={C.green} p={rowRing} />
+            <Focus {...box('essaysProposed')} color={C.amber} p={proposeRing} r={18} />
+            <Focus {...box('essaysFinal')} color={C.green} p={doneRing} r={18} />
+            <Focus {...box('essaysProposal')} color={C.amber} p={proposalRing} />
+            <Focus {...box('essaysRow')} color={C.green} p={rowRing} />
           </BrowserFrame>
         </FrameStage>
         <Headline at={tProposes - 4} out={tApproves - 10} text={'An agent\n*proposes*.'} />
@@ -94,8 +95,8 @@ export const S4Agents: React.FC = () => {
       <Shot from={B.brain[0]} to={B.brain[1]} enter="up" exit="zoom">
         <FrameStage t={tShot(B.brain)} ghost="captures/owner2534.png" seed={10}>
           <BrowserFrame persp={false} reflect src="captures/owner2534-brain.png" url="/#/app/owner" width={FR.w} x={FR.x} y={FR.y}>
-            <Focus x={364} y={597} w={700} h={80} p={provRing} />
-            <Focus x={360} y={826} w={1050} h={30} color={C.green} p={keyRing} />
+            <Focus {...box('brainProviders')} p={provRing} />
+            <Focus {...box('brainKey')} color={C.green} p={keyRing} />
           </BrowserFrame>
         </FrameStage>
         <Headline at={tOwners - 4} text={'Bring your own\n*AI model*.'} size={72} />

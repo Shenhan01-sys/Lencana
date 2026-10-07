@@ -2,9 +2,9 @@
 tags: [testing, "T97", video]
 status: active
 updated: 2026-10-07
-command: cd vault/Video-Workspace/remotion && node scripts/qa.mjs out/lencana-pitch-draft-3.mp4 · node scripts/vo-check.mjs · cd signer && npm run e2e · npm run journey · BASE_URL=<host tepi> node scripts/validator-check.js --hash <B153> --record
+command: cd vault/Video-Workspace/remotion && node scripts/qa.mjs out/lencana-pitch-draft-5.mp4 · node scripts/focus-audit.mjs · node scripts/vo-check.mjs · cd signer && npm run e2e · npm run journey · BASE_URL=<host tepi> node scripts/validator-check.js --hash <B153> --record
 measured: 2026-10-07
-result: QA HIJAU draf 4 (08.49–08.55) — koin 3D asli, tiga versi skor A/B/C pada gambar yang sama, ketiganya 93,0–93,1 dtk · −14,0 LUFS · TP −1,3/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · nol frasa terlarang (1.741 potong teks); skor B/C dibuat 08.46 (2.324 kredit ElevenLabs), nol kata vokal (STT). Sebelumnya QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
+result: QA HIJAU draf 5 (09.48–09.53) — problem 14,3 dtk, sertifikat bergerak (240 frame, 316 animasi digeser), 20 ring highlight diaudit (6 diperbaiki); A/B/C 103,10 dtk · −13,9 LUFS · TP −1,2/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · caption 227 kata · nol frasa terlarang (2.139 teks); gerbang durasi 95–110 dtk atas keputusan builder. Sebelumnya QA HIJAU draf 4 (08.49–08.55) — koin 3D asli, tiga versi skor A/B/C pada gambar yang sama, ketiganya 93,0–93,1 dtk · −14,0 LUFS · TP −1,3/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · nol frasa terlarang (1.741 potong teks); skor B/C dibuat 08.46 (2.324 kredit ElevenLabs), nol kata vokal (STT). Sebelumnya QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
 ---
 
 # T97 - Uji video pitch 90 detik (B173)
@@ -21,6 +21,58 @@ cek dengar `node scripts/vo-check.mjs`, musik `node scripts/music.mjs`, ketukan 
 baris ini sempat menulis `--crf=20`; README dan semua render memakai 18)*, master
 `node scripts/master.mjs out/draft.mp4 out/lencana-pitch.mp4`, gerbang `node scripts/qa.mjs out/lencana-pitch.mp4`.
 Sejak v3 juga `node scripts/splice-music.mjs` (menyisipkan birama utuh ke musik bila VO memanjang).
+
+## 0b. Draf 5 — problem +10 dtk, sertifikat bergerak, audit highlight (7 Okt 09.11–09.57 WIB)
+
+**Pemicu (builder 09.11):** (1) "kirim semua mp3 filesnya ke vault, nanti saya coba test dengerin"; (2) bagian sertifikat
+"kan certificate kita ada motionnya, tapi di video cuma diem doang … jalanin motionnya + POV-nya benar-benar natural dari
+angle yang keren dan immersive"; (3) "audit bagian highlight-nya … di bagian agent owner 'bring your own AI model' itu
+highlighter hijaunya kurang turun, ga sesuai dengan posisi field API key"; (4) "tambahin 10 detik lagi untuk bagian
+problemnya … gunakan motion full … gunakan referensi yang saya berikan sebagai pedoman".
+
+**(1) mp3 di vault:** `vault/Video-Workspace/Pilihan-Musik/` (diabaikan git: media hasil generate, sama dengan
+`remotion/public/`): `1-A-sekarang-musik.mp3`, `2-B-hype-musik.mp3`, `3-C-nusantara-musik.mp3` (skor saja) dan
+`4-…`, `5-…`, `6-…-dengan-VO.mp3` (campuran akhir draf 5: VO + SFX + skor, sudah dimaster). Semua 103,04–103,11 dtk.
+Salinan pertama (09.15) adalah versi 93 dtk dari draf 4; ditimpa versi draf 5 pukul 09.55.
+
+**(3) audit highlight — `node scripts/focus-audit.mjs`:** ke-20 ring kini satu sumber, `src/data/focus.json`; adegan
+membacanya lewat `box('nama')` (`src/lib/focus.ts`), dan alat audit menggambar tiap kotak (+ bantalan 8 px milik
+`<Focus>`) di tangkapan aslinya dengan grid 20 px. Hasil audit pertama: **6 dari 20 meleset** — `brainKey` membingkai
+baris catatan "Stays in this browser only…" (y 826), bukan field API key (diukur: field x 374–1438, y 708–748, label
+y 688–698) → kini label + field; `brainProviders` tepi atasnya memotong label PROVIDER → kini label + baris logo;
+`essaysProposal` memotong angka WORDS "174" → x 848; `certQr` bergeser dan memotong baris "ID kredensial" → plat QR utuh;
+`validVerdict`/`revokedVerdict` tidak mencakup ikon dan kelebihan 230 px ke kanan → ikon + kata. Audit ulang: 6/6 pas;
+14 lainnya sudah pas sejak awal.
+
+**(2) sertifikat bergerak — `node scripts/capture.mjs --only certMotion`:** halaman produksi, sertifikat B153 dibaca per
+alamat (pola T93, kunci perangkat acak). Sesudah klik "▶ Replay motion", **316 animasi CSS** lembar dibekukan lalu
+digeser ke k/30 dtk lewat Web Animations API; hitung-naik skor (JS) ditulis dengan rumus halaman sendiri
+(`web/src/pages/certificate-view.ts`: tunda 650 ms, 1.300 ms, `cubic-bezier(.22,1,.36,1)`) → **240 frame** (8 dtk) di
+DPR 2 → `cert-motion.mp4` 2490×1762. Di S5: kamera makro sudut rendah ke medali (blur kedalaman = salinan buram bertopeng
+radial), tarik mundur + orbit ke 3/4, melayang saat "signed/anchored" (ring dari `focus.json` dipetakan ke koordinat
+lembar), lalu dorong masuk ke medali yang di-*match-cut* ke koin soulbound. Temuan: `Shot` dengan sisi `'none'` tetap
+tampil 10 frame di luar jendelanya (koin menimpa sertifikat sebelum cut) → prop `hard` (potong tepat di batas).
+
+**(4) problem 14,3 dtk:** VO baris 1 baru (rencana §3) — `vo.mjs --only s1`: **13,12 dtk, 31 kata, 142 wpm**; cek dengar
+STT: 31 kata, semuanya sesuai naskah. Empat shot (referensi sebagai pedoman): file + slam JUST A FILE (ref5) → jendela
+"Edit PDF" melayang 3D + kursor mengilap + stiker NEW NAME / HIGHER SCORE (ref3/ref1/ref2) → tiga sertifikat dikocok,
+"Which one is edited?" + lensa (ref5) → pesan "Is this certificate real?" berjalan di garis sirkuit ke penerbit, jam
+berputar, hari berganti, "no reply yet" (ref4) → dinding 18 orang, 15 memberi centang "looks fine" (ref3) → slam merah
+JUST TRUST IT? → cap UNVERIFIED → pecah ke "Meet Lencana". Durasi ditambah **tepat 5 birama = 10,02 dtk**:
+`timeline.json` s2–s8 +10,02 dtk; tiap skor diperpanjang dengan **birama 2 miliknya sendiri ×5** (`extend-intro.mjs`,
+naik volume 0,6 → 1; terukur +10,020 dtk untuk ketiganya), jadi lagu yang didengar builder tetap lagu yang sama. Potongan
+shot di dalam adegan kini relatif ke awal adegannya (`rel()`), sehingga pergeseran ini tidak perlu disunting di 16 tempat.
+Gerbang durasi `qa.mjs` 85–95 → **95–110 dtk** (keputusan builder, AC-B173#1).
+
+| `node scripts/qa.mjs …` (09.48–09.53) | durasi | loudness | true peak | kedipan | caption | frasa terlarang |
+|---|---|---|---|---|---|---|
+| `out/lencana-pitch-draft-5.mp4` (A, `score-b-long`) | 103,10 dtk | −13,9 LUFS | −1,2 dBTP | terbanyak 2 lonjakan | 227 kata · 46 px · 10,5/16,0/7,4 : 1 | 0 dari 2.139 |
+| `…-draft-5-hype.mp4` (B) | 103,10 dtk | −13,9 LUFS | −1,4 dBTP | terbanyak 2 lonjakan | sama | 0 dari 2.139 |
+| `…-draft-5-nusantara.mp4` (C) | 103,10 dtk | −13,9 LUFS | −1,3 dBTP | terbanyak 2 lonjakan | sama | 0 dari 2.139 |
+
+Semua **QA HIJAU**. Lonjakan luma ≥ 20 draf 5 (13): 2,03/2,67 (JUST A FILE), 12,90/13,57 (JUST TRUST IT?), 21,87 (wipe
+S2→S3), 61,20/61,73 (SOULBOUND), 73,73/74,67 (NO WALLET/NO LOGIN), 95,20/95,70/96,27/97,20 (LEARN/TEST/PROVE IT) —
+terbanyak 2 per jendela 1 dtk. Pratinjau CRF 25 (20,2 MiB masing-masing) dikirim 09.57.
 
 ## 0a. Draf 4 — koin 3D + tiga pilihan skor (7 Okt 08.37–08.57 WIB)
 
@@ -195,7 +247,8 @@ tangkapan — sesi itu hanya membaca) → dibersihkan `npm run cleanup -- --appl
 
 - ~~Telinga builder atas draf 2 (suara, musik)~~ → 7 Okt 07.10: "overall bagus dan udah sangat oke, tapi masih bisa di
   push lebih gila lagi" + tiga permintaan → draf 3. ~~Telinga + mata builder atas draf 3~~ → 08.37: "Nice ini dulu" +
-  koin kurang 3D + minta usulan backsound → draf 4 (§0a). **Pilihan skor A/B/C** + mata builder atas koin 3D — AC-B173#12.
+  koin kurang 3D + minta usulan backsound → draf 4 (§0a) → 09.11: mp3 ke vault, sertifikat bergerak, audit highlight,
+  problem +10 dtk → draf 5 (§0b). **Pilihan skor A/B/C** (dengar di `Video-Workspace/Pilihan-Musik/`) — AC-B173#12.
 - Render final + unggah + submit — builder (B65/B64), AC-B173#13.
 - Catatan halus draf 3 (belum diubah): selama setengah pertama wipe, sisi layar yang belum tertutup sudah menampilkan
   adegan berikutnya yang mulai masuk (tumpang-tindih adegan `XF` = 8 frame vs pertumbuhan wipe 12 frame).

@@ -7,7 +7,8 @@ import { BrowserFrame, Focus } from '../components/BrowserFrame'
 import { Chip, Tag, useRamp } from '../components/Bits'
 import { FrameStage, Headline } from '../components/Stage'
 import belt from '../data/belt.json'
-import { cue, f } from '../lib/time'
+import { cue, rel } from '../lib/time'
+import { box, type Box } from '../lib/focus'
 import { SceneShell, Shot, useScene } from './shell'
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const
@@ -18,10 +19,10 @@ const FR = { x: 640, y: 96, w: 1160 }
 export const S7Pipeline: React.FC = () => {
   const { frame, at, cutIn, cutOut } = useScene('s7')
   const { fps } = useVideoConfig()
-  const a = (sec: number) => at(f(sec))
+  const a = (sec: number) => at(rel('s7', sec)) // seconds after the scene's cut
   const tBehind = at(cue('s7', 'Behind')), tPipeline = at(cue('s7', 'pipeline')), tEnroll = at(cue('s7', 'enrollment')), tPayout = at(cue('s7', 'payout,'))
   const tEvery = at(cue('s7', 'every')), tSettled = at(cue('s7', 'settled'))
-  const B = { belt: [cutIn, a(80.5)], money: [a(80.5), cutOut] }
+  const B = { belt: [cutIn, a(5.302)], money: [a(5.302), cutOut] }
   const tShot = (s: number[]) => interpolate(frame, [s[0], s[1]], [0, 1], clamp)
 
   const lift = useRamp(tPipeline - 10, tPipeline + 12)
@@ -30,6 +31,7 @@ export const S7Pipeline: React.FC = () => {
   const moneyRing = useRamp(tEvery - 4, tEvery + 6)
   const txRing = useRamp(tSettled - 4, tSettled + 6)
   const c = belt.crop
+  const inCrop = (b: Box): Box => ({ ...b, x: b.x - c.x, y: b.y - c.y }) // the belt video sits in its own crop box
 
   return (
     <SceneShell id="s7">
@@ -39,8 +41,8 @@ export const S7Pipeline: React.FC = () => {
           <BrowserFrame persp={false} reflect src="captures/admin.png" url="/#/app/admin" width={FR.w} x={FR.x} y={FR.y}>
             <div style={{ position: 'absolute', left: c.x, top: c.y, width: c.width, height: c.height, overflow: 'hidden', borderRadius: 16 * lift, transform: `translate(${-14 * lift}px, ${-40 * lift}px) scale(${1 + 0.08 * lift})`, boxShadow: `0 ${50 * lift}px ${100 * lift}px rgba(0,0,0,${0.7 * lift}), 0 0 0 ${3 * lift}px ${C.gold}, 0 0 ${60 * lift}px ${C.gold}55`, background: C.card }}>
               <Video src={staticFile('captures/admin-belt.mp4')} premountFor={fps} muted style={{ width: c.width, height: c.height }} />
-              <Focus x={483 - c.x} y={508 - c.y} w={162} h={330} p={enrollRing} />
-              <Focus x={1293 - c.x} y={508 - c.y} w={162} h={330} color={C.green} p={payRing} />
+              <Focus {...inCrop(box('adminEnroll'))} p={enrollRing} />
+              <Focus {...inCrop(box('adminPayout'))} color={C.green} p={payRing} />
             </div>
           </BrowserFrame>
         </FrameStage>
@@ -51,8 +53,8 @@ export const S7Pipeline: React.FC = () => {
       <Shot from={B.money[0]} to={B.money[1]} enter="down" exit="zoom">
         <FrameStage t={tShot(B.money)} seed={15}>
           <BrowserFrame persp={false} reflect src="captures/pub-revenue.png" url="/#/app/pub/revenue" width={FR.w} x={FR.x} y={FR.y}>
-            <Focus x={296} y={233} w={1184} h={306} p={moneyRing} />
-            <Focus x={296} y={730} w={1184} h={248} color={C.green} p={txRing} />
+            <Focus {...box('revenueMoney')} p={moneyRing} />
+            <Focus {...box('revenueTx')} color={C.green} p={txRing} />
           </BrowserFrame>
         </FrameStage>
         <Headline at={tEvery - 4} text={'Every\npayment,\n*on-chain*.'} size={80} y={200} />

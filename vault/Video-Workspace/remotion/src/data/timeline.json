@@ -1,8 +1,8 @@
 {
   "fps": 30,
-  "note": "Seconds. voStart = when each VO clip starts; sceneStart = when each scene's picture takes over. v3 (7 Oct): s5 gained the NFT sentence (+4.2 s) → the score got two bars (4.008 s) inserted at the bar line 50.15 s (scripts/splice-music.mjs), so s6–s8 and their cuts move by exactly +4.008 s and keep their beats and accents. v2 note: s3 re-read ('pay by signing — no gas fees'), s4 +0.4 s.",
-  "music": "music/score-b.mp3",
-  "voStart": { "s1": 0.5, "s2": 4.81, "s3": 12.37, "s4": 27.45, "s5": 44.55, "s6": 60.978, "s7": 75.518, "s8": 83.798 },
-  "sceneStart": { "s1": 0, "s2": 4.28, "s3": 12.03, "s4": 27.1, "s5": 44.14, "s6": 60.668, "s7": 75.198, "s8": 83.218 },
-  "end": 93.0
+  "note": "Seconds. voStart = when each VO clip starts; sceneStart = when each scene's picture takes over. Draft 5 (7 Oct, builder: +10 s for the problem): s1 is now 13.12 s of VO, so the problem section grew by exactly 5 bars (10.02 s at 119.76 BPM) — each score got its own bar 2 repeated 5x at the bar line ~4.05 s (scripts/extend-intro.mjs), and s2–s8 moved by +10.02 s, keeping their beats and accents. Shot cuts inside scenes are written relative to their scene start (rel() in lib/time.ts), so a shift like this needs no other edit. v3 note: s5 gained the NFT sentence → two bars inserted at 50.15 s (scripts/splice-music.mjs). v2 note: s3 re-read, s4 +0.4 s.",
+  "music": "music/score-b-long.mp3",
+  "voStart": { "s1": 0.5, "s2": 14.83, "s3": 22.39, "s4": 37.47, "s5": 54.57, "s6": 70.998, "s7": 85.538, "s8": 93.818 },
+  "sceneStart": { "s1": 0, "s2": 14.3, "s3": 22.05, "s4": 37.12, "s5": 54.16, "s6": 70.688, "s7": 85.218, "s8": 93.238 },
+  "end": 103.02
 }

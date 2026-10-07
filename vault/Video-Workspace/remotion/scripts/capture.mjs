@@ -170,6 +170,51 @@ const SHOTS = {
     await save(q, 'credentials', { sels: { cards: '[class*="cred-card"], article' } })
     await q.close()
   },
+  async certMotion () {
+    // B173 draft 5 — the certificate's OWN entrance motion ("▶ Replay motion", B165/B167), frame-exact at DPR 2.
+    // After the replay click every CSS animation of the sheet is paused and SEEKED to k/30 s (Web Animations API), and
+    // the score count-up — JS, not CSS — is written with the page's own formula (certificate-view.ts: 650 ms delay,
+    // 1300 ms, cubic-bezier(.22,1,.36,1)). A screencast would be real-time at CSS resolution; this is sharp and exact.
+    const p = await page({ identity: { address: L153, pk: '0x' + randomBytes(32).toString('hex') } })
+    await go(p, `#/app/credentials/${B153}`)
+    await p.waitForSelector('.cert-sheet', { timeout: 90000 }).catch(() => errors.push('certMotion: no sheet'))
+    await sleep(6500)
+    const box = await p.evaluate(() => { const r = document.querySelector('.cert-sheet').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height } })
+    const score = await p.evaluate(() => Number((document.querySelector('[data-s3-score]')?.textContent || '').trim()))
+    const anims = await p.evaluate(() => {
+      document.querySelector('[data-act="replay"]').click()
+      const list = document.querySelector('.cert-sheet').getAnimations({ subtree: true })
+      list.forEach((a) => a.pause())
+      window.__certAnims = list
+      return list.length
+    })
+    await sleep(2600) // the page's own count-up runs in real time; let it finish so it stops writing the score
+    const dir = path.join(OUT, 'cert-motion')
+    fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir)
+    const FRAMES = 240 // 8 s
+    const clip = { x: Math.floor(box.x) - 2, y: Math.floor(box.y) - 2, width: Math.ceil(box.w) + 4, height: Math.ceil(box.h) + 4 }
+    for (let k = 0; k < FRAMES; k++) {
+      await p.evaluate((t, to) => {
+        for (const a of window.__certAnims) a.currentTime = t
+        const bez = (x1, y1, x2, y2) => {
+          const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by
+          const X = (u) => ((ax * u + bx) * u + cx) * u, Y = (u) => ((ay * u + by) * u + cy) * u, dX = (u) => (3 * ax * u + 2 * bx) * u + cx
+          return (x) => { if (x <= 0) return 0; if (x >= 1) return 1; let u = x; for (let i = 0; i < 8; i++) { const e = X(u) - x, d = dX(u); if (Math.abs(e) < 1e-5 || Math.abs(d) < 1e-6) break; u -= e / d } return Y(Math.min(1, Math.max(0, u))) }
+        }
+        const span = document.querySelector('[data-s3-score] span') || document.querySelector('[data-s3-score]')
+        span.textContent = t < 650 ? '0' : String(Math.round(to * bez(0.22, 1, 0.36, 1)(Math.min(1, (t - 650) / 1300))))
+        return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+      }, (k * 1000) / 30, score)
+      await p.screenshot({ path: path.join(dir, `f${String(k).padStart(4, '0')}.png`), clip })
+      if (k % 30 === 0) console.log(`  · certMotion ${k}/${FRAMES}`)
+    }
+    const { spawnSync } = await import('node:child_process')
+    const enc = spawnSync('ffmpeg', ['-v', 'error', '-y', '-framerate', '30', '-i', path.join(dir, 'f%04d.png'), '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', 'libx264', '-crf', '12', '-preset', 'slow', '-pix_fmt', 'yuv420p', path.join(OUT, 'cert-motion.mp4')], { encoding: 'utf8' })
+    if (enc.status !== 0) errors.push(`certMotion encode: ${enc.stderr.slice(0, 200)}`)
+    fs.writeFileSync(path.join(OUT, 'cert-motion.json'), JSON.stringify({ id: 'cert-motion', url: p.url(), at: new Date().toISOString(), box, clip, dpr: DPR, fps: 30, frames: FRAMES, animations: anims, score }, null, 1))
+    console.log(`  ✓ cert-motion  ${FRAMES} frames · ${anims} animations seeked · score ${score} · clip ${clip.width}x${clip.height}`)
+    await p.close()
+  },
   async learner () {
     const pk = keyOf('L_b143'); const address = await addressOf(pk)
     const p = await page({ identity: { address, pk } })

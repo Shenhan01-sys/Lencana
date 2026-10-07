@@ -11,10 +11,11 @@ updated: 2026-10-07
 **Terkait:** [[00-Overview/05 - Demo Scenes]] (rencana lama 5 menit) · [[00-Overview/12 - Business Process]] §9 (naskah 90 detik lama) ·
 [[03-Frontend/FE11 - Prototipe Admin proses bisnis (B172)]] (sabuk benda) · **Testing / Summary:** menyusul sesudah render pertama (T97, Summary B173)
 
-> **Status 7 Okt 08.57 WIB: DRAF 4 SELESAI dalam tiga versi skor, menunggu builder memilih.** Koin soulbound kini benda
-> 3D sungguhan; skor A (sekarang) / B hype / C nusantara pada gambar yang sama, ketiganya lulus gerbang otomatis
-> ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0a). Yang belum: pilihan skor + mata builder atas koin, render
-> final, unggah + submit (builder). *(Status 08.28: draf 3 dikirim — ditonton 08.37.)*
+> **Status 7 Okt 09.57 WIB: DRAF 5 SELESAI (103 dtk) dalam tiga versi skor, menunggu builder memilih.** Problem jadi
+> ilustrasi 14 dtk, sertifikat memutar motion aslinya di bawah kamera hero, 20 ring highlight diaudit; A/B/C lulus gerbang
+> ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0b); mp3 untuk didengar ada di `Video-Workspace/Pilihan-Musik/`.
+> Yang belum: pilihan skor, render final, unggah + submit (builder). *(Status 08.57: draf 4 — ditonton 09.11. Status
+> 08.28: draf 3 dikirim — ditonton 08.37.)*
 > *(Status 05.00: draf 2 selesai, menunggu builder mendengar — ditonton 07.10, lihat §13. Status 03.20: rencana saja.)*
 
 ## 0. Permintaan builder
@@ -75,7 +76,7 @@ NFT + Bagikan ke LinkedIn, Admin (sabuk proses bisnis FE11).
 |---|---|---|
 | ukuran | **1920×1080, 16:9** | YouTube/portal hackathon; potongan 9:16 untuk media sosial di luar cakupan hari ini |
 | fps | **30** | cukup untuk gerak UI; render cepat; rekaman layar juga 30 |
-| durasi | **88–92 detik** (AC: 85–95) | permintaan builder |
+| durasi | ~~88–92 detik (AC: 85–95)~~ → **±103 detik (AC: 95–110)** sejak draf 5 | permintaan builder; 7 Okt 09.11: "tambahin 10 detik lagi untuk bagian problemnya" (tepat 5 birama = 10,02 dtk, supaya grid musik tetap) |
 | bahasa | **Inggris**: VO, caption, label | permintaan builder; UI direkam `?lang=en`; judul kursus tetap Indonesia (materinya memang Indonesia) |
 | audio | VO + musik + SFX, −14 LUFS, true peak ≤ −1 dBTP | standar YouTube |
 | caption | selalu tampil (dibakar), ≤ 2 baris, kata aktif disorot emas | inklusif: penonton tuli/HoH dan yang menonton tanpa suara |
@@ -86,7 +87,7 @@ NFT + Bagikan ke LinkedIn, Admin (sabuk proses bisnis FE11).
 
 | # | waktu | VO (Inggris) | sumber klaim |
 |---|---|---|---|
-| 1 | 0:00–0:05 | "A certificate is just a file. Anyone can edit it." | README §Why this exists ("A PDF certificate is forged with Photoshop") |
+| 1 | 0:00–0:14 | **Draf 5:** "A certificate is just a file. Anyone can edit it — new name, higher score. The fake looks real. Checking means asking the issuer… and waiting. So most people just trust it." *(7 Okt 09.11 builder: problem ditambah ±10 dtk "agar orang langsung benar-benar ngeh". Draf 1–4: "A certificate is just a file. Anyone can edit it.")* | README §Why this exists ("A PDF certificate is forged with Photoshop … how does a checker know it is genuine?"). Kalimat 3–5 adalah **pembingkaian masalah umum, bukan klaim produk**: tanpa angka, lama tunggu, atau persentase. Sertifikat, nama ("Alex Morgan", "Sam Rivera") dan nilai di layar adalah ilustrasi generik |
 | 2 | 0:05–0:13 | "Meet Lencana — learning credentials anyone can check for themselves, without taking our word for it." | README baris 3 ("anyone can verify — no wallet, no login, and without having to trust us") |
 | 3 | 0:12–0:27 | "Sign in with just your email — your wallet is created for you. Pick a course, pay by signing — no gas fees — and learn at your own pace. Quizzes are graded by the publisher's server, so scores are never typed in." *(koreksi 7 Okt saat produksi: draf menulis "pay with a **single** signature" — salah; `web/src/learning.ts:1334` menyebut pembayaran = **dua tanda tangan** (izin EIP-2612 + saksi Permit2), **nol transaksi** dari dompet peserta, settlement disiarkan server penerbit. VO baris ini dibaca ulang.)* | Cheat-Sheet baris D57 (email + dompet dibuatkan Privy); B125 (bayar = tanda tangan EIP-2612 + Permit2, tanpa gas dari peserta); salinan hero beranda + baris `POST /grade` |
 | 4 | 0:29–0:47 | "Essays go to AI grading agents, each with its own on-chain identity. An agent only proposes a score — it counts once a second reviewer, appointed by the publisher, approves it. Agent owners bring their own AI model and get hired per job." | Cheat-Sheet: ERC-8004 (identitas, bukan reputasi), B104/B120 (dihitung sesudah pengesah yang ditunjuk penerbit — **tanpa** kata "human"/"mentor"), B135 (otak + API key milik pemilik), B119 (disewa per aktivitas) |
@@ -271,3 +272,9 @@ Total ±5,5 jam kerja saya di luar waktu builder meninjau.
 | 7 Okt 08.42–08.48 | koin ditulis ulang jadi benda CSS 3D (dua muka di ±tebal/2, tepi 72 faset bergerigi berpencahayaan per normal, teks lingkar berisi klaim §3 baris 5), 10 still sudut kritis, render penuh **draf 4** |
 | 7 Okt 08.45–08.46 | **usulan backsound = tiga versi pada potongan yang sama**: A sekarang (`score-b`, electro-pop peluncuran produk), **B hype** (future bass / electro-pop, drop besar), **C nusantara** (elektronik modern + motif saron/bonang, gong, kendang — identitas Indonesia untuk BNB Hackathon Indonesia). B dan C dibuat `scripts/music-alt.mjs` dengan bagian yang mulai tepat di kata slam; 2.324 kredit |
 | 7 Okt 08.49–08.57 | A/B/C dimaster + QA HIJAU semua (T97 §0a); hanya C yang terukur "menghentak" di slam (+7,3 dB di NO WALLET, +3,0 dB di "Lencana."), tapi intronya hampir sunyi (−40 dB 12 dtk pertama); B paling rapat energinya sejak detik 0; A sudah habis ±89 dtk sementara kartu penutup sampai 93 dtk. Tiga pratinjau dikirim; pilihan = builder |
+| 7 Okt 09.11 | **builder atas draf 4:** (1) kirim semua mp3 ke vault untuk didengar; (2) sertifikat "ada motionnya tapi di video cuma diem" → jalankan motion-nya + POV natural, sudut keren, imersif; (3) audit semua kotak highlight — ring hijau "bring your own AI model" tidak di field API key; (4) problem +10 dtk, motion full, referensi sebagai pedoman |
+| 7 Okt 09.15 | (1) 6 mp3 di `Video-Workspace/Pilihan-Musik/` (skor A/B/C + campuran dengan VO), diabaikan git |
+| 7 Okt 09.19–09.24 | (3) `src/data/focus.json` + `scripts/focus-audit.mjs`: 6 dari 20 ring meleset (API key, provider, proposal, QR, dua verdict) → diperbaiki, semua adegan membaca kotak dari satu file |
+| 7 Okt 09.25 | (2) motion asli sertifikat direkam frame-exact (316 animasi CSS digeser per frame, 240 frame DPR 2) → hero shot S5: makro medali + blur kedalaman, orbit 3/4, *match cut* medali → koin |
+| 7 Okt 09.30–09.45 | (4) VO baris 1 baru (13,12 dtk, STT 31/31 kata), problem 14,3 dtk = +5 birama tepat; skor A/B/C diperpanjang dengan birama 2-nya sendiri; S1 ditulis ulang (file → edit → kocok → tanya + menunggu → percaya → JUST TRUST IT?); potongan shot jadi relatif ke awal adegan; gerbang durasi 95–110 dtk |
+| 7 Okt 09.48–09.57 | **draf 5** dirender (gambar sekali, skor B/C lewat audio-saja), A/B/C **QA HIJAU** 103,10 dtk · −13,9 LUFS; mp3 di vault diganti versi 103 dtk; tiga pratinjau (20,2 MiB) dikirim |

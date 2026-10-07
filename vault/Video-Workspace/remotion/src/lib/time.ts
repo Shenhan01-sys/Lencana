@@ -47,6 +47,10 @@ export const SCENE = Object.fromEntries(ids.map((id, i) => {
   return [id, { start, end: next, dur: next - start }]
 })) as Record<LineId, { start: number, end: number, dur: number }>
 
+/** Absolute frame `sec` seconds after the start of scene `id` — shot cuts inside a scene are written this way, so a
+ *  scene that moves (draft 5: everything after the problem moved +10.02 s) carries its shots with it. */
+export const rel = (id: LineId, sec: number) => SCENE[id].start + f(sec)
+
 /** Overlap drawn on both sides of a cut (scenes render a little before/after their window). */
 export const XF = 8
 

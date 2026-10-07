@@ -54,6 +54,9 @@ Thumbs.db
 # pemiliknya) dan kit Motion-as-Code (model ONNX 95 MB, SFX buatan ElevenLabs tanpa lisensi tertulis).
 # Tetap di disk untuk dipelajari; tidak pernah masuk riwayat repo publik ini.
 vault/Video-Workspace/Reference-VideoPitchs/
+# Salinan dengar skor A/B/C untuk builder (dibuat ulang dari remotion/public/music + render; media hasil generate
+# tidak masuk git, sama dengan remotion/public/).
+vault/Video-Workspace/Pilihan-Musik/
 
 # Cache `wrangler`: state login + artefak build lokal. Yang kita commit dari `cloudflare/` hanya
 # source-nya — `wrangler.toml` sengaja berisi alamat publik saja (resolver + RPC), karena kunci

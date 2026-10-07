@@ -19,7 +19,8 @@ console.log('#1 berkas')
 ok('1920×1080', v.width === 1920 && v.height === 1080, `${v.width}×${v.height}`)
 ok('30 fps', v.r_frame_rate === '30/1', v.r_frame_rate)
 ok('H.264 + AAC', v.codec_name === 'h264' && a?.codec_name === 'aac', `${v.codec_name} + ${a?.codec_name} ${a?.sample_rate} Hz`)
-ok('durasi 85–95 detik', dur >= 85 && dur <= 95, `${dur.toFixed(2)} s`)
+// AC-B173#1: 85–95 s until draft 4; builder 7 Oct: "tambahin 10 detik lagi untuk bagian problemnya" → 95–110 s
+ok('durasi 95–110 detik', dur >= 95 && dur <= 110, `${dur.toFixed(2)} s`)
 
 // #7 loudness
 console.log('#7 audio')

@@ -1,0 +1,23 @@
+{
+  "_": "B173 — every highlight ring in the video, in capture CSS px (1600×1000 page, the BrowserFrame child space). One source for the scenes AND for `node scripts/focus-audit.mjs`, which draws each box on its capture so a ring that misses its element is seen before render (builder 7 Oct: the API-key ring in the agent-brain shot sat off the field). `target` = the element the ring must frame.",
+  "loginEmail": { "capture": "login.png", "x": 366, "y": 496, "w": 366, "h": 48, "target": "email input of the sign-in modal" },
+  "payCta": { "capture": "course-learner.png", "x": 1005, "y": 295, "w": 300, "h": 50, "target": "Pay & enroll button" },
+  "payNote": { "capture": "course-learner.png", "x": 1000, "y": 506, "w": 312, "h": 46, "target": "note: you only sign, no gas" },
+  "essaysProposed": { "capture": "pub-essays.png", "x": 604, "y": 299, "w": 285, "h": 289, "target": "belt station 2: robot proposer (Proposed)" },
+  "essaysFinal": { "capture": "pub-essays.png", "x": 888, "y": 299, "w": 285, "h": 289, "target": "belt station 3: stamp desk (Final)" },
+  "essaysProposal": { "capture": "pub-essays.png", "x": 848, "y": 776, "w": 180, "h": 40, "target": "PROPOSAL cell of the first essay row (98 · agent)", "fixed": "7 Oct audit: was x 826 w 212 — its left edge cut the WORDS value 174" },
+  "essaysRow": { "capture": "pub-essays.png", "x": 319, "y": 764, "w": 1138, "h": 63, "target": "first essay row (approved)" },
+  "brainProviders": { "capture": "owner2534-brain.png", "x": 374, "y": 586, "w": 675, "h": 81, "target": "PROVIDER label + provider logo row (bring your own model)", "fixed": "7 Oct audit: was 364,597 700x80 — its top edge ran through the PROVIDER label" },
+  "brainKey": { "capture": "owner2534-brain.png", "x": 374, "y": 688, "w": 1064, "h": 60, "target": "API KEY label + input field", "fixed": "7 Oct builder: was 360,826 1050x30 = the 'stays in this browser only' note line, not the field" },
+  "certSigned": { "capture": "cert.png", "x": 250, "y": 786, "w": 700, "h": 64, "target": "issuer / signed-by plate of the certificate" },
+  "certQr": { "capture": "cert.png", "x": 1067, "y": 637, "w": 216, "h": 293, "target": "QR plate (verify link) with its scan note and credential ID", "fixed": "7 Oct audit: was 1072,648 216x240 — shifted right, bottom edge cut the 'ID kredensial' line" },
+  "shareAdd": { "capture": "cert-share.png", "x": 502, "y": 150, "w": 292, "h": 36, "target": "Add to LinkedIn profile button" },
+  "validChecks": { "capture": "verify-valid.png", "x": 250, "y": 84, "w": 1120, "h": 44, "target": "four check steps bar" },
+  "validVerdict": { "capture": "verify-valid.png", "x": 258, "y": 194, "w": 124, "h": 46, "target": "verdict icon + 'Valid'", "fixed": "7 Oct audit: was 300,196 300x50 — left the check icon out and ran 230 px past the word" },
+  "revokedChecks": { "capture": "verify-revoked.png", "x": 250, "y": 84, "w": 1120, "h": 44, "target": "four check steps bar (revocation step red)" },
+  "revokedVerdict": { "capture": "verify-revoked.png", "x": 258, "y": 194, "w": 394, "h": 46, "target": "verdict icon + 'No longer valid — revoked'", "fixed": "7 Oct audit: was 300,196 520x50 — left the ! icon out and ran past the words" },
+  "adminEnroll": { "capture": "admin.png", "x": 483, "y": 508, "w": 162, "h": 330, "target": "belt station: enrollment (13)" },
+  "adminPayout": { "capture": "admin.png", "x": 1293, "y": 508, "w": 162, "h": 330, "target": "belt station: settlement / payout (27)" },
+  "revenueMoney": { "capture": "pub-revenue.png", "x": 296, "y": 233, "w": 1184, "h": 306, "target": "Where the money goes card" },
+  "revenueTx": { "capture": "pub-revenue.png", "x": 296, "y": 730, "w": 1184, "h": 248, "target": "Paid enrollments table" }
+}

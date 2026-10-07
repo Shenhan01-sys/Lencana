@@ -6,7 +6,8 @@ import { BAR, BrowserFrame, Focus } from '../components/BrowserFrame'
 import { Cursor } from '../components/Cursor'
 import { Chip, Icon, Tag, usePop, useRamp } from '../components/Bits'
 import { FrameStage, Headline } from '../components/Stage'
-import { cue, f } from '../lib/time'
+import { cue, rel } from '../lib/time'
+import { box } from '../lib/focus'
 import { Lift, SceneShell, Shot, useScene } from './shell'
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const
@@ -71,13 +72,13 @@ const QuizToServer: React.FC<{ t0: number, tGraded: number, tServer: number, tSc
 /** S3 — sign in with email, pick a course, pay by signing (no gas), learn, quizzes graded by the publisher's server. */
 export const S3Learn: React.FC = () => {
   const { frame, at, cutIn, cutOut } = useScene('s3')
-  const a = (sec: number) => at(f(sec))
+  const a = (sec: number) => at(rel('s3', sec)) // seconds after the scene's cut
   const tEmail = at(cue('s3', 'email')), tWallet = at(cue('s3', 'wallet')), tCreated = at(cue('s3', 'created'))
   const tPick = at(cue('s3', 'Pick')), tCourse = at(cue('s3', 'course,'))
   const tPay = at(cue('s3', 'pay')), tSigning = at(cue('s3', 'signing')), tGas = at(cue('s3', 'gas')), tFees = at(cue('s3', 'fees'))
   const tLearn = at(cue('s3', 'learn')), tPace = at(cue('s3', 'pace.'))
   const tQuiz = at(cue('s3', 'Quizzes')), tGraded = at(cue('s3', 'graded')), tServer = at(cue('s3', 'server,')), tScores = at(cue('s3', 'scores')), tNever = at(cue('s3', 'never'))
-  const B = { login: [cutIn, a(16.06)], catalog: [a(16.06), a(18.07)], pay: [a(18.07), a(20.59)], klass: [a(20.59), a(22.6)], quiz: [a(22.6), cutOut] }
+  const B = { login: [cutIn, a(4.03)], catalog: [a(4.03), a(6.04)], pay: [a(6.04), a(8.56)], klass: [a(8.56), a(10.57)], quiz: [a(10.57), cutOut] }
   const tShot = (s: number[]) => interpolate(frame, [s[0], s[1]], [0, 1], clamp)
 
   // ref1 opening: start inside the glowing email field, pull back to the whole sign-in modal as the wallet is created
@@ -99,7 +100,7 @@ export const S3Learn: React.FC = () => {
           <AbsoluteFill style={{ transformOrigin: `${px}px ${py}px`, transform: `translate(${(960 - px) * (1 - zoom)}px, ${(470 - py) * (1 - zoom)}px) scale(${zs})` }}>
             <BrowserFrame persp={false} reflect={zoom > 0.9} src="captures/login.png" url="/#/login" width={FR.w} x={FR.x} y={FR.y}>
               <Typing from={tEmail - 10} to={tEmail + 10} />
-              <Focus x={366} y={496} w={366} h={48} p={inputGlow} />
+              <Focus {...box('loginEmail')} p={inputGlow} />
               <Cursor pts={[{ at: B.login[0] + 4, x: 820, y: 700 }, { at: tEmail - 14, x: 560, y: 522, click: true }, { at: tWallet - 6, x: 560, y: 580, click: true }, { at: B.login[1], x: 640, y: 640 }]} size={40} />
             </BrowserFrame>
           </AbsoluteFill>
@@ -123,8 +124,8 @@ export const S3Learn: React.FC = () => {
       <Shot from={B.pay[0]} to={B.pay[1]} enter="down" exit="left">
         <FrameStage t={tShot(B.pay)} seed={6}>
           <BrowserFrame persp={false} src="captures/course-learner.png" url="/#/course/web3-dasar-2026" width={FR.w + 300 * zoomPay} x={FR.x - 60 * zoomPay} y={FR.y - 30 * zoomPay}>
-            <Focus x={1005} y={295} w={300} h={50} p={ctaRing} />
-            <Focus x={1000} y={506} w={312} h={46} color={C.green} p={okLine} />
+            <Focus {...box('payCta')} p={ctaRing} />
+            <Focus {...box('payNote')} color={C.green} p={okLine} />
             <Cursor pts={[{ at: B.pay[0] + 4, x: 1260, y: 640 }, { at: tPay - 2, x: 1150, y: 322, click: true }, { at: B.pay[1], x: 1180, y: 420 }]} size={34} />
           </BrowserFrame>
         </FrameStage>
