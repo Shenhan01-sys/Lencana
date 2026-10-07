@@ -1,26 +1,26 @@
-=== CAPTION INSTAGRAM (tempel apa adanya) ===
+=== INSTAGRAM CAPTION (paste as is) ===
 SHOW TIME. 🏅
 
-Lencana resmi masuk Indonesia Web3 Hackathon 2026 (Consumer Apps track) di BNB Chain 🚀
+Lencana is officially in the Indonesia Web3 Hackathon 2026 (Consumer Apps track), built on BNB Chain 🚀
 
-Sertifikat itu cuma file. Siapa pun bisa edit nama atau nilainya, dan yang palsu kelihatan sama persis. Jadi kami bikin Lencana: kredensial belajar yang bisa dicek sendiri oleh siapa pun, tanpa harus percaya sama kami.
+A certificate is just a file. Anyone can edit the name or the grade, and the fake looks exactly like the real one. So we built Lencana: learning credentials anyone can check for themselves, without taking our word for it.
 
-Yang udah jalan sekarang:
-✅ Masuk cukup pakai email, dompetnya dibuatin otomatis
-✅ Bayar kursus cukup tanda tangan, tanpa biaya gas
-✅ Esai dinilai agen AI, tapi baru berlaku setelah reviewer kedua yang ditunjuk penerbit menyetujui
-✅ Kredensial ditandatangani penerbit dan dicatat di BNB Chain
-✅ Badge soulbound (ERC-5192): nggak bisa dijual, dipindah, atau dibakar
-✅ Verifikasi dari satu link, tanpa dompet, tanpa login
-✅ Lolos validator 1EdTech Open Badges 3.0 dengan 0 error
+What's already live:
+✅ Sign in with just your email, your wallet is created for you
+✅ Pay for a course by signing, no gas fees
+✅ Essays graded by AI agents, counted only after a second reviewer appointed by the publisher approves
+✅ Credentials signed by the publisher and anchored on BNB Chain
+✅ Soulbound badge (ERC-5192): no one can sell, transfer or burn it
+✅ Verify from one link, no wallet, no login
+✅ Passes the 1EdTech Open Badges 3.0 validator with 0 errors
 
-Cek project-nya di gallery hackathon 👇
+Check out the project in the hackathon gallery 👇
 https://indonesiaweb3hack.xyz/en/projects/proj_3b383cf48823e20042
-Coba langsung: lencana-psi.vercel.app
-(link juga ada di bio)
+Try it yourself: lencana-psi.vercel.app
+(link in bio)
 
 Learn, test, and prove it. Live now on BNB Chain testnet.
 
-*Demo di testnet: penerbitnya fiktif dan pembayarannya pakai token uji.
+*Testnet demo: the publisher is fictional and payments use a test token.
 
 #Lencana #IndonesiaWeb3Hackathon #BNBChain #Web3Indonesia #EdTech #OpenBadges #SoulboundToken #AIAgents #BuildOnBNB
