@@ -38,8 +38,15 @@ export const Cursor: React.FC<{ pts: CursorPt[], size?: number, hideAfter?: numb
   return (
     <>
       {rings}
-      <svg width={size} height={size * 1.25} viewBox="0 0 24 30" style={{ position: 'absolute', left: x - 3, top: y - 2, opacity: op, transform: `scale(${press})`, transformOrigin: '3px 2px', filter: 'drop-shadow(0 6px 10px rgba(0,0,0,0.55))' }}>
-        <path d="M2 1.5 L2 24 L8 18.5 L12 27.5 L16 25.8 L12 17 L20 17 Z" fill="#ffffff" stroke="#0b0e11" strokeWidth="1.6" strokeLinejoin="round" />
+      <svg width={size} height={size * 1.25} viewBox="0 0 24 30" style={{ position: 'absolute', left: x - 3, top: y - 2, opacity: op, transform: `scale(${press})`, transformOrigin: '3px 2px', filter: `drop-shadow(0 8px 12px rgba(0,0,0,0.6)) drop-shadow(0 0 8px ${C.gold}66)` }}>
+        <defs>
+          <linearGradient id="lencana-cursor" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="0.55" stopColor="#fff4cc" />
+            <stop offset="1" stopColor={C.gold} />
+          </linearGradient>
+        </defs>
+        <path d="M2 1.5 L2 24 L8 18.5 L12 27.5 L16 25.8 L12 17 L20 17 Z" fill="url(#lencana-cursor)" stroke="#0b0e11" strokeWidth="1.4" strokeLinejoin="round" />
       </svg>
     </>
   )

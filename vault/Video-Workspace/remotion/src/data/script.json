@@ -24,8 +24,9 @@
     },
     {
       "id": "s5",
-      "text": "Pass, and your credential is signed by the publisher and anchored on BNB Chain. Mint a soulbound badge that can't be sold or transferred, and add it to LinkedIn straight from the app.",
-      "spoken": "Pass, and your credential is signed by the publisher and anchored on B N B Chain. Mint a soulbound badge that can't be sold or transferred, and add it to LinkedIn straight from the app."
+      "speed": 1.08,
+      "text": "Pass, and your credential is signed by the publisher and anchored on BNB Chain. Then mint its soulbound badge — no one can sell, transfer or burn it, and it's only minted for a valid credential. Add it to LinkedIn straight from the app.",
+      "spoken": "Pass, and your credential is signed by the publisher and anchored on B N B Chain. Then mint its soulbound badge — no one can sell, transfer, or burn it, and it's only minted for a valid credential. Add it to LinkedIn straight from the app."
     },
     {
       "id": "s6",

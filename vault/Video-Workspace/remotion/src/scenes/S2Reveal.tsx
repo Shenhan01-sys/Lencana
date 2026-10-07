@@ -5,6 +5,7 @@ import { Backdrop } from '../components/Backdrop'
 import { BrowserFrame } from '../components/BrowserFrame'
 import { Mark, Wordmark } from '../components/Logo'
 import { usePop, useRamp } from '../components/Bits'
+import { Bokeh, Layer, Stage } from '../components/Stage'
 import { cue } from '../lib/time'
 import { SceneShell, SHARDS, useScene } from './shell'
 
@@ -61,9 +62,23 @@ export const S2Reveal: React.FC = () => {
           </div>
         </div>
       </AbsoluteFill>
+      {/* v3 (ref5 shape morph): a ring of motes orbits the mark and contracts into it */}
+      {ring > 0 && ring < 1 ? Array.from({ length: 18 }).map((_, k) => {
+        const ang = (k / 18) * Math.PI * 2 + ring * 2.4
+        const rr = 260 - 190 * ring
+        return <div key={k} style={{ position: 'absolute', left: lockX + Math.cos(ang) * rr - 6, top: 430 + Math.sin(ang) * rr * 0.92 - 6, width: 12, height: 12, borderRadius: 12, background: C.gold, opacity: 1 - ring * 0.7, transform: `scale(${1 - ring * 0.5})` }} />
+      }) : null}
       {site > 0 ? (
-        <BrowserFrame src="captures/landing.png" url="/#/" width={1280} x={320} y={interpolate(site, [0, 1], [900, 70]) - push * 20}
-          rotX={interpolate(site, [0, 1], [32, 7])} rotY={interpolate(site, [0, 1], [-14, -5]) + push * 4} scale={0.96 + push * 0.06} opacity={Math.min(1, site * 1.6)} />
+        <Stage rx={interpolate(site, [0, 1], [24, 6])} ry={interpolate(push, [0, 1], [-10, -3])} ty={interpolate(site, [0, 1], [700, 0])} tz={push * 90}>
+          <Layer z={-520} blur={6} opacity={0.45 * site}>
+            <BrowserFrame persp={false} src="captures/catalog.png" url="/#/courses" width={1100} x={-180} y={130} rotY={18} />
+            <BrowserFrame persp={false} src="captures/verify-valid-top.png" url="/#/verify" width={1100} x={1000} y={160} rotY={-18} />
+          </Layer>
+          <Layer z={0} opacity={Math.min(1, site * 1.6)}>
+            <BrowserFrame persp={false} reflect src="captures/landing.png" url="/#/" width={1280} x={320} y={60} />
+          </Layer>
+          <Layer z={260}><Bokeh seed={2} count={6} /></Layer>
+        </Stage>
       ) : null}
     </SceneShell>
   )

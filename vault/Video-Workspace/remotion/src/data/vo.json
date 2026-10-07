@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-06T21:28:15.799Z",
+  "generatedAt": "2026-10-07T00:53:36.407Z",
   "voice": {
     "name": "Sarah",
     "id": "EXAVITQu4vr4xnSDxMaL"
@@ -576,7 +576,7 @@
       "id": "s5",
       "file": "vo/s5.mp3",
       "model": "eleven_v4",
-      "durationSec": 11.84,
+      "durationSec": 16.08,
       "words": [
         {
           "text": "Pass,",
@@ -605,12 +605,12 @@
         },
         {
           "text": "signed",
-          "startMs": 1920,
-          "endMs": 2080
+          "startMs": 1960,
+          "endMs": 2160
         },
         {
           "text": "by",
-          "startMs": 2160,
+          "startMs": 2200,
           "endMs": 2240
         },
         {
@@ -620,7 +620,7 @@
         },
         {
           "text": "publisher",
-          "startMs": 2680,
+          "startMs": 2480,
           "endMs": 2960
         },
         {
@@ -641,107 +641,157 @@
         {
           "text": "BNB",
           "startMs": 4080,
-          "endMs": 4560
+          "endMs": 4480
         },
         {
           "text": "Chain.",
-          "startMs": 5000,
-          "endMs": 5480
+          "startMs": 4560,
+          "endMs": 5440
         },
         {
-          "text": "Mint",
+          "text": "Then",
           "startMs": 5520,
-          "endMs": 5680
-        },
-        {
-          "text": "a",
-          "startMs": 5760,
           "endMs": 5920
         },
         {
+          "text": "mint",
+          "startMs": 6080,
+          "endMs": 6320
+        },
+        {
+          "text": "its",
+          "startMs": 6400,
+          "endMs": 6560
+        },
+        {
           "text": "soulbound",
-          "startMs": 5960,
-          "endMs": 6480
-        },
-        {
-          "text": "badge",
-          "startMs": 6560,
-          "endMs": 6880
-        },
-        {
-          "text": "that",
-          "startMs": 6960,
+          "startMs": 6640,
           "endMs": 7120
         },
         {
-          "text": "can't",
+          "text": "badge",
           "startMs": 7200,
-          "endMs": 7360
-        },
-        {
-          "text": "be",
-          "startMs": 7440,
-          "endMs": 7600
-        },
-        {
-          "text": "sold",
-          "startMs": 7760,
           "endMs": 7920
         },
         {
-          "text": "or",
-          "startMs": 8000,
+          "text": "no",
+          "startMs": 8080,
           "endMs": 8160
         },
         {
-          "text": "transferred,",
+          "text": "one",
           "startMs": 8240,
+          "endMs": 8400
+        },
+        {
+          "text": "can",
+          "startMs": 8520,
+          "endMs": 8640
+        },
+        {
+          "text": "sell,",
+          "startMs": 8720,
           "endMs": 9160
         },
         {
-          "text": "and",
+          "text": "transfer",
           "startMs": 9200,
-          "endMs": 9360
+          "endMs": 9800
         },
         {
-          "text": "add",
-          "startMs": 9440,
-          "endMs": 9520
+          "text": "or",
+          "startMs": 9840,
+          "endMs": 10000
+        },
+        {
+          "text": "burn",
+          "startMs": 10080,
+          "endMs": 10320
+        },
+        {
+          "text": "it,",
+          "startMs": 10400,
+          "endMs": 10827
+        },
+        {
+          "text": "and",
+          "startMs": 10853,
+          "endMs": 10880
+        },
+        {
+          "text": "it's",
+          "startMs": 10960,
+          "endMs": 11200
+        },
+        {
+          "text": "only",
+          "startMs": 11280,
+          "endMs": 11520
+        },
+        {
+          "text": "minted",
+          "startMs": 11600,
+          "endMs": 11920
+        },
+        {
+          "text": "for",
+          "startMs": 12000,
+          "endMs": 12080
+        },
+        {
+          "text": "a",
+          "startMs": 12160,
+          "endMs": 12240
+        },
+        {
+          "text": "valid",
+          "startMs": 12400,
+          "endMs": 12560
+        },
+        {
+          "text": "credential.",
+          "startMs": 12640,
+          "endMs": 13720
+        },
+        {
+          "text": "Add",
+          "startMs": 13760,
+          "endMs": 13840
         },
         {
           "text": "it",
-          "startMs": 9600,
-          "endMs": 9680
+          "startMs": 13920,
+          "endMs": 14000
         },
         {
           "text": "to",
-          "startMs": 9760,
-          "endMs": 9840
+          "startMs": 14080,
+          "endMs": 14160
         },
         {
           "text": "LinkedIn",
-          "startMs": 10120,
-          "endMs": 10400
+          "startMs": 14440,
+          "endMs": 14720
         },
         {
           "text": "straight",
-          "startMs": 10560,
-          "endMs": 10800
+          "startMs": 14800,
+          "endMs": 15040
         },
         {
           "text": "from",
-          "startMs": 10880,
-          "endMs": 10960
+          "startMs": 15120,
+          "endMs": 15200
         },
         {
           "text": "the",
-          "startMs": 11040,
-          "endMs": 11120
+          "startMs": 15280,
+          "endMs": 15360
         },
         {
           "text": "app.",
-          "startMs": 11200,
-          "endMs": 11920
+          "startMs": 15440,
+          "endMs": 16160
         }
       ]
     },

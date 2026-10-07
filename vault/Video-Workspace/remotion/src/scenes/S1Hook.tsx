@@ -4,6 +4,7 @@ import { C, MONO, SANS } from '../theme'
 import { Backdrop } from '../components/Backdrop'
 import { Cursor } from '../components/Cursor'
 import { Icon, usePop } from '../components/Bits'
+import { FullBleed } from '../components/Stage'
 import { cue, SCENE } from '../lib/time'
 import { SceneShell, SHARDS, TILE, useScene } from './shell'
 
@@ -65,6 +66,8 @@ export const S1Hook: React.FC = () => {
         </AbsoluteFill>
       )}
       <Cursor pts={[{ at: tAny - 4, x: 1500, y: 980 }, { at: tEdit - 2, x: gradeX, y: gradeY, click: true }, { at: tBreak, x: gradeX + 40, y: gradeY + 30 }]} hideAfter={tBreak} />
+      {/* v3 (ref5): a hard-cut full-bleed slam on "file." — the certificate is just a file */}
+      <FullBleed from={tFile} to={tAny - 5} bg="#f3eee2" color="#0b0e11" text="JUST A FILE" dot={C.red} size={230} sub="certificate_final.pdf · editable by anyone" />
     </SceneShell>
   )
 }

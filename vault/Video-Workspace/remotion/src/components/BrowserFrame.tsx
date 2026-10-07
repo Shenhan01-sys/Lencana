@@ -26,18 +26,23 @@ export type FrameProps = {
   opacity?: number
   children?: React.ReactNode
   rim?: string
+  /** glossy floor reflection under the window (v3) */
+  reflect?: boolean
+  /** false inside <Stage>, which already supplies the perspective */
+  persp?: boolean
 }
 
 export const BAR = 46
 
-export const BrowserFrame: React.FC<FrameProps> = ({ src, url, width, viewH, imgH = 1000, scroll = 0, x, y, rotX = 0, rotY = 0, rotZ = 0, z = 0, scale = 1, opacity = 1, children, rim = C.gold }) => {
+export const BrowserFrame: React.FC<FrameProps> = ({ src, url, width, viewH, imgH = 1000, scroll = 0, x, y, rotX = 0, rotY = 0, rotZ = 0, z = 0, scale = 1, opacity = 1, children, rim = C.gold, reflect = false, persp = true }) => {
   const k = width / CAP_W
   const vh = viewH ?? Math.round(1000 * k)
   return (
     <div style={{
       position: 'absolute', left: x, top: y, width, height: vh + BAR, opacity,
-      transform: `perspective(2600px) translateZ(${z}px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`,
+      transform: `${persp ? 'perspective(2600px) ' : ''}translateZ(${z}px) rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`,
       transformOrigin: '50% 50%', willChange: 'transform',
+      WebkitBoxReflect: reflect ? 'below 14px linear-gradient(transparent 66%, rgba(255,255,255,0.13))' : undefined,
     }}>
       <div style={{
         position: 'absolute', inset: 0, borderRadius: 18, overflow: 'hidden', background: C.bg2,
@@ -67,7 +72,9 @@ export const BrowserFrame: React.FC<FrameProps> = ({ src, url, width, viewH, img
 export const Focus: React.FC<{ x: number, y: number, w: number, h: number, p: number, color?: string, r?: number }> = ({ x, y, w, h, p, color = C.gold, r = 12 }) => (
   <div style={{
     position: 'absolute', left: x - 8, top: y - 8, width: w + 16, height: h + 16, borderRadius: r,
-    border: `3px solid ${color}`, opacity: p, boxShadow: `0 0 ${24 * p}px ${color}88, inset 0 0 ${18 * p}px ${color}33`,
+    border: `3px solid ${color}`, opacity: p,
+    // v3: neon — a tight core, a wide halo, and a faint inner fill (ref1's glowing prompt box)
+    boxShadow: `0 0 ${10 * p}px ${color}, 0 0 ${46 * p}px ${color}99, 0 0 ${90 * p}px ${color}44, inset 0 0 ${22 * p}px ${color}40`,
     transform: `scale(${1.06 - 0.06 * p})`,
   }} />
 )

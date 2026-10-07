@@ -1,4 +1,5 @@
 {
-  "note": "Where scripts/capture.mjs (shot 'admin') recorded the moving belt on #/app/admin, in the capture's CSS px (viewport 1600x1000). Copied from public/captures/admin-belt.json (regenerated, not in git) so the scene compiles from a clone.",
-  "crop": { "x": 297, "y": 484, "width": 1182, "height": 384 }
+  "note": "Where scripts/capture.mjs recorded moving belts, in the capture's CSS px (viewport 1600x1000). Copied from public/captures/*-belt.json (regenerated, not in git) so the scenes compile from a clone. admin = #/app/admin (B172), essays = #/app/pub/essays (B174).",
+  "crop": { "x": 297, "y": 484, "width": 1182, "height": 384 },
+  "essays": { "crop": { "x": 307, "y": 281, "width": 1162, "height": 320 } }
 }

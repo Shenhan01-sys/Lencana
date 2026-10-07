@@ -3,6 +3,7 @@ import { AbsoluteFill, Sequence, useVideoConfig } from 'remotion'
 import { C } from './theme'
 import { LineId, SCENE, XF } from './lib/time'
 import { Captions } from './components/Captions'
+import { CircleWipe } from './components/Stage'
 import { Soundtrack } from './audio/Soundtrack'
 import { S1Hook } from './scenes/S1Hook'
 import { S2Reveal } from './scenes/S2Reveal'
@@ -28,6 +29,10 @@ export const Pitch: React.FC = () => {
           <Scene />
         </Sequence>
       ))}
+      {/* brand wipes on the three act changes (ref2): product → agents → credential → back office */}
+      <CircleWipe at={SCENE.s3.start} />
+      <CircleWipe at={SCENE.s5.start} from={[220, 900]} to={[1700, 180]} />
+      <CircleWipe at={SCENE.s7.start} />
       <Captions />
       <Soundtrack />
     </AbsoluteFill>

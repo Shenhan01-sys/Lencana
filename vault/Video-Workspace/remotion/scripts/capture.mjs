@@ -209,6 +209,22 @@ const SHOTS = {
     }
     await p.close()
   },
+  async essaysBelt () {
+    // B174 essay belt (until it is pushed, only the local build has it): same identity, local base, plus the belt in motion
+    const pk = envKey('ISSUER_PRIVATE_KEY'); const address = await addressOf(pk)
+    const p = await page({ identity: { address, pk }, base: LOCAL })
+    await go(p, '#/app/pub/essays')
+    await p.waitForSelector('.eb-line', { timeout: 120000 }).catch(() => errors.push('essaysBelt: no belt'))
+    await sleep(4000)
+    await save(p, 'pub-essays', { sels: { card: '.pb-pipe', st: '.eb-st', rows: '.pb-table tbody tr' } })
+    const b = await p.evaluate(() => { const r = document.querySelector('.eb-wrap').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height } })
+    const crop = { x: Math.max(0, Math.round(b.x - 12)), y: Math.max(0, Math.round(b.y - 12)), width: Math.round((b.w + 24) / 2) * 2, height: Math.round((b.h + 24) / 2) * 2 }
+    const rec = await p.screencast({ path: path.join(OUT, 'essays-belt.webm'), crop, fps: 30, quality: 12 })
+    await sleep(9000)
+    await rec.stop()
+    fs.writeFileSync(path.join(OUT, 'essays-belt.json'), JSON.stringify({ crop }, null, 1))
+    await p.close()
+  },
   async graderOwner () {
     const pk = envKey('AGENT_OWNER_PRIVATE_KEY'); const address = await addressOf(pk)
     const p = await page({ identity: { address, pk } })
