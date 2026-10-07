@@ -1,0 +1,11 @@
+To bridge this gap, we built Lencana: a micro-course platform whose output is a self-sovereign credential that stands entirely on its own. 
+
+Instead of acting as a centralized authority, Lencana shifts ownership back to the institution. Every course ships with an immutable digital manifest carrying the institution’s grading criteria, weights, and passing marks. The cryptographic hash of this policy is written into every issued credential. This ensures a grade cannot be altered after the fact—neither by the school nor by us. Student work is evaluated against these locked rules by a mechanical scorer and an optional model judge, both refusing to invent scores if raw evidence is missing. 
+
+On the issuance layer, the institution signs attestations via its own agent through delegation on the BNB Attestation Service (BAS)—a public, decentralized EAS deployment we do not own. We eliminate Web3 UX friction: the issuer never needs a crypto wallet or gas money, because Lencana broadcasts and subsidizes the transactions on the backend. 
+
+Verification asks nothing of the checker. The system reads issuer permissions and credential status directly from the BNB Chain, requiring no accounts, no wallets, and leaving Lencana out of the request path. To ensure real-time revocation, we utilize two bitstring status lists (revocation and suspension) dynamically rebuilt from the live chain state on every call. Because both list hashes are timestamped on-chain, our platform endpoint cannot quietly alter what a verifier reads. 
+
+Learners receive a soulbound artifact: a non-transferable, permanent token mintable only while the credential is live. 
+
+Finally, the proof layer has a commercial shape. Machine callers buy verification in batches over HTTP 402; revenue is split on-chain where the publisher keeps the majority and Lencana’s share is a fixed percentage that can only ever be lowered. Live on BNB Chain testnet, with a demo issuer and its own test corpus.

@@ -1,0 +1,7 @@
+Today, a digital course certificate is usually just a PDF—and a PDF proves nothing on its own. To verify it, an employer or recruiter has to track down the school, ask for confirmation, and trust the answer. That arrangement rewards brand over evidence: a small, honest publisher cannot produce credible proof, while a louder, less credible one can put whatever it wants on paper.
+
+The underlying issue goes even deeper. A student's record—rubrics, weights, and grades—sits inside the issuer's private database. It can be changed after the certificate was handed out, and nothing on the certificate shows that it happened. Revocation is barely modelled either: we read the code of six open-source learning platforms at pinned commits (Moodle, Open edX, Canvas, Chamilo, Frappe LMS, LearnHouse), and in none of them can a stranger tell whether a credential is still valid without asking the platform that issued it. Moodle's badge exporter says it out loud: "Signed is not implemented yet."
+
+The student owns nothing in this deal: if the school's website goes down or the platform shuts, the proof goes with it. And on-chain attempts often put the cost in the wrong place—a wallet and gas money, asked of people who never wanted either.
+
+We are not here to fix course quality; we are here to fix the proof layer: the grading rules sealed together with the result, a credential status anyone can read from a public record, and verification that is free, instant, and needs no account.

@@ -23,9 +23,12 @@ Motion-as-Code kit: voiceover first → word timings → scenes find their words
 | audition a score without re-rendering pictures | `npx remotion render LencanaPitch out/audio-x.wav --codec=wav --props='{"music":"music/alt-hype.mp3"}'`, then `ffmpeg -i out/draft.mp4 -i out/audio-x.wav -map 0:v -map 1:a -c:v copy -c:a pcm_s16le out/x-raw.mov` and master it | `out/` |
 | stills for review | `node scripts/stills.mjs s=4.5,11.3` | `out/stills/` |
 | render | `npx remotion render LencanaPitch out/draft.mp4 --crf=18 --gl=angle` | `out/` |
-| master (−14 LUFS, ≤ −1.5 dBTP) | `node scripts/master.mjs out/draft.mp4 out/lencana-pitch.mp4` | `out/` |
+| draft 6: squash a score's beat-locked high-band crackle (split > 5 kHz, fast compressor, low-pass 12 kHz; lossless) | `node scripts/soften-music.mjs public/music/alt-hype-long.mp3 public/music/alt-hype-long-soft.wav` | `public/music/*-soft.wav` |
+| master (−14 LUFS, ≤ −1.5 dBTP); **refuses an input that already clips** (peak ≥ −0.5 dBFS) | `node scripts/master.mjs out/draft.mp4 out/lencana-pitch.mp4` | `out/` |
 | gate (AC-B173 #1 #3 #4 #7 #8) | `node scripts/qa.mjs out/lencana-pitch.mp4` | report |
 
+Draft 6 (7 Oct): the builder picked the hype score; `music` = `alt-hype-long-soft.wav`; the whole mix is scaled by
+`MIX = 0.6` in `src/audio/Soundtrack.tsx` (draft 5 clipped at 6 impact slams). `out/lencana-pitch-draft-6.mp4`, QA green.
 Draft 5 (7 Oct): the problem section is 14.3 s of illustration (S1), the certificate plays its own motion under a hero
 camera (S5), all highlight rings audited, ~103 s. Shot cuts inside scenes are written relative to their scene start
 (`rel()` in `src/lib/time.ts`), so moving a scene moves its shots. Default score: `music/score-b-long.mp3` (A);

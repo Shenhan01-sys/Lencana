@@ -164,4 +164,17 @@ Versi panjangnya tetap hidup sebagai referensi: [[00-Overview/10 - Project Detai
 nanti field-nya ternyata bisa lebih panjang (mis. ada field "full documentation" terpisah), itu yang
 dikirim — jangan hasil pangkas ini.
 
+## Tinjauan 7 Okt — teks yang ditulis ulang builder di `13-SubmissionDocs/`
+
+Builder 7 Okt 10.22 menulis ulang empat teks ke `vault/13-SubmissionDocs/` dan bertanya "apakah narasinya
+udah benar?". Aslinya **tidak disentuh**; koreksi ada di berkas `*-revisi.txt` di folder yang sama. Panjang
+dihitung `[...text].length` hari ini; frasa diuji dengan daftar terlarang `qa.mjs` + tiga overclaim di bawah.
+
+| berkas | panjang | temuan | perbaikan |
+|---|---|---|---|
+| `TagLine-OneSentence.txt` | 101 | sama dengan tagline di atas | — |
+| `Problem.txt` | 1.379 / 2.000 | bukti enam LMS + kutipan Moodle terbuang (bukti terkuat bagian ini); "existing blockchain solutions get it wrong" = klaim tentang pihak lain tanpa bukti | `Problem-revisi.txt` 1.482: bukti LMS kembali, "on-chain attempts often…" |
+| `Solution.txt` | 1.977 / 2.000 | "**a grade cannot be altered**" (aturan tagline di atas: jangan pernah "can't be changed"), "self-sovereign", "immutable manifest" (manifest boleh direvisi → `rubricHash` baru), "decentralized"; "mechanical scorer + optional model judge" tertinggal dari produk (esai = usulan agen AI, berlaku sesudah reviewer kedua yang ditunjuk penerbit menyetujui — Cheat-Sheet); daftar status "dynamically rebuilt … on every call" ≠ "derived at publication, re-checked on every read" | `Solution-revisi.txt` 1.765 |
+| `Project-Detail-Maks2000chars.txt` | **5.590** | nama berkas "maks 2000" tapi isinya 5.590 — plafon field menurut catatan ini 5.600 (dikoreksi 27 Sep); **dua alamat basi**: SoulboundCert `0xA5eB…309c` (aktif `0xC6FD…c4cd`, `web/src/config.ts:41`) dan DemoCourseToken `0xEd19…CDDe` (aktif `0x0B2f…CBaf`); "rebuilt from chain state per request"; langkah 6 versi lama; "break-even ≈ $5.24 BNB" salah satuan (yang benar: harga BNB titik impas ≈ $5,24 — salah ini juga ada di artefak tempel kita, diperbaiki hari ini, PASTE 5.594/5.600) | `Project-Detail-revisi.txt` 5.517; kalau field memang 2.000: `Project-Detail-ringkas-2000.txt` 1.812 |
+
 **Related:** [[00-Overview/06 - Business Process]] · [[10-Contributors/Claims-Cheat-Sheet]] · [[08-Results/01 - Evidence and Limits]]

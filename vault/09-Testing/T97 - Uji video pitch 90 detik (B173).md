@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-07
 command: cd vault/Video-Workspace/remotion && node scripts/qa.mjs out/lencana-pitch-draft-5.mp4 · node scripts/focus-audit.mjs · node scripts/vo-check.mjs · cd signer && npm run e2e · npm run journey · BASE_URL=<host tepi> node scripts/validator-check.js --hash <B153> --record
 measured: 2026-10-07
-result: QA HIJAU draf 5 (09.48–09.53) — problem 14,3 dtk, sertifikat bergerak (240 frame, 316 animasi digeser), 20 ring highlight diaudit (6 diperbaiki); A/B/C 103,10 dtk · −13,9 LUFS · TP −1,2/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · caption 227 kata · nol frasa terlarang (2.139 teks); gerbang durasi 95–110 dtk atas keputusan builder. Sebelumnya QA HIJAU draf 4 (08.49–08.55) — koin 3D asli, tiga versi skor A/B/C pada gambar yang sama, ketiganya 93,0–93,1 dtk · −14,0 LUFS · TP −1,3/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · nol frasa terlarang (1.741 potong teks); skor B/C dibuat 08.46 (2.324 kredit ElevenLabs), nol kata vokal (STT). Sebelumnya QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
+result: QA HIJAU draf 6 (10.34, skor hype pilihan builder) — 103,10 dtk · −13,9 LUFS · TP −1,2 dBTP · flat factor 0 (draf 5 clipping di 6 slam, flat factor 24 → MIX 0,6 + skor dihaluskan) · nol frasa terlarang (2.139 teks). Sebelumnya QA HIJAU draf 5 (09.48–09.53) — problem 14,3 dtk, sertifikat bergerak (240 frame, 316 animasi digeser), 20 ring highlight diaudit (6 diperbaiki); A/B/C 103,10 dtk · −13,9 LUFS · TP −1,2/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · caption 227 kata · nol frasa terlarang (2.139 teks); gerbang durasi 95–110 dtk atas keputusan builder. Sebelumnya QA HIJAU draf 4 (08.49–08.55) — koin 3D asli, tiga versi skor A/B/C pada gambar yang sama, ketiganya 93,0–93,1 dtk · −14,0 LUFS · TP −1,3/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · nol frasa terlarang (1.741 potong teks); skor B/C dibuat 08.46 (2.324 kredit ElevenLabs), nol kata vokal (STT). Sebelumnya QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
 ---
 
 # T97 - Uji video pitch 90 detik (B173)
@@ -21,6 +21,37 @@ cek dengar `node scripts/vo-check.mjs`, musik `node scripts/music.mjs`, ketukan 
 baris ini sempat menulis `--crf=20`; README dan semua render memakai 18)*, master
 `node scripts/master.mjs out/draft.mp4 out/lencana-pitch.mp4`, gerbang `node scripts/qa.mjs out/lencana-pitch.mp4`.
 Sejak v3 juga `node scripts/splice-music.mjs` (menyisipkan birama utuh ke musik bila VO memanjang).
+
+## 0c. Draf 6 — skor hype dipilih, "kresek" dihilangkan (7 Okt 10.25–10.36 WIB)
+
+**Pemicu (builder 10.25):** atas `lencana-pitch-draft-5-hype.mp4`: "MANTAP BANGET, tapi kok ada suara kresek-kresek
+gitu ya satu tempo satu tempo? bisa dihilangkan aja? lalu render ulang dan push commit sisanya". → skor **B hype** dipilih.
+
+**Diukur dulu, baru diubah** (skrip ukur di scratchpad, angka dari run hari ini):
+
+| dugaan | ukuran | hasil |
+|---|---|---|
+| clipping di mix | `astats` mix render s16 draf 5 hype | **Peak 0,0 dBFS, flat factor 24, 196 puncak**; puncak rata ≥ 32.600 di **6 titik**: 14,88 · 61,23 · 61,30 · 73,85 · 74,74 · 93,95 dtk = tepat di impact slam (S2, SOULBOUND, NO WALLET, NO LOGIN, "Lencana.") → "kresek" sesekali. Versi A juga (7 titik) |
+| klik digital di skor | lompatan sampel > 6× RMS lokal | skor hype: **0** |
+| desis per ketukan di skor | energi > 6 kHz tepat di ketukan vs di antaranya | skor hype bagian Agents: **+18 s/d +21 dB** di 5–18 kHz (ledakan pendek per ketukan) + pita atas 10–20 dB lebih terang dari skor A; di mix tertutup VO (rasio ±0 dB), terdengar saat musik sendirian |
+
+**Perbaikan:** (1) `Soundtrack.tsx` `MIX = 0,6` untuk VO, skor, dan SFX (imbangan sama, ruang ±4,4 dB; master
+mengembalikan −14 LUFS); (2) `scripts/soften-music.mjs`: pita > 5 kHz dipisah, dikompres cepat (ledakan per ketukan
+turun 6,5 dB di 5–8 kHz dan 15 dB di 8–12 kHz; pita < 5 kHz tak disentuh), low-pass 12 kHz, keluaran WAV 24-bit →
+`music/alt-hype-long-soft.wav` = `timeline.json` `music`. Mix audio-saja sesudahnya: **Peak −2,86 dBFS, flat factor 0,
+nol sampel ≥ 32.000**.
+
+`node scripts/qa.mjs out/lencana-pitch-draft-6.mp4` (10.34, render penuh ulang): 103,10 dtk · **−13,9 LUFS** (sebelum
+master −19,22) · **TP −1,2 dBTP** · terbanyak 2 lonjakan luma per detik · caption 227 kata · nol frasa terlarang
+(2.139 teks) → **QA HIJAU**; `astats` master: Peak −1,25 dBFS, **flat factor 0**. Pratinjau 20,6 MiB dikirim 10.36;
+`Pilihan-Musik/2-…` dan `5-B-hype-dengan-VO.mp3` diganti versi tanpa kresek.
+
+**Celah gerbang yang terbuka oleh kejadian ini:** draf 5 lolos semua cek `qa.mjs` padahal mix-nya clipping — loudness
+dan true peak diukur **sesudah** master (gain turun, AAC menghaluskan puncak rata: *flat factor* master draf 5 = 0).
+Jejak yang tersisa ada di **input** master: puncak render mentah draf 5 **+0,21 dBFS**. Maka `scripts/master.mjs` kini
+menolak memaster input berpuncak ≥ −0,5 dBFS. Uji dua jalur (aturan vault #14): `master.mjs out/draft-5.mp4` →
+`INPUT CLIPS: peak 0.21217 dBFS …`, **exit 1, tidak ada berkas keluaran**; `master.mjs out/draft-6.mp4` → `input peak
+-2.867069 dBFS (headroom ok)`, −13,9 LUFS / −1,2 dBTP, exit 0.
 
 ## 0b. Draf 5 — problem +10 dtk, sertifikat bergerak, audit highlight (7 Okt 09.11–09.57 WIB)
 
@@ -248,7 +279,8 @@ tangkapan — sesi itu hanya membaca) → dibersihkan `npm run cleanup -- --appl
 - ~~Telinga builder atas draf 2 (suara, musik)~~ → 7 Okt 07.10: "overall bagus dan udah sangat oke, tapi masih bisa di
   push lebih gila lagi" + tiga permintaan → draf 3. ~~Telinga + mata builder atas draf 3~~ → 08.37: "Nice ini dulu" +
   koin kurang 3D + minta usulan backsound → draf 4 (§0a) → 09.11: mp3 ke vault, sertifikat bergerak, audit highlight,
-  problem +10 dtk → draf 5 (§0b). **Pilihan skor A/B/C** (dengar di `Video-Workspace/Pilihan-Musik/`) — AC-B173#12.
+  problem +10 dtk → draf 5 (§0b) → 10.25: skor **hype** dipilih ("MANTAP BANGET") + hilangkan kresek → draf 6 (§0c).
+  Acc builder atas draf 6 sebagai render final — AC-B173#12(d).
 - Render final + unggah + submit — builder (B65/B64), AC-B173#13.
 - Catatan halus draf 3 (belum diubah): selama setengah pertama wipe, sisi layar yang belum tertutup sudah menampilkan
   adegan berikutnya yang mulai masuk (tumpang-tindih adegan `XF` = 8 frame vs pertumbuhan wipe 12 frame).

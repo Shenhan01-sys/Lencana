@@ -11,6 +11,8 @@ updated: 2026-10-07
 **Terkait:** [[00-Overview/05 - Demo Scenes]] (rencana lama 5 menit) · [[00-Overview/12 - Business Process]] §9 (naskah 90 detik lama) ·
 [[03-Frontend/FE11 - Prototipe Admin proses bisnis (B172)]] (sabuk benda) · **Testing / Summary:** menyusul sesudah render pertama (T97, Summary B173)
 
+> **Status 7 Okt 10.36 WIB: DRAF 6 = kandidat final (skor hype, kresek dihilangkan), QA HIJAU, menunggu acc final
+> builder** ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0c). *(Status 09.57 di bawah: draf 5.)*
 > **Status 7 Okt 09.57 WIB: DRAF 5 SELESAI (103 dtk) dalam tiga versi skor, menunggu builder memilih.** Problem jadi
 > ilustrasi 14 dtk, sertifikat memutar motion aslinya di bawah kamera hero, 20 ring highlight diaudit; A/B/C lulus gerbang
 > ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0b); mp3 untuk didengar ada di `Video-Workspace/Pilihan-Musik/`.
@@ -278,3 +280,6 @@ Total ±5,5 jam kerja saya di luar waktu builder meninjau.
 | 7 Okt 09.25 | (2) motion asli sertifikat direkam frame-exact (316 animasi CSS digeser per frame, 240 frame DPR 2) → hero shot S5: makro medali + blur kedalaman, orbit 3/4, *match cut* medali → koin |
 | 7 Okt 09.30–09.45 | (4) VO baris 1 baru (13,12 dtk, STT 31/31 kata), problem 14,3 dtk = +5 birama tepat; skor A/B/C diperpanjang dengan birama 2-nya sendiri; S1 ditulis ulang (file → edit → kocok → tanya + menunggu → percaya → JUST TRUST IT?); potongan shot jadi relatif ke awal adegan; gerbang durasi 95–110 dtk |
 | 7 Okt 09.48–09.57 | **draf 5** dirender (gambar sekali, skor B/C lewat audio-saja), A/B/C **QA HIJAU** 103,10 dtk · −13,9 LUFS; mp3 di vault diganti versi 103 dtk; tiga pratinjau (20,2 MiB) dikirim |
+| 7 Okt 10.25 | **builder:** draf 5 versi hype "MANTAP BANGET" (→ skor **B hype** dipilih), tapi "ada suara kresek-kresek … satu tempo satu tempo", minta dihilangkan, render ulang, push; plus cek narasi `13-SubmissionDocs` |
+| 7 Okt 10.26–10.36 | diukur: mix clipping di 6 impact slam (flat factor 24) + desis per ketukan di skor hype (+18–21 dB di 5–18 kHz) → `MIX = 0,6` + `soften-music.mjs`; **draf 6** render penuh, QA HIJAU, flat factor 0; `master.mjs` kini menolak input yang sudah clipping (uji merah/hijau); pratinjau dikirim 10.36 |
+| 7 Okt 10.37 | dokumen submission ditinjau → [[00-Overview/08 - Submission Copy]] §"Tinjauan 7 Okt"; revisi di berkas `*-revisi.txt` |

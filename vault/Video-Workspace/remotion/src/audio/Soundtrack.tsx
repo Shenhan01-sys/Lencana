@@ -20,11 +20,15 @@ const PRESENCE: Float32Array = (() => {
   }
   return a
 })()
+// Headroom for the whole mix (draft 6): the render is 16-bit, and in draft 5 the sum of VO + score + the impact slams
+// went past full scale at 6 slams (flat-topped samples, "flat factor" 24). Every source is scaled by the same MIX, so the
+// balance is unchanged; master.mjs brings the loudness back to −14 LUFS afterwards.
+const MIX = 0.6
 const duck = (fr: number) => {
   const v = PRESENCE[Math.max(0, Math.min(TOTAL, Math.round(fr)))] ?? 0
   const fadeIn = Math.min(1, fr / 10)
   // 7 Oct QA: VO −18.2 LUFS vs music ×0.20 −27.2 LUFS (9 dB) → ×0.15 under the voice (≈11.5 dB) for non-native listeners
-  return fadeIn * (0.52 - 0.37 * v)
+  return MIX * fadeIn * (0.52 - 0.37 * v)
 }
 
 type Cue = { at: number, src: string, vol: number }
@@ -160,12 +164,12 @@ export const Soundtrack: React.FC<{ music?: string }> = ({ music = tl.music }) =
       <Audio name="Score" src={staticFile(music)} volume={duck} />
       {LINES.map((id) => (
         <Sequence key={id} name={`VO ${id}`} from={f(voStart(id))} durationInFrames={f(voDur(id)) + 6} layout="none">
-          <Audio src={staticFile(voFile(id))} volume={1} />
+          <Audio src={staticFile(voFile(id))} volume={MIX} />
         </Sequence>
       ))}
       {CUES.map((c, i) => (
         <Sequence key={i} name={`SFX ${c.src}`} from={Math.max(0, c.at)} durationInFrames={fps * 3} layout="none">
-          <Audio src={staticFile(c.src)} volume={c.vol} />
+          <Audio src={staticFile(c.src)} volume={MIX * c.vol} />
         </Sequence>
       ))}
     </>

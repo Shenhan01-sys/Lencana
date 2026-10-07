@@ -1,0 +1,14 @@
+Lencana — course credentials that stand on their own. A micro-course platform whose output is a credential that keeps working after the issuer's website is gone.
+
+The institution publishes the course and its own rubric. Learners sign in with email (a wallet is created for them) and pay by signing, with no gas. Quizzes are graded by the publisher's server; an AI grading agent with its own on-chain identity (ERC-8004) proposes essay scores, which count only after a second reviewer appointed by the publisher approves them. The institution's agent signs; Lencana relays to BNB Chain and pays the gas.
+
+Why it holds:
+1. rubricHash: the grading policy is hashed into every credential, so rules can't change quietly.
+2. attestByDelegation on BNB Attestation Service (public EAS, not ours) keeps the institution's agent as attester.
+3. One free call, statusOf(credentialHash) → exists / revoked / expired / issuerDelisted. No account, no wallet.
+4. Two on-chain Bitstring Status Lists; both hashes timestamped on chain, so a served list can't be retro-dated.
+5. Only identifiers on chain, no names or grades. The Open Badges 3.0 / VC 2.0 document (eddsa-rdfc-2022) is served off chain and passes 1EdTech's OB 3.0 validator: 0 errors, 0 warnings.
+6. Soulbound ERC-721 + ERC-5192 artefact: no sale, transfer or burn; minted only for a live credential.
+7. x402 payments: the payer signs two EIP-712 payloads, zero transactions; SettlementSplit gives the publisher 90%, Lencana 10% (can only be lowered).
+
+Contracts (BSC testnet, chain 97): CredentialResolver 0x7CA624caFDe5cA3A27b33d26be56F73a90792065 · SoulboundCert 0xC6FD12B06e4dB9B85C8C807826998f98DA51c4cd · SettlementSplit 0xcB00E62B888113A1B09Fe9bbd01afC946e8e1bBE. Demo publisher is fictional; payments use a test token. Repo: github.com/Shenhan01-sys/Lencana
