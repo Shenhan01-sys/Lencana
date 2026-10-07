@@ -23,15 +23,16 @@ slide: 11
 
 ## Visual (benda inti)
 
-Kartu penutup yang sama dengan akhir video: logo di atas, tagline, URL + QR, dan **sabuk benda berbaris** di bawahnya
-(courses · enrollment · class & essays · agent grading · review · result · settlement) dengan pantulan — perjalanan
-yang tadi diceritakan, kini diam rapi dalam satu baris.
+Ilustrasi datar (§2 hub). Kartu penutup dengan susunan akhir video: logo di atas, tagline, URL + QR (kisi kotak datar
+dengan **siku emas** di empat sudut), dan **sabuk Admin berbaris** di bawahnya (courses · enrollment · class & essays ·
+agent grading · review · result · settlement; tujuh benda `drawObject`, bayangan datar, tanpa pantulan) — perjalanan
+yang tadi diceritakan, kini rapi dalam satu baris.
 
 ## Gerak
 
-- **Masuk:** tiga blok penuh berurutan **LEARN.** (emas) → **TEST.** (krem) → **PROVE IT.** (hijau), ±0,5 dtk masing-masing
-  (maks 2 per detik), lalu kartu penutup naik.
-- **Terus:** chip "Live now" berdenyut lembut, benda sabuk naik-turun bergantian, QR bersinar tipis.
+- **Masuk:** tiga blok datar penuh berurutan **LEARN.** (emas) → **TEST.** (krem) → **PROVE IT.** (hijau), ±0,5 dtk
+  masing-masing (maks 2 per detik), lalu kartu penutup naik.
+- **Terus:** chip "Live now" berdenyut skala lembut, benda sabuk melompat bergantian, siku QR berdenyut (skala, bukan sinar).
 
 ## Catatan pembicara (±15 dtk)
 
@@ -43,4 +44,4 @@ yang tadi diceritakan, kini diam rapi dalam satu baris.
 Tagline = judul hero beranda; "Live now on BNB Chain testnet" = VO baris 8 video. *Next* = `README.md` ("Self-service
 onboarding … is the roadmap"), Cheat-Sheet ("kunci penerbit demo ada di berkas lokal; di produksi tempatnya di KMS/HSM"),
 B118 F2 (reputasi agen tidak dibaca/ditulis — jangan tulis "reputasi on-chain"). Tautan YouTube diisi setelah video
-diunggah (B65, aksi builder). Aset: video 1:33–1:43, `src/data/qr.json`.
+diunggah (B65, aksi builder). Aset: `web/src/pages/admin-objects.ts:122`, `remotion/src/data/qr.json`.

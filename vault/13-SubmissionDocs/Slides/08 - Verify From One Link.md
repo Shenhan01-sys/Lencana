@@ -21,16 +21,20 @@ slide: 8
 
 ## Visual (benda inti)
 
-Kolom URL bingkai browser mengetik tautan dari QR sertifikat (`?q=0xb9fb06e5…30c31#/verify`), halaman verifikasi asli
-terbuka (`verify-valid.png`) dengan cincin hijau di bilah empat pemeriksaan dan ikon + kata "Valid"; lalu kartu
-**membalik 180°** ke halaman `verify-revoked.png` bercincin merah. Kotak cincin dari `focus.json`: `validChecks`,
-`validVerdict`, `revokedChecks`, `revokedVerdict`.
+Ilustrasi datar (§2 hub). **Bilah URL datar** gaya kolom input FE (`#1e2329`, tepi `#3a414c`, teks mono) mengetik tautan
+dari QR sertifikat (`lencana-psi.vercel.app/?q=0xb9fb06e5…30c31#/verify`). Di bawahnya **kartu verifikasi ilustrasi**:
+empat baris pemeriksaan (ikon bulat + bilah abu + centang hijau) dan chip verdict besar **✓ Valid** — *checked on chain*.
+Kartu **membalik datar** (memipih `scaleX`, bukan perspektif 3D) ke sisi merah: baris status ber-✕, chip
+**✕ No longer valid — revoked**.
+
+**NO WALLET · NO LOGIN** = ikon dompet dan ikon gembok-login dicoret garis merah datar. Kartu validator: **14 kotak kecil**
+terisi hijau satu per satu (satu kotak = satu pemeriksaan), chip `0 errors` · `0 warnings`.
 
 ## Gerak
 
-- **Masuk:** ketikan URL, halaman memudar masuk, cincin hijau menyala.
-- **Micro-beat:** balik kartu valid → revoked (0,4 dtk, *ease in-out*), cincin berganti merah.
-- **Terus:** angka validator menghitung naik ke 14, kotak `0 errors` berdenyut hijau sekali.
+- **Masuk:** ketikan URL, kartu *pop*, baris pemeriksaan tercentang berurutan, tepi kartu menjadi hijau.
+- **Micro-beat:** kartu membalik memipih valid → revoked (0,4 dtk, *ease in-out*), tepi berganti merah.
+- **Terus:** 14 kotak validator terisi berurutan sambil angkanya menghitung naik ke 14, chip `0 errors` berdenyut hijau sekali.
 - **Ke slide 09:** wipe lingkaran emas (babak: bisnis).
 
 ## Catatan pembicara (±25 dtk)
@@ -44,4 +48,4 @@ terbuka (`verify-valid.png`) dengan cincin hijau di bilah empat pemeriksaan dan 
 Validator dijalankan ulang 7 Okt untuk kredensial B153: `VALID · 14 pemeriksaan · 0 error · 0 warning`
 ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §4) — wajib frasa **"passes"**, bukan certified/compatible; pencabutan
 permanen, delisting bisa dipulihkan (dua Bitstring Status List, hash bertanda waktu di chain). Kredensial tercabut
-`0xdbd7c72f…` = kertas uji T40. Aset: video 1:10–1:25.
+`0xdbd7c72f…` = kertas uji T40. Aset: digambar baru; sisipan opsional `verify-valid.png`, `verify-revoked.png`.

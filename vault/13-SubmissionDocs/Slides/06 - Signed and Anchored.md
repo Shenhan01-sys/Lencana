@@ -22,17 +22,23 @@ slide: 6
 
 ## Visual (benda inti)
 
-**Lembar sertifikat asli memutar motion-nya sendiri** (`cert-motion.mp4`, direkam frame-exact dari halaman produksi):
-lingkar medali terbentuk, faset kristal *pop*, skor menghitung 0 → 87, pita turun, QR naik, kilat. Kamera seperti foto
-produk: makro sudut rendah di medali → mundur sambil mengorbit ke sudut 3/4. Hash kredensial mengalir dari bawah plat QR
-ke **bola titik "BNB Chain · testnet"** di kiri bawah.
+Ilustrasi datar (§2 hub). **Sertifikat ilustrasi**, digambar ulang dari tata letak halaman sertifikat (bukan rekaman):
+bidang `#181a20`, bilah judul, **cincin nilai** yang dibagi menjadi busur sebanyak komponen rubrik (panjang busur = bobot
+komponen, baca dari halaman sertifikat kredensial yang dipakai), angka **87** /100 mono, chip `PASSED`, penanda batas
+lulus di cincin, pita emas datar di bawah medali, plat penerbit (bilah + chip `demo publisher`), plat QR (kisi kotak
+datar). Empat label menempel ke bagiannya dengan **garis penunjuk** tipis `#848e9c`.
+
+Di bawah sertifikat, **gerbang saring**: chip `name`, `email`, `grade` memantul di gerbang dengan ✕ merah; hanya chip hash
+mono `0xb9fb06e5…` yang lewat dan mengalir ke **blok datar berantai** berlabel `BNB Chain · testnet` di kiri bawah — label
+*Only identifiers on chain* jadi terlihat, bukan sekadar ditulis.
 
 ## Gerak
 
-- **Masuk:** klip motion sertifikat diputar dari awal saat slide muncul (8 dtk, sekali), cincin emas di plat penerbit,
-  cincin hijau di QR.
-- **Terus:** kilau sertifikat, bola rantai berputar, potongan hash mengalir.
-- **Ke slide 07 (Morph):** medali "87" membesar ke tengah → menjadi **koin soulbound** (sama dengan *match cut* video).
+- **Masuk:** cincin **menggambar dirinya** busur demi busur, skor menghitung 0 → 87, chip PASSED *pop*, pita turun, QR
+  naik — urutan yang sama dengan motion sertifikat produksi, dibuat ulang datar. Cincin fokus emas di plat penerbit,
+  hijau di QR.
+- **Terus:** chip hash terus mengalir ke blok (loop), chip data pribadi terus memantul di gerbang.
+- **Ke slide 07 (Morph):** medali "87" membesar ke tengah → menjadi **koin soulbound datar** (sama dengan *match cut* video).
 
 ## Catatan pembicara (±20 dtk)
 
@@ -43,4 +49,5 @@ ke **bola titik "BNB Chain · testnet"** di kiri bawah.
 
 D54 (kunci penerbit menandatangani); `attestByDelegation` di BAS (EAS publik, **bukan milik kita**); hanya pengenal di
 chain = `README.md` How it works + [[00-Overview/10 - Project Detail (long form) - Copy]] butir 3; "jangan tulis ijazah on-chain /
-stored on-chain" (Cheat-Sheet). Aset: `cert-motion.mp4` (kamera hero = video 0:54–1:00).
+stored on-chain" (Cheat-Sheet). ID kredensial `0xb9fb06e5…` = kredensial B153 yang sama dengan slide 08. Aset: tata letak
+`web/src/pages/certificate-view.ts`; sisipan opsional `cert.png` atau `cert-motion.mp4`.

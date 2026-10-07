@@ -19,15 +19,19 @@ slide: 1
 
 ## Visual (benda inti)
 
-Pecahan kertas krem (sisa sertifikat PDF) melayang dari tepi layar, **berkumpul** menjadi tanda Lencana; cincin titik emas
-mengorbit lalu menyusut ke dalam tanda (sama dengan video detik 0:14). Di bawah wordmark, sabuk benda Admin berbaris
-(buku · tiket · kertas · robot · stempel · medali · koin) dengan pantulan samar. Latar gelap + bokeh emas.
+Ilustrasi datar (§2 hub). Kepingan **poligon krem datar** (`#f3eee2`, tiap keping membawa satu–dua bilah abu = sisa
+sertifikat generik) melayang dari tepi layar dan **berkumpul** menjadi tanda Lencana — persegi emas membulat dengan
+tanda gelap, sama dengan logo di topbar FE. Cincin titik emas datar mengorbit lalu menyusut ke dalam tanda. Di bawah
+wordmark, **sabuk Admin** berbaris di sabuk belang: rak buku · gerbang tiket · meja kertas · robot · meja stempel ·
+perisai lencana · toples (`drawObject`), masing-masing dengan bayangan elips datar `#0f1216`. Latar `#0b0e11` + dua
+lingkaran besar `#181a20` di pojok sebagai kedalaman — tanpa bokeh, tanpa pantulan.
 
 ## Gerak
 
-- **Masuk:** pecahan → tanda (0,6 dtk, *ease-in*), tanda *pop* dengan overshoot, wordmark menyapu dari kiri, judul naik kata per kata.
-- **Terus:** titik emas mengorbit pelan, benda sabuk naik-turun 4 px bergantian, bokeh melayang.
-- **Ke slide 02:** wipe lingkaran emas dari kanan bawah (babak baru: masalah).
+- **Masuk:** kepingan → tanda (0,6 dtk, *ease-in*), tanda *pop* dengan overshoot, wordmark menyapu dari kiri, judul naik kata per kata.
+- **Terus:** belang sabuk berjalan (`ln-belt`), benda kecil melompat antar stasiun (`ln-hopx`), stempel menekan,
+  cincin titik mengorbit pelan.
+- **Ke slide 02:** wipe lingkaran emas datar dari kanan bawah (babak baru: masalah).
 
 ## Catatan pembicara (±15 dtk)
 
@@ -37,4 +41,5 @@ mengorbit lalu menyusut ke dalam tanda (sama dengan video detik 0:14). Di bawah 
 ## Sumber
 
 Judul = hero beranda produksi; acara + track = `README.md:24`; "Live on BNB Chain testnet" = Cheat-Sheet ("prototipe yang
-berjalan di testnet 97"). Aset: cuplikan video `lencana-pitch-draft-7.mp4` 0:14–0:22, `public/captures/landing.png`.
+berjalan di testnet 97"). Aset: benda sabuk `web/src/pages/admin-objects.ts:122`, QR `remotion/src/data/qr.json`;
+sisipan opsional `public/captures/landing.png`.

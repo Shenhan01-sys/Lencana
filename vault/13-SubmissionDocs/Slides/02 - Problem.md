@@ -23,18 +23,24 @@ slide: 2
 
 ## Visual (benda inti)
 
-1. Sertifikat PDF generik krem (bukan milik Lencana) dengan jendela kaca **Edit PDF** melayang 3D di sampingnya; kursor
-   mengilap memilih nama lalu nilai.
-2. Tiga sertifikat yang identik **dikocok** seperti permainan gelas; tiga tanda `?` emas muncul; lensa menyapu.
-3. Garis sirkuit bercahaya dari kartu *Hiring team* ke kartu *The issuer*; amplop berjalan di garis; jam di bawahnya
-   berputar cepat dan nama hari berganti.
+Ilustrasi datar (§2 hub), tiga adegan di satu garis dasar:
+
+1. **Sertifikat generik** krem datar (`#f3eee2`: bilah judul, bilah nama, angka nilai, medali kecil — jelas bukan desain
+   Lencana) dengan **popover edit gaya FE** di sampingnya: kolom input `#1e2329` bertepi `#3a414c`, caret emas, panah
+   kursor datar putih. Stiker jingga `NEW NAME` · `HIGHER SCORE` menempel miring.
+2. **Tiga sertifikat datar identik dikocok** seperti permainan gelas; chip `?` emas di atas masing-masing; ikon kaca
+   pembesar (lingkaran + gagang, garis 4 px) menyapu dan tidak menemukan beda.
+3. **Dua simpul ikon**: *Hiring team* (ikon orang) → *The issuer* (ikon gedung), disambung garis putus-putus `#3a414c`;
+   ikon amplop berjalan di garis; jam datar di bawahnya, jarumnya berputar cepat dan chip hari berganti
+   `Mon → Tue → Wed …`; chip abu `no reply yet`.
 
 ## Gerak
 
-- **Masuk:** tiga adegan muncul berurutan (stagger 200 ms), masing-masing dengan micro-beat-nya: ketikan nama → kocok →
-  amplop berangkat.
-- **Terus:** kursor mengetik ulang, kartu terus dikocok pelan, jam tidak berhenti.
-- **Penutup slide (opsional):** blok merah penuh **JUST TRUST IT?** 0,7 dtk, lalu sertifikat pecah → slide 03.
+- **Masuk:** tiga adegan muncul berurutan (stagger 200 ms), masing-masing dengan micro-beat-nya: nama dihapus lalu
+  diketik ulang → kocok → amplop berangkat.
+- **Terus:** caret mengetik ulang, sertifikat terus dikocok pelan, jarum jam tidak berhenti.
+- **Penutup slide (opsional):** blok merah datar penuh **JUST TRUST IT?** 0,7 dtk, lalu sertifikat **pecah jadi
+  poligon datar** → slide 03.
 
 ## Catatan pembicara (±25 dtk)
 
@@ -47,4 +53,4 @@ slide: 2
 
 README §Why this exists; enam LMS + kutipan Moodle = `12-LMS-References/L1`–`L6`, `L8` (lihat
 [[00-Overview/08 - Submission Copy]] baris bukti). Nama, nilai, dan sertifikat di layar adalah **ilustrasi generik** (VO
-baris 1 video draf 5–7). Aset: cuplikan video 0:00–0:14.
+baris 1 video draf 5–7). Aset: digambar baru (bentuk dasar + ikon datar); tidak ada tangkapan layar di slide ini.

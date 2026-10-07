@@ -12,7 +12,7 @@ slide: 9
 ## Di layar (teks persis)
 
 - Judul: **Every payment, *on-chain*.**
-- Tiga aliran uang (label di kabel):
+- Tiga aliran uang (label di pipa):
   1. **Course payment** — learner signs → `SettlementSplit` → **90% publisher** · **10% Lencana**
      (`platformBps = 1000`, read from the contract · capped at 25% · **can only go down**)
   2. **Verification for machines** — `POST /verify` answers **402**; caller signs two EIP-712 payloads, **zero transactions**;
@@ -23,15 +23,22 @@ slide: 9
 
 ## Visual (benda inti)
 
-Kabel bercahaya dari **koin peserta** ke node **SettlementSplit**; di node koin **terbelah** dua: bagian besar meluncur ke
-penerbit, bagian kecil ke Lencana (dua tabung terisi, 90 vs 10). Di belakang, **sabuk Admin asli bergerak**
-(`admin-belt.mp4`, angka nyata: 8 courses · 13 enrollments · 27 LDC-demo gross) dan halaman **Revenue** (`pub-revenue.png`)
-dengan cincin di *Where the money goes* dan *Paid enrollments* (`focus.json`: `revenueMoney`, `revenueTx`).
+Ilustrasi datar (§2 hub). **Benda `jars()` dari sabuk Admin, diperbesar** jadi pusat slide: ikon peserta (orang + coretan
+tanda tangan) di kiri; koin datar emas meluncur di **pipa belang** ke pembagi `SettlementSplit`, lalu **terbelah**: bagian
+besar jatuh ke toples *publisher* (isi 90%), bagian kecil ke toples *Lencana* (isi 10%). Toples Lencana diberi **garis
+putus jingga di 25%** berlabel `cap 25%` dan panah turun `can only go down` — batas kontraknya terlihat sebagai geometri.
+
+Dua aliran kecil di kanan:
+- **Verifikasi mesin:** ikon server → chip `402` → dua cap tanda tangan → kotak **batch** berisi 25 sel laporan.
+- **Agen penilai:** robot (`robotSvg()`) dengan label tarif + anak tangga `+5% / level`.
+
+Di latar bawah, sabuk Admin datar (digambar ulang `drawObject`, bukan rekaman) dengan angka 7 Okt:
+8 courses · 13 enrollments · 27 LDC-demo gross.
 
 ## Gerak
 
-- **Terus (inti FE Doctrine §3):** koin berjalan di kabel tanpa henti, memantul di node, **terhisap** ke tabung; tabung
-  bergoyang saat terisi.
+- **Terus (inti FE Doctrine §3):** koin terus berjalan di pipa, memantul di pembagi, jatuh (`ln-fall`) ke toples; toples
+  *squash* kecil saat terisi; sel batch terisi satu per satu.
 - **Micro-beat:** angka `platformBps 1000` *slam* lalu panah turun kecil ("only lowerable") berkedip sekali.
 
 ## Catatan pembicara (±25 dtk)
@@ -46,4 +53,6 @@ dengan cincin di *Where the money goes* dan *Paid enrollments* (`focus.json`: `r
 (`contracts/SettlementSplit.sol`); 190.659 gas = 114.728 + 75.931 (`README.md:55`, `signer/src/server.js:230`); titik
 impas ≈ $5,24 per BNB pada 0,1 gwei + bagian 10% ([[00-Overview/10 - Project Detail (long form)]]); batch 25 (`BATCH_MAX`);
 sewa agen B119 (+5%/tingkat); angka Admin = `src/data/admin-summary.json` 7 Okt. "Kami sendiri fasilitator x402" (Cheat-Sheet)
-— jangan tulis "verifikasi berbayar dipakai orang". Aset: video 1:25–1:33.
+— jangan tulis "verifikasi berbayar dipakai orang". Angka sabuk Admin dicetak ulang di hari presentasi (aturan vault #1).
+Aset: `web/src/pages/admin-objects.ts:106` `jars()` + `:122` `drawObject()`, `web/src/robot.ts:70`; sisipan opsional
+`pub-revenue.png`.

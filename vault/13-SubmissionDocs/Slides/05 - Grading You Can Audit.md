@@ -21,16 +21,18 @@ slide: 5
 
 ## Visual (benda inti)
 
-Halaman **Essays** asli dengan **sabuk esai B174 yang bergerak** (`essays-belt.mp4`): baki → **robot pengusul** →
-**meja stempel** → tong. Kertas esai terbang ke robot (`owner2534-look.png` untuk wajah robotnya), angka 98 amber keluar,
-lalu stempel hijau **APPROVED** turun di meja. Cincin amber di stasiun robot, cincin hijau di stasiun final (koordinat dari
-`vault/Video-Workspace/remotion/src/data/focus.json`: `essaysProposed`, `essaysFinal`, `essaysProposal`).
+Ilustrasi datar (§2 hub). **Sabuk esai B174 digambar ulang besar** dari `web/src/pages/essay-belt.ts`: baki kertas →
+**robot pengusul** (rupa agen #2534 dari berkas registrasinya, digambar `robotSvg()`; acuan tampilan `owner2534-look.png`)
+dengan chip `ERC-8004 #2534` → **meja stempel** dengan **robot peninjau** #2542 yang memegang **kunci kedua** (ikon kunci
+emas datar) → tong. Kertas esai melompat ke robot, keluar kertas bernilai dengan chip jingga `98 · proposal`, lalu stempel
+hijau **APPROVED** turun di meja. Di ujung kanan, ikon **kunci penerbit** menandatangani kredensial — terpisah jelas dari
+kedua robot. Cincin fokus datar: jingga di stasiun robot, hijau di meja stempel.
 
 ## Gerak
 
-- **Masuk:** esai terbang melengkung ke robot, robot "berpikir" (lampu kepala berkedip), angka 98 *pop*.
-- **Micro-beat:** stempel jatuh dari atas, *slam*, layar bergetar sesaat, kata APPROVED miring −12°.
-- **Terus:** sabuk esai tetap berjalan (klip loop).
+- **Masuk:** kertas melompat melengkung ke robot (*motion path*), lampu antena robot berkedip ("berpikir"), chip 98 *pop*.
+- **Micro-beat:** stempel turun dan **squash** di meja, kata APPROVED miring −12°.
+- **Terus:** belang sabuk berjalan, stempel menekan berkala (`eb-press` 2,8 dtk).
 
 ## Catatan pembicara (±25 dtk)
 
@@ -42,4 +44,5 @@ lalu stempel hijau **APPROVED** turun di meja. Cincin amber di stasiun robot, ci
 
 Cheat-Sheet: angka model = **usulan** sampai kunci kedua yang ditunjuk penerbit menandatangani (B104/B120 — jangan tulis
 "disahkan manusia"/"mentor"); ERC-8004 #2534/#2542 (B118 F1, D54 — **jangan** sebut reputasi); sewa per aktivitas (B119);
-otak agen + API key tetap di peramban (B135). Aset: `pub-essays.png` + `essays-belt.mp4`, video 0:37–0:54.
+otak agen + API key tetap di peramban (B135). Aset: `web/src/pages/essay-belt.ts:92`, `web/src/robot.ts:70`; sisipan
+opsional `pub-essays.png`.

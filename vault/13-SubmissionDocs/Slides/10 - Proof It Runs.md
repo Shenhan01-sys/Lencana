@@ -28,14 +28,16 @@ slide: 10
 
 ## Visual (benda inti)
 
-**Panel instrumen**: tiga alat ukur bulat (gauge) yang jarumnya naik lalu menyala hijau satu per satu — `e2e`, `journey`,
-`validator` — dengan struk kecil yang keluar dari printer di bawahnya berisi perintahnya (`cd signer && npm run e2e`).
-Alamat kontrak tampil sebagai **blok berantai** di kiri yang tersambung garis tipis ke panel.
+Ilustrasi datar (§2 hub). **Bilah sel uji** (pengganti gauge): tiap pemeriksaan = satu baris berisi chip perintah mono di
+kiri (mis. `cd signer && npm run e2e`) dan **satu sel per tes** yang terisi hijau — `e2e` 48 sel, `journey` 34 sel,
+`validator` 14 sel, `web probe` 267 sel (kisi rapat). Tidak ada sel merah karena gagalnya 0. Alamat kontrak tampil sebagai
+**blok datar berantai** di kiri, tersambung garis tipis ke bilah. Kotak batas: bidang `#181a20` dengan tepi kiri jingga 4 px.
 
 ## Gerak
 
-- **Masuk:** blok kontrak tersusun dari bawah (stagger), jarum gauge berayun dengan overshoot lalu berhenti di hijau.
-- **Terus:** struk perlahan bergulir, lampu hijau bernapas.
+- **Masuk:** blok kontrak tersusun dari bawah (stagger), sel terisi hijau kiri → kanan dengan angka menghitung naik di
+  ujung baris.
+- **Terus:** sel terakhir tiap baris berdenyut skala pelan.
 - **Kotak batas:** muncul terakhir, tanpa animasi berlebihan (tenang = jujur).
 
 ## Catatan pembicara (±20 dtk)

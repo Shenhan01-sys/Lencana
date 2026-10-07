@@ -23,16 +23,21 @@ slide: 7
 
 ## Visual (benda inti)
 
-**Koin soulbound 3D** (dua muka + tepi bergerigi, dari video draf 4–7): muka depan tanda Lencana, belakang
-`SOULBOUND · ERC-5192`, teks lingkar `NON-TRANSFERABLE · CANNOT BE SOLD · CANNOT BE BURNED`. Kursor mencoba menyeret
-koin → koin **memantul kembali** dengan cincin merah (transfer ditolak).
+Ilustrasi datar (§2 hub). **Koin datar tiga nada emas**: lingkaran `#f0b90b`, cincin tepi `#a37a00`, potongan kilap
+`#ffe08a` bersudut tegas; muka depan tanda Lencana, belakang `SOULBOUND · ERC-5192`; teks lingkar
+`NON-TRANSFERABLE · CANNOT BE SOLD · CANNOT BE BURNED`. Putarannya gaya kartun: koin **memipih** (`scaleX` 1 → 0 → −1) dan
+saat menyamping hanya terlihat pita tepi gelap — bukan model 3D. Ikon gembok di atasnya. Panah kursor datar mencoba
+menyeret koin → koin **memantul kembali** (pegas), tepi merah 3 px + chip mono `NotTransferable`.
+
+Di bawah koin, **celah cetak** kecil: chip `revoked`, `expired`, `delisted issuer` memantul dengan ✕ merah; hanya chip
+`✓ valid` yang masuk dan koin keluar — baris *Minted only for a valid credential* jadi terlihat.
 
 ## Gerak
 
-- **Masuk (Morph dari slide 06):** medali sertifikat → koin, berputar cepat lalu melambat.
-- **Micro-beat:** tarikan transfer → pantulan pegas + cincin merah 0,5 dtk.
-- **Terus:** koin berputar pelan (±2,6°/frame di video), tepinya terlihat saat menyamping; kilau menyapu muka.
-- **Opsional:** blok emas penuh **SOULBOUND.** 0,5 dtk sebelum spesifikasi muncul.
+- **Masuk (Morph dari slide 06):** medali sertifikat → koin, berputar memipih cepat lalu melambat.
+- **Micro-beat:** tarikan transfer → pantulan pegas + tepi merah 0,5 dtk.
+- **Terus:** koin berputar memipih pelan; potongan kilap bergeser di muka; chip di celah cetak bergantian memantul.
+- **Opsional:** blok emas datar penuh **SOULBOUND.** 0,5 dtk sebelum spesifikasi muncul.
 
 ## Catatan pembicara (±20 dtk)
 
@@ -43,5 +48,5 @@ koin → koin **memantul kembali** dengan cincin merah (transfer ditolak).
 
 `contracts/SoulboundCert.sol:308`–`326` (`transferFrom`/`safeTransferFrom` → `NotTransferable`; `approve`/
 `setApprovalForAll` → `NotDelegable`), `:331` (`_update` menolak transfer **dan** burn), `:130` (`mint` menolak kredensial
-tidak ada / dicabut / kedaluwarsa / penerbit didelisting / level lesson), `:65` (antarmuka ERC-5192). Aset: video
-1:00–1:08, `out/stills-coin/*.png`.
+tidak ada / dicabut / kedaluwarsa / penerbit didelisting / level lesson), `:65` (antarmuka ERC-5192). Aset: digambar
+baru dari bentuk dasar; acuan nada koin = benda koin `HOP` di `web/src/pages/admin-objects.ts:144`.

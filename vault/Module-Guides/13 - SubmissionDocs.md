@@ -11,7 +11,7 @@ tags: [module, 13]
 - `vault/13-SubmissionDocs/Problem.txt` → reviewed: `Problem-revisi.txt`
 - `vault/13-SubmissionDocs/Solution.txt` → reviewed: `Solution-revisi.txt`
 - `vault/13-SubmissionDocs/Project-Detail-Maks2000chars.txt` → reviewed: `Project-Detail-revisi.txt` (field limit 5,600) and `Project-Detail-ringkas-2000.txt` (if the field is really 2,000)
-- [[13-SubmissionDocs/Slides/00 - Konsep dan Gaya Deck]] — pitch deck script (B175): context + design/motion system + map of the 11 slide files `Slides/01 … 11`
+- [[13-SubmissionDocs/Slides/00 - Konsep dan Gaya Deck]] — pitch deck script (B175): context + design/motion system + map of the 11 slide files `Slides/01 … 11`; since the 7 Oct revision the style is flat illustration in the FE's Admin-belt language (no photo textures, glow or 3D camera), drawn from the FE's own SVG objects
 - `vault/13-SubmissionDocs/YouTube-Caption.txt` — title, description with chapters (from `remotion/src/data/timeline.json`, every chapter ≥ 10 s), tags, optional Indonesian description; written 7 Oct for the B173 pitch video, same claims as its voiceover
 
 ## Key facts

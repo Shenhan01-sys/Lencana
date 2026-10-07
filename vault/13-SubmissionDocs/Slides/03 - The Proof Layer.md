@@ -20,17 +20,23 @@ slide: 3
 
 ## Visual (benda inti)
 
-1. **Segel lilin emas** menekan lembar rubrik di atas angka nilai — keduanya terkunci jadi satu kertas.
-2. **Papan umum** (blok-blok BNB) dengan lampu status: hijau "valid", merah "revoked", amber "issuer delisted".
-3. **Pintu terbuka** berbentuk tautan (ikon rantai) — siapa pun lewat tanpa kunci.
+Ilustrasi datar (§2 hub):
 
-Ketiganya berdiri di atas satu garis dasar (lantai) dengan pantulan, kiri → kanan, tanpa kotak kartu.
+1. **Stempel segel emas datar** (rosette bergerigi tiga nada emas, centang di tengah) menekan lembar rubrik (bilah
+   kriteria) di atas kertas nilai — keduanya menyatu jadi satu lembar dengan chip mono `rubricHash` tercetak di kakinya.
+2. **Papan umum** = deretan blok datar bersambung (rantai), tiap blok membawa chip status **ikon + kata**:
+   hijau `✓ valid`, merah `✕ revoked`, jingga `! issuer delisted`.
+3. **Pintu terbuka** datar dengan ikon tautan (rantai) di daunnya; tiga figur ikon (recruiter, sekolah, siapa saja)
+   lewat tanpa kunci; chip `no account`.
+
+Ketiganya berdiri di satu garis dasar `#2b313a`, kiri → kanan, bayangan datar, tanpa kotak kartu.
 
 ## Gerak
 
-- **Masuk:** segel jatuh dan *thud* (layar bergetar 2 px), lampu papan menyala berurutan, pintu berayun terbuka.
-- **Terus:** lampu papan berkedip pelan bergantian (bukan kilat), cahaya keluar dari pintu bernapas.
-- **Ke slide 04:** wipe lingkaran emas (babak: produk).
+- **Masuk:** stempel jatuh lalu **squash** (memipih, memantul) — tanpa layar bergetar; chip papan menyala berurutan;
+  daun pintu berayun terbuka (skala X datar).
+- **Terus:** chip papan bergantian berdenyut skala 1 → 1,05 (bukan kilat); figur berjalan melewati pintu dalam loop.
+- **Ke slide 04:** wipe lingkaran emas datar (babak: produk).
 
 ## Catatan pembicara (±20 dtk)
 
