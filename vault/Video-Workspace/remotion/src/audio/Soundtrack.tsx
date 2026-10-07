@@ -127,11 +127,11 @@ export const CUES: Cue[] = [
   { at: cue('s8', 'Live'), src: k('spark_ignite_1'), vol: 0.32 },
 ]
 
-export const Soundtrack: React.FC = () => {
+export const Soundtrack: React.FC<{ music?: string }> = ({ music = tl.music }) => {
   const { fps } = useVideoConfig()
   return (
     <>
-      <Audio name="Score" src={staticFile(tl.music)} volume={duck} />
+      <Audio name="Score" src={staticFile(music)} volume={duck} />
       {LINES.map((id) => (
         <Sequence key={id} name={`VO ${id}`} from={f(voStart(id))} durationInFrames={f(voDur(id)) + 6} layout="none">
           <Audio src={staticFile(voFile(id))} volume={1} />

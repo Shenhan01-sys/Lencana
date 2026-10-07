@@ -11,9 +11,10 @@ updated: 2026-10-07
 **Terkait:** [[00-Overview/05 - Demo Scenes]] (rencana lama 5 menit) · [[00-Overview/12 - Business Process]] §9 (naskah 90 detik lama) ·
 [[03-Frontend/FE11 - Prototipe Admin proses bisnis (B172)]] (sabuk benda) · **Testing / Summary:** menyusul sesudah render pertama (T97, Summary B173)
 
-> **Status 7 Okt 08.28 WIB: DRAF 3 (v3 "lebih gila") SELESAI, menunggu builder.** 93,1 dtk, dimaster −14 LUFS, lulus
-> gerbang otomatis sesudah satu perbaikan kedipan ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0, §6); isi v3 di
-> §13. Yang belum: mata + telinga builder atas draf 3, render final, unggah + submit (builder).
+> **Status 7 Okt 08.57 WIB: DRAF 4 SELESAI dalam tiga versi skor, menunggu builder memilih.** Koin soulbound kini benda
+> 3D sungguhan; skor A (sekarang) / B hype / C nusantara pada gambar yang sama, ketiganya lulus gerbang otomatis
+> ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0a). Yang belum: pilihan skor + mata builder atas koin, render
+> final, unggah + submit (builder). *(Status 08.28: draf 3 dikirim — ditonton 08.37.)*
 > *(Status 05.00: draf 2 selesai, menunggu builder mendengar — ditonton 07.10, lihat §13. Status 03.20: rencana saja.)*
 
 ## 0. Permintaan builder
@@ -266,3 +267,7 @@ Total ±5,5 jam kerja saya di luar waktu builder meninjau.
 | 7 Okt 08.17 | **gerbang kedipan merah** di draf 3: wipe emas S4→S5 dan S6→S7 = 7 lonjakan luma per detik (T97 §6) → luas wipe dibuat naik rata, 24 frame; gerbang tidak dilonggarkan; uji segmen 0–1 lonjakan |
 | 7 Okt 08.25 | render ulang draf 3: **QA HIJAU** — 93,10 dtk · −14,0 LUFS · −1,3 dBTP · terbanyak 2 lonjakan per detik · caption 206 kata · nol frasa terlarang (1.701 potong teks) |
 | 7 Okt 08.28 | pratinjau draf 3 (CRF 25, 17,2 MiB) dikirim ke builder |
+| 7 Okt 08.37 | **builder atas draf 3:** "Nice ini dulu"; koin di "NOT JUST ANY NFT" kurang 3D ("depan belakang ada 2D object coin tapi di antara 2 object itu kosong"); "ada usulan backsound ga" |
+| 7 Okt 08.42–08.48 | koin ditulis ulang jadi benda CSS 3D (dua muka di ±tebal/2, tepi 72 faset bergerigi berpencahayaan per normal, teks lingkar berisi klaim §3 baris 5), 10 still sudut kritis, render penuh **draf 4** |
+| 7 Okt 08.45–08.46 | **usulan backsound = tiga versi pada potongan yang sama**: A sekarang (`score-b`, electro-pop peluncuran produk), **B hype** (future bass / electro-pop, drop besar), **C nusantara** (elektronik modern + motif saron/bonang, gong, kendang — identitas Indonesia untuk BNB Hackathon Indonesia). B dan C dibuat `scripts/music-alt.mjs` dengan bagian yang mulai tepat di kata slam; 2.324 kredit |
+| 7 Okt 08.49–08.57 | A/B/C dimaster + QA HIJAU semua (T97 §0a); hanya C yang terukur "menghentak" di slam (+7,3 dB di NO WALLET, +3,0 dB di "Lencana."), tapi intronya hampir sunyi (−40 dB 12 dtk pertama); B paling rapat energinya sejak detik 0; A sudah habis ±89 dtk sementara kartu penutup sampai 93 dtk. Tiga pratinjau dikirim; pilihan = builder |

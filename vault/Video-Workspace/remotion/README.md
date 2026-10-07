@@ -16,11 +16,16 @@ Motion-as-Code kit: voiceover first → word timings → scenes find their words
 | captures of the real site (puppeteer, Chrome 154, 2×) | `CAPTURE_KEYS=<fixture key files> node scripts/capture.mjs [--only …]` | `public/captures/*` |
 | Admin summary numbers | `ADMIN_KEYS=<file> node scripts/admin-summary.mjs <signer>` | `src/data/admin-summary.json` |
 | QR of the live app | `node scripts/qr.mjs` | `src/data/qr.json` |
+| alternative scores on the v3 cut (sections start on the slam words) | `node scripts/music-alt.mjs --style hype\|nusantara [--dry]` | `public/music/alt-<style>.mp3` + `.plan.json` |
+| audition a score without re-rendering pictures | `npx remotion render LencanaPitch out/audio-x.wav --codec=wav --props='{"music":"music/alt-hype.mp3"}'`, then `ffmpeg -i out/draft.mp4 -i out/audio-x.wav -map 0:v -map 1:a -c:v copy -c:a pcm_s16le out/x-raw.mov` and master it | `out/` |
 | stills for review | `node scripts/stills.mjs s=4.5,11.3` | `out/stills/` |
 | render | `npx remotion render LencanaPitch out/draft.mp4 --crf=18 --gl=angle` | `out/` |
 | master (−14 LUFS, ≤ −1.5 dBTP) | `node scripts/master.mjs out/draft.mp4 out/lencana-pitch.mp4` | `out/` |
 | gate (AC-B173 #1 #3 #4 #7 #8) | `node scripts/qa.mjs out/lencana-pitch.mp4` | report |
 
+Draft 4 (7 Oct): real 3D soulbound coin; three score versions on the same picture — `out/lencana-pitch-draft-4.mp4`
+(A, `score-b`), `…-draft-4-hype.mp4` (B), `…-draft-4-nusantara.mp4` (C), all QA green (T97 §0a). The builder picks
+one; then set `music` in `src/data/timeline.json` to it so a plain render uses it.
 Draft 3 (v3, 7 Oct): `out/lencana-pitch-draft-3.mp4` — 93.1 s, QA green (T97 §0). Full-screen colour blocks and the gold
 wipe are bounded by gate #8: keep a wipe's covered area moving at an even rate (`CircleWipe` in `src/components/Stage.tsx`)
 and at most two hard colour cuts per second.

@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-07
 command: cd vault/Video-Workspace/remotion && node scripts/qa.mjs out/lencana-pitch-draft-3.mp4 · node scripts/vo-check.mjs · cd signer && npm run e2e · npm run journey · BASE_URL=<host tepi> node scripts/validator-check.js --hash <B153> --record
 measured: 2026-10-07
-result: QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
+result: QA HIJAU draf 4 (08.49–08.55) — koin 3D asli, tiga versi skor A/B/C pada gambar yang sama, ketiganya 93,0–93,1 dtk · −14,0 LUFS · TP −1,3/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · nol frasa terlarang (1.741 potong teks); skor B/C dibuat 08.46 (2.324 kredit ElevenLabs), nol kata vokal (STT). Sebelumnya QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
 ---
 
 # T97 - Uji video pitch 90 detik (B173)
@@ -21,6 +21,42 @@ cek dengar `node scripts/vo-check.mjs`, musik `node scripts/music.mjs`, ketukan 
 baris ini sempat menulis `--crf=20`; README dan semua render memakai 18)*, master
 `node scripts/master.mjs out/draft.mp4 out/lencana-pitch.mp4`, gerbang `node scripts/qa.mjs out/lencana-pitch.mp4`.
 Sejak v3 juga `node scripts/splice-music.mjs` (menyisipkan birama utuh ke musik bila VO memanjang).
+
+## 0a. Draf 4 — koin 3D + tiga pilihan skor (7 Okt 08.37–08.57 WIB)
+
+**Pemicu (builder 08.37):** "untuk bagian not just any NFT, itu bentukan coinnya kurang 3D … cuma bagian depan belakang
+ada 2D object coin tapi di antara 2 object itu kosong" + "ada usulan backsound ga". Koin lama memang palsu: muka
+dipipihkan `scaleX(|cos θ|)` dan "tebal" hanya elips datar yang digeser — saat menyamping terlihat dua irisan dengan celah.
+Kini `src/components/Coin.tsx` = benda CSS 3D: dua muka di ±tebal/2 (tebal 8,5% diameter), tepi 72 faset bergerigi,
+tiap faset diberi cahaya Lambert + kilap dari normalnya sendiri, kemiringan −12°, bayangan kontak, teks lingkar
+(depan "LENCANA · SOULBOUND BADGE · BNB CHAIN TESTNET", belakang "NON-TRANSFERABLE · CANNOT BE SOLD · CANNOT BE
+BURNED" — klaim yang sama dengan VO baris 5, sumber di rencana §3). Diperiksa di 10 still pada sudut kritis
+(menyamping 52,7 dtk dan 57,4 dtk, miring, depan, belakang) sebelum render penuh.
+
+**Skor.** `node scripts/music-alt.mjs --style hype|nusantara` — rencana 12 bagian yang **mulai tepat di kata slam**
+(SOULBOUND 51,19 · NO WALLET 63,71 · bangunan akhir 80,55 · "Lencana." 83,60 · kartu penutup 87,18; semua dibaca dari
+`vo.json`, tiap bagian 3–120 dtk sesuai syarat API). Kredit: 1.361 → 3.685 dari 40.000 (dua skor = 2.324). Pengukuran
+(tanpa telinga):
+
+| ukuran | A sekarang (`score-b`) | B hype | C nusantara |
+|---|---|---|---|
+| tempo (`beats.mjs`, lalu `beats.json` dipulihkan ke `score-b`) | 119,76 BPM, ketukan pertama 0,045 dtk | 119,76 · 0,04 | 119,76 · 0,04 |
+| energi rata-rata per bagian (RMS dBFS): Problem / Learn / SOULBOUND / NO WALLET / Name drop / Outro | −23,4 / −14,8 / −13,7 / −13,2 / −14,6 / −23,1 | −16,2 / −16,4 / −15,1 / −13,5 / −14,2 / −17,5 | −40,7 / −20,4 / −13,8 / −10,8 / −10,1 / −21,3 |
+| loncatan di detik slam (1 dtk sesudah vs sebelum): 51,19 / 63,71 / 83,60 | +0,2 / +0,1 / −2,1 dB | −0,9 / +0,9 / 0,0 dB | +0,2 / **+7,3** / **+3,0** dB |
+| ekor (RMS per 0,5 dtk dari 88 dtk) | −23 → −46 → −59 (sudah habis ±89 dtk) | −16 → −14 → −18 → −40 (penuh sampai ±90 dtk) | −18 → −26 → −36 → −49 |
+| vokal tersembunyi (STT `scribe_v1`) | 0 kata | 0 kata | 0 kata |
+
+Video: gambar dirender sekali (`out/draft-4.mp4`), skor B/C ditukar lewat prop komposisi baru `music` dan render
+audio-saja (`--codec=wav --props`, 133 dtk per versi), ditempel ke gambar yang sama (`-c:v copy`), lalu dimaster.
+
+| `node scripts/qa.mjs …` | durasi | loudness | true peak | kedipan | caption | frasa terlarang |
+|---|---|---|---|---|---|---|
+| `out/lencana-pitch-draft-4.mp4` (A) | 93,10 dtk | −14 LUFS | −1,3 dBTP | terbanyak 2 lonjakan | 206 kata · 46 px · 10,5/16,0/7,4 : 1 | 0 dari 1.741 |
+| `out/lencana-pitch-draft-4-hype.mp4` (B) | 93,00 dtk | −14 LUFS | −1,4 dBTP | terbanyak 2 lonjakan | sama | 0 dari 1.741 |
+| `out/lencana-pitch-draft-4-nusantara.mp4` (C) | 93,00 dtk | −14 LUFS | −1,3 dBTP | terbanyak 2 lonjakan | sama | 0 dari 1.741 |
+
+Semua **QA HIJAU**. Temuan kecil: penempelan pertama memakai `-shortest` dan membuang frame terakhir (2.789 frame) →
+diulang tanpa itu (2.790). Pratinjau CRF 25 (17,4 MiB masing-masing) dikirim 08.57; **pilihan skor = keputusan builder**.
 
 ## 0. Draf 3 (v3) — `node scripts/qa.mjs out/lencana-pitch-draft-3.mp4` (7 Okt 08.25 WIB, render kedua draf 3)
 
@@ -158,7 +194,8 @@ tangkapan — sesi itu hanya membaca) → dibersihkan `npm run cleanup -- --appl
 ## 7. Belum
 
 - ~~Telinga builder atas draf 2 (suara, musik)~~ → 7 Okt 07.10: "overall bagus dan udah sangat oke, tapi masih bisa di
-  push lebih gila lagi" + tiga permintaan → draf 3. Telinga + mata builder atas **draf 3** — AC-B173#12.
+  push lebih gila lagi" + tiga permintaan → draf 3. ~~Telinga + mata builder atas draf 3~~ → 08.37: "Nice ini dulu" +
+  koin kurang 3D + minta usulan backsound → draf 4 (§0a). **Pilihan skor A/B/C** + mata builder atas koin 3D — AC-B173#12.
 - Render final + unggah + submit — builder (B65/B64), AC-B173#13.
 - Catatan halus draf 3 (belum diubah): selama setengah pertama wipe, sisi layar yang belum tertutup sudah menampilkan
   adegan berikutnya yang mulai masuk (tumpang-tindih adegan `XF` = 8 frame vs pertumbuhan wipe 12 frame).

@@ -20,7 +20,7 @@ const SCENES: Array<[LineId, React.FC]> = [
 ]
 
 /** B173 — Lencana 90-second pitch. One timeline: scenes by the VO, captions from the script, sound from the cue sheet. */
-export const Pitch: React.FC = () => {
+export const Pitch: React.FC<{ music: string }> = ({ music }) => {
   const { fps } = useVideoConfig()
   return (
     <AbsoluteFill style={{ backgroundColor: C.bg }}>
@@ -34,7 +34,7 @@ export const Pitch: React.FC = () => {
       <CircleWipe at={SCENE.s5.start} from={[220, 900]} to={[1700, 180]} />
       <CircleWipe at={SCENE.s7.start} />
       <Captions />
-      <Soundtrack />
+      <Soundtrack music={music} />
     </AbsoluteFill>
   )
 }
