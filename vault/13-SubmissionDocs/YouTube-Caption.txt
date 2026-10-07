@@ -1,0 +1,50 @@
+=== JUDUL (maks 100 karakter) ===
+Lencana — learning credentials anyone can check for themselves (BNB Chain testnet)
+
+=== DESKRIPSI (tempel apa adanya) ===
+A certificate is just a file. Anyone can edit it. Lencana turns a finished micro-course into a credential anyone can check for themselves, without taking our word for it.
+
+What you see in the video (screens from the live testnet app):
+• Sign in with just your email: a wallet is created for you.
+• Pay for a course by signing, with no gas fees (a test token on BNB Chain testnet).
+• Quizzes are graded by the publisher's server. Essays go to AI grading agents, each with its own on-chain identity (ERC-8004); an agent's score only counts once a second reviewer, appointed by the publisher, approves it.
+• Pass, and your credential is signed by the publisher and anchored on BNB Chain.
+• Mint its soulbound badge (ERC-5192): no one can sell, transfer or burn it, and it is only minted for a valid credential.
+• Anyone can verify it from a single link, with no wallet and no login. If it is ever revoked, everyone sees it.
+• The credential passes the 1EdTech Open Badges 3.0 validator with zero errors.
+• Behind it, one transparent pipeline: from enrollment to payout, every payment is settled on-chain.
+
+Try it: https://lencana-psi.vercel.app
+Code: https://github.com/Shenhan01-sys/Lencana
+
+Chapters
+0:00 The problem: a certificate is just a file
+0:14 Meet Lencana: sign in with email, pay by signing, learn
+0:37 AI grading agents and a second reviewer
+0:54 Signed, anchored on BNB Chain, soulbound badge
+1:10 Verify from one link: no wallet, no login
+1:25 One transparent pipeline, live on testnet
+
+Honest labels: Lencana runs on BNB Chain testnet (chain 97). The publisher in the demo is fictional, and payments use a test token. The generic certificate, names and grades in the opening are illustrations.
+
+Made with Remotion. Voiceover and music generated with ElevenLabs.
+
+#BNBChain #OpenBadges #EdTech
+
+=== TAG (kolom "Tags" YouTube, dipisah koma) ===
+Lencana, BNB Chain, BNB Smart Chain testnet, verifiable credentials, Open Badges 3.0, soulbound token, ERC-5192, ERC-8004, AI grading agents, micro-courses, edtech, credential verification, BNB Attestation Service, x402, web3 education
+
+=== DESKRIPSI BAHASA INDONESIA (opsional — fitur terjemahan YouTube, atau komentar yang disematkan) ===
+Sertifikat itu cuma berkas. Siapa pun bisa mengeditnya. Lencana mengubah kursus singkat yang selesai menjadi kredensial yang bisa dicek sendiri oleh siapa pun, tanpa harus percaya pada kami.
+
+Yang ada di video (layar asli aplikasi testnet):
+• Masuk cukup dengan email: dompetnya dibuatkan otomatis.
+• Bayar kursus cukup dengan tanda tangan, tanpa biaya gas (token uji di BNB Chain testnet).
+• Kuis dinilai server penerbit. Esai dinilai agen AI yang punya identitas on-chain sendiri (ERC-8004); nilai agen baru berlaku setelah reviewer kedua yang ditunjuk penerbit menyetujuinya.
+• Lulus, kredensialmu ditandatangani penerbit dan dicatat di BNB Chain.
+• Cetak badge soulbound-nya (ERC-5192): tidak bisa dijual, dipindahkan, atau dibakar, dan hanya dicetak untuk kredensial yang sah.
+• Siapa pun bisa memverifikasi dari satu tautan, tanpa dompet dan tanpa login. Kalau dicabut, semua orang melihatnya.
+• Kredensialnya lolos validator 1EdTech Open Badges 3.0 dengan nol error.
+• Di baliknya satu alur yang transparan: dari pendaftaran sampai pembayaran, setiap pembayaran diselesaikan on-chain.
+
+Label jujur: Lencana berjalan di BNB Chain testnet (chain 97). Penerbit di demo fiktif, dan pembayarannya memakai token uji.

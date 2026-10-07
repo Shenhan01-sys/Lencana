@@ -4,7 +4,7 @@ status: active
 updated: 2026-10-07
 command: cd vault/Video-Workspace/remotion && node scripts/qa.mjs out/lencana-pitch-draft-5.mp4 · node scripts/focus-audit.mjs · node scripts/vo-check.mjs · cd signer && npm run e2e · npm run journey · BASE_URL=<host tepi> node scripts/validator-check.js --hash <B153> --record
 measured: 2026-10-07
-result: QA HIJAU draf 6 (10.34, skor hype pilihan builder) — 103,10 dtk · −13,9 LUFS · TP −1,2 dBTP · flat factor 0 (draf 5 clipping di 6 slam, flat factor 24 → MIX 0,6 + skor dihaluskan) · nol frasa terlarang (2.139 teks). Sebelumnya QA HIJAU draf 5 (09.48–09.53) — problem 14,3 dtk, sertifikat bergerak (240 frame, 316 animasi digeser), 20 ring highlight diaudit (6 diperbaiki); A/B/C 103,10 dtk · −13,9 LUFS · TP −1,2/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · caption 227 kata · nol frasa terlarang (2.139 teks); gerbang durasi 95–110 dtk atas keputusan builder. Sebelumnya QA HIJAU draf 4 (08.49–08.55) — koin 3D asli, tiga versi skor A/B/C pada gambar yang sama, ketiganya 93,0–93,1 dtk · −14,0 LUFS · TP −1,3/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · nol frasa terlarang (1.741 potong teks); skor B/C dibuat 08.46 (2.324 kredit ElevenLabs), nol kata vokal (STT). Sebelumnya QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
+result: QA HIJAU draf 7 (11.03) — skor hype; 37 dari 127 cue SFX dihapus (9 berkas kit yang clipping di sumbernya, keputusan builder, tanpa pengganti); 103,10 dtk · −13,9 LUFS · TP −1,4 dBTP · puncak input −4,99 dBFS · nol frasa terlarang (2.148 teks). Sebelumnya QA HIJAU draf 6 (10.34, skor hype pilihan builder) — 103,10 dtk · −13,9 LUFS · TP −1,2 dBTP · flat factor 0 (draf 5 clipping di 6 slam, flat factor 24 → MIX 0,6 + skor dihaluskan) · nol frasa terlarang (2.139 teks). Sebelumnya QA HIJAU draf 5 (09.48–09.53) — problem 14,3 dtk, sertifikat bergerak (240 frame, 316 animasi digeser), 20 ring highlight diaudit (6 diperbaiki); A/B/C 103,10 dtk · −13,9 LUFS · TP −1,2/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · caption 227 kata · nol frasa terlarang (2.139 teks); gerbang durasi 95–110 dtk atas keputusan builder. Sebelumnya QA HIJAU draf 4 (08.49–08.55) — koin 3D asli, tiga versi skor A/B/C pada gambar yang sama, ketiganya 93,0–93,1 dtk · −14,0 LUFS · TP −1,3/−1,4/−1,3 dBTP · terbanyak 2 lonjakan luma per detik · nol frasa terlarang (1.741 potong teks); skor B/C dibuat 08.46 (2.324 kredit ElevenLabs), nol kata vokal (STT). Sebelumnya QA HIJAU (draf 3 / v3, sesudah master, 08.25) — 1920×1080 · 30 fps · H.264+AAC · 93,1 dtk · −14,0 LUFS · true peak −1,3 dBTP · lonjakan luma terbanyak 2 per detik · caption 206 kata, kontras ≥ 7,4:1 · nol frasa terlarang (1.701 potong teks); render pertama draf 3 MERAH di kedipan (wipe emas) → diperbaiki di transisinya, bukan di gerbangnya. Draf 2: QA HIJAU 89,1 dtk; jalur merah terbukti; validator 1EdTech VALID 14/0/0; e2e 48/0; journey 34/0; cleanup sisa 0
 ---
 
 # T97 - Uji video pitch 90 detik (B173)
@@ -21,6 +21,45 @@ cek dengar `node scripts/vo-check.mjs`, musik `node scripts/music.mjs`, ketukan 
 baris ini sempat menulis `--crf=20`; README dan semua render memakai 18)*, master
 `node scripts/master.mjs out/draft.mp4 out/lencana-pitch.mp4`, gerbang `node scripts/qa.mjs out/lencana-pitch.mp4`.
 Sejak v3 juga `node scripts/splice-music.mjs` (menyisipkan birama utuh ke musik bila VO memanjang).
+
+## 0d. Draf 7 — efek bunyi yang pecah di sumbernya dihapus (7 Okt 10.4x–11.06 WIB)
+
+**Pemicu:** builder ±10.43 atas draf 6: "kresek soundnya belum hilang … di bagian coin … 'no one can sell it', '…or
+transfer it', '…or burn it' ada sound effect yang suaranya kayak rusak/crash … konfirmasi dan jangan edit apapun";
+10.47 "identifikasi … di footage mana aja"; 10.50 "yang mengarah ke bagian akhir video?"; 10.52 minta `reverse_suck_1` ke
+vault untuk didengar; 10.57 "kok ga cocok ya … mending dihilangkan aja, ga perlu dicariin pengganti, lalu render" →
+dipastikan lewat pertanyaan pilihan: **8 berkas berat + `reverse_suck_1`**.
+
+**Konfirmasi (tanpa edit):** penyebabnya **berkas SFX kit Motion-as-Code yang sudah clipping di sumbernya** — distorsi
+ikut di bentuk gelombangnya, jadi MIX 0,6 di draf 6 tidak menghilangkannya. Ukuran per berkas (didekode 44,1 kHz;
+"run" = sampel berturut-turut ≥ 0,98 skala penuh):
+
+| berkas | ukuran | dipakai | keputusan |
+|---|---|---|---|
+| `impact_slam_1` | puncak −0,19 dBFS, 3.539 sampel di batas, run **387** | 10× (semua slam layar penuh, "Lencana.", LEARN/TEST/PROVE IT) | dihapus |
+| `whoosh_soft_1` | +0,40 dBFS, 2.121 sampel, run **232** | 10× (transisi shot) | dihapus |
+| `impact_small_1` | −0,79 dBFS, 860 sampel, run **304** | 1× (cap APPROVED) | dihapus |
+| `zap_slash_1` | **+1,12** dBFS, 719 sampel | 4× (kuis "never", label koin sell + burn, REVOKED) | dihapus |
+| `riser_1` | +1,36 dBFS, 347 sampel | 1× ("Then mint") | dihapus |
+| `spark_ignite_1` | +0,68 dBFS, 296 sampel | 4× | dihapus |
+| `spark_zip_1` | +1,14 dBFS, 140 sampel | 3× | dihapus |
+| `enter_key_1` | +0,78 dBFS, 166 sampel, run 16 | 1× ("saved") | dihapus |
+| `reverse_suck_1` | +0,67 dBFS, 38 sampel (ringan) | 3× | dihapus (telinga builder: "ga cocok") |
+| 7 berkas ringan lain (`whoosh_fast_1/2`, `pen_tick_1`, `projector_run_1`, `typewriter_2`, `falling_pieces_1`, `spark_sizzle_1`) | puncak sedikit lewat 0 dBFS, sedikit sampel | 22× | **tetap** (keputusan builder) |
+
+Semua SFX pustaka Remotion (`rm/*.wav`) bersih (puncak ±−3 dBFS). Detik + footage tiap pemakaian dihitung dengan
+mengevaluasi `CUES` asli (bukan diketik ulang) — daftar lengkapnya ada di laporan ke builder 10.47–10.50.
+
+**Perubahan:** `Soundtrack.tsx` `BROKEN` — daftar tolak sembilan berkas, disaring saat render; baris cue-nya tetap ada
+supaya lembar cue masih menyebut apa yang dulu terjadi di tiap momen. **37 dari 127 cue** tersaring, 90 tersisa.
+
+`node scripts/master.mjs out/draft-7.mp4 …` → `input peak -4.99456 dBFS (headroom ok)`; `node scripts/qa.mjs
+out/lencana-pitch-draft-7.mp4` (11.03): 103,10 dtk · **−13,9 LUFS** · **TP −1,4 dBTP** · terbanyak 2 lonjakan luma per
+detik · caption 227 kata · nol frasa terlarang (2.148 teks) → **QA HIJAU**. Puncak 0,35 dtk sesudah tiap momen yang
+dihapus (master draf 6 → draf 7, mono): JUST A FILE −3,7 dB · JUST TRUST IT? −3,0 · kuis −2,4 · SOULBOUND −1,1 · label
+koin −1,2 / −1,4 · NO WALLET −1,4 · NO LOGIN −1,0 · LEARN −3,4 · TEST −4,7 · PROVE IT −2,5 · kartu penutup −1,1; di 14,73
+dan 93,63 tidak berubah karena puncaknya di sana VO ("Meet", "Lencana.") dan pukulan musik, bukan efek. Pratinjau
+20,6 MiB dikirim 11.06; `Pilihan-Musik/5-B-hype-dengan-VO.mp3` = mix draf 7.
 
 ## 0c. Draf 6 — skor hype dipilih, "kresek" dihilangkan (7 Okt 10.25–10.36 WIB)
 
@@ -279,8 +318,9 @@ tangkapan — sesi itu hanya membaca) → dibersihkan `npm run cleanup -- --appl
 - ~~Telinga builder atas draf 2 (suara, musik)~~ → 7 Okt 07.10: "overall bagus dan udah sangat oke, tapi masih bisa di
   push lebih gila lagi" + tiga permintaan → draf 3. ~~Telinga + mata builder atas draf 3~~ → 08.37: "Nice ini dulu" +
   koin kurang 3D + minta usulan backsound → draf 4 (§0a) → 09.11: mp3 ke vault, sertifikat bergerak, audit highlight,
-  problem +10 dtk → draf 5 (§0b) → 10.25: skor **hype** dipilih ("MANTAP BANGET") + hilangkan kresek → draf 6 (§0c).
-  Acc builder atas draf 6 sebagai render final — AC-B173#12(d).
+  problem +10 dtk → draf 5 (§0b) → 10.25: skor **hype** dipilih ("MANTAP BANGET") + hilangkan kresek → draf 6 (§0c)
+  → 10.4x: kresek masih ada (SFX yang clipping di sumbernya) → 10.57 hapus tanpa pengganti → draf 7 (§0d).
+  Acc builder atas draf 7 sebagai render final — AC-B173#12(d).
 - Render final + unggah + submit — builder (B65/B64), AC-B173#13.
 - Catatan halus draf 3 (belum diubah): selama setengah pertama wipe, sisi layar yang belum tertutup sudah menampilkan
   adegan berikutnya yang mulai masuk (tumpang-tindih adegan `XF` = 8 frame vs pertumbuhan wipe 12 frame).

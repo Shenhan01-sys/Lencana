@@ -11,8 +11,9 @@ updated: 2026-10-07
 **Terkait:** [[00-Overview/05 - Demo Scenes]] (rencana lama 5 menit) · [[00-Overview/12 - Business Process]] §9 (naskah 90 detik lama) ·
 [[03-Frontend/FE11 - Prototipe Admin proses bisnis (B172)]] (sabuk benda) · **Testing / Summary:** menyusul sesudah render pertama (T97, Summary B173)
 
-> **Status 7 Okt 10.36 WIB: DRAF 6 = kandidat final (skor hype, kresek dihilangkan), QA HIJAU, menunggu acc final
-> builder** ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0c). *(Status 09.57 di bawah: draf 5.)*
+> **Status 7 Okt 11.06 WIB: DRAF 7 = kandidat final** (skor hype; 37 bunyi efek kit yang clipping di sumbernya dihapus
+> tanpa pengganti), QA HIJAU, menunggu acc final builder ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0d).
+> *(Status 10.36: draf 6 — kresek belum hilang semua. Status 09.57 di bawah: draf 5.)*
 > **Status 7 Okt 09.57 WIB: DRAF 5 SELESAI (103 dtk) dalam tiga versi skor, menunggu builder memilih.** Problem jadi
 > ilustrasi 14 dtk, sertifikat memutar motion aslinya di bawah kamera hero, 20 ring highlight diaudit; A/B/C lulus gerbang
 > ([[09-Testing/T97 - Uji video pitch 90 detik (B173)]] §0b); mp3 untuk didengar ada di `Video-Workspace/Pilihan-Musik/`.
@@ -283,3 +284,5 @@ Total ±5,5 jam kerja saya di luar waktu builder meninjau.
 | 7 Okt 10.25 | **builder:** draf 5 versi hype "MANTAP BANGET" (→ skor **B hype** dipilih), tapi "ada suara kresek-kresek … satu tempo satu tempo", minta dihilangkan, render ulang, push; plus cek narasi `13-SubmissionDocs` |
 | 7 Okt 10.26–10.36 | diukur: mix clipping di 6 impact slam (flat factor 24) + desis per ketukan di skor hype (+18–21 dB di 5–18 kHz) → `MIX = 0,6` + `soften-music.mjs`; **draf 6** render penuh, QA HIJAU, flat factor 0; `master.mjs` kini menolak input yang sudah clipping (uji merah/hijau); pratinjau dikirim 10.36 |
 | 7 Okt 10.37 | dokumen submission ditinjau → [[00-Overview/08 - Submission Copy]] §"Tinjauan 7 Okt"; revisi di berkas `*-revisi.txt` |
+| 7 Okt 10.4x–10.57 | **builder:** kresek masih ada di label koin + di akhir; "konfirmasi, jangan edit" → terukur: 16 berkas SFX kit clipping di sumbernya (59 cue), detik + footage dipetakan dari `CUES` asli; `reverse_suck_1` dikirim ke vault untuk didengar; 10.57 "mending dihilangkan aja, ga perlu dicariin pengganti" → dipilih: 8 berkas berat + `reverse_suck_1` |
+| 7 Okt 11.03–11.06 | **draf 7**: `BROKEN` di `Soundtrack.tsx` menyaring 37 dari 127 cue; QA HIJAU 103,10 dtk · −13,9 LUFS · TP −1,4; pratinjau dikirim. B174 juga terbukti terbaca di produksi (11.00) → AC-B174#8 PASS |

@@ -26,7 +26,9 @@ nol galat konsol · `tsc` 0 · `build` 0 · `probe` 267/0.
 
 ## 3. Status
 
-SELESAI di kode (commit lokal); LIVE menunggu dorongan atas kata builder (AC-B174#8).
+**LIVE 7 Okt 11.00** — didorong atas kata builder ("push commit sisanya", `46ed3eb..534f74d`); kartu sabuk terbaca di
+produksi sebagai penerbit (0 / 3 / 6 / 0, nol galat, bundle `index-DjN5Jh40.js`) → AC-B174#8 PASS.
+*(Sebelumnya: SELESAI di kode, commit lokal; LIVE menunggu dorongan.)*
 
 ## 4. Risiko tersisa
 

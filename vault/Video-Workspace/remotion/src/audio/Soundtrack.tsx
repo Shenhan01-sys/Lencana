@@ -35,6 +35,15 @@ type Cue = { at: number, src: string, vol: number }
 const k = (name: string) => `sfx/kit/${name}.mp3`
 const rm = (name: string) => `sfx/rm/${name}.wav`
 
+/**
+ * Kit files that are clipped in the SOURCE (measured 7 Oct, decoded at 44.1 kHz): their "crash/kresek" survives any
+ * volume. Builder 7 Oct, after hearing them at the coin labels and at the end card: remove them, no replacement.
+ * impact_slam_1 flat-topped 387 samples · whoosh_soft_1 232 · impact_small_1 304 · zap_slash_1 +1.12 dBFS, 719 at full
+ * scale · riser_1 +1.36 dBFS · spark_ignite_1 +0.68 · spark_zip_1 +1.14 · enter_key_1 +0.78 · reverse_suck_1 (+0.67,
+ * the builder's ear: "doesn't fit"). The cues stay listed below so the sheet still says what each moment was.
+ */
+const BROKEN = new Set(['impact_slam_1', 'whoosh_soft_1', 'impact_small_1', 'zap_slash_1', 'riser_1', 'spark_ignite_1', 'spark_zip_1', 'enter_key_1', 'reverse_suck_1'].map(k))
+
 export const CUES: Cue[] = [
   // S1 — the problem (draft 5): file, edit, which one is edited, asking + waiting, everyone just trusts it
   { at: cue('s1', 'file.'), src: k('impact_slam_1'), vol: 0.5 },
@@ -167,7 +176,7 @@ export const Soundtrack: React.FC<{ music?: string }> = ({ music = tl.music }) =
           <Audio src={staticFile(voFile(id))} volume={MIX} />
         </Sequence>
       ))}
-      {CUES.map((c, i) => (
+      {CUES.filter((c) => !BROKEN.has(c.src)).map((c, i) => (
         <Sequence key={i} name={`SFX ${c.src}`} from={Math.max(0, c.at)} durationInFrames={fps * 3} layout="none">
           <Audio src={staticFile(c.src)} volume={MIX * c.vol} />
         </Sequence>

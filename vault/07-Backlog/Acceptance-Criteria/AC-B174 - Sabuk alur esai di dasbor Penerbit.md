@@ -22,4 +22,4 @@ lalu generate ulang videonya".
 | AC-B174#5 | gerak bermakna (sabuk berjalan, kertas berpindah tahap, stempel menekan), hanya `transform`, padam bila `prefers-reduced-motion` | **PASS** 7 Okt (animasi terbaca: `eb-hopx` ×2, `eb-press`) | T98 langkah 1; `web/src/pages/essay-belt.css` |
 | AC-B174#6 | ponsel 390 px: 2 × 2 tanpa sabuk, tanpa gulir samping | **PASS** 7 Okt | T98 langkah 3 |
 | AC-B174#7 | gerbang: `tsc` 0, `build` 0, `probe` 267/0, `check:labels` + `audit` bersih, nol galat konsol | **PASS** 7 Okt | T98 §gerbang |
-| AC-B174#8 | LIVE: sesudah dorongan, kartu terbaca di produksi | **TERBUKA** | dorongan atas kata builder |
+| AC-B174#8 | LIVE: sesudah dorongan, kartu terbaca di produksi | **PASS** 7 Okt 11.00 — didorong 10.4x atas kata builder (`46ed3eb..534f74d`) | uji peramban hanya-baca di `lencana-psi.vercel.app/#/app/pub/essays` sebagai penerbit (kunci dari `app/.env`, tidak dicetak): `.eb-line` tampil dalam 12 dtk, empat stasiun 0 / 3 / 6 / 0 (sama dengan T98), stepper lama tidak ada, nol galat halaman, bundle `index-DjN5Jh40.js` |
